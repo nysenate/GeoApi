@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.nysdmv.com/DMVAMSWS/" xmlns:dmvamsws="http://www.nysdmv.com/DMVAMSWS/">
+  <xs:element name="AmsValidateResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="dmvamsws:AmsValidateResult"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AmsValidateResult">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="dmvamsws:ADMIN_USER"/>
+        <xs:element ref="dmvamsws:ADMIN_TRANSACTION"/>
+        <xs:element ref="dmvamsws:RETURN_CDE"/>
+        <xs:element ref="dmvamsws:SYSTEM_MESSAGES"/>
+        <xs:element ref="dmvamsws:INPUT"/>
+        <xs:element ref="dmvamsws:OUTPUT"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ADMIN_USER">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="ADMIN_TRANSACTION">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="dmvamsws:DISPOSITION"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DISPOSITION" type="xs:NCName"/>
+  <xs:element name="RETURN_CDE" type="xs:integer"/>
+  <xs:element name="SYSTEM_MESSAGES">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="dmvamsws:MESSAGE_TEXT1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MESSAGE_TEXT1" type="xs:string"/>
+  <xs:element name="INPUT">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="dmvamsws:ADDRESS"/>
+        <xs:element ref="dmvamsws:CITY"/>
+        <xs:element ref="dmvamsws:STATE"/>
+        <xs:element ref="dmvamsws:ZIP"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ADDRESS" type="xs:string"/>
+  <xs:element name="CITY" type="xs:string"/>
+  <xs:element name="STATE" type="xs:string"/>
+  <xs:element name="OUTPUT">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="dmvamsws:STD_DELIV_ADDR"/>
+          <xs:element ref="dmvamsws:SECOND_STD_DELIV_ADDR"/>
+          <xs:element ref="dmvamsws:STD_FIRM_NAME"/>
+          <xs:element ref="dmvamsws:STD_CSZ"/>
+          <xs:element ref="dmvamsws:MAIN_PO_CITY"/>
+          <xs:element ref="dmvamsws:MAIN_PO_STATE"/>
+          <xs:element ref="dmvamsws:STD_CITY"/>
+          <xs:element ref="dmvamsws:STD_CITY_ABBRV"/>
+          <xs:element ref="dmvamsws:STD_STATE"/>
+          <xs:element ref="dmvamsws:ZIP"/>
+          <xs:element ref="dmvamsws:ZIP_ADDON"/>
+          <xs:element ref="dmvamsws:DEL_POINT_CODE"/>
+          <xs:element ref="dmvamsws:CAR_ROUTE"/>
+          <xs:element ref="dmvamsws:FIPS_CODE"/>
+        </xs:sequence>
+        <xs:element ref="dmvamsws:NUMBER_RESPONSES"/>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="dmvamsws:PRIMARY_NUMBER"/>
+          <xs:element ref="dmvamsws:SECONDARY_NUMBER"/>
+          <xs:element ref="dmvamsws:ADDRESS_RECORDS"/>
+        </xs:sequence>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="STD_DELIV_ADDR" type="xs:string"/>
+  <xs:element name="SECOND_STD_DELIV_ADDR">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="STD_FIRM_NAME">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="STD_CSZ" type="xs:string"/>
+  <xs:element name="MAIN_PO_CITY" type="xs:NCName"/>
+  <xs:element name="MAIN_PO_STATE" type="xs:NCName"/>
+  <xs:element name="STD_CITY" type="xs:NCName"/>
+  <xs:element name="STD_CITY_ABBRV">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="STD_STATE" type="xs:NCName"/>
+  <xs:element name="ZIP_ADDON" type="xs:integer"/>
+  <xs:element name="DEL_POINT_CODE" type="xs:integer"/>
+  <xs:element name="CAR_ROUTE" type="xs:NCName"/>
+  <xs:element name="FIPS_CODE" type="xs:integer"/>
+  <xs:element name="NUMBER_RESPONSES" type="xs:integer"/>
+  <xs:element name="PRIMARY_NUMBER" type="xs:integer"/>
+  <xs:element name="SECONDARY_NUMBER">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="ADDRESS_RECORDS">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="dmvamsws:ADDRESS_RECORD"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ADDRESS_RECORD">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="dmvamsws:ZIP_CODE"/>
+        <xs:element ref="dmvamsws:UPDATE_KEY"/>
+        <xs:element ref="dmvamsws:ACTION_CODE"/>
+        <xs:element ref="dmvamsws:REC_TYPE"/>
+        <xs:element ref="dmvamsws:CARR_RT"/>
+        <xs:element ref="dmvamsws:PRE_DIR"/>
+        <xs:element ref="dmvamsws:STR_NAME"/>
+        <xs:element ref="dmvamsws:SUFFIX"/>
+        <xs:element ref="dmvamsws:POST_DIR"/>
+        <xs:element ref="dmvamsws:PRIM_LOW"/>
+        <xs:element ref="dmvamsws:PRIM_HIGH"/>
+        <xs:element ref="dmvamsws:PRIM_CODE"/>
+        <xs:element ref="dmvamsws:SEC_NAME"/>
+        <xs:element ref="dmvamsws:UNIT"/>
+        <xs:element ref="dmvamsws:SEC_LOW"/>
+        <xs:element ref="dmvamsws:SEC_HIGH"/>
+        <xs:element ref="dmvamsws:SEC_CODE"/>
+        <xs:element ref="dmvamsws:ADDON_LOW"/>
+        <xs:element ref="dmvamsws:ADDON_HIGH"/>
+        <xs:element ref="dmvamsws:BASE_ALT_CODE"/>
+        <xs:element ref="dmvamsws:FINANCE"/>
+        <xs:element ref="dmvamsws:STATE_ABBREV"/>
+        <xs:element ref="dmvamsws:COUNTY_NO"/>
+        <xs:element ref="dmvamsws:CONGRESS_DIST"/>
+        <xs:element ref="dmvamsws:MUNICIPALITY"/>
+        <xs:element ref="dmvamsws:URBANIZATION"/>
+        <xs:element ref="dmvamsws:LAST_LINE"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ZIP_CODE" type="xs:integer"/>
+  <xs:element name="UPDATE_KEY">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="ACTION_CODE" type="xs:NCName"/>
+  <xs:element name="REC_TYPE" type="xs:NCName"/>
+  <xs:element name="CARR_RT" type="xs:NCName"/>
+  <xs:element name="PRE_DIR">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="STR_NAME" type="xs:NCName"/>
+  <xs:element name="SUFFIX" type="xs:NCName"/>
+  <xs:element name="POST_DIR">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="PRIM_LOW" type="xs:integer"/>
+  <xs:element name="PRIM_HIGH" type="xs:integer"/>
+  <xs:element name="PRIM_CODE" type="xs:NCName"/>
+  <xs:element name="SEC_NAME">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="UNIT">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="SEC_LOW">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="SEC_HIGH">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="SEC_CODE">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="ADDON_LOW" type="xs:integer"/>
+  <xs:element name="ADDON_HIGH" type="xs:integer"/>
+  <xs:element name="BASE_ALT_CODE">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="FINANCE" type="xs:integer"/>
+  <xs:element name="STATE_ABBREV">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="COUNTY_NO" type="xs:integer"/>
+  <xs:element name="CONGRESS_DIST" type="xs:integer"/>
+  <xs:element name="MUNICIPALITY">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="URBANIZATION">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="LAST_LINE" type="xs:NCName"/>
+  <xs:element name="ZIP" type="xs:string"/>
+</xs:schema>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="GeocodeResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="status"/>
+        <xs:element maxOccurs="unbounded" ref="result"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="status" type="xs:NCName"/>
+  <xs:element name="result">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="type"/>
+        <xs:element ref="formatted_address"/>
+        <xs:element maxOccurs="unbounded" ref="address_component"/>
+        <xs:element ref="geometry"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="formatted_address" type="xs:string"/>
+  <xs:element name="address_component">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="long_name"/>
+        <xs:element ref="short_name"/>
+        <xs:element maxOccurs="unbounded" ref="type"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="long_name" type="xs:string"/>
+  <xs:element name="short_name" type="xs:string"/>
+  <xs:element name="geometry">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="location"/>
+        <xs:element ref="location_type"/>
+        <xs:element ref="viewport"/>
+        <xs:element ref="bounds"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="location">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="lat"/>
+        <xs:element ref="lng"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="location_type" type="xs:NCName"/>
+  <xs:element name="viewport">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="southwest"/>
+        <xs:element ref="northeast"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="bounds">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="southwest"/>
+        <xs:element ref="northeast"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="type" type="xs:NCName"/>
+  <xs:element name="lat" type="xs:decimal"/>
+  <xs:element name="lng" type="xs:decimal"/>
+  <xs:element name="southwest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="lat"/>
+        <xs:element ref="lng"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="northeast">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="lat"/>
+        <xs:element ref="lng"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

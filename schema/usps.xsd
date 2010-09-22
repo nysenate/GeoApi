@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="AddressValidateResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Address"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Address">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Address2"/>
+        <xs:element ref="City"/>
+        <xs:element ref="State"/>
+        <xs:element ref="Zip5"/>
+        <xs:element ref="Zip4"/>
+      </xs:sequence>
+      <xs:attribute name="ID" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Address2" type="xs:string"/>
+  <xs:element name="Zip4" type="xs:integer"/>
+  <xs:element name="CityStateLookupResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ZipCode"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ZipCode">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Zip5"/>
+        <xs:element ref="City"/>
+        <xs:element ref="State"/>
+      </xs:sequence>
+      <xs:attribute name="ID" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Zip5" type="xs:integer"/>
+  <xs:element name="City" type="xs:string"/>
+  <xs:element name="State" type="xs:NCName"/>
+</xs:schema>
