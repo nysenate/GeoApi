@@ -82,7 +82,7 @@ public class DistrictServices {
 		
 		
 		WFS_POLY wfs = new WFS_POLY(type);
-		String in = flatten(wfs.construct(p.lon, p.lat));
+		String in = flatten(wfs.construct(p.lat, p.lon));
 		
 		Pattern jsonP = Pattern.compile(start + ".*?" + end);
 		Matcher jsonM = jsonP.matcher(in);
@@ -323,8 +323,7 @@ public class DistrictServices {
 	 * applicable information, returns result from GeoServer
 	 */
 	public GeoResult fromGeoserver(WFS_ wfs, Point p) throws IOException {
-		//TAKES REVERSE LAT/LON FOR SOME REASON!  annoying
-		String json = flatten(wfs.construct(p.lon,p.lat));
+		String json = flatten(wfs.construct(p.lat,p.lon));
 		
 		Gson gson = new Gson();
 		
@@ -366,7 +365,7 @@ public class DistrictServices {
 	 */
 	
 	public class WFS_Election extends WFS_ {
-		static final String GEO_TYPE = "&typename=nystate:ed_08_ny";
+		static final String GEO_TYPE = "&typename=nysenate:election";
 		static final String GEO_PROPERTY = "&propertyname=ED";
 		/*static final String GEO_PROPERTY = "&propertyname=ED,EDS_COPY_,EDS_COPY_I,COUNTY,MCD2,WARD,EDP";*/
 		
@@ -375,7 +374,7 @@ public class DistrictServices {
 		}
 	}
 	public class WFS_County extends WFS_ {
-		static final String GEO_TYPE = "&typename=ny:tl_2009_36_county";
+		static final String GEO_TYPE = "&typename=nysenate:county";
 		static final String GEO_PROPERTY = "&propertyname=NAMELSAD";
 		/*static final String GEO_PROPERTY = "&propertyname=COUNTYFP,NAME,NAMELSAD";*/
 		
@@ -384,7 +383,7 @@ public class DistrictServices {
 		}
 	}
 	public class WFS_Assembly extends WFS_ {
-		static final String GEO_TYPE = "&typename=ny:tl_2009_36_sldl";
+		static final String GEO_TYPE = "&typename=nysenate:assembly";
 		static final String GEO_PROPERTY = "&propertyname=NAMELSAD";
 		
 		public String construct(double x, double y) {
@@ -392,26 +391,21 @@ public class DistrictServices {
 		}
 	}
 	public class WFS_Congressional extends WFS_ {
-		static final String GEO_TYPE = "&typename=ny:tl_2009_36_cd111";
+		static final String GEO_TYPE = "&typename=nysenate:congressional";
 		static final String GEO_PROPERTY = "&propertyname=NAMELSAD";
 		
 		public String construct(double x, double y) {
 			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_START + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
 		}
 	}
+	//opt/apache-tomcat-6.0.26/webapps/geoserver/data/data/shapes/
+	//EPSG:4326
 	public class WFS_Senate extends WFS_ {
-		static final String GEO_TYPE = "&typename=ny:tl_2009_36_sldu";
+		static final String GEO_TYPE = "&typename=nysenate:senate";
 		static final String GEO_PROPERTY = "&propertyname=NAMELSAD";
 		
 		public String construct(double x, double y) {
 			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_START + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
-		}
-	}
-	public class WFS_Senate_POLY extends WFS_ {
-		static final String GEO_TYPE = "&typename=ny:tl_2009_36_sldu";
-		
-		public String construct(double x, double y) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_CQL_START + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
 		}
 	}
 	public class WFS_POLY extends WFS_ {
@@ -423,19 +417,19 @@ public class DistrictServices {
 		
 		private void setGeoType(String type) {
 			if(type.equals("assembly")) {
-				GEO_TYPE += "tl_2009_36_sldl";
+				GEO_TYPE += "nysenate:assembly";
 			}
 			else if(type.equals("congressional")){
-				GEO_TYPE += "tl_2009_36_cd111";
+				GEO_TYPE += "nysenate:congressional";
 			}
 			else if(type.equals("county")){
-				GEO_TYPE += "tl_2009_36_county";
+				GEO_TYPE += "nysenate:county";
 			}
 			else if(type.equals("election")){
-				GEO_TYPE += "nystate:ed_08_ny";
+				GEO_TYPE += "nysenate:election";
 			}
 			else if(type.equals("senate")){
-				GEO_TYPE += "tl_2009_36_sldu";
+				GEO_TYPE += "nysenate:senate";
 			}
 		}
 		
