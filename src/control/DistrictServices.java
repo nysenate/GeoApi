@@ -90,6 +90,12 @@ public class DistrictServices {
 		Collection<Collection<Double>> points = new ArrayList<Collection<Double>>();
 		GeoResult gr = null;
 		
+		/*
+		 * This WFS call returns a polygon that has enough points to lock up gson,
+		 * so I cut out the polygon from the json result via regex and construct that information
+		 * myself, the rest of the object is deserialized with gson
+		 */
+		
 		if(jsonM.find()) {
 			Gson gson = new Gson();
 			String json = in.substring(0, jsonM.start()) + in.substring(jsonM.end());
