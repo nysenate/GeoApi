@@ -18,9 +18,9 @@ public class Connect {
 	
 	public static final String GET = "get";
 	public static final String SET = "set";
-	public static final String DATABASE = "database.url";
-	public static final String USER = "database.user";
-	public static final String PASS = "database.pass";
+	public static final String DATABASE = "jdbc:mysql://localhost/geoapi";
+	public static final String USER = "geoapi";
+	public static final String PASS = "ga2010";
 	
 	Connection connection;
 	Properties properties;
@@ -37,7 +37,7 @@ public class Connect {
 		if(connection == null) {
 			try {
 				Class.forName("com.mysql.jdbc.Driver").newInstance();
-				connection = DriverManager.getConnection(Resource.get(DATABASE),Resource.get(USER),Resource.get(PASS));
+				connection = DriverManager.getConnection(DATABASE,USER,PASS);
 			} catch (Exception e) {
 				System.err.println("ERROR: Connect.getConnection() could not open the database listed in ");
 				e.printStackTrace();

@@ -69,7 +69,9 @@ public class ApiController {
 				
 			}
 			if(in.equals("default senate user")) {
-				new Connect().persistObject(new ApiUser(Resource.get("user.default"), "general", "everyone for now"));
+				new Connect().persistObject(new ApiUser("orFWdOvnZ4iKCcB2mrbwTXvikiO5G7K", "sheldon", "nysenate stuff"));
+				new Connect().persistObject(new ApiUser("2LcHgAO7sc45g4k3oxIGLy2MpLLMitW", "nathan", "mobile dev"));
+				new Connect().persistObject(new ApiUser("LO0yHLbAPgQ3PtWKFclF6yTGRJxWlrb5", "general", "everyone for now"));
 			}
 			System.out.print("> ");
 		}

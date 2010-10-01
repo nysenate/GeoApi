@@ -50,7 +50,7 @@ public class ApiServlet extends HttpServlet {
 		Resource.init(this);
 				
 		PrintWriter out = response.getWriter();
-				
+						
 		String uri = java.net.URLDecoder.decode(request.getRequestURI(),"utf-8");
 		uri = uri.toLowerCase().replaceAll("(/geoapi/|api/)", "");
 		

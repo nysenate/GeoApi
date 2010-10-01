@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 public class SenateFilter implements Filter {
 	
 	
-	private final String IP_MATCH = "10.\\d+.\\d+.\\d+|127.0.0.1|63.118.5[67].\\d+";
+	private final String IP_MATCH = "(10.\\d+.\\d+.\\d+|127.0.0.1|63.118.5[67].\\d+)";
 
     public SenateFilter() {
     }

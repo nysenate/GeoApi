@@ -116,7 +116,7 @@ public class BingConnect extends ParseStream implements AbstractGeocoder,Abstrac
 	 * @returns a string containing the formatted url
 	 */
 	public String constructReverseUrl(String latlon) {
-		return BING_API + latlon + Resource.get(BING_API_END);
+		return BING_API + latlon + BING_KEY + Resource.get(BING_API_END);
 	}
 }
 
