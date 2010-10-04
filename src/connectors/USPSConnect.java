@@ -56,7 +56,6 @@ public class USPSConnect {
 	
 	public static String getCityStateByZipCode(String zip5, String format) {
 		
-		System.out.println(constructCityStateUrl(zip5).replaceAll(" ","%20"));
 		Object o = getResponse(constructCityStateUrl(zip5).replaceAll(" ","%20"));
 		
 		CityStateLookupResponse cslr = (CityStateLookupResponse)o;

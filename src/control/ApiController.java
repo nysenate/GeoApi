@@ -38,7 +38,8 @@ public class ApiController {
 				System.out.print("indexing senate... ");
 				for(int i = 1; i <= 62; i++) {
 					System.out.print(i + ",");
-					c.persistObject(NYSenateScraper.populateSenateData(i));
+					Senate s = NYSenateScraper.populateSenateData(i);
+					c.persistObject(s);
 				}
 				System.out.println();
 				
@@ -69,9 +70,7 @@ public class ApiController {
 				
 			}
 			if(in.equals("default senate user")) {
-				new Connect().persistObject(new ApiUser("orFWdOvnZ4iKCcB2mrbwTXvikiO5G7K", "sheldon", "nysenate stuff"));
-				new Connect().persistObject(new ApiUser("2LcHgAO7sc45g4k3oxIGLy2MpLLMitW", "nathan", "mobile dev"));
-				new Connect().persistObject(new ApiUser("LO0yHLbAPgQ3PtWKFclF6yTGRJxWlrb5", "general", "everyone for now"));
+				
 			}
 			System.out.print("> ");
 		}

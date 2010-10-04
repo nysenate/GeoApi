@@ -4,8 +4,8 @@
 }
 body {
   font-family: helvetica, arial;
-  font-size: 89.5%;	 /* 10px */
-  line-height: 1.4em; /* 15px */
+  font-size: 89.5%;
+  line-height: 1.4em;
   color: #333;
   background-color: #fff;
   margin:16px;
@@ -42,6 +42,7 @@ p {
 	padding: 0;
 	width: 383px;
 	top:5px;
+	height:100%;
 }
 
 .message_head {
@@ -70,10 +71,23 @@ p {
 	right:5px;
 }
 
-form ol {
+.response_data {
+	background:#e1e1e1;
+	padding:5px 5px 5xp;
+}
+
+.response_data ol {
 	list-style:none;
 	margin:0;
-	padding:0;
+	padding:10px;
+	align:center;
+}
+
+.response_data li {
+	padding:6px;
+	background:#eee;
+	margin-bottom:3px;
+	width:350px;
 }
 
 form {
@@ -81,8 +95,8 @@ form {
 	margin:20px;
 	padding:10px 20px;
 	width:330px;
-	}
-	
+}
+
 form ol {
 	list-style:none;
 	margin:0;

@@ -1,7 +1,7 @@
 var api = "/GeoApi/api/json/";
 var districts = "districts/extended?";
 var geocode = "geocode/extended?";
-var revgeo = "revgeo/";
+var revgeo = "revgeo/latlon/";
 var validate = "validate/extended?";
 var cityState = "/citystatelookup/extended?";
 
@@ -114,25 +114,29 @@ $(document).ready(function(){
 			url = url + buildUrl(this.name, $(this).val());
 		});
 		$.getJSON(url, function(data) {
+			$(".response_body").hide();
 			if(data.message != null) {
 				$(".response_body").html("There was an issue processing your request because necessary " +
 					"information is missing or the address you entered is invalid.");
 			}
 			else {
-				if(data.address1 != null) {
-					$(".response_body").html("<label>Address1:</label> " + data.address1 + "<br />");
-					$(".response_body").append("<label>Address2:</label> " + data.address2 + "<br />");
-				}
-				else {
-					$(".response_body").html("<label>Address:</label> " + data.address2 + "<br />");
-				}
-				$(".response_body").append("<label>City:</label> " + data.city + "<br />");
-				$(".response_body").append("<label>State:</label> " + data.state + "<br />");
-				$(".response_body").append("<label>Zip5:</label> " + data.zip5 + "<br />");
-				$(".response_body").append("<label>Zip4:</label> " + data.zip4 + "<br />");
+				
+				$(".response_body").html(
+						"<div class = \"response_data\">"
+						+ "<ol>"
+							+ "<li>Address: " + data.address2 + "</li>"
+							+ "<li>City: " + data.city + "</li>"
+							+ "<li>State: " + data.state + "</li>"
+							+ "<li>Zip5: " + data.zip5 + "</li>"
+							+ "<li>Zip4: " + data.zip4 + "</li>"
+							
+						+ "</ol>"
+					+ "</div>");
+
 				var address = data.address2 + ", " + data.city + ", " + data.state + " " + data.zip5;
 				addAddressToMap(address);
 			}
+			$(".response_body").show(400);
 		});
 		return false;
 	});
@@ -147,25 +151,50 @@ $(document).ready(function(){
 		});
 		
 		$.getJSON(url, function(data) {
+			$(".response_body").hide();
 			if(data.message != null) {
 				$(".response_body").html("There was an issue processing your request because necessary " +
 					"information is missing or the address you entered is invalid.");
 			}
 			else {
-				$(".response_body").html("<label>Latitude:</label> " + data.lat + "<br />");
-				$(".response_body").append("<label>Longitude:</label> " + data.lon + "<br />");
-				$(".response_body").append("<label>Address:</label> " + data.address + "<br />");
-				$(".response_body").append(data.assembly.district + "<br />");
-				$(".response_body").append(data.congressional.district + "<br />");
-				$(".response_body").append(data.county.countyName + "<br />");
-				$(".response_body").append(data.election.district + "<br />");
-				$(".response_body").append(data.senate.district + "<br />");
-				$(".response_body").append("FIPS Code: "+data.census.fips + "<br />");
+				$(".response_body").html(
+					"<div class = \"response_data\">"
+						+ "<ol>"
+							+ "<li>Latitude: " + data.lat + "</li>"
+							
+							+ "<li>Longitude: " + data.lon + "</li>"
+							
+							+ "<li>Address: " + data.address + "</li>"
+							//" +  + "
+							+ "<li><table cellspacing=\"10\">"
+								+ "<tr>"
+									+ "<td rowspan=3><img src=\"" + data.senate.senator.imageUrl + "\" alt=\"" + data.senate.senator.name + "\"></img></td>"
+									+ "<td><a href=\"" + data.senate.districtUrl + "\">" + data.senate.district + "</a></td>"
+								+ "</tr>"
+							+ "<tr>"
+								+ "<td><a href=\"" + data.senate.senator.url + "\">" + data.senate.senator.name + "</a></td>"
+							+ "</tr>"
+							+ "<tr>"
+								+ "<td>" + data.senate.senator.contact + "</td>"
+							+ "</tr>"
+							+ "</table></li>"
+							
+							+ "<li>" + data.assembly.district + " - <a href=\"" + data.assembly.member.url + "\">" + data.assembly.member.name + "</a></li>"
+							
+							+ "<li>" + data.congressional.district + " - <a href=\"" + data.congressional.member.url + "\">" + data.congressional.member.name + "</a></li>"
+							
+							+ "<li>" + data.county.countyName + "</li>"
+							+ "<li>" + data.election.district + "</li>"
+							+ "<li>" + data.census.fips + "</li>"
+						+ "</ol>"
+					+ "</div>");
 
 				var latlon = new google.maps.LatLng(data.lat, data.lon);
 
 				addLatLonToMap(latlon, data.address);
+				
 			}
+			$(".response_body").show(400);
 		});
 		
 		return false;
@@ -176,29 +205,42 @@ $(document).ready(function(){
 		var url = api + revgeo;
 		
 		var $inputs = $("#revgeoForm :input");
+		
+		var rg_lat;
+		var rg_lon;
 		$inputs.each(function() {
 			if(this.name == "lat") {
-				url = url + $(this).val() + ",";
+				rg_lat = $(this).val();
 			}
 			if(this.name == "lon") {
-				url = url + $(this).val();
+				rg_lon = $(this).val();
 			}
 		});
+		
+		url = url + rg_lat + "," + rg_lon;
 
 		$.getJSON(url, function(data) {
+			$(".response_body").hide();
 			if(data.message != null) {
 				$(".response_body").html("There was an issue processing your request because necessary " +
 					"information is missing or the address you entered is invalid.");
 			}
 			else {
-				$(".response_body").html("<label>Latitude:</label> " + data[0].lat + "<br />");
-				$(".response_body").append("<label>Longitude:</label> " + data[0].lon + "<br />");
-				$(".response_body").append("<label>Address:</label> " + data[0].address + "<br />");
+				
+				$(".response_body").html(
+						"<div class = \"response_data\">"
+						+ "<ol>"
+							+ "<li>Latitude: " + data[0].lat + "</li>"
+							+ "<li>Longitude: " + data[0].lon + "</li>"
+							+ "<li>Address: " + data[0].address + "</li>"
+						+ "</ol>"
+					+ "</div>");
 				
 				var latlon = new google.maps.LatLng(data[0].lat, data[0].lon);
 
 				addLatLonToMap(latlon, data[0].address);
 			}
+			$(".response_body").show(400);
 		});
 		
 		return false;
@@ -210,22 +252,34 @@ $(document).ready(function(){
 		
 		var $inputs = $("#zipForm :input");
 		$inputs.each(function() {
-			url = url + buildUrl(this.name, $(this).val());
+			if(this.name == "hideMe") {
+				//nothing
+			} {
+				url = url + buildUrl(this.name, $(this).val());
+			}
+			
 		});
 		
 		$.getJSON(url, function(data) {
+			$(".response_body").hide();
 			if(data.message != null) {
 				$(".response_body").html("There was an issue processing your request because necessary " +
 					"information is missing or the address you entered is invalid.");
 			}
 			else {
-				$(".response_body").html("<label>City:</label> " + data.city + "<br />");
-				$(".response_body").append("<label>State:</label> " + data.state + "<br />");
-				$(".response_body").append("<label>Zip5:</label> " + data.zip5 + "<br />");
+				$(".response_body").html(
+						"<div class = \"response_data\">"
+						+ "<ol>"
+							+ "<li>City: " + data.city + "</li>"
+							+ "<li>State: " + data.state + "</li>"
+							+ "<li>Zip5: " + data.zip5 + "</li>"
+						+ "</ol>"
+					+ "</div>");
 				
 				var address = data.city + " " + data.state + " " + data.zip5;
 				addAddressToMap(address);
 			}
+			$(".response_body").show(400);
 		});
 		
 		return false;

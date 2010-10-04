@@ -38,6 +38,7 @@ CREATE TABLE senate (
 	name VARCHAR(256),
 	contact VARCHAR(256),
 	url VARCHAR(256),
+	imageurl VARCHAR(256),
 	PRIMARY KEY(district)
 ) ENGINE=INNODB;
 

@@ -30,7 +30,7 @@
 					</li>
 					<li>
 						<label>City</label>
-						<input type="text" placeholder="" name="city">
+						<input type="text" name="city">
 					</li>
 					<li>
 						<label>State</label>
@@ -38,11 +38,11 @@
 					</li>
 					<li>
 						<label>Zip5</label>
-						<input type="text" placeholder="" name="zip5" maxlength="5">
+						<input type="text" name="zip5" maxlength="5">
 					</li>
 					<li>
 						<label>Zip4</label>
-						<input type="text" placeholder="" name="zip4" maxlength="4">
+						<input type="text" name="zip4" maxlength="4">
 					</li>
 					<li>
 						<label>Service</label>
@@ -68,7 +68,7 @@
 						</li>
 						<li>
 							<label>City</label>
-							<input type="text" placeholder="" name="city">
+							<input type="text" name="city">
 						</li>
 						<li>
 							<label>State</label>
@@ -76,11 +76,11 @@
 						</li>
 						<li>
 							<label>Zip5</label>
-							<input type="text" placeholder="" name="zip5" maxlength="5">
+							<input type="text" name="zip5" maxlength="5">
 						</li>
 						<li>
 							<label>Zip4</label>
-							<input type="text" placeholder="" name="zip4" maxlength="4">
+							<input type="text" name="zip4" maxlength="4">
 						</li>
 						<li>
 							<label>Service</label>
@@ -103,8 +103,10 @@
 				<ol>
 					<li>
 						<label>Zip5</label>
-						<input type="text" placeholder="" name="zip5">
+						<input type="text" name="zip5"/>
+						<input type="text" name="hideMe" value="IE Bug" style="display:none;"/>
 					</li>
+					
 					<li id="send">
 						<input type="submit" id="zip" name="submit">
 					</li>
@@ -117,11 +119,11 @@
 					<ol>
 						<li>
 							<label>Latitude</label>
-							<input type="text" placeholder="" name="lat">
+							<input type="text" name="lat">
 						</li>
 						<li>
 							<label>Longitude</label>
-							<input type="text" placeholder="" name="lon">
+							<input type="text" name="lon">
 						</li>
 						<li>
 							<label>Service</label>

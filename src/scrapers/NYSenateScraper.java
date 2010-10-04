@@ -17,13 +17,20 @@ public class NYSenateScraper {
 	static final String CONTACT = "/contact";
 	static final String NYSENATE = "http://www.nysenate.gov";
 	static final String EMAIL = "@senate.state.ny.us";
+	static final String IMAGE_URL = "http://www.nysenate.gov/files/imagecache/senator_teaser/profile-pictures/";
+	
+	public static void main(String[] args) throws MalformedURLException, IOException {
+		System.out.println(populateSenateData(38).getSenator().getImageUrl());
+	}
 	
 	public static Senate populateSenateData(int district) throws MalformedURLException, IOException {
 		Pattern senatorData = Pattern.compile("<div class=\"senator_name\"><a href=\"(/senator/.*?)\">(.*?)</a></div>");
+		Pattern senatorImage = Pattern.compile("http://www\\.nysenate\\.gov/files/imagecache/senator_teaser/profile\\-pictures/(.+?\\.(JPG|jpg|gif|GIF))");
 		
 		Senate senate = null;
 		
 		senate = new Senate();
+		senate.setSenator(new Senator());
 		
 		String url = DISTRICT_URL + (district < 10 ? "0" + district:district);
 		
@@ -35,9 +42,18 @@ public class NYSenateScraper {
 			Matcher m = senatorData.matcher(in);
 			
 			if(m.find()) {
-				senate.setSenator(new Senator(m.group(2),senatorContact(NYSENATE + m.group(1) + CONTACT),NYSENATE + m.group(1)));
+				senate.getSenator().setName(m.group(2));
+				senate.getSenator().setContact(senatorContact(NYSENATE + m.group(1) + CONTACT));
+				senate.getSenator().setUrl(NYSENATE + m.group(1));
 				senate.setDistrictUrl(url);
 				senate.setDistrict("State Senate District " + district);
+			}
+			else {
+				m = senatorImage.matcher(in);
+				
+				if(m.find()) {
+					senate.getSenator().setImageUrl(IMAGE_URL + m.group(1));
+				}
 			}
 		}
 		
@@ -49,7 +65,6 @@ public class NYSenateScraper {
 	public static String senatorContact(String url) throws MalformedURLException, IOException {
 		Pattern p = Pattern.compile("<span class=\"field-content\"><span class=\"spamspan\">" +
 				"<span class=\"u\">(.*?)</span> \\[at\\] (.*?)</span></span></span>");
-		
 		BufferedReader br = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
 		String ret = null;
 		String in = null;

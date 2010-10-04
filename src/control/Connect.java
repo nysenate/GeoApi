@@ -232,10 +232,18 @@ public class Connect {
 					continue;
 				}
 				
+				if(f.getType().equals(String.class)) {
+					fieldObject = cleanse((String)fieldObject);
+				}
+				
 				map.put(fieldName, (fieldObject != null) ? fieldObject.toString(): "");
 			}
 		}
 		return map;
+	}
+	
+	public String cleanse(String s) {
+		return s.replaceAll("\"","&quot;").replaceAll("'", "&sing;");
 	}
 	
 	public String fixFieldName(String s) {
@@ -275,7 +283,7 @@ public class Connect {
 				}
 				else {
 					Method m = clazz.getMethod(SET + fixFieldName(f.getName()), f.getType());
-					m.invoke(o, rs.getObject(f.getName().toLowerCase()));
+					m.invoke(o, (f.getType().equals(String.class) ? uncleanse((String)rs.getObject(f.getName().toLowerCase())):rs.getObject(f.getName().toLowerCase())));
 				}
 			}
 		}
@@ -283,6 +291,10 @@ public class Connect {
 			e.printStackTrace();
 		}
 		return o;
+	}
+	
+	public String uncleanse(String s) {
+		return s.replaceAll("&quot;", "\"").replaceAll("&sing;", "'");
 	}
 	
 }

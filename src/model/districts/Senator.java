@@ -7,6 +7,7 @@ public class Senator {
 	String name;
 	String contact;
 	String url;
+	String imageUrl;
 	
 	public Senator() {
 		
@@ -29,6 +30,10 @@ public class Senator {
 	public String getUrl() {
 		return url;
 	}
+	
+	public String getImageUrl() {
+		return imageUrl;
+	}
 
 	public void setName(String name) {
 		this.name = name;
@@ -37,10 +42,12 @@ public class Senator {
 	public void setContact(String contact) {
 		this.contact = contact;
 	}
-
+	
 	public void setUrl(String url) {
 		this.url = url;
 	}
-	
-	
+
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
 }
