@@ -20,44 +20,6 @@
 	</div>
 
 <div class="message_list"> 
-		<div class="message_head"><cite>Address Validation</cite></div> 
-		<div class="message_body"> 
-			<form id="validateForm" method="post">
-				<ol>
-					<li>
-						<label>Address</label>
-						<input type="text" placeholder="street address..." name="addr2">
-					</li>
-					<li>
-						<label>City</label>
-						<input type="text" name="city">
-					</li>
-					<li>
-						<label>State</label>
-						<input type="text" placeholder="e.g. NY" name="state" maxlength="2">
-					</li>
-					<li>
-						<label>Zip5</label>
-						<input type="text" name="zip5" maxlength="5">
-					</li>
-					<li>
-						<label>Zip4</label>
-						<input type="text" name="zip4" maxlength="4">
-					</li>
-					<li>
-						<label>Service</label>
-						<select name="service">
-							<option>(Optional)</option>
-							<option>USPS</option>
-							<option>DMV</option>
-						</select>
-					</li>
-					<li id="send">
-						<input type="submit" id="validate" name="submit">
-					</li>
-				</ol>
-			</form>
-		</div> 
 		<p class="message_head"><cite>District Information</cite></p> 
 		<div class="message_body"> 
 				<form id="districtsForm" action="" method="post">
@@ -97,22 +59,6 @@
 					</ol>
 				</form>
 		</div>
-		<p class="message_head"><cite>Lookup By Zip</cite></p> 
-		<div class="message_body"> 
-			<form id="zipForm" action="" method="post">
-				<ol>
-					<li>
-						<label>Zip5</label>
-						<input type="text" name="zip5"/>
-						<input type="text" name="hideMe" value="IE Bug" style="display:none;"/>
-					</li>
-					
-					<li id="send">
-						<input type="submit" id="zip" name="submit">
-					</li>
-				</ol>
-			</form>
-		</div> 
 		<p class="message_head"><cite>Reverse GeoCode</cite></p> 
 		<div class="message_body"> 
 				<form id="revgeoForm" action="" method="post">

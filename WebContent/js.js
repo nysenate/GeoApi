@@ -105,41 +105,6 @@ $(document).ready(function(){
 				},100);
 			}
 	});
-	
-	$("#validate").click(function() {
-		$(".response_body").html("<img src='r.gif'>");
-		var url = api + validate;
-		var $inputs = $("#validateForm :input");
-		$inputs.each(function() {
-			url = url + buildUrl(this.name, $(this).val());
-		});
-		$.getJSON(url, function(data) {
-			$(".response_body").hide();
-			if(data.message != null) {
-				$(".response_body").html("There was an issue processing your request because necessary " +
-					"information is missing or the address you entered is invalid.");
-			}
-			else {
-				
-				$(".response_body").html(
-						"<div class = \"response_data\">"
-						+ "<ol>"
-							+ "<li>Address: " + data.address2 + "</li>"
-							+ "<li>City: " + data.city + "</li>"
-							+ "<li>State: " + data.state + "</li>"
-							+ "<li>Zip5: " + data.zip5 + "</li>"
-							+ "<li>Zip4: " + data.zip4 + "</li>"
-							
-						+ "</ol>"
-					+ "</div>");
-
-				var address = data.address2 + ", " + data.city + ", " + data.state + " " + data.zip5;
-				addAddressToMap(address);
-			}
-			$(".response_body").show(400);
-		});
-		return false;
-	});
 
 	$("#districts").click(function() {
 		$(".response_body").html("<img src='r.gif'>");
@@ -252,45 +217,6 @@ $(document).ready(function(){
 				var latlon = new google.maps.LatLng(data[0].lat, data[0].lon);
 
 				addLatLonToMap(latlon, data[0].address);
-			}
-			$(".response_body").show(400);
-		});
-		
-		return false;
-	});
-	
-	$("#zip").click(function() {
-		$(".response_body").html("<img src='r.gif'>");
-		var url = api + cityState;
-		
-		var $inputs = $("#zipForm :input");
-		$inputs.each(function() {
-			if(this.name == "hideMe") {
-				//nothing
-			} {
-				url = url + buildUrl(this.name, $(this).val());
-			}
-			
-		});
-		
-		$.getJSON(url, function(data) {
-			$(".response_body").hide();
-			if(data.message != null) {
-				$(".response_body").html("There was an issue processing your request because necessary " +
-					"information is missing or the address you entered is invalid.");
-			}
-			else {
-				$(".response_body").html(
-						"<div class = \"response_data\">"
-						+ "<ol>"
-							+ "<li>City: " + data.city + "</li>"
-							+ "<li>State: " + data.state + "</li>"
-							+ "<li>Zip5: " + data.zip5 + "</li>"
-						+ "</ol>"
-					+ "</div>");
-				
-				var address = data.city + " " + data.state + " " + data.zip5;
-				addAddressToMap(address);
 			}
 			$(".response_body").show(400);
 		});

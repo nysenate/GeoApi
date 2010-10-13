@@ -7,7 +7,6 @@ public class DistrictResponse {
 	double lat;
 	double lon;
 	String address;
-	
 	Assembly assembly;
 	Congressional congressional;
 	County county;

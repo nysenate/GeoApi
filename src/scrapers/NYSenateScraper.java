@@ -8,6 +8,8 @@ import java.net.URL;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
+import control.Connect;
+
 import model.districts.Senate;
 import model.districts.Senator;
 
@@ -18,6 +20,18 @@ public class NYSenateScraper {
 	static final String NYSENATE = "http://www.nysenate.gov";
 	static final String EMAIL = "@senate.state.ny.us";
 	static final String IMAGE_URL = "http://www.nysenate.gov/files/imagecache/senator_teaser/profile-pictures/";
+	
+	public static void Scrape() {
+		Connect c = new Connect();
+		for(int i = 1; i <= 62; i++) {
+			System.out.print(i + ",");
+			//Senate s = NYSenateScraper.populateSenateData(i);
+			//c.persistObject(s);
+			
+			
+			
+		}
+	}
 	
 	public static Senate populateSenateData(int district) throws MalformedURLException, IOException {
 		Pattern senatorData = Pattern.compile("<div class=\"senator_name\"><a href=\"(/senator/.*?)\">(.*?)</a></div>");

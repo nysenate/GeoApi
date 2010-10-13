@@ -1,13 +1,33 @@
 package model.districts;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 @XStreamAlias("senator")
 public class Senator {
-	String name;
-	String contact;
-	String url;
-	String imageUrl;
+	@Expose	String name;
+	@Expose	String contact;
+	@Expose	String url;
+	@Expose	String imageUrl;
+	
+	@XStreamOmitField String district;
+	
+	public static void main(String[] args) {
+		Senator s = new Senator("jared","williams@nysenate.gov","jaredwilliams.net");
+		s.imageUrl = "jared.gif";
+		
+		Gson g1 = new Gson();
+				
+		Gson g2 = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
+		
+		System.out.println(g1.toJson(s));
+		
+		System.out.println(g2.toJson(s));
+		
+	}
 	
 	public Senator() {
 		

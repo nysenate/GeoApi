@@ -1,0 +1,43 @@
+DROP DATABASE geotest;
+
+CREATE DATABASE geotest;
+
+USE geotest;
+
+CREATE TABLE senatedistrict (
+	district VARCHAR(50),
+	districturl VARCHAR(256),
+	PRIMARY KEY(district)
+) ENGINE=INNODB;
+
+CREATE TABLE senator (
+	name VARCHAR(256),
+	contact VARCHAR(256),
+	url VARCHAR(256),
+	imageurl VARCHAR(256),
+	district VARCHAR(50),
+	PRIMARY KEY(contact)
+) ENGINE=INNODB;
+
+CREATE TABLE social (
+	facebook VARCHAR(1024),
+	twitter VARCHAR(1024),
+	youtube VARCHAR(1024),
+	flickr VARCHAR(1024),
+	rss VARCHAR(1024),
+	contact VARCHAR(256),
+) ENGINE=INNODB;
+
+CREATE TABLE office (
+	id INT NOT NULL AUTO_INCREMENT,
+	street VARCHAR(1024),
+	city VARCHAR(256),
+	state VARCHAR(256),
+	zip VARCHAR(12),
+	contact VARCHAR(256),
+	PRIMARY KEY(id);
+) ENGINE=INNODB;
+
+CREATE TABLE  phonenumber(
+
+) ENGINE=INNODB;

@@ -1,4 +1,4 @@
-package control;
+package v2.connect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -7,14 +7,45 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import model.Ignore;
 import model.PersistentObject;
 
 
-public class Connect {
+public class NewConnect {
+	
+	
+	public static void main(String[] args) {
+		List<PhoneNumber> phoneNumbers1 = new ArrayList<PhoneNumber>();
+		phoneNumbers1.add(new PhoneNumber(1,"518-555-1000"));
+		phoneNumbers1.add(new PhoneNumber(1,"518-555-2000"));
+		Office office1 = new Office(1,"1 main street","albany","ny", "12208", "williams@nysenate.gov", phoneNumbers1);
+		
+		List<PhoneNumber> phoneNumbers2 = new ArrayList<PhoneNumber>();
+		phoneNumbers2.add(new PhoneNumber(1,"518-555-3000"));
+		Office office2 = new Office(1,"2 not-main street","albany","ny", "12208", "williams@nysenate.gov", phoneNumbers2);
+		
+		List<Office> offices = new ArrayList<Office>();
+		offices.add(office1);offices.add(office2);
+		
+		Social social = new Social("williams@nysenate.gov","www.facebook.com","www.twitter,com","www.youtube.com","www.rss.com","www.flickr.com");
+		
+		Senator senator = new Senator("Jared Williams","williams@nysenate.gov","www.jaredwilliams.net","image.gif",social,offices,"District 1");
+		
+		SenateDistrict senateDistrict = new SenateDistrict("District 1","www.district1.com",senator);
+		
+		
+		Gson gson = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
+		
+		System.out.println(gson.toJson(senateDistrict));
+	}
 	
 	public static final String GET = "get";
 	public static final String SET = "set";
@@ -45,6 +76,126 @@ public class Connect {
 		}
 		return connection;
 	}
+	
+	public ResultSet getObjectById(Class<?> clazz, String field, String id) {		
+		String query = "SELECT * FROM " 
+			+ clazz.getSimpleName().toLowerCase() 
+			+ " WHERE "
+			+ field
+			+ "="
+			+ "'" + id + "'";
+				
+		return getQuery(query);
+	}
+	
+	public ResultSet getObjects(Class<?> clazz) {		
+		String query = "SELECT * from " + clazz.getSimpleName().toLowerCase();
+		
+		return getQuery(query);
+	}
+	
+	
+	
+	public Object objectFromClosedResultSet(Class<?> clazz, ResultSet rs) {
+		Object o = null;
+		try {
+			if(rs.next()) {
+				o = objectFromOpenResultSet(clazz, rs);
+			}
+		} catch (SQLException e) {
+			System.err.println("Error: Connect.objectFromClosedResultSet() unable to open result set");
+			e.printStackTrace();
+		}
+		return o;
+	}
+	
+	public boolean deleteObjects(Class<?> clazz) {
+		Statement s = null;
+		try {
+			s = getConnection().createStatement();			
+		}
+		catch (SQLException e) {
+			System.err.println("Error: Connect.deleteObjectById() could not create statement");
+			e.printStackTrace();
+			return false;
+		}
+		
+		String query = "TRUNCATE TABLE " + clazz.getSimpleName();
+		
+		try {
+			s.executeUpdate(query);
+		} catch (SQLException e) {
+			System.err.println("ERROR: Connect.deleteObjectById() unable to execute insert");
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean deleteObjectById(Class<?> clazz, String field, String id) {
+		Statement s = null;
+		try {
+			s = getConnection().createStatement();			
+		}
+		catch (SQLException e) {
+			System.err.println("Error: Connect.deleteObjectById() could not create statement");
+			e.printStackTrace();
+			return false;
+		}
+		
+		String query = "DELETE FROM " 
+			+ clazz.getSimpleName().toLowerCase() 
+			+ " WHERE "
+			+ field
+			+ "="
+			+ "'" + id + "'";
+		try {
+			s.executeUpdate(query);
+		} catch (SQLException e) {
+			System.err.println("ERROR: Connect.deleteObjectById() unable to execute insert");
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
+		
+	}
+	
+	public String fixFieldName(String s) {
+		char[] chars = s.toCharArray();
+		chars[0] = Character.toUpperCase(chars[0]);
+		return new String(chars);
+	}
+	
+	public String cleanse(String s) {
+		return s.replaceAll("\"","&quot;").replaceAll("'", "&sing;");
+	}
+	
+	public String uncleanse(String s) {
+		return s.replaceAll("&quot;", "\"").replaceAll("&sing;", "'");
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public boolean persistObject(Object o) {
 		Statement s = null;
@@ -117,76 +268,6 @@ public class Connect {
 		return rs;
 	}
 	
-	public ResultSet getObjects(Class<?> clazz) {		
-		String query = "SELECT * from " + clazz.getSimpleName().toLowerCase();
-		
-		return getQuery(query);
-	}
-	
-	public ResultSet getObjectById(Class<?> clazz, String field, String id) {		
-		String query = "SELECT * FROM " 
-			+ clazz.getSimpleName().toLowerCase() 
-			+ " WHERE "
-			+ field
-			+ "="
-			+ "'" + id + "'";
-				
-		return getQuery(query);
-	}
-	
-	public boolean deleteObjects(Class<?> clazz) {
-		Statement s = null;
-		try {
-			s = getConnection().createStatement();			
-		}
-		catch (SQLException e) {
-			System.err.println("Error: Connect.deleteObjectById() could not create statement");
-			e.printStackTrace();
-			return false;
-		}
-		
-		String query = "TRUNCATE TABLE " + clazz.getSimpleName();
-		
-		try {
-			s.executeUpdate(query);
-		} catch (SQLException e) {
-			System.err.println("ERROR: Connect.deleteObjectById() unable to execute insert");
-			e.printStackTrace();
-			return false;
-		}
-		
-		return true;
-	}
-	
-	public boolean deleteObjectById(Class<?> clazz, String field, String id) {
-		Statement s = null;
-		try {
-			s = getConnection().createStatement();			
-		}
-		catch (SQLException e) {
-			System.err.println("Error: Connect.deleteObjectById() could not create statement");
-			e.printStackTrace();
-			return false;
-		}
-		
-		String query = "DELETE FROM " 
-			+ clazz.getSimpleName().toLowerCase() 
-			+ " WHERE "
-			+ field
-			+ "="
-			+ "'" + id + "'";
-		try {
-			s.executeUpdate(query);
-		} catch (SQLException e) {
-			System.err.println("ERROR: Connect.deleteObjectById() unable to execute insert");
-			e.printStackTrace();
-			return false;
-		}
-		
-		return true;
-		
-	}
-	
 	public HashMap<String,String> getObjectMap(Object o) {
 		HashMap<String,String> map = new HashMap<String,String>();
 		
@@ -242,29 +323,6 @@ public class Connect {
 		return map;
 	}
 	
-	public String cleanse(String s) {
-		return s.replaceAll("\"","&quot;").replaceAll("'", "&sing;");
-	}
-	
-	public String fixFieldName(String s) {
-		char[] chars = s.toCharArray();
-		chars[0] = Character.toUpperCase(chars[0]);
-		return new String(chars);
-	}
-	
-	public Object objectFromClosedResultSet(Class<?> clazz, ResultSet rs) {
-		Object o = null;
-		try {
-			if(rs.next()) {
-				o = objectFromOpenResultSet(clazz, rs);
-			}
-		} catch (SQLException e) {
-			System.err.println("Error: Connect.objectFromClosedResultSet() unable to open result set");
-			e.printStackTrace();
-		}
-		return o;
-	}
-	
 	public Object objectFromOpenResultSet(Class<?> clazz, ResultSet rs) {
 		Object o = null;
 		
@@ -291,10 +349,6 @@ public class Connect {
 			e.printStackTrace();
 		}
 		return o;
-	}
-	
-	public String uncleanse(String s) {
-		return s.replaceAll("&quot;", "\"").replaceAll("&sing;", "'");
 	}
 	
 }
