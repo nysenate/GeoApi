@@ -13,8 +13,6 @@ import java.util.regex.Pattern;
 public class ShapeTest {
 
 	public static void main(String[] args) throws IOException {
-		
-		System.out.println(2-1.1);
 //		BufferedReader br = new BufferedReader(new InputStreamReader(new URL("http://www.usps.com/ncsc/lookups/abbr_suffix.txt").openStream()));
 //		
 //		String in = null;
