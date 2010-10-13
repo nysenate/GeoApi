@@ -70,7 +70,11 @@ public class ApiController {
 				
 			}
 			if(in.equals("default senate user")) {
-				
+				new Connect().persistObject(new ApiUser("xb4ts2Jqm1qlARXRlRj8q0nCYfTG2Vdb", "general", "everyone for now"));
+				new Connect().persistObject(new ApiUser("JsP46xRBHVQDVhL4XNrvM8VQDNDkA3", "sheldon", "nysenate stuff"));
+				new Connect().persistObject(new ApiUser("YgiZWjKgealrvSlyDMQRMYEaNLv2fFiz", "nathan", "mobile dev"));
+				new Connect().persistObject(new ApiUser("APmk9wGIXCGJxOPNLXpWauMa2bOt3D", "sts", "financial apps and what not"));
+				new Connect().persistObject(new ApiUser("JC2Y6dl0nipdvqgb6UepmAtVRfZ2JQ", "demo", "for demo purposes"));
 			}
 			System.out.print("> ");
 		}

@@ -19,10 +19,6 @@ public class NYSenateScraper {
 	static final String EMAIL = "@senate.state.ny.us";
 	static final String IMAGE_URL = "http://www.nysenate.gov/files/imagecache/senator_teaser/profile-pictures/";
 	
-	public static void main(String[] args) throws MalformedURLException, IOException {
-		System.out.println(populateSenateData(38).getSenator().getImageUrl());
-	}
-	
 	public static Senate populateSenateData(int district) throws MalformedURLException, IOException {
 		Pattern senatorData = Pattern.compile("<div class=\"senator_name\"><a href=\"(/senator/.*?)\">(.*?)</a></div>");
 		Pattern senatorImage = Pattern.compile("http://www\\.nysenate\\.gov/files/imagecache/senator_teaser/profile\\-pictures/(.+?\\.(JPG|jpg|gif|GIF))");

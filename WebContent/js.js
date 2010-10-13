@@ -145,9 +145,17 @@ $(document).ready(function(){
 		$(".response_body").html("<img src='r.gif'>");
 		var url = api + districts;
 		
+		var validateUrl = api+validate;
+		
 		var $inputs = $("#districtsForm :input");
 		$inputs.each(function() {
 			url = url + buildUrl(this.name, $(this).val());
+			validateUrl = validateUrl + buildUrl(this.name, $(this).val());
+		});
+		
+		var validatedAddr = null;
+		$.getJSON(validateUrl,function(data){
+			validatedAddr = data;
 		});
 		
 		$.getJSON(url, function(data) {
@@ -164,8 +172,13 @@ $(document).ready(function(){
 							
 							+ "<li>Longitude: " + data.lon + "</li>"
 							
-							+ "<li>Address: " + data.address + "</li>"
-							//" +  + "
+							+ (validatedAddr.message == null ? 
+									"<li>Address: " + validatedAddr.address2
+									+", " + validatedAddr.city
+									+", " + validatedAddr.state
+									+" " + validatedAddr.zip5 + "-" +validatedAddr.zip4
+									:"<li>Address: " + data.address + "</li>")
+							
 							+ "<li><table cellspacing=\"10\">"
 								+ "<tr>"
 									+ "<td rowspan=3><img src=\"" + data.senate.senator.imageUrl + "\" alt=\"" + data.senate.senator.name + "\"></img></td>"
@@ -185,7 +198,7 @@ $(document).ready(function(){
 							
 							+ "<li>" + data.county.countyName + "</li>"
 							+ "<li>" + data.election.district + "</li>"
-							+ "<li>" + data.census.fips + "</li>"
+							+ "<li><label>Census FIPS: </label>" + data.census.fips + "</li>"
 						+ "</ol>"
 					+ "</div>");
 

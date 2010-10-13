@@ -8,7 +8,6 @@
 
 package generated.fcc;
 
-import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -39,7 +38,7 @@ import javax.xml.bind.annotation.XmlType;
 public class Block {
 
     @XmlAttribute(name = "FIPS", required = true)
-    protected BigInteger fips;
+    protected String fips;
 
     /**
      * Gets the value of the fips property.
@@ -49,7 +48,7 @@ public class Block {
      *     {@link BigInteger }
      *     
      */
-    public BigInteger getFIPS() {
+    public String getFIPS() {
         return fips;
     }
 
@@ -61,7 +60,7 @@ public class Block {
      *     {@link BigInteger }
      *     
      */
-    public void setFIPS(BigInteger value) {
+    public void setFIPS(String value) {
         this.fips = value;
     }
 

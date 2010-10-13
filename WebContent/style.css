@@ -22,15 +22,15 @@ p {
 	padding: 0;
 	width: 383px;
 	position:absolute;
-	left:405px;
-	top:280px;
+	left:375px;
+	top:260px;
 }
 
 #map_canvas {
 	width: 383px;
 	height: 250px;
 	position:absolute;
-	left:405px;
+	left:375px;
 	top:5px;
 }
 
@@ -40,7 +40,7 @@ p {
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	width: 383px;
+	width: 353px;
 	top:5px;
 	height:100%;
 }
@@ -92,8 +92,8 @@ p {
 
 form {
 	font:13px Georgia, "Times New Roman", Times, serif;
-	margin:20px;
-	padding:10px 20px;
+	margin:0px;
+	padding:10px 0px;
 	width:330px;
 }
 
