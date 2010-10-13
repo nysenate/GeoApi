@@ -39,5 +39,5 @@ CREATE TABLE office (
 ) ENGINE=INNODB;
 
 CREATE TABLE  phonenumber(
-
+	number 
 ) ENGINE=INNODB;
