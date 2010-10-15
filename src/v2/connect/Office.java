@@ -1,6 +1,6 @@
 package v2.connect;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import com.google.gson.annotations.Expose;
 
@@ -13,17 +13,20 @@ public class Office {
 	@Expose String state;
 	@Expose String zip;
 	
-	@Expose @PersistentObject List<PhoneNumber> phoneNumbers;
+	@Expose @PersistentObject @ListType(PhoneNumber.class) ArrayList<PhoneNumber> phoneNumbers;
 	
 	@Ignore	@PrimaryKey	Integer id;
-	@Ignore	@ForeignKey(Senator.class) String SenatorContact;
+	@ForeignKey(Senator.class) String contact;
+	
+	public Office() {
+		phoneNumbers = new ArrayList<PhoneNumber>();
+	}
 
-	public Office(Integer id, String senatorContact, String street,
-			String city, String state, String zip,
-			List<PhoneNumber> phoneNumbers) {
-		super();
+	public Office(Integer id, String street,
+			String city, String state, String zip, String  contact,
+			ArrayList<PhoneNumber> phoneNumbers) {
 		this.id = id;
-		SenatorContact = senatorContact;
+		this.contact = contact;
 		this.street = street;
 		this.city = city;
 		this.state = state;
@@ -35,8 +38,8 @@ public class Office {
 		return id;
 	}
 
-	public String getSenatorContact() {
-		return SenatorContact;
+	public String getContact() {
+		return contact;
 	}
 
 	public String getStreet() {
@@ -55,7 +58,7 @@ public class Office {
 		return zip;
 	}
 
-	public List<PhoneNumber> getPhoneNumbers() {
+	public ArrayList<PhoneNumber> getPhoneNumbers() {
 		return phoneNumbers;
 	}
 
@@ -63,8 +66,8 @@ public class Office {
 		this.id = id;
 	}
 
-	public void setSenatorContact(String senatorContact) {
-		SenatorContact = senatorContact;
+	public void setContact(String contact) {
+		this.contact = contact;
 	}
 
 	public void setStreet(String street) {
@@ -83,9 +86,11 @@ public class Office {
 		this.zip = zip;
 	}
 
-	public void setPhoneNumbers(List<PhoneNumber> phoneNumbers) {
+	public void setPhoneNumbers(ArrayList<PhoneNumber> phoneNumbers) {
 		this.phoneNumbers = phoneNumbers;
 	}
 	
-	
+	public void addPhoneNumbers(PhoneNumber pn) {
+		phoneNumbers.add(pn);
+	}
 }

@@ -1,4 +1,4 @@
-package model;
+package v2.connect;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,5 +7,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PersistentObject {
+public @interface ListType {
+	Class<?> value();
 }

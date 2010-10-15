@@ -2,24 +2,26 @@ package v2.connect;
 
 import com.google.gson.annotations.Expose;
 
-import model.Ignore;
-
 public class PhoneNumber {
-	@Ignore @ForeignKey(Office.class) Integer OfficeId;
+	@ForeignKey(Office.class) Integer id;
 	@Expose String number;
-	public PhoneNumber(Integer officeId, String number) {
-		super();
-		OfficeId = officeId;
+	
+	public PhoneNumber() {
+		
+	}
+	
+	public PhoneNumber(Integer id, String number) {
+		this.id = id;
 		this.number = number;
 	}
-	public Integer getOfficeId() {
-		return OfficeId;
+	public Integer getId() {
+		return id;
 	}
 	public String getNumber() {
 		return number;
 	}
-	public void setOfficeId(Integer officeId) {
-		OfficeId = officeId;
+	public void setId(Integer id) {
+		this.id = id;
 	}
 	public void setNumber(String number) {
 		this.number = number;

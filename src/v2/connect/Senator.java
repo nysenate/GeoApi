@@ -1,10 +1,9 @@
 package v2.connect;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import com.google.gson.annotations.Expose;
 
-import model.Ignore;
 import model.PersistentObject;
 
 public class Senator {
@@ -14,12 +13,16 @@ public class Senator {
 	@Expose String imageUrl;
 	
 	@Expose @PersistentObject Social social;
-	@Expose @PersistentObject List<Office> offices;
+	@Expose @PersistentObject @ListType(Office.class) ArrayList<Office> offices;
 	
-	@Ignore @ForeignKey(SenateDistrict.class) String district;
+	@ForeignKey(SenateDistrict.class) String district;
+	
+	public Senator() {
+		offices = new ArrayList<Office>();
+	}
 
 	public Senator(String name, String contact, String url, String imageUrl,
-			Social social, List<Office> offices, String district) {
+			Social social, ArrayList<Office> offices, String district) {
 		super();
 		this.name = name;
 		this.contact = contact;
@@ -50,7 +53,7 @@ public class Senator {
 		return social;
 	}
 
-	public List<Office> getOffice() {
+	public ArrayList<Office> getOffices() {
 		return offices;
 	}
 
@@ -78,10 +81,14 @@ public class Senator {
 		this.social = social;
 	}
 
-	public void setOffice(List<Office> offices) {
+	public void setOffices(ArrayList<Office> offices) {
 		this.offices = offices;
 	}
-
+	
+	public void addOffices(Office office) {
+		offices.add(office);
+	}
+	
 	public void setDistrict(String district) {
 		this.district = district;
 	}

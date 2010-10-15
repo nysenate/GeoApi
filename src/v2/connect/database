@@ -16,6 +16,7 @@ CREATE TABLE senator (
 	url VARCHAR(256),
 	imageurl VARCHAR(256),
 	district VARCHAR(50),
+	FOREIGN KEY (district) REFERENCES senatedistrict(district) ON DELETE CASCADE,
 	PRIMARY KEY(contact)
 ) ENGINE=INNODB;
 
@@ -26,6 +27,7 @@ CREATE TABLE social (
 	flickr VARCHAR(1024),
 	rss VARCHAR(1024),
 	contact VARCHAR(256),
+	FOREIGN KEY (contact) REFERENCES senator(contact) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 CREATE TABLE office (
@@ -33,11 +35,14 @@ CREATE TABLE office (
 	street VARCHAR(1024),
 	city VARCHAR(256),
 	state VARCHAR(256),
-	zip VARCHAR(12),
+	zip VARCHAR(32),
 	contact VARCHAR(256),
-	PRIMARY KEY(id);
+	FOREIGN KEY (contact) REFERENCES senator(contact) ON DELETE CASCADE,
+	PRIMARY KEY(id)
 ) ENGINE=INNODB;
 
 CREATE TABLE  phonenumber(
-	number 
+	number VARCHAR(32),
+	id INT,
+	FOREIGN KEY (id) REFERENCES office(id) ON DELETE CASCADE
 ) ENGINE=INNODB;

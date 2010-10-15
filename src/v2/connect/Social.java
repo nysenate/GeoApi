@@ -2,19 +2,21 @@ package v2.connect;
 
 import com.google.gson.annotations.Expose;
 
-import model.Ignore;
-
 public class Social {
-	@Ignore @ForeignKey(Senator.class) String senatorContact;
+	@ForeignKey(Senator.class) String contact;
 	@Expose String faceBook;
 	@Expose String twitter;
 	@Expose String youtube;
 	@Expose String flickr;
 	@Expose String rss;
 	
-	public Social(String senatorContact, String faceBook, String twitter,
+	public Social() {
+		
+	}
+	
+	public Social(String contact, String faceBook, String twitter,
 			String youtube, String flickr, String rss) {
-		this.senatorContact = senatorContact;
+		this.contact = contact;
 		this.faceBook = faceBook;
 		this.twitter = twitter;
 		this.youtube = youtube;
@@ -22,8 +24,8 @@ public class Social {
 		this.rss = rss;
 	}
 
-	public String getSenatorContact() {
-		return senatorContact;
+	public String getContact() {
+		return contact;
 	}
 
 	public String getFaceBook() {
@@ -46,8 +48,8 @@ public class Social {
 		return rss;
 	}
 
-	public void setSenatorContact(String senatorContact) {
-		this.senatorContact = senatorContact;
+	public void setContact(String contact) {
+		this.contact = contact;
 	}
 
 	public void setFaceBook(String faceBook) {

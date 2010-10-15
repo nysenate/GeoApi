@@ -2,19 +2,22 @@ package v2.connect;
 
 import com.google.gson.annotations.Expose;
 
-import model.Ignore;
 import model.PersistentObject;
 
 public class SenateDistrict {
 	@Expose @PrimaryKey String district;
-	@Expose String url;
+	@Expose String districtUrl;
 	
 	@Expose @PersistentObject Senator senator;
 
-	public SenateDistrict(String district, String url, Senator senator) {
+	public SenateDistrict() {
+		
+	}
+	
+	public SenateDistrict(String district, String districtUrl, Senator senator) {
 		super();
 		this.district = district;
-		this.url = url;
+		this.districtUrl = districtUrl;
 		this.senator = senator;
 	}
 
@@ -22,8 +25,8 @@ public class SenateDistrict {
 		return district;
 	}
 
-	public String getUrl() {
-		return url;
+	public String getDistrictUrl() {
+		return districtUrl;
 	}
 
 	public Senator getSenator() {
@@ -34,8 +37,8 @@ public class SenateDistrict {
 		this.district = district;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public void setDistrictUrl(String districtUrl) {
+		this.districtUrl = districtUrl;
 	}
 
 	public void setSenator(Senator senator) {
