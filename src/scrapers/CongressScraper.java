@@ -38,7 +38,7 @@ public class CongressScraper {
 				m = pp.matcher(in);
 				if(m.find()) {
 					Congressional c = new Congressional("Congressional District " + m.group(3),new Member(m.group(2).replaceAll("'|\"", ""),m.group(1)));
-					connect.persistObject(c);
+					connect.persist(c);
 				}
 			}
 		}

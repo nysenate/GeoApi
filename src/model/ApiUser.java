@@ -1,8 +1,9 @@
 package model;
 
+import model.annotations.Ignore;
+
 public class ApiUser {
-	@Ignore
-	int id;
+	@Ignore Integer id;
 	String apiKey;
 	String name;
 	String description;

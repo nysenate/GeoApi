@@ -288,17 +288,16 @@ public class ApiServlet extends HttpServlet {
 			}
 			else {
 				out.write(getError("error","Invalid request " 
-						+ uri 
+						+ constructUrl(uri, request)
 						+ ", please check that your input"
 						+ " is properly formatted and review the API documentation", format));
 			}
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public String constructUrl(String uri, HttpServletRequest req) {
     	String ret = uri + "?";
-    	Enumeration params = req.getParameterNames();
+    	Enumeration<?> params = req.getParameterNames();
     	while(params.hasMoreElements()) {
     		String elem = (String)params.nextElement();
     		ret += elem + "=" + (String)req.getParameter(elem) + "&";

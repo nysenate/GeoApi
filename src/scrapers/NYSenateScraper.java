@@ -21,16 +21,15 @@ public class NYSenateScraper {
 	static final String EMAIL = "@senate.state.ny.us";
 	static final String IMAGE_URL = "http://www.nysenate.gov/files/imagecache/senator_teaser/profile-pictures/";
 	
-	public static void Scrape() {
+	public static void Scrape() throws MalformedURLException, IOException {
 		Connect c = new Connect();
 		for(int i = 1; i <= 62; i++) {
 			System.out.print(i + ",");
-			//Senate s = NYSenateScraper.populateSenateData(i);
-			//c.persistObject(s);
-			
-			
-			
+			Senate s = NYSenateScraper.populateSenateData(i);
+			c.persist(s);
 		}
+		
+		c.close();
 	}
 	
 	public static Senate populateSenateData(int district) throws MalformedURLException, IOException {

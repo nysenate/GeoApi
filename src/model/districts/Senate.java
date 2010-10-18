@@ -1,21 +1,24 @@
 package model.districts;
 
-import model.PersistentObject;
-
+import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+import model.annotations.PersistentObject;
+import model.annotations.PrimaryKey;
 
 @XStreamAlias("senate")
 public class Senate {
-	String district;
-	String districtUrl;
-	@PersistentObject
-	Senator senator;
+	@Expose @PrimaryKey String district;
+	@Expose String districtUrl;
 	
+	@Expose @PersistentObject Senator senator;
+
 	public Senate() {
 		
 	}
 	
 	public Senate(String district, String districtUrl, Senator senator) {
+		super();
 		this.district = district;
 		this.districtUrl = districtUrl;
 		this.senator = senator;
@@ -44,4 +47,6 @@ public class Senate {
 	public void setSenator(Senator senator) {
 		this.senator = senator;
 	}
+	
+	
 }

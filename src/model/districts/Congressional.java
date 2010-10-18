@@ -1,14 +1,16 @@
 package model.districts;
 
-import model.PersistentObject;
 
+import model.annotations.PersistentObject;
+import model.annotations.PrimaryKey;
+
+import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("congressional")
 public class Congressional {
-	String district;
-	@PersistentObject
-	Member member;
+	@Expose @PrimaryKey String district;
+	@Expose @PersistentObject Member member;
 	
 	public Congressional() {
 		

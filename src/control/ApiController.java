@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,27 +34,28 @@ public class ApiController {
 				System.out.println("indexing congress... ");
 				CongressScraper.scrape();
 				System.out.print("indexing senate... ");
-				for(int i = 1; i <= 62; i++) {
-					System.out.print(i + ",");
-					Senate s = NYSenateScraper.populateSenateData(i);
-					c.persistObject(s);
-				}
+				NYSenateScraper.Scrape();
 				System.out.println();
 				
 			}
-			if(in.equals("create sen")) {
-				System.out.print("indexing... ");
-				for(int i = 1; i <= 62; i++) {
-					System.out.print(i + ",");
-					c.persistObject(NYSenateScraper.populateSenateData(i));
-				}
+			else if(in.equals("create sen")) {
+				System.out.print("indexing senate... ");
+				NYSenateScraper.Scrape();
 				System.out.println();
 			}
-			if(in.equals("destroy sen")) {
+			else if(in.equals("create ass")) {
+				System.out.println("indexing assembly... ");
+				AssemblyScraper.scrape();
+			}
+			else if(in.equals("create con")) {
+				System.out.println("indexing congress... ");
+				CongressScraper.scrape();
+			}
+			else if(in.equals("destroy sen")) {
 				System.out.println("dropping senate index");
 				c.deleteObjects(Senate.class);
 			}
-			if(in.startsWith("add user")) {
+			else if(in.startsWith("add user")) {
 				Pattern p = Pattern.compile("add user \"(.+?)\" \"(.+?)\" \"(.+?)\"");
 				Matcher m = p.matcher(in);
 				if(m.find()) {
@@ -66,10 +65,10 @@ public class ApiController {
 					System.out.println("proper format is: add user \"<name>\" \"<description>\" \"<key>\"");
 				}
 			}
-			if(in.startsWith("delete user")) {
+			else if(in.startsWith("delete user")) {
 				
 			}
-			if(in.equals("default senate user")) {
+			else if(in.equals("default senate user")) {
 				
 			}
 			System.out.print("> ");
@@ -80,7 +79,7 @@ public class ApiController {
 	public boolean addMetric(int userId, String command, String host) {		
 		Connect con = new Connect();
 		
-		boolean ret = con.persistObject(new Metric(userId, command, host));
+		boolean ret = con.persist(new Metric(userId, command, host));
 		
 		con.close();
 		
@@ -94,7 +93,7 @@ public class ApiController {
 		String ep = pe.encryptPassword(apiKey);
 		ep = ep.replaceAll("\\W", "");
 		
-		con.persistObject(new ApiUser(ep, name, description));
+		con.persist(new ApiUser(ep, name, description));
 		
 		con.close();
 		
@@ -103,17 +102,8 @@ public class ApiController {
 	
 	public ApiUser getUser(String apiKey) {
 		Connect con = new Connect();
-		ResultSet rs = con.getObjectById(ApiUser.class, "apikey",apiKey);
-		ApiUser user = null;
+		ApiUser user = (ApiUser) con.getObject(ApiUser.class, "apikey",apiKey);
 		
-		try {
-			if(rs.next()) {
-				user = (ApiUser)con.objectFromOpenResultSet(ApiUser.class, rs);
-				user.setId(rs.getInt("id"));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
 		con.close();
 		
 		return user;

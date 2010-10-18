@@ -14,8 +14,4 @@ public class Point {
 		this.lon = y;
 		this.address = address;
 	}
-	
-	public static void main(String[] args) {
-		System.out.println(1);
-	}
 }

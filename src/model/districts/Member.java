@@ -1,11 +1,18 @@
 package model.districts;
 
+import model.abstracts.AbstractDistrict;
+import model.annotations.ForeignKey;
+
+import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 @XStreamAlias("member")
 public class Member {
-	String name;
-	String url;
+	@Expose String name;
+	@Expose String url;
+	
+	@XStreamOmitField @ForeignKey(AbstractDistrict.class) String district;
 	
 	public Member() {
 		
@@ -23,6 +30,10 @@ public class Member {
 	public String getUrl() {
 		return url;
 	}
+	
+	public String getDistrict() {
+		return district;
+	}
 
 	public void setName(String name) {
 		this.name = name;
@@ -30,5 +41,9 @@ public class Member {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+	
+	public void setDistrict(String district) {
+		this.district = district;
 	}
 }

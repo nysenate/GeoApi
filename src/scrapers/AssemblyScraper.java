@@ -31,7 +31,7 @@ public class AssemblyScraper {
 			m = p.matcher(in);
 			if(m.find()) {
 				Assembly a = new Assembly("Assembly District " + m.group(2),new Member(m.group(3).replaceAll("'|\"", ""),ASSEMBLY+MEM+AD+m.group(2)));
-				c.persistObject(a);
+				c.persist(a);
 			}
 		}
 		c.close();

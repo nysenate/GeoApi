@@ -296,16 +296,22 @@ public class DistrictServices {
 		dr.setElection(new Election("Election District " + gr.getFeatures().iterator().next().getProperties().getED()));
 		
 		gr = fromGeoserver(new WFS_Assembly(), p);
-		dr.setAssembly((Assembly)c.objectFromClosedResultSet(Assembly.class, c.getObjectById(Assembly.class,
-				"district", gr.getFeatures().iterator().next().getProperties().getNAMELSAD())));
+		dr.setAssembly((Assembly)c.getObject(Assembly.class,
+				"district",
+				gr.getFeatures().iterator().next().getProperties().getNAMELSAD(),
+				false));
 		
 		gr = fromGeoserver(new WFS_Congressional(), p);
-		dr.setCongressional((Congressional)c.objectFromClosedResultSet(Congressional.class, c.getObjectById(
-				Congressional.class, "district",gr.getFeatures().iterator().next().getProperties().getNAMELSAD())));		
+		dr.setCongressional((Congressional)c.getObject(Congressional.class,
+				"district",
+				gr.getFeatures().iterator().next().getProperties().getNAMELSAD(),
+				false));		
 		
 		gr = fromGeoserver(new WFS_Senate(), p);
-		dr.setSenate((Senate)c.objectFromClosedResultSet(Senate.class,c.getObjectById(
-				Senate.class, "district",gr.getFeatures().iterator().next().getProperties().getNAMELSAD())));
+		dr.setSenate((Senate)c.getObject(Senate.class,
+				"district",
+				gr.getFeatures().iterator().next().getProperties().getNAMELSAD(),
+				false));
 		c.close();
 		
 		dr.setLat(p.lat);
