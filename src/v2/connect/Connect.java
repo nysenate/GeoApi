@@ -1,6 +1,7 @@
 package v2.connect;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.sql.Connection;
@@ -38,7 +39,8 @@ public class Connect {
 //		Office office2 = new Office(null,"2 not-main street","albany","ny", "12208", "williams@nysenate.gov", phoneNumbers2);
 //		
 //		ArrayList<Office> offices = new ArrayList<Office>();
-//		offices.add(office1);offices.add(office2);
+//		offices.add(office1);
+//		offices.add(office2);
 //		
 //		Social social = new Social(null,"www.facebook.com","www.twitter,com","www.youtube.com","www.rss.com","www.flickr.com");
 //		
@@ -50,7 +52,7 @@ public class Connect {
 		
 		Gson gson = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
 		
-		System.out.println(gson.toJson(new Connect().retrieve(SenateDistrict.class, "district", "District 1")));
+		System.out.println(gson.toJson(new Connect().getObject(SenateDistrict.class, "district", "District 1",false)));
 	}
 	
 	
@@ -59,7 +61,7 @@ public class Connect {
 	public static final String SET = "set";
 	public static final String DATABASE = "jdbc:mysql://localhost/geotest";
 	public static final String USER = "root";
-	public static final String PASS = "root";
+	public static final String PASS = "";
 	
 	Connection connection;
 	Properties properties;
@@ -190,13 +192,13 @@ public class Connect {
 		return generatedId;
 	}
 	
-	public ResultSet getObjects(Class<?> clazz) {		
+	public ResultSet getResultSetMany(Class<?> clazz) {		
 		String query = "SELECT * from " + clazz.getSimpleName().toLowerCase();
 		
-		return getQuery(query);
+		return getResultSetFromQuery(query);
 	}
 	
-	public ResultSet getObjectById(Class<?> clazz, String field, Object value) {		
+	public ResultSet getResultsetById(Class<?> clazz, String field, Object value) {		
 		String query = "SELECT * FROM " 
 			+ clazz.getSimpleName().toLowerCase() 
 			+ " WHERE "
@@ -204,10 +206,10 @@ public class Connect {
 			+ "="
 			+ "'" + value + "'";
 				
-		return getQuery(query);
+		return getResultSetFromQuery(query);
 	}
 	
-	public ResultSet getQuery(String query) {
+	public ResultSet getResultSetFromQuery(String query) {
 		Statement s = null;
 		try {
 			s = getConnection().createStatement();
@@ -236,71 +238,40 @@ public class Connect {
 	}
 	
 	
+	public Object stuff(Object o, Class<?> clazz) throws Exception {
+		MappedFields mf = buildObjectFieldLists(clazz,o);
+		boolean isList = false;
+		
+		for(Field f:mf.getPersistents()) {
+			Class<?> fieldClass = f.getType();
+			if(f.getType().equals(ArrayList.class)) {
+				fieldClass = f.getAnnotation(ListType.class).value();
+				isList = true;
+			}
+								
+			clazz.getDeclaredMethod(SET + fixFieldName(f.getName()),
+					f.getType()).invoke(o,
+						getObject(fieldClass,
+								mf.getPrimaryField().getName(),
+								mf.getPrimary(), isList));
+		}
+		return o;
+	}
 	
-	
-	public Object retrieve(Class<?> clazz, String field, Object value) {
+	public Object getObject(Class<?> clazz, String field, Object value, boolean isList) {
 		Object o = null;
 		try {
-			ArrayList<Object> rsList = (ArrayList<Object>)objectFromClosedResultSet(clazz,getObjectById(clazz, field, value));
-			o = rsList.iterator().next();
+			ArrayList<Object> rsList = (ArrayList<Object>)listFromClosedResultSet(clazz,getResultsetById(clazz, field, value));
 			
-//			if(o.getClass().equals(ArrayList.class)) {
-//				ArrayList<Object> list = (ArrayList<Object>)o;
-//				for(Object listObject:list) {
-//					MappedFields mf = buildObjectFieldLists(listObject.getClass(),listObject);
-//					
-//					for(Field f:mf.getPersistents()) {
-//						Class<?> fieldClass = f.getType();
-//						if(f.getType().equals(ArrayList.class)) {
-//							fieldClass = f.getAnnotation(ListType.class).value();
-//						}
-//						System.out.println(f.getType() + " : " + listObject.getClass().getSimpleName());
-//						clazz.getDeclaredMethod(SET + fixFieldName(f.getName()),
-//							f.getType()).invoke(listObject,
-//								retrieve(fieldClass,
-//										mf.getPrimaryField().getName(),
-//										mf.getPrimary()));
-//					}
-//				}
-//			}
-//			else {
-				MappedFields mf = buildObjectFieldLists(clazz,o);
-				
-				for(Field f:mf.getPersistents()) {
-					if(f.getType().equals(ArrayList.class)) {
-						Class<?> listClass = f.getAnnotation(ListType.class).value();
-						
-						ArrayList<Object> curFieldList = new ArrayList<Object>();
-						
-						ArrayList<Object> list = (ArrayList<Object>)objectFromClosedResultSet(
-								listClass,getObjectById(listClass, mf.getPrimaryField().getName(), mf.getPrimary()));
-						
-						for(Object rsObject:list) {
-							MappedFields listMf = buildObjectFieldLists(listClass, rsObject);
-							System.out.println(mf.getPrimary());
-//							
-//							curFieldList.add(retrieve(listClass,
-//									mf.getPrimaryField().getName(),
-//									mf.getPrimary()));
-							curFieldList.add(rsObject);
-						}
-
-						clazz.getDeclaredMethod(SET + fixFieldName(f.getName()),
-								ArrayList.class).invoke(o,curFieldList);
-
-					}
-					else {
-						o = rsList.iterator().next();
-						
-						clazz.getDeclaredMethod(SET + fixFieldName(f.getName()),
-								f.getType()).invoke(o,
-									retrieve(f.getType(),
-											mf.getPrimaryField().getName(),
-											mf.getPrimary()));
-					}
+			if(isList) {
+				o = new ArrayList<Object>();
+				for(Object rsListObject:rsList) {
+					((ArrayList<Object>) o).add(stuff(rsListObject, clazz));
 					
 				}
-//			}
+			}
+			else
+				o = stuff(rsList.iterator().next(), clazz);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -361,7 +332,7 @@ public class Connect {
 		
 	}
 	
-	public Object objectFromClosedResultSet(Class<?> clazz, ResultSet rs) {
+	public ArrayList<Object> listFromClosedResultSet(Class<?> clazz, ResultSet rs) {
 		ArrayList<Object> ret = new ArrayList<Object>();
 		try {
 			while(rs.next()) {
@@ -398,7 +369,7 @@ public class Connect {
 		return o;
 	}
 	
-	public HashMap<String,Object> getObjectMap(Object o, ArrayList<Field> fields) {
+	private HashMap<String,Object> getObjectMap(Object o, ArrayList<Field> fields) {
 		HashMap<String,Object> map = new HashMap<String,Object>();
 		
 		if(o == null) {
@@ -449,7 +420,7 @@ public class Connect {
 	 * @return MappedFields objeect with fields in their respective buckets
 	 * @throws Exception 
 	 */
-	public MappedFields buildObjectFieldLists(Class clazz, Object o) throws Exception {
+	private MappedFields buildObjectFieldLists(Class clazz, Object o) throws Exception {
 		MappedFields m = new MappedFields();
 		
 		for(Field f:clazz.getDeclaredFields()) {
@@ -488,7 +459,7 @@ public class Connect {
 	}
 	
 	
-	public Integer getKeyFromResultSet(ResultSet rs) {
+	private Integer getKeyFromResultSet(ResultSet rs) {
 		try {
 			if(rs != null) {
 				return rs.getInt(1);
@@ -500,17 +471,17 @@ public class Connect {
 		return null;
 	}
 	
-	public String fixFieldName(String s) {
+	private String fixFieldName(String s) {
 		char[] chars = s.toCharArray();
 		chars[0] = Character.toUpperCase(chars[0]);
 		return new String(chars);
 	}
 	
-	public String cleanse(String s) {
+	private String cleanse(String s) {
 		return s.replaceAll("\"","&quot;").replaceAll("'", "&sing;");
 	}
 	
-	public String uncleanse(String s) {
+	private String uncleanse(String s) {
 		return s.replaceAll("&quot;", "\"").replaceAll("&sing;", "'");
 	}
 }
