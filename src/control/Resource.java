@@ -17,6 +17,7 @@ public class Resource {
 	
 	private static String servletResource = "/WEB-INF/app.properties";
 	private static String classResource = "WebContent" + servletResource;
+//	private static String classResource = "/opt/apache-tomcat-6.0.26/webapps/GeoApi" + servletResource;
 	private static InputStream INPUT;
 	private static Properties properties;
 	private static ServletContext CONTEXT;

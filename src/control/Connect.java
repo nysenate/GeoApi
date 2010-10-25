@@ -1,5 +1,7 @@
 package control;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -21,6 +23,7 @@ import model.annotations.ListType;
 import model.annotations.PersistentObject;
 import model.annotations.PrimaryKey;
 import model.districts.Congressional;
+import model.districts.Senate;
 
 /**
  * @author Jared Williams
@@ -29,7 +32,7 @@ import model.districts.Congressional;
 public class Connect {
 	
 	
-	public static void main(String[] args) throws SQLException {
+	public static void main(String[] args) throws Exception {
 //		Member cMan1 = new Member("cMan1", "www.cman1.com");
 //		Member cMan2 = new Member("cMan2", "www.cman2.com");
 //		Congressional c1 = new Congressional("congressional 1", cMan1);
@@ -71,9 +74,11 @@ public class Connect {
 //		
 //		new Connect().persist(senateDistrict, null);
 //		
-		Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-		
-		System.out.println(gson.toJson(new Connect().getObject(Congressional.class, "district", "congressional 2",false)));
+//		Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+//		
+//		System.out.println(gson.toJson(new Connect().getObject(Senate.class, "district", "State Senate District 9",false)));
+
+//		System.out.println(new DistrictServices().getDistrictsFromAddress("18 appleton road rexford ny 12148", "xml", null));
 	}
 	
 	
@@ -221,13 +226,13 @@ public class Connect {
 		return generatedId;
 	}
 	
-	public ResultSet getResultSetMany(Class<?> clazz) {		
+	public ResultSet getResultSetMany(Class<?> clazz) throws SQLException {		
 		String query = "SELECT * from " + clazz.getSimpleName().toLowerCase();
 		
 		return getResultSetFromQuery(query);
 	}
 	
-	public ResultSet getResultsetById(Class<?> clazz, String field, Object value) {		
+	public ResultSet getResultsetById(Class<?> clazz, String field, Object value) throws SQLException {		
 		String query = "SELECT * FROM " 
 			+ clazz.getSimpleName().toLowerCase() 
 			+ " WHERE "
@@ -238,31 +243,17 @@ public class Connect {
 		return getResultSetFromQuery(query);
 	}
 	
-	public ResultSet getResultSetFromQuery(String query) {
+	public ResultSet getResultSetFromQuery(String query) throws SQLException {
 		Statement s = null;
-		try {
-			s = getConnection().createStatement();
-		}
-		catch(SQLException e) {
-			System.err.println("Error: Connect.getQuery() could not create statement");
-			e.printStackTrace();
-			return null;
-		}
-		try {
-			s.executeQuery(query);
-		} catch (SQLException e) {
-			System.err.println("ERROR: Connect.getQuery() unable to execute insert");
-			e.printStackTrace();
-			return null;
-		}
+		
+		s = getConnection().createStatement();
+		
+		s.executeQuery(query);
+		
 		ResultSet rs = null;
-		try {
-			rs = s.getResultSet();
-		} catch (SQLException e) {
-			System.err.println("ERROR: Connect.getQuery() unable to retrieve result set for query");
-			e.printStackTrace();
-			return null;
-		}
+		
+		rs = s.getResultSet();
+		
 		return rs;
 	}
 	
@@ -306,7 +297,7 @@ public class Connect {
 		return o;
 	}
 	
-	public Object getObject(Class<?> clazz, String field, Object value) {
+	public Object getObject(Class<?> clazz, String field, Object value) throws Exception {
 		return getObject(clazz, field, value, false);
 	}
 	
@@ -323,27 +314,23 @@ public class Connect {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public Object getObject(Class<?> clazz, String field, Object value, boolean isList) {
+	public Object getObject(Class<?> clazz, String field, Object value, boolean isList) throws Exception {
 		Object o = null;
-		try {
-			ArrayList<Object> rsList = (ArrayList<Object>)listFromClosedResultSet(clazz,getResultsetById(clazz, field, value));
-			
-			if(isList) {
-				o = new ArrayList<Object>();
-				for(Object rsListObject:rsList) {
-					((ArrayList<Object>) o).add(handleGetObjectPersistableFields(rsListObject, clazz));
-				}
+		
+		ArrayList<Object> rsList = (ArrayList<Object>)listFromClosedResultSet(clazz,getResultsetById(clazz, field, value));
+		
+		if(isList) {
+			o = new ArrayList<Object>();
+			for(Object rsListObject:rsList) {
+				((ArrayList<Object>) o).add(handleGetObjectPersistableFields(rsListObject, clazz));
 			}
-			else{
-				if(!rsList.isEmpty()) {
-					o = handleGetObjectPersistableFields(rsList.iterator().next(), clazz);
-				}
+		}
+		else{
+			if(!rsList.isEmpty()) {
+				o = handleGetObjectPersistableFields(rsList.iterator().next(), clazz);
 			}
-				
 		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
+		
 		return o;
 	}
 	
@@ -407,18 +394,16 @@ public class Connect {
 	 * 
 	 * @param clazz Class being populated
 	 * @param rs ResultSet from associated query
+	 * @throws Exception 
 	 * @returns generated list of results from ResultSet
 	 */
-	public ArrayList<Object> listFromClosedResultSet(Class<?> clazz, ResultSet rs) {
+	public ArrayList<Object> listFromClosedResultSet(Class<?> clazz, ResultSet rs) throws Exception {
 		ArrayList<Object> ret = new ArrayList<Object>();
-		try {
-			while(rs.next()) {
-				ret.add(objectFromOpenResultSet(clazz, rs));
-			}
-		} catch (SQLException e) {
-			System.err.println("Error: Connect.objectFromClosedResultSet() unable to open result set");
-			e.printStackTrace();
+		
+		while(rs.next()) {
+			ret.add(objectFromOpenResultSet(clazz, rs));
 		}
+		
 		return ret;
 	}
 	
@@ -432,27 +417,23 @@ public class Connect {
 	 * @param rs ResultSet from associated query
 	 * @return generated object from ResultSet
 	 */
-	public Object objectFromOpenResultSet(Class<?> clazz, ResultSet rs) {
+	public Object objectFromOpenResultSet(Class<?> clazz, ResultSet rs) throws Exception {
 		Object o = null;
 		
-		try {
-			o = clazz.newInstance();
-			
-			Field[] fields = clazz.getDeclaredFields();
-			
-			for(Field f:fields) {
-				if(f.getAnnotation(PersistentObject.class) != null) {
-					//skip, likely being processed elsewhere: (getObject(Class,String,Object,boolean))
-				}
-				else {
-					Method m = clazz.getMethod(SET + fixFieldName(f.getName()), f.getType());
-					m.invoke(o, (f.getType().equals(String.class) ? uncleanse((String)rs.getObject(f.getName().toLowerCase())):rs.getObject(f.getName().toLowerCase())));
-				}
+		o = clazz.newInstance();
+		
+		Field[] fields = clazz.getDeclaredFields();
+		
+		for(Field f:fields) {
+			if(f.getAnnotation(PersistentObject.class) != null) {
+				//skip, likely being processed elsewhere: (getObject(Class,String,Object,boolean))
+			}
+			else {
+				Method m = clazz.getMethod(SET + fixFieldName(f.getName()), f.getType());
+				m.invoke(o, (f.getType().equals(String.class) ? uncleanse((String)rs.getObject(f.getName().toLowerCase())):rs.getObject(f.getName().toLowerCase())));
 			}
 		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
+
 		return o;
 	}
 	

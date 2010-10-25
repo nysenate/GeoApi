@@ -250,7 +250,7 @@ public class DistrictServices {
 	/**
 	 * sends request to districts for district information retrieval
 	 */
-	public String getDistrictsFromAddress(String address, String format, String service) throws IOException {
+	public String getDistrictsFromAddress(String address, String format, String service) throws Exception {
 		return districts(GeoCode.getGeoCodedResponse(address, service), format);
 		
 	}
@@ -259,9 +259,8 @@ public class DistrictServices {
 	 * if service is "none" point is broken down, if service is active sends request to be
 	 * geocoded and then in either scenario request is sent to districts for retrieval
 	 */
-	public String getDistrictsFromPoint(String latlng, String format, String service) throws IOException {
+	public String getDistrictsFromPoint(String latlng, String format, String service) throws Exception {
 		Point p = null;
-		System.out.println(service);
 		if(service != null && service.equals("none")) {
 			p = new Point(new Double(latlng.split(",")[0]),new Double(latlng.split(",")[1]),"");
 		
@@ -284,7 +283,7 @@ public class DistrictServices {
 	 * 
 	 * @returns xml or json string representation of data
 	 */
-	public String districts(Point p, String format) throws IOException {
+	public String districts(Point p, String format) throws Exception {
 		Connect c = new Connect();
 		DistrictResponse dr = new DistrictResponse();
 		GeoResult gr = null;
@@ -298,20 +297,17 @@ public class DistrictServices {
 		gr = fromGeoserver(new WFS_Assembly(), p);
 		dr.setAssembly((Assembly)c.getObject(Assembly.class,
 				"district",
-				gr.getFeatures().iterator().next().getProperties().getNAMELSAD(),
-				false));
+				gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
 		
 		gr = fromGeoserver(new WFS_Congressional(), p);
 		dr.setCongressional((Congressional)c.getObject(Congressional.class,
 				"district",
-				gr.getFeatures().iterator().next().getProperties().getNAMELSAD(),
-				false));		
+				gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));		
 		
 		gr = fromGeoserver(new WFS_Senate(), p);
 		dr.setSenate((Senate)c.getObject(Senate.class,
 				"district",
-				gr.getFeatures().iterator().next().getProperties().getNAMELSAD(),
-				false));
+				gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
 		c.close();
 		
 		dr.setLat(p.lat);

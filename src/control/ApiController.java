@@ -102,7 +102,16 @@ public class ApiController {
 	
 	public ApiUser getUser(String apiKey) {
 		Connect con = new Connect();
-		ApiUser user = (ApiUser) con.getObject(ApiUser.class, "apikey",apiKey);
+		ApiUser user = null;
+		try {
+			
+			user = (ApiUser) con.getObject(ApiUser.class, "apikey",apiKey);
+			
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+			
+		}
 		
 		con.close();
 		
