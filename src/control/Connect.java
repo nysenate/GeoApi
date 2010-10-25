@@ -11,12 +11,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import model.MappedFields;
 import model.annotations.ForeignKey;
 import model.annotations.Ignore;
 import model.annotations.ListType;
 import model.annotations.PersistentObject;
 import model.annotations.PrimaryKey;
+import model.districts.Congressional;
 
 /**
  * @author Jared Williams
@@ -67,9 +71,9 @@ public class Connect {
 //		
 //		new Connect().persist(senateDistrict, null);
 //		
-//		Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-//		
-//		System.out.println(gson.toJson(new Connect().getObject(Congressional.class, "district", "congressional 2",false)));
+		Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+		
+		System.out.println(gson.toJson(new Connect().getObject(Congressional.class, "district", "congressional 2",false)));
 	}
 	
 	
@@ -77,8 +81,8 @@ public class Connect {
 	public static final String GET = "get";
 	public static final String SET = "set";
 	public static final String DATABASE = "jdbc:mysql://localhost/geoapi";
-	public static final String USER = "root";
-	public static final String PASS = "root";
+	public static final String USER = "geoapi";
+	public static final String PASS = "ga2010";
 	
 	Connection connection;
 	Properties properties;
@@ -328,11 +332,14 @@ public class Connect {
 				o = new ArrayList<Object>();
 				for(Object rsListObject:rsList) {
 					((ArrayList<Object>) o).add(handleGetObjectPersistableFields(rsListObject, clazz));
-					
 				}
 			}
-			else
-				o = handleGetObjectPersistableFields(rsList.iterator().next(), clazz);
+			else{
+				if(!rsList.isEmpty()) {
+					o = handleGetObjectPersistableFields(rsList.iterator().next(), clazz);
+				}
+			}
+				
 		}
 		catch(Exception e) {
 			e.printStackTrace();

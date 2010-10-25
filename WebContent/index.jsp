@@ -86,6 +86,11 @@
 					</ol>
 				</form>
 		</div> 
+		<p class="message_head"><cite>Street Lookup</cite></p> 
+		<div class="message_body"> 
+			For the time being this service can be accessed at <a href="http://senatehomepage.senate.state.ny.us/~AIS2/district.html">the old AIS</a> 
+			by typing in a zip code and clicking on "Street Lookup"
+		</div> 
 </div> 
 
 </body>

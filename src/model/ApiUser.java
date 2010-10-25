@@ -18,7 +18,7 @@ public class ApiUser {
 		this.description = description;
 	}
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 	
@@ -34,7 +34,7 @@ public class ApiUser {
 		return description;
 	}
 	
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
