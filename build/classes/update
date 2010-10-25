@@ -1,0 +1,28 @@
+USE geoapi;
+
+drop table senate;
+drop table assembly;
+drop table congressional;
+
+CREATE TABLE senate (
+	district VARCHAR(50),
+	districturl VARCHAR(256),
+	name VARCHAR(256),
+	contact VARCHAR(256),
+	url VARCHAR(256),
+	PRIMARY KEY(district)
+) ENGINE=INNODB;
+
+CREATE TABLE assembly (
+	district VARCHAR(50),
+	name VARCHAR(256),
+	url VARCHAR(256),
+	PRIMARY KEY(district)
+) ENGINE=INNODB;
+
+CREATE TABLE congressional (
+	district VARCHAR(50),
+	name VARCHAR(256),
+	url VARCHAR(256),
+	PRIMARY KEY(district)
+) ENGINE=INNODB;
