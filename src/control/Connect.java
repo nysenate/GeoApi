@@ -1,7 +1,5 @@
 package control;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -13,17 +11,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import model.MappedFields;
 import model.annotations.ForeignKey;
 import model.annotations.Ignore;
 import model.annotations.ListType;
 import model.annotations.PersistentObject;
 import model.annotations.PrimaryKey;
-import model.districts.Congressional;
-import model.districts.Senate;
 
 /**
  * @author Jared Williams

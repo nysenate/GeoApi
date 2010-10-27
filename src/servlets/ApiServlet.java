@@ -29,7 +29,7 @@ import control.Resource;
 public class ApiServlet extends HttpServlet {
 	
 	private static final long serialVersionUID = 1L;
-	public static final String API_COMMANDS = "(districts|geocode|revgeo|validate|polysearch|citystatelookup|zipcodelookup)";
+	public static final String API_COMMANDS = "(districts|geocode|revgeo|validate|poly|polysearch|citystatelookup|zipcodelookup)";
 	public static final String API_FORMATS = "(xml|json|kml)";
 	public static final String API_POLY_TYPES = "(senate|assembly|election|county|congressional)";
 	public static final String API_INPUT_TYPE = "(addr|latlon|extended)";
@@ -104,7 +104,7 @@ public class ApiServlet extends HttpServlet {
 			
 			String type = stok.nextToken().toLowerCase();
 			if(type == null || !type.matches(API_INPUT_TYPE)) {
-				if(!command.equals("polysearch")) {
+				if(!command.matches("poly(search)?")) {
 					type = (type == null) ? "(none)" : type;
 					throw new ApiInputException("Invalid input type: " 
 							+ type 
@@ -212,6 +212,25 @@ public class ApiServlet extends HttpServlet {
 					
 				}
 			}
+			else if(command.equals("poly")) {
+				if(!type.matches(API_POLY_TYPES)) {
+					throw new ApiInputException(type);
+				}
+				
+				String district = "";
+				district = stok.nextToken().toLowerCase();
+				format = format.equals("xml") ? "kml" : format;				
+				if(new Integer(district) != null) {
+					new DistrictServices().test(type, district, format, out);
+				}
+				else {
+					throw new ApiInputException("Invalid input type: " 
+							+ type 
+							+ " for command " 
+							+ command 
+							+", please review API documentation");
+				}
+			}
 			else if(command.equals("polysearch")) {
 				if(!type.matches(API_POLY_TYPES)) {
 					throw new ApiInputException(type);
@@ -287,6 +306,7 @@ public class ApiServlet extends HttpServlet {
 				
 			}
 			else {
+				e.printStackTrace();
 				out.write(getError("error","Invalid request " 
 						+ constructUrl(uri, request)
 						+ ", please check that your input"
