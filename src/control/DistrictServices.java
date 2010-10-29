@@ -93,9 +93,7 @@ public class DistrictServices {
 		}
 				
 		WFS_POLY_NAME wfs = new WFS_POLY_NAME(type);
-		
-		System.out.println(wfs.construct(district));
-		
+				
 		String in = flatten(wfs.construct(district));
 		
 		polyPrep(in, format, type, out);
