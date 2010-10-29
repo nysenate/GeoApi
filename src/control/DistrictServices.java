@@ -3,6 +3,9 @@ package control;
 import java.util.ArrayList;
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -45,12 +48,31 @@ public class DistrictServices {
 	static String GEO_CQL_LIKE = "%20LIKE%20";
 	
 	public static void main(String[] args) throws IOException {
-		DistrictServices ds = new DistrictServices();
 		
-		ds.test("senate","1", "json", new PrintWriter(System.out,true));
+		for(int i = 1; i <= 62; i++) {
+			System.out.println("    <url>\n"
+		      +"      <loc>http://geo.nysenate.gov/examples/kml/sd" + i + ".kml</loc>\n"
+		      +"      <geo:geo>\n"
+		      +"        <geo:format>kml</geo:format>\n"
+		      +"      </geo:geo>\n"
+		      +"    </url>");
+		}
+		
+		
+		
+//		DistrictServices ds = new DistrictServices();
+//		
+//		for(int i = 1; i <= 62; i++) {
+//			FileWriter fw = new FileWriter("WebContent/kml/sd" + i + ".kml");
+//			new File("WebContent/kml/sd" + i + ".kml").createNewFile();
+//			ds.getPolyFromDistrict("senate",i+"", "kml", new PrintWriter(fw));
+//			fw.close();
+//		}
+		
+		
 	}
 	
-	public void test(String type, String district, String format, PrintWriter out) throws IOException {
+	public void getPolyFromDistrict(String type, String district, String format, PrintWriter out) throws IOException {
 		if(type.equals("senate")) {
 			district = "State%20Senate%20District%20" + district;;
 		}
@@ -236,7 +258,7 @@ public class DistrictServices {
 				out.print("            " + point.getX() + "," + point.getY() + "\n");
 				
 			}
-			
+
 			out.print("          " + coords_e + "\n");
 			out.print("        " + linRing_e + "\n");
 			out.print("      " + outBoundIs_e + "\n");

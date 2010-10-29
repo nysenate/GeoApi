@@ -221,7 +221,7 @@ public class ApiServlet extends HttpServlet {
 				district = stok.nextToken().toLowerCase();
 				format = format.equals("xml") ? "kml" : format;				
 				if(new Integer(district) != null) {
-					new DistrictServices().test(type, district, format, out);
+					new DistrictServices().getPolyFromDistrict(type, district, format, out);
 				}
 				else {
 					throw new ApiInputException("Invalid input type: " 

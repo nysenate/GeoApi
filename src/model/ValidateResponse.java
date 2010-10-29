@@ -102,5 +102,18 @@ public class ValidateResponse {
 		Matcher m = p.matcher(s);
 		return m.replaceAll("$1$2\\.$3");
 	}
+
+	@Override
+	public String toString() {
+		return "ValidateResponse ["
+				+ (address1 != null ? "address1=" + address1 + ", " : "")
+				+ (address2 != null ? "address2=" + address2 + ", " : "")
+				+ (city != null ? "city=" + city + ", " : "")
+				+ (state != null ? "state=" + state + ", " : "")
+				+ (zip4 != null ? "zip4=" + zip4 + ", " : "")
+				+ (zip5 != null ? "zip5=" + zip5 : "") + "]";
+	}
+	
+	
 	
 }

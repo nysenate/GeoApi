@@ -15,11 +15,15 @@
  
     function initialize() {
       if (GBrowserIsCompatible()) {
-        geoXml = new GGeoXml("http://geo.nysenate.gov/examples/asd1.kml");
+        //geoXml = new GGeoXml("http://geo.nysenate.gov/examples/kml/sd"+ <%=request.getParameter("sd")%> +".kml");
         map = new GMap2(document.getElementById("map_canvas")); 
-        map.setCenter(new GLatLng(41.875696,-87.624207), 11); 
+        map.setCenter(new GLatLng(42.651445, -73.755254), 7); 
         map.setUIToDefault();
-        map.addOverlay(geoXml);
+        for(i = 50; i< 57; i++ ) {
+        	geoXml = new GGeoXml("http://geo.nysenate.gov/examples/kml/sd"+ i +".kml");
+        	map.addOverlay(geoXml);
+        }
+       
       }
     } 
  

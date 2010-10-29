@@ -32,4 +32,14 @@
     <filter-name>SenateFilter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
+  <servlet>
+    <description></description>
+    <display-name>OldAisServlet</display-name>
+    <servlet-name>OldAisServlet</servlet-name>
+    <servlet-class>servlets.OldAisServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OldAisServlet</servlet-name>
+    <url-pattern>/StreetLookup</url-pattern>
+  </servlet-mapping>
 </web-app>
