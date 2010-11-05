@@ -17,10 +17,6 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>ApiServlet</servlet-name>
-    <url-pattern>/ApiServlet</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>ApiServlet</servlet-name>
     <url-pattern>/api/*</url-pattern>
   </servlet-mapping>
   <filter>
@@ -41,5 +37,15 @@
   <servlet-mapping>
     <servlet-name>OldAisServlet</servlet-name>
     <url-pattern>/StreetLookup</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>CsvUploadServlet</display-name>
+    <servlet-name>CsvUploadServlet</servlet-name>
+    <servlet-class>servlets.CsvUploadServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CsvUploadServlet</servlet-name>
+    <url-pattern>/uploadServlet</url-pattern>
   </servlet-mapping>
 </web-app>

@@ -29,7 +29,7 @@ import control.Resource;
 public class ApiServlet extends HttpServlet {
 	
 	private static final long serialVersionUID = 1L;
-	public static final String API_COMMANDS = "(districts|geocode|revgeo|validate|poly|polysearch|citystatelookup|zipcodelookup)";
+	public static final String API_COMMANDS = "(districts|geocode|revgeo|validate|poly|polysearch|citystatelookup|zipcodelookup|test)";
 	public static final String API_FORMATS = "(xml|json|kml)";
 	public static final String API_POLY_TYPES = "(senate|assembly|election|county|congressional)";
 	public static final String API_INPUT_TYPE = "(addr|latlon|extended)";
@@ -291,6 +291,9 @@ public class ApiServlet extends HttpServlet {
 							+", please review API documentation");
 					
 				}
+			}
+			else if(command.equals("test")) {
+				out.write(request.getRequestURI());
 			}
 			else {
 				throw new ApiInputException("Invalid command: " 

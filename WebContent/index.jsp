@@ -88,7 +88,7 @@
 		</div> 
 		<p class="message_head"><cite>Street Lookup</cite></p> 
 		<div class="message_body"> 
-			For the time being this service can be accessed at <a href="StreetLookup">the old AIS</a> 
+			For the time being this service can be accessed at <a href="GeoApi/StreetLookup">the old AIS</a> 
 			by typing in a zip code and clicking on "Street Lookup"
 		</div> 
 </div> 
