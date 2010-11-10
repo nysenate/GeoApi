@@ -27,14 +27,17 @@ function validate() {
 }
 
 $(document).ready(function(){
+	$(".error").hide();
 	$("#upload").click(function() {
 		var message = validate();
-		
 		if(message == "") {
 			return true;
 		}
 		else {
 			$(".error").html(message);
+			if(!$(".error").is(":visible")) {
+				$(".error").slideToggle(500);
+			}			
 			return false;
 		}
 	});
@@ -48,7 +51,7 @@ $(document).ready(function(){
 <div style="width:300px;margin-left:auto;margin-right:auto;margin-top:auto;margin-bottom:auto;">
 	<br>
 	<h2>upload csv</h2>
-	<div class="error" style="color:red;text-align:center;font-size:75%;">
+	<div class="error" style="color:red;text-align:center;font-size:75%">
 	
 	</div>
 	<form name="form1" ENCTYPE='multipart/form-data' id="uploadForm" action="uploadServlet" method="post">

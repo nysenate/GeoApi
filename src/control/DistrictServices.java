@@ -32,64 +32,44 @@ import generated.geoserver.json.*;
 /**
  * @author Jared Williams
  * 
- * used for district related queries to the ApiServlet
+ * used for district related queries in the ApiServlet
  *
  */
-public class DistrictServices {
-	
+public class DistrictServices {	
 	static String GEO_CQL_START = "&CQL_FILTER=";	
 	static String GEO_API = "geoserver.url";
 	static String GEO_CQL_LOC = GEO_CQL_START + "INTERSECT(the_geom,%20POINT%20(";
 	static String GEO_CQL_END = "))";
 	static String GEO_OUTPUT = "&outputformat=JSON";
 	static String GEO_CQL_LIKE = "%20LIKE%20";
-	
-	public static void main(String[] args) throws IOException {
-		
-		for(int i = 1; i <= 62; i++) {
-			System.out.println("    <url>\n"
-		      +"      <loc>http://geo.nysenate.gov/examples/kml/sd" + i + ".kml</loc>\n"
-		      +"      <geo:geo>\n"
-		      +"        <geo:format>kml</geo:format>\n"
-		      +"      </geo:geo>\n"
-		      +"    </url>");
-		}
-		
-		
-		
-//		DistrictServices ds = new DistrictServices();
-//		
-//		for(int i = 1; i <= 62; i++) {
-//			FileWriter fw = new FileWriter("WebContent/kml/sd" + i + ".kml");
-//			new File("WebContent/kml/sd" + i + ".kml").createNewFile();
-//			ds.getPolyFromDistrict("senate",i+"", "kml", new PrintWriter(fw));
-//			fw.close();
-//		}
-		
-		
-	}
+	static String POLY_NAMES = "(assembly|congressional|county|election|senate)";
+	static String ASSEMBLY = "assembly";
+	static String CONGRESSIONAL = "congressional";
+	static String COUNTY = "county";
+	static String ELECTION = "election";
+	static String SENATE = "senate";
 	
 	public void getPolyFromDistrict(String type, String district, String format, PrintWriter out) throws IOException {
-		if(type.equals("senate")) {
+		if(type.equals(SENATE)) {
 			district = "State%20Senate%20District%20" + district;;
 		}
-		else if(type.equals("assembly")) {
+		else if(type.equals(ASSEMBLY)) {
 			district = "Assembly%20District%20" + district;;
 		}
-		else if(type.equals("congressional")) {
+		else if(type.equals(CONGRESSIONAL)) {
 			district = "Congressional%20District%20" + district;
 		}
-		else if(type.equals("county")) {
-			//will have to be different
+		else if(type.equals(COUNTY)) {
+			//TODO: have to take special consideration
 		}
-		else if(type.equals("election")) {
+		else if(type.equals(ELECTION)) {
 			//stay the same
 		}
 		else {
 			//throw error
 		}
 				
-		WFS_POLY_NAME wfs = new WFS_POLY_NAME(type);
+		WFS_POLY wfs = new WFS_POLY(type);
 				
 		String in = flatten(wfs.construct(district));
 		
@@ -103,7 +83,7 @@ public class DistrictServices {
 	public void getPolyFromAddress(String address, String format, String service, String type, PrintWriter out) throws IOException {
 		Point p = GeoCode.getGeoCodedResponse(address, service);
 		
-		WFS_POLY_COORD wfs = new WFS_POLY_COORD(type);
+		WFS_POLY wfs = new WFS_POLY(type);
 		String in = flatten(wfs.construct(p.lat, p.lon));
 		
 		polyPrep(in, format, type, out);
@@ -131,7 +111,7 @@ public class DistrictServices {
 			
 		}
 		
-		WFS_POLY_COORD wfs = new WFS_POLY_COORD(type);
+		WFS_POLY wfs = new WFS_POLY(type);
 		String in = flatten(wfs.construct(p.lat, p.lon));
 		
 		polyPrep(in, format, type, out);
@@ -335,23 +315,23 @@ public class DistrictServices {
 		DistrictResponse dr = new DistrictResponse();
 		GeoResult gr = null;
 		
-		gr = fromGeoserver(new WFS_County(), p);
+		gr = fromGeoserver(new WFS_REQUEST(COUNTY), p);
 		dr.setCounty(new County(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
 		
-		gr = fromGeoserver(new WFS_Election(), p);
+		gr = fromGeoserver(new WFS_REQUEST(ELECTION), p);
 		dr.setElection(new Election("Election District " + gr.getFeatures().iterator().next().getProperties().getED()));
 		
-		gr = fromGeoserver(new WFS_Assembly(), p);
+		gr = fromGeoserver(new WFS_REQUEST(ASSEMBLY), p);
 		dr.setAssembly((Assembly)c.getObject(Assembly.class,
 				"district",
 				gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
 		
-		gr = fromGeoserver(new WFS_Congressional(), p);
+		gr = fromGeoserver(new WFS_REQUEST(CONGRESSIONAL), p);
 		dr.setCongressional((Congressional)c.getObject(Congressional.class,
 				"district",
 				gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));		
 		
-		gr = fromGeoserver(new WFS_Senate(), p);
+		gr = fromGeoserver(new WFS_REQUEST(SENATE), p);
 		dr.setSenate((Senate)c.getObject(Senate.class,
 				"district",
 				gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
@@ -380,6 +360,16 @@ public class DistrictServices {
 	public GeoResult fromGeoserver(WFS_ wfs, Point p) throws IOException {
 		String json = flatten(wfs.construct(p.lat,p.lon));
 		
+		return handleGeoserverJson(json);
+	}
+	
+	public GeoResult fromGeoserver(WFS_ wfs, String value) throws IOException {
+		String json = flatten(wfs.construct(value).replaceAll(" ", "%20"));
+		
+		return handleGeoserverJson(json);
+	}
+	
+	public GeoResult handleGeoserverJson(String json) {
 		Gson gson = new Gson();
 		
 		GeoResult gr = null;
@@ -388,7 +378,7 @@ public class DistrictServices {
 			gr = (GeoResult)gson.fromJson(json, GeoResult.class);
 		}
 		catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 		
 		return gr;
@@ -398,7 +388,7 @@ public class DistrictServices {
 	 * flattens the data from a url in to one string, used in conjuction with google-json
 	 * to decipher WFS responses
 	 */
-	public static String flatten(String url) throws IOException {
+	public String flatten(String url) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
 		
 		StringBuilder sb = new StringBuilder("");
@@ -415,125 +405,118 @@ public class DistrictServices {
 	}
 	
 	/*
-	 * The following are connectors types for the the GeoServer, they all have their own
-	 * defined url structure and contents to return
+	 * The following are connectors for GeoServer
 	 */
 	
-	public class WFS_Election extends WFS_ {
-		static final String GEO_TYPE = "&typename=nysenate:election";
-		static final String GEO_PROPERTY = "&propertyname=ED";
-		/*static final String GEO_PROPERTY = "&propertyname=ED,EDS_COPY_,EDS_COPY_I,COUNTY,MCD2,WARD,EDP";*/
-		
-		public String construct(double x, double y) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_LOC + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
-		}
-	}
-	public class WFS_County extends WFS_ {
-		static final String GEO_TYPE = "&typename=nysenate:county";
-		static final String GEO_PROPERTY = "&propertyname=NAMELSAD";
-		/*static final String GEO_PROPERTY = "&propertyname=COUNTYFP,NAME,NAMELSAD";*/
-		
-		public String construct(double x, double y) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_LOC + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
-		}
-	}
-	public class WFS_Assembly extends WFS_ {
-		static final String GEO_TYPE = "&typename=nysenate:assembly";
-		static final String GEO_PROPERTY = "&propertyname=NAMELSAD";
-		
-		public String construct(double x, double y) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_LOC + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
-		}
-	}
-	public class WFS_Congressional extends WFS_ {
-		static final String GEO_TYPE = "&typename=nysenate:congressional";
-		static final String GEO_PROPERTY = "&propertyname=NAMELSAD";
-		
-		public String construct(double x, double y) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_LOC + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
-		}
-	}
-	//opt/apache-tomcat-6.0.26/webapps/geoserver/data/data/shapes/
-	//EPSG:4326
-	public class WFS_Senate extends WFS_ {
-		static final String GEO_TYPE = "&typename=nysenate:senate";
-		static final String GEO_PROPERTY = "&propertyname=NAMELSAD";
-		
-		public String construct(double x, double y) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_LOC + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
-		}
-	}
-	public class WFS_POLY_COORD extends WFS_ {
+	public class WFS_REQUEST extends WFS_ {
 		String GEO_TYPE = "&typename=";
+		String GEO_PROPERTY = "&propertyname=NAMELSAD,INTPTLAT,INTPTLON,ALAND,AWATER";
+		String GEO_FILTER_TYPE="NAMELSAD";
 		
-		public WFS_POLY_COORD(String type) {
+		public WFS_REQUEST(String type) {
 			setGeoType(type);
 		}
 		
 		private void setGeoType(String type) {
-			if(type.equals("assembly")) {
-				GEO_TYPE += "nysenate:assembly";
+			Pattern p = Pattern.compile(POLY_NAMES);
+			Matcher m = p.matcher(type);
+			if(m.find()) {
+				GEO_TYPE += "nysenate:" + m.group(1);
 			}
-			else if(type.equals("congressional")){
-				GEO_TYPE += "nysenate:congressional";
+			
+			if(type.equals("election")){
+				GEO_PROPERTY = "&propertyname=ED,AREA,AREA1";
+				GEO_FILTER_TYPE="ED";
 			}
-			else if(type.equals("county")){
-				GEO_TYPE += "nysenate:county";
+		}
+		
+		public String construct(double x, double y) {
+			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_LOC + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
+		}
+		
+		public String construct(String value) {
+			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_START + GEO_FILTER_TYPE + GEO_CQL_LIKE + "'" + value + "'" + GEO_OUTPUT;
+		}
+	}
+	
+	public class WFS_POLY extends WFS_ {
+		String GEO_TYPE = "&typename=";
+		//the only time the filter is not NAMESLAD is for election layer
+		String GEO_FILTER_TYPE="NAMELSAD";
+
+		public WFS_POLY(String type) {
+			setGeoType(type);
+		}
+		
+		private void setGeoType(String type) {
+			Pattern p = Pattern.compile(POLY_NAMES);
+			Matcher m = p.matcher(type);
+			if(m.find()) {
+				GEO_TYPE += "nysenate:" + m.group(1);
 			}
-			else if(type.equals("election")){
-				GEO_TYPE += "nysenate:election";
-			}
-			else if(type.equals("senate")){
-				GEO_TYPE += "nysenate:senate";
+			
+			if(type.equals("election")){
+				GEO_FILTER_TYPE="ED";
 			}
 		}
 		
 		public String construct(double x, double y) {
 			return Resource.get(GEO_API) + GEO_TYPE + GEO_CQL_LOC + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
 		}
-	}
-	
-	public class WFS_POLY_NAME extends WFS_ {
-		String GEO_TYPE = "&typename=";
-		String GEO_FILTER_TYPE;
-
-		public WFS_POLY_NAME(String type) {
-			setGeoType(type);
-		}
-		
-		private void setGeoType(String type) {
-			if(type.equals("assembly")) {
-				GEO_TYPE += "nysenate:assembly";
-				GEO_FILTER_TYPE="NAMELSAD";
-			}
-			else if(type.equals("congressional")){
-				GEO_TYPE += "nysenate:congressional";
-				GEO_FILTER_TYPE="NAMELSAD";
-			}
-			else if(type.equals("county")){
-				GEO_TYPE += "nysenate:county";
-				GEO_FILTER_TYPE="NAMELSAD";
-			}
-			else if(type.equals("election")){
-				GEO_TYPE += "nysenate:election";
-				GEO_FILTER_TYPE="ED";
-			}
-			else if(type.equals("senate")){
-				GEO_TYPE += "nysenate:senate";
-				GEO_FILTER_TYPE="NAMELSAD";
-			}
-		}
-		
-		public String construct(double x, double y) {
-			return null;
-		}
 		
 		public String construct(String value) {
 			return Resource.get(GEO_API) + GEO_TYPE + GEO_CQL_START + GEO_FILTER_TYPE + GEO_CQL_LIKE + "'" + value + "'" + GEO_OUTPUT;
 		}
-		
 	}
 	public abstract class WFS_ {
 		public abstract String construct(double x, double y);
+		public abstract String construct(String value);
 	}
+	
+/*	public void writeJson() throws Exception {
+		Connect c = new Connect();
+		
+		Gson gson = new Gson();
+		
+		HashMap<Integer,Integer> map = new HashMap<Integer,Integer>();
+		BufferedReader br = new BufferedReader(new FileReader(new File("zoom")));
+		
+		String in = null;
+		
+		while((in = br.readLine()) != null) {
+			map.put(new Integer(in.split(":")[0]), new Integer(in.split(":")[1]));
+		}
+		br.close();
+		
+		for(int i = 1; i <= 62; i++) {
+			FileWriter fw = new FileWriter("WebContent/test/json/sd" + i + ".json");
+			new File("WebContent/test/json/sd" + i + ".json").createNewFile();
+			
+			PrintWriter pw = new PrintWriter(fw);
+			
+			WFS_REQUEST sen = new WFS_REQUEST(SENATE);
+			
+			GeoResult gr = fromGeoserver(sen,"State Senate District " + i);
+			
+			double lat = new Double(gr.getFeatures().iterator().next().getProperties().getINTPTLAT());
+			double lon = new Double(gr.getFeatures().iterator().next().getProperties().getINTPTLON());
+			double zoom = new Double(map.get(i));
+			
+			Senate senate = (Senate) c.getObject(Senate.class, "district", "State Senate District " + i);
+			
+			SenateMapInfo smi = new SenateMapInfo(lat,lon,zoom,senate);
+			
+			pw.write(gson.toJson(smi));
+			
+			pw.close();
+		}
+	}*/
+
+/*	public void writeKml() {
+		for(int i = 1; i <= 62; i++) {
+		FileWriter fw = new FileWriter("WebContent/kml/sd" + i + ".kml");
+		new File("WebContent/kml/sd" + i + ".kml").createNewFile();
+		getPolyFromDistrict("senate",i+"", "kml", new PrintWriter(fw));
+		fw.close();
+	}*/
 }

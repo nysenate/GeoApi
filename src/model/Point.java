@@ -9,9 +9,16 @@ public class Point {
 	
 	public String address;
 	
+	public Point(double x, double y) {
+		this.lat = x;
+		this.lon = y;
+	}
+	
 	public Point(double x, double y, String address) {
 		this.lat = x;
 		this.lon = y;
 		this.address = address;
 	}
+	
+	
 }

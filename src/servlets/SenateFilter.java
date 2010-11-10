@@ -56,7 +56,7 @@ public class SenateFilter implements Filter {
 			}
 			else {
 				//can include exceptions here, anything else will be redirected if not matching
-				if(uri.matches("(/GeoApi)?(/kml/sd\\d{1,2}\\.kml|/open\\.jsp)")) {
+				if(uri.matches("(/GeoApi)?(/test/(kml|json)/sd\\d{1,2}\\.(kml|json)|/test/open\\.jsp)")) {
 					
 				}
 				else {
