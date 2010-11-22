@@ -1,3 +1,0 @@
-create table oldaiscount (
-	ip VARCHAR(128)
-) ENGINE=INNODB;

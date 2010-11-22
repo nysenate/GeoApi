@@ -5,8 +5,8 @@
 <head>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
 <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script type="text/javascript" src="jquery.color.js"></script>
-<script type="text/javascript" src="js.js"></script>
+<script type="text/javascript" src="js/jquery.color.js"></script>
+<script type="text/javascript" src="js/js.js"></script>
 
 <link href="style.css" rel="stylesheet" type="text/css">
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">

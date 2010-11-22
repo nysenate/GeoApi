@@ -72,7 +72,7 @@ $(document).ready(function(){
 	$(".message_list .message_body:gt(0)").hide(500);
 	$(".message_list .message_head:lt(1)").css("backgroundColor","#9D9D9D");
 	$(".message_list .message_head:gt(0)").animate({opacity: 0.6},500);
-	$(".message_list .message_head").append("&nbsp;&nbsp;<img src='down.gif'></img>");
+	$(".message_list .message_head").append("&nbsp;&nbsp;<img src='img/down.gif'></img>");
 	
 	//toggle message_body
 	$(".message_head").click(function(){
@@ -107,7 +107,7 @@ $(document).ready(function(){
 	});
 
 	$("#districts").click(function() {
-		$(".response_body").html("<img src='r.gif'>");
+		$(".response_body").html("<img src='img/r.gif'>");
 		var url = api + districts;
 		
 		var validateUrl = api+validate;
@@ -179,7 +179,7 @@ $(document).ready(function(){
 	});
 	
 	$("#revgeo").click(function() {
-		$(".response_body").html("<img src='r.gif'>");
+		$(".response_body").html("<img src='img/r.gif'>");
 		var url = api + revgeo;
 		
 		var $inputs = $("#revgeoForm :input");

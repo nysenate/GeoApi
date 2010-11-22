@@ -425,7 +425,7 @@ public class DistrictServices {
 			}
 			
 			if(type.equals("election")){
-				GEO_PROPERTY = "&propertyname=ED,AREA,AREA1";
+				GEO_PROPERTY = "&propertyname=ED,AREA,AREA1,EDS_COPY_,EDS_COPY_I,MCD2,WARD,EDP";
 				GEO_FILTER_TYPE="ED";
 			}
 		}

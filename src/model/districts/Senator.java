@@ -26,15 +26,13 @@ public class Senator {
 	}
 
 	public Senator(String name, String contact, String url, String imageUrl,
-			Social social, ArrayList<Office> offices, String district) {
-		super();
+			Social social, ArrayList<Office> offices) {
 		this.name = name;
 		this.contact = contact;
 		this.url = url;
 		this.imageUrl = imageUrl;
 		this.social = social;
 		this.offices = offices;
-		this.district = district;
 	}
 
 	public String getName() {

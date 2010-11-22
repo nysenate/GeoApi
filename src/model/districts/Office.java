@@ -1,16 +1,15 @@
 package model.districts;
 
-import java.util.ArrayList;
 
 import model.annotations.ForeignKey;
 import model.annotations.Ignore;
-import model.annotations.ListType;
-import model.annotations.PersistentObject;
 import model.annotations.PrimaryKey;
 
 import com.google.gson.annotations.Expose;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
+@XStreamAlias("office")
 public class Office {
 	@Expose String street;
 	@Expose String city;
@@ -18,28 +17,28 @@ public class Office {
 	@Expose String zip;
 	@Expose Double lat;
 	@Expose Double lon;
-	
-	@Expose @PersistentObject @ListType(PhoneNumber.class) ArrayList<PhoneNumber> phoneNumbers;
-	
-	@XStreamOmitField @Ignore	@PrimaryKey	Integer id;
+	@Expose String officeName;
+	@Expose String phone;
+	@Expose String fax;
+		
+	@XStreamOmitField @Ignore @PrimaryKey Integer id;
 	@XStreamOmitField @ForeignKey(Senator.class) String contact;
 	
 	public Office() {
-		phoneNumbers = new ArrayList<PhoneNumber>();
 	}
 
-	public Office(Integer id, String street,
-			String city, String state, String zip, Double lat, Double lon, String  contact,
-			ArrayList<PhoneNumber> phoneNumbers) {
-		this.id = id;
-		this.contact = contact;
+	public Office(String street,
+			String city, String state, String zip, Double lat, Double lon,
+			String officeName, String phone, String fax) {
 		this.street = street;
 		this.city = city;
 		this.state = state;
 		this.zip = zip;
 		this.lat = lat;
 		this.lon = lon;
-		this.phoneNumbers = phoneNumbers;
+		this.officeName = officeName;
+		this.phone = phone;
+		this.fax = fax;
 	}
 
 	public Integer getId() {
@@ -73,10 +72,20 @@ public class Office {
 	public Double getLon() {
 		return lon;
 	}
-
-	public ArrayList<PhoneNumber> getPhoneNumbers() {
-		return phoneNumbers;
+	
+	public String getOfficeName() {
+		return officeName;
 	}
+	
+	public String getPhone() {
+		return phone;
+	}
+	
+	public String getFax() {
+		return fax;
+	}
+
+	
 
 	public void setId(Integer id) {
 		this.id = id;
@@ -110,11 +119,15 @@ public class Office {
 		this.lon = lon;
 	}
 	
-	public void setPhoneNumbers(ArrayList<PhoneNumber> phoneNumbers) {
-		this.phoneNumbers = phoneNumbers;
+	public void setOfficeName(String officeName) {
+		this.officeName = officeName;
 	}
 	
-	public void addPhoneNumbers(PhoneNumber pn) {
-		phoneNumbers.add(pn);
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+	
+	public void setFax(String fax) {
+		this.fax = fax;
 	}
 }

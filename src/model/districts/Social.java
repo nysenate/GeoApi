@@ -17,9 +17,8 @@ public class Social {
 		
 	}
 	
-	public Social(String contact, String faceBook, String twitter,
+	public Social(String faceBook, String twitter,
 			String youtube, String flickr, String rss) {
-		this.contact = contact;
 		this.faceBook = faceBook;
 		this.twitter = twitter;
 		this.youtube = youtube;

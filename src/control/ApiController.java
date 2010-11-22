@@ -69,7 +69,7 @@ public class ApiController {
 				
 			}
 			else if(in.equals("default senate user")) {
-				
+
 			}
 			System.out.print("> ");
 		}

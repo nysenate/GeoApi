@@ -66,16 +66,14 @@ CREATE TABLE office (
 	zip VARCHAR(32),
 	lat DOUBLE PRECISION(15,12),
 	lon DOUBLE PRECISION(15,12),
+	officeName VARCHAR(256),
+	phone VARCHAR(256),
+	fax VARCHAR(256),
 	contact VARCHAR(256),
 	FOREIGN KEY (contact) REFERENCES senator(contact) ON DELETE CASCADE,
 	PRIMARY KEY(id)
 ) ENGINE=INNODB;
 
-CREATE TABLE  phonenumber(
-	number VARCHAR(32),
-	id INT,
-	FOREIGN KEY (id) REFERENCES office(id) ON DELETE CASCADE
-) ENGINE=INNODB;
 
 CREATE TABLE assembly (
 	district VARCHAR(50),
