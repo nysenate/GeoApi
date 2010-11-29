@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -18,12 +20,26 @@ public class AssemblyScraper {
 	static final String MEM = "/mem/";
 	static final String AD = "?ad=";
 	
-	public static void scrape() throws IOException {
+	public static void index() throws IOException {
+		Connect c = new Connect();
+		
+		List<Assembly> persons = getAssemblyPersons();
+		
+		for(Assembly a:persons) {
+			c.persist(a);
+		}
+				
+		c.close();
+		
+	}
+	
+	public static List<Assembly> getAssemblyPersons() throws IOException {
+		List<Assembly> ret = new ArrayList<Assembly>();
+		
 		Pattern p = Pattern.compile("<li><a href=\"(/mem/)?\\?ad=[0]*(\\d+?)\">(.*?)</a></li>");
 		Matcher m = null;
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(new URL(ASSEMBLY + MEM).openStream()));
-		Connect c = new Connect();
 		
 		String in = null;
 		
@@ -31,10 +47,12 @@ public class AssemblyScraper {
 			m = p.matcher(in);
 			if(m.find()) {
 				Assembly a = new Assembly("Assembly District " + m.group(2),new Member(m.group(3).replaceAll("'|\"", ""),ASSEMBLY+MEM+AD+m.group(2)));
-				c.persist(a);
+				ret.add(a);
 			}
 		}
-		c.close();
+		
 		br.close();
+		
+		return ret;
 	}
 }

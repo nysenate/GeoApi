@@ -1,8 +1,11 @@
 package model.districts;
 
+import java.util.List;
+
 import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+import model.annotations.Ignore;
 import model.annotations.PersistentObject;
 import model.annotations.PrimaryKey;
 
@@ -12,6 +15,8 @@ public class Senate {
 	@Expose String districtUrl;
 	
 	@Expose @PersistentObject Senator senator;
+	
+	@Expose @Ignore List<Senate> nearbyDistricts;
 
 	public Senate() {
 		
@@ -22,6 +27,14 @@ public class Senate {
 		this.district = district;
 		this.districtUrl = districtUrl;
 		this.senator = senator;
+	}
+	
+	public Senate(String district, String districtUrl, Senator senator, List<Senate> nearbyDistricts) {
+		super();
+		this.district = district;
+		this.districtUrl = districtUrl;
+		this.senator = senator;
+		this.nearbyDistricts = nearbyDistricts;
 	}
 
 	public String getDistrict() {
@@ -34,6 +47,10 @@ public class Senate {
 
 	public Senator getSenator() {
 		return senator;
+	}
+	
+	public List<Senate> getNearbyDistricts() {
+		return nearbyDistricts;
 	}
 
 	public void setDistrict(String district) {
@@ -48,5 +65,7 @@ public class Senate {
 		this.senator = senator;
 	}
 	
-	
+	public void setNearbyDistricts(List<Senate> nearbyDistricts) {
+		this.nearbyDistricts = nearbyDistricts;
+	}
 }

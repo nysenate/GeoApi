@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
 import model.MappedFields;
@@ -17,63 +18,13 @@ import model.annotations.Ignore;
 import model.annotations.ListType;
 import model.annotations.PersistentObject;
 import model.annotations.PrimaryKey;
+import model.districts.Senate;
 
 /**
  * @author Jared Williams
  *
  */
 public class Connect {
-	
-	
-	public static void main(String[] args) throws Exception {
-//		Member cMan1 = new Member("cMan1", "www.cman1.com");
-//		Member cMan2 = new Member("cMan2", "www.cman2.com");
-//		Congressional c1 = new Congressional("congressional 1", cMan1);
-//		Congressional c2 = new Congressional("congressional 2", cMan2);
-//		
-//		
-//		Member aMan1 = new Member("aMan1", "www.aman1.com");
-//		Member aMan2 = new Member("aMan2", "www.aman2.com");
-//		Assembly c3 = new Assembly("assembly 1", aMan1);
-//		Assembly c4 = new Assembly("assembly 2", aMan2);
-//		
-//		Connect c = new Connect();
-//		
-//		c.persist(c1, null);
-//		c.persist(c2, null);
-//		c.persist(c3, null);
-//		c.persist(c4, null);
-//		
-//		c.close();
-		
-//		ArrayList<PhoneNumber> phoneNumbers1 = new ArrayList<PhoneNumber>();
-//		phoneNumbers1.add(new PhoneNumber(null,"518-555-1000"));
-//		phoneNumbers1.add(new PhoneNumber(null,"518-555-2000"));
-//		Office office1 = new Office(null,"1 main street","albany","ny", "12208", 45.0, 45.0, "williams@nysenate.gov", phoneNumbers1);
-//		
-//		ArrayList<PhoneNumber> phoneNumbers2 = new ArrayList<PhoneNumber>();
-//		phoneNumbers2.add(new PhoneNumber(null,"518-555-3000"));
-//		Office office2 = new Office(null,"2 not-main street","albany","ny", "12208", 45.0, 45.0, "williams@nysenate.gov", phoneNumbers2);
-//		
-//		ArrayList<Office> offices = new ArrayList<Office>();
-//		offices.add(office1);
-//		offices.add(office2);
-//		
-//		Social social = new Social(null,"www.facebook.com","www.twitter,com","www.youtube.com","www.rss.com","www.flickr.com");
-//		
-//		Senator senator = new Senator("Jared Williams","williams@nysenate.gov","www.jaredwilliams.net","image.gif",social,offices,null);
-//		
-//		Senate senateDistrict = new Senate("District 1","www.district1.com",senator);
-//		
-//		new Connect().persist(senateDistrict, null);
-//		
-//		Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-//		
-//		System.out.println(gson.toJson(new Connect().getObject(Senate.class, "district", "State Senate District 9",false)));
-
-//		System.out.println(new DistrictServices().getDistrictsFromAddress("18 appleton road rexford ny 12148", "xml", null));
-	}
-	
 	
 	public static final String ADD = "add";
 	public static final String GET = "get";
@@ -225,6 +176,16 @@ public class Connect {
 		return getResultSetFromQuery(query);
 	}
 	
+	public static void main(String[] args) throws Exception {
+		Connect c = new Connect();
+		
+		List<Object> objs = c.listFromClosedResultSet(Senate.class,c.getResultsetById(Senate.class, "district", "State Senate District 28"));
+	
+		for(Object obj:objs) {
+			System.out.println(obj);
+		}
+	}
+	
 	public ResultSet getResultsetById(Class<?> clazz, String field, Object value) throws SQLException {		
 		String query = "SELECT * FROM " 
 			+ clazz.getSimpleName().toLowerCase() 
@@ -232,6 +193,8 @@ public class Connect {
 			+ field
 			+ "="
 			+ "'" + value + "'";
+		
+		System.out.println(query);
 				
 		return getResultSetFromQuery(query);
 	}
@@ -327,7 +290,20 @@ public class Connect {
 		return o;
 	}
 	
-	public boolean deleteObjects(Class<?> clazz) {
+	public boolean deleteObjects(Class<?> clazz) throws Exception {
+		MappedFields mf = buildObjectFieldLists(clazz, null);
+		ArrayList<Field> persistentObjects = mf.getPersistents();
+		
+		for(Field field:persistentObjects) {
+			ListType lt = null;
+			if((lt = field.getAnnotation(ListType.class)) != null) {
+				deleteObjects(lt.value());
+			}
+			else {
+				deleteObjects(field.getType());
+			}
+		}
+		
 		Statement s = null;
 		try {
 			s = getConnection().createStatement();			
@@ -423,7 +399,15 @@ public class Connect {
 			}
 			else {
 				Method m = clazz.getMethod(SET + fixFieldName(f.getName()), f.getType());
-				m.invoke(o, (f.getType().equals(String.class) ? uncleanse((String)rs.getObject(f.getName().toLowerCase())):rs.getObject(f.getName().toLowerCase())));
+				
+				try {
+					m.invoke(o, (f.getType().equals(String.class) ? uncleanse((String)rs.getObject(f.getName().toLowerCase())):rs.getObject(f.getName().toLowerCase())));
+				}
+				catch (SQLException se) {
+					//occurs when a field is present that does not have
+					//an associated database column or entry
+					se.printStackTrace();
+				}
 			}
 		}
 

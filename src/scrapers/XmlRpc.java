@@ -9,17 +9,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
-import model.districts.Office;
-import model.districts.Senate;
-import model.districts.Senator;
-import model.districts.Social;
 
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
@@ -27,7 +19,6 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.apache.xmlrpc.client.XmlRpcClientRequestImpl;
 import org.apache.xmlrpc.client.XmlRpcCommonsTransportFactory;
 
-import control.Connect;
 import control.Resource;
 
 @SuppressWarnings("unchecked")
@@ -41,75 +32,73 @@ public class XmlRpc {
 	String VIEWS_GET = "views.get";
 
 	public static void main(String[] args) throws Exception {
-		XmlRpc rpc = new XmlRpc();
+//		XmlRpc rpc = new XmlRpc();
 
+		/*HashMap<String, Object> map = (HashMap<String, Object>) rpc.getNode(218);
 		
-
-			HashMap<String, Object> map = (HashMap<String, Object>) rpc.getNode(218);
-			
-			for (String key : map.keySet()) {
-				System.out.println("");
-				if (map.get(key).getClass().isArray()) {
-					System.out.println("" + key);
-					for (Object val : (Object[]) map.get(key)) {
-						if (val.getClass().isArray()) {
-							for (Object val2 : (Object[]) val) {
-								System.out.println("---->" + val);
-							}
-						} else {
-							System.out.println("-->" + val);
-
+		for (String key : map.keySet()) {
+			System.out.println("");
+			if (map.get(key).getClass().isArray()) {
+				System.out.println("" + key);
+				for (Object val : (Object[]) map.get(key)) {
+					if (val.getClass().isArray()) {
+						for (Object val2 : (Object[]) val) {
+							System.out.println("---->" + val);
 						}
+					} else {
+						System.out.println("-->" + val);
+
 					}
-				} else {
-					System.out.println(key + ": " + map.get(key));
 				}
+			} else {
+				System.out.println(key + ": " + map.get(key));
 			}
+		}
 
-			System.out.println("\n\n\n\n\n\n NODE");
+		System.out.println("\n\n\n\n\n\n NODE");
 
-			HashMap<String, Object> senMap = (HashMap<String, Object>) rpc
-					.getNode(new Integer((String) map.get("nid")));
+		HashMap<String, Object> senMap = (HashMap<String, Object>) rpc
+				.getNode(new Integer((String) map.get("nid")));
 
-			for (String key : senMap.keySet()) {
-				System.out.println("");
-				if (senMap.get(key).getClass().isArray()) {
-					System.out.println("" + key);
-					for (Object val : (Object[]) senMap.get(key)) {
-						if (val instanceof HashMap) {
-							for (String key2 : ((HashMap<String, Object>) val)
-									.keySet()) {
-								Object val2 = ((HashMap<String, Object>) val)
-										.get(key2);
-								if (val2.getClass().isArray()) {
-									for (Object val3 : (Object[]) val2) {
-										System.out.println("---->" + key2
-												+ ": " + val3);
-									}
-								} else {
-									System.out.println("-->" + key2 + ": "
-											+ val2);
+		for (String key : senMap.keySet()) {
+			System.out.println("");
+			if (senMap.get(key).getClass().isArray()) {
+				System.out.println("" + key);
+				for (Object val : (Object[]) senMap.get(key)) {
+					if (val instanceof HashMap) {
+						for (String key2 : ((HashMap<String, Object>) val)
+								.keySet()) {
+							Object val2 = ((HashMap<String, Object>) val)
+									.get(key2);
+							if (val2.getClass().isArray()) {
+								for (Object val3 : (Object[]) val2) {
+									System.out.println("---->" + key2
+											+ ": " + val3);
 								}
-
+							} else {
+								System.out.println("-->" + key2 + ": "
+										+ val2);
 							}
-						} else {
-							System.out.println("-->" + val);
 
 						}
+					} else {
+						System.out.println("-->" + val);
+
 					}
-				} else if (senMap.get(key) instanceof HashMap) {
-					for (String key2 : ((HashMap<String, Object>) senMap
-							.get(key)).keySet()) {
-						System.out.println("-->"
-								+ key2
-								+ ": "
-								+ ((HashMap<String, Object>) senMap.get(key))
-										.get(key2));
-					}
-				} else {
-					System.out.println(key + ": " + senMap.get(key));
 				}
+			} else if (senMap.get(key) instanceof HashMap) {
+				for (String key2 : ((HashMap<String, Object>) senMap
+						.get(key)).keySet()) {
+					System.out.println("-->"
+							+ key2
+							+ ": "
+							+ ((HashMap<String, Object>) senMap.get(key))
+									.get(key2));
+				}
+			} else {
+				System.out.println(key + ": " + senMap.get(key));
 			}
+		}*/
 
 
 		// map = new HashMap<Object,Object>(o);
@@ -141,103 +130,8 @@ public class XmlRpc {
 		// arguments = new ArrayList<Object>();
 		// arguments.add("106");
 		// rpc.printView(rpc.getView("district_map", null, null, null, false,
-		// arguments));
+			// arguments));
 
-		/*
-		 * Object[] objects = (Object[])rpc.getView("senators", null, null,
-		 * null, false, null);
-		 * 
-		 * for(Object o:objects) { Senate senate = null; Senator senator = null;
-		 * ArrayList<Office> offices = new ArrayList<Office>(); Social social =
-		 * null;
-		 * 
-		 * Current map from Senator view HashMap<String,Object> map =
-		 * (HashMap<String,Object>)o;
-		 * 
-		 * String sid = (String)map.get("nid"); String did =
-		 * (String)map.get("node_data_field_status_field_senators_district_nid"
-		 * ); String name = (String)map.get("node_title");
-		 * 
-		 * District Node HashMap<String,Object> disNode = (HashMap<String,
-		 * Object>) rpc.getNode(new Integer(did));
-		 * 
-		 * HashMap<String,Object> dNumberMap =
-		 * rpc.getMap(disNode.get("field_district_number")); String dNumber =
-		 * "State Senate District " + (String)dNumberMap.get("value");
-		 * 
-		 * String dPath = "http://www.nysenate.gov/" +
-		 * (String)disNode.get("path");
-		 * 
-		 * Senator Node HashMap<String,Object> senNode = (HashMap<String,
-		 * Object>) rpc.getNode(new Integer(sid));
-		 * 
-		 * String sPath = "http://www.nysenate.gov/" +
-		 * (String)senNode.get("path");
-		 * 
-		 * HashMap<String,Object> sEmailMap =
-		 * rpc.getMap(senNode.get("field_email")); String sEmail =
-		 * (String)sEmailMap.get("email");
-		 * 
-		 * HashMap<String,Object> sPictureMap =
-		 * rpc.getMap(senNode.get("field_profile_picture")); String sPicture =
-		 * "http://www.nysenate.gov/" + (String)sPictureMap.get("filepath");
-		 * 
-		 * Pattern p = Pattern.compile(
-		 * "(http\\://www\\.nysenate\\.gov/files/)(profile-pictures/.+)");
-		 * Matcher m = p.matcher(sPicture);
-		 * 
-		 * if(m.find()) { sPicture = m.group(1) + "imagecache/senator_teaser/" +
-		 * m.group(2); }
-		 * 
-		 * HashMap<String,Object> sFacebookMap =
-		 * rpc.getMap(senNode.get("field_facebook_link")); String sFacebook =
-		 * (String)sFacebookMap.get("url");
-		 * 
-		 * HashMap<String,Object> sTwitterMap =
-		 * rpc.getMap(senNode.get("field_twitter_link")); String sTwitter =
-		 * (String)sTwitterMap.get("url");
-		 * 
-		 * HashMap<String,Object> sYoutubeMap =
-		 * rpc.getMap(senNode.get("field_youtube_link")); String sYoutube =
-		 * (String)sYoutubeMap.get("url");
-		 * 
-		 * HashMap<String,Object> sFlickrMap =
-		 * rpc.getMap(senNode.get("field_flickr_link")); String sFlickr =
-		 * (String)sFlickrMap.get("url");
-		 * 
-		 * 
-		 * social = new Social(sFacebook, sTwitter, sYoutube, sFlickr, sPath +
-		 * "/content/feed");
-		 * 
-		 * Object[] locations = (Object[])senNode.get("locations"); for(Object
-		 * location:locations) { HashMap<String,Object> sLocationMap =
-		 * (HashMap<String,Object>)location;
-		 * 
-		 * String sStreet = (String)sLocationMap.get("street"); String sCity =
-		 * (String)sLocationMap.get("city"); String sProvince =
-		 * (String)sLocationMap.get("province"); String sPostalCode =
-		 * (String)sLocationMap.get("postalcode"); String sLongitude =
-		 * (String)sLocationMap.get("longitude"); String sLatitude =
-		 * (String)sLocationMap.get("latitude"); String sName =
-		 * (String)sLocationMap.get("name"); String sPhone =
-		 * (String)sLocationMap.get("phone"); String sFax =
-		 * (String)sLocationMap.get("fax");
-		 * 
-		 * offices.add(new Office(sStreet, sCity, sProvince, sPostalCode, new
-		 * Double(sLongitude), new Double(sLatitude), sName, sPhone, sFax)); }
-		 * 
-		 * senator = new Senator(name, sEmail, sPath, sPicture, social,
-		 * offices);
-		 * 
-		 * senate = new Senate(dNumber, dPath, senator);
-		 * 
-		 * System.out.println(senator.getName() + " : " +
-		 * senator.getOffices().size());
-		 * 
-		 * Connect c = new Connect(); c.persist(senate);
-		 * 
-		 * }
-		 */
 	}
 
 	public HashMap<String, Object> getMap(Object o) {

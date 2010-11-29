@@ -1,6 +1,9 @@
 package control;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -332,16 +335,20 @@ public class DistrictServices {
 				gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));		
 		
 		gr = fromGeoserver(new WFS_REQUEST(SENATE), p);
-		dr.setSenate((Senate)c.getObject(Senate.class,
+		
+		Senate senate = (Senate)c.getObject(Senate.class,
 				"district",
-				gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
-		c.close();
+				gr.getFeatures().iterator().next().getProperties().getNAMELSAD());
+		senate.setNearbyDistricts(getNearbyDistricts(senate.getDistrict(), p, new WFS_REQUEST(SENATE)));
+		dr.setSenate(senate);
+		
+		c.close();		
 		
 		dr.setLat(p.lat);
 		dr.setLon(p.lon);
 		dr.setAddress(p.address);
 		
-		dr.setCensus(FCCConnect.doParsing(p.lat+"", p.lon+""));
+		dr.setCensus(FCCConnect.doParsing(p.lat+"", p.lon+""));		
 				
 		Gson gson = new Gson();
 		
@@ -404,6 +411,40 @@ public class DistrictServices {
 		return sb.toString();
 	}
 	
+	
+	public List<Senate> getNearbyDistricts(String district, Point p, WFS_REQUEST req) throws SQLException, Exception {
+		HashSet<String> districts = new HashSet<String>();
+		
+		GeoResult gr2 = handleGeoserverJson(flatten(req.constructCross(p.lat, p.lon, true, .0005)));
+		
+		for(GeoFeatures gf:gr2.getFeatures()){
+			if(!gf.getProperties().getNAMELSAD().equals(district)) {
+				districts.add(gf.getProperties().getNAMELSAD());
+			}
+		}
+		
+		gr2 = handleGeoserverJson(flatten(req.constructCross(p.lat, p.lon, false, .0005)));
+		
+		for(GeoFeatures gf:gr2.getFeatures()){
+			if(!gf.getProperties().getNAMELSAD().equals(district)) {
+				districts.add(gf.getProperties().getNAMELSAD());
+			}
+		}
+		
+		Connect c = new Connect();
+		
+		List<Senate> ret = new ArrayList<Senate>();
+
+		for(String d:districts) {
+			ret.add((Senate)c.listFromClosedResultSet(
+					Senate.class,c.getResultsetById(
+							Senate.class, "district", d)).iterator().next());
+		}
+		
+		
+		return ret;
+	}
+	
 	/*
 	 * The following are connectors for GeoServer
 	 */
@@ -437,7 +478,22 @@ public class DistrictServices {
 		public String construct(String value) {
 			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_START + GEO_FILTER_TYPE + GEO_CQL_LIKE + "'" + value + "'" + GEO_OUTPUT;
 		}
+		
+		public String constructBoundingBox(double x, double y) {
+			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + "&bbox=" + x + "," + y + "," + x + "," + y + GEO_OUTPUT;
+		}
+		
+		public String constructCross(double x, double y, boolean xOrY, double amt) {
+			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_START +
+				"CROSS(the_geom,%20LINESTRING(" 
+					+ ((xOrY) ? x + amt:x) + "%20" 
+					+ ((xOrY) ? y:y + amt) + "," 
+					+ ((xOrY) ? x - amt:x) + "%20" 
+					+ ((xOrY) ? y:y - amt) + "))" + GEO_OUTPUT;
+		}
 	}
+	
+	
 	
 	public class WFS_POLY extends WFS_ {
 		String GEO_TYPE = "&typename=";

@@ -16,10 +16,12 @@ public class GeoProperty {
 	
 	//for County, Assembly, Congressional and Senate
 	String NAMELSAD;
+	int ALAND;
+	int AWATER;
 	
 	//for all
-	String INTPTLAT;
-	String INTPTLON;
+	double INTPTLAT;
+	double INTPTLON;
 	
 	public GeoProperty() {
 		
@@ -65,12 +67,20 @@ public class GeoProperty {
 		return NAMELSAD;
 	}
 
-	public String getINTPTLAT() {
+	public double getINTPTLAT() {
 		return INTPTLAT;
 	}
 
-	public String getINTPTLON() {
+	public double getINTPTLON() {
 		return INTPTLON;
+	}
+	
+	public int getALAND() {
+		return ALAND;
+	}
+	
+	public int getAWATER() {
+		return AWATER;
 	}
 
 	public void setED(String eD) {
@@ -113,29 +123,11 @@ public class GeoProperty {
 		NAMELSAD = nAMELSAD;
 	}
 
-	public void setINTPTLAT(String iNTPTLAT) {
+	public void setINTPTLAT(double iNTPTLAT) {
 		INTPTLAT = iNTPTLAT;
 	}
 
-	public void setINTPTLON(String iNTPTLON) {
+	public void setINTPTLON(double iNTPTLON) {
 		INTPTLON = iNTPTLON;
 	}
-
-	@Override
-	public String toString() {
-		return "GeoProperty ["
-				+ (COUNTY != null ? "COUNTY=" + COUNTY + ", " : "")
-				+ (COUNTYFP != null ? "COUNTYFP=" + COUNTYFP + ", " : "")
-				+ (ED != null ? "ED=" + ED + ", " : "")
-				+ (EDP != null ? "EDP=" + EDP + ", " : "")
-				+ (EDS_COPY_ != null ? "EDS_COPY_=" + EDS_COPY_ + ", " : "")
-				+ (EDS_COPY_I != null ? "EDS_COPY_I=" + EDS_COPY_I + ", " : "")
-				+ (INTPTLAT != null ? "INTPTLAT=" + INTPTLAT + ", " : "")
-				+ (INTPTLON != null ? "INTPTLON=" + INTPTLON + ", " : "")
-				+ (MCD2 != null ? "MCD2=" + MCD2 + ", " : "")
-				+ (NAME != null ? "NAME=" + NAME + ", " : "")
-				+ (NAMELSAD != null ? "NAMELSAD=" + NAMELSAD + ", " : "")
-				+ (WARD != null ? "WARD=" + WARD : "") + "]";
-	}
-
 }

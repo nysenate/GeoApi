@@ -1,9 +1,7 @@
 package control;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,17 +9,15 @@ import org.jasypt.util.password.BasicPasswordEncryptor;
 
 import scrapers.AssemblyScraper;
 import scrapers.CongressScraper;
-import scrapers.NYSenateScraper;
+import scrapers.NYSenateServices;
 
 
 import model.ApiUser;
 import model.Metric;
-import model.districts.Senate;
 
 public class ApiController {
 	
-	public static void main(String[] args) throws MalformedURLException, IOException {
-		Connect c = new Connect();		
+	public static void main(String[] args) throws Exception {
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		String in = "";
@@ -30,30 +26,26 @@ public class ApiController {
 		while(!(in = br.readLine()).equals("exit")) {
 			if(in.equals("create all")) {
 				System.out.println("indexing assembly... ");
-				AssemblyScraper.scrape();
+				AssemblyScraper.index();
 				System.out.println("indexing congress... ");
-				CongressScraper.scrape();
+				CongressScraper.index();
 				System.out.print("indexing senate... ");
-				NYSenateScraper.Scrape();
+				NYSenateServices.index();
 				System.out.println();
 				
 			}
 			else if(in.equals("create sen")) {
 				System.out.print("indexing senate... ");
-				NYSenateScraper.Scrape();
+				NYSenateServices.index();
 				System.out.println();
 			}
 			else if(in.equals("create ass")) {
 				System.out.println("indexing assembly... ");
-				AssemblyScraper.scrape();
+				AssemblyScraper.index();
 			}
 			else if(in.equals("create con")) {
 				System.out.println("indexing congress... ");
-				CongressScraper.scrape();
-			}
-			else if(in.equals("destroy sen")) {
-				System.out.println("dropping senate index");
-				c.deleteObjects(Senate.class);
+				CongressScraper.index();
 			}
 			else if(in.startsWith("add user")) {
 				Pattern p = Pattern.compile("add user \"(.+?)\" \"(.+?)\" \"(.+?)\"");
@@ -69,7 +61,11 @@ public class ApiController {
 				
 			}
 			else if(in.equals("default senate user")) {
-
+				new Connect().persist(new ApiUser(Resource.get("user.default"), "general", "everyone for now"));
+				new Connect().persist(new ApiUser(Resource.get("sheldon.default"), "sheldon", "nysenate stuff"));
+				new Connect().persist(new ApiUser(Resource.get("nathan.default"), "nathan", "mobile dev"));
+				new Connect().persist(new ApiUser(Resource.get("sts.default"), "sts", "financial apps and what not"));
+				new Connect().persist(new ApiUser(Resource.get("crm.default"), "crm", "for crm/bluebird"));
 			}
 			System.out.print("> ");
 		}
