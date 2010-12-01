@@ -51,7 +51,18 @@ public class DistrictServices {
 	static String COUNTY = "county";
 	static String ELECTION = "election";
 	static String SENATE = "senate";
+	static double CROSS_DISTANCE = 0.005;
 	
+	/**
+	 * This is used to get a KML or JSON polygon from GeoServer if the district name is known
+	 * 
+	 * @param type match type from POLY_NAMES
+	 * @param district associated with NAMSLAD or ED field on GeoServer
+	 * @param format kml or json
+	 * @param out printwriter, passed in due to associated issues with the size of
+	 *        the KML and JSON strings being generated
+	 * @throws IOException
+	 */
 	public void getPolyFromDistrict(String type, String district, String format, PrintWriter out) throws IOException {
 		if(type.equals(SENATE)) {
 			district = "State%20Senate%20District%20" + district;;
@@ -71,31 +82,47 @@ public class DistrictServices {
 		else {
 			//throw error
 		}
-				
-		WFS_POLY wfs = new WFS_POLY(type);
-				
-		String in = flatten(wfs.construct(district));
 		
-		polyPrep(in, format, type, out);
+		/* get flattened request from geoserver */
+		WFS_POLY wfs = new WFS_POLY(type);
+		String json = flatten(wfs.construct(district));
+		
+		polyPrep(json, format, type, out);
 	}
 	
-	
 	/**
-	 * sends request to getPolygon for polygon retrieval
+	 * This is used to get a KML or JSON polygon from GeoServer when only an address is known
+	 * 
+	 * @param address address to be geocoded
+	 * @param format kml or json
+	 * @param service google|yahoo|bing|none
+	 * @param type must match POLY_NAMES
+	 * @param out for output
+	 * @throws IOException
 	 */
 	public void getPolyFromAddress(String address, String format, String service, String type, PrintWriter out) throws IOException {
 		Point p = GeoCode.getGeoCodedResponse(address, service);
 		
+		/* get flattened request from geoserver */
 		WFS_POLY wfs = new WFS_POLY(type);
-		String in = flatten(wfs.construct(p.lat, p.lon));
+		String json = flatten(wfs.construct(p.lat, p.lon));
 		
-		polyPrep(in, format, type, out);
+		polyPrep(json, format, type, out);
 		
 	}
 	
 	/**
+	 * This is used to get a KML or JSON polygon from GeoServer when a point is known
+	 * 
 	 * if service is "none" point is broken down, if service is active sends request to be
-	 * geocoded and then in either scenario request is sent to getPolygon for retrieval
+	 * reverse geocoded and then in either scenario request is sent to getPolygon for retrieval
+	 * 
+	 * @param latlng coordinates to be looked up
+	 * @param format kml or json
+	 * @param service google|yahoo|bing|none
+	 * @param type must match POLY_NAMES
+	 * @param out for output
+	 * @throws IOException
 	 */
 	public void getPolyFromPoint(String latlng, String format, String service, String type, PrintWriter out) throws IOException {
 		Point p = null;
@@ -114,12 +141,23 @@ public class DistrictServices {
 			
 		}
 		
+		/* get flattened request from geoserver */
 		WFS_POLY wfs = new WFS_POLY(type);
-		String in = flatten(wfs.construct(p.lat, p.lon));
+		String json = flatten(wfs.construct(p.lat, p.lon));
 		
-		polyPrep(in, format, type, out);
+		polyPrep(json, format, type, out);
 	}
 	
+	/**
+	 * The point data from GeoServer is very large and typically breaks the GSON parser, this separates the point
+	 * data from any other api data coming from geoserver, creates GeoResponse from that and manually
+	 * parses the points
+	 * @param in json data
+	 * @param format kml or json
+	 * @param type must match POLY_NAMES
+	 * @param out for output
+	 * @throws IOException
+	 */
 	private void polyPrep(String in, String format, String type, PrintWriter out) throws IOException {
 		
 		
@@ -174,7 +212,15 @@ public class DistrictServices {
 		
 		getPolygon(points, data, format, out);
 	}
-		
+	
+	/**
+	 * writes kml or geojson data with printwriter
+	 * 
+	 * @param coordinates compiled from polyPrep
+	 * @param data district key
+	 * @param format kml or json
+	 * @param out for output
+	 */
 	public void getPolygon(Collection<Collection<Double>> coordinates, String data, String format, PrintWriter out) {
 				
 		int count = 0;
@@ -280,7 +326,8 @@ public class DistrictServices {
 	/**
 	 * sends request to districts for district information retrieval
 	 */
-	public String getDistrictsFromAddress(String address, String format, String service) throws Exception {
+	public String getDistrictsFromAddress(String address, String format, String service)
+																	throws Exception {
 		return districts(GeoCode.getGeoCodedResponse(address, service), format);
 		
 	}
@@ -289,7 +336,8 @@ public class DistrictServices {
 	 * if service is "none" point is broken down, if service is active sends request to be
 	 * geocoded and then in either scenario request is sent to districts for retrieval
 	 */
-	public String getDistrictsFromPoint(String latlng, String format, String service) throws Exception {
+	public String getDistrictsFromPoint(String latlng, String format, String service)
+																	throws Exception {
 		Point p = null;
 		if(service != null && service.equals("none")) {
 			p = new Point(new Double(latlng.split(",")[0]),new Double(latlng.split(",")[1]),"");
@@ -322,7 +370,8 @@ public class DistrictServices {
 		dr.setCounty(new County(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
 		
 		gr = fromGeoserver(new WFS_REQUEST(ELECTION), p);
-		dr.setElection(new Election("Election District " + gr.getFeatures().iterator().next().getProperties().getED()));
+		dr.setElection(new Election("Election District " +
+				gr.getFeatures().iterator().next().getProperties().getED()));
 		
 		gr = fromGeoserver(new WFS_REQUEST(ASSEMBLY), p);
 		dr.setAssembly((Assembly)c.getObject(Assembly.class,
@@ -339,7 +388,8 @@ public class DistrictServices {
 		Senate senate = (Senate)c.getObject(Senate.class,
 				"district",
 				gr.getFeatures().iterator().next().getProperties().getNAMELSAD());
-		senate.setNearbyDistricts(getNearbyDistricts(senate.getDistrict(), p, new WFS_REQUEST(SENATE)));
+		senate.setNearbyDistricts(getNearbySenateDistricts(senate.getDistrict(),
+													p, SENATE, CROSS_DISTANCE));
 		dr.setSenate(senate);
 		
 		c.close();		
@@ -411,42 +461,71 @@ public class DistrictServices {
 		return sb.toString();
 	}
 	
-	
-	public List<Senate> getNearbyDistricts(String district, Point p, WFS_REQUEST req) throws SQLException, Exception {
-		HashSet<String> districts = new HashSet<String>();
-		
-		GeoResult gr2 = handleGeoserverJson(flatten(req.constructCross(p.lat, p.lon, true, .0005)));
-		
-		for(GeoFeatures gf:gr2.getFeatures()){
-			if(!gf.getProperties().getNAMELSAD().equals(district)) {
-				districts.add(gf.getProperties().getNAMELSAD());
-			}
-		}
-		
-		gr2 = handleGeoserverJson(flatten(req.constructCross(p.lat, p.lon, false, .0005)));
-		
-		for(GeoFeatures gf:gr2.getFeatures()){
-			if(!gf.getProperties().getNAMELSAD().equals(district)) {
-				districts.add(gf.getProperties().getNAMELSAD());
-			}
-		}
-		
-		Connect c = new Connect();
-		
+	/**
+	 * returns list of senate districts near a given point within a certain distance, relies
+	 * on getNearbyDistricts
+	 */
+	public List<Senate> getNearbySenateDistricts(String district, Point p, String type, double distance) 
+																	throws SQLException, Exception {
 		List<Senate> ret = new ArrayList<Senate>();
 
-		for(String d:districts) {
+		Connect c = new Connect();
+		
+		for(String d:getNearbyDistricts(district, p, type, distance)) {
 			ret.add((Senate)c.listFromClosedResultSet(
 					Senate.class,c.getResultsetById(
 							Senate.class, "district", d)).iterator().next());
 		}
 		
-		
 		return ret;
 	}
 	
-	/*
-	 * The following are connectors for GeoServer
+	/**
+	 * returns districts near a given point within a certain distance, only looks vertically
+	 * and horizontally using CQL CROSS filter, can be changed to include diagonally as well
+	 * but this is good for now.  There is a CQL filter DWITHIN but it doesn't appear to work
+	 * and BBOX has too broad of a scope
+	 */
+	public HashSet<String> getNearbyDistricts(String key, Point p, String type, double distance)
+																	throws SQLException, Exception {
+		HashSet<String> districts = new HashSet<String>();
+		WFS_REQUEST req = new WFS_REQUEST(type);
+		
+		GeoResult gr2 = handleGeoserverJson(flatten(req.constructCross(p.lat, p.lon, true, distance)));
+		districts.addAll(getDistrictsFromGeoResult(key, type, gr2));
+		
+		gr2 = handleGeoserverJson(flatten(req.constructCross(p.lat, p.lon, false, distance)));
+		districts.addAll(getDistrictsFromGeoResult(key, type, gr2));
+		
+		return districts;
+	}
+	
+	/**
+	 * returns list of disticts from a GeoResult, differentiates between election districts and
+	 * all other districts because election has a unique format
+	 */
+	private HashSet<String> getDistrictsFromGeoResult(String key, String type, GeoResult gr) {
+		HashSet<String> districts = new HashSet<String>();
+		for(GeoFeatures gf:gr.getFeatures()) {
+			if(type.equals(ELECTION)) {
+				if(!gf.getProperties().getED().equals(key)) {
+					districts.add(gf.getProperties().getED());
+				}
+			}
+			else {
+				if(!gf.getProperties().getNAMELSAD().equals(key)) {
+					districts.add(gf.getProperties().getNAMELSAD());
+				}
+			}
+		}
+		return districts;
+	}
+	
+	
+	
+	/**
+	 * The following are connectors for GeoServer, they provide construct[FILTER] methods
+	 * that create urls for various GeoServer WFS calls
 	 */
 	
 	public class WFS_REQUEST extends WFS_ {
@@ -472,15 +551,18 @@ public class DistrictServices {
 		}
 		
 		public String construct(double x, double y) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_LOC + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
+			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY 
+					+ GEO_CQL_LOC + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
 		}
 		
 		public String construct(String value) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_START + GEO_FILTER_TYPE + GEO_CQL_LIKE + "'" + value + "'" + GEO_OUTPUT;
+			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + GEO_CQL_START 
+					+ GEO_FILTER_TYPE + GEO_CQL_LIKE + "'" + value + "'" + GEO_OUTPUT;
 		}
 		
 		public String constructBoundingBox(double x, double y) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + "&bbox=" + x + "," + y + "," + x + "," + y + GEO_OUTPUT;
+			return Resource.get(GEO_API) + GEO_TYPE + GEO_PROPERTY + "&bbox=" + x 
+					+ "," + y + "," + x + "," + y + GEO_OUTPUT;
 		}
 		
 		public String constructCross(double x, double y, boolean xOrY, double amt) {
@@ -517,11 +599,13 @@ public class DistrictServices {
 		}
 		
 		public String construct(double x, double y) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_CQL_LOC + x + "%20" + y + GEO_CQL_END + GEO_OUTPUT;
+			return Resource.get(GEO_API) + GEO_TYPE + GEO_CQL_LOC + x + "%20" 
+					+ y + GEO_CQL_END + GEO_OUTPUT;
 		}
 		
 		public String construct(String value) {
-			return Resource.get(GEO_API) + GEO_TYPE + GEO_CQL_START + GEO_FILTER_TYPE + GEO_CQL_LIKE + "'" + value + "'" + GEO_OUTPUT;
+			return Resource.get(GEO_API) + GEO_TYPE + GEO_CQL_START 
+					+ GEO_FILTER_TYPE + GEO_CQL_LIKE + "'" + value + "'" + GEO_OUTPUT;
 		}
 	}
 	public abstract class WFS_ {

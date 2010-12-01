@@ -90,3 +90,7 @@ create table member (
 	url VARCHAR(256),
 	district VARCHAR(50)
 ) ENGINE=INNODB;
+
+create table oldaiscount (
+	ip VARCHAR(128)
+) ENGINE=INNODB;

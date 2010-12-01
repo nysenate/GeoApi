@@ -176,15 +176,7 @@ public class Connect {
 		return getResultSetFromQuery(query);
 	}
 	
-	public static void main(String[] args) throws Exception {
-		Connect c = new Connect();
-		
-		List<Object> objs = c.listFromClosedResultSet(Senate.class,c.getResultsetById(Senate.class, "district", "State Senate District 28"));
 	
-		for(Object obj:objs) {
-			System.out.println(obj);
-		}
-	}
 	
 	public ResultSet getResultsetById(Class<?> clazz, String field, Object value) throws SQLException {		
 		String query = "SELECT * FROM " 
@@ -193,11 +185,21 @@ public class Connect {
 			+ field
 			+ "="
 			+ "'" + value + "'";
-		
-		System.out.println(query);
-				
+						
 		return getResultSetFromQuery(query);
 	}
+	
+	public static void main(String[] args) throws Exception {
+		/*Connect c = new Connect();
+		
+		List<Object> objs = c.listFromClosedResultSet(Senate.class,c.getResultsetById(Senate.class, "district", "State Senate District 28"));
+	
+		for(Object obj:objs) {
+			System.out.println(obj);
+		}*/
+	}
+	
+	
 	
 	public ResultSet getResultSetFromQuery(String query) throws SQLException {
 		Statement s = null;

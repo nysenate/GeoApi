@@ -130,6 +130,28 @@ $(document).ready(function(){
 					"information is missing or the address you entered is invalid.");
 			}
 			else {
+				var nearby = null;
+				if(data.senate.nearbyDistricts[0] != null) {
+					var nBLen = data.senate.nearbyDistricts.length;
+					var nBCount = 1;
+					for(district in data.senate.nearbyDistricts) {
+						if(nearby != null) {
+							if(nBCount == nBLen) {
+								nearby += " and ";
+							}
+							else {
+								nearby += ", ";
+							}
+						}
+						else {
+							nearby = "";
+						}
+						nearby += "<a href=\"" + data.senate.nearbyDistricts[district].districtUrl 
+						+ "\">" + data.senate.nearbyDistricts[district].district + "</a>";
+						nBCount++;
+
+					}
+				}
 				$(".response_body").html(
 					"<div class = \"response_data\">"
 						+ "<ol>"
@@ -155,7 +177,12 @@ $(document).ready(function(){
 							+ "<tr>"
 								+ "<td>" + data.senate.senator.contact + "</td>"
 							+ "</tr>"
-							+ "</table></li>"
+							+ "</table>"
+							+ (nearby != null ?
+									"<div style=\"text-align:center;font-size: 75%;border-width:1px;border-style:dotted;\" class=\"nearby_districts\">You're also very close to "
+									+ nearby
+									:"")
+							+ "</li>"
 							
 							+ "<li>" + data.assembly.district + " - <a href=\"" + data.assembly.member.url + "\">" + data.assembly.member.name + "</a></li>"
 							
