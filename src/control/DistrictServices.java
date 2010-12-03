@@ -2,10 +2,15 @@ package control;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -613,7 +618,7 @@ public class DistrictServices {
 		public abstract String construct(String value);
 	}
 	
-/*	public void writeJson() throws Exception {
+	/*public void writeJson() throws Exception {
 		Connect c = new Connect();
 		
 		Gson gson = new Gson();
@@ -624,7 +629,7 @@ public class DistrictServices {
 		String in = null;
 		
 		while((in = br.readLine()) != null) {
-			map.put(new Integer(in.split(":")[0]), new Integer(in.split(":")[1]));
+			map.put(new Integer(in.split(":")[0]), new Double(in.split(":")[1]).intValue());
 		}
 		br.close();
 		

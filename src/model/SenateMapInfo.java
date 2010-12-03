@@ -5,9 +5,13 @@ import model.districts.Senate;
 public class SenateMapInfo {
 	double lat;
 	double lon;
-	double zoom;
+	public double zoom;
 	
 	Senate senate;
+	
+	public SenateMapInfo() {
+		
+	}
 	
 	public SenateMapInfo(double lat, double lon, double zoom, Senate senate) {
 		this.lat = lat;
