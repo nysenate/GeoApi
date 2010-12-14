@@ -156,6 +156,7 @@ public class Connect {
 			+ ")";
 		
 		try {
+			
 			s.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 			ResultSet rs = s.getGeneratedKeys();
 			if(rs.next()) {

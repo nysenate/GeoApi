@@ -1,6 +1,6 @@
 <html>
 <body>
-<div id="mapdiv" style="height:374px; width:482px;"></div>
+<div id="mapdiv" style="height:<%=request.getParameter("y") != null ? request.getParameter("y") : 374%>px;width:<%=request.getParameter("x") != null ? request.getParameter("x") : 482%>px;"></div>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
 <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
 <script><!--
@@ -13,11 +13,14 @@
 	var layer;
 	var markers;
 	
-	var district;
+	var district = <%=request.getParameter("sd")%>;  
 	var mfunc;
 
+	var popup;
+	
+	var offices;
+	
 	$(document).ready(function(){
-		
 		mfunc = function(dnum) {
 			if(map != null) {
 				layer.removeAllFeatures();
@@ -37,7 +40,7 @@
 				var lonLat = new OpenLayers.LonLat(lon, lat).transform(
 						new OpenLayers.Projection("EPSG:4326"),
 						map.getProjectionObject());
-				map.setCenter(lonLat, data.zoom-1);
+				map.setCenter(lonLat, data.zoom);
 				
 				
 				layer = new OpenLayers.Layer.Vector("KML", {
@@ -60,36 +63,60 @@
 				map.addControl(selectFeat);//instance of map
 				selectFeat.activate();*/
 				
-				
 				markers = new OpenLayers.Layer.Markers("Markers");
 				map.addLayer(markers);
 				markers.setZIndex(layer.getZIndex());
 				for(var i in json.senate.senator.offices) {
 					var office = json.senate.senator.offices[i];
+					
 					var tMarker = new OpenLayers.Marker(new OpenLayers.LonLat(office.lat, office.lon).transform(
 							new OpenLayers.Projection("EPSG:4326"),
 							map.getProjectionObject()));
-					
-					
+					tMarker.office = office;
 					
 					markers.addMarker(tMarker);
-					
+										
+					tMarker.events.register('mousedown',tMarker, mousedown);
 				}
 				
 			});
-			
-			doMap();
 		};
+		
+		if(district != null) {
+			mfunc(district);
+		}
 	});
 	
-	function doMap() {
+	function mousedown(evt) {
+		destroyLocalPopup();
 		
+		var o = evt.object.office;
+		
+		popup = new OpenLayers.Popup.FramedCloud("data", 
+				new OpenLayers.LonLat(evt.object.office.lat, evt.object.office.lon).transform(
+						new OpenLayers.Projection("EPSG:4326"),
+						map.getProjectionObject()),
+						new OpenLayers.Size(200,200), 
+						o.officeName + "<br>" + o.street + "<br>" + o.city + o.state 
+						+ "<br>" +o.phone + "<br>" + o.fax, 
+						null, true, function() {popup.toggle();});
+		markers.map.addPopup(popup);
+		
+		OpenLayers.Event.stop(evt);
+		
+		console.log(evt.object.office);
 	}
 	
-	function onPopupClose(evt) {
+	function destroyLocalPopup() {
+		if(popup != null) {
+			popup.destroy();
+            popup = null;
+        }
+	}
+	
+	/*function onPopupClose(evt) {
 		selectFeat.unselect(selectedFeature);
 	}
-
 	function up(feature) {
 		selectedFeature = feature;
 		text = '';
@@ -118,7 +145,7 @@
 		map.removePopup(feature.popup);
 		feature.popup.destroy();
 		feature.popup = null;
-	}
+	}*/
 
 </script>
 

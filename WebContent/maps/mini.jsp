@@ -53,7 +53,7 @@
 		selectFeat = new OpenLayers.Control.SelectFeature(
             vectors, {
             	toggle: true, 
-            	clickout:true, 
+            	clickout:true
             });
 		selectFeat.handlers['feature'].stopDown = false;
 		selectFeat.handlers['feature'].stopUp = false;
