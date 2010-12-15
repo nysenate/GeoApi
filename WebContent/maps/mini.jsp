@@ -1,10 +1,9 @@
-
 <html>
 <body>
-<div id="mapdiv" style="height:206px; width:265px;"></div>
+<div id="mapdiv" style="height:265px; width:265px;"></div>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
 <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
-<script>
+<script><!--
 	var lat;
 	var lon;
 	var zoom;
@@ -20,12 +19,30 @@
 			lon = json.lon;
 			zoom = json.zoom;
 			
-			var lonLat = new OpenLayers.LonLat(lon, lat).transform(
+			/*var lonLat = new OpenLayers.LonLat(lon, lat).transform(
 					new OpenLayers.Projection("EPSG:4326"),
 					map.getProjectionObject()
-			);
+			);*/
+			
+			var lonLat = null;
+			if(json.offsetLon && json.offsetLat) {
+				var lonLat = new OpenLayers.LonLat(json.offsetLon, json.offsetLat);
+			}
+			else {
+				var lonLat = new OpenLayers.LonLat(lon, lat).transform(
+						new OpenLayers.Projection("EPSG:4326"),
+						map.getProjectionObject());
+			}
+			map.setCenter(lonLat, zoom);
 
 			map.setCenter(lonLat, data.zoom-2);
+			
+			//$('.olControlAttribution').hide();
+			
+			map.removeControl(map.getControl('OpenLayers.Control.Navigation_4'));
+			map.removeControl(map.getControl('OpenLayers.Control.ArgParser_6'));
+			map.removeControl(map.getControl('OpenLayers.Control.Attribution_7'));
+			map.removeControl(map.getControl('OpenLayers.Control.PanZoom_5'));
 			
 		});
 	});

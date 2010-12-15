@@ -6,7 +6,7 @@
 <script><!--
 	var lat;
 	var lon;
-	var zoom;
+	var zoom = <%=request.getParameter("z")%>;
 	var map;
 	var selectFeat;
 	var json;
@@ -31,17 +31,25 @@
 				map.addLayer(new OpenLayers.Layer.OSM());
 			}
 			district = dnum;
-			$.getJSON("json/sd" + district + ".json",function(data){
+			$.getJSON("json3/sd" + district + ".json",function(data){
 				json = data;
 				lat = json.lat;
 				lon = json.lon;
-				zoom = json.zoom;
 				
-				var lonLat = new OpenLayers.LonLat(lon, lat).transform(
-						new OpenLayers.Projection("EPSG:4326"),
-						map.getProjectionObject());
-				map.setCenter(lonLat, data.zoom);
+				if(zoom == null) {
+					zoom = json.zoom;
+				}
 				
+				var lonLat = null;
+				if(json.offsetLon && json.offsetLat) {
+					var lonLat = new OpenLayers.LonLat(json.offsetLon, json.offsetLat);
+				}
+				else {
+					var lonLat = new OpenLayers.LonLat(lon, lat).transform(
+							new OpenLayers.Projection("EPSG:4326"),
+							map.getProjectionObject());
+				}
+				map.setCenter(lonLat, zoom);
 				
 				layer = new OpenLayers.Layer.Vector("KML", {
 					strategies : [ new OpenLayers.Strategy.Fixed() ],
@@ -93,7 +101,7 @@
 		var o = evt.object.office;
 		
 		popup = new OpenLayers.Popup.FramedCloud("data", 
-				new OpenLayers.LonLat(evt.object.office.lat, evt.object.office.lon).transform(
+				new OpenLayers.LonLat(evt.object.office.lat, evt.object.office.lon+.028).transform(
 						new OpenLayers.Projection("EPSG:4326"),
 						map.getProjectionObject()),
 						new OpenLayers.Size(200,200), 

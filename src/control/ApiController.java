@@ -14,6 +14,9 @@ import scrapers.NYSenateServices;
 
 import model.ApiUser;
 import model.Metric;
+import model.districts.Assembly;
+import model.districts.Congressional;
+import model.districts.Senate;
 
 public class ApiController {
 	
@@ -24,6 +27,11 @@ public class ApiController {
 		
 		System.out.print("> ");
 		while(!(in = br.readLine()).equals("exit")) {
+			if(in.equals("truncate all")) {
+				new Connect().deleteObjects(Senate.class);
+				new Connect().deleteObjects(Assembly.class);
+				new Connect().deleteObjects(Congressional.class);
+			}
 			if(in.equals("create all")) {
 				System.out.println("indexing assembly... ");
 				AssemblyScraper.index();

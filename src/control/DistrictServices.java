@@ -618,24 +618,28 @@ public class DistrictServices {
 		public abstract String construct(String value);
 	}
 	
-	/*public void writeJson() throws Exception {
+	public static void main(String[] args) throws Exception {
+		new DistrictServices().writeJson();
+	}
+	
+	public void writeJson() throws Exception {
 		Connect c = new Connect();
 		
 		Gson gson = new Gson();
 		
-		HashMap<Integer,Integer> map = new HashMap<Integer,Integer>();
-		BufferedReader br = new BufferedReader(new FileReader(new File("zoom")));
+		HashMap<Integer,String> map = new HashMap<Integer,String>();
+		BufferedReader br = new BufferedReader(new FileReader(new File("zoom2")));
 		
 		String in = null;
 		
 		while((in = br.readLine()) != null) {
-			map.put(new Integer(in.split(":")[0]), new Double(in.split(":")[1]).intValue());
+			map.put(new Integer(in.split(":")[0]), in.split(":")[1]);
 		}
 		br.close();
 		
 		for(int i = 1; i <= 62; i++) {
-			FileWriter fw = new FileWriter("WebContent/test/json/sd" + i + ".json");
-			new File("WebContent/test/json/sd" + i + ".json").createNewFile();
+			FileWriter fw = new FileWriter("WebContent/maps/json3/sd" + i + ".json");
+			new File("WebContent/maps/json3/sd" + i + ".json").createNewFile();
 			
 			PrintWriter pw = new PrintWriter(fw);
 			
@@ -645,17 +649,31 @@ public class DistrictServices {
 			
 			double lat = new Double(gr.getFeatures().iterator().next().getProperties().getINTPTLAT());
 			double lon = new Double(gr.getFeatures().iterator().next().getProperties().getINTPTLON());
-			double zoom = new Double(map.get(i));
 			
 			Senate senate = (Senate) c.getObject(Senate.class, "district", "State Senate District " + i);
 			
-			SenateMapInfo smi = new SenateMapInfo(lat,lon,zoom,senate);
+			Pattern p = Pattern.compile("(\\d+) \\((.*?),(.*?)\\)");
+			Matcher m = p.matcher(map.get(i));
 			
-			pw.write(gson.toJson(smi));
+			if(m.find()) {
+				SenateMapInfo smi = new SenateMapInfo(lat,lon,
+						new Double(m.group(1)),
+						new Double(m.group(2)),
+						new Double(m.group(3)),senate);
+				pw.write(gson.toJson(smi));
+			}
+			else {
+				SenateMapInfo smi = new SenateMapInfo(lat,lon,
+						new Double(map.get(i)),null,null,senate);
+				pw.write(gson.toJson(smi));
+			}
+			
+			
+			
 			
 			pw.close();
 		}
-	}*/
+	}
 
 /*	public void writeKml() {
 		for(int i = 1; i <= 62; i++) {
