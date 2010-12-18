@@ -57,7 +57,7 @@ public class SenateFilter implements Filter {
 			else {
 				//can include exceptions here, anything else will be redirected if not matching
 				if(uri.matches("(/GeoApi)?(/maps/(kml|json)/sd\\d{1,2}\\.(kml|json)|/maps/(mini|regular)\\.jsp(.*))")) {
-					
+				
 				}
 				else {
 					((HttpServletResponse)response).sendRedirect("http://www.nysenate.gov");
