@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
@@ -403,7 +404,7 @@ public class DistrictServices {
 		dr.setLon(p.lon);
 		dr.setAddress(p.address);
 		
-		dr.setCensus(FCCConnect.doParsing(p.lat+"", p.lon+""));		
+		//dr.setCensus(FCCConnect.doParsing(p.lat+"", p.lon+""));		
 				
 		Gson gson = new Gson();
 		
@@ -625,7 +626,7 @@ public class DistrictServices {
 	public void writeJson() throws Exception {
 		Connect c = new Connect();
 		
-		Gson gson = new Gson();
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		
 		HashMap<Integer,String> map = new HashMap<Integer,String>();
 		BufferedReader br = new BufferedReader(new FileReader(new File("zoom2")));
@@ -638,8 +639,8 @@ public class DistrictServices {
 		br.close();
 		
 		for(int i = 1; i <= 62; i++) {
-			FileWriter fw = new FileWriter("WebContent/maps/json3/sd" + i + ".json");
-			new File("WebContent/maps/json3/sd" + i + ".json").createNewFile();
+			FileWriter fw = new FileWriter("WebContent/maps/json2/sd" + i + ".json");
+			new File("WebContent/maps/json2/sd" + i + ".json").createNewFile();
 			
 			PrintWriter pw = new PrintWriter(fw);
 			
@@ -668,7 +669,7 @@ public class DistrictServices {
 				pw.write(gson.toJson(smi));
 			}
 			
-			
+			pw.write(gson.toJson(senate));
 			
 			
 			pw.close();

@@ -66,7 +66,7 @@
 							map.removeControl(map.getControl('OpenLayers.Control.Navigation_4'));
 							map.removeControl(map.getControl('OpenLayers.Control.ArgParser_6'));
 							map.removeControl(map.getControl('OpenLayers.Control.PanZoom_5'));
-							//map.removeControl(map.getControl('OpenLayers.Control.Attribution_7'));
+							map.removeControl(map.getControl('OpenLayers.Control.Attribution_7'));
 						<% }
 						else { %>
 							markers = new OpenLayers.Layer.Markers("Markers");

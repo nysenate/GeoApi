@@ -190,7 +190,7 @@ $(document).ready(function(){
 							
 							+ "<li>" + data.county.countyName + "</li>"
 							+ "<li>" + data.election.district + "</li>"
-							+ "<li><label>Census FIPS: </label>" + data.census.fips + "</li>"
+							//+ "<li><label>Census FIPS: </label>" + data.census.fips + "</li>"
 						+ "</ol>"
 					+ "</div>");
 

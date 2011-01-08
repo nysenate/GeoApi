@@ -46,6 +46,20 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>CsvUploadServlet</servlet-name>
-    <url-pattern>/uploadServlet</url-pattern>
+    <url-pattern>/upload</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>CsvUploadServlet</servlet-name>
+    <url-pattern>/upload/</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>UploadMessageServlet</display-name>
+    <servlet-name>UploadMessageServlet</servlet-name>
+    <servlet-class>servlets.UploadMessageServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UploadMessageServlet</servlet-name>
+    <url-pattern>/upload/message</url-pattern>
   </servlet-mapping>
 </web-app>

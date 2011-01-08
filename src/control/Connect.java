@@ -51,7 +51,9 @@ public class Connect {
 	
 	public void close() {
 		try {
-			connection.close();
+			if(connection != null) {
+				connection.close();
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -188,32 +190,15 @@ public class Connect {
 			+ "'" + value + "'";
 						
 		return getResultSetFromQuery(query);
-	}
-	
-	public static void main(String[] args) throws Exception {
-		/*Connect c = new Connect();
-		
-		List<Object> objs = c.listFromClosedResultSet(Senate.class,c.getResultsetById(Senate.class, "district", "State Senate District 28"));
-	
-		for(Object obj:objs) {
-			System.out.println(obj);
-		}*/
-	}
-	
-	
+	}	
 	
 	public ResultSet getResultSetFromQuery(String query) throws SQLException {
-		Statement s = null;
 		
-		s = getConnection().createStatement();
+		Statement s = getConnection().createStatement();
 		
 		s.executeQuery(query);
 		
-		ResultSet rs = null;
-		
-		rs = s.getResultSet();
-		
-		return rs;
+		return s.getResultSet();
 	}
 	
 	/**
@@ -258,6 +243,20 @@ public class Connect {
 	
 	public Object getObject(Class<?> clazz, String field, Object value) throws Exception {
 		return getObject(clazz, field, value, false);
+	}
+	
+/*	public static void main(String[] args) throws Exception {
+		Connect c = new Connect();
+		
+		List<Object> objs = c.listFromClosedResultSet(Senate.class,c.getResultSetMany(Senate.class));
+	
+		for(Object obj:objs) {
+			System.out.println(obj);
+		}
+	}*/
+	
+	public List<?> getObjects(Class<?> clazz) throws SQLException, Exception {
+		return listFromClosedResultSet(clazz, getResultSetMany(clazz));
 	}
 	
 	/**

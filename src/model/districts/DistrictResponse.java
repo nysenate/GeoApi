@@ -12,7 +12,7 @@ public class DistrictResponse {
 	County county;
 	Election election;
 	Senate senate;
-	Census census;
+	//Census census;
 	
 	public DistrictResponse() {
 		
@@ -50,10 +50,10 @@ public class DistrictResponse {
 		return senate;
 	}
 	
-	public Census getCensus() {
+	/*public Census getCensus() {
 		return census;
 	}
-
+*/
 	public void setLat(double lat) {
 		this.lat = lat;
 	}
@@ -86,9 +86,9 @@ public class DistrictResponse {
 		this.senate = senate;
 	}
 	
-	public void setCensus(Census census) {
+	/*public void setCensus(Census census) {
 		this.census = census;
-	}
+	}*/
 	
 
 	

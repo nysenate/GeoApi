@@ -9,9 +9,9 @@
 <script type="text/javascript">
 function validate() {
 	message = "";
-	email = document.forms.form1.email.value;
-	file = document.forms.form1.file.value;
-	type = document.forms.form1.format.value;
+	email = $('#email').val();//document.forms.form1.email.value;
+	file =  $('#file').val();//document.forms.form1.file.value;
+	type =  $('#format').val();//document.forms.form1.format.value;
 	
 	if(!email.match(/.*?@.*?\..*?/)) {
 		message += "<br>Enter a valid email address";
@@ -54,7 +54,7 @@ $(document).ready(function(){
 	<div class="error" style="color:red;text-align:center;font-size:75%">
 	
 	</div>
-	<form name="form1" ENCTYPE='multipart/form-data' id="uploadForm" action="uploadServlet" method="post">
+	<form name="form1" ENCTYPE='multipart/form-data' id="uploadForm" method="post">
 		<ol>
 			<li>
 				<label>email</label> 
@@ -68,7 +68,7 @@ $(document).ready(function(){
 				<label>format</label>
 				<select name="format">
 					<option>(choose one)</option>
-					<option>example</option>
+					<option>BOE</option>
 				</select>
 			</li>
 			<li>
