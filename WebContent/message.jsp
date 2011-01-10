@@ -27,7 +27,7 @@
 				Your request has been added.  You will receive an email at <%=email %> when it is complete.
 				<br/>
 				<br/>
-				<%=queue > 0 ? "You are number <b>" + queue + "</b> in the queue. Based on the <b>" + records + " </b> records" 
+				<%=queue > 0 ? "You are number <b>" + (queue + 1) + "</b> in the queue. Based on the <b>" + records + " </b> records" 
 				 + " in front of you it will take roughly <b>" + (records/90000) + "</b> days to begin processing."  :"You are next in the queue."%>
 			<% } %>
 		</div>

@@ -62,13 +62,13 @@ public class BulkRequest {
 	}
 	
 	public void incrementGRequest(int i) {
-		gRequests += i;
+		gRequests = i + gRequests;
 	}
 	public void incrementYRequest(int i) {
-		yRequests += i;
+		yRequests = i + yRequests;
 	}
 	public void incrementBRequest(int i) {
-		bRequests += i;
+		bRequests = i + bRequests;
 	}
 	
 
@@ -90,7 +90,6 @@ public class BulkRequest {
 		
 		try {
 			list = (ArrayList<BulkRequest>)connect.getObjects(BulkRequest.class);
-			System.out.println(list.size());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (Exception e) {

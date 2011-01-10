@@ -548,10 +548,10 @@ public class Connect {
 	}
 	
 	private String cleanse(String s) {
-		return s != null ? s.replaceAll("\"","&quot;").replaceAll("'", "&sing;"):s;
+		return s != null ? s.replaceAll("\"","&quot;").replaceAll("'", "&sing;").replaceAll("\\\\","&bcksl;"):s;
 	}
 	
 	private String uncleanse(String s) {
-		return s.replaceAll("&quot;", "\"").replaceAll("&sing;", "'");
+		return s!= null ? s.replaceAll("&quot;", "\"").replaceAll("&sing;", "'").replaceAll("&bcksl;", "\\"):s;
 	}
 }

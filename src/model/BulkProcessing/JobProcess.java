@@ -40,14 +40,20 @@ public class JobProcess {
 		this.contact = contact;
 		this.jobType = type;
 		this.fileName = fileName; 
-		
-		requestTime = new Date().getTime();
-		
-		segment = -1;
-		
 		this.lineCount = lineCount;
+		requestTime = new Date().getTime();
+		segment = -1;
 	}
-
+	
+	public JobProcess(String contact, String type, String fileName, Integer lineCount, Long requestTime) {
+		this.contact = contact;
+		this.jobType = type;
+		this.fileName = fileName; 
+		this.lineCount = lineCount;
+		this.requestTime = requestTime;
+		segment = -1;
+	}
+	
 	public String getContact() {
 		return contact;
 	}

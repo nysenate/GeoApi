@@ -1,32 +1,60 @@
 package BulkProcessing;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.TreeSet;
 
+import connectors.BingConnect;
+import connectors.GoogleConnect;
+import connectors.YahooConnect;
 import control.Connect;
 
 import model.BulkProcessing.*;
 import model.abstracts.AbstractGeocoder;
 
 public class Processor {
+	
+	public class GeoFilenameFilter implements FilenameFilter {
+		String filter;
+		public GeoFilenameFilter(String filter) {
+			this.filter = filter;
+		}
+		public boolean accept(File dir, String name) {
+			return name.startsWith(filter);
+		}
+	}
+
+	public enum Geocoder {
+		Google, Yahoo, Bing;
+	}
+	
+	final String ROOT_DIRECTORY = "C:\\workspace\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\";
+	final String WORK_DIRECTORY = ROOT_DIRECTORY + "upload\\";
+	final String DEST_DIRECTORY = ROOT_DIRECTORY + "complete\\";
+	final String LOCK_FILE = ".lock";
+	
 	/* currently set to # of milliseconds in a day */
-	static final long MS_BUFFER = 86400000L;
+	final long MS_BUFFER = 86400000L;
 	
+	final int MAX_GOOGLE_REQUESTS = 8000;
+	final int MAX_YAHOO_REQUESTS = 41000;
+	final int MAX_BING_REQUESTS = 41000;
+	final int MIN_REQUESTS = 100;
+		
+	BulkRequest AVAIL_REQUESTS;
+	BulkRequest CUR_REQUESTS;
 	
-	
-	static final int MAX_GOOGLE_REQUESTS = 8000;
-	static final int MAX_YAHOO_REQUESTS = 41000;
-	static final int MAX_BING_REQUESTS = 41000;
-	static final int MAX_REQUESTS = MAX_GOOGLE_REQUESTS 
-								  + MAX_YAHOO_REQUESTS 
-								  + MAX_BING_REQUESTS;
-	static final int MIN_REQUESTS = 1000;
-	
-	public static void main(String[] args) {
-		/*BulkRequest br1 = new BulkRequest(100,100,100);
+	public static void main(String[] args) throws IOException {
+/*		BulkRequest br1 = new BulkRequest(100,100,100);
 		
 		BulkRequest br2 = new BulkRequest(10000,10000,10000);
 		br2.setRequestTime(100L);
@@ -36,51 +64,274 @@ public class Processor {
 		Connect c = new Connect();
 		c.persist(br1);
 		c.persist(br2);
-		c.persist(br3);*/
-		
-		
-		//write lock
-		
+		c.persist(br3);
+		*/
 		
 		Processor p = new Processor();
-		
-		BulkRequest currentRequests = new BulkRequest();
-		
-		BulkRequest availableRequests = p.initilaizeRequests();
-		
-		TreeSet<JobProcess> jobProcesses = JobProcess.getJobProcesses();
-		
-		for(JobProcess jp:jobProcesses) {
-			System.out.println(jp.getRequestTime() + " - " + jp.getContact() + " - " + jp.getFileName());
-			
-		}
-		
-		
-		//remove lock
+		p.processFiles();
 	}
 	
-	public AbstractGeocoder getGeocoder(BulkRequest br, JobProcess jp) {
+	public void processFiles() throws IOException {
+		//create lock file to stop processes from running in parallel
+		File lock = new File(WORK_DIRECTORY + LOCK_FILE);
+		if(lock.exists()) {
+			System.err.println("Process already running");
+			System.exit(0);
+		}
+		lock.createNewFile();
 		
+		//will store requests made during processing
+		CUR_REQUESTS = new BulkRequest();
+		//total requests made in previous iterations
+		AVAIL_REQUESTS = initilaizeRequests();
+		
+		//job processes ordered from oldest to newest
+		TreeSet<JobProcess> jobProcesses = JobProcess.getJobProcesses();
+		
+		Connect c = new Connect();
+		
+		for(JobProcess jp:jobProcesses) {
+			System.out.println("Current job: " + jp.getContact() + " with file: " + jp.getFileName());
+			AbstractGeocoder geocoder = getGeocoder(jp);
+			
+			int segment = jp.getSegment();
+			
+			File readFile = new File(
+					WORK_DIRECTORY + jp.getFileName() + (segment == -1 ? "":"-raw-" + (segment)));
+			File writeFile = new File(
+					WORK_DIRECTORY + jp.getFileName() + (segment == -1 ? "-work-1":"-work-" + (segment + 1)));
+			writeFile.createNewFile();
+			
+			BufferedReader br = new BufferedReader(new FileReader(readFile));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(writeFile));
+			
+			String header = br.readLine();
+			bw.write(header + "\n");
+			
+			String in = null;
+			while((in  = br.readLine()) != null) {
+				geocoder = checkGeocoder(geocoder, jp);
+				
+				if(geocoder == null) {
+					System.err.println("Geocoding unavailable");
+					break;
+				} else {
+					//fetch results
+					//write results
+					bw.write(in + "\n");
+				}
+			}
+			bw.close();
+			
+			//if file completely processed
+			if(in == null) {
+				File workDir = new File(WORK_DIRECTORY);
+				//merge work files in upload directory
+				mergeFiles(DEST_DIRECTORY + jp.getFileName(), header,
+						workDir.list(new GeoFilenameFilter(jp.getFileName() + "-work-")));
+				
+				//mail(contact, "processing complete")
+				//mail(admin, "processing details")
+				
+				c.deleteObjectById(JobProcess.class, "filename", jp.getFileName());
+				
+				br.close();
+				//delete associated files
+				deleteFiles(WORK_DIRECTORY, workDir.list(new GeoFilenameFilter(jp.getFileName())));
+			}
+			//if file partially processed save work and raw files as segments
+			//for later processing
+			else {
+				if(segment == -1)
+					segment = 1;
+				else segment += 1;
+				
+				//create raw file of unprocessed data
+				File newRawFile = new File(WORK_DIRECTORY + jp.getFileName() + "-raw-" + segment);
+				newRawFile.createNewFile();
+				
+				BufferedWriter rawBw = new BufferedWriter(new FileWriter(newRawFile));
+				rawBw.write(header + "\n" + in + "\n");
+				
+				while((in  = br.readLine()) != null) {
+					rawBw.write(in + "\n");
+				}
+				rawBw.close();
+				
+				//delete and recreate process
+				c.deleteObjectById(JobProcess.class, "filename", jp.getFileName());
+				jp.setSegment(segment);
+				c.persist(jp);
+				
+				br.close();
+			}
+			
+			System.out.println("\n\n");
+			if(geocoder == null) {
+				break;
+			}
+			
+		}
+		//write requests made during processing
+		c.persist(CUR_REQUESTS);
+		
+		c.close();
+		lock.delete();
+		
+	}
+	
+	public Object processTuple(Class<?> clazz, String input, String header, HashMap<String, Method> methodMap)
+		throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Object o = clazz.newInstance();
+		String[] format = header.split("\t");
+		
+		input = input.replaceAll("\t\t","\t \t");
+		String[] tuple = input.split("\t");
+		for(int i = 0; i < tuple.length; i++) {
+			Method fieldMethod = methodMap.get(format[i]);
+			
+			fieldMethod.invoke(o, tuple[i]);
+		}
+		
+		return o;
+	}
+	
+	public HashMap<String, Method> processHeader(Class<?> clazz, String header) throws SecurityException, NoSuchMethodException {
+		String[] format = header.split("\t");
+		HashMap<String, Method> methodMap = new HashMap<String,Method>();
+		
+		for(int i = 0; i < format.length; i++) {
+			String fName = firstLetterCase(fixFieldName(format[i]), false);
+			
+			Method fieldMethod = clazz.getDeclaredMethod("set" + fName, String.class);
+						
+			methodMap.put(fName, fieldMethod);
+			
+			format[i] = fName;
+		}
+		return methodMap;
+	}
+	
+	public String fixFieldName(String s) {
+		return s.replaceAll("( |\\W)","");		
+	}
+	
+	public String firstLetterCase(String s, boolean toggle) {
+		char[] chars = s.toCharArray();
+		chars[0] = (toggle ? Character.toLowerCase(chars[0]) : Character.toUpperCase(chars[0]));
+		return new String(chars);
+	}
+	
+	public void mergeFiles(String destination, String header, String... files) throws IOException {
+		File outFile = new File(destination);
+		BufferedWriter bw = new BufferedWriter(new FileWriter(outFile));
+		bw.write(header + "\n");
+		
+		System.out.print("Merging ");
+		for(String fileName:files) {
+			File workFile = new File(WORK_DIRECTORY + fileName);
+			BufferedReader br = new BufferedReader(new FileReader(workFile));
+			br.readLine(); //header
+			
+			String in = null;
+			while((in = br.readLine()) != null) {
+				bw.write(in + "\n");
+			}
+			br.close();
+			
+			System.out.print(workFile.getName() + ", ");
+		}
+		bw.close();
+		System.out.println("into " + destination);
+	}
+	
+	public void deleteFiles(String directory, String... files) {
+		System.out.print("deleting ");
+		for(String fileName:files) {
+			File file = new File(directory + fileName);
+			file.delete();
+			System.out.print(file.getName() + ", ");
+		}
+		System.out.println();
+	}
+	
+	public AbstractGeocoder checkGeocoder(AbstractGeocoder geocoder, JobProcess jp) {
+		if(geocoder instanceof GoogleConnect) {
+			if(AVAIL_REQUESTS.getGRequests() > MAX_GOOGLE_REQUESTS - MIN_REQUESTS)
+				return getGeocoder(jp);
+			else {
+				AVAIL_REQUESTS.incrementGRequest(1);
+				CUR_REQUESTS.incrementGRequest(1);
+			}
+		}
+		else if(geocoder instanceof YahooConnect) {
+			if(AVAIL_REQUESTS.getYRequests() > MAX_YAHOO_REQUESTS - MIN_REQUESTS)
+				return getGeocoder(jp);
+			else {
+				AVAIL_REQUESTS.incrementYRequest(1);
+				CUR_REQUESTS.incrementYRequest(1);
+			}
+		}
+		else if(geocoder instanceof BingConnect) {
+			if(AVAIL_REQUESTS.getBRequests() > MAX_BING_REQUESTS - MIN_REQUESTS)
+				return getGeocoder(jp);
+			else {
+				AVAIL_REQUESTS.incrementBRequest(1);
+				CUR_REQUESTS.incrementBRequest(1);
+			}
+		}
+		return geocoder;
+	}
+	
+	public AbstractGeocoder getGeocoder(JobProcess jp) {		
 		int lc = jp.getLineCount();
+		int g = MAX_GOOGLE_REQUESTS - AVAIL_REQUESTS.getGRequests();
+		int b = MAX_BING_REQUESTS - AVAIL_REQUESTS.getBRequests();
+		int y = MAX_YAHOO_REQUESTS - AVAIL_REQUESTS.getYRequests();
 		
-		int g = MAX_GOOGLE_REQUESTS - br.getGRequests();
-		int b = MAX_BING_REQUESTS - br.getBRequests();
-		int y = MAX_YAHOO_REQUESTS - br.getYRequests();
+		int cur = 0;
+		int max = cur = g;
+		Geocoder gr = Geocoder.Google;
+
+		if(b > lc && ((b - lc > 0) && (b - lc < cur - lc))) {
+			cur = b;
+			gr = Geocoder.Bing;
+		}
+		else {
+			if(b > max && lc > max) {
+				max = cur = b;
+				gr = Geocoder.Bing;
+			}
+		}
 		
-		int max = 0;
-//		int fit
+		if(y > lc && ((y - lc > 0) && (y - lc < cur - lc))) {
+			cur = y;
+			gr = Geocoder.Yahoo;
+		}
+		else {
+			if(y > max && lc > max) {
+				max = cur = y;
+				gr = Geocoder.Yahoo;
+			}
+		}
 		
-		if(g > max)	max = g;
-		if(b > max)	max = b;
-		if(y > max)	max = y;
-		
+		if(cur > MIN_REQUESTS) {
+			switch (gr) {
+				case Google: 
+					return new GoogleConnect();
+				case Yahoo: 
+					return new YahooConnect();
+				case Bing: 
+					return new BingConnect();
+			}
+		}	
 		return null;
 	}
 	
 	/**
 	 * this function determines the amount of requests that can currently be made
 	 * with our geocoders
-	 * @return number of availab requests
+	 * @return number of available requests
 	 */
 	public BulkRequest initilaizeRequests() {
 		Connect connect = new Connect();
@@ -92,13 +343,11 @@ public class Processor {
 		int bRequests = 0;
 		
 		TreeSet<BulkRequest> bulkRequests = BulkRequest.getBulkRequests();
-		
-		System.out.println(bulkRequests.size());
-		
+				
 		for(BulkRequest br:bulkRequests) {
 			if(br.getRequestTime() < timeStamp) {
+				//request is older than a day, remove from history
 				connect.deleteObjectById(BulkRequest.class, "requesttime", Long.toString(br.getRequestTime()));
-				System.out.println("removing request " + br.getRequestTime());
 			}
 			else {
 				gRequests += br.getGRequests();
@@ -106,29 +355,8 @@ public class Processor {
 				bRequests += br.getBRequests();
 			}
 		}
-		
 		connect.close();
 		
 		return new BulkRequest(gRequests, yRequests, bRequests);
-	}
-	
-	public int getFileLength(BufferedReader br) {
-		if(br == null)
-			return 0;
-		
-		try {
-			int count = 0;
-			String in = null;
-			while((in = br.readLine()) != null) {
-				count++;
-			}
-			br.close();
-			
-			return count;
-		}
-		catch (Exception e) {
-			return 0;
-		}
-		
 	}
 }

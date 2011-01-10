@@ -4,10 +4,14 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -84,24 +88,19 @@ public class CsvUploadServlet extends HttpServlet {
 					+ ".csv";
 			String sep = System.getProperty("file.separator");
 			try {
-				String path = getServletContext().getRealPath(sep).replace("GeoApi", "") 
-						+ sep 
+				String path = getServletContext().getRealPath(sep).replace("\\GeoApi", "") 
 						+ "upload" 
 						+ sep 
 						+ fileName;
-				
-				file.write(new File(path));
-				
-				assignJobProcessInformation(request);
 								
+				assignJobProcessInformation(request);
+												
 				Connect connect = new Connect();
 				connect.persist(new JobProcess(
 						contact,
 						jobType,
-						path,
-						new Processor().getFileLength(
-								new BufferedReader(
-										new InputStreamReader(file.getInputStream())))));
+						fileName,
+						writeFile(path,new InputStreamReader(file.getInputStream()))));
 				
 				connect.close();
 				
@@ -144,4 +143,27 @@ public class CsvUploadServlet extends HttpServlet {
 		request.getSession().setAttribute("records", records);
 	}
 
+	public int writeFile(String path, InputStreamReader is) {
+		if(is == null)
+			return 0;
+		
+		try {
+			int count = 0;
+			String in = null;
+			BufferedReader br = new BufferedReader(is);
+			BufferedWriter bw = new BufferedWriter(new FileWriter(new File(path)));
+			while((in = br.readLine()) != null) {
+				bw.write(in + "\n");
+				count++;
+			}
+			br.close();
+			bw.close();
+			
+			return count;
+		}
+		catch (Exception e) {
+			return 0;
+		}
+		
+	}
 }
