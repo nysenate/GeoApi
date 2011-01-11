@@ -11,8 +11,6 @@
 		<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
 		<script>
 			var map;
-			var selectFeat;
-			var json;
 			var layer;
 			var markers;
 			var mfunc;
@@ -33,7 +31,7 @@
 					
 					district = dnum;
 					$.getJSON("json/sd" + district + ".json",function(data){
-						json = data;
+						var json = data;
 						var lat = json.lat;
 						var lon = json.lon;
 						
@@ -89,20 +87,6 @@
 						
 						//the attribution by default hangs out in an awkward part of the map
 						$('.olControlAttribution').css('bottom','0px');
-						
-							//uncommented this, along with onPopupClose, up, and down would
-							//make the drawn district selectable and display some information
-							//about the senator
-							/* selectFeat = new OpenLayers.Control.SelectFeature(
-					            layer, {
-					            	toggle: true, 
-					            	clickout:true, 
-					            	onSelect:up,
-					            	onUnselect : down});
-							selectFeat.handlers['feature'].stopDown = false;
-							selectFeat.handlers['feature'].stopUp = false;
-							map.addControl(selectFeat);//instance of map
-							selectFeat.activate();*/
 					});
 				};
 				
@@ -135,39 +119,6 @@
 		            popup = null;
 		        }
 			}
-			
-			/*function onPopupClose(evt) {
-				selectFeat.unselect(selectedFeature);
-			}
-			function up(feature) {
-				selectedFeature = feature;
-				text = '';
-				popup = new OpenLayers.Popup.FramedCloud("featurePopup",
-		                feature.geometry.getBounds().getCenterLonLat(),
-		                new OpenLayers.Size(300,300),
-		                "<b>"+ feature.attributes.name + "</b>" +
-						"<table cellspacing=\"10\">"
-							+ "<tr>"
-								+ "<td rowspan=3><img src=\"" + json.senate.senator.imageUrl + "\" alt=\"" + json.senate.senator.name + "\"></img></td>"
-								+ "<td><a href=\"" + json.senate.districtUrl + "\">" + json.senate.district + "</a></td>"
-							+ "</tr>"
-							+ "<tr>"
-								+ "<td><a href=\"" + json.senate.senator.url + "\">" + json.senate.senator.name + "</a></td>"
-							+ "</tr>"
-							+ "<tr>"
-								+ "<td>" + json.senate.senator.contact + "</td>"
-							+ "</tr>"
-						+ "</table>",
-		                null, true, onPopupClose);
-				feature.popup = popup;
-				popup.setOpacity(0.95);
-				map.addPopup(popup);
-			}
-			function down(feature) {
-				map.removePopup(feature.popup);
-				feature.popup.destroy();
-				feature.popup = null;
-			}*/
 		</script>
 	</body>
 </html>

@@ -626,7 +626,7 @@ public class DistrictServices {
 	public void writeJson() throws Exception {
 		Connect c = new Connect();
 		
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		Gson gson = new Gson();//GsonBuilder().setPrettyPrinting().create();
 		
 		HashMap<Integer,String> map = new HashMap<Integer,String>();
 		BufferedReader br = new BufferedReader(new FileReader(new File("zoom2")));
@@ -668,9 +668,7 @@ public class DistrictServices {
 						new Double(map.get(i)),null,null,senate);
 				pw.write(gson.toJson(smi));
 			}
-			
-			pw.write(gson.toJson(senate));
-			
+						
 			
 			pw.close();
 		}

@@ -17,6 +17,7 @@ import connectors.BingConnect;
 import connectors.GoogleConnect;
 import connectors.YahooConnect;
 import control.Connect;
+import control.DelimitedFileExtracter;
 
 import model.BulkProcessing.*;
 import model.abstracts.AbstractGeocoder;
@@ -53,7 +54,7 @@ public class Processor {
 	BulkRequest AVAIL_REQUESTS;
 	BulkRequest CUR_REQUESTS;
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, SecurityException, NoSuchMethodException {
 /*		BulkRequest br1 = new BulkRequest(100,100,100);
 		
 		BulkRequest br2 = new BulkRequest(10000,10000,10000);
@@ -68,7 +69,18 @@ public class Processor {
 		*/
 		
 		Processor p = new Processor();
-		p.processFiles();
+		
+		
+		BufferedReader br = new BufferedReader(new FileReader(new File("etc/sd33_boe_example.tsv")));
+		
+		String header = br.readLine();
+		
+		DelimitedFileExtracter dfe = new DelimitedFileExtracter("\t", header, Boe3rdTsv.class);
+		Boe3rdTsv tuple = (Boe3rdTsv)dfe.processTuple(br.readLine());
+		System.out.println(tuple.getBirth_date());
+		br.close();
+		
+		/*p.processFiles();*/
 	}
 	
 	public void processFiles() throws IOException {
@@ -180,47 +192,7 @@ public class Processor {
 		
 	}
 	
-	public Object processTuple(Class<?> clazz, String input, String header, HashMap<String, Method> methodMap)
-		throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		Object o = clazz.newInstance();
-		String[] format = header.split("\t");
-		
-		input = input.replaceAll("\t\t","\t \t");
-		String[] tuple = input.split("\t");
-		for(int i = 0; i < tuple.length; i++) {
-			Method fieldMethod = methodMap.get(format[i]);
-			
-			fieldMethod.invoke(o, tuple[i]);
-		}
-		
-		return o;
-	}
-	
-	public HashMap<String, Method> processHeader(Class<?> clazz, String header) throws SecurityException, NoSuchMethodException {
-		String[] format = header.split("\t");
-		HashMap<String, Method> methodMap = new HashMap<String,Method>();
-		
-		for(int i = 0; i < format.length; i++) {
-			String fName = firstLetterCase(fixFieldName(format[i]), false);
-			
-			Method fieldMethod = clazz.getDeclaredMethod("set" + fName, String.class);
-						
-			methodMap.put(fName, fieldMethod);
-			
-			format[i] = fName;
-		}
-		return methodMap;
-	}
-	
-	public String fixFieldName(String s) {
-		return s.replaceAll("( |\\W)","");		
-	}
-	
-	public String firstLetterCase(String s, boolean toggle) {
-		char[] chars = s.toCharArray();
-		chars[0] = (toggle ? Character.toLowerCase(chars[0]) : Character.toUpperCase(chars[0]));
-		return new String(chars);
-	}
+
 	
 	public void mergeFiles(String destination, String header, String... files) throws IOException {
 		File outFile = new File(destination);
