@@ -8,7 +8,6 @@ import java.util.List;
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,11 +20,9 @@ import java.util.regex.Pattern;
 
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
-import connectors.FCCConnect;
 
 import model.*;
 import model.districts.Assembly;

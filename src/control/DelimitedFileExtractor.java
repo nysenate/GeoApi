@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
-public class DelimitedFileExtracter {
+public class DelimitedFileExtractor {
 	
 	private String  delim;
 	private String header;
@@ -12,7 +12,7 @@ public class DelimitedFileExtracter {
 	private String[] format;
 	HashMap<String, Method> methodMap;
 	
-	public DelimitedFileExtracter(String delim, String header, Class<?> clazz) {
+	public DelimitedFileExtractor(String delim, String header, Class<?> clazz) {
 		this.delim = delim;
 		this.header = header;
 		this.clazz = clazz;

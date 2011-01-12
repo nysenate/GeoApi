@@ -1,6 +1,6 @@
 package model.BulkProcessing;
 
-public class Boe3rdTsv {
+public class Boe3rdTsv implements BulkInterface {
 	String id;
 	String first_name;
 	String middle_name;
@@ -35,7 +35,38 @@ public class Boe3rdTsv {
 	String email_id;
 
 	public Boe3rdTsv() {
-		
+		this.id = "";
+		first_name = "";
+		middle_name = "";
+		last_name = "";
+		suffix_id = "";
+		street_number = "";
+		street_name = "";
+		street_unit = "";
+		supplemental_address_1 = "";
+		supplemental_address_2 = "";
+		city = "";
+		state_province_id = "";
+		postal_code = "";
+		postal_code_suffix = "";
+		birth_date = "";
+		gender_id = "";
+		phone = "";
+		town_52 = "";
+		ward_53 = "";
+		election_district_49 = "";
+		congressional_district_46 = "";
+		ny_senate_district_47 = "";
+		ny_assembly_district_48 = "";
+		school_district_54 = "";
+		county_50 = "";
+		email = "";
+		location_type_id = "";
+		is_deleted = "";
+		address_id = "";
+		districtinfo_id = "";
+		phone_id = "";
+		email_id = "";
 	}
 
 	public String getId() {
@@ -293,6 +324,53 @@ public class Boe3rdTsv {
 	public void setEmail_id(String email_id) {
 		this.email_id = email_id;
 	}
+
+	@Override
+	public String toString() {
+		return id + "\t" + first_name + "\t" + middle_name + "\t" + last_name 
+		+ "\t" + suffix_id + "\t" + street_number + "\t" + street_name 
+		+ "\t" + street_unit + "\t" + supplemental_address_1 + "\t" + 
+		supplemental_address_2 + "\t" + city + "\t" + state_province_id 
+		+ "\t" + postal_code + "\t" + postal_code_suffix + "\t" + birth_date 
+		+ "\t" + gender_id + "\t" + phone + "\t" + town_52 + "\t" + 
+		ward_53 + "\t" + election_district_49 + "\t" + congressional_district_46 
+		+ "\t" + ny_senate_district_47 + "\t" + ny_assembly_district_48 + "\t" 
+		+ school_district_54 + "\t" + county_50 + "\t" + 
+		email + "\t" + location_type_id + "\t" + is_deleted + "\t" + address_id 
+		+ "\t" + districtinfo_id + "\t" + phone_id + "\t" + email_id;
+	}
+
+	@Override
+	public void setAD(String ad) {
+		this.ny_assembly_district_48 = ad;
+	}
+
+	@Override
+	public void setCD(String cd) {
+		this.congressional_district_46 = cd;
+	}
+
+	@Override
+	public void setCounty(String county) {
+		this.county_50 = county;
+	}
+
+	@Override
+	public void setED(String ed) {
+		this.election_district_49 = ed;
+	}
+
+	@Override
+	public void setSD(String sd) {
+		this.ny_senate_district_47 = sd;
+	}
+
+	@Override
+	public String getAddress() {
+		return getStreet_number() + " " + getStreet_name() + ", " + getCity() + " " + getState_province_id() + " " + getPostal_code();
+	}
+
+	
 	
 	
 }

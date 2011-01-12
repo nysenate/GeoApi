@@ -3,15 +3,9 @@ package servlets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Reader;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -29,15 +23,14 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import BulkProcessing.Mailer;
-import BulkProcessing.Processor;
 
 import control.Connect;
 
-public class CsvUploadServlet extends HttpServlet {
+public class BulkUploadServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
 
-    public CsvUploadServlet() {
+    public BulkUploadServlet() {
         super();
     }
 
@@ -83,17 +76,13 @@ public class CsvUploadServlet extends HttpServlet {
                     + "-"
 			        + (new Date().getTime()) 
 			        + "-"
-			        + file.getName().split("\\.")[0] 
-			       
-					+ ".csv";
+			        + file.getName();
 			String sep = System.getProperty("file.separator");
 			try {
-				String path = getServletContext().getRealPath(sep).replace("\\GeoApi", "") 
+				String path = getServletContext().getRealPath(sep).replace(sep + "GeoApi", "") 
 						+ "upload" 
 						+ sep 
 						+ fileName;
-								
-				assignJobProcessInformation(request);
 												
 				Connect connect = new Connect();
 				connect.persist(new JobProcess(
@@ -104,6 +93,7 @@ public class CsvUploadServlet extends HttpServlet {
 				
 				connect.close();
 				
+				assignJobProcessInformation(request);
 				
 				request.getSession().setAttribute("email", contact);
 				
@@ -162,6 +152,7 @@ public class CsvUploadServlet extends HttpServlet {
 			return count;
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			return 0;
 		}
 		

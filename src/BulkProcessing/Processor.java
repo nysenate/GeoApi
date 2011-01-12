@@ -1,5 +1,7 @@
 package BulkProcessing;
 
+import generated.geoserver.json.GeoResult;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,22 +9,33 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.TreeSet;
 
 import connectors.BingConnect;
 import connectors.GoogleConnect;
 import connectors.YahooConnect;
 import control.Connect;
-import control.DelimitedFileExtracter;
+import control.DelimitedFileExtractor;
+import control.DistrictServices;
 
+import model.Point;
 import model.BulkProcessing.*;
 import model.abstracts.AbstractGeocoder;
 
 public class Processor {
+	
+	public class BulkGeocoder {
+		public AbstractGeocoder geocoder;
+		public int max;
+		public int cur;
+		
+		public BulkGeocoder(AbstractGeocoder geocoder, int max, int cur) {
+			this.geocoder = geocoder;
+			this.max = max;
+			this.cur = cur;
+		}
+	}
 	
 	public class GeoFilenameFilter implements FilenameFilter {
 		String filter;
@@ -38,9 +51,13 @@ public class Processor {
 		Google, Yahoo, Bing;
 	}
 	
-	final String ROOT_DIRECTORY = "C:\\workspace\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\";
-	final String WORK_DIRECTORY = ROOT_DIRECTORY + "upload\\";
-	final String DEST_DIRECTORY = ROOT_DIRECTORY + "complete\\";
+	/*final String ROOT_DIRECTORY = "C:\\workspace\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\";
+	/*final String ROOT_DIRECTORY = "/Library/tomcat/webapps/";*/
+	final String FILE_SEPERATOR = System.getProperty("file.separator");
+
+	final String ROOT_DIRECTORY = "/opt/apache-tomcat-6.0.26/webapps/";
+	final String WORK_DIRECTORY = ROOT_DIRECTORY + "upload" + FILE_SEPERATOR;
+	final String DEST_DIRECTORY = ROOT_DIRECTORY + "complete" + FILE_SEPERATOR;
 	final String LOCK_FILE = ".lock";
 	
 	/* currently set to # of milliseconds in a day */
@@ -50,6 +67,12 @@ public class Processor {
 	final int MAX_YAHOO_REQUESTS = 41000;
 	final int MAX_BING_REQUESTS = 41000;
 	final int MIN_REQUESTS = 100;
+	
+	static String ASSEMBLY = "assembly";
+	static String CONGRESSIONAL = "congressional";
+	static String COUNTY = "county";
+	static String ELECTION = "election";
+	static String SENATE = "senate";
 		
 	BulkRequest AVAIL_REQUESTS;
 	BulkRequest CUR_REQUESTS;
@@ -67,30 +90,19 @@ public class Processor {
 		c.persist(br2);
 		c.persist(br3);
 		*/
-		
 		Processor p = new Processor();
 		
-		
-		BufferedReader br = new BufferedReader(new FileReader(new File("etc/sd33_boe_example.tsv")));
-		
-		String header = br.readLine();
-		
-		DelimitedFileExtracter dfe = new DelimitedFileExtracter("\t", header, Boe3rdTsv.class);
-		Boe3rdTsv tuple = (Boe3rdTsv)dfe.processTuple(br.readLine());
-		System.out.println(tuple.getBirth_date());
-		br.close();
-		
-		/*p.processFiles();*/
+		p.processFiles();
 	}
+	
+	
 	
 	public void processFiles() throws IOException {
 		//create lock file to stop processes from running in parallel
-		File lock = new File(WORK_DIRECTORY + LOCK_FILE);
-		if(lock.exists()) {
-			System.err.println("Process already running");
+		if(!createLock()) {
+			System.err.println("Process already running or error creating lock file");
 			System.exit(0);
 		}
-		lock.createNewFile();
 		
 		//will store requests made during processing
 		CUR_REQUESTS = new BulkRequest();
@@ -112,12 +124,14 @@ public class Processor {
 					WORK_DIRECTORY + jp.getFileName() + (segment == -1 ? "":"-raw-" + (segment)));
 			File writeFile = new File(
 					WORK_DIRECTORY + jp.getFileName() + (segment == -1 ? "-work-1":"-work-" + (segment + 1)));
+			System.out.println("creating new work file: " + writeFile.getAbsolutePath());
 			writeFile.createNewFile();
 			
 			BufferedReader br = new BufferedReader(new FileReader(readFile));
 			BufferedWriter bw = new BufferedWriter(new FileWriter(writeFile));
 			
 			String header = br.readLine();
+			DelimitedFileExtractor dfe = new DelimitedFileExtractor("\t", header, Boe3rdTsv.class);
 			bw.write(header + "\n");
 			
 			String in = null;
@@ -128,9 +142,18 @@ public class Processor {
 					System.err.println("Geocoding unavailable");
 					break;
 				} else {
-					//fetch results
-					//write results
-					bw.write(in + "\n");
+					try {
+						Boe3rdTsv record = (Boe3rdTsv)dfe.processTuple(in);
+						fillRequest(geocoder.doParsing(record.getAddress()), record);
+						//write results
+						bw.write(record + "\n");
+					}
+					catch (Exception e) {
+						Mailer.mailError(e, jp);
+						geocoder = null;
+						e.printStackTrace();
+						break;
+					}
 				}
 			}
 			bw.close();
@@ -142,9 +165,9 @@ public class Processor {
 				mergeFiles(DEST_DIRECTORY + jp.getFileName(), header,
 						workDir.list(new GeoFilenameFilter(jp.getFileName() + "-work-")));
 				
-				//mail(contact, "processing complete")
-				//mail(admin, "processing details")
-				
+				Mailer.mailAdminComplete(jp);
+				Mailer.mailUserComplete(jp);
+
 				c.deleteObjectById(JobProcess.class, "filename", jp.getFileName());
 				
 				br.close();
@@ -188,8 +211,31 @@ public class Processor {
 		c.persist(CUR_REQUESTS);
 		
 		c.close();
-		lock.delete();
 		
+		if(!deleteLock()) {
+			System.err.println("Lock file does not exist or could not be deleted");
+		}
+		
+	}
+	
+	public void fillRequest(Point p, BulkInterface bi) throws IOException {
+		GeoResult gr = null;
+		
+		DistrictServices ds = new DistrictServices();
+		gr = ds.fromGeoserver(ds.new WFS_REQUEST(COUNTY), p);
+		bi.setCounty(gr.getFeatures().iterator().next().getProperties().getNAMELSAD());	
+		
+		gr = ds.fromGeoserver(ds.new WFS_REQUEST(ELECTION), p);
+		bi.setED(gr.getFeatures().iterator().next().getProperties().getED());
+		
+		gr = ds.fromGeoserver(ds.new WFS_REQUEST(ASSEMBLY), p);
+		bi.setAD(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("Assembly District ",""));
+		
+		gr = ds.fromGeoserver(ds.new WFS_REQUEST(CONGRESSIONAL), p);
+		bi.setCD(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("Congressional District ", ""));
+		
+		gr = ds.fromGeoserver(ds.new WFS_REQUEST(SENATE), p);
+		bi.setSD(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("State Senate District ",""));
 	}
 	
 
@@ -330,5 +376,21 @@ public class Processor {
 		connect.close();
 		
 		return new BulkRequest(gRequests, yRequests, bRequests);
+	}
+	
+	public boolean createLock() throws IOException {
+		File lock = new File(WORK_DIRECTORY + LOCK_FILE);
+		if(lock.exists()) {
+			return false;
+		}
+		return lock.createNewFile();
+	}
+	
+	public boolean deleteLock() {
+		File lock = new File(WORK_DIRECTORY + LOCK_FILE);
+		if(lock.exists() && lock.delete()) {
+			return true;
+		}
+		return false;
 	}
 }

@@ -18,7 +18,6 @@ import model.annotations.Ignore;
 import model.annotations.ListType;
 import model.annotations.PersistentObject;
 import model.annotations.PrimaryKey;
-import model.districts.Senate;
 
 /**
  * @author Jared Williams

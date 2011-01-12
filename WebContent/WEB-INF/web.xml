@@ -40,16 +40,16 @@
   </servlet-mapping>
   <servlet>
     <description></description>
-    <display-name>CsvUploadServlet</display-name>
-    <servlet-name>CsvUploadServlet</servlet-name>
-    <servlet-class>servlets.CsvUploadServlet</servlet-class>
+    <display-name>BulkUploadServlet</display-name>
+    <servlet-name>BulkUploadServlet</servlet-name>
+    <servlet-class>servlets.BulkUploadServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>CsvUploadServlet</servlet-name>
+    <servlet-name>BulkUploadServlet</servlet-name>
     <url-pattern>/upload</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>CsvUploadServlet</servlet-name>
+    <servlet-name>BulkUploadServlet</servlet-name>
     <url-pattern>/upload/</url-pattern>
   </servlet-mapping>
   <servlet>

@@ -16,8 +16,8 @@ function validate() {
 	if(!email.match(/.*?@.*?\..*?/)) {
 		message += "<br>Enter a valid email address";
 	}
-	if(!file.match(/(\/|\\).{1,}\.csv/)) {
-		message += "<br>Choose a valid file (extension .csv)";
+	if(!file.match(/(\/|\\).{1,}\.tsv/)) {
+		message += "<br>Choose a valid file (extension .tsv)";
 	}
 	if(type == "(choose one)") {
 		message += "<br>Choose a format";
@@ -31,6 +31,9 @@ $(document).ready(function(){
 	$("#upload").click(function() {
 		var message = validate();
 		if(message == "") {
+			$('#upload').attr('disabled','disabled');
+			$('#upload').val("Uploading...");
+			
 			return true;
 		}
 		else {
@@ -68,7 +71,7 @@ $(document).ready(function(){
 				<label>format</label>
 				<select name="format">
 					<option>(choose one)</option>
-					<option>BOE</option>
+					<option>BOE (.tsv)</option>
 				</select>
 			</li>
 			<li>

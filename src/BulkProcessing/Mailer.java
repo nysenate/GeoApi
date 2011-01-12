@@ -1,5 +1,6 @@
 package BulkProcessing;
 
+import java.util.Date;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -9,6 +10,8 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+
+import model.BulkProcessing.JobProcess;
 
 import control.Resource;
 
@@ -58,5 +61,42 @@ public class Mailer {
 		msg.setSubject(subject);
 		msg.setContent(message, "text/html");
 		Transport.send(msg);
+	}
+	
+	public static void mailError(Exception e, JobProcess jp) {
+		try {
+			sendMail("williams@nysenate.gov",
+					"bulk upload error",
+					jp.getContact() + " - " + jp.getJobType() + " - " + jp.getFileName() + "<br/><br/>" + e.getMessage(),
+					"williams@nysenate.gov",
+					"SAGE Bulk front-end error");
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+	}
+	
+	public static void mailAdminComplete(JobProcess jp) {
+		try {
+			sendMail(Resource.get("admin.email"),
+					"bulk processing complete",
+					jp.getContact() + " - " + jp.getJobType() + " - " + jp.getFileName() + "<br/><br/>",
+					"williams@nysenate.gov",
+					"SAGE Bulk processing complete");
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+	}
+	
+	public static void mailUserComplete(JobProcess jp) {
+		try {
+			sendMail(jp.getContact(),
+					"SAGE Districting Completed",
+					"Your request from " + new Date(jp.getRequestTime()) + " has been completed and can be downloaded at http://geo.nysenate.gov/complete/" + jp.getFileName() +
+					"<br/><br/>This is an automated message.",
+					"williams@nysenate.gov",
+					"SAGE");
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
 	}
 }
