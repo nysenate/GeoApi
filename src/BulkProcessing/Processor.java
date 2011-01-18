@@ -188,7 +188,9 @@ public class Processor {
 				BufferedWriter rawBw = new BufferedWriter(new FileWriter(newRawFile));
 				rawBw.write(header + "\n" + in + "\n");
 				
+				int lineCount = 0;
 				while((in  = br.readLine()) != null) {
+					lineCount++;
 					rawBw.write(in + "\n");
 				}
 				rawBw.close();
@@ -196,6 +198,7 @@ public class Processor {
 				//delete and recreate process
 				c.deleteObjectById(JobProcess.class, "filename", jp.getFileName());
 				jp.setSegment(segment);
+				jp.setLineCount(lineCount);
 				c.persist(jp);
 				
 				br.close();
