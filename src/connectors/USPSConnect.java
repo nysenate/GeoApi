@@ -32,7 +32,7 @@ public class USPSConnect {
 	public static final String API_ZIPCODE = "usps.zipcode";
 	
 	public static String validateAddress(String addr1, String addr2, 
-			String city, String state, String zip5, String zip4, String format) {
+			String city, String state, String zip5, String zip4, String punctuation, String format) {
 				
 		Object o = getResponse(constructAddressUrl(addr1,addr2,city,state,zip5,zip4).replaceAll(" ","%20"));
 		
@@ -42,7 +42,7 @@ public class USPSConnect {
 			o = new ErrorResponse(avr.getAddress().getError().getDescription());
 		}
 		else {
-			o = new ValidateResponse(avr);
+			o = new ValidateResponse(avr, punctuation);
 		}
 		
 		if(format.equals("xml")) {

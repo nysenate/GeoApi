@@ -5,14 +5,17 @@ import generated.geoserver.json.GeoResult;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.TreeSet;
 
 import connectors.BingConnect;
+import connectors.GeoServerConnect;
 import connectors.GoogleConnect;
 import connectors.YahooConnect;
 import control.Connect;
@@ -77,6 +80,8 @@ public class Processor {
 	BulkRequest AVAIL_REQUESTS;
 	BulkRequest CUR_REQUESTS;
 	
+	HashMap<String,String> countyLookupMap;
+	
 	public static void main(String[] args) throws IOException, SecurityException, NoSuchMethodException {
 /*		BulkRequest br1 = new BulkRequest(100,100,100);
 		
@@ -91,7 +96,6 @@ public class Processor {
 		c.persist(br3);
 		*/
 		Processor p = new Processor();
-		
 		p.processFiles();
 	}
 	
@@ -108,6 +112,8 @@ public class Processor {
 		CUR_REQUESTS = new BulkRequest();
 		//total requests made in previous iterations
 		AVAIL_REQUESTS = initilaizeRequests();
+		//NYSS uses their own county codes, not FIPS
+		loadCountyLookupMap();
 		
 		//job processes ordered from oldest to newest
 		TreeSet<JobProcess> jobProcesses = JobProcess.getJobProcesses();
@@ -195,7 +201,7 @@ public class Processor {
 				}
 				rawBw.close();
 				
-				//delete and recreate process
+				//delete and recreate process with new line count and segment #
 				c.deleteObjectById(JobProcess.class, "filename", jp.getFileName());
 				jp.setSegment(segment);
 				jp.setLineCount(lineCount);
@@ -224,20 +230,22 @@ public class Processor {
 	public void fillRequest(Point p, BulkInterface bi) throws IOException {
 		GeoResult gr = null;
 		
-		DistrictServices ds = new DistrictServices();
-		gr = ds.fromGeoserver(ds.new WFS_REQUEST(COUNTY), p);
-		bi.setCounty(gr.getFeatures().iterator().next().getProperties().getNAMELSAD());	
+		GeoServerConnect gsCon = new GeoServerConnect();
+		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(COUNTY), p);
+		//converts FIPS county code from geoserver to NYSS county code
+		bi.setCounty(countyLookupMap.get(
+				replaceLeading(gr.getFeatures().iterator().next().getProperties().getCOUNTYFP(),"0")));
 		
-		gr = ds.fromGeoserver(ds.new WFS_REQUEST(ELECTION), p);
+		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(ELECTION), p);
 		bi.setED(gr.getFeatures().iterator().next().getProperties().getED());
 		
-		gr = ds.fromGeoserver(ds.new WFS_REQUEST(ASSEMBLY), p);
+		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(ASSEMBLY), p);
 		bi.setAD(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("Assembly District ",""));
 		
-		gr = ds.fromGeoserver(ds.new WFS_REQUEST(CONGRESSIONAL), p);
+		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(CONGRESSIONAL), p);
 		bi.setCD(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("Congressional District ", ""));
 		
-		gr = ds.fromGeoserver(ds.new WFS_REQUEST(SENATE), p);
+		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(SENATE), p);
 		bi.setSD(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("State Senate District ",""));
 	}
 	
@@ -396,4 +404,31 @@ public class Processor {
 		}
 		return false;
 	}
+	
+	public String replaceLeading(String str, String leading) {
+		if(str.startsWith(leading)) {
+			return replaceLeading(str.replaceFirst(leading, ""), leading);
+		}
+		else {
+			return str;
+		}
+	}
+	
+	public void loadCountyLookupMap() throws IOException {		
+		BufferedReader br = new BufferedReader(new FileReader(new File("")));
+		countyLookupMap = new HashMap<String,String>();
+		
+		String in = null;
+		
+		while((in = br.readLine()) != null) {
+			//tuple[0] = NYSS county code
+			//tuple[1] = county name
+			//tuple[2] = fips county code
+			String[] tuple = in.split(":");
+			
+			countyLookupMap.put(tuple[2], tuple[0]);
+		}
+		br.close();
+	}
+	
 }

@@ -20,9 +20,9 @@ public class ValidateResponse {
 		
 	}
 
-	public ValidateResponse(AddressValidateResponse avr) {
+	public ValidateResponse(AddressValidateResponse avr, String punctuation) {
 		address1 = avr.getAddress().getAddress1();
-		this.setAddress2(avr.getAddress().getAddress2());
+		this.setAddress2(avr.getAddress().getAddress2(), punctuation);
 		city = avr.getAddress().getCity();
 		state = avr.getAddress().getState();
 		this.setZip4(Integer.toString(avr.getAddress().getZip4()));		
@@ -71,8 +71,13 @@ public class ValidateResponse {
 		this.address1 = address1;
 	}
 
-	public void setAddress2(String address2) {
-		this.address2 = formatAbbreviations(address2);
+	public void setAddress2(String address2, String punctuation) {
+		if(punctuation == null || !punctuation.equalsIgnoreCase("true")) {
+			this.address2 = address2;
+		}
+		else {
+			this.address2 = formatAbbreviations(address2);
+		}
 	}
 
 	public void setCity(String city) {

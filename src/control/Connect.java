@@ -407,7 +407,7 @@ public class Connect {
 				catch (SQLException se) {
 					//occurs when a field is present that does not have
 					//an associated database column or entry
-					se.printStackTrace();
+//					se.printStackTrace();
 				}
 			}
 		}

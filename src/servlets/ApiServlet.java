@@ -185,18 +185,21 @@ public class ApiServlet extends HttpServlet {
 				}					
 			}
 			else if(command.equals("validate")) {
+				String punctuation = (String) request.getParameter("punct");
+				punctuation = (punctuation ==  null ? "true" : punctuation);
+				
 				service = (service == null ? "usps" : service);
 				
 				if(type.equals("extended")) {
 					
 					if(service.equals("usps")) {
 						out.write(USPSConnect.validateAddress(
-								addr1, addr2, city, state, zip5, zip4, format));
+								addr1, addr2, city, state, zip5, zip4, punctuation, format));
 
 					}
 					else if(service.equals("dmv")) {
 						out.write(DMVConnect.validateAddress(
-								addr2, city, state, zip5, format));
+								addr2, city, state, zip5, punctuation, format));
 						
 					}
 					else {

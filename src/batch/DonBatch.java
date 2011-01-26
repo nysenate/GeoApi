@@ -1,34 +1,15 @@
 package batch;
 
-import generated.geoserver.json.GeoFeatures;
-import generated.geoserver.json.GeoProperty;
-import generated.geoserver.json.GeoResult;
-
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 import control.Connect;
 import control.DistrictServices;
-import control.DistrictServices.WFS_REQUEST;
-import control.GeoCode;
 
 import model.Point;
-import model.districts.Senate;
 //16 division st, oneonta 13820
 public class DonBatch {
 	public static void main(String[] args) throws SQLException, Exception {

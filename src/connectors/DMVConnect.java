@@ -33,7 +33,7 @@ public class DMVConnect {
 	private static final String DMV_PASS = "dmv.pass";
 	private static final String DMV_TOKEN = "dmv.token";
 
-	public static String validateAddress(String addr, String city, String state, String zip, String format) throws Exception {
+	public static String validateAddress(String addr, String city, String state, String zip, String punctuation, String format) throws Exception {
 		AmsValidateResponse avr = connect(constructSoap(addr,city,state,zip));
 		
 		Object response = null;
@@ -43,7 +43,7 @@ public class DMVConnect {
 		}
 		else  {
 			ValidateResponse vr = new ValidateResponse();
-			vr.setAddress2(avr.getAmsValidateResult().getOUTPUT().getSTDDELIVADDR());
+			vr.setAddress2(avr.getAmsValidateResult().getOUTPUT().getSTDDELIVADDR(), punctuation);
 			vr.setCity(avr.getAmsValidateResult().getOUTPUT().getSTDCITY());
 			vr.setState(avr.getAmsValidateResult().getOUTPUT().getSTDSTATE());
 			vr.setZip4(Integer.toString(avr.getAmsValidateResult().getOUTPUT().getZIPADDON()));
