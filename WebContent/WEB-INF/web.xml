@@ -13,7 +13,7 @@
     <description></description>
     <display-name>ApiServlet</display-name>
     <servlet-name>ApiServlet</servlet-name>
-    <servlet-class>servlets.ApiServlet</servlet-class>
+    <servlet-class>gov.nysenate.sage.servlets.ApiServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ApiServlet</servlet-name>
@@ -22,7 +22,7 @@
   <filter>
     <display-name>SenateFilter</display-name>
     <filter-name>SenateFilter</filter-name>
-    <filter-class>servlets.SenateFilter</filter-class>
+    <filter-class>gov.nysenate.sage.servlets.SenateFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>SenateFilter</filter-name>
@@ -32,7 +32,7 @@
     <description></description>
     <display-name>OldAisServlet</display-name>
     <servlet-name>OldAisServlet</servlet-name>
-    <servlet-class>servlets.OldAisServlet</servlet-class>
+    <servlet-class>gov.nysenate.sage.servlets.OldAisServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>OldAisServlet</servlet-name>
@@ -42,7 +42,7 @@
     <description></description>
     <display-name>BulkUploadServlet</display-name>
     <servlet-name>BulkUploadServlet</servlet-name>
-    <servlet-class>servlets.BulkUploadServlet</servlet-class>
+    <servlet-class>gov.nysenate.sage.servlets.BulkUploadServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>BulkUploadServlet</servlet-name>
@@ -56,7 +56,7 @@
     <description></description>
     <display-name>UploadMessageServlet</display-name>
     <servlet-name>UploadMessageServlet</servlet-name>
-    <servlet-class>servlets.UploadMessageServlet</servlet-class>
+    <servlet-class>gov.nysenate.sage.servlets.UploadMessageServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>UploadMessageServlet</servlet-name>
