@@ -79,7 +79,6 @@ public class ApiServlet extends HttpServlet {
 			if(user == null) {
 				throw new ApiInputException("Invalid API key.");
 			}
-			control.addMetric(user.getId(), constructUrl(uri, request), host);
 			
 			
 			
@@ -114,6 +113,11 @@ public class ApiServlet extends HttpServlet {
 							+ type 
 							+ ", please review API documentation");
 				}
+			}
+			
+			//TODO this needs to change
+			if(!command.equals("geocode")) {
+				control.addMetric(user.getId(), constructUrl(uri, request), host);
 			}
 			
 			

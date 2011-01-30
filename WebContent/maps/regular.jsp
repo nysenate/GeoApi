@@ -8,7 +8,7 @@
 		<% } %>
 		
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
-		<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+		<script src="OpenLayers.js"></script>
 		<script>
 			var map;
 			var layer;
