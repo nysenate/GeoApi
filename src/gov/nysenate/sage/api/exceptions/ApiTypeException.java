@@ -1,6 +1,6 @@
 package gov.nysenate.sage.api.exceptions;
 
-public class ApiTypeException extends Exception {
+public class ApiTypeException extends ApiException {
 	private static final long serialVersionUID = 1L;
 
 	public ApiTypeException(String message) {

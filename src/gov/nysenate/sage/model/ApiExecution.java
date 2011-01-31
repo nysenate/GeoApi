@@ -9,15 +9,14 @@ import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
+import gov.nysenate.sage.api.exceptions.ApiException;
 import gov.nysenate.sage.api.exceptions.ApiFormatException;
-import gov.nysenate.sage.api.exceptions.ApiInternalException;
-import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.abstracts.AbstractApiExecute;
 
 public class ApiExecution implements AbstractApiExecute{
 
 	@Override
-	public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> strings) throws ApiTypeException, ApiInternalException {
+	public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> strings) throws ApiException {
 		return null;
 	}
 
