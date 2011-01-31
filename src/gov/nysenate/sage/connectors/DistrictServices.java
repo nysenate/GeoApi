@@ -1,28 +1,15 @@
 package gov.nysenate.sage.connectors;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.awt.geom.Point2D;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.gson.Gson;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-
-
-
-
 import generated.geoserver.json.*;
 import gov.nysenate.sage.connectors.GeoServerConnect.WFS_POLY;
-import gov.nysenate.sage.connectors.GeoServerConnect.WFS_REQUEST;
 import gov.nysenate.sage.model.*;
 import gov.nysenate.sage.model.districts.Assembly;
 import gov.nysenate.sage.model.districts.Congressional;
@@ -46,7 +33,7 @@ public class DistrictServices {
 	static String SENATE = "senate";
 	static double CROSS_DISTANCE = 0.005;
 	
-	GeoServerConnect gsCon = new GeoServerConnect();
+	static GeoServerConnect gsCon = new GeoServerConnect();
 	
 	public DistrictServices() {
 		
@@ -58,11 +45,9 @@ public class DistrictServices {
 	 * @param type match type from POLY_NAMES
 	 * @param district associated with NAMSLAD or ED field on GeoServer
 	 * @param format kml or json
-	 * @param out printwriter, passed in due to associated issues with the size of
-	 *        the KML and JSON strings being generated
 	 * @throws IOException
 	 */
-	public void getPolyFromDistrict(String type, String district, String format, PrintWriter out) throws IOException {
+	public static StringBuffer getPolyFromDistrict(String type, String district, String format) throws IOException {
 		if(type.equals(SENATE)) {
 			district = "State%20Senate%20District%20" + district;;
 		}
@@ -86,7 +71,7 @@ public class DistrictServices {
 		WFS_POLY wfs = gsCon.new WFS_POLY(type);
 		String json = gsCon.flatten(wfs.construct(district));
 		
-		polyPrep(json, format, type, out);
+		return polyPrep(json, format, type);
 	}
 	
 	/**
@@ -99,14 +84,14 @@ public class DistrictServices {
 	 * @param out for output
 	 * @throws IOException
 	 */
-	public void getPolyFromAddress(String address, String format, String service, String type, PrintWriter out) throws IOException {
+	public static StringBuffer getPolyFromAddress(String address, String format, String service, String type) throws IOException {
 		Point p = GeoCode.getGeoCodedResponse(address, service);
 		
 		/* get flattened request from geoserver */
 		WFS_POLY wfs = gsCon.new WFS_POLY(type);
 		String json = gsCon.flatten(wfs.construct(p.lat, p.lon));
 		
-		polyPrep(json, format, type, out);
+		return polyPrep(json, format, type);
 		
 	}
 	
@@ -123,7 +108,7 @@ public class DistrictServices {
 	 * @param out for output
 	 * @throws IOException
 	 */
-	public void getPolyFromPoint(String latlng, String format, String service, String type, PrintWriter out) throws IOException {
+	public static StringBuffer getPolyFromPoint(String latlng, String format, String service, String type) throws IOException {
 		Point p = null;
 		
 		if(service != null && service.equals("none")) {
@@ -132,19 +117,19 @@ public class DistrictServices {
 		}
 		else {
 			p = GeoCode.getReverseGeoCodedResponse(latlng, service).iterator().next();
-			
 		}
 		
 		if(p == null) {
-			return;
+			return null;
 			
 		}
+		
 		
 		/* get flattened request from geoserver */
 		WFS_POLY wfs = gsCon.new WFS_POLY(type);
 		String json = gsCon.flatten(wfs.construct(p.lat, p.lon));
 		
-		polyPrep(json, format, type, out);
+		return polyPrep(json, format, type);
 	}
 	
 	/**
@@ -157,7 +142,7 @@ public class DistrictServices {
 	 * @param out for output
 	 * @throws IOException
 	 */
-	private void polyPrep(String in, String format, String type, PrintWriter out) throws IOException {
+	private static StringBuffer polyPrep(String in, String format, String type) throws IOException {
 		
 		
 		String start = "\"geometry\":";
@@ -209,7 +194,7 @@ public class DistrictServices {
 			data = "Election District " + gr.getFeatures().iterator().next().getProperties().getED();
 		}	
 		
-		getPolygon(points, data, format, out);
+		return getPolygon(points, data, format);
 	}
 	
 	/**
@@ -220,11 +205,13 @@ public class DistrictServices {
 	 * @param format kml or json
 	 * @param out for output
 	 */
-	public void getPolygon(Collection<Collection<Double>> coordinates, String data, String format, PrintWriter out) {
-				
+	public static StringBuffer getPolygon(Collection<Collection<Double>> coordinates, String data, String format) {
+		
+		StringBuffer out = new StringBuffer("");
+		
 		int count = 0;
 				
-		if(format.equals("kml")) {
+		if(format.matches("(kml|xml)")) {
 			String xml_version = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 			
 			String kml_s = "<kml xmlns=\"http://www.opengis.net/kml/2.2\">";
@@ -254,16 +241,16 @@ public class DistrictServices {
 			String coords_s = "<coordinates>";
 			String coords_e = "</coordinates>";
 			
-			out.print(xml_version + "\n");
-			out.print(kml_s + "\n");
-			out.print("  " + pmark_s + "\n");
-			out.print("    " + name_s + data + name_e + "\n");
-			out.print("    " + poly_s + "\n");
-			out.print("      " + extrude_s + "1" + extrude_e + "\n");
-			out.print("      " + altMode_s + "relativeToGround" + altMode_e + "\n");
-			out.print("      " + outBoundIs_s + "\n");
-			out.print("        " + linRing_s + "\n");
-			out.print("          " + coords_s + "\n");
+			out.append(xml_version + "\n");
+			out.append(kml_s + "\n");
+			out.append("  " + pmark_s + "\n");
+			out.append("    " + name_s + data + name_e + "\n");
+			out.append("    " + poly_s + "\n");
+			out.append("      " + extrude_s + "1" + extrude_e + "\n");
+			out.append("      " + altMode_s + "relativeToGround" + altMode_e + "\n");
+			out.append("      " + outBoundIs_s + "\n");
+			out.append("        " + linRing_s + "\n");
+			out.append("          " + coords_s + "\n");
 			
 			for(Collection<Double> three:coordinates) {
 				Point2D point = new Point2D.Double();
@@ -278,16 +265,16 @@ public class DistrictServices {
 					}
 					count++;
 				}
-				out.print("            " + point.getX() + "," + point.getY() + "\n");
+				out.append("            " + point.getX() + "," + point.getY() + "\n");
 				
 			}
 
-			out.print("          " + coords_e + "\n");
-			out.print("        " + linRing_e + "\n");
-			out.print("      " + outBoundIs_e + "\n");
-			out.print("    " + poly_e + "\n");
-			out.print("  " + pmark_e + "\n");
-			out.print(kml_e + "\n");
+			out.append("          " + coords_e + "\n");
+			out.append("        " + linRing_e + "\n");
+			out.append("      " + outBoundIs_e + "\n");
+			out.append("    " + poly_e + "\n");
+			out.append("  " + pmark_e + "\n");
+			out.append(kml_e + "\n");
 		}
 		else {
 			String geom_start = "\"geometry\":{\"type\":\"MultiPolygon\",\"coordinates\":[[[";
@@ -296,9 +283,9 @@ public class DistrictServices {
 			String distr_start = "{\"placemark\":\"";
 			String distr_end = "\",";
 			
-			out.print(distr_start + data + distr_end);
+			out.append(distr_start + data + distr_end);
 			
-			out.print(geom_start);
+			out.append(geom_start);
 			
 			for(Collection<Double> three:coordinates) {
 				Point2D point = new Point2D.Double();
@@ -314,20 +301,21 @@ public class DistrictServices {
 					count++;
 				}
 
-				out.print((count > 2 ? "," : "") + "[" + point.getX() + "," + point.getY() + "]");
+				out.append((count > 2 ? "," : "") + "[" + point.getX() + "," + point.getY() + "]");
 			}
 			
-			out.print(geom_end);
+			out.append(geom_end);
 			
 		}
+		return out;
 	}
 	
 	/**
 	 * sends request to districts for district information retrieval
 	 */
-	public String getDistrictsFromAddress(String address, String format, String service)
+	public static DistrictResponse getDistrictsFromAddress(String address, String service)
 																	throws Exception {
-		return districts(GeoCode.getGeoCodedResponse(address, service), format);
+		return districts(GeoCode.getGeoCodedResponse(address, service));
 		
 	}
 	
@@ -335,7 +323,7 @@ public class DistrictServices {
 	 * if service is "none" point is broken down, if service is active sends request to be
 	 * geocoded and then in either scenario request is sent to districts for retrieval
 	 */
-	public String getDistrictsFromPoint(String latlng, String format, String service)
+	public static DistrictResponse getDistrictsFromPoint(String latlng, String service)
 																	throws Exception {
 		Point p = null;
 		if(service != null && service.equals("none")) {
@@ -344,7 +332,6 @@ public class DistrictServices {
 		}
 		else {
 			p = GeoCode.getReverseGeoCodedResponse(latlng, service).iterator().next();
-			
 		}
 		
 		if(p == null) {
@@ -352,7 +339,7 @@ public class DistrictServices {
 			
 		}
 		
-		return districts(p, format);
+		return districts(p);
 	}
 	
 	/**
@@ -360,7 +347,7 @@ public class DistrictServices {
 	 * 
 	 * @returns xml or json string representation of data
 	 */
-	public String districts(Point p, String format) throws Exception {
+	public static DistrictResponse districts(Point p) throws Exception {
 		Connect c = new Connect();
 		DistrictResponse dr = new DistrictResponse();
 		GeoResult gr = null;
@@ -399,17 +386,11 @@ public class DistrictServices {
 		
 		//API is dead
 		//dr.setCensus(FCCConnect.doParsing(p.lat+"", p.lon+""));		
-				
-		Gson gson = new Gson();
 		
-		if(format.equals("xml")) {
-			XStream xstream = new XStream(new DomDriver());
-			xstream.processAnnotations(new Class[]{Point.class,DistrictResponse.class});
-			return xstream.toXML(dr);
-		}
-		return gson.toJson(dr);
+		return dr;
 	}
-	
+
+/*	
 	public static void main(String[] args) throws Exception {
 		new DistrictServices().writeJson();
 	}
@@ -465,7 +446,7 @@ public class DistrictServices {
 		}
 	}
 
-/*	public void writeKml() {
+	public void writeKml() {
 		for(int i = 1; i <= 62; i++) {
 		FileWriter fw = new FileWriter("WebContent/kml/sd" + i + ".kml");
 		new File("WebContent/kml/sd" + i + ".kml").createNewFile();

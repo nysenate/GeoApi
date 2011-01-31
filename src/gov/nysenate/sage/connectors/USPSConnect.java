@@ -10,12 +10,6 @@ import java.net.URL;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
-
-import com.google.gson.Gson;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-
-
 /**
  * @author Jared Williams
  * 
@@ -31,8 +25,8 @@ public class USPSConnect {
 	public static final String API_CITYSTATE = "usps.citystate";
 	public static final String API_ZIPCODE = "usps.zipcode";
 	
-	public static String validateAddress(String addr1, String addr2, 
-			String city, String state, String zip5, String zip4, String punctuation, String format) {
+	public static Object validateAddress(String addr1, String addr2, 
+			String city, String state, String zip5, String zip4, String punctuation) {
 				
 		Object o = getResponse(constructAddressUrl(addr1,addr2,city,state,zip5,zip4).replaceAll(" ","%20"));
 		
@@ -45,16 +39,10 @@ public class USPSConnect {
 			o = new ValidateResponse(avr, punctuation);
 		}
 		
-		if(format.equals("xml")) {
-			XStream xstream = new XStream(new DomDriver());
-			xstream.processAnnotations(new Class[]{ValidateResponse.class, ErrorResponse.class});
-			return xstream.toXML(o);
-		}
-		Gson gson = new Gson();
-		return gson.toJson(o);
+		return o;
 	}
 	
-	public static String getCityStateByZipCode(String zip5, String format) {
+	public static Object getCityStateByZipCode(String zip5) {
 		
 		Object o = getResponse(constructCityStateUrl(zip5).replaceAll(" ","%20"));
 		
@@ -67,16 +55,10 @@ public class USPSConnect {
 			o = new ValidateResponse(cslr);
 		}
 		
-		if(format.equals("xml")) {
-			XStream xstream = new XStream(new DomDriver());
-			xstream.processAnnotations(new Class[]{ValidateResponse.class, ErrorResponse.class});
-			return xstream.toXML(o);
-		}
-		Gson gson = new Gson();
-		return gson.toJson(o);
+		return o;
 	}
 	
-	public static String getZipByAddress(String addr1, String addr2, String city, String state, String format) {
+	public static Object getZipByAddress(String addr1, String addr2, String city, String state) {
 		
 		Object o = getResponse(constructZipCodeUrl(addr1,addr2,city,state).replaceAll(" ","%20"));
 		
@@ -95,14 +77,7 @@ public class USPSConnect {
 			}
 		}
 		
-		
-		if(format.equals("xml")) {
-			XStream xstream = new XStream(new DomDriver());
-			xstream.processAnnotations(new Class[]{ValidateResponse.class, ErrorResponse.class});
-			return xstream.toXML(o);
-		}
-		Gson gson = new Gson();
-		return gson.toJson(o);
+		return o;
 	}
 	
 	private static String isNull(String s) {
