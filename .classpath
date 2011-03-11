@@ -1,32 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/JVM 1.6.0 (MacOS X Default)">
-		<attributes>
-			<attribute name="owner.project.facets" value="jst.java"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/commons-codec-1.4.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/commons-httpclient-3.1.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/commons-lang-2.5.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/commons-logging-1.1.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/gson-1.3.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/httpclient-4.0.3.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/httpmime-4.0.3.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/jasypt-1.6.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/log4j-1.2.16.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/mail.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/mysql-connector-java-3.1.7-bin.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/saaj-api.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/saaj-impl.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/ws-commons-util-1.0.2.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/xmlrpc-client-3.1.3.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/xmlrpc-common-3.1.3.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/xmlrpc-server-3.1.3.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/xstream-1.3.1.jar"/>
+	<classpathentry including="**/*.java" kind="src" path="src/main/java"/>
+	<classpathentry excluding="**/*.java" kind="src" path="src/main/resources"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/JVM 1.6.0 (MacOS X Default)"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/commons-codec-1.4.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/commons-fileupload-1.2.1.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/commons-httpclient-3.1.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/commons-io-1.4.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/commons-lang-2.5.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/commons-logging-1.1.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/gson-1.3.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/httpclient-4.0.3.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/httpmime-4.0.3.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/jackson-core-lgpl-1.6.0.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/jackson-mapper-lgpl-1.6.0.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/jasypt-1.6.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/mail.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/mysql-connector-java-3.1.7-bin.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/saaj-api.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/saaj-impl.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/ws-commons-util-1.0.2.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/xmlrpc-client-3.1.3.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/xmlrpc-common-3.1.3.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/xmlrpc-server-3.1.3.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/xstream-1.3.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v6.0 (2)"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/commons-fileupload-1.2.1.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/commons-io-1.4.jar"/>
-	<classpathentry kind="output" path="build/classes"/>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>
