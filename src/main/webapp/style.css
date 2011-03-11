@@ -1,0 +1,127 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+body {
+  font-family: helvetica, arial;
+  font-size: 89.5%;
+  line-height: 1.4em;
+  color: #333;
+  background-color: #fff;
+  margin:16px;
+  margin-top:1px;
+}
+p {
+	padding: 0 0 1em;
+}
+
+/* message display page */
+.response_body {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	width: 383px;
+	position:absolute;
+	left:375px;
+	top:260px;
+}
+
+#map_canvas {
+	width: 383px;
+	height: 250px;
+	position:absolute;
+	left:375px;
+	top:5px;
+}
+
+.message_list {
+	position:absolute;
+	background:#eee;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	width: 353px;
+	top:5px;
+	height:100%;
+}
+
+.message_head {
+	backgroundColor:#eee;
+	padding: 5px 10px;
+	cursor: pointer;
+	position: relative;
+}
+
+.message_head cite {
+	font-size: 100%;
+	font-weight: bold;
+	font-style: normal;
+}
+.message_body {
+	padding: 5px 10px 15px;
+	position: relative;
+	border-width:1px;
+	border-left-style:dotted;
+}
+
+#distancetitle {
+	font-size: 95%;
+	font-weight: bold;
+	font-style: normal;
+	right:5px;
+}
+
+.response_data {
+	background:#e1e1e1;
+	padding:5px 5px 5xp;
+}
+
+.response_data ol {
+	list-style:none;
+	margin:0;
+	padding:10px;
+	align:center;
+}
+
+.response_data li {
+	padding:6px;
+	background:#eee;
+	margin-bottom:3px;
+	width:350px;
+}
+
+form {
+	font:13px Georgia, "Times New Roman", Times, serif;
+	margin:0px;
+	padding:10px 0px;
+	width:330px;
+}
+
+form ol {
+	list-style:none;
+	margin:0;
+	padding:0;
+}
+
+form li {
+	padding:6px;
+	background:#e1e1e1;
+	margin-bottom:1px;
+}
+
+form li#send {
+	background:none;
+	margin-top:6px;
+}
+
+form label {
+	float:left;
+	width:70px;
+	text-align:right;
+	margin-right:7px;
+	line-height:23px;
+}
+
+input[type=text] {
+	width:200px;
+}

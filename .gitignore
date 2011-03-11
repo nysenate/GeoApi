@@ -1,0 +1,7 @@
+*.jar
+*.class
+*.properties
+*.log
+*.json
+*.kml
+*.xml
