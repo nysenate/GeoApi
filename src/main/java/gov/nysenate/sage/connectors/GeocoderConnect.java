@@ -9,7 +9,10 @@ import gov.nysenate.sage.util.Resource;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
@@ -24,7 +27,8 @@ import com.google.gson.Gson;
  */
 public class GeocoderConnect implements AbstractGeocoder {
 	
-	private final String GEO_BASE = Resource.get("geocoder.url");	
+	private final String GEO_BASE = Resource.get("geocoder.url");
+	private final String GEO_BASE_BULK = Resource.get("geocoder_bulk.url");
 	
 	public GeocoderConnect() {
 
@@ -78,5 +82,43 @@ public class GeocoderConnect implements AbstractGeocoder {
 	
 	public String constructUrl(String num, String street, String city, String state, String zip) {
 		return GEO_BASE + (num == null || num.equals("") ? "":"number=" + num + "&")+ "street=" + street + "&city=" + city + "&state=" + state + "&zip=" + zip;
+	}
+	
+	public List<Point> doBulkParsing(String json) throws UnsupportedEncodingException {
+		return getBulkPoints(constructBulkUrl(json));
+	}
+	
+	public List<Point> getBulkPoints(String url) {
+		BufferedReader geo = null;
+		String json = null;
+		try {
+			geo = new BufferedReader(new InputStreamReader(
+					new URL(url).openStream()));
+			json = geo.readLine();
+			geo.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+						
+		GeocoderResults result = getGeocoderResults("[" + json + "]");
+		
+		List<GeocoderResult> results = result.getGeocoderResults();
+				
+		try {
+			ArrayList<Point> points = new ArrayList<Point>();
+			for(GeocoderResult gr:results) {
+				points.add(new Point(new Double(gr.getLat()), new Double(gr.getLon())));
+			}
+			return points;
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+	
+	public String constructBulkUrl(String json) throws UnsupportedEncodingException {
+		return GEO_BASE_BULK + "json=" + URLEncoder.encode(json, "utf-8");
 	}
 }

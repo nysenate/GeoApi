@@ -4,10 +4,12 @@ import gov.nysenate.sage.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.connectors.GeoCode;
+import gov.nysenate.sage.connectors.GeocoderConnect;
 import gov.nysenate.sage.model.ApiExecution;
 import gov.nysenate.sage.model.Point;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,12 +46,18 @@ public class GeoCodeMethod extends ApiExecution {
 						service);
 			}
 			catch(Exception e) {
-				e.printStackTrace();
 				throw new ApiInternalException();
 			}
 		}
 		else if(type.equals("bulk")) {
-			return more.get(RequestCodes.ADDRESS.code());
+			try {
+				String json = request.getParameter("json");
+				return new GeocoderConnect().doBulkParsing(json);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				throw new ApiInternalException();
+			}
 		}
 		else {
 			throw new ApiTypeException(type);
@@ -63,8 +71,17 @@ public class GeoCodeMethod extends ApiExecution {
 			if(obj instanceof Point) {
 				return ((Point)obj).lat + "," + ((Point)obj).lon;
 			}
-			if(obj instanceof String) {
+			else if(obj instanceof String) {
 				return obj.toString();
+			}
+			else if(obj instanceof Collection<?>) {
+				String ret = "";
+				for(Object o:(Collection<?>)obj) {
+					if(o instanceof Point) {
+						ret += ((Point)o).lat + "," + ((Point)o).lon + "\n";
+					}
+				}
+				return ret;
 			}
 		}
 		else {
