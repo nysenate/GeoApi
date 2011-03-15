@@ -192,9 +192,9 @@ $(document).ready(function(){
 								:"")
 						+ "</li>"
 						
-						+ "<li>" + data.assembly.district + " - <a href=\"" + data.assembly.member.url + "\">" + data.assembly.member.name + "</a></li>"
+						+ "<li>" + data.assembly.district + (data.assembly.member != null ? " - <a href=\"" + data.assembly.member.url + "\">" + data.assembly.member.name + "</a></li>" : "")
 						
-						+ "<li>" + data.congressional.district + " - <a href=\"" + data.congressional.member.url + "\">" + data.congressional.member.name + "</a></li>"
+						+ "<li>" + data.congressional.district + (data.congressional.member != null ? " - <a href=\"" + data.congressional.member.url + "\">" + data.congressional.member.name + "</a></li>" : "")
 						
 						+ "<li>" + data.county.countyName + "</li>"
 						+ "<li>" + data.election.district + "</li>"

@@ -17,7 +17,7 @@ public class MethodLoader {
 
 		methods = new HashMap<String, ApiMethod>();
 
-		ApiMethod method = new ApiMethod("geocode", GeoCodeMethod.class, true,
+		ApiMethod method = new ApiMethod("geocode", GeoCodeMethod.class, false,
 				new ArrayList<String>(Arrays.asList("addr", "extended", "bulk")),
 				new ArrayList<String>(Arrays.asList("csv", "json", "xml")),
 				new ArrayList<Class<? extends Object>>(Arrays.asList(Point.class)));

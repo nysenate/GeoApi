@@ -11,25 +11,36 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
+
 
 
 @SuppressWarnings("unchecked")
 public class NYSenateServices {
 	
-	public static void index() throws Exception {
+	private Logger logger = Logger.getLogger(NYSenateServices.class);
+	
+	public void index() {
 		Connect connect = new Connect();
 		
 		List<Senate> senators = getSenators();
 		
-		connect.deleteObjects(Senate.class);
-		for(Senate s:senators) {
-			connect.persist(s);
+		if(senators != null && !senators.isEmpty()) {
+			try {
+				connect.deleteObjects(Senate.class, true);
+			} catch (Exception e) {
+				logger.warn(e);
+			}
+			
+			for(Senate s:senators) {
+				connect.persist(s);
+			}
 		}
 		
 		connect.close();
 	}
 	
-	public static List<Senate> getSenators() throws Exception {
+	public List<Senate> getSenators() {
 		List<Senate> ret = new ArrayList<Senate>();
 		
 		XmlRpc rpc = new XmlRpc();
@@ -107,6 +118,7 @@ public class NYSenateServices {
 				String sFax = (String)sLocationMap.get("fax");
 				
 				if(sLatitude.startsWith("0") || sLongitude.startsWith("0")) {
+					logger.warn("Senator " + name + " contains a bad office record");
 					continue;
 				}
 				
@@ -117,6 +129,8 @@ public class NYSenateServices {
 			senator = new Senator(name, sEmail, sPath, sPicture, social, offices);
 
 			senate = new Senate(dNumber, dPath, senator);
+			
+			logger.info("Adding senator " + name + " with " + offices.size() + " offices");
 			
 			ret.add(senate);
 		}

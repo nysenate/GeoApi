@@ -1,14 +1,11 @@
 package gov.nysenate.sage.util;
 
-
 import generated.geoserver.json.GeoResult;
 import gov.nysenate.sage.connectors.GeoServerConnect;
 import gov.nysenate.sage.connectors.GeoServerConnect.WFS_REQUEST;
 import gov.nysenate.sage.model.ApiUser;
 import gov.nysenate.sage.model.Metric;
 import gov.nysenate.sage.model.SenateMapInfo;
-import gov.nysenate.sage.model.districts.Assembly;
-import gov.nysenate.sage.model.districts.Congressional;
 import gov.nysenate.sage.model.districts.Senate;
 
 import java.io.BufferedReader;
@@ -25,9 +22,6 @@ import org.jasypt.util.password.BasicPasswordEncryptor;
 
 import com.google.gson.Gson;
 
-
-
-
 public class ApiController {
 	
 	private static final String DEFAULT_WRITE_DIRECTORY = Resource.get("json.directory");
@@ -40,11 +34,11 @@ public class ApiController {
 				ApiController a = new ApiController();
 				
 				System.out.println("indexing assembly... ");
-				AssemblyScraper.index();
+				new AssemblyScraper().index();
 				System.out.println("indexing congress... ");
-				CongressScraper.index();
+				new CongressScraper().index();
 				System.out.print("indexing senate... ");
-				NYSenateServices.index();
+				new NYSenateServices().index();
 				System.out.println();
 								
 				a.writeJson(DEFAULT_WRITE_DIRECTORY, null, true);
@@ -57,33 +51,27 @@ public class ApiController {
 			
 			System.out.print("> ");
 			while(!(in = br.readLine()).equals("exit")) {
-				if(in.equals("truncate all")) {
-					new Connect().deleteObjects(Senate.class);
-					new Connect().deleteObjects(Assembly.class);
-					new Connect().deleteObjects(Congressional.class);
-				}
 				if(in.equals("create all")) {
 					System.out.println("indexing assembly... ");
-					AssemblyScraper.index();
+					new AssemblyScraper().index();
 					System.out.println("indexing congress... ");
-					CongressScraper.index();
+					new CongressScraper().index();
 					System.out.print("indexing senate... ");
-					NYSenateServices.index();
+					new NYSenateServices().index();
 					System.out.println();
-					
 				}
 				else if(in.equals("create sen")) {
 					System.out.print("indexing senate... ");
-					NYSenateServices.index();
+					new NYSenateServices().index();
 					System.out.println();
 				}
 				else if(in.equals("create ass")) {
 					System.out.println("indexing assembly... ");
-					AssemblyScraper.index();
+					new AssemblyScraper().index();
 				}
 				else if(in.equals("create con")) {
 					System.out.println("indexing congress... ");
-					CongressScraper.index();
+					new CongressScraper().index();
 				}
 				else if(in.startsWith("add user")) {
 					Pattern p = Pattern.compile("add user \"(.+?)\" \"(.+?)\" \"(.+?)\"");
@@ -94,9 +82,6 @@ public class ApiController {
 					else {
 						System.out.println("proper format is: add user \"<name>\" \"<description>\" \"<key>\"");
 					}
-				}
-				else if(in.startsWith("delete user")) {
-					
 				}
 				else if(in.equals("default senate user")) {
 					new Connect().persist(new ApiUser(Resource.get("user.default"), "general", "everyone for now"));
@@ -153,6 +138,9 @@ public class ApiController {
 	}
 	
 	
+	/*
+	 * used to write the json used for maps and for raw data
+	 */
 	public void writeJson(String writeDirectory, String zoomPath, boolean geo) throws Exception {
 		if(writeDirectory == null)
 			writeDirectory = DEFAULT_WRITE_DIRECTORY;

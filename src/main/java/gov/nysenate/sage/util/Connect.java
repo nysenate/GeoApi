@@ -19,12 +19,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 
 /**
  * @author Jared Williams
  *
  */
 public class Connect {
+	
+	Logger logger = Logger.getLogger(Connect.class);
 	
 	public static final String ADD = "add";
 	public static final String GET = "get";
@@ -42,8 +46,7 @@ public class Connect {
 				Class.forName("com.mysql.jdbc.Driver").newInstance();
 				connection = DriverManager.getConnection(DATABASE,USER,PASS);
 			} catch (Exception e) {
-				System.err.println("ERROR: Connect.getConnection() could not open the database listed in ");
-				e.printStackTrace();
+				logger.warn(e);
 			}
 		}
 		return connection;
@@ -55,7 +58,7 @@ public class Connect {
 				connection.close();
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.warn(e);
 		}
 	}
 	
@@ -119,7 +122,7 @@ public class Connect {
 			}
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			logger.warn(e);
 			return false;
 		}
 		return true;
@@ -131,8 +134,7 @@ public class Connect {
 		try {
 			s = getConnection().createStatement();
 		} catch (SQLException e) {
-			System.err.println("Error: Connect.persistObject() could not create statement");
-			e.printStackTrace();
+			logger.warn(e);
 			return null;
 		}
 		
@@ -166,8 +168,7 @@ public class Connect {
 			}
 		}
 		catch (Exception e) {
-			System.err.println("ERROR: Connect.persistObject() unable to execute insert");
-			e.printStackTrace();
+			logger.warn(e);
 			return null;
 		}
 		return generatedId;
@@ -292,27 +293,30 @@ public class Connect {
 		return o;
 	}
 	
-	public boolean deleteObjects(Class<?> clazz) throws Exception {
-		MappedFields mf = buildObjectFieldLists(clazz, null);
-		ArrayList<Field> persistentObjects = mf.getPersistents();
+	public boolean deleteObjects(Class<?> clazz, boolean truncateChildren) throws Exception {
 		
-		for(Field field:persistentObjects) {
-			ListType lt = null;
-			if((lt = field.getAnnotation(ListType.class)) != null) {
-				deleteObjects(lt.value());
-			}
-			else {
-				deleteObjects(field.getType());
+		if(truncateChildren) {
+			MappedFields mf = buildObjectFieldLists(clazz, null);
+			ArrayList<Field> persistentObjects = mf.getPersistents();
+			
+			for(Field field:persistentObjects) {
+				ListType lt = null;
+				if((lt = field.getAnnotation(ListType.class)) != null) {
+					deleteObjects(lt.value(), true);
+				}
+				else {
+					deleteObjects(field.getType(), true);
+				}
 			}
 		}
+		
 		
 		Statement s = null;
 		try {
 			s = getConnection().createStatement();			
 		}
 		catch (SQLException e) {
-			System.err.println("Error: Connect.deleteObjectById() could not create statement");
-			e.printStackTrace();
+			logger.warn(e);
 			return false;
 		}
 		
@@ -321,8 +325,7 @@ public class Connect {
 		try {
 			s.executeUpdate(query);
 		} catch (SQLException e) {
-			System.err.println("ERROR: Connect.deleteObjectById() unable to execute insert");
-			e.printStackTrace();
+			logger.warn(e);
 			return false;
 		}
 		
@@ -335,8 +338,7 @@ public class Connect {
 			s = getConnection().createStatement();			
 		}
 		catch (SQLException e) {
-			System.err.println("Error: Connect.deleteObjectById() could not create statement");
-			e.printStackTrace();
+			logger.warn(e);
 			return false;
 		}
 		
@@ -349,8 +351,7 @@ public class Connect {
 		try {
 			s.executeUpdate(query);
 		} catch (SQLException e) {
-			System.err.println("ERROR: Connect.deleteObjectById() unable to execute insert");
-			e.printStackTrace();
+			logger.warn(e);
 			return false;
 		}
 		
@@ -408,7 +409,7 @@ public class Connect {
 				catch (SQLException se) {
 					//occurs when a field is present that does not have
 					//an associated database column or entry
-//					se.printStackTrace();
+					logger.warn(se);
 				}
 			}
 		}
@@ -450,8 +451,7 @@ public class Connect {
 				try {
 					fieldMethod = o.getClass().getMethod(GET + fixFieldName(f.getName()));
 				} catch (Exception e) {
-					System.err.println("Error: Connect.getObjectData() unable to retrieve get function for parameter " + f.getName());
-					e.printStackTrace();
+					logger.warn(e);
 					continue;
 				}
 				
@@ -459,8 +459,7 @@ public class Connect {
 				try {
 					fieldObject = fieldMethod.invoke(o);
 				} catch (Exception e) {
-					System.err.println("Error: Connect.getObjectData() unable to invoke method " + fieldMethod.getName());
-					e.printStackTrace();
+					logger.warn(e);
 					continue;
 				}
 				
@@ -498,6 +497,7 @@ public class Connect {
 							m.setPrimary(get.invoke(o));
 						}
 						catch(Exception e){
+							logger.warn(e);
 							throw new Exception("error setting primary key for " + o.getClass());
 						}
 					}
@@ -536,7 +536,7 @@ public class Connect {
 			}
 		}
 		catch(Exception e) {
-			
+			logger.warn(e);
 		}
 		return null;
 	}

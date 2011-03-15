@@ -81,18 +81,6 @@ public class Processor {
 	HashMap<String,String> countyLookupMap;
 	
 	public static void main(String[] args) throws IOException, SecurityException, NoSuchMethodException {
-/*		BulkRequest br1 = new BulkRequest(100,100,100);
-		
-		BulkRequest br2 = new BulkRequest(10000,10000,10000);
-		br2.setRequestTime(100L);
-		
-		BulkRequest br3 = new BulkRequest(4000,20000,20000);
-		
-		Connect c = new Connect();
-		c.persist(br1);
-		c.persist(br2);
-		c.persist(br3);
-		*/
 		Processor p = new Processor();
 		p.processFiles();
 	}

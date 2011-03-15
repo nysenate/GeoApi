@@ -27,17 +27,23 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
 import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class ApiServlet extends HttpServlet {
+	private static Logger logger = Logger.getLogger(ApiServlet.class);
+	
 	private static final long serialVersionUID = 1L;
 	
 	HashMap<String,ApiMethod> methods = null;
 	ApiController control = null;		
 	
 	public void init(ServletConfig config) throws ServletException {
+		logger.info("Initializing ApiServlet");
+		
 		super.init(config);
 		Resource.init(this);
 		methods = MethodLoader.getMethods();
@@ -51,6 +57,9 @@ public class ApiServlet extends HttpServlet {
 		PrintWriter out = response.getWriter();
 
 		String uri = java.net.URLDecoder.decode(request.getRequestURI(),"utf-8");
+		
+		logger.info("Request URI: " + uri);
+		
 		uri = uri.toLowerCase().replaceAll("(/geoapi/|api/)", "");
 		
 		StringTokenizer stok = new StringTokenizer(uri,"/");
@@ -101,6 +110,8 @@ public class ApiServlet extends HttpServlet {
 
 				
 				if(method.getWriteMetric()) {
+					logger.info("writing metric");
+					
 					control.addMetric(user.getId(), constructUrl(uri, request), request.getRemoteAddr());
 				}
 			}
@@ -111,22 +122,27 @@ public class ApiServlet extends HttpServlet {
 		catch (ApiCommandException ace) {
 			out.write(getError("error", "Invalid command: " + ace.getMessage() 
 					+ ", please view API documentation.", format));
+			logger.warn(ace);
 		}
 		catch (ApiFormatException afe) {
 			out.write(getError("error", "Invalid format: " + afe.getMessage()  +
 					" for command: " + command + ", please review API documentation.", format));
+			logger.warn(afe);
 		}
 		catch (ApiTypeException ate) {
 			out.write(getError("error", "Invalid input type: " + ate.getMessage() 
 					+ " for command: " + command +", please review API documentation.", format));
+			logger.warn(ate);
 		}
 		catch (ApiAuthenticationException aae) {
 			out.write(getError("error", "Could not be authorized.", format));
+			logger.warn(aae);
 		}
 		catch (Exception e) {
 			out.write(getError("error", "Invalid request " + constructUrl(uri, request) 
 					+ ", please check that your input is properly formatted " +
 							"and review the API documentation.", format));
+			logger.warn(e);
 		}
 	}
 	
@@ -135,6 +151,8 @@ public class ApiServlet extends HttpServlet {
 	}
 	
 	public String getError(String name, String reason, String format) {
+		logger.warn("Error! name: " + name + ", reason: " + reason);
+		
 		ErrorResponse e = new ErrorResponse(reason);
 		if(format != null && format.matches("xml|kml")) {
 			XStream xstream = new XStream(new DomDriver());
