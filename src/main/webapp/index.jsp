@@ -88,9 +88,18 @@
 		</div> 
 		<p class="message_head"><cite>Street Lookup</cite></p> 
 		<div class="message_body"> 
-			For the time being this service can be accessed at <a href="GeoApi/StreetLookup">the old AIS</a> 
-			by typing in a zip code and clicking on "Street Lookup"
-		</div> 
+			<form id="streetLookupForm" action="" method="post">
+					<ol>
+						<li>
+							<label>Zip5</label>
+							<input type="text" name="zip">
+						</li>
+						<li id="send">
+							<input type="submit" id="streetLookup" name="submit">
+						</li>
+					</ol>
+				</form>
+		</div>
 </div> 
 
 </body>

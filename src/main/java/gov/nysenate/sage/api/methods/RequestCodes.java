@@ -4,7 +4,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 
 public enum RequestCodes {
-	FORMAT(0), TYPE(1), ADDRESS(2), LATLON(2), DISTRICT(2), POLY(1), POLY_TYPE(2), POLY_ADDRESS(3), POLY_LATLON(3);
+	FORMAT(0), TYPE(1), ADDRESS(2), ZIP(2), LATLON(2), DISTRICT(2), POLY(1), POLY_TYPE(2), POLY_ADDRESS(3), POLY_LATLON(3);
 
 	private static final HashMap<Integer, RequestCodes> lookup = new HashMap<Integer, RequestCodes>();
 

@@ -130,7 +130,7 @@ public class ApiServlet extends HttpServlet {
 			logger.warn(afe);
 		}
 		catch (ApiTypeException ate) {
-			out.write(getError("error", "Invalid input type: " + ate.getMessage() 
+			out.write(getError("error", "Invalid input " + ate.getMessage() 
 					+ " for command: " + command +", please review API documentation.", format));
 			logger.warn(ate);
 		}

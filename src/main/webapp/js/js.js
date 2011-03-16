@@ -4,6 +4,7 @@ var geocode = "geocode/extended?";
 var revgeo = "revgeo/latlon/";
 var validate = "validate/extended?";
 var cityState = "/citystatelookup/extended?";
+var streetLookup = "/streetlookup/zip/";
 
 var geocoder;
 var map;
@@ -253,6 +254,50 @@ $(document).ready(function(){
 			}
 			$(".response_body").show(400);
 		});
+		
+		return false;
+	});
+	
+	$("#streetLookup").click(function() {
+		$(".response_body").html("<img src='img/r.gif'>");
+		var url = api + streetLookup;
+		
+		var zip = $("#streetLookupForm input[name=zip]").val();
+		
+		if(zip.length == 5) {
+			
+			
+			url = url + zip;
+
+			$.getJSON(url, function(data) {
+				$(".response_body").hide();
+				if(data.message != null) {
+					$(".response_body").html("There was an issue processing your request because necessary " +
+						"information is missing or the address you entered is invalid.");
+				}
+				else {
+					
+					var streets = "<ol>"
+					for(x in data) {
+						streets = streets + "<li>" + data[x] + "</li>";
+					}
+					streets = streets + "</ol>"
+					
+					$(".response_body").html(
+							"<div class = \"response_data\">"
+							+ streets
+						+ "</div>");
+					
+					addAddressToMap(zip);
+				}
+				$(".response_body").show(400);
+			});
+		}
+		else {
+			$(".response_body").html("Please make sure you're typing in a five digit zip code.");
+		}
+		
+		
 		
 		return false;
 	});

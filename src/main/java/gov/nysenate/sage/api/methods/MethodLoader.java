@@ -77,6 +77,13 @@ public class MethodLoader {
 
 		methods.put("zipcodelookup", method);
 		
+		method = new ApiMethod("streetlookup", StreetLookupMethod.class,
+				true, new ArrayList<String>(Arrays.asList("zip")),
+				new ArrayList<String>(Arrays.asList("json", "xml")),
+				new ArrayList<Class<? extends Object>>());
+
+		methods.put("streetlookup", method);
+		
 		return methods;
 	}
 }

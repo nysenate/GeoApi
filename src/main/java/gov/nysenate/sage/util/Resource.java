@@ -16,8 +16,8 @@ import javax.servlet.http.HttpServlet;
 public class Resource {
 	
 	private static String servletResource = "/WEB-INF/app.properties";
-	private static String classResource = "src/main/webapp" + servletResource;
-//	private static String classResource = "app.properties";
+//	private static String classResource = "src/main/webapp" + servletResource;
+	private static String classResource = "app.properties";
 	private static InputStream INPUT;
 	private static Properties properties;
 	private static ServletContext CONTEXT;
