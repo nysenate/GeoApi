@@ -66,7 +66,6 @@ public class SenateFilter implements Filter {
 			}
 		}
 		chain.doFilter(request, response);
-		
 	}
 
 	public void init(FilterConfig filterConfig) throws ServletException {

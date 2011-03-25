@@ -372,31 +372,26 @@ public class Boe3rdTsv implements BulkInterface {
 
 	@Override
 	public String getState() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getState_province_id();
 	}
 
 	@Override
 	public String getStreet() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getSupplemental_address_1();
 	}
 
 	@Override
 	public String getZip5() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getPostal_code();
 	}
 
 	@Override
 	public void setLat(String lat) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void setLon(String lon) {
-		// TODO Auto-generated method stub
 		
 	}
 
