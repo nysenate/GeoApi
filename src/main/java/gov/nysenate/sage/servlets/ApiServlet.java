@@ -34,7 +34,7 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class ApiServlet extends HttpServlet {
-	private static Logger logger = Logger.getLogger(ApiServlet.class);
+	private Logger logger = Logger.getLogger(ApiServlet.class);
 	
 	private static final long serialVersionUID = 1L;
 	

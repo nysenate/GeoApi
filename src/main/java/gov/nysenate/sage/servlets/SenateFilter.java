@@ -65,7 +65,6 @@ public class SenateFilter implements Filter {
 				}
 			}
 		}
-		
 		chain.doFilter(request, response);
 		
 	}

@@ -68,7 +68,7 @@ public class Mailer {
 		try {
 			sendMail("williams@nysenate.gov",
 					"bulk upload error",
-					jp.getContact() + " - " + jp.getJobType() + " - " + jp.getFileName() + "<br/><br/>" + e.getMessage(),
+					jp.getContact() + " - " + jp.getClassName() + " - " + jp.getFileName() + "<br/><br/>" + e.getMessage(),
 					"williams@nysenate.gov",
 					"SAGE Bulk front-end error");
 		} catch (Exception e1) {
@@ -80,7 +80,7 @@ public class Mailer {
 		try {
 			sendMail(Resource.get("admin.email"),
 					"bulk processing complete",
-					jp.getContact() + " - " + jp.getJobType() + " - " + jp.getFileName() + "<br/><br/>",
+					jp.getContact() + " - " + jp.getClassName() + " - " + jp.getFileName() + "<br/><br/>",
 					"williams@nysenate.gov",
 					"SAGE Bulk processing complete");
 		} catch (Exception e1) {

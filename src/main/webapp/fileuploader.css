@@ -1,0 +1,114 @@
+.hl-text {
+	font-weight: bold;	
+}
+
+#select-new-file {
+	background:#A8A2A4;
+	font-size: 90%;	
+	cursor: pointer;
+	text-align:center;
+	padding: 2px 2px 2px 2px;
+}
+
+.clear {
+	overflow: hidden;
+	width: 100%;	
+}
+
+.custom-button {
+	background: transparent url('img/bg_button_a.gif') no-repeat scroll top right;
+	color: #444;
+	display: block;
+	/*float: left;*/
+	font: normal 12px arial, sans-serif;
+	height: 24px;
+	margin-right: 6px;
+	margin-left: 6px;
+	padding-right: 18px;	
+	text-decoration: none;
+}
+
+.custom-button span {
+	background: transparent url('img/bg_button_span.gif') no-repeat;
+	display: block;
+	line-height: 14px;
+	padding: 5px 0 5px 18px;	
+	text-align:center;
+}
+
+.custom-submit-button {
+	float:right;	
+	cursor:pointer;
+}
+
+.submit-li {
+	background:white;
+}
+
+.custom-button:active {
+	background-position: bottom right;
+	color: #000;
+	outline: none;	
+}
+
+.custom-button:active span {
+	background-position: bottom left;
+	padding: 6px 0 4px 18px;	
+}
+
+#upload-body {
+	width:300px;
+	margin: 0px auto;
+}
+
+#fileuploader {
+	border: 1px dotted #949894;
+	background:white;
+	padding: 5px 0px 5px 0px;
+}
+
+#fileuploaded {
+	border: 1px dotted #949894;
+	background:white;
+	padding: 5px 0px 5px 0px;
+}
+
+#uploaded-response {
+	margin-left: 5px;
+	margin-right: 5px;	
+}
+
+.error {
+	color:red;
+	text-align:center;
+	font-size:75%
+}
+
+.qq-uploader {
+	width: 100%;
+}
+
+.qq-upload-drop-area {
+	border: 1px dotted #4B3639;
+	background: #949894;
+	margin: 4px 4px 2px 4px;
+	padding: 6px 0 3px 0;
+	text-align:center;
+}
+.qq-upload-drop-area span {
+	color:white;
+	font-size: 125%;
+}
+
+.qq-upload-list {margin:15px 35px; padding:0; list-style:none;}
+.qq-upload-list li { margin:0; padding:0; line-height:15px; font-size:12px;}
+.qq-upload-file, .qq-upload-spinner, .qq-upload-size, .qq-upload-cancel, .qq-upload-failed-text {
+    margin-right: 7px;
+}
+
+.qq-upload-file {}
+.qq-upload-spinner {display:inline-block; background: url("loading.gif"); width:15px; height:15px; vertical-align:text-bottom;}
+.qq-upload-size,.qq-upload-cancel {font-size:11px;}
+
+.qq-upload-failed-text {display:none;}
+.qq-upload-fail .qq-upload-failed-text {display:inline;}

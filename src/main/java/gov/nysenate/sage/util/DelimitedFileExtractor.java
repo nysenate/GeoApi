@@ -83,18 +83,23 @@ public class DelimitedFileExtractor {
 		return new String(chars);
 	}
 	
-	public static String getDelimiter(String delim) {
-		if(delim.matches("\\|")) {
-			return "\\\\" + delim;
-		}
-		return delim;
-	}
-	
-	public static void generateClassFieldsFromHeader(String header, String delim) {
-		header = header.replace(getDelimiter(delim), delim + " " + delim);
-		String[] fields = header.split(getDelimiter(delim));
+	public static void generateClassValuesFromHeader(String header, String delim) {
+		header = header.replace(delim + delim,delim + " " + delim);
+		String[] fields = header.split(delim);
+		
+		String classFields = "";
+		String emptyFields = "";
+		String toString = "";
+		
 		for(String field:fields) {
-			System.out.println("String " + field + ";");
+			classFields += "String " + field + ";\n";
+			emptyFields += field + "=\"\";\n";
+			if(toString.equals(""))
+				toString = field;
+			else 
+				toString += " + \",\" + " + field;
 		}
+		
+		System.out.println(classFields + "\n\n\n" + emptyFields + "\n\n\n" + toString);
 	}
 }

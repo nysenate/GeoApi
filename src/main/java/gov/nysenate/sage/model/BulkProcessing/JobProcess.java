@@ -14,69 +14,42 @@ import java.util.TreeSet;
 
 public class JobProcess {
 	String contact;
-	String jobType;
 	String fileName;
+	String className;
 	
 	Long requestTime;
-	
-	//when not null it is a multi-run request
-	Integer segment;
-	Integer lineCount;
 	
 	@Ignore @PrimaryKey Integer id;
 	
 	public JobProcess() {
 		contact = "";
-		jobType = "";
 		fileName = "";
+		className = "";
 		
 		requestTime = new Date().getTime();
-		
-		segment = -1;
-		
-		lineCount = 0;
 	}
 	
-	public JobProcess(String contact, String type, String fileName, Integer lineCount) {
+	public JobProcess(String contact, String fileName, String className) {
 		this.contact = contact;
-		this.jobType = type;
 		this.fileName = fileName; 
-		this.lineCount = lineCount;
+		this.className = className;
 		requestTime = new Date().getTime();
-		segment = -1;
-	}
-	
-	public JobProcess(String contact, String type, String fileName, Integer lineCount, Long requestTime) {
-		this.contact = contact;
-		this.jobType = type;
-		this.fileName = fileName; 
-		this.lineCount = lineCount;
-		this.requestTime = requestTime;
-		segment = -1;
 	}
 	
 	public String getContact() {
 		return contact;
 	}
 
-	public String getJobType() {
-		return jobType;
-	}
-
 	public String getFileName() {
 		return fileName;
+	}
+	
+	public String getClassName() {
+		return className;
 	}
 
 	public Long getRequestTime() {
 		return requestTime;
-	}
-
-	public Integer getSegment() {
-		return segment;
-	}
-	
-	public Integer getLineCount() {
-		return lineCount;
 	}
 	
 	public Integer getId() {
@@ -86,27 +59,19 @@ public class JobProcess {
 	public void setContact(String contact) {
 		this.contact = contact;
 	}
-
-	public void setJobType(String type) {
-		this.jobType = type;
-	}
-
+	
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
+	}
+	
+	public void setClassName(String className) {
+		this.className = className;
 	}
 
 	public void setRequestTime(Long timeStamp) {
 		this.requestTime = timeStamp;
 	}
 
-	public void setSegment(Integer segment) {
-		this.segment = segment;
-	}
-	
-	public void setLineCount(Integer lineCount) {
-		this.lineCount = lineCount;
-	}
-	
 	public void setId(Integer id) {
 		this.id = id;
 	}

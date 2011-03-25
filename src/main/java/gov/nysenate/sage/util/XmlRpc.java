@@ -66,10 +66,10 @@ public class XmlRpc {
 		params.addAll(getSecurityParameters(NODE_GET));
 		params.add(nid);
 
-		List<Object> oParams = new ArrayList<Object>();
-		oParams.add("nid");
-		oParams.add("title");
-		oParams.add("field_location");
+//		List<Object> oParams = new ArrayList<Object>();
+//		oParams.add("nid");
+//		oParams.add("title");
+//		oParams.add("field_location");
 
 		return getXmlRpcResponse(NODE_GET, params);
 	}
