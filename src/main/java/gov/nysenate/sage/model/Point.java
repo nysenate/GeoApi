@@ -7,7 +7,7 @@ public class Point {
 	public double lat;
 	public double lon;
 	
-	public String address;
+	public Object address;
 	
 	public Point(double lat, double lon) {
 		this.lat = lat;
@@ -20,5 +20,29 @@ public class Point {
 		this.address = address;
 	}
 	
+	static abstract class AddressInterface {
+		String address;
+		
+		public AddressInterface(String address) {
+			this.address = address;
+		}
+		
+		public String getAddress() {
+			return address;
+		}
+		
+		public void setAddress() {
+			
+		}
+	}
 	
+	static class SimpleAddress extends AddressInterface {
+		public SimpleAddress(String address) {
+			super(address);
+		}
+	}
+	
+	static class ExtendedAddress {
+		
+	}
 }

@@ -1,9 +1,6 @@
 var api = "/GeoApi/api/json/";
-var districts = "districts/extended?";
-var geocode = "geocode/extended?";
+var districts = "districts/extended?validate&";
 var revgeo = "revgeo/latlon/";
-var validate = "validate/extended?";
-var cityState = "/citystatelookup/extended?";
 var streetLookup = "/streetlookup/zip/";
 
 var geocoder;
@@ -116,31 +113,36 @@ $(document).ready(function(){
 	$("#districts").click(function() {
 		$(".response_body").html("<img src='img/r.gif'>");
 		var url = api + districts;
-		
-		var validateUrl = api+validate;
-		
+				
 		var $inputs = $("#districtsForm :input");
 		$inputs.each(function() {
 			url = url + buildUrl(this.name, $(this).val());
-			validateUrl = validateUrl + buildUrl(this.name, $(this).val());
 		});
 				
-		getJson(validateUrl, function(validatedAddr, url) {getJson(url,writeDistricts,validatedAddr);}, url);
+		getJson(url, writeDistricts);
 		
 		return false;
 	});
 	
 
 	
-	function writeDistricts(data, validatedAddr) {
+	function writeDistricts(data) {
 		$(".response_body").hide();
 		if(data.message != null) {
 			$(".response_body").html("There was an issue processing your request because necessary " +
 				"information is missing or the address you entered is invalid.");
 		}
 		else {
+			var address = data.address.simple || (data.address.extended.address2 + ", " 
+													+ data.address.extended.city + ", "
+													+ data.address.extended.state + " "
+													+ data.address.extended.zip5 + "-"
+													+ data.address.extended.zip4);
+			var validatedAddr = null;
+			
 			var nearby = null;
-			if(data.senate.nearbyDistricts[0] != null) {
+			if(data.senate.nearbyDistricts && data.senate.nearbyDistricts.length > 0) {
+				
 				var nBLen = data.senate.nearbyDistricts.length;
 				var nBCount = 1;
 				for(district in data.senate.nearbyDistricts) {
@@ -168,12 +170,7 @@ $(document).ready(function(){
 						
 						+ "<li>Longitude: " + data.lon + "</li>"
 						
-						+ (validatedAddr != null && validatedAddr.message == null ? 
-								"<li>Address: " + validatedAddr.address2
-								+", " + validatedAddr.city
-								+", " + validatedAddr.state
-								+" " + validatedAddr.zip5 + "-" +validatedAddr.zip4
-								:"<li>Address: " + data.address + "</li>")
+						+ "<li>Address: " + address + "</li>"
 						
 						+ "<li><table cellspacing=\"10\">"
 							+ "<tr>"
@@ -205,7 +202,7 @@ $(document).ready(function(){
 
 			var latlon = new google.maps.LatLng(data.lat, data.lon);
 
-			addLatLonToMap(latlon, data.address);
+			addLatLonToMap(latlon, address);
 			
 		}
 		$(".response_body").show(400);
@@ -296,8 +293,6 @@ $(document).ready(function(){
 		else {
 			$(".response_body").html("Please make sure you're typing in a five digit zip code.");
 		}
-		
-		
 		
 		return false;
 	});

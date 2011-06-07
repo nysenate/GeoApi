@@ -29,6 +29,10 @@ public class YahooConnect extends ParseStream implements AbstractGeocoder,Abstra
 		super(PACKAGE);
 	}
 	
+	public Point doParsing(String addr, String city, String state, String zip4, String zip5) {
+		return doParsing(GeoCode.getExtendedAddress(addr, city, state, zip4, zip5));
+	}
+	
 	public Point doParsing(String address) {
 		ResultSet rs = null;
 		address = this.cleanUrl(address);
@@ -41,6 +45,10 @@ public class YahooConnect extends ParseStream implements AbstractGeocoder,Abstra
 			
 			return null;
 		}
+		
+		if(rs.getResult() ==  null)
+			return null;
+		
 		return new Point(rs.getResult().getLatitude(),
 				rs.getResult().getLongitude(),
 				rs.getResult().getLine1() + " " + rs.getResult().getLine2());

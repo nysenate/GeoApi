@@ -1,6 +1,7 @@
 package gov.nysenate.sage.connectors;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.Collection;
@@ -310,12 +311,36 @@ public class DistrictServices {
 		return out;
 	}
 	
+	public static DistrictResponse getDistrictsFromAddress(String addr, String city,
+			String state, String zip4, String zip5, String validate, String noMeta, String service) throws Exception {
+
+		ValidateResponse vr = null;
+		Point p = null;
+		
+		Object obj = null;
+		
+		if(validate != null) {
+			obj = USPSConnect.validateAddress(null, addr, city, state, zip5, zip4, "false");
+			
+			if(obj instanceof ValidateResponse) {
+				vr = (ValidateResponse)obj;
+				p = GeoCode.getGeoCodedResponse(vr.getAddress2(), vr.getCity(), vr.getState(), vr.getZip4(), vr.getZip5(), service);
+			}
+		}
+		
+		if(p == null) {
+			 p = GeoCode.getGeoCodedResponse(addr, city, state, zip4, zip5, service);
+		}
+		
+		return districts(p, validate, noMeta, vr);
+	}
+	
 	/**
 	 * sends request to districts for district information retrieval
 	 */
 	public static DistrictResponse getDistrictsFromAddress(String address, String service)
 																	throws Exception {
-		return districts(GeoCode.getGeoCodedResponse(address, service));
+		return districts(GeoCode.getGeoCodedResponse(address, service), null, null, null);
 		
 	}
 	
@@ -339,7 +364,7 @@ public class DistrictServices {
 			
 		}
 		
-		return districts(p);
+		return districts(p, null, null, null);
 	}
 	
 	/**
@@ -347,7 +372,7 @@ public class DistrictServices {
 	 * 
 	 * @returns xml or json string representation of data
 	 */
-	public static DistrictResponse districts(Point p) throws Exception {
+	public static DistrictResponse districts(Point p, String validate, String noMeta, ValidateResponse vr) throws Exception {
 		Connect c = new Connect();
 		DistrictResponse dr = new DistrictResponse();
 		GeoResult gr = null;
@@ -360,33 +385,77 @@ public class DistrictServices {
 				gr.getFeatures().iterator().next().getProperties().getED()));
 		
 		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(ASSEMBLY), p);
-		dr.setAssembly((Assembly)c.getObject(Assembly.class,
-				"district",
-				gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
+		if(noMeta == null) {
+			dr.setAssembly((Assembly)c.getObject(Assembly.class,
+					"district",
+					gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
+		}
+		else {
+			dr.setAssembly(new Assembly(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
+		}
 		
 		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(CONGRESSIONAL), p);
-		dr.setCongressional((Congressional)c.getObject(Congressional.class,
-				"district",
-				gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));		
+		if(noMeta == null) {
+			dr.setCongressional((Congressional)c.getObject(Congressional.class,
+					"district",
+					gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));		
+		}
+		else {
+			dr.setCongressional(new Congressional(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));		
+		}
+		
+		Senate senate = null;
 		
 		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(SENATE), p);
+		if(noMeta == null) {
+			senate = (Senate)c.getObject(Senate.class,
+					"district",
+					gr.getFeatures().iterator().next().getProperties().getNAMELSAD());
+		}
+		else {
+			senate = new Senate(gr.getFeatures().iterator().next().getProperties().getNAMELSAD());
+		}
 		
-		Senate senate = (Senate)c.getObject(Senate.class,
-				"district",
-				gr.getFeatures().iterator().next().getProperties().getNAMELSAD());
-		senate.setNearbyDistricts(gsCon.getNearbySenateDistricts(senate.getDistrict(),
-													p, SENATE, CROSS_DISTANCE));
+		
+		List<Senate> nearbySenateDistricts = gsCon.getNearbySenateDistricts(senate.getDistrict(),
+				p, SENATE, CROSS_DISTANCE);
+		
+		if(nearbySenateDistricts != null && !nearbySenateDistricts.isEmpty()) {
+			senate.setNearbyDistricts(nearbySenateDistricts);
+		}
+		
 		dr.setSenate(senate);
 		
 		c.close();		
 		
 		dr.setLat(p.lat);
 		dr.setLon(p.lon);
-		dr.setAddress(p.address);
+		
+		if(validate != null) {
+			if(vr != null) {
+				dr.setAddress(new AddressType(null, vr));
+			}
+			else {
+				dr.setAddress(new AddressType(p.address, null));
+			}
+		}
+		else {
+			dr.setAddress(p.address);
+		}
+		
 		
 		//API is dead
 		//dr.setCensus(FCCConnect.doParsing(p.lat+"", p.lon+""));		
 		
 		return dr;
+	}
+	
+	static class AddressType {
+		Object simple;
+		Object extended;
+		AddressType(Object simple, Object extended) {
+			this.simple = simple;
+			this.extended = extended;
+		}
 	}
 }

@@ -16,6 +16,10 @@ public class Congressional {
 		
 	}
 	
+	public Congressional(String district) {
+		this.district = district;
+	}
+	
 	public Congressional(String district, Member member) {
 		this.district = district;
 		this.member = member;

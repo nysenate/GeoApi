@@ -16,6 +16,10 @@ public class Assembly {
 		
 	}
 	
+	public Assembly(String district) {
+		this.district = district;
+	}
+	
 	public Assembly(String district, Member member) {
 		this.district = district;
 		this.member = member;

@@ -18,11 +18,6 @@ import javax.xml.bind.Unmarshaller;
  */
 public class USPSConnect {
 	
-	public static void main(String[] args) {
-		System.out.println(constructAddressUrl("", "1 Main st", 
-				"Albany", "NY", "12208",""));
-	}
-	
 	public static final String API_ID = "usps.id";
 	public static final String API_BASE = "usps.url";
 	public static final String API_FORMAT = "usps.format";
@@ -32,18 +27,28 @@ public class USPSConnect {
 	
 	public static Object validateAddress(String addr1, String addr2, 
 			String city, String state, String zip5, String zip4, String punctuation) {
-				
+		
+		if(nOE(addr2) || nOE(city)){
+			return null;
+		}
+						
 		Object o = getResponse(constructAddressUrl(addr1,addr2,city,state,zip5,zip4).replaceAll(" ","%20"));
 		
-		AddressValidateResponse avr = (AddressValidateResponse)o;
+		if(o instanceof AddressValidateResponse) {
+			AddressValidateResponse avr = (AddressValidateResponse)o;
 			
-		if(avr.getAddress().getError() != null) {
-			o = new ErrorResponse(avr.getAddress().getError().getDescription());
+			if(avr.getAddress().getError() != null) {
+				o = new ErrorResponse(avr.getAddress().getError().getDescription());
+			}
+			else {
+				o = new ValidateResponse(avr, punctuation);
+			}
+			
+			return o;
 		}
-		else {
-			o = new ValidateResponse(avr, punctuation);
+		else if(o instanceof Error) {
+			return new ErrorResponse(((Error)o).getDescription());
 		}
-		
 		return o;
 	}
 	
@@ -61,6 +66,12 @@ public class USPSConnect {
 		}
 		
 		return o;
+	}
+	
+	private static boolean nOE(String val) {
+		if(val == null || val.matches("\\s*"))
+			return true;
+		return false;
 	}
 	
 	public static Object getZipByAddress(String addr1, String addr2, String city, String state) {

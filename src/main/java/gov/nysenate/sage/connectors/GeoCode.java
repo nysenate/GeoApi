@@ -14,6 +14,31 @@ public class GeoCode {
 	static final String YAHOO = "yahoo";
 	static final String BING = "bing";
 	static final String GEOCODER = "geocoder";
+	
+	public static Point getGeoCodedResponse(String addr, String city,
+			String state, String zip4, String zip5, String service) {
+		Point p = null;
+
+		if (serviceOrNull(YAHOO, service)
+				&& (p = new YahooConnect().doParsing(addr, city, state, zip4, zip5)) != null) {
+			return p;
+
+		} else if (serviceOrNull(GOOGLE, service)
+				&& (p = new GoogleConnect().doParsing(addr, city, state, zip4, zip5)) != null) {
+			return p;
+
+		} else if (serviceOrNull(BING, service)
+				&& (p = new BingConnect().doParsing(addr, city, state, zip4, zip5)) != null) {
+			return p;
+
+		} else if (serviceOrNull(GEOCODER, service)
+				&& (p = new GeocoderConnect().doParsing(addr, city, state, zip4, zip5)) != null) {
+			return p;
+
+		}
+
+		return null;
+	}
 
 	/**
 	 * if service is null google, yahoo and bing are attempted, if service has a
@@ -50,7 +75,7 @@ public class GeoCode {
 	 * used to avoid cluttering if statements with redundant parameters
 	 */
 	public static boolean serviceOrNull(String service, String given) {
-		if (given == null || service.equals(given)) {
+		if (given == null || service.equalsIgnoreCase(given)) {
 			return true;
 
 		}
@@ -108,21 +133,25 @@ public class GeoCode {
 		return points;
 	}
 
-	public static Point getApiGeocodeResponse(String number, String addr2,
+	public static Point getApiGeocodeResponse(String addr2,
 			String city, String state, String zip4, String zip5,
 			String service) throws Exception {
 
-		if (service != null && service.equalsIgnoreCase(GEOCODER)) {
-			Point point = new GeocoderConnect().doParsing(number, addr2, city,
-					state, zip5);
+		if (service != null) {
+			if(service.equalsIgnoreCase(GEOCODER)) {
+				Point point = new GeocoderConnect().doParsing(addr2, city,
+						state, zip4, zip5);
 
-			if (point != null)
-				return point;
+				if (point != null)
+					return point;
 
-			service = null;
+				service = null;
+			}
+			else {
+				service = service.toLowerCase();
+			}
 		}
 		
-		addr2 = (number != null ? number + " " + addr2 : addr2);
 		return getApiGeocodeResponse(getExtendedAddress(addr2, city, state,
 				zip4, zip5), service);
 	}

@@ -37,8 +37,9 @@ public class GeoCodeMethod extends ApiExecution {
 				String addr2 = request.getParameter("addr2");
 				addr2 = (addr2 == null ? request.getParameter("street") : addr2);
 				addr2 = (addr2 == null ? request.getParameter("address") : addr2);
-				ret = GeoCode.getApiGeocodeResponse(request.getParameter("number"), 
-						addr2, 
+				String number = request.getParameter("number");
+				ret = GeoCode.getApiGeocodeResponse( 
+						(number != null ? number + " ":"") + addr2, 
 						request.getParameter("city"), 
 						request.getParameter("state"), 
 						request.getParameter("zip4"), 

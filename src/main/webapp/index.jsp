@@ -47,10 +47,10 @@
 						<li>
 							<label>Service</label>
 							<select name="service">
-								<option>(Optional)</option>
-								<option>Google</option>
 								<option>Yahoo</option>
+								<option>Google</option>
 								<option>Bing</option>
+								<option>GeoCoder</option>
 							</select>
 						</li>
 						<li id="send">
@@ -74,9 +74,8 @@
 						<li>
 							<label>Service</label>
 							<select name="service">
-								<option>(Optional)</option>
-								<option>Google</option>
 								<option>Yahoo</option>
+								<option>Google</option>
 								<option>Bing</option>
 							</select>
 						</li>
@@ -100,6 +99,15 @@
 					</ol>
 				</form>
 		</div>
+		<p class="message_head"><cite>About</cite></p> 
+		<div class="message_body">
+			Geocoding for this service is provided primarily 
+			by <a href="http://developer.yahoo.com/geo/placefinder/">Yahoo! PlaceFinder</a>, 
+			but geocoding services from <a href="http://code.google.com/apis/maps/index.html">Google</a> 
+			and <a href="http://www.microsoft.com/maps/developers/web.aspx">Bing</a> are also available 
+			for testing purposes.
+		</div>
+		
 </div> 
 
 </body>

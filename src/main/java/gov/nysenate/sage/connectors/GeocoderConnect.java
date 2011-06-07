@@ -38,8 +38,8 @@ public class GeocoderConnect implements AbstractGeocoder {
 		return getPoint(constructUrl(address));
 	}
 	
-	public Point doParsing(String num, String street, String city, String state, String zip) {
-		return getPoint(constructUrl(num, street, city, state, zip));
+	public Point doParsing(String addr, String city, String state, String zip4, String zip5) {
+		return getPoint(constructUrl(addr, city, state, zip4, zip5));
 	}
 	
 	public Point getPoint(String url) {
@@ -80,8 +80,8 @@ public class GeocoderConnect implements AbstractGeocoder {
 		return GEO_BASE + "address=" + address;
 	}
 	
-	public String constructUrl(String num, String street, String city, String state, String zip) {
-		return GEO_BASE + (num == null || num.equals("") ? "":"number=" + num + "&")+ "street=" + street + "&city=" + city + "&state=" + state + "&zip=" + zip;
+	public String constructUrl(String addr, String city, String state, String zip4, String zip5) {
+		return GEO_BASE + "street=" + addr + "&city=" + city + "&state=" + state + "&zip=" + zip5;
 	}
 	
 	public List<Point> doBulkParsing(String json) throws UnsupportedEncodingException {

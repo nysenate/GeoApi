@@ -30,6 +30,10 @@ public class GoogleConnect extends ParseStream implements AbstractGeocoder,Abstr
 		super(PACKAGE);
 	}
 	
+	public Point doParsing(String addr, String city, String state, String zip4, String zip5) {
+		return doParsing(GeoCode.getExtendedAddress(addr, city, state, zip4, zip5));
+	}
+	
 	public Point doParsing(String value) {
 		GeocodeResponse gr = null;
 		
@@ -42,6 +46,10 @@ public class GoogleConnect extends ParseStream implements AbstractGeocoder,Abstr
 			return null;
 			
 		}
+		
+		if(gr.getResult().size() == 0)
+			return null;
+		
 		Result r = gr.getResult().iterator().next();
 		
 		return new Point(r.getGeometry().getLocation().getLat(), 

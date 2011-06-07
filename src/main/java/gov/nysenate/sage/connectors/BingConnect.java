@@ -18,6 +18,8 @@ import java.util.List;
  * 
  * used to connect to Bing maps API to geocode and reverse geocode, models for
  * response are located in package "generated.bing"
+ * 
+ * https://www.bingmapsportal.com
  */
 public class BingConnect extends ParseStream implements AbstractGeocoder,AbstractReverseGeocoder {
 	private final String BING_API = "http://dev.virtualearth.net/REST/v1/Locations/";
@@ -28,6 +30,10 @@ public class BingConnect extends ParseStream implements AbstractGeocoder,Abstrac
 	
 	public BingConnect() {
 		super(PACKAGE);
+	}
+	
+	public Point doParsing(String addr, String city, String state, String zip4, String zip5) {
+		return doParsing(GeoCode.getExtendedAddress(addr, city, state, zip4, zip5));
 	}
 	
 	/**

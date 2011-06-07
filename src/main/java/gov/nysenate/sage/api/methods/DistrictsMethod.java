@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.connectors.DistrictServices;
-import gov.nysenate.sage.connectors.GeoCode;
 import gov.nysenate.sage.model.ApiExecution;
 
 public class DistrictsMethod extends ApiExecution {
@@ -31,12 +30,13 @@ public class DistrictsMethod extends ApiExecution {
 		else if(type.equals("extended")) {
 			try {
 				ret = DistrictServices.getDistrictsFromAddress(
-						GeoCode.getExtendedAddress(
 							request.getParameter("addr2"), 
 							request.getParameter("city"), 
 							request.getParameter("state"), 
 							request.getParameter("zip4"), 
-							request.getParameter("zip5")), 
+							request.getParameter("zip5"),
+							request.getParameter("validate"),
+							request.getParameter("nometa"),
 						service);
 			} catch (Exception e) {
 				e.printStackTrace();

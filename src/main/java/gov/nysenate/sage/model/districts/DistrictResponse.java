@@ -6,12 +6,16 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class DistrictResponse {
 	double lat;
 	double lon;
-	String address;
+	
+	Object address;
+	
 	Assembly assembly;
 	Congressional congressional;
 	County county;
 	Election election;
 	Senate senate;
+	
+	
 	//Census census;
 	
 	public DistrictResponse() {
@@ -26,7 +30,7 @@ public class DistrictResponse {
 		return lon;
 	}
 
-	public String getAddress() {
+	public Object getAddress() {
 		return address;
 	}
 
@@ -62,7 +66,7 @@ public class DistrictResponse {
 		this.lon = lon;
 	}
 
-	public void setAddress(String address) {
+	public void setAddress(Object address) {
 		this.address = address;
 	}
 
@@ -85,6 +89,7 @@ public class DistrictResponse {
 	public void setSenate(Senate senate) {
 		this.senate = senate;
 	}
+	
 	
 	/*public void setCensus(Census census) {
 		this.census = census;

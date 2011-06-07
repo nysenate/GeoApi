@@ -23,6 +23,10 @@ public class Senate {
 		
 	}
 	
+	public Senate(String district) {
+		this.district = district;
+	}
+	
 	public Senate(String district, String districtUrl, Senator senator) {
 		super();
 		this.district = district;

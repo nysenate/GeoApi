@@ -32,6 +32,7 @@ public class ApiExecution implements AbstractApiExecute{
 		for(Class<?> clazz:xstreamClasses) {
 			xstream.processAnnotations(clazz);
 		}
+		xstream.aliasSystemAttribute(null, "class");
 		return xstream.toXML(obj);
 	}
 
