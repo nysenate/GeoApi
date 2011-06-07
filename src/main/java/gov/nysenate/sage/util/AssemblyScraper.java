@@ -18,7 +18,8 @@ public class AssemblyScraper {
 	
 	private Logger logger = Logger.getLogger(AssemblyScraper.class);
 
-	static final String ASSEMBLY_URL = "http://assembly.state.ny.us/mem/?sh=email";
+	static final String ASSEMBLY_DIRECTORY_URL = "http://assembly.state.ny.us/mem/?sh=email";
+	static final String ASSEMBLY_URL = "http://assembly.state.ny.us";
 	
 	public void index() {
 		Connect c = new Connect();
@@ -51,10 +52,10 @@ public class AssemblyScraper {
 					"<div class=\"email1\"><a href=\"(.+?)\">(.+?)</a>.*?email2\">(\\d+)");
 			Matcher m = null;
 			
-			logger.info("Connecting to " + ASSEMBLY_URL);
+			logger.info("Connecting to " + ASSEMBLY_DIRECTORY_URL);
 			BufferedReader br = new BufferedReader(
 					new InputStreamReader(
-							new URL(ASSEMBLY_URL).openStream()));
+							new URL(ASSEMBLY_DIRECTORY_URL).openStream()));
 			
 			String in = null;
 			while((in = br.readLine()) != null) {
