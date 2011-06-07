@@ -64,6 +64,18 @@ public class Mailer {
 		Transport.send(msg);
 	}
 	
+	public static void mailError(Exception e) {
+		try {
+			sendMail("williams@nysenate.gov",
+					"bulk upload error",
+					e.getMessage(),
+					"williams@nysenate.gov",
+					"SAGE Bulk error");
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+	}
+	
 	public static void mailError(Exception e, JobProcess jp) {
 		try {
 			sendMail("williams@nysenate.gov",
@@ -92,7 +104,7 @@ public class Mailer {
 		try {
 			sendMail(jp.getContact(),
 					"SAGE Districting Completed",
-					"Your request from " + new Date(jp.getRequestTime()) + " has been completed and can be downloaded at http://geo.nysenate.gov/complete/" + jp.getFileName() +
+					"Your request from " + new Date(jp.getRequestTime()) + " has been completed and can be downloaded at http://sage.nysenate.gov/GeoApi/download/" + jp.getFileName() +
 					"<br/><br/>This is an automated message.",
 					"williams@nysenate.gov",
 					"SAGE");
