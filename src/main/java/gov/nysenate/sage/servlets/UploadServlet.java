@@ -1,7 +1,8 @@
 package gov.nysenate.sage.servlets;
 
+import gov.nysenate.sage.BulkProcessing.Processor;
+import gov.nysenate.sage.model.BulkProcessing.BulkFileType;
 import gov.nysenate.sage.model.BulkProcessing.JobProcess;
-import gov.nysenate.sage.util.BulkFileType;
 import gov.nysenate.sage.util.Connect;
 import gov.nysenate.sage.util.Resource;
 
@@ -34,7 +35,7 @@ public class UploadServlet extends HttpServlet {
 	
 	private static String realPath;
 	private static final String sep = System.getProperty("file.separator");
-       
+	
     public UploadServlet() {
         super();
     }
@@ -119,7 +120,7 @@ public class UploadServlet extends HttpServlet {
 		BufferedReader br = null;
 		BufferedWriter bw = null;
 		
-		String fileName = request.getHeader("X-File-Name");
+		String fileName = request.getHeader("X-File-Name").replaceAll("( |%20)","_");
 		String filePath = realPath + (new Date().getTime()) + "-" + fileName;
 		
 		logger.info("Creating file: " + filePath);
@@ -127,11 +128,14 @@ public class UploadServlet extends HttpServlet {
 		File file = new File(filePath);
 		try {
 			br = new BufferedReader(new InputStreamReader(request.getInputStream()));
+			
+			String newLineDelim = Processor.getNewLineDelim(br);
+			
 			bw = new BufferedWriter(new FileWriter(file));
 			int count = 0;
 						
 			String header = br.readLine();
-			bw.write(header + "\n");
+			bw.write(header + newLineDelim);
 			
 			//Check BulkFileType enum to see if header is ok for processing
 			BulkFileType bulkFileType = this.getBulkFileType(header);
@@ -143,12 +147,10 @@ public class UploadServlet extends HttpServlet {
 				
 				String in = null;
 				while((in = br.readLine()) != null) {
-					bw.write(in + "\n");
+					bw.write(in + newLineDelim);
 					
 					count++;
 				}
-				
-				
 				
 				session.setAttribute("currentFilePath", filePath);
 				session.setAttribute("bulkFileType", bulkFileType);
@@ -160,7 +162,7 @@ public class UploadServlet extends HttpServlet {
 		}
 		catch (IOException e) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			e.printStackTrace();
+			logger.error(e);
 			writer.print("{success:false}");
 			
 			if(file.exists()) {

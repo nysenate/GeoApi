@@ -27,7 +27,7 @@ $(document).ready(function() {
 	var uploader = new qq.FileUploader({
 		action: '/GeoApi/upload/file',
 		element: document.getElementById('fileuploader'),
-		allowedExtensions:['tsv','csv'],
+		allowedExtensions:['tsv','csv', 'txt'],
 		multiple:false,
 		template: '<div class="qq-uploader">' + 
 	        '<div class="qq-upload-drop-area"><span>Drop file here to upload</span></div>' +
