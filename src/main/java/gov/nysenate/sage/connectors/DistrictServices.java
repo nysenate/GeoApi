@@ -311,28 +311,69 @@ public class DistrictServices {
 		return out;
 	}
 	
-	public static DistrictResponse getDistrictsFromAddress(String addr, String city,
-			String state, String zip4, String zip5, String validate, String noMeta, String service) throws Exception {
-
+	static class Timer {
+		long t;
+		public void s() {
+			t = System.currentTimeMillis();
+		}
+		public double e() {
+			return (System.currentTimeMillis() - t)/1000.0;
+		}
+		public static Timer get() {
+			Timer t = new Timer();
+			t.s();
+			return t;
+		}
+	}
+	
+	public static DistrictResponse getDistrictsForBlueBird(String latlng) throws Exception {
+		String tuple[] = latlng.split(",");
+		
+		Point p = new Point(new Double(tuple[0]), new Double(tuple[1]));
+		
+		DistrictResponse dr = districts(p, false);
+		
+		return dr;
+	}
+	
+	public static DistrictResponse getDistrictsForBluebird(String addr, String city,
+			String state, String zip4, String zip5, String service) throws Exception {
+		
 		ValidateResponse vr = null;
+		
 		Point p = null;
 		
 		Object obj = null;
 		
-		if(validate != null) {
-			obj = USPSConnect.validateAddress(null, addr, city, state, zip5, zip4, "false");
-			
-			if(obj instanceof ValidateResponse) {
-				vr = (ValidateResponse)obj;
-				p = GeoCode.getGeoCodedResponse(vr.getAddress2(), vr.getCity(), vr.getState(), vr.getZip4(), vr.getZip5(), service);
-			}
+		obj = USPSConnect.validateAddress(null, addr, city, state, zip5, zip4, "false");
+		
+		if(obj instanceof ValidateResponse) {
+			vr = (ValidateResponse)obj;
+			p = GeoCode.getGeoCodedResponse(vr.getAddress2(), vr.getCity(), vr.getState(), vr.getZip4(), vr.getZip5(), service);
 		}
 		
 		if(p == null) {
-			 p = GeoCode.getGeoCodedResponse(addr, city, state, zip4, zip5, service);
+			p = GeoCode.getGeoCodedResponse(addr, city, state, zip4, zip5, service);
 		}
 		
-		return districts(p, validate, noMeta, vr);
+		DistrictResponse dr = districts(p, false);
+		
+		if(vr != null) {
+			dr.setAddress(new AddressType(null, vr));
+		}
+		else {
+			dr.setAddress(new AddressType(p.address, null));
+		}
+		
+		return dr;
+	}
+	
+	public static DistrictResponse getDistrictsFromAddress(String addr, String city,
+			String state, String zip4, String zip5, String service) throws Exception {
+
+		Point p = GeoCode.getGeoCodedResponse(addr, city, state, zip4, zip5, service);
+
+		return districts(p, true);
 	}
 	
 	/**
@@ -340,7 +381,7 @@ public class DistrictServices {
 	 */
 	public static DistrictResponse getDistrictsFromAddress(String address, String service)
 																	throws Exception {
-		return districts(GeoCode.getGeoCodedResponse(address, service), null, null, null);
+		return districts(GeoCode.getGeoCodedResponse(address, service), true);
 		
 	}
 	
@@ -353,7 +394,7 @@ public class DistrictServices {
 		Point p = null;
 		if(service != null && service.equals("none")) {
 			p = new Point(new Double(latlng.split(",")[0]),new Double(latlng.split(",")[1]),"");
-		
+			
 		}
 		else {
 			p = GeoCode.getReverseGeoCodedResponse(latlng, service).iterator().next();
@@ -364,7 +405,7 @@ public class DistrictServices {
 			
 		}
 		
-		return districts(p, null, null, null);
+		return districts(p, true);
 	}
 	
 	/**
@@ -372,7 +413,7 @@ public class DistrictServices {
 	 * 
 	 * @returns xml or json string representation of data
 	 */
-	public static DistrictResponse districts(Point p, String validate, String noMeta, ValidateResponse vr) throws Exception {
+	public static DistrictResponse districts(Point p, boolean meta) throws Exception {
 		Connect c = new Connect();
 		DistrictResponse dr = new DistrictResponse();
 		GeoResult gr = null;
@@ -381,41 +422,52 @@ public class DistrictServices {
 		dr.setCounty(new County(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
 		
 		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(ELECTION), p);
-		dr.setElection(new Election("Election District " +
-				gr.getFeatures().iterator().next().getProperties().getED()));
+		if(meta) {
+			dr.setElection(new Election("Election District " +
+					gr.getFeatures().iterator().next().getProperties().getED()));
+		}
+		else {
+			dr.setElection(new Election(gr.getFeatures().iterator().next().getProperties().getED()));
+		}
+		
 		
 		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(ASSEMBLY), p);
-		if(noMeta == null) {
+		if(meta) {
 			dr.setAssembly((Assembly)c.getObject(Assembly.class,
 					"district",
 					gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
 		}
 		else {
-			dr.setAssembly(new Assembly(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
+			dr.setAssembly(new Assembly(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()
+					.replaceAll("Assembly District ", "")));
 		}
 		
+
+		
 		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(CONGRESSIONAL), p);
-		if(noMeta == null) {
+		if(meta) {
 			dr.setCongressional((Congressional)c.getObject(Congressional.class,
 					"district",
-					gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));		
+					gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));	
 		}
 		else {
-			dr.setCongressional(new Congressional(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));		
+			dr.setCongressional(new Congressional(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()
+					.replaceAll("Congressional District ", "")));	
 		}
+			
 		
 		Senate senate = null;
 		
 		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(SENATE), p);
-		if(noMeta == null) {
+		if(meta) {
 			senate = (Senate)c.getObject(Senate.class,
 					"district",
 					gr.getFeatures().iterator().next().getProperties().getNAMELSAD());
 		}
 		else {
-			senate = new Senate(gr.getFeatures().iterator().next().getProperties().getNAMELSAD());
+			senate = new Senate(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()
+					.replaceAll("State Senate District ",""));
 		}
-		
 		
 		List<Senate> nearbySenateDistricts = gsCon.getNearbySenateDistricts(senate.getDistrict(),
 				p, SENATE, CROSS_DISTANCE);
@@ -431,18 +483,7 @@ public class DistrictServices {
 		dr.setLat(p.lat);
 		dr.setLon(p.lon);
 		
-		if(validate != null) {
-			if(vr != null) {
-				dr.setAddress(new AddressType(null, vr));
-			}
-			else {
-				dr.setAddress(new AddressType(p.address, null));
-			}
-		}
-		else {
-			dr.setAddress(p.address);
-		}
-		
+		dr.setAddress(p.address);
 		
 		//API is dead
 		//dr.setCensus(FCCConnect.doParsing(p.lat+"", p.lon+""));		

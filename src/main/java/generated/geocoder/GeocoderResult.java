@@ -116,6 +116,13 @@ public class GeocoderResult {
 	public void setProcesion(String procesion) {
 		this.procesion = procesion;
 	}
+
+	@Override
+	public String toString() {
+		return number + ", " + street + ", " + city + ", " + state + ", " + zip
+				+ ", " + lat + ", " + lon + ", " + fips_county + ", " + score
+				+ ", " + str_scr + ", " + prenum + ", " + procesion;
+	}
 	
 	
 }

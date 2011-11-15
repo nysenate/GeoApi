@@ -1,6 +1,9 @@
 var api = "/GeoApi/api/json/";
-var districts = "districts/extended?validate&";
+var districts = "districts/extended?";
+var geocode = "geocode/extended?";
 var revgeo = "revgeo/latlon/";
+var validate = "validate/extended?";
+var cityState = "/citystatelookup/extended?";
 var streetLookup = "/streetlookup/zip/";
 
 var geocoder;
@@ -113,36 +116,31 @@ $(document).ready(function(){
 	$("#districts").click(function() {
 		$(".response_body").html("<img src='img/r.gif'>");
 		var url = api + districts;
-				
+		
+		var validateUrl = api+validate;
+		
 		var $inputs = $("#districtsForm :input");
 		$inputs.each(function() {
 			url = url + buildUrl(this.name, $(this).val());
+			validateUrl = validateUrl + buildUrl(this.name, $(this).val());
 		});
 				
-		getJson(url, writeDistricts);
+		getJson(validateUrl, function(validatedAddr, url) {getJson(url,writeDistricts,validatedAddr);}, url);
 		
 		return false;
 	});
 	
 
 	
-	function writeDistricts(data) {
+	function writeDistricts(data, validatedAddr) {
 		$(".response_body").hide();
 		if(data.message != null) {
 			$(".response_body").html("There was an issue processing your request because necessary " +
 				"information is missing or the address you entered is invalid.");
 		}
 		else {
-			var address = data.address.simple || (data.address.extended.address2 + ", " 
-													+ data.address.extended.city + ", "
-													+ data.address.extended.state + " "
-													+ data.address.extended.zip5 + "-"
-													+ data.address.extended.zip4);
-			var validatedAddr = null;
-			
 			var nearby = null;
-			if(data.senate.nearbyDistricts && data.senate.nearbyDistricts.length > 0) {
-				
+			if(data.senate.nearbyDistricts && data.senate.nearbyDistricts[0] != null) {
 				var nBLen = data.senate.nearbyDistricts.length;
 				var nBCount = 1;
 				for(district in data.senate.nearbyDistricts) {
@@ -163,46 +161,69 @@ $(document).ready(function(){
 
 				}
 			}
-			$(".response_body").html(
-				"<div class = \"response_data\">"
-					+ "<ol>"
-						+ "<li>Latitude: " + data.lat + "</li>"
-						
-						+ "<li>Longitude: " + data.lon + "</li>"
-						
-						+ "<li>Address: " + address + "</li>"
-						
-						+ "<li><table cellspacing=\"10\">"
-							+ "<tr>"
-								+ "<td rowspan=3><img src=\"" + data.senate.senator.imageUrl + "\" alt=\"" + data.senate.senator.name + "\"></img></td>"
-								+ "<td><a href=\"" + data.senate.districtUrl + "\">" + data.senate.district + "</a></td>"
-							+ "</tr>"
-						+ "<tr>"
-							+ "<td><a href=\"" + data.senate.senator.url + "\">" + data.senate.senator.name + "</a></td>"
-						+ "</tr>"
-						+ "<tr>"
-							+ "<td>" + data.senate.senator.contact + "</td>"
-						+ "</tr>"
-						+ "</table>"
-						+ (nearby != null ?
-								"<div style=\"text-align:center;font-size: 75%;border-width:1px;border-style:dotted;\" class=\"nearby_districts\">You're also very close to "
-								+ nearby
-								:"")
-						+ "</li>"
-						
-						+ "<li>" + data.assembly.district + (data.assembly.member != null ? " - <a href=\"" + data.assembly.member.url + "\">" + data.assembly.member.name + "</a></li>" : "")
-						
-						+ "<li>" + data.congressional.district + (data.congressional.member != null ? " - <a href=\"" + data.congressional.member.url + "\">" + data.congressional.member.name + "</a></li>" : "")
-						
-						+ "<li>" + data.county.countyName + "</li>"
-						+ "<li>" + data.election.district + "</li>"
-						//+ "<li><label>Census FIPS: </label>" + data.census.fips + "</li>"
-					+ "</ol>"
-				+ "</div>");
+			
+			var html = "<div class = \"response_data\">"
+							+ "<ol>"
+							+ "<li>Latitude: " + data.lat + "</li>"
+							
+							+ "<li>Longitude: " + data.lon + "</li>";
+			
+			if(validatedAddr != null && validatedAddr.message == null) {
+				html += "<li>Address: " + validatedAddr.address2
+							+", " + validatedAddr.city
+							+", " + validatedAddr.state
+							+" " + validatedAddr.zip5 + "-" +validatedAddr.zip4;
+			}
+			else {
+				html += "<li>Address: " + data.address + "</li>";
+			}
+			
+			if(data.senate) {
+				html += "<li>"
+							+ "<table cellspacing=\"10\">"
+								+ "<tr>"
+									+ "<td rowspan=3><img src=\"" + data.senate.senator.imageUrl + "\" alt=\"" + data.senate.senator.name + "\"></img></td>"
+									+ "<td><a href=\"" + data.senate.districtUrl + "\">" + data.senate.district + "</a></td>"
+								+ "</tr>"
+								+ "<tr>"
+									+ "<td><a href=\"" + data.senate.senator.url + "\">" + data.senate.senator.name + "</a></td>"
+								+ "</tr>"
+								+ "<tr>"
+									+ "<td>" + data.senate.senator.contact + "</td>"
+								+ "</tr>"
+							+ "</table>"
+							+ (nearby != null ?
+									"<div style=\"text-align:center;font-size: 75%;border-width:1px;border-style:dotted;\" class=\"nearby_districts\">You're also very close to "
+									+ nearby
+									:"")
+						+ "</li>";
+			}
+			
+			if(data.assembly) {
+				html += "<li>" + data.assembly.district + (data.assembly.member != null ? " - <a href=\"" + data.assembly.member.url + "\">" + data.assembly.member.name + "</a></li>" : "");
+			}
+			
+			if(data.congressional) {
+				html += "<li>" + data.congressional.district + (data.congressional.member != null ? " - <a href=\"" + data.congressional.member.url + "\">" + data.congressional.member.name + "</a></li>" : "");
+			}
+			
+			if(data.county) {
+				html += "<li>" + data.county.countyName + "</li>";
+			}
+			
+			if(data.election) {
+				html += "<li>" + data.election.district + "</li>";
+			}
+			
+			html += "</ol>"
+						+ "</div>";
+			
+			
+			$(".response_body").html(html);
 
 			var latlon = new google.maps.LatLng(data.lat, data.lon);
 
-			addLatLonToMap(latlon, address);
+			addLatLonToMap(latlon, data.address);
 			
 		}
 		$(".response_body").show(400);
@@ -274,11 +295,11 @@ $(document).ready(function(){
 				}
 				else {
 					
-					var streets = "<ol>"
+					var streets = "<ol>";
 					for(x in data) {
 						streets = streets + "<li>" + data[x] + "</li>";
 					}
-					streets = streets + "</ol>"
+					streets = streets + "</ol>";
 					
 					$(".response_body").html(
 							"<div class = \"response_data\">"
@@ -293,6 +314,8 @@ $(document).ready(function(){
 		else {
 			$(".response_body").html("Please make sure you're typing in a five digit zip code.");
 		}
+		
+		
 		
 		return false;
 	});

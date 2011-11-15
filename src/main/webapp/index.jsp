@@ -8,7 +8,7 @@
 <script type="text/javascript" src="js/jquery.color.js"></script>
 <script type="text/javascript" src="js/js.js"></script>
 
-<link href="style.css" rel="stylesheet" type="text/css">
+<link href="/GeoApi/style.css" rel="stylesheet" type="text/css">
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>SAGE (Senate Address GeoCoding Engine)</title>
 </head>

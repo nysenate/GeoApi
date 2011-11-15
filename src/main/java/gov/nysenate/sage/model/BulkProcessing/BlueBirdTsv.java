@@ -7,6 +7,7 @@ public class BlueBirdTsv implements BulkInterface {
 	String last_name;
 	String prefix_id;
 	String suffix_id;
+	String full_name;
 	String street_number;
 	String street_name;
 	String street_unit;
@@ -53,6 +54,7 @@ public class BlueBirdTsv implements BulkInterface {
 		last_name="";
 		prefix_id="";
 		suffix_id="";
+		full_name = "";
 		street_number="";
 		street_name="";
 		street_unit="";
@@ -89,6 +91,7 @@ public class BlueBirdTsv implements BulkInterface {
 		districtinfo_id="";
 		constinfo_id="";
 		location_type_id="";
+		address_is_primary="";
 	}
 
 	public String getId() {
@@ -113,6 +116,10 @@ public class BlueBirdTsv implements BulkInterface {
 
 	public String getSuffix_id() {
 		return suffix_id;
+	}
+	
+	public String getFull_name() {
+		return full_name;
 	}
 
 	public String getStreet_number() {
@@ -290,6 +297,10 @@ public class BlueBirdTsv implements BulkInterface {
 	public void setSuffix_id(String suffixId) {
 		suffix_id = suffixId;
 	}
+	
+	public void setFull_name(String full_name) {
+		this.full_name = full_name;
+	}
 
 	public void setStreet_number(String streetNumber) {
 		street_number = streetNumber;
@@ -446,7 +457,7 @@ public class BlueBirdTsv implements BulkInterface {
 	@Override
 	public String toString() {
 		return 	(id + "\t" + first_name + "\t" + middle_name + "\t" + last_name 
-				+ "\t" + prefix_id + "\t" + suffix_id + "\t" + street_number 
+				+ "\t" + prefix_id + "\t" + suffix_id + "\t" + full_name + "\t" + street_number 
 				+ "\t" + street_name + "\t" + street_unit + "\t" + street_address + "\t" 
 				+ supplemental_address_1 + "\t" + supplemental_address_2 
 				+ "\t" + city + "\t" + state_province_id + "\t" + postal_code 

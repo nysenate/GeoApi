@@ -61,6 +61,7 @@ public class Mailer {
 		
 		msg.setSubject(subject);
 		msg.setContent(message, "text/html");
+		
 		Transport.send(msg);
 	}
 	
@@ -78,8 +79,8 @@ public class Mailer {
 	
 	public static void mailError(Exception e, JobProcess jp) {
 		try {
-			sendMail("williams@nysenate.gov",
-					"bulk upload error",
+			sendMail(Resource.get("admin.email"),
+					"bulk processing complete",
 					jp.getContact() + " - " + jp.getClassName() + " - " + jp.getFileName() + "<br/><br/>" + e.getMessage(),
 					"williams@nysenate.gov",
 					"SAGE Bulk front-end error");

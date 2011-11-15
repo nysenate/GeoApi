@@ -63,7 +63,7 @@ public class NYSenateServices {
 
 			/*District Node*/
 			HashMap<String,Object> disNode = (HashMap<String,Object>) rpc.getNode(new Integer(did));
-
+			
 			HashMap<String,Object> dNumberMap =	rpc.getMap(disNode.get("field_district_number"));
 			String dNumber ="State Senate District " + (String)dNumberMap.get("value");
 

@@ -45,40 +45,80 @@ public class CongressScraper {
 		connect.close();
 	}
 	
-	public List<Congressional> getCongressPersons() {
+	public static void main(String[] args) { 
+		CongressScraper s = new CongressScraper();
+		s.index();
+	}
+	
+	public List<Congressional> getCongressPersons()  {
 		List<Congressional> ret = new ArrayList<Congressional>();
 		
 		try {
-			Pattern nyp = Pattern.compile("<A name=\"ny\" id=\"ny\"></A>New York</H3>");
-			Pattern pp = Pattern.compile("<LI><A href=\"(.*?)\" class=\"Bodylink\">(.*?)</A>, New York, (\\d+)\\w+( - <strong>Vacancy</strong>)?</LI>");
-			Matcher m = null;
-			
-			logger.info("Connect to " + HOUSE_URL);
 			BufferedReader br = new BufferedReader(new InputStreamReader(new URL(HOUSE_URL).openStream()));
 			
+			Pattern newYorkPattern = Pattern.compile("<h2 id=\"state_ny\">New York</h2>");
+			Pattern bodyStartPattern = Pattern.compile("<tbody>");
+			Pattern bodyEndPattern = Pattern.compile("</tbody>");
+			Pattern dataStartPattern = Pattern.compile("<tr>");
+			Pattern dataEndPattern = Pattern.compile("</tr>");
+			
+			Matcher m = null;
+			
+			boolean stateOn = false;;
+			boolean bodyOn = false;
+			boolean dataOn = false;
+			
+			StringBuffer data = null;
+			
 			String in = null;
-			boolean on = false;
 			
 			while((in = br.readLine()) != null) {
-				if(!on) {
-					m = nyp.matcher(in);
-					if(m.find()) {
-						on = true;
+				if(!stateOn && (m = newYorkPattern.matcher(in)) != null && m.find()) {
+					stateOn = true;
+				}
+				if(bodyOn && (m = bodyEndPattern.matcher(in)) != null && m.find()) {
+					stateOn = false;
+					bodyOn = false;
+				}
+				if(dataOn && (m = dataEndPattern.matcher(in)) != null && m.find()) {
+					dataOn = false;
+					
+					if(data != null) {
+						String[] tuple = data.toString().split("\n");
+						
+						String district = tuple[0].replaceAll("<.*?>", "");
+						
+						String name = tuple[2].replaceAll("<.*?>", "").trim();
+						
+						String url = tuple[1].replaceAll("(?i)<td><a href=\"(.*?)\">","$1");
+						
+						Congressional c = new Congressional(
+								"Congressional District " + district,new Member(name, url, Member.MemberType.Congress));
+						
+						ret.add(c);
+						
+						data = null;
 					}
 				}
-				else {
-					m = pp.matcher(in);
-					if(m.find()) {
-						logger.info("Fetching congress person " + m.group(2));
-						Congressional c = new Congressional("Congressional District " + m.group(3),new Member(m.group(2).replaceAll("'|\"", ""),m.group(1), Member.MemberType.Congress));
-						ret.add(c);
-					}
+				
+				if(dataOn) {
+					if(data == null)
+						data = new StringBuffer();
+					data.append(in).append("\n");
+				}
+				
+				if(stateOn && !bodyOn && (m = bodyStartPattern.matcher(in)) != null && m.find()) {
+					bodyOn = true;
+				}
+				if(bodyOn && !dataOn && (m = dataStartPattern.matcher(in)) != null && m.find()) {
+					dataOn = true;
 				}
 			}
+			
 			br.close();
 		}
-		catch (IOException ioe) {
-			logger.warn(ioe);
+		catch(IOException e) {
+			logger.error(e);
 		}
 		
 		return ret;

@@ -4,6 +4,7 @@ import generated.geoserver.json.GeoResult;
 import gov.nysenate.sage.connectors.GeoServerConnect;
 import gov.nysenate.sage.connectors.YahooConnect;
 import gov.nysenate.sage.model.Point;
+import gov.nysenate.sage.model.BulkProcessing.BlueBirdTsv;
 import gov.nysenate.sage.model.BulkProcessing.PublicWebsiteTSV;
 
 import java.io.BufferedReader;
@@ -95,6 +96,28 @@ public class DelimitedFileExtractor {
 	}
 	
 	public static void main(String[] args) throws IOException {
+		String file = "/Users/jaredwilliams/Downloads/1312898705374-1312891080596-pass_the_tax_cap-sagesrc.tsv";
+		
+		BufferedReader br = new BufferedReader(new FileReader(new File(file)));
+		
+		DelimitedFileExtractor dfe = new DelimitedFileExtractor("\t", br.readLine(), BlueBirdTsv.class);
+		
+		int count = 0;
+		
+		String in = null;
+		while((in = br.readLine()) != null) {
+			 BlueBirdTsv tuple = (BlueBirdTsv) dfe.processTuple(in);
+			 
+			 System.out.println(tuple.getAddress());
+			 
+			 count++;
+			 
+			 if(count > 5) break;
+		}
+
+		br.close();
+	}
+	/*public static void main(String[] args) throws IOException {
 		HashMap<String, BufferedWriter> writerMap = new HashMap<String, BufferedWriter>();
 		
 		String writeBase = "src/main/resources/etc/ryan/";
@@ -157,7 +180,7 @@ public class DelimitedFileExtractor {
 //		String in = null, file = "";
 //		while((in = br.readLine()) != null) file += in + "\n";
 //		System.out.println(file.replaceAll("(?!(\t|\n))\\p{Cntrl}","").replaceAll("\n\n","<br/>"));
-	}
+	}*/
 	
 	public static void generateClassValuesFromHeader(String header, String delim) {
 		header = header.replace(delim + delim,delim + " " + delim);

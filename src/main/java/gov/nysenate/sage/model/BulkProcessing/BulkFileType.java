@@ -3,7 +3,7 @@ package gov.nysenate.sage.model.BulkProcessing;
 
 public enum BulkFileType {
 	BLUEBIRDTSV(BlueBirdTsv.class, "BlueBird TSV", "id	first_name	middle_name	last_name	" +
-			"prefix_id	suffix_id	street_number	street_name	street_unit	street_address	supplemental_address_1	" +
+			"prefix_id	suffix_id	full_name	street_number	street_name	street_unit	street_address	supplemental_address_1	" +
 			"supplemental_address_2	city	state_province_id	postal_code	postal_code_suffix	" +
 			"country_id	birth_date	gender_id	phone	town_52	ward_53	election_district_49	" +
 			"congressional_district_46	ny_senate_district_47	ny_assembly_district_48	school_district_54	" +

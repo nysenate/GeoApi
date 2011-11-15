@@ -84,6 +84,13 @@ public class MethodLoader {
 
 		methods.put("streetlookup", method);
 		
+		method = new ApiMethod("bluebirddistricts", BluebirdMethod.class, true,
+				new ArrayList<String>(Arrays.asList("addr", "extended","latlon")), 
+				new ArrayList<String>(Arrays.asList("json","xml")), 
+				new ArrayList<Class<? extends Object>>(Arrays.asList(
+						DistrictResponse.class, Point.class, ValidateResponse.class)));
+		methods.put("bluebirddistricts", method);
+		
 		return methods;
 	}
 }

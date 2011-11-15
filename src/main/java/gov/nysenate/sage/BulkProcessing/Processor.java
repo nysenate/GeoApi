@@ -163,7 +163,7 @@ public class Processor {
 		String in = null;
 		for(int i = 0; i < DEFAULT_SIZE && ((in = br.readLine()) != null); i++) {
 			BulkInterface tuple = (BulkInterface) dfe.processTuple(in);
-						
+			
 			if(tuple.getStreet() == null || tuple.getStreet().matches("\\s*")
 					|| tuple.getStreet().matches("(?i:po box)")
 					|| !tuple.getState().matches("(?i:ny|new york)")) {
@@ -179,7 +179,7 @@ public class Processor {
 				if(z.length() > 5) {
 					z = z.substring(0, 5);
 				}
-				zip= new Integer(tuple.getZip5());
+				zip = new Integer(z);
 			}
 			catch(Exception e) {
 				bw.write(tuple.toString() + newLineDelim);
@@ -398,6 +398,9 @@ public class Processor {
 		}
 		
 		public void fillRequest(Point p, BulkInterface bi) {
+			if(p.lat == -1 || p.lon == -1) {
+				return;
+			}
 			
 			GeoResult gr = null;
 			GeoServerConnect gsCon = new GeoServerConnect();

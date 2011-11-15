@@ -1,16 +1,16 @@
 package gov.nysenate.sage.api.methods;
 
-import java.util.ArrayList;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.connectors.DistrictServices;
 import gov.nysenate.sage.model.ApiExecution;
 
-public class DistrictsMethod extends ApiExecution {
+import java.util.ArrayList;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class BluebirdMethod extends ApiExecution {
 	@Override
 	public Object execute(HttpServletRequest request,
 			HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
@@ -19,17 +19,9 @@ public class DistrictsMethod extends ApiExecution {
 		String type = more.get(RequestCodes.TYPE.code());
 		String service = request.getParameter("service");
 		
-		if(type.equals("addr")) {
+		if(type.equals("extended")) {
 			try {
-				ret = DistrictServices.getDistrictsFromAddress(more.get(RequestCodes.ADDRESS.code()), service);
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new ApiInternalException();
-			}
-		}
-		else if(type.equals("extended")) {
-			try {
-				ret = DistrictServices.getDistrictsFromAddress(
+				ret = DistrictServices.getDistrictsForBluebird(
 							request.getParameter("addr2"), 
 							request.getParameter("city"), 
 							request.getParameter("state"), 
@@ -43,7 +35,7 @@ public class DistrictsMethod extends ApiExecution {
 		}
 		else if(type.equals("latlon")) {
 			try {
-				ret = DistrictServices.getDistrictsFromPoint(more.get(RequestCodes.LATLON.code()), service);
+				ret = DistrictServices.getDistrictsForBlueBird(more.get(RequestCodes.LATLON.code()));
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new ApiInternalException();
@@ -55,4 +47,5 @@ public class DistrictsMethod extends ApiExecution {
 		
 		return ret;
 	}
+
 }

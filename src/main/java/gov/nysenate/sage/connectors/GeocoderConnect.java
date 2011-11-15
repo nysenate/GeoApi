@@ -106,16 +106,18 @@ public class GeocoderConnect implements AbstractGeocoder {
 		
 		List<GeocoderResult> results = result.getGeocoderResults();
 				
-		try {
-			ArrayList<Point> points = new ArrayList<Point>();
-			for(GeocoderResult gr:results) {
-				points.add(new Point(new Double(gr.getLat()), new Double(gr.getLon())));
+		ArrayList<Point> points = new ArrayList<Point>();
+		for(GeocoderResult gr:results) {
+			try {
+				Point point = new Point(new Double(gr.getLat()), new Double(gr.getLon()));
+				points.add(point);
 			}
-			return points;
+			catch (Exception e) {
+				points.add(new Point(-1, -1));
+			}
 		}
-		catch (Exception e) {
-			return null;
-		}
+		return points;
+
 	}
 	
 	public String constructBulkUrl(String json) throws UnsupportedEncodingException {
