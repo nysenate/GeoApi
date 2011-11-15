@@ -1,18 +1,5 @@
 package gov.nysenate.sage.util;
 
-import generated.geoserver.json.GeoResult;
-import gov.nysenate.sage.connectors.GeoServerConnect;
-import gov.nysenate.sage.connectors.YahooConnect;
-import gov.nysenate.sage.model.Point;
-import gov.nysenate.sage.model.BulkProcessing.BlueBirdTsv;
-import gov.nysenate.sage.model.BulkProcessing.PublicWebsiteTSV;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -94,93 +81,6 @@ public class DelimitedFileExtractor {
 				.toUpperCase(chars[0]));
 		return new String(chars);
 	}
-	
-	public static void main(String[] args) throws IOException {
-		String file = "/Users/jaredwilliams/Downloads/1312898705374-1312891080596-pass_the_tax_cap-sagesrc.tsv";
-		
-		BufferedReader br = new BufferedReader(new FileReader(new File(file)));
-		
-		DelimitedFileExtractor dfe = new DelimitedFileExtractor("\t", br.readLine(), BlueBirdTsv.class);
-		
-		int count = 0;
-		
-		String in = null;
-		while((in = br.readLine()) != null) {
-			 BlueBirdTsv tuple = (BlueBirdTsv) dfe.processTuple(in);
-			 
-			 System.out.println(tuple.getAddress());
-			 
-			 count++;
-			 
-			 if(count > 5) break;
-		}
-
-		br.close();
-	}
-	/*public static void main(String[] args) throws IOException {
-		HashMap<String, BufferedWriter> writerMap = new HashMap<String, BufferedWriter>();
-		
-		String writeBase = "src/main/resources/etc/ryan/";
-		String outOfStateName = writeBase + "out-of-state-veteran-nominations.csv";
-		String header = "\"Time\",\"IP Address\",\"Username\",\"Your Name\",\"Your Address\"," +
-				"\"City/Town1\",\"Zip Code1\",\"Your Telephone Number\",\"Your Email Address\"," +
-				"\"Name of Veteran\",\"Branch of Military Veteran Served in\",\"Why are you nominating " +
-				"this Veteran to be a member of the New York State Senate Veteran Hall of Fame?\"," +
-				"\"Street Address of Veteran\",\"City/Town2\",\"Zip Code2\",\"Senate District\"";
-		String in = null;
-		
-		BufferedReader br = new BufferedReader(new FileReader(new File("src/main/resources/etc/ryan/nominate_cleansed.tsv")));
-		DelimitedFileExtractor dfe = new DelimitedFileExtractor("\t", br.readLine(), PublicWebsiteTSV.class);
-		
-		GeoResult gr = null;
-		GeoServerConnect gsCon = new GeoServerConnect();
-		YahooConnect yc = new YahooConnect();
-
-		while((in = br.readLine()) != null) {
-			PublicWebsiteTSV tuple = (PublicWebsiteTSV) dfe.processTuple(in);
-			
-			if(tuple.getZipCode1().matches("\\d{5}([\\- ]\\d{4})?") || tuple.getZipCode2().matches("\\d{5}([\\- ]\\d{4})?")) {
-				String address = tuple.getYourAddress() + ", " + tuple.getCityTown1() + ", " + tuple.getZipCode1();
-				
-				Point p = yc.doParsing(address);
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST("senate"), p);
-				
-				String sd = null;
-				try {
-					sd = gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("State Senate District ","");
-				}
-				catch(Exception e) { 
-					BufferedWriter bw = null;
-					if((bw = writerMap.get(outOfStateName)) == null) {
-						bw = new BufferedWriter(new FileWriter(new File(outOfStateName)));
-						bw.write(header + "\n");
-						writerMap.put(outOfStateName, bw);
-					}
-					bw.write((tuple.toString() + ",\"" + "\"\n").replaceAll("<br/>", "\n"));
-					continue; 
-				}
-			
-				BufferedWriter bw = null;
-				if((bw = writerMap.get(sd)) == null) {
-					bw = new BufferedWriter(new FileWriter(new File(writeBase + "sd" + sd + "-veteran-nominations.csv")));
-					bw.write(header + "\n");
-					writerMap.put(sd, bw);
-				}
-				
-				bw.write((tuple.toString() + ",\"" + sd + "\"\n").replaceAll("<br/>", "\n"));
-			}
-		}
-		
-		for(BufferedWriter bw:writerMap.values()) {
-			bw.close();
-		}
-		
-		br.close();
-		
-//		String in = null, file = "";
-//		while((in = br.readLine()) != null) file += in + "\n";
-//		System.out.println(file.replaceAll("(?!(\t|\n))\\p{Cntrl}","").replaceAll("\n\n","<br/>"));
-	}*/
 	
 	public static void generateClassValuesFromHeader(String header, String delim) {
 		header = header.replace(delim + delim,delim + " " + delim);
