@@ -24,6 +24,8 @@ public class Mailer {
 	private static final String SMTP_ACCOUNT_USER = Resource.get("user");
 	private static final String SMTP_ACCOUNT_PASS = Resource.get("pass");
 	
+	private static final String STMP_USER = Resource.get("admin.email");
+	
 	public static void sendMail(String to, String subject, String message, String from, String fromDisplay) throws Exception {
 		Properties props = new Properties();
 		props.put("mail.smtp.host", SMTP_HOST_NAME);
@@ -67,10 +69,10 @@ public class Mailer {
 	
 	public static void mailError(Exception e) {
 		try {
-			sendMail("williams@nysenate.gov",
+			sendMail(STMP_USER,
 					"bulk upload error",
 					e.getMessage(),
-					"williams@nysenate.gov",
+					STMP_USER,
 					"SAGE Bulk error");
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -79,10 +81,10 @@ public class Mailer {
 	
 	public static void mailError(Exception e, JobProcess jp) {
 		try {
-			sendMail(Resource.get("admin.email"),
+			sendMail(STMP_USER,
 					"bulk processing complete",
 					jp.getContact() + " - " + jp.getClassName() + " - " + jp.getFileName() + "<br/><br/>" + e.getMessage(),
-					"williams@nysenate.gov",
+					STMP_USER,
 					"SAGE Bulk front-end error");
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -91,10 +93,10 @@ public class Mailer {
 	
 	public static void mailAdminComplete(JobProcess jp) {
 		try {
-			sendMail(Resource.get("admin.email"),
+			sendMail(STMP_USER,
 					"bulk processing complete",
 					jp.getContact() + " - " + jp.getClassName() + " - " + jp.getFileName() + "<br/><br/>",
-					"williams@nysenate.gov",
+					STMP_USER,
 					"SAGE Bulk processing complete");
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -107,7 +109,7 @@ public class Mailer {
 					"SAGE Districting Completed",
 					"Your request from " + new Date(jp.getRequestTime()) + " has been completed and can be downloaded at http://sage.nysenate.gov/GeoApi/download/" + jp.getFileName() +
 					"<br/><br/>This is an automated message.",
-					"williams@nysenate.gov",
+					STMP_USER,
 					"SAGE");
 		} catch (Exception e1) {
 			e1.printStackTrace();

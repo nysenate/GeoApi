@@ -10,6 +10,7 @@ import gov.nysenate.sage.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.connectors.DistrictServices;
+import gov.nysenate.sage.connectors.DistrictServices.DistrictType;
 import gov.nysenate.sage.model.ApiExecution;
 
 public class PolyMethod extends ApiExecution {
@@ -19,12 +20,14 @@ public class PolyMethod extends ApiExecution {
 		
 		Object ret = null;
 		String format = more.get(RequestCodes.FORMAT.code());
-		String poly = more.get(RequestCodes.POLY.code());
+		String polyType = more.get(RequestCodes.POLY.code());
 		Integer district = new Integer(more.get(RequestCodes.DISTRICT.code()));
+		
+		DistrictType districtType = DistrictType.getDistrictType(polyType);
 				
 		if(district != null) {
 			try {
-				ret = DistrictServices.getPolyFromDistrict(poly, district+"", format);
+				ret = DistrictServices.getPolyFromDistrict(districtType, district+"", format);
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new ApiInternalException();

@@ -11,6 +11,7 @@ import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.connectors.DistrictServices;
 import gov.nysenate.sage.connectors.GeoCode;
+import gov.nysenate.sage.connectors.DistrictServices.DistrictType;
 import gov.nysenate.sage.model.ApiExecution;
 
 public class PolySearchMethod extends ApiExecution {
@@ -20,14 +21,16 @@ public class PolySearchMethod extends ApiExecution {
 		
 		Object ret = null;
 		String format = more.get(RequestCodes.FORMAT.code());
-		String poly = more.get(RequestCodes.POLY.code());
+		String polyType = more.get(RequestCodes.POLY.code());
 		String type = more.get(RequestCodes.POLY_TYPE.code());
 		String service = request.getParameter("service");
+		
+		DistrictType districtType = DistrictType.getDistrictType(polyType);
 		
 		if(type.equals("addr")) {
 			try {
 				ret = DistrictServices.getPolyFromAddress(
-						more.get(RequestCodes.POLY_ADDRESS.code()), format, service, poly);
+						more.get(RequestCodes.POLY_ADDRESS.code()), format, service, districtType);
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new ApiInternalException();
@@ -36,7 +39,7 @@ public class PolySearchMethod extends ApiExecution {
 		else if(type.equals("latlon")) {
 			try {
 				ret = DistrictServices.getPolyFromPoint(
-						more.get(RequestCodes.POLY_LATLON.code()), format, service, poly);
+						more.get(RequestCodes.POLY_LATLON.code()), format, service, districtType);
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new ApiInternalException();
@@ -49,7 +52,7 @@ public class PolySearchMethod extends ApiExecution {
 						request.getParameter("city"), 
 						request.getParameter("state"), 
 						request.getParameter("zip4"), 
-						request.getParameter("zip5")), format, service, poly);
+						request.getParameter("zip5")), format, service, districtType);
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new ApiInternalException();

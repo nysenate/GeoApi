@@ -1,6 +1,7 @@
 package gov.nysenate.sage.BulkProcessing;
 
 import generated.geoserver.json.GeoResult;
+import gov.nysenate.sage.connectors.DistrictServices.DistrictType;
 import gov.nysenate.sage.connectors.GeoServerConnect;
 import gov.nysenate.sage.connectors.GeocoderConnect;
 import gov.nysenate.sage.model.Point;
@@ -42,7 +43,7 @@ public class Processor {
 
 	final String COUNTY_FILE = "counties.txt";
 	
-	final String ROOT_DIRECTORY = "/opt/apache-tomcat-6.0.26/webapps/";
+	final String ROOT_DIRECTORY = "/usr/local/tomcat/webapps/";
 	final String WORK_DIRECTORY = ROOT_DIRECTORY + "upload" + FILE_SEPERATOR;
 	final String DEST_DIRECTORY = ROOT_DIRECTORY + "complete" + FILE_SEPERATOR;
 	final String LOCK_FILE = WORK_DIRECTORY + ".lock";
@@ -418,7 +419,7 @@ public class Processor {
 			catch(Exception e) { }
 
 			try {
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(COUNTY), p);
+				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.COUNTY), p);
 				//converts FIPS county code from geoserver to NYSS county code
 				bi.setCounty(padLeft(processor.getCountyLookupMap().get(
 						replaceLeading(gr.getFeatures().iterator().next().getProperties().getCOUNTYFP(),"0")), "0", 2));
@@ -426,25 +427,25 @@ public class Processor {
 			catch(Exception e) { }
 				
 			try {
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(ELECTION), p);
+				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.ELECTION), p);
 				bi.setED(padLeft(gr.getFeatures().iterator().next().getProperties().getED(), "0", 3));
 			}
 			catch(Exception e) { }
 			
 			try {
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(ASSEMBLY), p);
+				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.ASSEMBLY), p);
 				bi.setAD(padLeft(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("Assembly District ",""), "0", 3));
 			}
 			catch(Exception e) { }
 			
 			try {
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(CONGRESSIONAL), p);
+				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.CONGRESSIONAL), p);
 				bi.setCD(padLeft(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("Congressional District ", ""), "0", 2));
 			}
 			catch(Exception e) { }
 				
 			try {
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(SENATE), p);
+				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.SENATE), p);
 				bi.setSD(padLeft(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("State Senate District ",""), "0", 2));
 			}
 			catch(Exception e) { }

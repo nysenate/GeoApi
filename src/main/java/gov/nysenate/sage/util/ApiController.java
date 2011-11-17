@@ -2,6 +2,7 @@ package gov.nysenate.sage.util;
 
 import generated.geoserver.json.GeoResult;
 import gov.nysenate.sage.connectors.GeoServerConnect;
+import gov.nysenate.sage.connectors.DistrictServices.DistrictType;
 import gov.nysenate.sage.connectors.GeoServerConnect.WFS_REQUEST;
 import gov.nysenate.sage.model.ApiUser;
 import gov.nysenate.sage.model.Metric;
@@ -169,7 +170,7 @@ public class ApiController {
 			
 			PrintWriter pw = new PrintWriter(fw);
 			
-			WFS_REQUEST sen = gsCon.new WFS_REQUEST("senate");
+			WFS_REQUEST sen = gsCon.new WFS_REQUEST(DistrictType.SENATE);
 			
 			GeoResult gr = gsCon.fromGeoserver(sen,"State Senate District " + i);
 			

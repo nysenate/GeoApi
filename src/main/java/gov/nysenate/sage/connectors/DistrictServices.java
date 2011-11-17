@@ -27,18 +27,121 @@ import gov.nysenate.sage.util.Connect;
  *
  */
 public class DistrictServices {	
-	static String ASSEMBLY = "assembly";
-	static String CONGRESSIONAL = "congressional";
-	static String COUNTY = "county";
-	static String ELECTION = "election";
-	static String SENATE = "senate";
 	static double CROSS_DISTANCE = 0.005;
 	
-	static GeoServerConnect gsCon = new GeoServerConnect();
-	
-	public DistrictServices() {
-		
+	static interface FeatureValue {
+		public String getStringValue(String string);
+		public String getPaddedStringValue(String string);
+		public String getFeatureValue(GeoResult geoResult);
+		public String getPaddedFeatureValue(GeoResult geoResult);
 	}
+	
+	static class NAMELSADFeatureValue implements FeatureValue {
+		private final String replaceValue;
+		
+		public NAMELSADFeatureValue(String replaceValue) {
+			this.replaceValue = replaceValue;
+		}
+		
+		public String getStringValue(String string) {
+			return string.replaceAll(replaceValue, "");
+		}
+		
+		public String getPaddedStringValue(String string) {
+			return string;
+		}
+		
+		public String getFeatureValue(GeoResult geoResult) {
+			return getStringValue( 
+					geoResult.getFeatures().iterator().next().getProperties().getNAMELSAD()
+				);
+		}
+		
+		public String getPaddedFeatureValue(GeoResult geoResult) {
+			return getPaddedStringValue(
+					geoResult.getFeatures().iterator().next().getProperties().getNAMELSAD()
+				);
+		}
+	}
+	
+	static class ElectionDistrictFeatureValue implements FeatureValue {
+		public String getStringValue(String string) {
+			return string;
+		}
+		
+		public String getPaddedStringValue(String string) {
+			return "Election District " + string;
+		}
+		
+		public String getFeatureValue(GeoResult geoResult) {
+			return getStringValue(
+					geoResult.getFeatures().iterator().next().getProperties().getED()
+				);
+		}
+		
+		public String getPaddedFeatureValue(GeoResult geoResult) {
+			return getPaddedStringValue(
+					geoResult.getFeatures().iterator().next().getProperties().getED()
+				);
+		}
+	}
+	
+	public static enum DistrictType {
+		ASSEMBLY		("assembly", "Assembly%20District%20",
+							new NAMELSADFeatureValue("Assembly District ")),
+							
+		CONGRESSIONAL	("congressional", "Congressional%20District%20",
+							new NAMELSADFeatureValue("Congressional District ")),
+							
+		COUNTY			("county", "",
+							new NAMELSADFeatureValue("")),
+							
+		ELECTION		("election", "",
+							new ElectionDistrictFeatureValue()),
+							
+		SENATE			("senate", "State%20Senate%20District%20",
+							new NAMELSADFeatureValue("State Senate District "));
+		
+		public final String type;
+		public final String idQualifier;
+		public final FeatureValue featureValue;
+		
+		private DistrictType(String type, String idQualifier, FeatureValue featureValue) {
+			this.type = type;
+			this.idQualifier = idQualifier;
+			this.featureValue = featureValue;
+		}
+		
+		public String getValue(GeoResult geoResult) {
+			return getValue(geoResult, false);
+		}
+		
+		public String getPaddedValue(GeoResult geoResult) {
+			return getValue(geoResult, true);
+		}
+		
+		public String getValue(GeoResult geoResult, boolean padded) {
+			if(geoResult == null || geoResult.getFeatures().isEmpty()) return null;
+			
+			if(padded) {
+				return featureValue.getPaddedFeatureValue(geoResult);
+			}
+			return featureValue.getFeatureValue(geoResult);
+		}
+		
+		public static DistrictType getDistrictType(String type) {
+			if(type == null) return null;
+			
+			for(DistrictType districtType:DistrictType.values()) {
+				if(districtType.type.equals(type)) {
+					return districtType;
+				}
+			}
+			return null;
+		}
+	}
+	
+	static GeoServerConnect gsCon = new GeoServerConnect();
 	
 	/**
 	 * This is used to get a KML or JSON polygon from GeoServer if the district name is known
@@ -48,31 +151,14 @@ public class DistrictServices {
 	 * @param format kml or json
 	 * @throws IOException
 	 */
-	public static StringBuffer getPolyFromDistrict(String type, String district, String format) throws IOException {
-		if(type.equals(SENATE)) {
-			district = "State%20Senate%20District%20" + district;;
-		}
-		else if(type.equals(ASSEMBLY)) {
-			district = "Assembly%20District%20" + district;;
-		}
-		else if(type.equals(CONGRESSIONAL)) {
-			district = "Congressional%20District%20" + district;
-		}
-		else if(type.equals(COUNTY)) {
-			//TODO: have to take special consideration
-		}
-		else if(type.equals(ELECTION)) {
-			//stay the same
-		}
-		else {
-			//throw error
-		}
+	public static StringBuffer getPolyFromDistrict(DistrictType districtType, String district, String format) throws IOException {
+		district = districtType.idQualifier + district;
 		
 		/* get flattened request from geoserver */
-		WFS_POLY wfs = gsCon.new WFS_POLY(type);
+		WFS_POLY wfs = gsCon.new WFS_POLY(districtType);
 		String json = gsCon.flatten(wfs.construct(district));
 		
-		return polyPrep(json, format, type);
+		return polyPrep(json, format, districtType);
 	}
 	
 	/**
@@ -85,14 +171,14 @@ public class DistrictServices {
 	 * @param out for output
 	 * @throws IOException
 	 */
-	public static StringBuffer getPolyFromAddress(String address, String format, String service, String type) throws IOException {
+	public static StringBuffer getPolyFromAddress(String address, String format, String service, DistrictType districtType) throws IOException {
 		Point p = GeoCode.getGeoCodedResponse(address, service);
 		
 		/* get flattened request from geoserver */
-		WFS_POLY wfs = gsCon.new WFS_POLY(type);
+		WFS_POLY wfs = gsCon.new WFS_POLY(districtType);
 		String json = gsCon.flatten(wfs.construct(p.lat, p.lon));
 		
-		return polyPrep(json, format, type);
+		return polyPrep(json, format, districtType);
 		
 	}
 	
@@ -109,7 +195,7 @@ public class DistrictServices {
 	 * @param out for output
 	 * @throws IOException
 	 */
-	public static StringBuffer getPolyFromPoint(String latlng, String format, String service, String type) throws IOException {
+	public static StringBuffer getPolyFromPoint(String latlng, String format, String service, DistrictType districtType) throws IOException {
 		Point p = null;
 		
 		if(service != null && service.equals("none")) {
@@ -127,10 +213,10 @@ public class DistrictServices {
 		
 		
 		/* get flattened request from geoserver */
-		WFS_POLY wfs = gsCon.new WFS_POLY(type);
+		WFS_POLY wfs = gsCon.new WFS_POLY(districtType);
 		String json = gsCon.flatten(wfs.construct(p.lat, p.lon));
 		
-		return polyPrep(json, format, type);
+		return polyPrep(json, format, districtType);
 	}
 	
 	/**
@@ -143,7 +229,7 @@ public class DistrictServices {
 	 * @param out for output
 	 * @throws IOException
 	 */
-	private static StringBuffer polyPrep(String in, String format, String type) throws IOException {
+	private static StringBuffer polyPrep(String in, String format, DistrictType districtType) throws IOException {
 		
 		
 		String start = "\"geometry\":";
@@ -186,14 +272,7 @@ public class DistrictServices {
 			}
 		}
 
-		String data = null;
-		
-		if(type.matches("county|assembly|congressional|senate")) {
-			data = gr.getFeatures().iterator().next().getProperties().getNAMELSAD();
-		}
-		else if(type.equals("election")) {
-			data = "Election District " + gr.getFeatures().iterator().next().getProperties().getED();
-		}	
+		String data = districtType.featureValue.getFeatureValue(gr);
 		
 		return getPolygon(points, data, format);
 	}
@@ -413,66 +492,61 @@ public class DistrictServices {
 	 * 
 	 * @returns xml or json string representation of data
 	 */
-	public static DistrictResponse districts(Point p, boolean meta) throws Exception {
+	public static DistrictResponse districts(Point p, boolean padded) throws Exception {
 		Connect c = new Connect();
 		DistrictResponse dr = new DistrictResponse();
 		GeoResult gr = null;
 		
-		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(COUNTY), p);
-		dr.setCounty(new County(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
+		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.COUNTY), p);
+		dr.setCounty(new County(DistrictType.COUNTY.getValue(gr)));
 		
-		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(ELECTION), p);
-		if(meta) {
-			dr.setElection(new Election("Election District " +
-					gr.getFeatures().iterator().next().getProperties().getED()));
-		}
-		else {
-			dr.setElection(new Election(gr.getFeatures().iterator().next().getProperties().getED()));
-		}
+		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.ELECTION), p);
+		dr.setElection(new Election(DistrictType.ELECTION.getValue(gr, padded)));
 		
-		
-		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(ASSEMBLY), p);
-		if(meta) {
+		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.ASSEMBLY), p);
+		if(padded) {
 			dr.setAssembly((Assembly)c.getObject(Assembly.class,
 					"district",
-					gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));
+					DistrictType.ASSEMBLY.getPaddedValue(gr)));
 		}
 		else {
-			dr.setAssembly(new Assembly(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()
-					.replaceAll("Assembly District ", "")));
+			dr.setAssembly(new Assembly(DistrictType.ASSEMBLY.getValue(gr)));
 		}
 		
-
-		
-		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(CONGRESSIONAL), p);
-		if(meta) {
+		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.CONGRESSIONAL), p);
+		if(padded) {
 			dr.setCongressional((Congressional)c.getObject(Congressional.class,
 					"district",
-					gr.getFeatures().iterator().next().getProperties().getNAMELSAD()));	
+					DistrictType.CONGRESSIONAL.getPaddedValue(gr)));	
 		}
 		else {
-			dr.setCongressional(new Congressional(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()
-					.replaceAll("Congressional District ", "")));	
+			dr.setCongressional(new Congressional(DistrictType.CONGRESSIONAL.getValue(gr)));	
 		}
-			
 		
 		Senate senate = null;
 		
-		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(SENATE), p);
-		if(meta) {
+		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.SENATE), p);
+		if(padded) {
 			senate = (Senate)c.getObject(Senate.class,
 					"district",
-					gr.getFeatures().iterator().next().getProperties().getNAMELSAD());
+					DistrictType.SENATE.getPaddedValue(gr));
 		}
 		else {
-			senate = new Senate(gr.getFeatures().iterator().next().getProperties().getNAMELSAD()
-					.replaceAll("State Senate District ",""));
+			senate = new Senate(DistrictType.SENATE.getValue(gr));
 		}
 		
 		List<Senate> nearbySenateDistricts = gsCon.getNearbySenateDistricts(senate.getDistrict(),
-				p, SENATE, CROSS_DISTANCE);
+				p, DistrictType.SENATE, CROSS_DISTANCE);
 		
 		if(nearbySenateDistricts != null && !nearbySenateDistricts.isEmpty()) {
+			if(!padded) {
+				for(int i = 0; i < nearbySenateDistricts.size(); i++) {
+					Senate nearby = nearbySenateDistricts.get(i);
+					nearby.setDistrict(DistrictType.SENATE.featureValue.getStringValue(nearby.getDistrict()));
+					nearby.setDistrictUrl(null);
+				}
+			}
+			
 			senate.setNearbyDistricts(nearbySenateDistricts);
 		}
 		
@@ -484,9 +558,6 @@ public class DistrictServices {
 		dr.setLon(p.lon);
 		
 		dr.setAddress(p.address);
-		
-		//API is dead
-		//dr.setCensus(FCCConnect.doParsing(p.lat+"", p.lon+""));		
 		
 		return dr;
 	}

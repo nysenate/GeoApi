@@ -2,6 +2,7 @@ package gov.nysenate.sage.connectors;
 
 import generated.geoserver.json.GeoFeatures;
 import generated.geoserver.json.GeoResult;
+import gov.nysenate.sage.connectors.DistrictServices.DistrictType;
 import gov.nysenate.sage.model.Point;
 import gov.nysenate.sage.model.districts.Senate;
 import gov.nysenate.sage.util.Connect;
@@ -91,13 +92,13 @@ public class GeoServerConnect {
 	 * returns list of senate districts near a given point within a certain distance, relies
 	 * on getNearbyDistricts
 	 */
-	public List<Senate> getNearbySenateDistricts(String district, Point p, String type, double distance) 
+	public List<Senate> getNearbySenateDistricts(String district, Point p, DistrictType districtType, double distance) 
 																	throws SQLException, Exception {
 		List<Senate> ret = new ArrayList<Senate>();
 
 		Connect c = new Connect();
 		
-		for(String d:getNearbyDistricts(district, p, type, distance)) {
+		for(String d:getNearbyDistricts(district, p, districtType, distance)) {
 			ret.add((Senate)c.listFromClosedResultSet(
 					Senate.class,c.getResultsetById(
 							Senate.class, "district", d)).iterator().next());
@@ -112,16 +113,16 @@ public class GeoServerConnect {
 	 * but this is good for now.  There is a CQL filter DWITHIN but it doesn't appear to work
 	 * and BBOX has too broad of a scope
 	 */
-	public HashSet<String> getNearbyDistricts(String key, Point p, String type, double distance)
+	public HashSet<String> getNearbyDistricts(String key, Point p, DistrictType districtType, double distance)
 																	throws SQLException, Exception {
 		HashSet<String> districts = new HashSet<String>();
-		WFS_REQUEST req = new WFS_REQUEST(type);
+		WFS_REQUEST req = new WFS_REQUEST(districtType);
 		
 		GeoResult gr2 = handleGeoserverJson(flatten(req.constructCross(p.lat, p.lon, true, distance)));
-		districts.addAll(getDistrictsFromGeoResult(key, type, gr2));
+		districts.addAll(getDistrictsFromGeoResult(key, districtType, gr2));
 		
 		gr2 = handleGeoserverJson(flatten(req.constructCross(p.lat, p.lon, false, distance)));
-		districts.addAll(getDistrictsFromGeoResult(key, type, gr2));
+		districts.addAll(getDistrictsFromGeoResult(key, districtType, gr2));
 		
 		return districts;
 	}
@@ -130,10 +131,10 @@ public class GeoServerConnect {
 	 * returns list of disticts from a GeoResult, differentiates between election districts and
 	 * all other districts because election has a unique format
 	 */
-	private HashSet<String> getDistrictsFromGeoResult(String key, String type, GeoResult gr) {
+	private HashSet<String> getDistrictsFromGeoResult(String key, DistrictType districtType, GeoResult gr) {
 		HashSet<String> districts = new HashSet<String>();
 		for(GeoFeatures gf:gr.getFeatures()) {
-			if(type.equals(ELECTION)) {
+			if(districtType == DistrictType.ELECTION) {
 				if(!gf.getProperties().getED().equals(key)) {
 					districts.add(gf.getProperties().getED());
 				}
@@ -157,22 +158,22 @@ public class GeoServerConnect {
 		String GEO_PROPERTY = "&propertyname=NAMELSAD,INTPTLAT,INTPTLON,ALAND,AWATER";
 		String GEO_FILTER_TYPE="NAMELSAD";
 		
-		public WFS_REQUEST(String type) {
-			setGeoType(type);
+		public WFS_REQUEST(DistrictType districtType) {
+			setGeoType(districtType);
 		}
 		
-		private void setGeoType(String type) {
+		private void setGeoType(DistrictType districtType) {
 			Pattern p = Pattern.compile(POLY_NAMES);
-			Matcher m = p.matcher(type);
+			Matcher m = p.matcher(districtType.type);
 			if(m.find()) {
 				GEO_TYPE += "nysenate:" + m.group(1);
 			}
 			
-			if(type.equals(ELECTION)){
+			if(districtType == DistrictType.ELECTION){
 				GEO_PROPERTY = "&propertyname=ED,AREA,AREA1,EDS_COPY_,EDS_COPY_I,MCD2,WARD,EDP";
 				GEO_FILTER_TYPE="ED";
 			}
-			else if(type.equals(COUNTY)) {
+			else if(districtType == DistrictType.COUNTY) {
 				GEO_PROPERTY += ",COUNTYFP";
 			}
 		}
@@ -209,18 +210,18 @@ public class GeoServerConnect {
 		//the only time the filter is not NAMESLAD is for election layer
 		String GEO_FILTER_TYPE="NAMELSAD";
 
-		public WFS_POLY(String type) {
-			setGeoType(type);
+		public WFS_POLY(DistrictType districtType) {
+			setGeoType(districtType);
 		}
 		
-		private void setGeoType(String type) {
+		private void setGeoType(DistrictType districtType) {
 			Pattern p = Pattern.compile(POLY_NAMES);
-			Matcher m = p.matcher(type);
+			Matcher m = p.matcher(districtType.type);
 			if(m.find()) {
 				GEO_TYPE += "nysenate:" + m.group(1);
 			}
 			
-			if(type.equals("election")){
+			if(districtType == DistrictType.ELECTION){
 				GEO_FILTER_TYPE="ED";
 			}
 		}
