@@ -18,12 +18,6 @@ import org.apache.log4j.Logger;
 @SuppressWarnings("unchecked")
 public class NYSenateServices {
 	
-	public static void main(String[] args) {
-		NYSenateServices services = new NYSenateServices();
-		
-		services.getSenators();
-	}
-	
 	private Logger logger = Logger.getLogger(NYSenateServices.class);
 	
 	public void index() {
