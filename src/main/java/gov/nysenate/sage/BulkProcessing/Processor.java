@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -145,6 +147,7 @@ public class Processor {
 			c.close();
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			Mailer.mailError(e);
 		}
 		
@@ -261,34 +264,26 @@ public class Processor {
 		
 		int curIndex = 0;
 		
+		ExecutorService executor = Executors.newFixedThreadPool(max);
+		
 		for(int i = 0; i < max ; i++) {
 			//number of requests for current thread
 			int slice = (((rNorm/max)) + (rRem > 0 ? 1:0));
 						
-			new DistrictExecute(
+			DistrictExecute dEx = new DistrictExecute(
 					i,
 					points.subList(curIndex, curIndex + slice),
 					addresses.subList(curIndex, curIndex + slice),
-					this)
-				.start();
+					this);
+			
+			executor.execute(dEx);
 			
 			curIndex += slice;
 			rRem--;
 		}
-				
-		//read through response segments until there aren't any null values
-		// (or all the threads are complete)
-		boolean tog = true;
-		while(tog) {
-			for(int i = 0; i < responseSegments.size(); i++) {
-				if(responseSegments.get(i) == null)
-					break;
-								
-				if((i+1) == responseSegments.size()) {
-					tog = false;
-				}
-			}
-		}
+		
+		executor.shutdown();
+		while(!executor.isTerminated()) { }
 	}
 
 	public synchronized void fillSegment(int index, List<BulkInterface> list) {
