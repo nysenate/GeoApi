@@ -4,6 +4,8 @@ import gov.nysenate.geocoder.bulk.model.RequestList;
 import gov.nysenate.geocoder.bulk.model.RequestObject;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -78,34 +80,26 @@ public class RequestHandler {
 		
 		int curIndex = 0;
 		
+		ExecutorService executor = Executors.newFixedThreadPool(max);
+		
 		for(int i = 0; i < max ; i++) {
 			//number of requests for current thread
 			int slice = (((rNorm/max)) + (rRem > 0 ? 1:0));
 						
-			new RubyExecute(
+			RubyExecute re = new RubyExecute(
 					i,
 					hosts[i],
 					requestList.getRequestObjects().subList(curIndex, curIndex + slice),
-					this)
-				.start();
+					this);
+			
+			executor.execute(re);
 			
 			curIndex += slice;
 			rRem--;
 		}
 		
-		//read through response segments until there aren't any null values
-		// (or all the threads are complete)
-		boolean tog = true;
-		while(tog) {
-			for(int i = 0; i < responseSegments.length; i++) {
-				if(responseSegments[i] == null)
-					break;
-				
-				if((i+1) == responseSegments.length) {
-					tog = false;
-				}
-			}
-		}
+		executor.shutdown();
+		while(!executor.isTerminated());
 	}
 	
 	public synchronized void fillSegment(int index, String jsonData) {

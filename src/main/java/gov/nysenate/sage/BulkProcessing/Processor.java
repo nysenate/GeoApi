@@ -283,7 +283,7 @@ public class Processor {
 		}
 		
 		executor.shutdown();
-		while(!executor.isTerminated()) { }
+		while(!executor.isTerminated());
 	}
 
 	public synchronized void fillSegment(int index, List<BulkInterface> list) {
