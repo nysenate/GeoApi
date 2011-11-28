@@ -369,12 +369,6 @@ public class Processor {
 		private final List<Point> points;
 		private final List<BulkInterface> addresses;
 		private final Processor processor;
-		
-		static final String ASSEMBLY = "assembly";
-		static final String CONGRESSIONAL = "congressional";
-		static final String COUNTY = "county";
-		static final String ELECTION = "election";
-		static final String SENATE = "senate";
 
 		public DistrictExecute(int index, List<Point> points,
 				List<BulkInterface> addresses, Processor bulkTest) {

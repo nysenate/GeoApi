@@ -4,11 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.awt.geom.Point2D;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.gson.Gson;
+
 import generated.geoserver.json.*;
 import gov.nysenate.sage.connectors.GeoServerConnect.WFS_POLY;
 import gov.nysenate.sage.model.*;
@@ -29,17 +34,51 @@ import gov.nysenate.sage.util.Connect;
 public class DistrictServices {	
 	static double CROSS_DISTANCE = 0.005;
 	
-	static interface FeatureValue {
+	/*
+	 * interface used for various requests to map response appropriate object
+	 */
+	private static interface GeoResultAdapterInterface<T> {
 		public String getStringValue(String string);
-		public String getPaddedStringValue(String string);
-		public String getFeatureValue(GeoResult geoResult);
-		public String getPaddedFeatureValue(GeoResult geoResult);
+		public String getStringValuePadded(String string);
+		public T getObjectValue(GeoResult geoResult);
+		public T getObjectValuePadded(GeoResult geoResult, Connect connect);
 	}
 	
-	static class NAMELSADFeatureValue implements FeatureValue {
+	static abstract class GeoResultAdapter<T> implements GeoResultAdapterInterface<T> {
+		private DistrictDataAssignment<T> districtDataAssignment;
+		
+		public GeoResultAdapter(DistrictDataAssignment<T> districtDataAssignment) {
+			this.districtDataAssignment = districtDataAssignment;
+		}
+		
+		public T getValue(GeoResult geoResult, Connect connect, boolean padded) {
+			if(geoResult == null || geoResult.getFeatures().isEmpty()) return null;
+			
+			if(padded) {
+				return (T) getObjectValuePadded(geoResult, connect);
+			}
+			return (T) getObjectValue(geoResult);
+		}
+		
+		public DistrictResponse assign(DistrictResponse dr, GeoResult geoResult, Connect connect, boolean padded) {
+			return districtDataAssignment.assign(getValue(geoResult, connect, padded), dr);
+		}
+	}
+	
+	/*
+	 * current Senate, Congressional and Assembly requests all follow
+	 * the same workflow to make a query to geoserver then pull
+	 * an object from the database
+	 */
+ 	static class NAMELSADFeatureValue<T> extends GeoResultAdapter<T> {
+		private final Class<T> clazz;
+		private final String columnName;
 		private final String replaceValue;
 		
-		public NAMELSADFeatureValue(String replaceValue) {
+		public NAMELSADFeatureValue(DistrictDataAssignment<T> districtDataAssignment, Class<T> clazz, String columnName, String replaceValue) {
+			super(districtDataAssignment);
+			this.clazz = clazz;
+			this.columnName = columnName;
 			this.replaceValue = replaceValue;
 		}
 		
@@ -47,86 +86,206 @@ public class DistrictServices {
 			return string.replaceAll(replaceValue, "");
 		}
 		
-		public String getPaddedStringValue(String string) {
+		public String getStringValuePadded(String string) {
 			return string;
 		}
 		
-		public String getFeatureValue(GeoResult geoResult) {
-			return getStringValue( 
-					geoResult.getFeatures().iterator().next().getProperties().getNAMELSAD()
-				);
+		public T getObjectValue(GeoResult geoResult) {
+			T t = null;
+			
+			Constructor<T> constructor;
+			try {
+				constructor = clazz.getConstructor(String.class);
+				
+				t = constructor.newInstance(getStringValue( 
+						geoResult.getFeatures().iterator().next().getProperties().getNAMELSAD()
+				));
+			} catch (SecurityException e) {
+				e.printStackTrace();
+			} catch (NoSuchMethodException e) {
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();
+			}
+			
+			return t;
 		}
 		
-		public String getPaddedFeatureValue(GeoResult geoResult) {
-			return getPaddedStringValue(
-					geoResult.getFeatures().iterator().next().getProperties().getNAMELSAD()
-				);
+		@SuppressWarnings("unchecked")
+		public T getObjectValuePadded(GeoResult geoResult, Connect connect) {
+			try {
+				return (T) connect.getObject(clazz, columnName, getStringValuePadded(
+						geoResult.getFeatures().iterator().next().getProperties().getNAMELSAD()
+					));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return null;
 		}
 	}
 	
-	static class ElectionDistrictFeatureValue implements FeatureValue {
+	static class CountyFeatureValue extends GeoResultAdapter<County> {
+		public CountyFeatureValue() {
+			super(new CountyDistrictData());
+		}
+		
 		public String getStringValue(String string) {
 			return string;
 		}
 		
-		public String getPaddedStringValue(String string) {
-			return "Election District " + string;
+		public String getStringValuePadded(String string) {
+			return string;
 		}
 		
-		public String getFeatureValue(GeoResult geoResult) {
-			return getStringValue(
-					geoResult.getFeatures().iterator().next().getProperties().getED()
-				);
+		public County getObjectValue(GeoResult geoResult) {
+			return new County(getStringValue(
+					geoResult.getFeatures().iterator().next().getProperties().getNAMELSAD()
+				));
 		}
 		
-		public String getPaddedFeatureValue(GeoResult geoResult) {
-			return getPaddedStringValue(
-					geoResult.getFeatures().iterator().next().getProperties().getED()
-				);
+		public County getObjectValuePadded(GeoResult geoResult, Connect connect) {
+			return new County(getStringValuePadded(
+					geoResult.getFeatures().iterator().next().getProperties().getNAMELSAD()
+				));
 		}
 	}
 	
+	static class ElectionDistrictFeatureValue extends GeoResultAdapter<Election> {
+		public ElectionDistrictFeatureValue() {
+			super(new ElectionDistrictData());
+		}
+		
+		public String getStringValue(String string) {
+			return string;
+		}
+		
+		public String getStringValuePadded(String string) {
+			return "Election District " + string;
+		}
+		
+		public Election getObjectValue(GeoResult geoResult) {
+			return new Election(getStringValue(
+					geoResult.getFeatures().iterator().next().getProperties().getED()
+				));
+		}
+		
+		public Election getObjectValuePadded(GeoResult geoResult, Connect connect) {
+			return new Election(getStringValuePadded(
+					geoResult.getFeatures().iterator().next().getProperties().getED()
+				));
+		}
+	}
+	
+	/*
+	 * interface used to actually assign the georesult mapped object to a districtresponse
+	 */
+	static interface DistrictDataAssignment<T> {
+		public DistrictResponse assign(T value, DistrictResponse districtResponse);
+	}
+	
+	static class SenateDistrictData implements DistrictDataAssignment<Senate> {
+		public DistrictResponse assign(Senate senate, DistrictResponse districtResponse) {
+			districtResponse.setSenate(senate);
+			return districtResponse;
+		}
+	}
+	
+	static class AssemblyDistrictData  implements DistrictDataAssignment<Assembly> {
+		public DistrictResponse assign(Assembly assembly, DistrictResponse districtResponse) {
+			districtResponse.setAssembly(assembly);
+			return districtResponse;
+		}
+	}
+	
+	static class CongressionalDistrictData  implements DistrictDataAssignment<Congressional> {
+		public DistrictResponse assign(Congressional congressional, DistrictResponse districtResponse) {
+			districtResponse.setCongressional(congressional);
+			return districtResponse;
+		}
+	}
+	
+	static class ElectionDistrictData  implements DistrictDataAssignment<Election> {
+		public DistrictResponse assign(Election election, DistrictResponse districtResponse) {
+			districtResponse.setElection(election);
+			return districtResponse;
+		}
+	}
+	
+	static class CountyDistrictData  implements DistrictDataAssignment<County> {
+		public DistrictResponse assign(County county, DistrictResponse districtResponse) {
+			districtResponse.setCounty(county);
+			return districtResponse;
+		}
+	}
+	
+	/*
+	 * DistrictType enum used to store layer specific data and processing
+	 * in a single data structure..
+	 * 
+	 * ex.
+	 * 
+	 * //open database
+	 * Connect connect = new Connect();
+	 * // get or create point
+	 * Point point = ...;
+	 * //query geoserver with point
+	 * GeoResult gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.SENATE), point);
+	 * //get relevant senate data
+	 * Senate senate = DistrictType.SENATE.geoResultAdapter.getObjectValuePadded(gr, connect);
+	 * GeoResult gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.ASSEMBLY), point);
+	 * Assembly assembly = DistrictType.ASSEMBLY.geoResultAdapter.getObjectValuePadded(gr, connect);
+	 * 
+	 */
 	public static enum DistrictType {
 		ASSEMBLY		("assembly", "Assembly%20District%20",
-							new NAMELSADFeatureValue("Assembly District ")),
+							new NAMELSADFeatureValue<Assembly>(
+								new AssemblyDistrictData(), 
+								Assembly.class, 
+								"district", 
+								"Assembly District "
+							)
+						),
 							
 		CONGRESSIONAL	("congressional", "Congressional%20District%20",
-							new NAMELSADFeatureValue("Congressional District ")),
+							new NAMELSADFeatureValue<Congressional>(
+								new CongressionalDistrictData(), 
+								Congressional.class, 
+								"district", 
+								"Congressional District "
+							)
+						),
 							
 		COUNTY			("county", "",
-							new NAMELSADFeatureValue("")),
+							new CountyFeatureValue()
+						),
 							
 		ELECTION		("election", "",
-							new ElectionDistrictFeatureValue()),
+							new ElectionDistrictFeatureValue()
+						),
 							
 		SENATE			("senate", "State%20Senate%20District%20",
-							new NAMELSADFeatureValue("State Senate District "));
+							new NAMELSADFeatureValue<Senate>(
+								new SenateDistrictData(), 
+								Senate.class, 
+								"district", 
+								"State Senate District "
+							)
+						);
 		
 		public final String type;
 		public final String idQualifier;
-		public final FeatureValue featureValue;
+		public final GeoResultAdapter<?> geoResultAdapter;
 		
-		private DistrictType(String type, String idQualifier, FeatureValue featureValue) {
+		private DistrictType(String type, String idQualifier, GeoResultAdapter<?> geoResultAdapter) {
 			this.type = type;
 			this.idQualifier = idQualifier;
-			this.featureValue = featureValue;
-		}
-		
-		public String getValue(GeoResult geoResult) {
-			return getValue(geoResult, false);
-		}
-		
-		public String getPaddedValue(GeoResult geoResult) {
-			return getValue(geoResult, true);
-		}
-		
-		public String getValue(GeoResult geoResult, boolean padded) {
-			if(geoResult == null || geoResult.getFeatures().isEmpty()) return null;
-			
-			if(padded) {
-				return featureValue.getPaddedFeatureValue(geoResult);
-			}
-			return featureValue.getFeatureValue(geoResult);
+			this.geoResultAdapter = geoResultAdapter;
 		}
 		
 		public static DistrictType getDistrictType(String type) {
@@ -272,9 +431,9 @@ public class DistrictServices {
 			}
 		}
 
-		String data = districtType.featureValue.getFeatureValue(gr);
+		Senate senate = (Senate) districtType.geoResultAdapter.getObjectValue(gr);
 		
-		return getPolygon(points, data, format);
+		return getPolygon(points, senate.getDistrict(), format);
 	}
 	
 	/**
@@ -390,21 +549,6 @@ public class DistrictServices {
 		return out;
 	}
 	
-	static class Timer {
-		long t;
-		public void s() {
-			t = System.currentTimeMillis();
-		}
-		public double e() {
-			return (System.currentTimeMillis() - t)/1000.0;
-		}
-		public static Timer get() {
-			Timer t = new Timer();
-			t.s();
-			return t;
-		}
-	}
-	
 	public static DistrictResponse getDistrictsForBlueBird(String latlng) throws Exception {
 		String tuple[] = latlng.split(",");
 		
@@ -492,72 +636,37 @@ public class DistrictServices {
 	 * 
 	 * @returns xml or json string representation of data
 	 */
-	public static DistrictResponse districts(Point p, boolean padded) throws Exception {
-		Connect c = new Connect();
+	public static DistrictResponse districts(Point point, boolean padded) throws Exception {
+		Connect connect = new Connect();
 		DistrictResponse dr = new DistrictResponse();
 		GeoResult gr = null;
 		
-		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.COUNTY), p);
-		dr.setCounty(new County(DistrictType.COUNTY.getValue(gr)));
-		
-		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.ELECTION), p);
-		dr.setElection(new Election(DistrictType.ELECTION.getValue(gr, padded)));
-		
-		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.ASSEMBLY), p);
-		if(padded) {
-			dr.setAssembly((Assembly)c.getObject(Assembly.class,
-					"district",
-					DistrictType.ASSEMBLY.getPaddedValue(gr)));
-		}
-		else {
-			dr.setAssembly(new Assembly(DistrictType.ASSEMBLY.getValue(gr)));
+		for(DistrictType districtType: DistrictType.values()) {
+			gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(districtType), point);
+			dr = districtType.geoResultAdapter.assign(dr, gr, connect, padded);
 		}
 		
-		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.CONGRESSIONAL), p);
-		if(padded) {
-			dr.setCongressional((Congressional)c.getObject(Congressional.class,
-					"district",
-					DistrictType.CONGRESSIONAL.getPaddedValue(gr)));	
-		}
-		else {
-			dr.setCongressional(new Congressional(DistrictType.CONGRESSIONAL.getValue(gr)));	
-		}
-		
-		Senate senate = null;
-		
-		gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.SENATE), p);
-		if(padded) {
-			senate = (Senate)c.getObject(Senate.class,
-					"district",
-					DistrictType.SENATE.getPaddedValue(gr));
-		}
-		else {
-			senate = new Senate(DistrictType.SENATE.getValue(gr));
-		}
-		
-		List<Senate> nearbySenateDistricts = gsCon.getNearbySenateDistricts(senate.getDistrict(),
-				p, DistrictType.SENATE, CROSS_DISTANCE);
+		List<Senate> nearbySenateDistricts = gsCon.getNearbySenateDistricts(dr.getSenate().getDistrict(),
+				point, DistrictType.SENATE, CROSS_DISTANCE);
 		
 		if(nearbySenateDistricts != null && !nearbySenateDistricts.isEmpty()) {
 			if(!padded) {
 				for(int i = 0; i < nearbySenateDistricts.size(); i++) {
 					Senate nearby = nearbySenateDistricts.get(i);
-					nearby.setDistrict(DistrictType.SENATE.featureValue.getStringValue(nearby.getDistrict()));
+					nearby.setDistrict(DistrictType.SENATE.geoResultAdapter.getStringValue(nearby.getDistrict()));
 					nearby.setDistrictUrl(null);
 				}
 			}
 			
-			senate.setNearbyDistricts(nearbySenateDistricts);
+			dr.getSenate().setNearbyDistricts(nearbySenateDistricts);
 		}
 		
-		dr.setSenate(senate);
+		connect.close();		
 		
-		c.close();		
+		dr.setLat(point.lat);
+		dr.setLon(point.lon);
 		
-		dr.setLat(p.lat);
-		dr.setLon(p.lon);
-		
-		dr.setAddress(p.address);
+		dr.setAddress(point.address);
 		
 		return dr;
 	}
@@ -569,5 +678,114 @@ public class DistrictServices {
 			this.simple = simple;
 			this.extended = extended;
 		}
+	}
+	
+	
+	
+	
+	/*
+	 * currently districts are assigned serially by sending one api request to geoserver
+	 * after another. below is a prototype interface with a serial implementaion
+	 * as well as a parallel implementation which reduces query time by roughly 33%
+	 */
+	
+	interface DistrictAssign {
+		public DistrictResponse assignDistrictsToPoint(Point point, boolean padded) throws Exception;
+	}
+	
+	static class SerialDistrictAssign implements DistrictAssign {
+		public DistrictResponse assignDistrictsToPoint(Point point, boolean padded) throws Exception {
+			Connect connect = new Connect();
+			DistrictResponse dr = new DistrictResponse();
+			GeoResult gr = null;
+			
+			for(DistrictType districtType: DistrictType.values()) {
+				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(districtType), point);
+				dr = districtType.geoResultAdapter.assign(dr, gr, connect, padded);
+			}
+			
+			List<Senate> nearbySenateDistricts = gsCon.getNearbySenateDistricts(dr.getSenate().getDistrict(),
+					point, DistrictType.SENATE, CROSS_DISTANCE);
+			
+			if(nearbySenateDistricts != null && !nearbySenateDistricts.isEmpty()) {
+				if(!padded) {
+					for(int i = 0; i < nearbySenateDistricts.size(); i++) {
+						Senate nearby = nearbySenateDistricts.get(i);
+						nearby.setDistrict(DistrictType.SENATE.geoResultAdapter.getStringValue(nearby.getDistrict()));
+						nearby.setDistrictUrl(null);
+					}
+				}
+				
+				dr.getSenate().setNearbyDistricts(nearbySenateDistricts);
+			}
+			
+			connect.close();
+			
+			return dr;
+		}
+	}
+	
+	static class ParallelDistrictAssign implements DistrictAssign {
+		
+		private class ParallelAssign implements Runnable {
+			DistrictType type;
+			Point point;
+			DistrictResponse dr;
+			Connect connect;
+			boolean padded;
+			
+			public ParallelAssign(DistrictType type, Point point, DistrictResponse dr, Connect connect, boolean padded) {
+				this.type = type;
+				this.point = point;
+				this.dr = dr;
+				this.connect = connect;
+				this.padded = padded;
+			}
+			
+			public void run() {
+				GeoResult gr = null;
+				try {
+					gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(type), point);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				dr = type.geoResultAdapter.assign(dr, gr, connect, padded);
+			}
+		}
+		
+		public DistrictResponse assignDistrictsToPoint(Point point, boolean padded) throws Exception {
+			Connect connect = new Connect();
+			
+			ExecutorService executor = Executors.newFixedThreadPool(5);
+			
+			DistrictResponse dr = new DistrictResponse();
+			
+			for(DistrictType districtType: DistrictType.values()) {
+				executor.submit(new ParallelAssign(districtType, point, dr, connect, padded));
+			}
+			
+			executor.shutdown();
+			while(!executor.isTerminated());
+			
+			List<Senate> nearbySenateDistricts = gsCon.getNearbySenateDistricts(dr.getSenate().getDistrict(),
+					point, DistrictType.SENATE, CROSS_DISTANCE);
+			
+			if(nearbySenateDistricts != null && !nearbySenateDistricts.isEmpty()) {
+				if(!padded) {
+					for(int i = 0; i < nearbySenateDistricts.size(); i++) {
+						Senate nearby = nearbySenateDistricts.get(i);
+						nearby.setDistrict(DistrictType.SENATE.geoResultAdapter.getStringValue(nearby.getDistrict()));
+						nearby.setDistrictUrl(null);
+					}
+				}
+				
+				dr.getSenate().setNearbyDistricts(nearbySenateDistricts);
+			}
+			
+			connect.close();
+			
+			return dr;
+		}
+		
 	}
 }
