@@ -1,0 +1,2 @@
+module BulkGeosHelper
+end

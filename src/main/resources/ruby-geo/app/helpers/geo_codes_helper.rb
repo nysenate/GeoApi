@@ -1,0 +1,2 @@
+module GeoCodesHelper
+end
