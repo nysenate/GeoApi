@@ -136,29 +136,8 @@
   		<scope>compile</scope>
   	</dependency>
   	<dependency>
-  		<groupId>ws-commons-util</groupId>
-  		<artifactId>ws-commons-util</artifactId>
-  		<version>1.0.1</version>
-  		<type>jar</type>
-  		<scope>compile</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>ws-commons-util</groupId>
-  		<artifactId>ws-commons-util</artifactId>
-  		<version>1.0.1</version>
-  		<type>jar</type>
-  		<scope>compile</scope>
-  	</dependency>
-  	<dependency>
   		<groupId>xmlrpc</groupId>
   		<artifactId>xmlrpc-client</artifactId>
-  		<version>3.0</version>
-  		<type>jar</type>
-  		<scope>compile</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>xmlrpc</groupId>
-  		<artifactId>xmlrpc-common</artifactId>
   		<version>3.0</version>
   		<type>jar</type>
   		<scope>compile</scope>
