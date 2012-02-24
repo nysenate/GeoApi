@@ -86,10 +86,6 @@ public class ApiController {
 				}
 				else if(in.equals("default senate user")) {
 					new Connect().persist(new ApiUser(Resource.get("user.default"), "general", "everyone for now"));
-					new Connect().persist(new ApiUser(Resource.get("sheldon.default"), "sheldon", "nysenate stuff"));
-					new Connect().persist(new ApiUser(Resource.get("nathan.default"), "nathan", "mobile dev"));
-					new Connect().persist(new ApiUser(Resource.get("sts.default"), "sts", "financial apps and what not"));
-					new Connect().persist(new ApiUser(Resource.get("crm.default"), "crm", "for crm/bluebird"));
 				}
 				System.out.print("> ");
 			}

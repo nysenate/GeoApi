@@ -18,12 +18,12 @@ import javax.xml.bind.Unmarshaller;
  */
 public class USPSConnect {
 	
-	public static final String API_ID = "usps.id";
-	public static final String API_BASE = "usps.url";
-	public static final String API_FORMAT = "usps.format";
-	public static final String API_VERIFY = "usps.verify";
-	public static final String API_CITYSTATE = "usps.citystate";
-	public static final String API_ZIPCODE = "usps.zipcode";
+	public static final String API_ID = Resource.get("usps.key");
+	public static final String API_BASE = "http://production.shippingapis.com/ShippingAPI.dll?API=";
+	public static final String API_FORMAT = "&XML=";
+	public static final String API_VERIFY = "Verify";
+	public static final String API_CITYSTATE = "CityStateLookup";
+	public static final String API_ZIPCODE = "ZipCodeLookup";
 	
 	public static Object validateAddress(String addr1, String addr2, 
 			String city, String state, String zip5, String zip4, String punctuation) {
@@ -103,10 +103,10 @@ public class USPSConnect {
 	public static String constructAddressUrl(String addr1, String addr2, 
 				String city, String state, String zip5, String zip4) {
 		
-		return Resource.get(API_BASE)
-		+ Resource.get(API_VERIFY)
-		+ Resource.get(API_FORMAT)
-		+ "<AddressValidateRequest USERID=\"" + Resource.get(API_ID) + "\">"
+		return API_BASE
+		+ API_VERIFY
+		+ API_FORMAT
+		+ "<AddressValidateRequest USERID=\"" + API_ID + "\">"
 			+ "<Address ID=\"" + 0 + "\">"
 				+ "<Address1>" + isNull(addr1) + "</Address1>"
 				+ "<Address2>" + isNull(addr2) + "</Address2>"
@@ -143,10 +143,10 @@ public class USPSConnect {
 	}
 	
 	public static String constructCityStateUrl(String zip5) {
-		return Resource.get(API_BASE)
-			+ Resource.get(API_CITYSTATE)
-			+ Resource.get(API_FORMAT)
-			+ "<CityStateLookupRequest USERID=\"" + Resource.get(API_ID) + "\">"
+		return API_BASE
+			+ API_CITYSTATE
+			+ API_FORMAT
+			+ "<CityStateLookupRequest USERID=\"" + API_ID + "\">"
 				+ "<ZipCode ID=\"" + 0 + "\">"
 					+ "<Zip5>" + isNull(zip5) + "</Zip5>"
 				+ "</ZipCode>"
@@ -165,10 +165,10 @@ public class USPSConnect {
 	
 	public static String constructZipCodeUrl(String addr1, String addr2, String city, String state) {
 		
-		return Resource.get(API_BASE)
-		+ Resource.get(API_ZIPCODE)
-		+ Resource.get(API_FORMAT)
-		+ "<ZipCodeLookupRequest USERID=\"" + Resource.get(API_ID) + "\">"
+		return API_BASE
+		+ API_ZIPCODE
+		+ API_FORMAT
+		+ "<ZipCodeLookupRequest USERID=\"" + API_ID + "\">"
 			+ "<Address ID=\"" + 0 + "\">"
 				+ "<Address1>" + isNull(addr1) + "</Address1>"
 				+ "<Address2>" + isNull(addr2) + "</Address2>"

@@ -20,7 +20,7 @@ import java.util.List;
 public class YahooConnect extends ParseStream implements AbstractGeocoder,AbstractReverseGeocoder {
 	private final String YH_API = "http://where.yahooapis.com/geocode?q=";
 	private final String YH_KEY = "&appid=";
-	private final String YH_APPID = "yahoo.consumerkey";
+	private final String YH_APPID = Resource.get("yahoo.key");
 	private final String YH_REVERSE_API = "http://where.yahooapis.com/geocode?location=";
 	private final String YH_REVERSE_FLAGS = "&gflags=R";
 	static String PACKAGE = "generated.yahoo";
@@ -84,7 +84,7 @@ public class YahooConnect extends ParseStream implements AbstractGeocoder,Abstra
 				+ (lng.startsWith("-") ? lng : "+" + lng) 
 				+ YH_REVERSE_FLAGS 
 				+ YH_KEY
-				+ Resource.get(YH_APPID);
+				+ YH_APPID;
 		}
 		else {
 			return YH_REVERSE_API 
@@ -93,12 +93,12 @@ public class YahooConnect extends ParseStream implements AbstractGeocoder,Abstra
 				+ (lng.startsWith("-") ? lng : "+" + lng) 
 				+ YH_REVERSE_FLAGS 
 				+ YH_KEY
-				+ Resource.get(YH_APPID);
+				+ YH_APPID;
 		}
 	}
 
 	public String constructUrl(String value) {
-		return YH_API + value + YH_KEY + Resource.get(YH_APPID);
+		return YH_API + value + YH_KEY + YH_APPID;
 	}
 	
 	public String cleanUrl(String url) {
