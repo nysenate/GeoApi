@@ -84,9 +84,6 @@ public class ApiController {
 						System.out.println("proper format is: add user \"<name>\" \"<description>\" \"<key>\"");
 					}
 				}
-				else if(in.equals("default senate user")) {
-					new Connect().persist(new ApiUser(Resource.get("user.default"), "general", "everyone for now"));
-				}
 				System.out.print("> ");
 			}
 		}
