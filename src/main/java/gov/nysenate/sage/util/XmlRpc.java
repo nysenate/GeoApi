@@ -29,7 +29,7 @@ public class XmlRpc {
 
 	String SERVICES_URL = "http://www.nysenate.gov/services/xmlrpc";
 	String API_KEY = Resource.get("nysenate.key");
-	String BASE_URL = "nysenate.gov";
+	String DOMAIN = Resource.get("nysenate.domain");
 
 	String NODE_GET = "node.get";
 	String VIEWS_GET = "views.get";
@@ -121,7 +121,7 @@ public class XmlRpc {
 		
 		List<Object> params = new ArrayList<Object>();
 		params.add(hash);
-		params.add(BASE_URL);
+		params.add(DOMAIN);
 		params.add(time + "");
 		params.add(nonce);
 
@@ -165,7 +165,7 @@ public class XmlRpc {
 		
 			byte[] shaDigest = mac.doFinal(
 						(time + ";" +
-						BASE_URL + ";" +
+						DOMAIN + ";" +
 						nonce + ";" +
 						methodName).getBytes());
 			
