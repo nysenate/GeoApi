@@ -3,10 +3,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
+<script type="text/javascript" src="js/jquery.min.js"></script>
 <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script type="text/javascript" src="js/jquery.color.js"></script>
-<script type="text/javascript" src="js/js.js"></script>
+<script type="text/javascript" src="js/app.js"></script>
 
 <link href="/GeoApi/style.css" rel="stylesheet" type="text/css">
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
