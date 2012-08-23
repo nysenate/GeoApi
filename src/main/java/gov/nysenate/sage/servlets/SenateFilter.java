@@ -13,63 +13,40 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Jared Williams
- * 
+ *
  * filers application requests based on ip address and api requests based on ip
  * and api key
  */
 public class SenateFilter implements Filter {
-	
-	
-	//senate ip range
-	private final String IP_MATCH = "(10.\\d+.\\d+.\\d+|127.0.0.1|63.118.5[67].\\d+)";
 
-    public SenateFilter() {
+    private final String SENATE_IP_RANGE = "(10.\\d+.\\d+.\\d+|127.0.0.1|63.118.5[67].\\d+)";
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        // Requests from outside the SENATE_IP_RANGE are redirected unless they
+        //  a. Supply a key to an API request [key is validated elsewhere]
+        //  b. Are requesting a GeoAPI/maps/* resource
+        if (!request.getRemoteAddr().matches(SENATE_IP_RANGE)) {
+            String key = request.getParameter("key");
+            String uri = ((HttpServletRequest)request).getRequestURI();
+
+            if (uri.matches("(/GeoApi)?/api/.*") && key==null) {
+                ((HttpServletResponse)response).sendRedirect("http://www.nysenate.gov");
+                return;
+            }
+
+            if (!uri.matches("(/GeoApi)?(/maps/.*?)")) {
+                ((HttpServletResponse)response).sendRedirect("http://www.nysenate.gov");
+                return;
+            }
+        }
+
+        chain.doFilter(request, response);
     }
 
-	public void destroy() {
-	}
-	
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		String key = request.getParameter("key");
-		String host = request.getRemoteAddr();
-		boolean match = false;
-		
-		if(!host.matches(IP_MATCH)) {
-			match = false;
-		}
-		else {
-			match = true;
-		}
-		
-		String uri = ((HttpServletRequest)request).getRequestURI();
-		//if it does match we don't care what the credentials are
-		if(!match) {
-			//if the user is accessing the api, not the GUI
-			if(uri.matches("(/GeoApi)?/api/.*")) {
-				//if they're outside of the senate ip range and they don't have a key
-				//then they're probably not welcome (for now)
-				if(!match && key == null) {
-					((HttpServletResponse)response).sendRedirect("http://www.nysenate.gov");
-					return;
-				}
-				//using api, will be turned down if key incorrect
-			}
-			else {
-				//can include exceptions here, anything else will be redirected if not matching
-				if(uri.matches("(/GeoApi)?(/maps/.*?)")) {
-				
-				}
-				else {
-					((HttpServletResponse)response).sendRedirect("http://www.nysenate.gov");
-					return;
-				}
-			}
-		}
-		chain.doFilter(request, response);
-	}
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {}
 
-	public void init(FilterConfig filterConfig) throws ServletException {
-		
-	}
-
+    @Override
+    public void destroy() {}
 }
