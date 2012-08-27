@@ -12,7 +12,7 @@ public class Resource {
 	private final Properties properties = new Properties();
 
 	public Resource() throws IOException {
-	    properties.load(this.getClass().getClassLoader().getResourceAsStream("/app.properties"));
+	    properties.load(this.getClass().getClassLoader().getResourceAsStream("app.properties"));
 	}
 
 	public String fetch(String key) {

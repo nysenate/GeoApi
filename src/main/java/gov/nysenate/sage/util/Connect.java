@@ -407,18 +407,12 @@ public class Connect {
 		for(Field f:fields) {
 			if(f.getAnnotation(PersistentObject.class) != null) {
 				//skip, likely being processed elsewhere: (getObject(Class,String,Object,boolean))
+			} else if (f.getAnnotation(Ignore.class) != null) {
+			    // Skip ignored fields, I think
 			}
 			else {
 				Method m = clazz.getMethod(SET + fixFieldName(f.getName()), f.getType());
-
-				try {
-					m.invoke(o, (f.getType().equals(String.class) ? uncleanse((String)rs.getObject(f.getName().toLowerCase())):rs.getObject(f.getName().toLowerCase())));
-				}
-				catch (SQLException se) {
-					//occurs when a field is present that does not have
-					//an associated database column or entry
-					logger.warn(se);
-				}
+				m.invoke(o, (f.getType().equals(String.class) ? uncleanse((String)rs.getObject(f.getName().toLowerCase())):rs.getObject(f.getName().toLowerCase())));
 			}
 		}
 

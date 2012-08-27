@@ -34,7 +34,7 @@ public class GeoServer implements DistAssignInterface {
         logger = Logger.getLogger(this.getClass());
 
         COUNTY_CODES = new HashMap<Integer, Integer>();
-        File county_code_file = FileUtils.toFile(this.getClass().getClassLoader().getResource("/county_codes.tsv"));
+        File county_code_file = FileUtils.toFile(this.getClass().getClassLoader().getResource("county_codes.tsv"));
         @SuppressWarnings("unchecked")
         List<String> lines = FileUtils.readLines(county_code_file, "UTF-8");
         for (String line : lines) {

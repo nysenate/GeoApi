@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
 public class CongressScraper {
 	private final Logger logger = Logger.getLogger(CongressScraper.class);
 
-	private final String HOUSE_URL = "http://www.house.gov/house/MemberWWW_by_State.shtml";
+	private final String HOUSE_URL = "http://www.house.gov/representatives/";
 
 	public void index() throws IOException {
 		Connect connect = new Connect();

@@ -22,11 +22,6 @@ import org.jasypt.util.password.BasicPasswordEncryptor;
 import com.google.gson.Gson;
 
 public class ApiController {
-
-	private static final String DEFAULT_WRITE_DIRECTORY = Resource.get("json.directory");
-	private static final String DEFAULT_RAW_WRITE_DIRECTORY = Resource.get("json.raw_directory");
-	private static final String DEFAULT_ZOOM_PATH = Resource.get("json.zoom");
-
 	private final GeoServer geoserver;
 
 	public ApiController() throws Exception {
@@ -36,10 +31,12 @@ public class ApiController {
 	public static void main(String[] args) throws Exception {
 	    Connect db = new Connect();
 
-		if(args.length == 1) {
-			if(args[0].equals("regen")) {
-				ApiController a = new ApiController();
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		String in = "";
 
+		System.out.print("> ");
+		while(!(in = br.readLine()).equals("exit")) {
+			if(in.equals("create all")) {
 				System.out.println("indexing assembly... ");
 				new AssemblyScraper().index();
 				System.out.println("indexing congress... ");
@@ -47,51 +44,31 @@ public class ApiController {
 				System.out.print("indexing senate... ");
 				new NYSenateServices().index();
 				System.out.println();
-
-				a.writeJson(DEFAULT_WRITE_DIRECTORY, null, true);
-				a.writeJson(DEFAULT_RAW_WRITE_DIRECTORY, null, false);
 			}
-		}
-		else {
-			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-			String in = "";
-
+			else if(in.equals("create sen")) {
+				System.out.print("indexing senate... ");
+				new NYSenateServices().index();
+				System.out.println();
+			}
+			else if(in.equals("create ass")) {
+				System.out.println("indexing assembly... ");
+				new AssemblyScraper().index();
+			}
+			else if(in.equals("create con")) {
+				System.out.println("indexing congress... ");
+				new CongressScraper().index();
+			}
+			else if(in.startsWith("add user")) {
+				Pattern p = Pattern.compile("add user \"(.+?)\" \"(.+?)\" \"(.+?)\"");
+				Matcher m = p.matcher(in);
+				if(m.find()) {
+					System.out.println("key for user is... " + new ApiController().addUser(m.group(3), m.group(1), m.group(2), db));
+				}
+				else {
+					System.out.println("proper format is: add user \"<name>\" \"<description>\" \"<key>\"");
+				}
+			}
 			System.out.print("> ");
-			while(!(in = br.readLine()).equals("exit")) {
-				if(in.equals("create all")) {
-					System.out.println("indexing assembly... ");
-					new AssemblyScraper().index();
-					System.out.println("indexing congress... ");
-					new CongressScraper().index();
-					System.out.print("indexing senate... ");
-					new NYSenateServices().index();
-					System.out.println();
-				}
-				else if(in.equals("create sen")) {
-					System.out.print("indexing senate... ");
-					new NYSenateServices().index();
-					System.out.println();
-				}
-				else if(in.equals("create ass")) {
-					System.out.println("indexing assembly... ");
-					new AssemblyScraper().index();
-				}
-				else if(in.equals("create con")) {
-					System.out.println("indexing congress... ");
-					new CongressScraper().index();
-				}
-				else if(in.startsWith("add user")) {
-					Pattern p = Pattern.compile("add user \"(.+?)\" \"(.+?)\" \"(.+?)\"");
-					Matcher m = p.matcher(in);
-					if(m.find()) {
-						System.out.println("key for user is... " + new ApiController().addUser(m.group(3), m.group(1), m.group(2), db));
-					}
-					else {
-						System.out.println("proper format is: add user \"<name>\" \"<description>\" \"<key>\"");
-					}
-				}
-				System.out.print("> ");
-			}
 		}
 		db.close();
 	}
@@ -117,13 +94,7 @@ public class ApiController {
 	 * used to write the json used for maps and for raw data
 	 */
 	public void writeJson(String writeDirectory, String zoomPath, boolean geo) throws Exception {
-		if(writeDirectory == null)
-			writeDirectory = DEFAULT_WRITE_DIRECTORY;
-		if(zoomPath == null)
-			zoomPath = DEFAULT_ZOOM_PATH;
-
 		Connect c = new Connect();
-
 		Gson gson = new Gson();
 
 		HashMap<Integer,String> map = new HashMap<Integer,String>();
