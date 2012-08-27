@@ -1,25 +1,28 @@
 package gov.nysenate.sage.model.districts;
 
+import gov.nysenate.sage.Response;
+
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("districts")
-public class DistrictResponse {
+public class DistrictResponse extends Response {
 	double lat;
 	double lon;
-	
+
 	Object address;
-	
+
 	Assembly assembly;
 	Congressional congressional;
 	County county;
 	Election election;
 	Senate senate;
-	
-	
+	School school;
+	Town town;
+
 	//Census census;
-	
+
 	public DistrictResponse() {
-		
+
 	}
 
 	public double getLat() {
@@ -53,7 +56,15 @@ public class DistrictResponse {
 	public Senate getSenate() {
 		return senate;
 	}
-	
+
+	public School getSchool() {
+	    return school;
+	}
+
+	public Town getTown() {
+	    return town;
+	}
+
 	/*public Census getCensus() {
 		return census;
 	}
@@ -89,12 +100,19 @@ public class DistrictResponse {
 	public void setSenate(Senate senate) {
 		this.senate = senate;
 	}
-	
-	
+
+	public void setSchool(School school) {
+	    this.school = school;
+	}
+
+	public void setTown(Town town) {
+	    this.town = town;
+	}
+
 	/*public void setCensus(Census census) {
 		this.census = census;
 	}*/
-	
 
-	
+
+
 }
