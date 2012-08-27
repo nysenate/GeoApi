@@ -93,12 +93,12 @@ public class ApiController {
 	/*
 	 * used to write the json used for maps and for raw data
 	 */
-	public void writeJson(String writeDirectory, String zoomPath, boolean geo) throws Exception {
+	public void writeJson(File writeDirectory, File zoomFile, boolean geo) throws Exception {
 		Connect c = new Connect();
 		Gson gson = new Gson();
 
 		HashMap<Integer,String> map = new HashMap<Integer,String>();
-		BufferedReader br = new BufferedReader(new FileReader(new File(zoomPath)));
+		BufferedReader br = new BufferedReader(new FileReader(zoomFile));
 
 		String in = null;
 
@@ -108,8 +108,8 @@ public class ApiController {
 		br.close();
 
 		for(int i = 1; i <= 62; i++) {
-			FileWriter fw = new FileWriter(writeDirectory + "/sd" + i + ".json");
-			new File(writeDirectory + "/sd" + i + ".json").createNewFile();
+			FileWriter fw = new FileWriter(new File(writeDirectory,"/sd" + i + ".json"));
+			new File(writeDirectory, "/sd" + i + ".json").createNewFile();
 
 			PrintWriter pw = new PrintWriter(fw);
 
