@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.jasypt.util.password.BasicPasswordEncryptor;
 
 import com.google.gson.Gson;
@@ -97,19 +98,18 @@ public class ApiController {
 		Connect c = new Connect();
 		Gson gson = new Gson();
 
+	    String in;
 		HashMap<Integer,String> map = new HashMap<Integer,String>();
 		BufferedReader br = new BufferedReader(new FileReader(zoomFile));
-
-		String in = null;
-
 		while((in = br.readLine()) != null) {
 			map.put(new Integer(in.split(":")[0]), in.split(":")[1]);
 		}
 		br.close();
 
+		FileUtils.forceMkdir(writeDirectory);
+
 		for(int i = 1; i <= 62; i++) {
 			FileWriter fw = new FileWriter(new File(writeDirectory,"/sd" + i + ".json"));
-			new File(writeDirectory, "/sd" + i + ".json").createNewFile();
 
 			PrintWriter pw = new PrintWriter(fw);
 
