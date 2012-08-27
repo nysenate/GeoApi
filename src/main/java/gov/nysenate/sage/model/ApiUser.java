@@ -1,15 +1,14 @@
 package gov.nysenate.sage.model;
 
-import gov.nysenate.sage.model.annotations.Ignore;
 
 public class ApiUser {
-	@Ignore Integer id;
+	Integer id;
 	String apiKey;
 	String name;
 	String description;
-	
+
 	public ApiUser() {
-		
+
 	}
 
 	public ApiUser(String apiKey, String name, String description) {
@@ -21,7 +20,7 @@ public class ApiUser {
 	public Integer getId() {
 		return id;
 	}
-	
+
 	public String getApiKey() {
 		return apiKey;
 	}
@@ -33,7 +32,7 @@ public class ApiUser {
 	public String getDescription() {
 		return description;
 	}
-	
+
 	public void setId(Integer id) {
 		this.id = id;
 	}
@@ -49,5 +48,5 @@ public class ApiUser {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	
+
 }
