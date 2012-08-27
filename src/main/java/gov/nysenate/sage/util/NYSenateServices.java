@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.districts.Senate;
 import gov.nysenate.sage.model.districts.Senator;
 import gov.nysenate.sage.model.districts.Social;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,32 +18,32 @@ import org.apache.log4j.Logger;
 
 @SuppressWarnings("unchecked")
 public class NYSenateServices {
-	
-	private Logger logger = Logger.getLogger(NYSenateServices.class);
-	
-	public void index() {
+
+	private final Logger logger = Logger.getLogger(NYSenateServices.class);
+
+	public void index() throws IOException {
 		Connect connect = new Connect();
-		
+
 		List<Senate> senators = getSenators();
-		
+
 		if(senators != null && !senators.isEmpty()) {
 			try {
 				connect.deleteObjects(Senate.class, true);
 			} catch (Exception e) {
 				logger.warn(e);
 			}
-			
+
 			for(Senate s:senators) {
 				connect.persist(s);
 			}
 		}
-		
+
 		connect.close();
 	}
-	
+
 	public List<Senate> getSenators() {
 		List<Senate> ret = new ArrayList<Senate>();
-		
+
 		XmlRpc rpc = new XmlRpc();
 
 		Object[] objects = (Object[])rpc.getView("senators", null, null,
@@ -58,12 +59,12 @@ public class NYSenateServices {
 			HashMap<String,Object> map = (HashMap<String,Object>)o;
 
 			String sid = (String)map.get("nid");
-			String did = (String)map.get("node_data_field_status_field_senators_district_nid"); 
+			String did = (String)map.get("node_data_field_status_field_senators_district_nid");
 			String name = (String)map.get("node_title");
 
 			/*District Node*/
 			HashMap<String,Object> disNode = (HashMap<String,Object>) rpc.getNode(new Integer(did));
-						
+
 			HashMap<String,Object> dNumberMap =	rpc.getMap(disNode.get("field_district_number"));
 			String dNumber ="State Senate District " + (String)dNumberMap.get("value");
 
@@ -101,10 +102,10 @@ public class NYSenateServices {
 
 			social = new Social(sFacebook, sTwitter, sYoutube, sFlickr, sPath +
 			"/content/feed");
-			
+
 			/* Senator Offices */
 			Object[] locations = (Object[])senNode.get("locations");
-			for(Object location:locations) { 
+			for(Object location:locations) {
 				HashMap<String,Object> sLocationMap = (HashMap<String,Object>)location;
 
 				String sStreet = (String)sLocationMap.get("street");
@@ -116,12 +117,12 @@ public class NYSenateServices {
 				String sName = (String)sLocationMap.get("name");
 				String sPhone = (String)sLocationMap.get("phone");
 				String sFax = (String)sLocationMap.get("fax");
-				
+
 				if(sLatitude.startsWith("0") || sLongitude.startsWith("0")) {
 					logger.warn("Senator " + name + " contains a bad office record");
 					continue;
 				}
-				
+
 				offices.add(new Office(sStreet, sCity, sProvince, sPostalCode, new
 					Double(sLongitude), new Double(sLatitude), sName, sPhone, sFax));
 			}
@@ -129,9 +130,9 @@ public class NYSenateServices {
 			senator = new Senator(name, sEmail, sPath, sPicture, social, offices);
 
 			senate = new Senate(dNumber, dPath, senator);
-			
+
 			logger.info("Adding senator " + name + " with " + offices.size() + " offices");
-			
+
 			ret.add(senate);
 		}
 		return ret;

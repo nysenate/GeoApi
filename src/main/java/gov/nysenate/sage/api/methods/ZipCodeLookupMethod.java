@@ -1,33 +1,53 @@
 package gov.nysenate.sage.api.methods;
 
+import gov.nysenate.sage.Address;
+import gov.nysenate.sage.Response;
+import gov.nysenate.sage.Result;
+import gov.nysenate.sage.api.exceptions.ApiException;
+import gov.nysenate.sage.api.exceptions.ApiInternalException;
+import gov.nysenate.sage.api.exceptions.ApiTypeException;
+import gov.nysenate.sage.model.ApiExecution;
+import gov.nysenate.sage.model.ErrorResponse;
+import gov.nysenate.sage.model.ValidateResponse;
+import gov.nysenate.sage.service.AddressService;
+
 import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import gov.nysenate.sage.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.connectors.USPSConnect;
-import gov.nysenate.sage.model.ApiExecution;
-
 public class ZipCodeLookupMethod extends ApiExecution {
-	@Override
-	public Object execute(HttpServletRequest request,
-			HttpServletResponse response, ArrayList<String> more) throws ApiTypeException {
-		
-		Object ret = null;		
-		String type = more.get(RequestCodes.TYPE.code());
-		
+    AddressService addressService;
 
-		if(type.equals("extended")) {
-			ret = USPSConnect.getZipByAddress(request.getParameter("addr1"), 
-					request.getParameter("addr2"), 
-					request.getParameter("city"), 
-					request.getParameter("state"));
-		}
-		else {
-			throw new ApiTypeException(type);
-		}
-		
-		return ret;
+    public ZipCodeLookupMethod() throws Exception {
+        addressService = new AddressService();
+    }
+
+	@Override
+	public Response execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiException {
+		String type = more.get(RequestCodes.TYPE.code());
+		if(!type.equals("extended"))
+		    throw new ApiTypeException(type);
+
+        Result result = addressService.validate(new Address(
+            request.getParameter("addr1"),
+            request.getParameter("addr2"),
+            request.getParameter("city"),
+            request.getParameter("state"),
+            "",
+            ""
+        ),"usps");
+
+        if (result==null) {
+            throw new ApiInternalException();
+        } else if (result.status_code.equals("0")) {
+            return new ValidateResponse(result.address);
+        } else {
+            String msg = "";
+            for (String m : result.messages) {
+                msg += "\n"+m;
+            }
+            return new ErrorResponse(msg.toString());
+        }
 	}
 }

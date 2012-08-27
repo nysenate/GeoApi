@@ -1,13 +1,11 @@
 package gov.nysenate.sage.util;
 
-import generated.geoserver.json.GeoResult;
-import gov.nysenate.sage.connectors.GeoServerConnect;
-import gov.nysenate.sage.connectors.DistrictServices.DistrictType;
-import gov.nysenate.sage.connectors.GeoServerConnect.WFS_REQUEST;
+import gov.nysenate.sage.Result;
+import gov.nysenate.sage.adapter.GeoServer;
 import gov.nysenate.sage.model.ApiUser;
-import gov.nysenate.sage.model.Metric;
 import gov.nysenate.sage.model.SenateMapInfo;
 import gov.nysenate.sage.model.districts.Senate;
+import gov.nysenate.sage.service.DistrictService;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,16 +22,24 @@ import org.jasypt.util.password.BasicPasswordEncryptor;
 import com.google.gson.Gson;
 
 public class ApiController {
-	
+
 	private static final String DEFAULT_WRITE_DIRECTORY = Resource.get("json.directory");
 	private static final String DEFAULT_RAW_WRITE_DIRECTORY = Resource.get("json.raw_directory");
 	private static final String DEFAULT_ZOOM_PATH = Resource.get("json.zoom");
 
+	private final GeoServer geoserver;
+
+	public ApiController() throws Exception {
+	    geoserver = new GeoServer();
+	}
+
 	public static void main(String[] args) throws Exception {
+	    Connect db = new Connect();
+
 		if(args.length == 1) {
 			if(args[0].equals("regen")) {
 				ApiController a = new ApiController();
-				
+
 				System.out.println("indexing assembly... ");
 				new AssemblyScraper().index();
 				System.out.println("indexing congress... ");
@@ -41,7 +47,7 @@ public class ApiController {
 				System.out.print("indexing senate... ");
 				new NYSenateServices().index();
 				System.out.println();
-								
+
 				a.writeJson(DEFAULT_WRITE_DIRECTORY, null, true);
 				a.writeJson(DEFAULT_RAW_WRITE_DIRECTORY, null, false);
 			}
@@ -49,7 +55,7 @@ public class ApiController {
 		else {
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 			String in = "";
-			
+
 			System.out.print("> ");
 			while(!(in = br.readLine()).equals("exit")) {
 				if(in.equals("create all")) {
@@ -78,7 +84,7 @@ public class ApiController {
 					Pattern p = Pattern.compile("add user \"(.+?)\" \"(.+?)\" \"(.+?)\"");
 					Matcher m = p.matcher(in);
 					if(m.find()) {
-						System.out.println("key for user is... " + new ApiController().addUser(m.group(3), m.group(1), m.group(2)));
+						System.out.println("key for user is... " + new ApiController().addUser(m.group(3), m.group(1), m.group(2), db));
 					}
 					else {
 						System.out.println("proper format is: add user \"<name>\" \"<description>\" \"<key>\"");
@@ -87,51 +93,26 @@ public class ApiController {
 				System.out.print("> ");
 			}
 		}
+		db.close();
 	}
-	
-	public boolean addMetric(int userId, String command, String host) {		
-		Connect con = new Connect();
-		
-		boolean ret = con.persist(new Metric(userId, command, host));
-		
-		con.close();
-		
-		return ret;
-	}
-	
-	public String addUser(String apiKey, String name, String description) {
-		Connect con = new Connect();
-		
-		BasicPasswordEncryptor pe = new BasicPasswordEncryptor();
-		String ep = pe.encryptPassword(apiKey);
-		ep = ep.replaceAll("\\W", "");
-		
-		con.persist(new ApiUser(ep, name, description));
-		
-		con.close();
-		
-		return ep;
-	}
-	
-	public ApiUser getUser(String apiKey) {
-		Connect con = new Connect();
-		ApiUser user = null;
-		try {
-			
-			user = (ApiUser) con.getObject(ApiUser.class, "apikey",apiKey);
-			
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-			
-		}
-		
-		con.close();
-		
-		return user;
-	}
-	
-	
+
+    public String addUser(String apiKey, String name, String description, Connect db) {
+        BasicPasswordEncryptor pe = new BasicPasswordEncryptor();
+        String ep = pe.encryptPassword(apiKey).replaceAll("\\W", "");
+        db.persist(new ApiUser(ep, name, description));
+        return ep;
+    }
+
+    public ApiUser getUser(String apiKey, Connect db) {
+        ApiUser user = null;
+        try {
+            user = (ApiUser) db.getObject(ApiUser.class, "apikey",apiKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return user;
+    }
+
 	/*
 	 * used to write the json used for maps and for raw data
 	 */
@@ -140,63 +121,54 @@ public class ApiController {
 			writeDirectory = DEFAULT_WRITE_DIRECTORY;
 		if(zoomPath == null)
 			zoomPath = DEFAULT_ZOOM_PATH;
-		
+
 		Connect c = new Connect();
-		
+
 		Gson gson = new Gson();
-		
-		GeoServerConnect gsCon = new GeoServerConnect();
-		
+
 		HashMap<Integer,String> map = new HashMap<Integer,String>();
 		BufferedReader br = new BufferedReader(new FileReader(new File(zoomPath)));
-		
+
 		String in = null;
-		
+
 		while((in = br.readLine()) != null) {
 			map.put(new Integer(in.split(":")[0]), in.split(":")[1]);
 		}
 		br.close();
-		
+
 		for(int i = 1; i <= 62; i++) {
 			FileWriter fw = new FileWriter(writeDirectory + "/sd" + i + ".json");
 			new File(writeDirectory + "/sd" + i + ".json").createNewFile();
-			
+
 			PrintWriter pw = new PrintWriter(fw);
-			
-			WFS_REQUEST sen = gsCon.new WFS_REQUEST(DistrictType.SENATE);
-			
-			GeoResult gr = gsCon.fromGeoserver(sen,"State Senate District " + i);
-			
-			double lat = new Double(gr.getFeatures().iterator().next().getProperties().getINTPTLAT());
-			double lon = new Double(gr.getFeatures().iterator().next().getProperties().getINTPTLON());
-			
+
+			Result result = geoserver.lookupByName("State Senate District " + i, DistrictService.TYPE.SENATE);
+			SenateMapInfo smi;
 			Senate senate = (Senate) c.getObject(Senate.class, "district", "State Senate District " + i);
-			
+
 			Pattern p = Pattern.compile("(\\d+) \\((.*?),(.*?)\\)");
 			Matcher m = p.matcher(map.get(i));
-			
+
 			if(m.find()) {
-				SenateMapInfo smi = new SenateMapInfo(lat,lon,
+				smi = new SenateMapInfo(
+				        result.address.latitude,
+				        result.address.longitude,
 						new Double(m.group(1)),
 						new Double(m.group(2)),
 						new Double(m.group(3)),senate);
-				
-				if(geo)
-					pw.write(gson.toJson(smi));
-				else
-					pw.write(gson.toJson(senate));
-				
 			}
 			else {
-				SenateMapInfo smi = new SenateMapInfo(lat,lon,
+				smi = new SenateMapInfo(
+				        result.address.latitude,
+                        result.address.longitude,
 						new Double(map.get(i)),null,null,senate);
-				
-				if(geo)
-					pw.write(gson.toJson(smi));
-				else
-					pw.write(gson.toJson(senate));
 			}
-						
+
+            if(geo)
+                pw.write(gson.toJson(smi));
+            else
+                pw.write(gson.toJson(senate));
+
 			pw.close();
 		}
 	}

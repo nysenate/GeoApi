@@ -1,7 +1,6 @@
 package gov.nysenate.sage.util;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -10,23 +9,22 @@ import java.util.Properties;
  *	to be accessed from both the servlet and non-servlet context
  */
 public class Resource {
-	private static Properties properties;
+	private final Properties properties = new Properties();
 
-	private static Properties load() {
-		try {
-			if(properties == null) {
-				properties = new Properties();
-				properties.load(new FileInputStream(new File("app.properties")));
-			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			properties = null;
-		}
-		return properties;
+	public Resource() throws IOException {
+	    properties.load(this.getClass().getClassLoader().getResourceAsStream("/app.properties"));
+	}
+
+	public String fetch(String key) {
+        return properties.getProperty(key);
 	}
 
 	public static String get(String key) {
-		return load().getProperty(key);
+	    try {
+	        return new Resource().fetch(key);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return null;
+	    }
 	}
 }

@@ -12,25 +12,21 @@ import javax.servlet.http.HttpServletResponse;
 
 public class RevGeoMethod extends ApiExecution {
 	@Override
-	public Object execute(HttpServletRequest request,
-			HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
-				
-		Object ret = null;		
-		String service = request.getParameter("service");
+	public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
+
 		String type = more.get(RequestCodes.TYPE.code());
-		
-		if(type.equals("latlon")) {
-			try {
-				ret = GeoCode.getReverseGeoCodedResponse(more.get(RequestCodes.LATLON.code()), service);
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-				throw new ApiInternalException();
-			}
+		if(!type.equals("latlon"))
+		    throw new ApiTypeException(type);
+
+		try {
+		    Object ret = null;
+		    String service = request.getParameter("service");
+			ret = GeoCode.getReverseGeoCodedResponse(more.get(RequestCodes.LATLON.code()), service);
+			return ret;
 		}
-		else  {
-			throw new ApiTypeException(type);
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new ApiInternalException();
 		}
-		return ret;
 	}
 }

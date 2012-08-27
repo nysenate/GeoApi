@@ -5,19 +5,31 @@ import gov.nysenate.sage.api.exceptions.ApiCommandException;
 import gov.nysenate.sage.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.api.methods.MethodLoader;
+import gov.nysenate.sage.api.methods.BluebirdMethod;
+import gov.nysenate.sage.api.methods.CityStateLookupMethod;
+import gov.nysenate.sage.api.methods.DistrictsMethod;
+import gov.nysenate.sage.api.methods.GeoCodeMethod;
+import gov.nysenate.sage.api.methods.PolyMethod;
+import gov.nysenate.sage.api.methods.PolySearchMethod;
+import gov.nysenate.sage.api.methods.RevGeoMethod;
+import gov.nysenate.sage.api.methods.StreetLookupMethod;
+import gov.nysenate.sage.api.methods.ValidateMethod;
+import gov.nysenate.sage.api.methods.ZipCodeLookupMethod;
 import gov.nysenate.sage.model.ApiMethod;
 import gov.nysenate.sage.model.ApiUser;
 import gov.nysenate.sage.model.ErrorResponse;
+import gov.nysenate.sage.model.Metric;
+import gov.nysenate.sage.model.Point;
 import gov.nysenate.sage.model.ValidateResponse;
-import gov.nysenate.sage.model.abstracts.AbstractApiExecute;
+import gov.nysenate.sage.model.districts.DistrictResponse;
 import gov.nysenate.sage.util.ApiController;
+import gov.nysenate.sage.util.Connect;
 import gov.nysenate.sage.util.Resource;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
@@ -35,7 +47,7 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class ApiServlet extends HttpServlet {
     private final Logger logger = Logger.getLogger(ApiServlet.class);
-
+    private Resource APP_CONFIG;
     private static final long serialVersionUID = 1L;
 
     HashMap<String,ApiMethod> methods = null;
@@ -45,22 +57,23 @@ public class ApiServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         logger.info("Initializing ApiServlet");
 
-        super.init(config);
-        methods = MethodLoader.getMethods();
-        control = new ApiController();
+        try {
+            super.init(config);
+            APP_CONFIG = new Resource();
+            methods = getMethods();
+            control = new ApiController();
+        } catch (Exception e) {
+            throw new ServletException(e);
+        }
 
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         PrintWriter out = response.getWriter();
-
-        String uri = java.net.URLDecoder.decode(request.getRequestURI(),"utf-8");
-
+        Connect db = new Connect();
+        String uri = java.net.URLDecoder.decode(request.getRequestURI(),"utf-8").toLowerCase().replaceAll("(/geoapi/|api/)", "");
         logger.info("Request URI: " + uri);
-
-        uri = uri.toLowerCase().replaceAll("(/geoapi/|api/)", "");
 
         StringTokenizer stok = new StringTokenizer(uri,"/");
 
@@ -72,9 +85,10 @@ public class ApiServlet extends HttpServlet {
         try {
             ApiUser user = null;
             if(key == null)
-                user = control.getUser(Resource.get("user.default"));
+                user = control.getUser(APP_CONFIG.fetch("user.default"),db);
             else
-                user = control.getUser(key);
+                user = control.getUser(key,db);
+
             if(user == null)
                 throw new ApiAuthenticationException();
 
@@ -84,35 +98,27 @@ public class ApiServlet extends HttpServlet {
 
             ApiMethod method = null;
             if((method = methods.get(command)) != null ) {
-                if(!method.validFormat(format))
+                if(!method.outputFormats.contains(format))
                     throw new ApiFormatException(format);
 
-                if(!method.validType(type))
+                if(!method.inputTypes.contains(type))
                     throw new ApiTypeException(type);
 
-                AbstractApiExecute executionClass = method.getInstanceOfExecutionClass();
-                Object obj = executionClass.execute(request, response, getMore(format, type, stok));
+                Object obj = method.executor.execute(request, response, getMore(format, type, stok));
 
-                if(obj == null) {
+                if(obj == null)
                     throw new ApiInternalException();
-                }
-                else {
-                    if(format.equals("xml")) {
-                        out.print(executionClass.toXml(obj, method.getXstreamClasses()));
-                    }
-                    else if(format.equals("json")) {
-                        out.print(executionClass.toJson(obj));
-                    }
-                    else {
-                        out.print(executionClass.toOther(obj, format));
-                    }
+
+                if(format.equals("xml")) {
+                    out.print(method.executor.toXml(obj, method.xstreamClasses));
+                } else if(format.equals("json")) {
+                    out.print(method.executor.toJson(obj));
+                } else {
+                    out.print(method.executor.toOther(obj, format));
                 }
 
-
-                if(method.getWriteMetric()) {
-                    logger.info("writing metric");
-
-                    control.addMetric(user.getId(), constructUrl(uri, request), request.getRemoteAddr());
+                if(method.writeMetric) {
+                    addMetric(user.getId(), request.getRequestURL()+"?"+request.getQueryString(), request.getRemoteAddr(), db);
                 }
             }
             else {
@@ -139,10 +145,13 @@ public class ApiServlet extends HttpServlet {
             logger.warn(aae);
         }
         catch (Exception e) {
-            out.write(getError("error", "Invalid request " + constructUrl(uri, request)
+            out.write(getError("error", "Invalid request " + request.getRequestURL()+"?"+request.getQueryString()
                     + ", please check that your input is properly formatted " +
                             "and review the API documentation.", format));
             logger.warn(e);
+            e.printStackTrace();
+        } finally {
+            db.close();
         }
     }
 
@@ -170,16 +179,6 @@ public class ApiServlet extends HttpServlet {
 
     }
 
-    public String constructUrl(String uri, HttpServletRequest req) {
-        String ret = uri + "?";
-        Enumeration<?> params = req.getParameterNames();
-        while(params.hasMoreElements()) {
-            String elem = (String)params.nextElement();
-            ret += elem + "=" + req.getParameter(elem) + "&";
-        }
-        return ret.replaceAll("&$", "");
-    }
-
     public ArrayList<String> getMore(String format, String type, StringTokenizer stok) {
         ArrayList<String> strings = new ArrayList<String>();
         strings.add(format);
@@ -191,4 +190,87 @@ public class ApiServlet extends HttpServlet {
     }
 
 
+    public boolean addMetric(int userId, String command, String host, Connect db) {
+        logger.info("writing metric");
+        boolean ret = db.persist(new Metric(userId, command, host));
+        db.close();
+        return ret;
+    }
+
+
+    @SuppressWarnings({ "unchecked", "serial" })
+    public static HashMap<String, ApiMethod> getMethods() throws Exception {
+        return new HashMap<String, ApiMethod>() {{
+
+            put("geocode", new ApiMethod("geocode",
+                new GeoCodeMethod(),
+                false,
+                new ArrayList<String>(Arrays.asList("addr", "extended", "bulk")),
+                new ArrayList<String>(Arrays.asList("csv", "json", "xml")),
+                new ArrayList<Class<? extends Object>>(Arrays.asList(Point.class))));
+
+            put("revgeo", new ApiMethod("revgeo",
+                new RevGeoMethod(),
+                true,
+                new ArrayList<String>(Arrays.asList("latlon")),
+                new ArrayList<String>(Arrays.asList("json", "xml")),
+                new ArrayList<Class<? extends Object>>(Arrays.asList(Point.class))));
+
+            put("districts", new ApiMethod("districts",
+                new DistrictsMethod(),
+                true,
+                new ArrayList<String>(Arrays.asList("addr", "extended","latlon")),
+                new ArrayList<String>(Arrays.asList("json","xml")),
+                new ArrayList<Class<? extends Object>>(Arrays.asList(DistrictResponse.class, Point.class))));
+
+            put("validate", new ApiMethod("validate",
+                new ValidateMethod(),
+                true,
+                new ArrayList<String>(Arrays.asList("extended")),
+                new ArrayList<String>(Arrays.asList("json", "xml")),
+                new ArrayList<Class<? extends Object>>(Arrays.asList(ValidateResponse.class, ErrorResponse.class))));
+
+            put("poly", new ApiMethod("poly",
+                new PolyMethod(),
+                true,
+                new ArrayList<String>(Arrays.asList("senate", "assembly","congressional")),
+                new ArrayList<String>(Arrays.asList("json", "kml", "xml")),
+                null));
+
+            put("polysearch", new ApiMethod("polysearch",
+                new PolySearchMethod(),
+                true,
+                new ArrayList<String>(Arrays.asList("senate", "assembly","congressional", "election", "county")),
+                new ArrayList<String>(Arrays.asList("json", "kml", "xml")),
+                null));
+
+            put("citystatelookup", new ApiMethod("citystatelookup",
+                new CityStateLookupMethod(),
+                true,
+                new ArrayList<String>(Arrays.asList("extended")),
+                new ArrayList<String>(Arrays.asList("json", "xml")),
+                new ArrayList<Class<? extends Object>>(Arrays.asList(ValidateResponse.class, ErrorResponse.class))));
+
+            put("zipcodelookup", new ApiMethod("zipcodelookup",
+                new ZipCodeLookupMethod(),
+                true,
+                new ArrayList<String>(Arrays.asList("extended")),
+                new ArrayList<String>(Arrays.asList("json", "xml")),
+                new ArrayList<Class<? extends Object>>(Arrays.asList(ValidateResponse.class, ErrorResponse.class))));
+
+            put("streetlookup", new ApiMethod("streetlookup",
+                new StreetLookupMethod(),
+                true,
+                new ArrayList<String>(Arrays.asList("zip")),
+                new ArrayList<String>(Arrays.asList("json", "xml")),
+                new ArrayList<Class<? extends Object>>()));
+
+            put("bluebirddistricts", new ApiMethod("bluebirddistricts",
+                new BluebirdMethod(),
+                true,
+                new ArrayList<String>(Arrays.asList("addr", "extended","latlon")),
+                new ArrayList<String>(Arrays.asList("json","xml")),
+                new ArrayList<Class<? extends Object>>(Arrays.asList(DistrictResponse.class, Point.class, ValidateResponse.class))));
+        }};
+    }
 }

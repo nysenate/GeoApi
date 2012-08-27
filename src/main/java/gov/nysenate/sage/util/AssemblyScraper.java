@@ -9,23 +9,23 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
 public class AssemblyScraper {
-	
-	private Logger logger = Logger.getLogger(AssemblyScraper.class);
+
+	private final Logger logger = Logger.getLogger(AssemblyScraper.class);
 
 	static final String ASSEMBLY_DIRECTORY_URL = "http://assembly.state.ny.us/mem/?sh=email";
 	static final String ASSEMBLY_URL = "http://assembly.state.ny.us";
-	
-	public void index() {
+
+	public void index() throws IOException {
 		Connect c = new Connect();
-		
+
 		List<Assembly> persons = getAssemblyPersons();
-		
+
 		if(persons != null && !persons.isEmpty()) {
 			try {
 				logger.info("Deleting Assembly Member data from the database");
@@ -34,33 +34,33 @@ public class AssemblyScraper {
 			} catch (Exception e) {
 				logger.warn(e);
 			}
-			
+
 			logger.info("Persisting new assembly data");
 			for(Assembly a:persons) {
 				c.persist(a);
 			}
 		}
-				
+
 		c.close();
 	}
-	
+
 	public List<Assembly> getAssemblyPersons() {
 		List<Assembly> ret = new ArrayList<Assembly>();
-		
+
 		try {
 			Pattern p = Pattern.compile(
 					"<div class=\"email1\"><a href=\"(.+?)\">(.+?)</a>.*?email2\">(\\d+)");
 			Matcher m = null;
-			
+
 			logger.info("Connecting to " + ASSEMBLY_DIRECTORY_URL);
 			BufferedReader br = new BufferedReader(
 					new InputStreamReader(
 							new URL(ASSEMBLY_DIRECTORY_URL).openStream()));
-			
+
 			String in = null;
 			while((in = br.readLine()) != null) {
 				m = p.matcher(in);
-				
+
 				if(m.find()) {
 					logger.info("Fetching assembly member " + m.group(2));
 					Assembly a = new Assembly("Assembly District " + m.group(3),
@@ -68,13 +68,13 @@ public class AssemblyScraper {
 					ret.add(a);
 				}
 			}
-			
+
 			br.close();
 		}
 		catch (IOException ioe) {
 			logger.warn(ioe);
 		}
-		
+
 		return ret;
 	}
 }

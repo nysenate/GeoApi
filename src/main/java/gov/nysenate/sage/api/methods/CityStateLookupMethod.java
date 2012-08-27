@@ -1,30 +1,45 @@
 package gov.nysenate.sage.api.methods;
 
+import gov.nysenate.sage.Address;
+import gov.nysenate.sage.Result;
+import gov.nysenate.sage.api.exceptions.ApiException;
+import gov.nysenate.sage.api.exceptions.ApiInternalException;
+import gov.nysenate.sage.api.exceptions.ApiTypeException;
+import gov.nysenate.sage.model.ApiExecution;
+import gov.nysenate.sage.model.ErrorResponse;
+import gov.nysenate.sage.model.ValidateResponse;
+import gov.nysenate.sage.service.AddressService;
+
 import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import gov.nysenate.sage.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.connectors.USPSConnect;
-import gov.nysenate.sage.model.ApiExecution;
-
 public class CityStateLookupMethod extends ApiExecution {
-	@Override
-	public Object execute(HttpServletRequest request,
-			HttpServletResponse response, ArrayList<String> more) throws ApiTypeException {
-		
-		Object ret = null;		
-		String type = more.get(RequestCodes.TYPE.code());
-		
+    AddressService addressService;
 
-		if(type.equals("extended")) {
-			ret = USPSConnect.getCityStateByZipCode(request.getParameter("zip5"));
-		}
-		else {
-			throw new ApiTypeException(type);
-		}
-		
-		return ret;
+    public CityStateLookupMethod() throws Exception {
+        addressService = new AddressService();
+    }
+
+	@Override
+	public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiException {
+        String type = more.get(RequestCodes.TYPE.code());
+        if(!type.equals("extended"))
+            throw new ApiTypeException(type);
+
+        Result result = addressService.lookupCityState(new Address("","","","",request.getParameter("zip5"),""),"usps");
+
+        if (result==null) {
+            throw new ApiInternalException();
+        } else if (result.status_code.equals("0")) {
+            return new ValidateResponse(result.address);
+        } else {
+            String msg = "";
+            for (String m : result.messages) {
+                msg += "\n"+m;
+            }
+            return new ErrorResponse(msg.toString());
+        }
 	}
 }
