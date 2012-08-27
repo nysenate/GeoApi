@@ -64,7 +64,7 @@ public class DistrictsMethod extends ApiExecution {
             dr.setLon(result.address.longitude);
             dr.setSenate((Senate)db.getObject(Senate.class, "district", "State Senate District "+result.address.senate_code));
             dr.setSchool(new School("School District "+result.address.school_code));
-            dr.setTown(new Town(result.address.town_name));
+            dr.setTown(new Town(result.address.town_code));
             return dr;
         } catch (UnsupportedEncodingException e) {
             throw new ApiInternalException("UTF-8 unsupported uncoding.", e);
