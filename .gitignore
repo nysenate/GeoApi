@@ -6,6 +6,8 @@
 *.kml
 *.xml
 
+*~
+
 .classpath
 .project
 .settings
