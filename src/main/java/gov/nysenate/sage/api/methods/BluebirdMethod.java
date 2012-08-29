@@ -84,14 +84,14 @@ public class BluebirdMethod extends ApiExecution {
             } else {
                 dr.setAddress(new AddressType(result.address.as_raw(),null));
             }
-            dr.setAssembly(new Assembly(""+result.address.assembly_code));
-            dr.setCongressional(new Congressional(""+result.address.congressional_code));
-            dr.setCounty(new County(result.address.county_name));
-            dr.setElection(new Election(""+result.address.election_code));
+            dr.setAssembly(new Assembly(result.address.assembly_code+""));
+            dr.setCongressional(new Congressional(result.address.congressional_code+""));
+            dr.setCounty(new County(result.address.county_code+""));
+            dr.setElection(new Election(result.address.election_code+""));
             dr.setLat(result.address.latitude);
             dr.setLon(result.address.longitude);
-            dr.setSenate(new Senate(""+result.address.senate_code));//(Senate)db.getObject(Senate.class, "district", "State Senate District "+result.address.senate_code));
-            dr.setSchool(new School(""+result.address.school_code));
+            dr.setSenate(new Senate(result.address.senate_code+""));
+            dr.setSchool(new School(result.address.school_code+""));
             dr.setTown(new Town(result.address.town_code));
             return dr;
         } catch (UnsupportedEncodingException e) {
