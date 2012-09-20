@@ -45,8 +45,9 @@ public class BluebirdMethod extends ApiExecution {
     }
 
     public Object getDistricts(Address address) throws ApiInternalException {
+        boolean address_validated = false;
         try {
-            if (!address.is_parsed()) {
+            if (address.is_parsed()) {
                 // Use USPS address if we can succesfully validate it
                 Result result = addressService.validate(address, "usps");
                 if (result!=null && result.status_code.equals("0")) {
@@ -56,7 +57,7 @@ public class BluebirdMethod extends ApiExecution {
                     address.state = result.address.state;
                     address.zip5 = result.address.zip5;
                     address.zip4 = result.address.zip4;
-                    address.validated = true;
+                    address_validated = true;
                 }
             }
 
@@ -79,7 +80,7 @@ public class BluebirdMethod extends ApiExecution {
                 throw new ApiInternalException(result.messages.get(0));
 
             DistrictResponse dr = new DistrictResponse();
-            if (result.address.validated) {
+            if (address_validated) {
                 dr.setAddress(new AddressType(null,new ValidateResponse(result.address)));
             } else {
                 dr.setAddress(new AddressType(result.address.as_raw(),null));

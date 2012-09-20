@@ -52,7 +52,6 @@ public class Address implements Cloneable {
     public String state = "";
     public String zip5 = "";
     public String zip4 = "";
-    public boolean validated = false;
 
     @Override
     public Address clone() {
