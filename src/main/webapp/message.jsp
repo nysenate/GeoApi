@@ -2,7 +2,7 @@
     pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <%
-			String email = (String)request.getAttribute("email");
+			String email = (String)request.getParameter("email");
 %>
 <html>
 	<head>

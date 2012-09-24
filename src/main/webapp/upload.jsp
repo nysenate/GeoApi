@@ -1,8 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
 <%
-	String email = (String) request.getAttribute("email");
-	String error = (String) request.getAttribute("error");
+	String email = (String)request.getParameter("email");
+	String error = (String)request.getAttribute("error");
 	
 	email = email == null ? "":email;
 %>
@@ -18,14 +18,14 @@
 $(document).ready(function() {
 	var canSubmit = false;
 
-	<% if(error == null) {  %>
-		$(".error").hide();
-	<% } %>
+	if ($.trim($("#error").html())=="") {
+		$("#error").hide();
+	}
 	
 	$('#fileuploaded').hide();
 	
 	var uploader = new qq.FileUploader({
-		action: '/GeoApi/upload/file',
+		action: './upload',
 		element: document.getElementById('fileuploader'),
 		allowedExtensions:['tsv','csv', 'txt'],
 		multiple:false,
@@ -126,9 +126,9 @@ $(document).ready(function() {
 			if(!canSubmit) {
 				message += "<br>Select a valid file";
 			}
-			$(".error").html(message);
-			if(!$(".error").is(":visible")) {
-				$(".error").slideToggle(500);
+			$("#error").html(message);
+			if(!$("#error").is(":visible")) {
+				$("#error").slideToggle(500);
 			}			
 			return false;
 		}
@@ -152,12 +152,12 @@ $(document).ready(function() {
 <div id="upload-body">
 	<br>
 	<h2>upload 3rd party file</h2>
-	<div class="error">
+	<div id="error">
 		<% if(error != null) { %>
 			<br/><%=error %>
 		<% } %>
 	</div>
-	<form id="uploadForm" method="post">
+	<form id="uploadForm" method="post" action="submit">
 		<ol>
 			<li>
 				<label>email</label> 
