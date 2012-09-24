@@ -6,6 +6,8 @@ public interface BulkInterface {
 	public void setAD(String ad);
 	public void setED(String ed);
 	public void setCounty(String county);
+	public void setTown(String town);
+	public void setSchool(String school);
 	public void setLat(String lat);
 	public void setLon(String lon);
 	public String getAddress();

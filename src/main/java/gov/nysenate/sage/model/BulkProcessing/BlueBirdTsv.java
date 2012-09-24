@@ -146,6 +146,7 @@ public class BlueBirdTsv implements BulkInterface {
 		return supplemental_address_2;
 	}
 
+	@Override
 	public String getCity() {
 		return city;
 	}
@@ -519,6 +520,16 @@ public class BlueBirdTsv implements BulkInterface {
 	@Override
 	public void setED(String ed) {
 		this.setElection_district_49(ed);
+	}
+
+	@Override
+    public void setTown(String town) {
+	    this.setTown_52(town);
+	}
+
+	@Override
+    public void setSchool(String school) {
+	    this.setSchool_district_54(school);
 	}
 
 	@Override
