@@ -3,6 +3,8 @@ package gov.nysenate.sage.BulkProcessing;
 import gov.nysenate.sage.model.BulkProcessing.JobProcess;
 import gov.nysenate.sage.util.Resource;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Date;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -18,19 +20,21 @@ import javax.mail.internet.MimeMessage;
 
 public class Mailer {
 	private static final String SMTP_HOST_NAME = Resource.get("hostname");
-
+	private static final String SMTP_DEBUG = Resource.get("smtp_debug");
+	private static final String SMTP_ACTIVE = Resource.get("smtp_active");
 	private static final String SMTP_PORT = Resource.get("port");
-	
 	private static final String SMTP_ACCOUNT_USER = Resource.get("user");
 	private static final String SMTP_ACCOUNT_PASS = Resource.get("pass");
 	
 	private static final String STMP_USER = Resource.get("admin.email");
 	
 	public static void sendMail(String to, String subject, String message, String from, String fromDisplay) throws Exception {
+	    if (!SMTP_ACTIVE.equals("true")) return;
+
 		Properties props = new Properties();
 		props.put("mail.smtp.host", SMTP_HOST_NAME);
 		props.put("mail.smtp.auth", "true");
-		props.put("mail.debug", "true");
+		props.put("mail.debug", SMTP_DEBUG);
 		props.put("mail.smtp.port", SMTP_PORT);
 		props.put("mail.smtp.starttls.enable","false");
 		props.put("mail.smtp.socketFactory.port", SMTP_PORT);
@@ -38,6 +42,7 @@ public class Mailer {
 		props.put("mail.smtp.ssl.enable","false");
 
 		Session session = Session.getDefaultInstance(props,	new javax.mail.Authenticator() {
+										@Override
 										protected PasswordAuthentication getPasswordAuthentication() {
 											return new PasswordAuthentication(SMTP_ACCOUNT_USER, SMTP_ACCOUNT_PASS);}});
 		session.setDebug(false);
@@ -69,9 +74,14 @@ public class Mailer {
 	
 	public static void mailError(Exception e) {
 		try {
+		    StringWriter msg = new StringWriter();
+		    PrintWriter out = new PrintWriter(msg);
+		    out.println("<pre>");
+		    e.printStackTrace(out);
+		    out.println("</pre>");
 			sendMail(STMP_USER,
 					"bulk upload error",
-					e.getMessage(),
+					msg.getBuffer().toString(),
 					STMP_USER,
 					"SAGE Bulk error");
 		} catch (Exception e1) {
@@ -81,8 +91,12 @@ public class Mailer {
 	
 	public static void mailError(Exception e, JobProcess jp) {
 		try {
+		    StringWriter msg = new StringWriter();
+            PrintWriter out = new PrintWriter(msg);
+            out.println(e.getMessage());
+            e.printStackTrace(out);
 			sendMail(STMP_USER,
-					"bulk processing complete",
+					"bulk processing error",
 					jp.getContact() + " - " + jp.getClassName() + " - " + jp.getFileName() + "<br/><br/>" + e.getMessage(),
 					STMP_USER,
 					"SAGE Bulk front-end error");
