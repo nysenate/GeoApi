@@ -108,6 +108,9 @@ public class Address implements Cloneable {
         if (this.is_geocoded()) {
             str += " ("+latitude+","+longitude+")~"+geocode_quality;
         }
+        if (congressional_code != 0 || county_code != 0 || election_code != 0 || school_code != 0 || !town_code.equals("") || senate_code != 0 || assembly_code != 0) {
+            str += String.format(" [Con: %02d Cnt: %02d Ele: %02d Sch: %03d Twn: %s Sen: %02d Asm: %02d]", congressional_code, county_code, election_code, school_code, town_code, senate_code, assembly_code);
+        }
         return str;
     }
 
