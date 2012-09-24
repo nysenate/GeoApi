@@ -2,6 +2,7 @@ package gov.nysenate.sage.adapter;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
+import gov.nysenate.sage.service.GeoService.GeoException;
 import gov.nysenate.sage.service.GeoService.GeocodeInterface;
 import gov.nysenate.sage.util.Resource;
 
@@ -28,6 +29,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+/**
+ *
+ * @author graylin
+ *
+ *
+ */
 public class MapQuest implements GeocodeInterface{
     private final Logger logger;
     private final DocumentBuilder xmlBuilder;
@@ -85,31 +92,30 @@ public class MapQuest implements GeocodeInterface{
     }
 
     @Override
-    public Result geocode(Address address) {
+    public Result geocode(Address address) throws GeoException {
         // Always use bulk with mapquest
         return geocode(new ArrayList<Address>(Arrays.asList(address)), Address.TYPE.MIXED).get(0);
     }
 
-    /**
-     * Bulk geocode addresses via MapQuest
-     *
-     * @param addresses
-     * @return ArrayList<Point> or null on error
-     * @throws UnsupportedEncodingException
-     */
     @Override
-    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) {
+    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException {
         Content page = null;
         Document response = null;
         ArrayList<Result> results = new ArrayList<Result>();
         ArrayList<Result> batchResults = new ArrayList<Result>();
 
         String url = BASE_URL;
+
         try {
-            // Start with a=1 to make the batch boundry condition work nicely
+            // Start with a=1 to make the batch boundary condition work nicely
             for (int a=1; a <= addresses.size(); a++) {
-                url += "&location="+URLEncoder.encode(addresses.get(a-1).as_raw(), "UTF-8");
-                batchResults.add(new Result());
+                Address address = addresses.get(a-1);
+                if (address == null) {
+                    batchResults.add(null);
+                } else {
+                    url += "&location="+URLEncoder.encode(address.as_raw(), "UTF-8");
+                    batchResults.add(new Result());
+                }
 
                 // Stop here unless we've filled this batch request
                 if (a%BATCH_SIZE != 0 && a != addresses.size()) continue;
@@ -122,8 +128,10 @@ public class MapQuest implements GeocodeInterface{
                 // Log the url and status code in all results
                 String status = xpath.evaluate("response/info/statusCode", response);
                 for (Result result : batchResults) {
-                    result.status_code = status;
-                    result.source = url;
+                    if (result != null) {
+                        result.status_code = status;
+                        result.source = url;
+                    }
                 }
 
                 // Check for an error code
@@ -137,19 +145,28 @@ public class MapQuest implements GeocodeInterface{
 
                     // Log the error messages in each of the results.
                     for (Result result : batchResults) {
-                        result.messages = resultMessages;
+                        if (result != null) {
+                            result.messages = resultMessages;
+                        }
                     }
 
 
                 } else {
 
                     // Each address specified produces its own result node
+                    // Because null addresses aren't sent to mapquest we need
+                    // to track an offset to the corresponding result.
+                    int resultOffset = 0;
                     NodeList responses = (NodeList)xpath.evaluate("response/results/result", response, XPathConstants.NODESET);
                     for (int i = 0; i < responses.getLength(); i++) {
                         Node responseItem = responses.item(i);
-                        NodeList locations = (NodeList)xpath.evaluate("locations/location", responseItem, XPathConstants.NODESET);
+                        Result result;
+                        while ((result = batchResults.get(i+resultOffset)) == null) {
+                            resultOffset++;
+                        }
 
-                        // Use the first location for now as it should be the "best" by mapquest rank.
+                        // Store all the locations passed back by mapquest
+                        NodeList locations = (NodeList)xpath.evaluate("locations/location", responseItem, XPathConstants.NODESET);
                         for (int l=0; l < locations.getLength(); l++) {
                             Node location = locations.item(l);
 
@@ -165,8 +182,9 @@ public class MapQuest implements GeocodeInterface{
 
                             Address resultAddress = new Address(street, city, state, zip_code);
                             resultAddress.setGeocode(lat, lng, quality);
-                            batchResults.get(i).addresses.add(resultAddress);
+                            result.addresses.add(resultAddress);
                         }
+                        result.address = result.addresses.get(0);
                     }
                 }
                 url = BASE_URL;
@@ -175,21 +193,30 @@ public class MapQuest implements GeocodeInterface{
             }
             return results;
 
+        } catch (UnsupportedEncodingException e) {
+            String msg = "UTF-8 encoding not supported!?";
+            logger.error(msg);
+            throw new GeoException(msg);
+
         } catch (MalformedURLException e) {
-            logger.error("Malformed URL '"+url+"', check api key and address values.", e);
-            return null;
+            String msg = "Malformed URL '"+url+"', check api key and address values.";
+            logger.error(msg, e);
+            throw new GeoException(msg, e);
 
         } catch (IOException e) {
-            logger.error("Error opening API resource '"+url+"'", e);
-            return null;
+            String msg = "Error opening API resource '"+url+"'";
+            logger.error(msg, e);
+            throw new GeoException(msg ,e);
 
         } catch (SAXException e) {
-            logger.error("Malformed XML response for '"+url+"'\n"+page.asString(), e);
-            return null;
+            String msg = "Malformed XML response for '"+url+"'\n"+page.asString();
+            logger.error(msg, e);
+            throw new GeoException(msg, e);
 
         } catch (XPathExpressionException e) {
-            logger.error("Unexpected XML Schema\n\n"+response.toString(), e);
-            return null;
+            String msg = "Unexpected XML Schema\n\n"+response.toString();
+            logger.error(msg, e);
+            throw new GeoException(msg ,e);
         }
     }
 }

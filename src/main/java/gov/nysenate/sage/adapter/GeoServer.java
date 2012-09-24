@@ -4,6 +4,8 @@ import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
 import gov.nysenate.sage.service.DistrictService;
 import gov.nysenate.sage.service.DistrictService.DistAssignInterface;
+import gov.nysenate.sage.service.DistrictService.DistException;
+import gov.nysenate.sage.service.DistrictService.TYPE;
 import gov.nysenate.sage.util.Resource;
 
 import java.io.File;
@@ -14,6 +16,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.client.fluent.Content;
@@ -24,6 +31,25 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class GeoServer implements DistAssignInterface {
+
+    public class ParallelRequest implements Callable<Result> {
+        public final DistAssignInterface adapter;
+        public final Address address;
+        public final ArrayList<DistrictService.TYPE> types;
+
+        ParallelRequest(DistAssignInterface adapter, Address address, ArrayList<DistrictService.TYPE> types) {
+            this.address = address;
+            this.adapter = adapter;
+            this.types = types;
+        }
+
+        @Override
+        public Result call() throws DistException {
+            return adapter.assignDistricts(address,types);
+        }
+    }
+
+
     private final Logger logger;
     public String API_BASE;
 
@@ -57,7 +83,7 @@ public class GeoServer implements DistAssignInterface {
 
         try {
             result.source = String.format(API_BASE+"&%s&CQL_FILTER=%s&outputformat=JSON", geotype, URLEncoder.encode(filter,"UTF-8"));
-            logger.info(result.source);
+            logger.debug(result.source);
 
             Content page = Request.Get(result.source).execute().returnContent();
             JSONObject response = new JSONObject(page.asString());
@@ -104,7 +130,7 @@ public class GeoServer implements DistAssignInterface {
             System.out.println(filter);
             url = String.format(url_format, geotype, URLEncoder.encode(filter,"UTF-8"));
 
-            logger.info(url);
+            logger.debug(url);
 
         } catch (UnsupportedEncodingException e) {
             // TODO Auto-generated catch block
@@ -114,28 +140,29 @@ public class GeoServer implements DistAssignInterface {
     }
 
     @Override
-    public Result distAssign(Address address, DistrictService.TYPE type) {
-        return distAssign(new ArrayList<Address>(Arrays.asList(new Address[]{address})), type).get(0);
+    public Result assignDistrict(Address address, DistrictService.TYPE type) throws DistException {
+        return assignDistrict(new ArrayList<Address>(Arrays.asList(new Address[]{address})), type).get(0);
     }
 
     @Override
-    public ArrayList<Result> distAssign(ArrayList<Address> addresses, DistrictService.TYPE type) {
+    public ArrayList<Result> assignDistrict(ArrayList<Address> addresses, DistrictService.TYPE type) throws DistException {
         String filter = "";
         Content page= null;
+        Result result = null;
         String geotype = "typename=nysenate:"+type.toString().toLowerCase();
         String filter_format = "INTERSECTS(the_geom, POINT ( %f %f ))";
         ArrayList<Result> results = new ArrayList<Result>();
 
-        logger.info(addresses);
-        String url_format = API_BASE+"&%s&CQL_FILTER=%s&outputformat=JSON";
-        for (Address address : addresses) {
-            Result result = new Result();
-            result.address = address.clone();//new Address(address);
-            try {
+        try {
+            String url_format = API_BASE+"&%s&CQL_FILTER=%s&outputformat=JSON";
+            for (Address address : addresses) {
+                result = new Result();
+                result.address = address.clone();//new Address(address);
+
                 filter = String.format(filter_format, address.latitude, address.longitude);
                 result.source = String.format(url_format, geotype, URLEncoder.encode(filter,"UTF-8"));
 
-                logger.info(result.source);
+                logger.debug(result.source);
                 page = Request.Get(result.source).execute().returnContent();
                 JSONObject response = new JSONObject(page.asString());
                 JSONArray features = response.getJSONArray("features");
@@ -183,104 +210,67 @@ public class GeoServer implements DistAssignInterface {
                     break;
                 }
                 results.add(result);
-            } catch (IOException e) {
-                logger.error("Error opening API resource '"+result.source+"'", e);
-                return null;
-            } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                return null;
+            }
+            return results;
+
+        } catch (IOException e) {
+            String msg = "Error opening API resource '"+result.source+"'";
+            logger.error(msg, e);
+            throw new DistException(msg, e);
+
+        } catch (JSONException e) {
+            String msg = "Malformed JSON response for '"+result.source+"'\n"+page.asString();
+            logger.error(msg, e);
+            throw new DistException(msg, e);
+        }
+    }
+
+    @Override
+    public ArrayList<Result> assignDistricts(ArrayList<Address> addresses, ArrayList<TYPE> types) throws DistException {
+        ArrayList<Result> results = new ArrayList<Result>();
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        ArrayList<Future<Result>> futureResults = new ArrayList<Future<Result>>();
+
+        for (Address address : addresses) {
+            futureResults.add(executor.submit(new ParallelRequest(this, address, types)));
+        }
+
+        for (Future<Result> result : futureResults) {
+            try {
+                results.add(result.get());
+            } catch (InterruptedException e) {
+                throw new DistException(e);
+            } catch (ExecutionException e) {
+                throw new DistException(e.getCause());
             }
         }
-        logger.warn(results);
+        executor.shutdown();
         return results;
     }
 
-    /**
-     * The following are connectors for GeoServer, they provide construct[FILTER] methods
-     * that create urls for various GeoServer WFS calls
-     */
-    /*
-    public class WFS_REQUEST extends WFS_ {
-        String GEO_TYPE = "&typename=";
-        String GEO_PROPERTY = "NAMELSAD,INTPTLAT,INTPTLON,ALAND,AWATER";
-        String GEO_FILTER_TYPE="NAMELSAD";
 
-        public WFS_REQUEST(DistrictAssign.TYPE districtType) {
-            GEO_TYPE += "nysenate:" + districtType.toString().toLowerCase();
+    @Override
+    public Result assignDistricts(Address address, ArrayList<TYPE> types) {
+        if (address==null) return null;
 
-            if(districtType == DistrictAssign.TYPE.ELECTION){
-                GEO_PROPERTY = "ED,AREA,AREA1,EDS_COPY_,EDS_COPY_I,MCD2,WARD,EDP";
-                GEO_FILTER_TYPE="ED";
+        Result result = new Result();
+        for (TYPE type : types) {
+            try {
+                Result typeResult = assignDistrict(address, type);
+
+                // Don't quit on one bad lookup, try them all but alter that status code
+                if (!typeResult.status_code.equals("0")) {
+                    result.status_code = typeResult.status_code;
+                    result.messages.addAll(typeResult.messages);
+                } else {
+                    // Accumulate districts on the result address
+                    address = typeResult.address;
+                }
+            } catch (DistException e) {
+                return null;
             }
-            else if(districtType == DistrictAssign.TYPE.COUNTY) {
-                GEO_PROPERTY += ",COUNTYFP";
-            }
         }
-
-        @Override
-        public String construct(double x, double y) {
-            String urlFormat = "%s&typename=nysenate:%s&propertyname=%s&CQL_FILTER=INTERSECTS(the_geom, POINT ( %d %d ))&outputformat=JSON";
-            return String.format(urlFormat, API_BASE, GEO_TYPE, GEO_PROPERTY, x, y);
-        }
-
-        @Override
-        public String construct(String value) {
-            return Resource.get("geoserver.url") + GEO_TYPE + GEO_PROPERTY + "&CQL_FILTER="
-                    + GEO_FILTER_TYPE + "%20LIKE%20" + "'" + value + "'" + "&outputformat=JSON";
-        }
-
-        public String constructBoundingBox(double x, double y) {
-            return Resource.get("geoserver.url") + GEO_TYPE + GEO_PROPERTY + "&bbox=" + x
-                    + "," + y + "," + x + "," + y + "&outputformat=JSON";
-        }
-
-        public String constructCross(double x, double y, boolean xOrY, double amt) {
-            return Resource.get("geoserver.url") + GEO_TYPE + GEO_PROPERTY + "&CQL_FILTER=" +
-                "CROSS(the_geom,%20LINESTRING("
-                    + ((xOrY) ? x + amt:x) + "%20"
-                    + ((xOrY) ? y:y + amt) + ","
-                    + ((xOrY) ? x - amt:x) + "%20"
-                    + ((xOrY) ? y:y - amt) + "))" + "&outputformat=JSON";
-        }
+        result.address = address;
+        return result;
     }
-
-
-
-    public class WFS_POLY extends WFS_ {
-        String GEO_TYPE = "&typename=";
-        //the only time the filter is not NAMESLAD is for election layer
-        String GEO_FILTER_TYPE="NAMELSAD";
-
-        public WFS_POLY(DistrictType districtType) {
-            setGeoType(districtType);
-        }
-
-        private void setGeoType(DistrictType districtType) {
-            Pattern p = Pattern.compile(POLY_NAMES);
-            Matcher m = p.matcher(districtType.type);
-            if(m.find()) {
-                GEO_TYPE += "nysenate:" + m.group(1);
-            }
-
-            if(districtType == DistrictType.ELECTION){
-                GEO_FILTER_TYPE="ED";
-            }
-        }
-
-        @Override
-        public String construct(double x, double y) {
-            return String.format("%s&CQL_FILTER=INTERSECTS(the_geom, POINT (%d, %d))&outputformat=JSON", Resource.get("geoserver.url") + GEO_TYPE ,x, y);
-        }
-
-        @Override
-        public String construct(String value) {
-            return Resource.get("geoserver.url") + GEO_TYPE + "&CQL_FILTER="
-                    + GEO_FILTER_TYPE + GEO_CQL_LIKE + "'" + value + "'" + "&outputformat=JSON";
-        }
-    }
-    public abstract class WFS_ {
-        public abstract String construct(double x, double y);
-        public abstract String construct(String value);
-    }
-    */
 }

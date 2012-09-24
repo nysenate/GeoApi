@@ -1,360 +1,287 @@
 package gov.nysenate.sage.BulkProcessing;
 
-import generated.geoserver.json.GeoResult;
-import gov.nysenate.sage.connectors.DistrictServices.DistrictType;
-import gov.nysenate.sage.connectors.GeoServerConnect;
-import gov.nysenate.sage.connectors.GeocoderConnect;
-import gov.nysenate.sage.model.Point;
-import gov.nysenate.sage.model.BulkProcessing.*;
+import gov.nysenate.sage.Address;
+import gov.nysenate.sage.Result;
+import gov.nysenate.sage.model.BulkProcessing.BulkFileType;
+import gov.nysenate.sage.model.BulkProcessing.BulkInterface;
+import gov.nysenate.sage.model.BulkProcessing.JobProcess;
+import gov.nysenate.sage.service.DistrictService;
+import gov.nysenate.sage.service.DistrictService.DistException;
+import gov.nysenate.sage.service.GeoService;
+import gov.nysenate.sage.service.GeoService.GeoException;
 import gov.nysenate.sage.util.Connect;
 import gov.nysenate.sage.util.DelimitedFileExtractor;
+import gov.nysenate.sage.util.Resource;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.CharBuffer;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
 
 public class Processor {
-	
-	private Logger logger = Logger.getLogger(Processor.class);
-	
-	public class GeoFilenameFilter implements FilenameFilter {
-		String filter;
-		public GeoFilenameFilter(String filter) {
-			this.filter = filter;
-		}
-		public boolean accept(File dir, String name) {
-			return name.startsWith(filter);
-		}
+
+    public class BatchResult {
+        public ArrayList<Address> addressSet;
+        public ArrayList<BulkInterface> recordSet;
+
+        public BatchResult(ArrayList<Address> addressSet, ArrayList<BulkInterface> recordSet) {
+            this.addressSet = addressSet;
+            this.recordSet = recordSet;
+        }
+    }
+
+    public class GeocodeBatch implements Callable<BatchResult> {
+        public BatchResult input;
+        public GeocodeBatch(BatchResult input) { this.input = input; }
+
+        @Override
+        public BatchResult call() throws GeoException {
+            long start = System.currentTimeMillis();
+            ArrayList<Result> results = geoService.geocode(input.addressSet, "yahoo", Address.TYPE.PARSED);
+            long time = (System.currentTimeMillis()-start);
+            logger.info("GeocodeBatch: "+time);
+
+            ArrayList<Address> geocodedAddresses = new ArrayList<Address>();
+            for(int i=0; i < results.size(); i++) {
+                Result result = results.get(i);
+                BulkInterface record = input.recordSet.get(i);
+                if (result == null) {
+                    geocodedAddresses.add(null);
+
+                } else if (!result.status_code.equals("0")) {
+                    logger.info(result.messages);
+                    geocodedAddresses.add(null);
+
+                } else {
+                    Address geocodedAddress = result.addresses.get(0);
+                    geocodedAddresses.add(geocodedAddress);
+                    record.setLat(geocodedAddress.latitude+"");
+                    record.setLon(geocodedAddress.longitude+"");
+                }
+            }
+
+            input.addressSet = geocodedAddresses;
+            return input;
+        }
+    }
+
+    public class DistAssignBatch implements Callable<BatchResult> {
+        public Future<BatchResult> input;
+        public DistAssignBatch(Future<BatchResult> input) { this.input = input; }
+
+        @Override
+        public BatchResult call() throws ExecutionException, InterruptedException, DistException {
+            BatchResult batchResult = input.get();
+            long start = System.currentTimeMillis();
+            ArrayList<Result> results = districtService.assignAll(batchResult.addressSet, "geoserver");
+            long time = (System.currentTimeMillis()-start);
+            logger.info("DistAssignBatch: " + time);
+
+            ArrayList<Address> distAssignedAddresses = new ArrayList<Address>();
+            for(int i=0; i < results.size(); i++) {
+                Result result = results.get(i);
+                BulkInterface record = batchResult.recordSet.get(i);
+
+                if (result != null) {
+                    Address distAssignedAddress = result.address;
+                    record.setCounty(padLeft(distAssignedAddress.county_code+"", "0", 2));
+                    record.setED(padLeft(distAssignedAddress.election_code+"", "0", 3));
+                    record.setAD(padLeft(distAssignedAddress.assembly_code+"", "0", 3));
+                    record.setCD(padLeft(distAssignedAddress.congressional_code+"", "0", 2));
+                    record.setSD(padLeft(distAssignedAddress.senate_code+"", "0", 2));
+                    record.setSchool(padLeft(distAssignedAddress.school_code+"", "0", 2));
+                    record.setTown(distAssignedAddress.town_code);
+                    distAssignedAddresses.add(distAssignedAddress);
+                } else {
+                    distAssignedAddresses.add(null);
+                }
+
+            }
+            batchResult.addressSet = distAssignedAddresses;
+            return batchResult;
+        }
+    }
+
+	final static int BATCH_SIZE = 20;
+
+	private final Logger logger;
+    private final FileLock lock;
+    private final Resource appConfig;
+
+    private final File UPLOAD_DIR;
+    private final File DOWNLOAD_DIR;
+
+    private final GeoService geoService;
+    private final DistrictService districtService;
+
+    public static void main(String[] args) throws Exception {
+        new Processor().process_files();
+    }
+
+	public Processor() throws Exception {
+	    logger = Logger.getLogger(this.getClass());
+	    geoService = new GeoService();
+	    districtService = new DistrictService();
+
+        appConfig = new Resource();
+	    UPLOAD_DIR = new File(appConfig.fetch("uploads"));
+	    FileUtils.forceMkdir(UPLOAD_DIR);
+	    DOWNLOAD_DIR = new File(appConfig.fetch("downloads"));
+	    FileUtils.forceMkdir(DOWNLOAD_DIR);
+
+	    // Grab a lock or fail
+	    File lockFile = FileUtils.toFile(this.getClass().getClassLoader().getResource(".job_lock_file"));
+	    lock = new FileOutputStream(lockFile).getChannel().tryLock();
+        if (lock == null) {
+            throw new Exception("Cannot acquire job lock.");
+        }
 	}
 
-	final String FILE_SEPERATOR = System.getProperty("file.separator");
+    public void process_files() throws IOException {
+        Connect db = new Connect();
 
-	final String COUNTY_FILE = "counties.txt";
-	
-	final String ROOT_DIRECTORY = "/usr/local/tomcat/webapps/";
-	final String WORK_DIRECTORY = ROOT_DIRECTORY + "upload" + FILE_SEPERATOR;
-	final String DEST_DIRECTORY = ROOT_DIRECTORY + "complete" + FILE_SEPERATOR;
-	final String LOCK_FILE = WORK_DIRECTORY + ".lock";
-	
-	
-	static String ASSEMBLY = "assembly";
-	static String CONGRESSIONAL = "congressional";
-	static String COUNTY = "county";
-	static String ELECTION = "election";
-	static String SENATE = "senate";
-	
-	final static int DEFAULT_SIZE = 48;
-	static ObjectMapper mapper = new ObjectMapper();
-	
-	private static final int MAX_THREADS = 12;
-	private volatile List<List<BulkInterface>> responseSegments;
-	
-	HashMap<String,String> countyLookupMap;
-	
-	static long s = 0L;
-	static long e;
-	static long high = 0L;
-	static long low = 99999999L;
-	static long avg = 0L;
-	
-	static int count = 0;
+        try {
+            //job processes ordered from oldest to newest
+            logger.info("Loading job processes");
+            for(JobProcess jp:JobProcess.getJobProcesses()) {
+                logger.info("Current job: " + jp.getContact() + " with file: " + jp.getFileName());
 
-	
-	public static void main(String[] args) throws IOException, SecurityException, NoSuchMethodException {
-		Processor p = new Processor();
-		p.processFiles();
-	}
-	
-	@SuppressWarnings("unchecked")
-	public void processFiles() throws IOException {
-		//create lock file to stop processes from running in parallel
-		if(!createLock()) {			
-			System.out.println("Process already running or error creating lock file");
-			System.exit(0);
-		}
-		
-		try {
-			System.out.println("loading county lookup map");
-			loadCountyLookupMap();
-			
-			//job processes ordered from oldest to newest
-			System.out.println("loading job processes");
-			TreeSet<JobProcess> jobProcesses = JobProcess.getJobProcesses();
-			
-			Connect c = new Connect();
-			
-			for(JobProcess jp:jobProcesses) {
-				System.out.println("Current job: " + jp.getContact() + " with file: " + jp.getFileName());
-				
-				Class<? extends BulkInterface> clazz = null;
-				try {
-					 clazz = (Class<? extends BulkInterface>) Class.forName(jp.getClassName());
-				} catch (ClassNotFoundException e) {
-					System.err.println("could not create isntance of " + jp.getClassName());
-					Mailer.mailError(e, jp);
-					continue;
-				}
-				
-				BulkFileType bulkFileType = this.getBulkFileType(clazz);
-				if(bulkFileType == null)
-					continue;
-				
-				File readFile = new File(
-						WORK_DIRECTORY + jp.getFileName());
-				File writeFile = new File(
-						DEST_DIRECTORY + jp.getFileName());
-				System.out.println("creating new work file: " + writeFile.getAbsolutePath());
-				writeFile.createNewFile();
-				
-				BufferedReader br = new BufferedReader(new FileReader(readFile));
-				BufferedWriter bw = new BufferedWriter(new FileWriter(writeFile));
-				
-				String newLineDelim = getNewLineDelim(br);
-				
-				DelimitedFileExtractor dfe = new DelimitedFileExtractor(bulkFileType.delimiter(), bulkFileType.header(), clazz);
-				//write header
-				bw.write(br.readLine() + newLineDelim);
-				
-				while(doRequest(br, bw, dfe, clazz, newLineDelim));
-				bw.close();
-				br.close();
-				
-				Mailer.mailAdminComplete(jp);
-				Mailer.mailUserComplete(jp);
+                // Load the appropriate bulk interface tools
+                @SuppressWarnings("unchecked")
+                Class<? extends BulkInterface> clazz = (Class<? extends BulkInterface>) Class.forName(jp.getClassName());
+                BulkFileType bulkFileType = this.getBulkFileType(clazz);
+                if (bulkFileType == null) {
+                    throw new Exception("Unknown BulkFileType in file: "+jp.getFileName());
+                }
+                DelimitedFileExtractor dfe = new DelimitedFileExtractor(bulkFileType.delimiter(), bulkFileType.header(), clazz);
 
-				System.out.println("deleting job process for file " + jp.getFileName() + " after succesful completion");
-				c.deleteObjectById(JobProcess.class, "filename", jp.getFileName());
-				
-				//delete associated files
-				File workDir = new File(WORK_DIRECTORY);
-				deleteFiles(WORK_DIRECTORY, workDir.list(new GeoFilenameFilter(jp.getFileName())));
-			}
-			
-			c.close();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			Mailer.mailError(e);
-		}
-		
-		if(!deleteLock()) {
-			System.err.println("Lock file does not exist or could not be deleted");
-		}
-		
-	}
-	
-	private boolean doRequest(BufferedReader br, BufferedWriter bw, DelimitedFileExtractor dfe, Class<? extends BulkInterface> clazz, String newLineDelim) throws IOException {
-		GeocoderConnect gc = new GeocoderConnect();
-		List<Point> points = null;
-		List<BulkInterface> addresses = new ArrayList<BulkInterface>();
-		
-		String json = "";
-		
-		String in = null;
-		for(int i = 0; i < DEFAULT_SIZE && ((in = br.readLine()) != null); i++) {
-			BulkInterface tuple = (BulkInterface) dfe.processTuple(in);
-			
-			if(tuple.getStreet() == null || tuple.getStreet().matches("\\s*")
-					|| tuple.getStreet().matches("(?i:po box)")
-					|| !tuple.getState().matches("(?i:ny|new york)")) {
-				i--;
-				bw.write(tuple.toString() + newLineDelim);
-				continue;
-			}
-			
-			int zip = -1;
-			
-			try {
-				String z = tuple.getZip5();
-				if(z.length() > 5) {
-					z = z.substring(0, 5);
-				}
-				zip = new Integer(z);
-			}
-			catch(Exception e) {
-				bw.write(tuple.toString() + newLineDelim);
-				continue;
-			}
-			
-			if((zip >= 10001 && zip <= 14975) || zip == 501 || zip == 544 || zip == 6390) {
-				addresses.add(tuple);
-				
-				RequestObject ro = new RequestObject(tuple.getStreet(), tuple.getCity(), tuple.getState(), tuple.getZip5());
-						
-				json += mapper.writeValueAsString(ro) + ",";
-				
-				count++;
-			}
-			else  {
-				bw.write(tuple.toString() + newLineDelim);
-				continue;
-			}
-		}
-		if(json.equals(""))
-			return false;
-		
-		json = "[" + json.replaceFirst(",$","") + "]";
-		
-		s = System.currentTimeMillis();
-		points = gc.doBulkParsing(json);
-		e = System.currentTimeMillis();
-		
-		long time = (e-s);
-		if(time < low)
-			low = time;
-		if(time > high)
-			high = time;
-		avg += time;
-		System.out.println(count + ": geocode time (" + points.size() + "): " + time);
-		
-		if(points.size() == addresses.size()) {
-			s = System.currentTimeMillis();
-			assignDistricts(points, addresses);
-			e = System.currentTimeMillis();
-			System.out.println("districting time: " + (e-s));
-			
-			for(List<BulkInterface> list:responseSegments) {
-				for(BulkInterface tuple:list) {
-					bw.write(tuple.toString() + newLineDelim);
-				}
-			}
-		}
-		else {
-			logger.warn("points and addresses don't match " 
-					+ points.size() + " : " + addresses.size() 
-					+ " : " + addresses.get(0) + " : " 
-					+ addresses.get(addresses.size()-1));
-		}
-		
-		return true;
-	}
-	
-	private void assignDistricts(List<Point> points, List<BulkInterface> addresses) {
-		int rSize = points.size();
-		
-		//number of threads we'll be starting up
-		int max = (MAX_THREADS > rSize ? rSize : MAX_THREADS);
-				
-		if(responseSegments == null)
-			responseSegments = new ArrayList<List<BulkInterface>>(max);
-		else
-			responseSegments.clear();
-		
-		for(int i = 0; i < max; i++) responseSegments.add(null);
-		
-		
-		//remainder of requests modulo max
-		int rRem = rSize % max;
-		//number of requests per thread - the remainder
-		int rNorm = rSize - rRem;
-		
-		int curIndex = 0;
-		
-		ExecutorService executor = Executors.newFixedThreadPool(max);
-		
-		for(int i = 0; i < max ; i++) {
-			//number of requests for current thread
-			int slice = (((rNorm/max)) + (rRem > 0 ? 1:0));
-						
-			DistrictExecute dEx = new DistrictExecute(
-					i,
-					points.subList(curIndex, curIndex + slice),
-					addresses.subList(curIndex, curIndex + slice),
-					this);
-			
-			executor.execute(dEx);
-			
-			curIndex += slice;
-			rRem--;
-		}
-		
-		executor.shutdown();
-		while(!executor.isTerminated());
-	}
+                // Create our input and output buffers for this job.
+                File readFile = new File(UPLOAD_DIR, jp.getFileName());
+                File writeFile = new File(DOWNLOAD_DIR, jp.getFileName());
+                logger.info("Reading from "+readFile.getAbsolutePath());
+                logger.info("Writing to "+writeFile.getAbsolutePath());
+                writeFile.createNewFile();
+                BufferedReader source = new BufferedReader(new FileReader(readFile));
+                BufferedWriter dest = new BufferedWriter(new FileWriter(writeFile));
 
-	public synchronized void fillSegment(int index, List<BulkInterface> list) {
-		responseSegments.set(index, list);
-	}
-	
-	public void deleteFiles(String directory, String... files) {
-		for(String fileName:files) {
-			File file = new File(directory + fileName);
-			file.delete();
-			System.out.println("deleting " + file.getName());
-		}
-	}
-	
-	
-	
-	public boolean createLock() throws IOException {
-		File lock = new File(LOCK_FILE);
-		if(lock.exists()) {
-			return false;
-		}
-		return lock.createNewFile();
-	}
-	
-	public boolean deleteLock() {
-		File lock = new File(LOCK_FILE);
-		if(lock.exists() && lock.delete()) {
-			return true;
-		}
-		return false;
-	}
+                // Get the delimiter of the input file for use writing the output file.
+                String newLineDelim = getNewLineDelim(source);
+                dest.write(source.readLine() + newLineDelim);
+                process_file(source, dest, dfe, newLineDelim);
 
-	public synchronized HashMap<String,String> getCountyLookupMap() throws IOException {
-		if(this.countyLookupMap == null) {
-			loadCountyLookupMap();
-		}
-		return this.countyLookupMap;
-	}
-	
-	public void loadCountyLookupMap() throws IOException {		
-		BufferedReader br = new BufferedReader(new FileReader(new File(COUNTY_FILE)));
-		countyLookupMap = new HashMap<String,String>();
-		
-		String in = null;
-		
-		while((in = br.readLine()) != null) {
-			//tuple[0] = NYSS county code
-			//tuple[1] = county name
-			//tuple[2] = fips county code
-			String[] tuple = in.split(":");
-			
-			countyLookupMap.put(tuple[2], tuple[0]);
-		}
-		br.close();
-	}
-	
-	public String replaceLeading(String str, String leading) {
-		if(str.startsWith(leading)) {
-			return replaceLeading(str.replaceFirst(leading, ""), leading);
-		}
-		else {
-			return str;
-		}
-	}
-	
+                // Cleanup and move on
+                source.close();
+                dest.close();
+                Mailer.mailAdminComplete(jp);
+                Mailer.mailUserComplete(jp);
+                logger.info("deleting job process for file " + jp.getFileName() + " after succesful completion");
+                db.deleteObjectById(JobProcess.class, "filename", jp.getFileName());
+            }
+
+        } catch (Exception e) {
+            logger.error(e);
+            Mailer.mailError(e);
+
+        } finally {
+            db.close();
+        }
+    }
+
+    public void process_file(BufferedReader source, BufferedWriter dest, DelimitedFileExtractor dfe, String newLine) throws IOException  {
+        BatchResult batch;
+        ExecutorService geocodeExecutor = Executors.newFixedThreadPool(1);
+        ExecutorService distAssignExecutor = Executors.newFixedThreadPool(1);
+        ArrayList<BatchResult> originalBatches = new ArrayList<BatchResult>();
+        ArrayList<Future<BatchResult>> endResults = new ArrayList<Future<BatchResult>>();
+
+        // Queue up all the batches for execution
+        do {
+            batch = readBatch(source, dfe, BATCH_SIZE);
+            Future<BatchResult> futureGeoResults = geocodeExecutor.submit(new GeocodeBatch(batch));
+            Future<BatchResult> futureDistAssignResults = distAssignExecutor.submit(new DistAssignBatch(futureGeoResults));
+            endResults.add(futureDistAssignResults);
+            originalBatches.add(batch);
+        } while (batch.recordSet.size() == BATCH_SIZE);
+
+        // Write out results in order, substitute original rows for failed batch jobs
+        for (int i=0; i < endResults.size(); i++) {
+            ArrayList<BulkInterface> records;
+            try {
+                records = endResults.get(i).get().recordSet;
+            } catch (Exception e) {
+                logger.error(e);
+                records = originalBatches.get(i).recordSet;
+            }
+
+            for (BulkInterface record : records) {
+                dest.write(record + newLine);
+            }
+        }
+        geocodeExecutor.shutdown();
+        distAssignExecutor.shutdown();
+    }
+
+    public BatchResult readBatch(BufferedReader source, DelimitedFileExtractor dfe, int batchSize) throws IOException {
+        ArrayList<Address> addressSet = new ArrayList<Address>();
+        ArrayList<BulkInterface> recordSet = new ArrayList<BulkInterface>();
+        for(int i=0; i < batchSize; i++) {
+            String in = source.readLine();
+            if (in == null) break;
+
+            BulkInterface tuple = (BulkInterface) dfe.processTuple(in);
+
+            // The address for this record only gets filled if it passes the tests
+            // below. By keeping it null we can tell the services to skip it.
+            Address address = null;
+
+            try {
+                String city = tuple.getCity();
+                String state = tuple.getState();
+                String street = tuple.getStreet();
+                int zip = new Integer(tuple.getZip5().substring(0,5));
+
+                if (street.matches("(?i:\\s*|po box)")) {
+                    logger.warn("Skipping bad street: "+street);
+                } else if (!state.matches("(?i:ny|new york)")) {
+                    logger.warn("Skipping bad state: "+state);
+                } else if((zip < 10001 && zip !=501 && zip!=544 && zip!=6390) || zip>14975) {
+                    logger.warn("Skipping bad zip code: "+zip);
+                } else {
+                    address = new Address("", street, city, state, ""+zip, "");
+                }
+            } catch (NumberFormatException e) {
+                logger.warn("Skipping bad zip code: "+tuple.getZip5());
+            } catch (StringIndexOutOfBoundsException e) {
+                logger.warn("Skipping bad zip code: "+tuple.getZip5());
+            }
+
+            recordSet.add(tuple);
+            addressSet.add(address);
+        }
+
+        return new BatchResult(addressSet,recordSet);
+    }
+
 	public String padLeft(String string, String padWith, int length) {
 		while(string.length() < length)
 			string = padWith + string;
 		return string;
 	}
-	
+
 	public BulkFileType getBulkFileType(Class<? extends BulkInterface> clazz) {
 		for(BulkFileType bulkFileType:BulkFileType.values()) {
 			if(bulkFileType.clazz().equals(clazz))
@@ -362,106 +289,31 @@ public class Processor {
 		}
 		return null;
 	}
-	
-	class DistrictExecute extends Thread  {
-		
-		private final int index;
-		private final List<Point> points;
-		private final List<BulkInterface> addresses;
-		private final Processor processor;
 
-		public DistrictExecute(int index, List<Point> points,
-				List<BulkInterface> addresses, Processor bulkTest) {
-			this.index = index;
-			this.points = points;
-			this.addresses = addresses;
-			this.processor = bulkTest;
-		}
-		
-		@Override
-		public void run() {
-			
-			for(int i = 0; i < points.size(); i++)
-				fillRequest(points.get(i), addresses.get(i));
-			
-			processor.fillSegment(index, addresses);
-		}
-		
-		public void fillRequest(Point p, BulkInterface bi) {
-			if(p.lat == -1 || p.lon == -1) {
-				return;
-			}
-			
-			GeoResult gr = null;
-			GeoServerConnect gsCon = new GeoServerConnect();
-			
-			/*
-			 * swallowing exceptions since the only reason we'd
-			 * get one is if we attempt to lookup a lat/lon
-			 * outside of new york state (or if we get connection errors, but
-			 * that's an entirely different issue)
-			 */
-			try {
-				bi.setLat(p.lat + "");
-				bi.setLon(p.lon + "");
-			}
-			catch(Exception e) { }
-
-			try {
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.COUNTY), p);
-				//converts FIPS county code from geoserver to NYSS county code
-				bi.setCounty(padLeft(processor.getCountyLookupMap().get(
-						replaceLeading(gr.getFeatures().iterator().next().getProperties().getCOUNTYFP(),"0")), "0", 2));
-			}
-			catch(Exception e) { }
-				
-			try {
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.ELECTION), p);
-				bi.setED(padLeft(gr.getFeatures().iterator().next().getProperties().getED(), "0", 3));
-			}
-			catch(Exception e) { }
-			
-			try {
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.ASSEMBLY), p);
-				bi.setAD(padLeft(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("Assembly District ",""), "0", 3));
-			}
-			catch(Exception e) { }
-			
-			try {
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.CONGRESSIONAL), p);
-				bi.setCD(padLeft(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("Congressional District ", ""), "0", 2));
-			}
-			catch(Exception e) { }
-				
-			try {
-				gr = gsCon.fromGeoserver(gsCon.new WFS_REQUEST(DistrictType.SENATE), p);
-				bi.setSD(padLeft(gr.getFeatures().iterator().next().getProperties().getNAMELSAD().replace("State Senate District ",""), "0", 2));
-			}
-			catch(Exception e) { }
-		}
-	}
-	
+	/*
+	 * @author: Jared Williams
+	 *
+	 * Determine the line-ending type of the contents of a BufferedReader.
+	 */
 	public static String getNewLineDelim(BufferedReader br) throws IOException {
+	    // Create a CharBuffer to store the first line + line ending then reset
 		br.mark(65535);
-		
 		int size = br.readLine().length();
-		
-		br.reset();
-		
 		CharBuffer cb = CharBuffer.allocate(size + 2);
-		
-		br.read(cb);
-		
-		String feed = new String(cb.array()).substring(size);
-		
 		br.reset();
-		br.mark(0);
-		
-		if(feed.matches("\r\n"))
-			return feed;
-		else if(feed.matches("\r."))
+
+		// Fill the CharBuffer and isolate the line ending characters.
+		br.read(cb);
+		br.reset();
+		String lineEnding = new String(cb.array()).substring(size);
+
+		// Use regex to determine the line ending because the
+		// second byte could be part of the next line.
+		if(lineEnding.matches("\r\n"))
+			return "\r\n";
+		else if(lineEnding.matches("\r."))
 			return "\r";
-		else 
+		else
 			return "\n";
 	}
 }

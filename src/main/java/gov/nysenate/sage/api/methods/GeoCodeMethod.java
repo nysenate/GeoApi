@@ -10,8 +10,8 @@ import gov.nysenate.sage.model.ApiExecution;
 import gov.nysenate.sage.model.ErrorResponse;
 import gov.nysenate.sage.model.Point;
 import gov.nysenate.sage.service.GeoService;
+import gov.nysenate.sage.service.GeoService.GeoException;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -105,8 +105,8 @@ public class GeoCodeMethod extends ApiExecution {
                 return ret;
             }
 
-        } catch (UnsupportedEncodingException e) {
-            throw new ApiInternalException("UTF-8 encoding not supported.", e);
+        } catch (GeoException e) {
+            throw new ApiInternalException("Fatal geocoding Error.", e);
         }
     }
 

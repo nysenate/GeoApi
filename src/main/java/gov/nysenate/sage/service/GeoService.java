@@ -6,7 +6,6 @@ import gov.nysenate.sage.adapter.MapQuest;
 import gov.nysenate.sage.adapter.RubyGeocoder;
 import gov.nysenate.sage.adapter.Yahoo;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -19,16 +18,41 @@ import java.util.HashMap;
  */
 public class GeoService {
 
-    // All adapters able to geocode must implement this interface.
+    @SuppressWarnings("serial")
+    public static class GeoException extends Exception {
+        public GeoException() {}
+        public GeoException(String msg) { super(msg); }
+        public GeoException(String msg, Throwable t) { super(msg, t); }
+        public GeoException(Throwable t) { super(t); }
+    }
+
+    /**
+     *  Accepts single address or a list of addresses and returns geocoded result:
+     *      result.status_code = 0 on success
+     *      result.messages = list of response messages if failure
+     *      result.address = best match address for result if successful
+     *      result.address = list of all returned address for result if successful
+     *
+     *  If any incoming addresses are null a NULL result value is returned in its place.
+     *  For bulk requests this ensures that index matching from the incoming address
+     *  list to the returned results list is kept.
+     *
+     *  Errors loading the API and parsing the API response are wrapped in a GeoException
+     *  and thrown, terminating the geo-coding process and throwing away previous results.
+     *
+     *   TODO: Implement Either:
+     *      A) Attach previous results to exception instead of throwing them away.
+     *      B) Struggle on after exceptions via NULL results in the results list.
+     */
     public interface GeocodeInterface {
-        public Result geocode(Address address);
-        public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint);
+        public Result geocode(Address address) throws GeoException;
+        public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException;
     }
 
     // All adapters able to reverse geocode must implement this interface.
     public interface ReverseGeocodeInterface {
-        public Result reverseGeocode(Address address);
-        public ArrayList<Result> reverseGeocode(ArrayList<Address> addresses, Address.TYPE hint);
+        public Result reverseGeocode(Address address) throws GeoException;
+        public ArrayList<Result> reverseGeocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException;
     }
 
     // Adapters implementing each interface are stored in hashes so that a class
@@ -51,15 +75,15 @@ public class GeoService {
         // revAdapters.put("mapquest", mapquest);
     }
 
-    public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter) throws UnsupportedEncodingException {
+    public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter) throws GeoException {
         return geoAdapters.get(adapter.toLowerCase()).geocode(addresses, Address.TYPE.MIXED);
     }
 
-    public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter, Address.TYPE hint) throws UnsupportedEncodingException {
+    public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter, Address.TYPE hint) throws GeoException {
         return geoAdapters.get(adapter.toLowerCase()).geocode(addresses, hint);
     }
 
-    public Result geocode(Address address, String adapter) throws UnsupportedEncodingException {
+    public Result geocode(Address address, String adapter) throws GeoException {
         return geoAdapters.get(adapter.toLowerCase()).geocode(address);
     }
 }

@@ -16,9 +16,10 @@ import gov.nysenate.sage.model.districts.Senate;
 import gov.nysenate.sage.model.districts.Town;
 import gov.nysenate.sage.service.AddressService;
 import gov.nysenate.sage.service.DistrictService;
+import gov.nysenate.sage.service.DistrictService.DistException;
 import gov.nysenate.sage.service.GeoService;
+import gov.nysenate.sage.service.GeoService.GeoException;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,6 +36,7 @@ public class BluebirdMethod extends ApiExecution {
         addressService = new AddressService();
     }
 
+    // Included to match the output from before
     static class AddressType {
         Object simple;
         Object extended;
@@ -46,58 +48,60 @@ public class BluebirdMethod extends ApiExecution {
 
     public Object getDistricts(Address address) throws ApiInternalException {
         boolean address_validated = false;
-        try {
-            if (address.is_parsed()) {
-                // Use USPS address if we can succesfully validate it
-                Result result = addressService.validate(address, "usps");
-                if (result!=null && result.status_code.equals("0")) {
-                    address.addr1 = result.address.addr1;
-                    address.addr2 = result.address.addr2;
-                    address.city = result.address.city;
-                    address.state = result.address.state;
-                    address.zip5 = result.address.zip5;
-                    address.zip4 = result.address.zip4;
-                    address_validated = true;
-                }
+        if (address.is_parsed()) {
+            // Use USPS address if we can succesfully validate it
+            Result result = addressService.validate(address, "usps");
+            if (result!=null && result.status_code.equals("0")) {
+                address.addr1 = result.address.addr1;
+                address.addr2 = result.address.addr2;
+                address.city = result.address.city;
+                address.state = result.address.state;
+                address.zip5 = result.address.zip5;
+                address.zip4 = result.address.zip4;
+                address_validated = true;
             }
+        }
 
-            if (!address.is_geocoded()) {
+        if (!address.is_geocoded()) {
+            try {
                 Result result = geoService.geocode(address, "yahoo");
-                if (result == null)
-                    throw new ApiInternalException();
-
                 if (!result.status_code.equals("0"))
                     throw new ApiInternalException(result.messages.get(0));
 
                 address = result.addresses.get(0);
+            } catch (GeoException e) {
+                throw new ApiInternalException("Fatal geocoding Error.", e);
             }
+        }
 
+        try {
             Result result = districtService.assignAll(address, "geoserver");
             if (result == null)
                 throw new ApiInternalException();
-
-            if (!result.status_code.equals("0"))
+            else if (!result.status_code.equals("0"))
                 throw new ApiInternalException(result.messages.get(0));
 
-            DistrictResponse dr = new DistrictResponse();
-            if (address_validated) {
-                dr.setAddress(new AddressType(null,new ValidateResponse(result.address)));
-            } else {
-                dr.setAddress(new AddressType(result.address.as_raw(),null));
-            }
-            dr.setAssembly(new Assembly(result.address.assembly_code+""));
-            dr.setCongressional(new Congressional(result.address.congressional_code+""));
-            dr.setCounty(new County(result.address.county_code+""));
-            dr.setElection(new Election(result.address.election_code+""));
-            dr.setLat(result.address.latitude);
-            dr.setLon(result.address.longitude);
-            dr.setSenate(new Senate(result.address.senate_code+""));
-            dr.setSchool(new School(result.address.school_code+""));
-            dr.setTown(new Town(result.address.town_code));
-            return dr;
-        } catch (UnsupportedEncodingException e) {
-            throw new ApiInternalException("UTF-8 unsupported uncoding.", e);
+            address = result.address;
+        } catch (DistException e) {
+            throw new ApiInternalException("Fatal district assignment Error.", e);
         }
+
+        DistrictResponse dr = new DistrictResponse();
+        if (address_validated) {
+            dr.setAddress(new AddressType(null,new ValidateResponse(address)));
+        } else {
+            dr.setAddress(new AddressType(address.as_raw(),null));
+        }
+        dr.setAssembly(new Assembly(address.assembly_code+""));
+        dr.setCongressional(new Congressional(address.congressional_code+""));
+        dr.setCounty(new County(address.county_code+""));
+        dr.setElection(new Election(address.election_code+""));
+        dr.setLat(address.latitude);
+        dr.setLon(address.longitude);
+        dr.setSenate(new Senate(address.senate_code+""));
+        dr.setSchool(new School(address.school_code+""));
+        dr.setTown(new Town(address.town_code));
+        return dr;
     }
 
     @Override
@@ -127,44 +131,4 @@ public class BluebirdMethod extends ApiExecution {
 
         return getDistricts(address);
     }
-
-
-    /*
-	@Override
-	public Object execute(HttpServletRequest request,
-			HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
-
-		Object ret = null;
-		String type = more.get(RequestCodes.TYPE.code());
-		String service = request.getParameter("service");
-
-		if(type.equals("extended")) {
-			try {
-				ret = DistrictServices.getDistrictsForBluebird(
-							request.getParameter("addr2"),
-							request.getParameter("city"),
-							request.getParameter("state"),
-							request.getParameter("zip4"),
-							request.getParameter("zip5"),
-						service);
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new ApiInternalException();
-			}
-		}
-		else if(type.equals("latlon")) {
-			try {
-				ret = DistrictServices.getDistrictsForBlueBird(more.get(RequestCodes.LATLON.code()));
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new ApiInternalException();
-			}
-		}
-		else {
-			throw new ApiTypeException(type);
-		}
-
-		return ret;
-	}
-    */
 }

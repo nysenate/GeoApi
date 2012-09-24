@@ -2,6 +2,7 @@ package gov.nysenate.sage.adapter;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
+import gov.nysenate.sage.service.GeoService.GeoException;
 import gov.nysenate.sage.service.GeoService.GeocodeInterface;
 import gov.nysenate.sage.util.Resource;
 
@@ -10,6 +11,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -33,6 +39,21 @@ public class Yahoo implements GeocodeInterface {
 
     private final String API_KEY;
 
+    public class ParallelRequest implements Callable<Result> {
+        public final Yahoo yahoo;
+        public final Address address;
+
+        ParallelRequest(Yahoo yahoo, Address address) {
+            this.yahoo = yahoo;
+            this.address = address;
+        }
+
+        @Override
+        public Result call() throws GeoException {
+            return yahoo.geocode(address);
+        }
+    }
+
     public Yahoo() throws Exception {
         logger = Logger.getLogger(this.getClass());
         xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -42,25 +63,36 @@ public class Yahoo implements GeocodeInterface {
     }
 
     /**
-     * Yahoo doesn't implement batch geocoding so we just wrap a bunch of calls here.
-     *
-     * @throws UnsupportedEncodingException
-     */
+     * Yahoo doesn't implement batch geocoding so we use the single address geocoding
+     * method in parallel for performance improvements on our end.
+    */
     @Override
-    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) {
-        return geocode(addresses); // Yahoo doesn't need the type hint, only raw supported
-    }
-
-    public ArrayList<Result> geocode(ArrayList<Address> addresses) {
+    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException {
         ArrayList<Result> results = new ArrayList<Result>();
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        ArrayList<Future<Result>> futureResults = new ArrayList<Future<Result>>();
+
         for (Address address : addresses) {
-            results.add(geocode(address));
+            futureResults.add(executor.submit(new ParallelRequest(this, address)));
         }
+
+        for (Future<Result> result : futureResults) {
+            try {
+                results.add(result.get());
+            } catch (InterruptedException e) {
+                throw new GeoException(e);
+            } catch (ExecutionException e) {
+                throw new GeoException(e.getCause());
+            }
+        }
+        executor.shutdown();
         return results;
     }
 
     @Override
-    public Result geocode(Address address) {
+    public Result geocode(Address address) throws GeoException {
+        if (address==null) return null;
+
         Content page = null;
         Document response = null;
         Result result = new Result();
@@ -68,9 +100,11 @@ public class Yahoo implements GeocodeInterface {
         try {
             // Parse the API response
             result.source = "http://where.yahooapis.com/geocode?appid="+API_KEY+"&q="+URLEncoder.encode(address.as_raw(), "UTF-8");
-            logger.info(result.source);
+            logger.debug(result.source);
             page = Request.Get(result.source).execute().returnContent();
-            response = xmlBuilder.parse(page.asStream());
+            synchronized (xmlBuilder) {
+                response = xmlBuilder.parse(page.asStream());
+            }
 
             result.status_code = xpath.evaluate("ResultSet/Error", response);
             if(!result.status_code.equals("0")) {
@@ -96,21 +130,32 @@ public class Yahoo implements GeocodeInterface {
 
             return result;
 
+        } catch (UnsupportedEncodingException e) {
+            String msg = "UTF-8 encoding not supported!?";
+            logger.error(msg);
+            throw new GeoException(msg);
+
         } catch (MalformedURLException e) {
-            logger.error("Malformed URL '"+result.source+"', check api key and address values.", e);
-            return result;
+            String msg = "Malformed URL '"+result.source+"', check api key and address values.";
+            logger.error(msg, e);
+            throw new GeoException(msg, e);
 
         } catch (IOException e) {
-            logger.error("Error opening API resource '"+result.source+"'", e);
+            String msg = "Error opening API resource '"+result.source+"'";
+            logger.error(msg, e);
+            result.status_code = "500";
+            result.messages.add(e.getMessage());
             return result;
 
         } catch (SAXException e) {
-            logger.error("Malformed XML response for '"+result.source+"'\n"+page.asString(), e);
-            return result;
+            String msg = "Malformed XML response for '"+result.source+"'\n"+page.asString();
+            logger.error(msg, e);
+            throw new GeoException(msg, e);
 
         } catch (XPathExpressionException e) {
-            logger.error("Unexpected XML Schema\n\n"+response.toString(), e);
-            return result;
+            String msg = "Unexpected XML Schema\n\n"+response.toString();
+            logger.error(msg, e);
+            throw new GeoException(msg ,e);
         }
     }
 }
