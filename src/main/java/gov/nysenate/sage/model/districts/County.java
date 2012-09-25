@@ -11,7 +11,12 @@ public class County {
 
     }
 
-    public County(String district) {
+    public County(String countyName) {
+        this.countyName = countyName;
+    }
+
+    public County(String countyName, String district) {
+        this.countyName = countyName;
         this.district = district;
     }
 

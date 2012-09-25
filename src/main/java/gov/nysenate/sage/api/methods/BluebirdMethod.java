@@ -94,7 +94,7 @@ public class BluebirdMethod extends ApiExecution {
         }
         dr.setAssembly(new Assembly(address.assembly_code+""));
         dr.setCongressional(new Congressional(address.congressional_code+""));
-        dr.setCounty(new County(address.county_code+""));
+        dr.setCounty(new County(null,address.county_code+""));
         dr.setElection(new Election(address.election_code+""));
         dr.setLat(address.latitude);
         dr.setLon(address.longitude);
