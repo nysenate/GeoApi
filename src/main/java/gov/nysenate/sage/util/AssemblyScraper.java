@@ -48,8 +48,8 @@ public class AssemblyScraper {
 		List<Assembly> ret = new ArrayList<Assembly>();
 
 		try {
-			Pattern p = Pattern.compile(
-					"<div class=\"email1\"><a href=\"(.+?)\">(.+?)</a>.*?email2\">(\\d+)");
+			Pattern p = Pattern.compile("<div class=\"email1\"><a href=\"(.+?)\">(.+?)</a></div>");
+			Pattern p2 = Pattern.compile("<div class=\"email2\">(\\d+).*?</div>");
 			Matcher m = null;
 
 			logger.info("Connecting to " + ASSEMBLY_DIRECTORY_URL);
@@ -63,9 +63,12 @@ public class AssemblyScraper {
 
 				if(m.find()) {
 					logger.info("Fetching assembly member " + m.group(2));
-					Assembly a = new Assembly("Assembly District " + m.group(3),
-							new Member(m.group(2),ASSEMBLY_URL+m.group(1),Member.MemberType.Assembly));
-					ret.add(a);
+					Matcher m2 = p2.matcher(br.readLine());
+					if(m2.find()) {
+    					Assembly a = new Assembly("Assembly District " + m2.group(1),
+    							new Member(m.group(2),ASSEMBLY_URL+m.group(1),Member.MemberType.Assembly));
+    					ret.add(a);
+					}
 				}
 			}
 
