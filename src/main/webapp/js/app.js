@@ -214,6 +214,14 @@ $(document).ready(function(){
 			if(data.election) {
 				html += "<li>" + data.election.district + "</li>";
 			}
+
+			if(data.school) {
+				html += "<li>" + data.school.district + "</li>";
+			}
+
+			if(data.town) {
+				html += "<li>" + data.town.district + "</li>";
+			}
 			
 			html += "</ol>"
 						+ "</div>";
