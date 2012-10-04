@@ -31,7 +31,7 @@ public class GeoService {
      *      result.status_code = 0 on success
      *      result.messages = list of response messages if failure
      *      result.address = best match address for result if successful
-     *      result.address = list of all returned address for result if successful
+     *      result.addresses = list of all returned address for result if successful
      *
      *  If any incoming addresses are null a NULL result value is returned in its place.
      *  For bulk requests this ensures that index matching from the incoming address
