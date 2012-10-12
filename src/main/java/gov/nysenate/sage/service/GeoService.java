@@ -3,6 +3,7 @@ package gov.nysenate.sage.service;
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
 import gov.nysenate.sage.adapter.MapQuest;
+import gov.nysenate.sage.adapter.OSM;
 import gov.nysenate.sage.adapter.RubyGeocoder;
 import gov.nysenate.sage.adapter.Yahoo;
 
@@ -65,10 +66,12 @@ public class GeoService {
         Yahoo yahoo = new Yahoo();
         MapQuest mapquest = new MapQuest();
         RubyGeocoder ruby = new RubyGeocoder();
-
+        OSM osm = new OSM();
+        
         geoAdapters.put("yahoo", yahoo);
         geoAdapters.put("mapquest", mapquest);
         geoAdapters.put("rubygeocoder", ruby);
+        geoAdapters.put("osm", osm);
 
         // Reverse Geocoding hasn't been implemented yet
         // revAdapters.put("yahoo", yahoo);
