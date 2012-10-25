@@ -47,15 +47,24 @@ public class RubyGeocoder implements GeocodeInterface {
         } else {
             result.source = GEO_BASE+"address="+address.raw;
         }
+        result.source = result.source.replaceAll(" ", "%20");
 
         try {
             logger.info(result.source);
             page = Request.Get(result.source).execute().returnContent();
 
-            JSONArray array = new JSONArray(page.asStream());
+            JSONArray array = new JSONArray(page.asString());
             JSONObject jsonResult = array.getJSONObject(0);
             if (jsonResult.has("lat")) {
-                String street = jsonResult.getString("prenum")+" "+jsonResult.getString("number")+" "+jsonResult.getString("street");
+                // For lower granularity lookups these fields might not be available.
+                String street = "";
+                if (jsonResult.has("prenum"))
+                    street += jsonResult.getString("prenum")+" ";
+                if (jsonResult.has("number"))
+                    street += jsonResult.getString("number")+" ";
+                if (jsonResult.has("street"))
+                    street += jsonResult.getString("street");
+                street = street.trim();
                 String city = jsonResult.getString("city");
                 String state = jsonResult.getString("state");
                 String zip = jsonResult.getString("zip");
