@@ -110,58 +110,6 @@ public class GeoCodeMethod extends ApiExecution {
         }
     }
 
-    /*
-	@Override
-	public Object execute(HttpServletRequest request,
-			HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
-
-		Object ret = null;
-		String service = request.getParameter("service");
-		String type = more.get(RequestCodes.TYPE.code());
-
-		if(type.equals("addr")) {
-			try {
-				ret = GeoCode.getApiGeocodeResponse(more.get(RequestCodes.ADDRESS.code()), service);
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-				throw new ApiInternalException();
-			}
-		}
-		else if(type.equals("extended")) {
-			try {
-				String addr2 = request.getParameter("addr2");
-				addr2 = (addr2 == null ? request.getParameter("street") : addr2);
-				addr2 = (addr2 == null ? request.getParameter("address") : addr2);
-				String number = request.getParameter("number");
-				ret = GeoCode.getApiGeocodeResponse(
-						(number != null ? number + " ":"") + addr2,
-						request.getParameter("city"),
-						request.getParameter("state"),
-						request.getParameter("zip4"),
-						request.getParameter("zip5"),
-						service);
-			}
-			catch(Exception e) {
-				throw new ApiInternalException();
-			}
-		}
-		else if(type.equals("bulk")) {
-			try {
-				String json = request.getParameter("json");
-				return new GeocoderConnect().doBulkParsing(json);
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-				throw new ApiInternalException();
-			}
-		}
-		else {
-			throw new ApiTypeException(type);
-		}
-		return ret;
-	}
-    */
 	@Override
 	public String toOther(Object obj, String format) throws ApiFormatException {
 		if(format.equals("csv")) {
