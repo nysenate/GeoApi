@@ -558,7 +558,7 @@ public class DistrictServices {
 		
 		return dr;
 	}
-	
+	/*
 	public static DistrictResponse getDistrictsForBluebird(String addr, String city,
 			String state, String zip4, String zip5, String service) throws Exception {
 		
@@ -590,7 +590,8 @@ public class DistrictServices {
 		
 		return dr;
 	}
-	
+	*/
+
 	public static DistrictResponse getDistrictsFromAddress(String addr, String city,
 			String state, String zip4, String zip5, String service) throws Exception {
 
@@ -665,9 +666,9 @@ public class DistrictServices {
 		
 		dr.setLat(point.lat);
 		dr.setLon(point.lon);
-		
-		dr.setAddress(point.address);
-		
+
+		dr.setAddress((String)point.address);
+
 		return dr;
 	}
 	
