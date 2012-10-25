@@ -170,8 +170,9 @@ public class GeoServer implements DistAssignInterface {
                 // Should only match one feature as a point intersection
                 if (features.length()==0) {
                     result.status_code = "1";
-                    result.messages.add("No matching features found");
+                    result.messages.add("No matching "+type+" features found for "+address.toString());
                     results.add(result);
+                    continue;
                 } else if (features.length() > 1) {
                     result.messages.add("Multiple matching features found. Using the first one.");
                 }
@@ -182,7 +183,7 @@ public class GeoServer implements DistAssignInterface {
                 switch (type) {
                 case SCHOOL:
                     result.address.school_name = properties.getString("NAME");
-                    result.address.school_code = properties.getInt("TFCODE");
+                    result.address.school_code = properties.getString("TFCODE");
                     break;
                 case TOWN:
                     result.address.town_name = properties.getString("NAME");
