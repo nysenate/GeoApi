@@ -89,8 +89,8 @@ public class DistrictsMethod extends ApiExecution {
                 request.getParameter("addr2"),
                 request.getParameter("city"),
                 request.getParameter("state"),
-                request.getParameter("zip4"),
-                request.getParameter("zip5")
+                request.getParameter("zip5"),
+                request.getParameter("zip4")
             );
         } else if (type.equals("latlon")) {
             address = new Address();
