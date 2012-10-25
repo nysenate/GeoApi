@@ -54,6 +54,12 @@ public class RubyGeocoder implements GeocodeInterface {
             page = Request.Get(result.source).execute().returnContent();
 
             JSONArray array = new JSONArray(page.asString());
+            if (array.length()==0) {
+                result.status_code = "404";
+                result.messages.add("Lookup failure for "+address.toString());
+                return result;
+            }
+
             JSONObject jsonResult = array.getJSONObject(0);
             if (jsonResult.has("lat")) {
                 // For lower granularity lookups these fields might not be available.
