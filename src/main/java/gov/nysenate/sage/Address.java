@@ -26,26 +26,40 @@ public class Address implements Cloneable {
 
     // District Information
     public String congressional_name = "";
-    public int congressional_code = 0;
-    public String county_name = "";
-    public int county_code = 0;
     public String senate_name = "";
-    public int senate_code = 0;
     public String assembly_name = "";
-    public int assembly_code = 0;
+    public String county_name = "";
     public String town_name = "";
-    public String town_code = "";
-    public String election_name = "";
-    public int election_code = 0;
     public String school_name = "";
-    public int school_code = 0;
     public String ward_name = "";
-    public int ward_code = 0;
+    public String election_name = "";
+
+    public int congressional_code = 0;
+    public int county_code = 0;
+    public int senate_code = 0;
+    public int assembly_code = 0;
+    public int election_code = 0;
+
+    public String town_code = "";
+    public String ward_code = "";
+    public String school_code = "";
+
+    public String cleg_code = "";
+    public String city_code = "";
+    public String fire_code = "";
+    public String vill_code = "";
 
     // Raw street address
     public String raw = "";
 
     // Address Parts
+    public int bldg_num;
+    public String bldg_chr;
+    public String street;
+    public int apt_num;
+    public String apt_chr;
+
+
     public String addr1 = "";
     public String addr2 = "";
     public String city = "";
@@ -108,8 +122,8 @@ public class Address implements Cloneable {
         if (this.is_geocoded()) {
             str += " ("+latitude+","+longitude+")~"+geocode_quality;
         }
-        if (congressional_code != 0 || county_code != 0 || election_code != 0 || school_code != 0 || !town_code.equals("") || senate_code != 0 || assembly_code != 0) {
-            str += String.format(" [Con: %02d Cnt: %02d Ele: %02d Sch: %03d Twn: %s Sen: %02d Asm: %02d]", congressional_code, county_code, election_code, school_code, town_code, senate_code, assembly_code);
+        if (congressional_code != 0 || county_code != 0 || election_code != 0 || !school_code.equals("") || !town_code.equals("") || senate_code != 0 || assembly_code != 0) {
+            str += String.format(" [Con: %02d Cnt: %02d Ele: %02d Sch: %03s Twn: %s Sen: %02d Asm: %02d]", congressional_code, county_code, election_code, school_code, town_code, senate_code, assembly_code);
         }
         return str;
     }

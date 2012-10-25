@@ -35,36 +35,44 @@ public class DistrictsMethod extends ApiExecution {
 
     public Object getDistricts(Address address) throws ApiInternalException {
         try {
-            if (!address.is_geocoded()) {
+            DistrictResponse dr = new DistrictResponse();
+            dr.validated = false;
+            dr.setAddress(address.as_raw());
+
+            if (address.is_geocoded()) {
+                dr.geocoded = true;
+                dr.setLat(address.latitude);
+                dr.setLon(address.longitude);
+
+            } else {
                 Result result = geoService.geocode(address, "yahoo");
-                if (result == null)
-                    throw new ApiInternalException();
-
-                if (!result.status_code.equals("0"))
-                    throw new ApiInternalException(result.messages.get(0));
-
-                address = result.addresses.get(0);
+                if (result == null || !result.status_code.equals("0")) {
+                    dr.geocoded = false;
+                    dr.errors.add(result.messages.get(0));
+                } else {
+                    dr.geocoded = true;
+                    address = result.addresses.get(0);
+                    dr.setLat(address.latitude);
+                    dr.setLon(address.longitude);
+                }
             }
 
             Result result = districtService.assignAll(address, "geoserver");
-            if (result == null)
-                throw new ApiInternalException();
+            if (result == null || !result.status_code.equals("0")) {
+                dr.distassigned = false;
+                dr.errors.addAll(result.messages);
 
-            if (!result.status_code.equals("0"))
-                throw new ApiInternalException(result.messages.get(0));
+            } else {
+                Connect db = new Connect();
+                dr.setAssembly((Assembly)db.getObject(Assembly.class, "district", "Assembly District "+result.address.assembly_code));
+                dr.setCongressional((Congressional)db.getObject(Congressional.class, "district", "Congressional District "+result.address.congressional_code));
+                dr.setCounty(new County(result.address.county_name));
+                dr.setElection(new Election("Election District "+result.address.election_code));
+                dr.setSenate((Senate)db.getObject(Senate.class, "district", "State Senate District "+result.address.senate_code));
+                dr.setSchool(new School("School District "+result.address.school_code));
+                dr.setTown(new Town(result.address.town_code));
+            }
 
-            Connect db = new Connect();
-            DistrictResponse dr = new DistrictResponse();
-            dr.setAddress(result.address.as_raw());
-            dr.setAssembly((Assembly)db.getObject(Assembly.class, "district", "Assembly District "+result.address.assembly_code));
-            dr.setCongressional((Congressional)db.getObject(Congressional.class, "district", "Congressional District "+result.address.congressional_code));
-            dr.setCounty(new County(result.address.county_name));
-            dr.setElection(new Election("Election District "+result.address.election_code));
-            dr.setLat(result.address.latitude);
-            dr.setLon(result.address.longitude);
-            dr.setSenate((Senate)db.getObject(Senate.class, "district", "State Senate District "+result.address.senate_code));
-            dr.setSchool(new School("School District "+result.address.school_code));
-            dr.setTown(new Town(result.address.town_code));
             return dr;
         } catch (UnsupportedEncodingException e) {
             throw new ApiInternalException("UTF-8 unsupported uncoding.", e);

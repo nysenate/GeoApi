@@ -5,7 +5,6 @@ import gov.nysenate.sage.Result;
 import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.ApiExecution;
-import gov.nysenate.sage.model.ValidateResponse;
 import gov.nysenate.sage.model.districts.Assembly;
 import gov.nysenate.sage.model.districts.Congressional;
 import gov.nysenate.sage.model.districts.County;
@@ -47,60 +46,76 @@ public class BluebirdMethod extends ApiExecution {
     }
 
     public Object getDistricts(Address address) throws ApiInternalException {
-        boolean address_validated = false;
+        DistrictResponse dr = new DistrictResponse();
+        if (address==null) return dr;
+
+        dr.validated = false;
         if (address.is_parsed()) {
             // Use USPS address if we can succesfully validate it
             Result result = addressService.validate(address, "usps");
-            if (result!=null && result.status_code.equals("0")) {
-                address.addr1 = result.address.addr1;
-                address.addr2 = result.address.addr2;
-                address.city = result.address.city;
-                address.state = result.address.state;
-                address.zip5 = result.address.zip5;
-                address.zip4 = result.address.zip4;
-                address_validated = true;
+            if (result.status_code.equals("0")) {
+                dr.setAddress(result.address.as_raw());
+                dr.address1 = address.addr1 = result.address.addr1;
+                dr.address2 = address.addr2 = result.address.addr2;
+                dr.city = address.city = result.address.city;
+                dr.state = address.state = result.address.state;
+                dr.zip5 = address.zip5 = result.address.zip5;
+                dr.zip4 = address.zip4 = result.address.zip4;
+                dr.validated = true;
+                address = result.address;
+            } else {
+                dr.errors.addAll(result.messages);
+                dr.setAddress(address.as_raw());
             }
+        } else {
+            dr.setAddress(address.as_raw());
         }
 
+        dr.geocoded = false;
         if (!address.is_geocoded()) {
             try {
                 Result result = geoService.geocode(address, "yahoo");
-                if (!result.status_code.equals("0"))
-                    throw new ApiInternalException(result.messages.get(0));
+                if (!result.status_code.equals("0")) {
+                    dr.errors.addAll(result.messages);
 
-                address = result.addresses.get(0);
+                } else {
+                    dr.geocoded = true;
+                    address = result.addresses.get(0);
+                    dr.setLat(address.latitude);
+                    dr.setLon(address.longitude);
+                    dr.geocode_quality = address.geocode_quality;
+                }
+
             } catch (GeoException e) {
-                throw new ApiInternalException("Fatal geocoding Error.", e);
+                dr.errors.add("Fatal geocoding Error: "+e.getMessage());
             }
         }
 
+
+        dr.distassigned = false;
         try {
             Result result = districtService.assignAll(address, "geoserver");
-            if (result == null)
-                throw new ApiInternalException();
-            else if (!result.status_code.equals("0"))
-                throw new ApiInternalException(result.messages.get(0));
 
-            address = result.address;
+            if (!result.status_code.equals("0")) {
+                dr.errors.addAll(result.messages);
+            } else {
+                dr.distassigned = true;
+                address = result.address;
+
+                dr.setAssembly(new Assembly(address.assembly_code+""));
+                dr.setCongressional(new Congressional(address.congressional_code+""));
+                dr.setCounty(new County(null,address.county_code+""));
+                dr.setElection(new Election(address.election_code+""));
+
+                dr.setSenate(new Senate(address.senate_code+""));
+                dr.setSchool(new School(address.school_code+""));
+                dr.setTown(new Town(address.town_code));
+            }
+
         } catch (DistException e) {
-            throw new ApiInternalException("Fatal district assignment Error.", e);
+            dr.errors.add("Fatal district assignment Error."+e.getMessage());
         }
 
-        DistrictResponse dr = new DistrictResponse();
-        if (address_validated) {
-            dr.setAddress(new AddressType(null,new ValidateResponse(address)));
-        } else {
-            dr.setAddress(new AddressType(address.as_raw(),null));
-        }
-        dr.setAssembly(new Assembly(address.assembly_code+""));
-        dr.setCongressional(new Congressional(address.congressional_code+""));
-        dr.setCounty(new County(null,address.county_code+""));
-        dr.setElection(new Election(address.election_code+""));
-        dr.setLat(address.latitude);
-        dr.setLon(address.longitude);
-        dr.setSenate(new Senate(address.senate_code+""));
-        dr.setSchool(new School(address.school_code+""));
-        dr.setTown(new Town(address.town_code));
         return dr;
     }
 

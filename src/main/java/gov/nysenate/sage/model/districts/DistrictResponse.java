@@ -2,14 +2,32 @@ package gov.nysenate.sage.model.districts;
 
 import gov.nysenate.sage.Response;
 
+import java.util.ArrayList;
+
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("districts")
 public class DistrictResponse extends Response {
+    public boolean validated;
+    public boolean geocoded;
+    public boolean distassigned;
+
+    public ArrayList<String> errors;
+
 	double lat;
 	double lon;
+	public double geocode_quality;
 
-	Object address;
+	// Simple
+	String address;
+
+	//Extended
+	public String address1;
+	public String address2;
+	public String city;
+	public String state;
+	public String zip5;
+	public String zip4;
 
 	Assembly assembly;
 	Congressional congressional;
@@ -22,7 +40,7 @@ public class DistrictResponse extends Response {
 	//Census census;
 
 	public DistrictResponse() {
-
+	    this.errors = new ArrayList<String>();
 	}
 
 	public double getLat() {
@@ -77,10 +95,6 @@ public class DistrictResponse extends Response {
 		this.lon = lon;
 	}
 
-	public void setAddress(Object address) {
-		this.address = address;
-	}
-
 	public void setAssembly(Assembly assembly) {
 		this.assembly = assembly;
 	}
@@ -108,6 +122,34 @@ public class DistrictResponse extends Response {
 	public void setTown(Town town) {
 	    this.town = town;
 	}
+
+    public boolean isDistassigned() {
+        return distassigned;
+    }
+
+    public void setDistassigned(boolean distassigned) {
+        this.distassigned = distassigned;
+    }
+
+    public boolean isGeocoded() {
+        return geocoded;
+    }
+
+    public void setGeocoded(boolean geocoded) {
+        this.geocoded = geocoded;
+    }
+
+    public boolean isValidated() {
+        return validated;
+    }
+
+    public void setValidated(boolean validated) {
+        this.validated = validated;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
 	/*public void setCensus(Census census) {
 		this.census = census;
