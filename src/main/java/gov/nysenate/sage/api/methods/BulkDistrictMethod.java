@@ -1,0 +1,186 @@
+package gov.nysenate.sage.api.methods;
+
+import gov.nysenate.sage.api.exceptions.ApiInternalException;
+import gov.nysenate.sage.api.exceptions.ApiTypeException;
+import gov.nysenate.sage.boe.AddressRange;
+import gov.nysenate.sage.boe.AddressUtils;
+import gov.nysenate.sage.boe.DistrictLookup;
+import gov.nysenate.sage.boe.StreetAddress;
+import gov.nysenate.sage.model.ApiExecution;
+import gov.nysenate.sage.service.DistrictService;
+import gov.nysenate.sage.util.Resource;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+
+public class BulkDistrictMethod extends ApiExecution {
+    public static final ArrayList<DistrictService.TYPE> districtTypes = new ArrayList<DistrictService.TYPE>(Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.COUNTY,DistrictService.TYPE.ELECTION));
+
+    private class BluebirdAddress extends StreetAddress {
+        public String id;
+        public BluebirdAddress(String id) { this.id = id; }
+    }
+
+    public final DistrictLookup streetData;
+
+    public BulkDistrictMethod() throws Exception {
+        Resource config = new Resource();
+
+        MysqlDataSource db = new MysqlDataSource();
+        db.setServerName(config.fetch("street_db.host"));
+        db.setUser(config.fetch("street_db.user"));
+        db.setPassword(config.fetch("street_db.pass"));
+        db.setDatabaseName(config.fetch("street_db.name"));
+
+        streetData =  new DistrictLookup(db);
+    }
+
+
+    public static void main(String[] args) throws Exception {
+        BulkDistrictMethod bdMethod = new BulkDistrictMethod();
+
+        String json = "{\"4\":{\"street\":\"West 187th Street\",\"town\":\"New York\",\"state\":\"NY\",\"zip5\":\"10033\",\"apt\":null,\"building\":\"650\"}}";
+        ArrayList<BluebirdAddress> addresses = bdMethod.readAddresses(json);
+        for (BluebirdAddress address : addresses) {
+            for(AddressRange range : bdMethod.streetData.getRanges(address)) {
+                System.out.println(range.id);
+            }
+        }
+    }
+
+    private BluebirdAddress requestToAddress(HttpServletRequest request) {
+        BluebirdAddress address = new BluebirdAddress(request.getParameter("id"));
+
+        String street = request.getParameter("street");
+        String town = request.getParameter("town");
+        String state = request.getParameter("state");
+        String zip5 = request.getParameter("zip5");
+        String apt_num = request.getParameter("apt_num");
+        String bldg_num = request.getParameter("bldg_num");
+
+        address.street = (street==null ? "" : street.toUpperCase());
+        address.town = (town==null ? "" : town.toUpperCase());
+        address.state = (state==null ? "" : state.toUpperCase());
+        address.zip5 = (zip5==null ? 0 : Integer.parseInt(zip5));
+        address.apt_num = (apt_num==null ? 0 : Integer.parseInt(apt_num));
+        address.bldg_num = (bldg_num==null ? 0 : Integer.parseInt(bldg_num));
+        address.bldg_chr = "";
+        address.apt_chr = "";
+        AddressUtils.normalizeAddress(address);
+        return address;
+    }
+
+    private BluebirdAddress jsonToAddress(String id, JSONObject json) throws JSONException {
+        // {"street":"West 187th Street ","town":"New York","state":"NY","zip5":"10033","apt":null,"building":"650"}
+        if (json == null) return null;
+
+        String street = json.getString("street");
+        String town = json.getString("town");
+        String state = json.getString("state");
+        String zip5 = json.getString("zip5");
+        String apt_num = json.getString("apt");
+        String bldg_num = json.getString("building");
+
+        BluebirdAddress address = new BluebirdAddress(id);
+        address.street = (street.equals("null") ? "" : street);
+        address.town = (town.equals("null") ? "" : town);
+        address.state = (state.equals("null") ? "" : state);
+        address.zip5 = (zip5.equals("null") ? 0 : Integer.parseInt(zip5));
+        address.apt_num = (apt_num.equals("null") ? 0 : Integer.parseInt(apt_num));
+        address.bldg_num = (bldg_num.equals("null") ? 0 : Integer.parseInt(bldg_num));
+        address.bldg_chr = "";
+        address.apt_chr = "";
+        AddressUtils.normalizeAddress(address);
+        return address;
+    }
+
+    public ArrayList<BluebirdAddress> readAddresses(String json) throws JSONException {
+        ArrayList<BluebirdAddress> addresses = new ArrayList<BluebirdAddress>();
+        JSONObject bluebirdAddresses = new JSONObject(json);
+        Iterator<String> keys = bluebirdAddresses.keys();
+        while (keys.hasNext()) {
+            String bluebirdId = keys.next();
+            try {
+                addresses.add(jsonToAddress(bluebirdId, bluebirdAddresses.getJSONObject(bluebirdId)));
+            } catch (JSONException e) {
+                addresses.add(null);
+            }
+        }
+        return addresses;
+    }
+
+    @SuppressWarnings("unused")
+    private static class Result {
+        public static enum STATUS { MATCH, INVALID, NOMATCH, MULTIMATCH };
+
+        public STATUS status_code;
+        public String message;
+        public String address_id;
+        public List<AddressRange> matches;
+
+        public Result(String id, STATUS status, String message, List<AddressRange> matches) {
+            this.address_id = id;
+            this.status_code = status;
+            this.message = message;
+            this.matches = matches;
+        }
+    }
+
+    @Override
+    public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
+        String type = more.get(RequestCodes.TYPE.code());
+        ArrayList<Result> results = new ArrayList<Result>();
+        ArrayList<AddressRange> noMatches = new ArrayList<AddressRange>();
+        ArrayList<BluebirdAddress> bluebirdAddresses;
+        try {
+            if(type.equals("url")) {
+                bluebirdAddresses = new ArrayList<BluebirdAddress>(Arrays.asList(requestToAddress(request)));
+            } else if (type.equals("body")) {
+                String json = IOUtils.toString(request.getInputStream(),"UTF-8");
+                bluebirdAddresses = readAddresses(json);
+            } else {
+                throw new ApiTypeException(type);
+            }
+
+            for(BluebirdAddress address : bluebirdAddresses) {
+                if (address!=null) {
+                    List<AddressRange> matches = streetData.getRanges(address);
+                    if (matches.size()==0) {
+                        results.add(new Result(address.id,Result.STATUS.NOMATCH,"No matches found for: "+address.toString(),matches));
+                    } else if (matches.size() > 1) {
+                        results.add(new Result(address.id,Result.STATUS.MULTIMATCH,matches.size()+" matches found for: "+address.toString(),matches));
+                    } else {
+                        results.add(new Result(address.id,Result.STATUS.MATCH,"SUCCESS",matches));
+                    }
+                } else {
+                    results.add(new Result("-1",Result.STATUS.INVALID,"Invalid JSON Entry",noMatches));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new ApiTypeException("No request body found.", e);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            throw new ApiTypeException("Invalid JSON recieved.",e);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new ApiInternalException("Internal DB Error", e);
+        }
+
+        return results;
+    }
+
+}

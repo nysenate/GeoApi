@@ -171,5 +171,10 @@
         <artifactId>geoapi</artifactId>
         <version>3.0.0</version>
     </dependency>
+    <dependency>
+        <groupId>commons-dbutils</groupId>
+        <artifactId>commons-dbutils</artifactId>
+        <version>1.4</version>
+    </dependency>
   </dependencies>
 </project>

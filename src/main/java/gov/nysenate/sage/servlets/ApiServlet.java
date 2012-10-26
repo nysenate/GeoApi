@@ -6,6 +6,7 @@ import gov.nysenate.sage.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.api.methods.BluebirdMethod;
+import gov.nysenate.sage.api.methods.BulkDistrictMethod;
 import gov.nysenate.sage.api.methods.CityStateLookupMethod;
 import gov.nysenate.sage.api.methods.DistrictsMethod;
 import gov.nysenate.sage.api.methods.GeoCodeMethod;
@@ -201,6 +202,13 @@ public class ApiServlet extends HttpServlet {
     @SuppressWarnings({ "unchecked", "serial" })
     public static HashMap<String, ApiMethod> getMethods() throws Exception {
         return new HashMap<String, ApiMethod>() {{
+
+            put("bulkdistrict", new ApiMethod("bulkdistrict",
+                new BulkDistrictMethod(),
+                false,
+                new ArrayList<String>(Arrays.asList("body","url")),
+                new ArrayList<String>(Arrays.asList("json")),
+                new ArrayList<Class<? extends Object>>(Arrays.asList(ArrayList.class))));
 
             put("geocode", new ApiMethod("geocode",
                 new GeoCodeMethod(),
