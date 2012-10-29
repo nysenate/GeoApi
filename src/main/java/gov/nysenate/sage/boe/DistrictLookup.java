@@ -4,8 +4,12 @@ import gov.nysenate.sage.util.Resource;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.dbutils.BasicRowProcessor;
+import org.apache.commons.dbutils.BeanProcessor;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -15,9 +19,9 @@ import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 public class DistrictLookup {
     public MysqlDataSource db;
     public QueryRunner runner;
-    public ResultSetHandler<List<AddressRange>> rangeHandler;
+    public ResultSetHandler<List<BOEAddressRange>> rangeHandler;
 
-    public boolean DEBUG = true;
+    public boolean DEBUG = false;
 
     public static void main(String[] args) throws Exception {
         System.out.println("Starting up...");
@@ -31,20 +35,31 @@ public class DistrictLookup {
         System.out.println(config.fetch("street_db.host")+"|"+config.fetch("street_db.user")+"|"+config.fetch("street_db.pass")+"|"+config.fetch("street_db.name"));
 
         DistrictLookup streetData = new DistrictLookup(db);
-        StreetAddress address = AddressUtils.parseAddress("1204 10th Ave, Colonie NY 12189");
+        BOEStreetAddress address = AddressUtils.parseAddress("1204 10th Ave, Colonie NY 12189");
         System.out.println(address);
 
-        for (AddressRange range : streetData.getRanges(address)) {
+        for (BOEAddressRange range : streetData.getRanges(address)) {
             System.out.println(range.getId());
         }
     }
 
     public DistrictLookup(MysqlDataSource db) {
         runner = new QueryRunner(db);
-        rangeHandler = new BeanListHandler<AddressRange>(AddressRange.class);
+        Map<String, String> column_map = new HashMap<String, String>();
+        column_map.put("congressional_code", "congressionalCode");
+        column_map.put("senate_code", "senateCode");
+        column_map.put("election_code","electionCode");
+        column_map.put("county_code","countyCode");
+        column_map.put("assembly_code","assemblyCode");
+        column_map.put("bldg_lo_num","bldgLoNum");
+        column_map.put("bldg_hi_num","bldgHiNum");
+        column_map.put("apt_lo_num", "aptLoNum");
+        column_map.put("apt_hi_num", "aptHiNum");
+        BeanProcessor rowProcessor = new BeanProcessor(column_map);
+        rangeHandler = new BeanListHandler<BOEAddressRange>(BOEAddressRange.class, new BasicRowProcessor(rowProcessor));
     }
 
-    public List<AddressRange> getRanges(StreetAddress address) throws SQLException {
+    public List<BOEAddressRange> getRanges(BOEStreetAddress address) throws SQLException {
         ArrayList<Object> a = new ArrayList<Object>();
         String sql = "SELECT * \n"
                    + "FROM street_data \n"

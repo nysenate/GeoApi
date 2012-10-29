@@ -9,7 +9,7 @@ public class AddressUtils {
     public static HashMap<String,String> suffixMap = null;
     public static Pattern addrPattern = null;
 
-    public static StreetAddress parseAddress(String address) {
+    public static BOEStreetAddress parseAddress(String address) {
         load_constants();
         Matcher m = addrPattern.matcher(address.toUpperCase());
         if (m.find()) {
@@ -18,7 +18,7 @@ public class AddressUtils {
                     System.out.println("Group "+i+": "+m.group(i));
                 }
             }
-            StreetAddress ret = new StreetAddress();
+            BOEStreetAddress ret = new BOEStreetAddress();
             ret.bldg_num = m.group(2) != null ? Integer.parseInt(m.group(2)) : 0;
             ret.bldg_chr = m.group(3) != null ? m.group(3) : "";
             ret.street = m.group(4) != null ? m.group(4) : "";
@@ -34,7 +34,7 @@ public class AddressUtils {
             ret.town = m.group(9) != null ? m.group(9) : "";
             ret.state = m.group(10) != null ? m.group(10) : "";
             ret.zip5 = m.group(11) != null ? Integer.parseInt(m.group(11)) : 0;
-            return (StreetAddress)normalizeAddress(ret);
+            return (BOEStreetAddress)normalizeAddress(ret);
 
         } else {
             System.out.println("Could not match: "+address);
@@ -44,7 +44,7 @@ public class AddressUtils {
 
     public static BOEAddress normalizeAddress(BOEAddress address) {
         load_constants();
-        if (address.town != null) {
+        if (address.town != null && !address.town.equals("")) {
             // Fix up the towns
             if (address.town == "CITY/KNG") {
                 address.town = "KINGSTON";
@@ -57,14 +57,17 @@ public class AddressUtils {
         }
 
         if (address.street != null) {
-            // Shorten the suffix if necessary
-            String[] parts = address.street.split(" ");
-            String possibleSuffix = parts[parts.length-1];
-            if (parts.length > 1 && suffixMap.containsKey(possibleSuffix)) {
-                address.street = address.street.replaceFirst(possibleSuffix+"$",suffixMap.get(possibleSuffix));
+            address.street = address.street.trim();
+            if (!address.street.equals("")) {
+                // Shorten the suffix if necessary
+                String[] parts = address.street.split(" ");
+                String possibleSuffix = parts[parts.length-1];
+                if (parts.length > 1 && suffixMap.containsKey(possibleSuffix)) {
+                    address.street = address.street.replaceFirst(possibleSuffix+"$",suffixMap.get(possibleSuffix));
+                }
+                address.street = address.street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
+                address.street = address.street.replaceAll("[#:;.,-]", "").replaceAll("'", "").replaceAll(" +", " ");
             }
-            address.street = address.street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
-            address.street = address.street.replaceAll("[#:;.,-]", "").replaceAll("'", "").replaceAll(" +", " ");
         }
 
         /* Don't know if we need these

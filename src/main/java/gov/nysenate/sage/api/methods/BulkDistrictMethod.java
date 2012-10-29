@@ -2,10 +2,10 @@ package gov.nysenate.sage.api.methods;
 
 import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.boe.AddressRange;
 import gov.nysenate.sage.boe.AddressUtils;
+import gov.nysenate.sage.boe.BOEAddressRange;
+import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
-import gov.nysenate.sage.boe.StreetAddress;
 import gov.nysenate.sage.model.ApiExecution;
 import gov.nysenate.sage.service.DistrictService;
 import gov.nysenate.sage.util.Resource;
@@ -29,7 +29,7 @@ import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 public class BulkDistrictMethod extends ApiExecution {
     public static final ArrayList<DistrictService.TYPE> districtTypes = new ArrayList<DistrictService.TYPE>(Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.COUNTY,DistrictService.TYPE.ELECTION));
 
-    private class BluebirdAddress extends StreetAddress {
+    private class BluebirdAddress extends BOEStreetAddress {
         public String id;
         public BluebirdAddress(String id) { this.id = id; }
     }
@@ -55,7 +55,7 @@ public class BulkDistrictMethod extends ApiExecution {
         String json = "{\"4\":{\"street\":\"West 187th Street\",\"town\":\"New York\",\"state\":\"NY\",\"zip5\":\"10033\",\"apt\":null,\"building\":\"650\"}}";
         ArrayList<BluebirdAddress> addresses = bdMethod.readAddresses(json);
         for (BluebirdAddress address : addresses) {
-            for(AddressRange range : bdMethod.streetData.getRanges(address)) {
+            for(BOEAddressRange range : bdMethod.streetData.getRanges(address)) {
                 System.out.println(range.id);
             }
         }
@@ -71,12 +71,12 @@ public class BulkDistrictMethod extends ApiExecution {
         String apt_num = request.getParameter("apt_num");
         String bldg_num = request.getParameter("bldg_num");
 
-        address.street = (street==null ? "" : street.toUpperCase());
-        address.town = (town==null ? "" : town.toUpperCase());
-        address.state = (state==null ? "" : state.toUpperCase());
-        address.zip5 = (zip5==null ? 0 : Integer.parseInt(zip5));
-        address.apt_num = (apt_num==null ? 0 : Integer.parseInt(apt_num));
-        address.bldg_num = (bldg_num==null ? 0 : Integer.parseInt(bldg_num));
+        address.street = (street==null ? "" : street.toUpperCase().trim());
+        address.town = (town==null ? "" : town.toUpperCase().trim());
+        address.state = (state==null ? "" : state.toUpperCase().trim());
+        address.zip5 = (zip5==null ? 0 : Integer.parseInt(zip5.trim()));
+        address.apt_num = (apt_num==null ? 0 : Integer.parseInt(apt_num.trim()));
+        address.bldg_num = (bldg_num==null ? 0 : Integer.parseInt(bldg_num.trim()));
         address.bldg_chr = "";
         address.apt_chr = "";
         AddressUtils.normalizeAddress(address);
@@ -95,12 +95,12 @@ public class BulkDistrictMethod extends ApiExecution {
         String bldg_num = json.getString("building");
 
         BluebirdAddress address = new BluebirdAddress(id);
-        address.street = (street.equals("null") ? "" : street);
-        address.town = (town.equals("null") ? "" : town);
-        address.state = (state.equals("null") ? "" : state);
-        address.zip5 = (zip5.equals("null") ? 0 : Integer.parseInt(zip5));
-        address.apt_num = (apt_num.equals("null") ? 0 : Integer.parseInt(apt_num));
-        address.bldg_num = (bldg_num.equals("null") ? 0 : Integer.parseInt(bldg_num));
+        address.street = (street.equals("null") ? "" : street.toUpperCase());
+        address.town = (town.equals("null") ? "" : town.toUpperCase());
+        address.state = (state.equals("null") ? "" : state.toUpperCase());
+        address.zip5 = (zip5.equals("null") || zip5.equals("") ? 0 : Integer.parseInt(zip5));
+        address.apt_num = (apt_num.equals("null") || apt_num.equals("") ? 0 : Integer.parseInt(apt_num));
+        address.bldg_num = (bldg_num.equals("null") || bldg_num.equals("") ? 0 : Integer.parseInt(bldg_num));
         address.bldg_chr = "";
         address.apt_chr = "";
         AddressUtils.normalizeAddress(address);
@@ -129,9 +129,9 @@ public class BulkDistrictMethod extends ApiExecution {
         public STATUS status_code;
         public String message;
         public String address_id;
-        public List<AddressRange> matches;
+        public List<BOEAddressRange> matches;
 
-        public Result(String id, STATUS status, String message, List<AddressRange> matches) {
+        public Result(String id, STATUS status, String message, List<BOEAddressRange> matches) {
             this.address_id = id;
             this.status_code = status;
             this.message = message;
@@ -143,7 +143,7 @@ public class BulkDistrictMethod extends ApiExecution {
     public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
         String type = more.get(RequestCodes.TYPE.code());
         ArrayList<Result> results = new ArrayList<Result>();
-        ArrayList<AddressRange> noMatches = new ArrayList<AddressRange>();
+        ArrayList<BOEAddressRange> noMatches = new ArrayList<BOEAddressRange>();
         ArrayList<BluebirdAddress> bluebirdAddresses;
         try {
             if(type.equals("url")) {
@@ -157,7 +157,7 @@ public class BulkDistrictMethod extends ApiExecution {
 
             for(BluebirdAddress address : bluebirdAddresses) {
                 if (address!=null) {
-                    List<AddressRange> matches = streetData.getRanges(address);
+                    List<BOEAddressRange> matches = streetData.getRanges(address);
                     if (matches.size()==0) {
                         results.add(new Result(address.id,Result.STATUS.NOMATCH,"No matches found for: "+address.toString(),matches));
                     } else if (matches.size() > 1) {

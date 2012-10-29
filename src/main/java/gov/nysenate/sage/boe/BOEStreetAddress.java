@@ -1,6 +1,6 @@
 package gov.nysenate.sage.boe;
 
-public class StreetAddress extends BOEAddress {
+public class BOEStreetAddress extends BOEAddress {
     public int bldg_num;
     public String bldg_chr;
 

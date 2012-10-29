@@ -1,6 +1,18 @@
 package gov.nysenate.sage.boe;
 
-public class AddressRange extends BOEAddress {
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.MethodDescriptor;
+
+public class BOEAddressRange extends BOEAddress implements java.io.Serializable {
+
+    public static void main(String[] args) throws Exception {
+        BeanInfo info = Introspector.getBeanInfo(BOEAddressRange.class);
+        for (MethodDescriptor d : info.getMethodDescriptors()) {
+            System.out.println(d);
+        }
+    }
+
     public int id;
 
     public int bldgLoNum;
