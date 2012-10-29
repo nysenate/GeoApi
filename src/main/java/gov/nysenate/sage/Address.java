@@ -108,7 +108,7 @@ public class Address implements Cloneable {
         if (is_parsed()) {
             return ( !addr1.equals("") ? addr1+" " : "")
                  + ( !addr2.equals("") ? addr2+" " : "")
-                 + ( !city.equals("")  ? city+", "   : "")
+                 + ( !city.equals("")  ? ", "+city+" "   : "")
                  + ( !state.equals("") ? state+" " : "")
                  + ( !zip5.equals("")  ? zip5 : "")
                  + ( !zip4.equals("")  ? "-"+zip4 : "").trim();
