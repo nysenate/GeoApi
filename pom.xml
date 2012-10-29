@@ -174,7 +174,12 @@
     <dependency>
         <groupId>commons-dbutils</groupId>
         <artifactId>commons-dbutils</artifactId>
-        <version>1.4</version>
+        <version>1.5</version>
+    </dependency>
+    <dependency>
+        <groupId>org.ini4j</groupId>
+        <artifactId>ini4j</artifactId>
+        <version>0.5.2</version>
     </dependency>
   </dependencies>
 </project>
