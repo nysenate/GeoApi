@@ -55,6 +55,13 @@ public class DistrictLookup {
         column_map.put("bldg_hi_num","bldgHiNum");
         column_map.put("apt_lo_num", "aptLoNum");
         column_map.put("apt_hi_num", "aptHiNum");
+        column_map.put("town_code","townCode");
+        column_map.put("ward_code", "wardCode");
+        column_map.put("school_code", "schoolCode");
+        column_map.put("cleg_code","clegCode");
+        column_map.put("fire_code","fireCode");
+        column_map.put("city_code","cityCode");
+        column_map.put("vill_code","villCode");
         BeanProcessor rowProcessor = new BeanProcessor(column_map);
         rangeHandler = new BeanListHandler<BOEAddressRange>(BOEAddressRange.class, new BasicRowProcessor(rowProcessor));
     }
