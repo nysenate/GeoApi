@@ -65,7 +65,7 @@ public class AddressUtils {
                 if (parts.length > 1 && suffixMap.containsKey(possibleSuffix)) {
                     address.street = address.street.replaceFirst(possibleSuffix+"$",suffixMap.get(possibleSuffix));
                 }
-                address.street = address.street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
+                // address.street = address.street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
                 address.street = address.street.replaceAll("[#:;.,-]", "").replaceAll("'", "").replaceAll(" +", " ");
             }
         }
