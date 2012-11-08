@@ -26,7 +26,7 @@ public class Main {
         ArrayList<StreetFile> street_files = new ArrayList<StreetFile>();
 
         File base_dir = new File(config.get("directories", "street_files"));
-        /*
+
         street_files.add(new NTS(1, new File(base_dir, "Albany_County_Street_Index.txt")) {
             @Override
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
@@ -35,7 +35,7 @@ public class Main {
                 addressRange.setVillCode(matcher.group(17) != null ? matcher.group(17).trim() : "");
             }
         });
-
+        /*
         street_files.add(new NTS(2, new File(base_dir, "Allegany_County_Streets.txt")) {
             @Override
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
@@ -438,16 +438,16 @@ public class Main {
                 // cor_code = (matcher.group(16) != null ? matcher.group(16).trim() : "");
             }
         });
-
+        */
         // DELETED 1 incomplete line in the beginning of the file
         street_files.add(new NTS(53,new File(base_dir, "Washington_County_Street_File.txt")) {
             @Override
-            public void store_extra_districts(AddressRange addressRange, Matcher matcher) {
+            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
                 addressRange.setVillCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
                 // jud_code = (matcher.group(16) != null ? matcher.group(16).trim() : "");
             }
         });
-
+        /*
         street_files.add(new NTS(54,new File(base_dir, "Wayne_County_StreetFinder.txt")) {
             @Override
             public void store_extra_districts(AddressRange addressRange, Matcher matcher) {
@@ -466,10 +466,12 @@ public class Main {
             }
         });
         */
-        StreetFile file = street_files.get(street_files.size()-1);
-        System.out.println("Saving "+file.street_file.getAbsolutePath());
-        file.clear(db);
-        file.save(db);
+        for (StreetFile file : street_files) {
+            //StreetFile file = street_files.get(street_files.size()-1);
+            System.out.println("Saving "+file.street_file.getAbsolutePath());
+            file.clear(db);
+            file.save(db);
+        }
     }
 
 }

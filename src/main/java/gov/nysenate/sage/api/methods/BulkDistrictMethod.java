@@ -129,13 +129,23 @@ public class BulkDistrictMethod extends ApiExecution {
         public STATUS status_code;
         public String message;
         public String address_id;
-        public List<BOEAddressRange> matches;
+        public int countyCode;
+        public int assemblyCode;
+        public int congressionalCode;
+        public int senateCode;
+        public int electionCode;
+        public String address;
 
-        public Result(String id, STATUS status, String message, List<BOEAddressRange> matches) {
-            this.address_id = id;
+        public Result(STATUS status, String message, BluebirdAddress address, BOEAddressRange match) {
+            this.address_id = address.id;
             this.status_code = status;
             this.message = message;
-            this.matches = matches;
+            this.address = address.toString();
+            this.electionCode = match.electionCode;
+            this.senateCode = match.senateCode;
+            this.congressionalCode = match.congressionalCode;
+            this.assemblyCode = match.assemblyCode;
+            this.countyCode = match.countyCode;
         }
     }
 
@@ -157,16 +167,38 @@ public class BulkDistrictMethod extends ApiExecution {
 
             for(BluebirdAddress address : bluebirdAddresses) {
                 if (address!=null) {
-                    List<BOEAddressRange> matches = streetData.getRanges(address);
-                    if (matches.size()==0) {
-                        results.add(new Result(address.id,Result.STATUS.NOMATCH,"No matches found for: "+address.toString(),matches));
-                    } else if (matches.size() > 1) {
-                        results.add(new Result(address.id,Result.STATUS.MULTIMATCH,matches.size()+" matches found for: "+address.toString(),matches));
+                    List<BOEAddressRange> matches = streetData.getRanges(address,true);
+
+                    if (matches.size()==1) {
+                        results.add(new Result(Result.STATUS.MATCH,"EXACT MATCH",address,matches.get(0)));
+                        continue;
+
+                    } else if (matches.size()==0) {
+                        // If at first you don't succeed, try again without the building number
+                        matches = streetData.getRanges(address,false);
+
+                        if (matches.size()==0) {
+                            results.add(new Result(Result.STATUS.NOMATCH,"Street + Zip not Found for: "+address.toString(),address, new BOEAddressRange()));
+                        } else {
+                            // Consolidate these results to "range fill"
+                            BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
+                            if (consolidated != null) {
+                                results.add(new Result(Result.STATUS.MATCH,"CONSOLIDATED RANGEFILL",address, consolidated));
+                            } else {
+                                results.add(new Result(Result.STATUS.NOMATCH, "RANGEFILL failed for: "+address.toString(), address, new BOEAddressRange()));
+                            }
+                        }
                     } else {
-                        results.add(new Result(address.id,Result.STATUS.MATCH,"SUCCESS",matches));
+                        BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
+                        if (consolidated != null) {
+                            results.add(new Result(Result.STATUS.MATCH,"CONSOLIDATED MULTIMATCH",address, consolidated));
+                        } else {
+                            results.add(new Result(Result.STATUS.MULTIMATCH, matches.size()+" inconsistent matches found for: "+address.toString(), address, new BOEAddressRange()));
+                        }
                     }
+
                 } else {
-                    results.add(new Result("-1",Result.STATUS.INVALID,"Invalid JSON Entry",noMatches));
+                    results.add(new Result(Result.STATUS.INVALID,"Invalid JSON Entry",new BluebirdAddress("-1"),new BOEAddressRange()));
                 }
             }
         } catch (IOException e) {

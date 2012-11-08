@@ -1,6 +1,7 @@
 package gov.nysenate.sage.boe;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,6 +81,40 @@ public class AddressUtils {
         */
 
         return address;
+    }
+
+    public static BOEAddressRange consolidateRanges(List<BOEAddressRange> ranges) {
+        BOEAddressRange base = ranges.get(0);
+        int sd = base.senateCode;
+        int ed = base.electionCode;
+        int cong = base.congressionalCode;
+        int ad = base.assemblyCode;
+        int county = base.countyCode;
+        for (int i=1; i < ranges.size(); i++) {
+            BOEAddressRange range = ranges.get(i);
+            if (range.senateCode != sd) { sd = 0; }
+            if (range.electionCode != ed) { ed = 0; }
+            if (range.congressionalCode != cong) { cong = 0; }
+            if (range.assemblyCode != ad) { ad = 0; }
+            if (range.countyCode != county) { county = 0; }
+        }
+
+        if (sd != 0) {
+            BOEAddressRange range = new BOEAddressRange();
+            range.senateCode = sd;
+            range.assemblyCode = ad;
+            range.electionCode = ed;
+            range.congressionalCode = cong;
+            range.countyCode = county;
+            range.state = base.state;
+            range.street = base.street;
+            range.zip5 = base.zip5;
+            return range;
+
+        } else {
+            return null;
+        }
+
     }
 
     public static void load_constants() {

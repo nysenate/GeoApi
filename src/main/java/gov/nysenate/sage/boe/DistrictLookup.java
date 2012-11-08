@@ -66,7 +66,7 @@ public class DistrictLookup {
         rangeHandler = new BeanListHandler<BOEAddressRange>(BOEAddressRange.class, new BasicRowProcessor(rowProcessor));
     }
 
-    public List<BOEAddressRange> getRanges(BOEStreetAddress address) throws SQLException {
+    public List<BOEAddressRange> getRanges(BOEStreetAddress address, boolean use_building) throws SQLException {
         ArrayList<Object> a = new ArrayList<Object>();
         String sql = "SELECT * \n"
                    + "FROM street_data \n"
@@ -77,33 +77,44 @@ public class DistrictLookup {
             a.add(address.zip5);
         }
 
+        if (!address.state.equals("")) {
+            sql += "  AND state=? \n";
+            a.add(address.state);
+        }
+
         if (!address.street.equals("")) {
 
-            if (address.bldg_chr.equals("")) {
-                if (address.apt_chr.equals("")) {
-                    sql += "  AND (street=?) \n";
-                    a.add(address.street);
-
-                } else {
-                    sql += "  AND (street=? OR street=?)";
-                    a.add(address.street);
-                    a.add(address.street+" "+address.apt_chr);
-                }
+            // Sometimes the bldg_chr is actually the tail end of the street name
+            if (!address.bldg_chr.equals("") && use_building==true) {
+//              // Sometimes the apt_chr is actually the tail end of the street name
+//              if (!address.apt_chr.equals("")) {
+//                  // TODO
+//              } else {
+//                  // TODO
+//              }
+              sql += "  AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
+              a.add(address.bldg_chr+" "+address.street+"%");
+              a.add(address.street+"%");
+              a.add(address.bldg_chr);
+              a.add(address.bldg_chr);
 
             } else {
-                if (!address.apt_chr.equals("")) {
+                sql += "  AND (street LIKE ?) \n";
+                a.add(address.street+"%");
+//              // Sometimes the apt_chr is actually the tail end of the street name
+//                if (address.apt_chr.equals("")) {
+//                    sql += "  AND (street LIKE ?) \n";
+//                    a.add(address.street+"%");
+//
+//                } else {
+//                    sql += "  AND (street LIKE ? OR street LIKE ?)";
+//                    a.add(address.street+"%");
+//                    a.add(address.street+" "+address.apt_chr+"%");
+//                }
 
-                } else {
-
-                }
-                sql += "  AND (street=? OR (street=? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
-                a.add(address.bldg_chr+" "+address.street);
-                a.add(address.street);
-                a.add(address.bldg_chr);
-                a.add(address.bldg_chr);
             }
 
-            if (address.bldg_num != 0) {
+            if (address.bldg_num != 0 && use_building==true) {
                 sql += "  AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity=? )) \n";
                 a.add(address.bldg_num);
                 a.add(address.bldg_num);
@@ -111,15 +122,7 @@ public class DistrictLookup {
             }
         }
 
-        if (!address.town.equals("")) {
-            sql += "  AND town=? \n";
-            a.add(address.town);
-        }
 
-        if (!address.state.equals("")) {
-            sql += "  AND state=? \n";
-            a.add(address.state);
-        }
 
         if (DEBUG) {
             System.out.println(sql);
@@ -127,6 +130,11 @@ public class DistrictLookup {
                 System.out.println(o);
             }
         }
+
         return runner.query(sql, rangeHandler, a.toArray());
+    }
+
+    public List<BOEAddressRange> getRanges(BOEStreetAddress address) throws SQLException {
+        return getRanges(address, true);
     }
 }
