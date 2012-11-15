@@ -140,7 +140,7 @@ $(document).ready(function(){
 		}
 		else {
 			var nearby = null;
-			if(data.senate.nearbyDistricts && data.senate.nearbyDistricts[0] != null) {
+                        if( data.senate != null && data.senate.nearbyDistricts && data.senate.nearbyDistricts[0] != null) {
 				var nBLen = data.senate.nearbyDistricts.length;
 				var nBCount = 1;
 				for(district in data.senate.nearbyDistricts) {
