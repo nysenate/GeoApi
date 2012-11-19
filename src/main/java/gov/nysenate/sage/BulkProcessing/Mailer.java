@@ -49,28 +49,28 @@ public class Mailer {
 		InternetAddress addressFrom = new InternetAddress(from);
 		addressFrom.setPersonal(fromDisplay);
 		msg.setFrom(addressFrom);
-	
-		
+
+
 		StringTokenizer st = new StringTokenizer (to,",");
-		
+
 		InternetAddress[] rcps = new InternetAddress[st.countTokens()];
 		int idx = 0;
-		
+
 		while (st.hasMoreTokens())
 		{
 			InternetAddress addressTo = new InternetAddress(st.nextToken());
 			rcps[idx++] = addressTo;
-			
+
 		}
-		
+
 		msg.setRecipients(Message.RecipientType.TO,rcps);
-		
+
 		msg.setSubject(subject);
 		msg.setContent(message, "text/html");
-		
+
 		Transport.send(msg);
 	}
-	
+
 	public static void mailError(Exception e) {
 		try {
 		    StringWriter msg = new StringWriter();
@@ -87,7 +87,7 @@ public class Mailer {
 			e1.printStackTrace();
 		}
 	}
-	
+
 	public static void mailError(Exception e, JobProcess jp) {
 		try {
 		    StringWriter msg = new StringWriter();
@@ -103,7 +103,7 @@ public class Mailer {
 			e1.printStackTrace();
 		}
 	}
-	
+
 	public static void mailAdminComplete(JobProcess jp) {
 		try {
 			sendMail(STMP_USER,
@@ -115,7 +115,7 @@ public class Mailer {
 			e1.printStackTrace();
 		}
 	}
-	
+
 	public static void mailUserComplete(JobProcess jp) {
 		try {
 			sendMail(jp.getContact(),
