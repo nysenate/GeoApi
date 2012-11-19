@@ -28,11 +28,11 @@ public class DistrictLookup {
 
         Resource config = new Resource();
         MysqlDataSource db = new MysqlDataSource();
-        db.setServerName(config.fetch("street_db.host"));
-        db.setUser(config.fetch("street_db.user"));
-        db.setPassword(config.fetch("street_db.pass"));
-        db.setDatabaseName(config.fetch("street_db.name"));
-        System.out.println(config.fetch("street_db.host")+"|"+config.fetch("street_db.user")+"|"+config.fetch("street_db.pass")+"|"+config.fetch("street_db.name"));
+        db.setServerName(config.fetch("db.host"));
+        db.setUser(config.fetch("db.user"));
+        db.setPassword(config.fetch("db.pass"));
+        db.setDatabaseName(config.fetch("db.name"));
+        System.out.println(config.fetch("db.host")+"|"+config.fetch("db.user")+"|"+config.fetch("db")+"|"+config.fetch("db.name"));
 
         DistrictLookup streetData = new DistrictLookup(db);
         BOEStreetAddress address = AddressUtils.parseAddress("1204 10th Ave, Colonie NY 12189");

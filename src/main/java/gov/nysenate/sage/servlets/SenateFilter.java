@@ -1,5 +1,7 @@
 package gov.nysenate.sage.servlets;
 
+import gov.nysenate.sage.util.Resource;
+
 import java.io.IOException;
 
 import javax.servlet.Filter;
@@ -21,7 +23,7 @@ import org.apache.log4j.Logger;
  */
 public class SenateFilter implements Filter {
     private Logger logger;
-    private final String SENATE_IP_RANGE = "(10.\\d+.\\d+.\\d+|127.0.0.1|0:0:0:0:0:0:0:1|63.118.5[67].\\d+)";
+    private final String SENATE_IP_RANGE = Resource.get("user.ip_filter");
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {

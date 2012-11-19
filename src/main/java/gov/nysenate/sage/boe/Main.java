@@ -1,31 +1,28 @@
 package gov.nysenate.sage.boe;
 
 import gov.nysenate.sage.boe.StreetFiles.NTS;
+import gov.nysenate.sage.util.Resource;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
-
-import org.ini4j.Ini;
-import org.ini4j.Profile.Section;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        Ini config = new Ini(new File("config.ini"));
+        Resource config = new Resource();
 
         MysqlDataSource db = new MysqlDataSource();
-        Section dbconfig = config.get("database");
-        db.setUser(dbconfig.get("user"));
-        db.setPassword(dbconfig.get("pass"));
-        db.setServerName(dbconfig.get("host"));
-        db.setDatabaseName(dbconfig.get("name"));
+        db.setUser(config.fetch("db.user"));
+        db.setPassword(config.fetch("db.pass"));
+        db.setServerName(config.fetch("db.host"));
+        db.setDatabaseName(config.fetch("db.name"));
 
         ArrayList<StreetFile> street_files = new ArrayList<StreetFile>();
 
-        File base_dir = new File(config.get("directories", "street_files"));
+        File base_dir = new File(config.fetch("street_file.data"));
 
         street_files.add(new NTS(1, new File(base_dir, "Albany_County_Street_Index.txt")) {
             @Override

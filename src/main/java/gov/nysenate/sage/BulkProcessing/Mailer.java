@@ -19,15 +19,14 @@ import javax.mail.internet.MimeMessage;
 
 
 public class Mailer {
-	private static final String SMTP_HOST_NAME = Resource.get("hostname");
-	private static final String SMTP_DEBUG = Resource.get("smtp_debug");
-	private static final String SMTP_ACTIVE = Resource.get("smtp_active");
-	private static final String SMTP_PORT = Resource.get("port");
-	private static final String SMTP_ACCOUNT_USER = Resource.get("user");
-	private static final String SMTP_ACCOUNT_PASS = Resource.get("pass");
-	
-	private static final String STMP_USER = Resource.get("admin.email");
-	
+	private static final String SMTP_HOST_NAME = Resource.get("smtp.host");
+	private static final String SMTP_DEBUG = Resource.get("smtp.debug");
+	private static final String SMTP_ACTIVE = Resource.get("smtp.active");
+	private static final String SMTP_PORT = Resource.get("smtp.port");
+	private static final String SMTP_ACCOUNT_USER = Resource.get("smtp.user");
+	private static final String SMTP_ACCOUNT_PASS = Resource.get("smtp.pass");
+	private static final String STMP_USER = Resource.get("smtp.admin");
+
 	public static void sendMail(String to, String subject, String message, String from, String fromDisplay) throws Exception {
 	    if (!SMTP_ACTIVE.equals("true")) return;
 

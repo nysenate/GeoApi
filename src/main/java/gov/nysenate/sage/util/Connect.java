@@ -38,20 +38,22 @@ public class Connect {
 	public final String DATABASE;
 	public final String USER;
 	public final String PASS;
+	public final String DRIVER;
 
 	Connection connection;
 	Properties properties;
 	public Connect() throws IOException {
 	    APP_CONFIG = new Resource();
-	    DATABASE = APP_CONFIG.fetch("database.url");
-	    USER = APP_CONFIG.fetch("database.user");
-	    PASS = APP_CONFIG.fetch("database.pass");
+	    DATABASE = "jdbc:"+APP_CONFIG.fetch("db.type")+"://"+APP_CONFIG.fetch("db.host")+"/"+APP_CONFIG.fetch("db.name");
+	    USER = APP_CONFIG.fetch("db.user");
+	    PASS = APP_CONFIG.fetch("db.pass");
+	    DRIVER = APP_CONFIG.fetch("db.driver");
 	}
 
 	public Connection getConnection() {
 		if(connection == null) {
 			try {
-				Class.forName("com.mysql.jdbc.Driver").newInstance();
+				Class.forName(DRIVER).newInstance();
 				connection = DriverManager.getConnection(DATABASE,USER,PASS);
 			} catch (Exception e) {
 				logger.warn(e);
