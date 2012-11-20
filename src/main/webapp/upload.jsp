@@ -3,7 +3,7 @@
 <%
 	String email = (String)request.getParameter("email");
 	String error = (String)request.getAttribute("error");
-	
+	String context = (String)request.getContextPath();
 	email = email == null ? "":email;
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -25,7 +25,7 @@ $(document).ready(function() {
 	$('#fileuploaded').hide();
 	
 	var uploader = new qq.FileUploader({
-		action: './upload',
+		action: '<%=context%>/bulk/upload',
 		element: document.getElementById('fileuploader'),
 		allowedExtensions:['tsv','csv', 'txt'],
 		multiple:false,
