@@ -116,7 +116,9 @@ public class Processor {
         }
     }
 
-	final static int BATCH_SIZE = 20;
+	final int BATCH_SIZE;
+	final int GEOCODE_THREADS;
+	final int DISTASSIGN_THREADS;
 
 	private final Logger logger;
     private final FileLock lock;
@@ -138,6 +140,9 @@ public class Processor {
 	    districtService = new DistrictService();
 
         appConfig = new Resource();
+        BATCH_SIZE = Integer.parseInt(appConfig.fetch("bulk.batch_size"));
+        GEOCODE_THREADS = Integer.parseInt(appConfig.fetch("bulk.threads.geocode"));
+        DISTASSIGN_THREADS = Integer.parseInt(appConfig.fetch("bulk.threads.distassign"));
 	    UPLOAD_DIR = new File(appConfig.fetch("bulk.uploads"));
 	    FileUtils.forceMkdir(UPLOAD_DIR);
 	    DOWNLOAD_DIR = new File(appConfig.fetch("bulk.downloads"));
@@ -203,8 +208,8 @@ public class Processor {
 
     public void process_file(BufferedReader source, BufferedWriter dest, DelimitedFileExtractor dfe, String newLine) throws IOException  {
         BatchResult batch;
-        ExecutorService geocodeExecutor = Executors.newFixedThreadPool(1);
-        ExecutorService distAssignExecutor = Executors.newFixedThreadPool(1);
+        ExecutorService geocodeExecutor = Executors.newFixedThreadPool(GEOCODE_THREADS);
+        ExecutorService distAssignExecutor = Executors.newFixedThreadPool(DISTASSIGN_THREADS);
         ArrayList<BatchResult> originalBatches = new ArrayList<BatchResult>();
         ArrayList<Future<BatchResult>> endResults = new ArrayList<Future<BatchResult>>();
 
