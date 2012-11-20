@@ -120,7 +120,7 @@ public class Mailer {
 		try {
 			sendMail(jp.getContact(),
 					"SAGE Districting Completed",
-					"Your request from " + new Date(jp.getRequestTime()) + " has been completed and can be downloaded at http://sage.nysenate.gov/GeoApi/download/" + jp.getFileName() +
+					"Your request from " + new Date(jp.getRequestTime()) + " has been completed and can be downloaded at "+Resource.get("smtp.context")+"/downloads/" + jp.getFileName() +
 					"<br/><br/>This is an automated message.",
 					STMP_USER,
 					"SAGE");
