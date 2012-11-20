@@ -83,6 +83,8 @@ public class DistrictLookup {
         }
 
         if (!address.street.equals("")) {
+            // Pretty sure this doesn't cause issues..
+            address.street = address.street.replaceAll(" EXT$", "");
 
             // Sometimes the bldg_chr is actually the tail end of the street name
             if (!address.bldg_chr.equals("") && use_building==true) {
