@@ -157,7 +157,7 @@ $(document).ready(function() {
 			<br/><%=error %>
 		<% } %>
 	</div>
-	<form id="uploadForm" method="post" action="submit">
+	<form id="uploadForm" method="post" action="<%=context%>/bulk/submit">
 		<ol>
 			<li>
 				<label>email</label> 
