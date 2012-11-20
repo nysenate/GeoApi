@@ -57,7 +57,7 @@ public class BulkServlet extends HttpServlet {
         }
 
         try {
-            uploadDir = new File(appConfig.fetch("uploads"));
+            uploadDir = new File(appConfig.fetch("bulk.uploads"));
             FileUtils.forceMkdir(uploadDir);
         } catch (IOException e) {
             throw new ServletException("Could not create uploads folder.", e);

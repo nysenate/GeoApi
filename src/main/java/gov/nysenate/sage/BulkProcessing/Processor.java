@@ -138,9 +138,9 @@ public class Processor {
 	    districtService = new DistrictService();
 
         appConfig = new Resource();
-	    UPLOAD_DIR = new File(appConfig.fetch("uploads"));
+	    UPLOAD_DIR = new File(appConfig.fetch("bulk.uploads"));
 	    FileUtils.forceMkdir(UPLOAD_DIR);
-	    DOWNLOAD_DIR = new File(appConfig.fetch("downloads"));
+	    DOWNLOAD_DIR = new File(appConfig.fetch("bulk.downloads"));
 	    FileUtils.forceMkdir(DOWNLOAD_DIR);
 
 	    // Grab a lock or fail
