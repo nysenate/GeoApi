@@ -67,7 +67,7 @@ public class GeoService {
         MapQuest mapquest = new MapQuest();
         RubyGeocoder ruby = new RubyGeocoder();
         OSM osm = new OSM();
-        
+
         geoAdapters.put("yahoo", yahoo);
         geoAdapters.put("mapquest", mapquest);
         geoAdapters.put("rubygeocoder", ruby);
