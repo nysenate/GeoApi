@@ -224,6 +224,7 @@ public class Processor {
                 records = endResults.get(i).get().recordSet;
             } catch (Exception e) {
                 logger.error(e);
+                e.getCause().printStackTrace();
                 records = originalBatches.get(i).recordSet;
             }
 
