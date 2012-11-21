@@ -194,20 +194,23 @@ public class GeoServer implements DistAssignInterface {
                     result.address.election_name = "ED "+address.school_code;
                     break;
                 case CONGRESSIONAL:
-                    result.address.congressional_name = properties.getString("NAMELSAD");
-                    result.address.congressional_code = properties.getInt("CD111FP");
+                    // Accommodate both old shape files and new 2012 shape files
+                    result.address.congressional_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
+                    result.address.congressional_code = properties.has("CD111FP") ? properties.getInt("CD111FP") : properties.getInt("DISTRICT");
                     break;
                 case COUNTY:
                     result.address.county_name = properties.getString("NAMELSAD"); // or NAME
                     result.address.county_code = COUNTY_CODES.get(properties.getInt("COUNTYFP"));
                     break;
                 case ASSEMBLY:
-                    result.address.assembly_name = properties.getString("NAMELSAD");
-                    result.address.assembly_code = properties.getInt("SLDLST");
+                    // Accommodate both old shape files and new 2012 shape files
+                    result.address.assembly_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
+                    result.address.assembly_code = properties.has("SLDLST") ? properties.getInt("SLDLST") : properties.getInt("DISTRICT");
                     break;
                 case SENATE:
-                    result.address.senate_name = properties.getString("NAMELSAD");
-                    result.address.senate_code = properties.getInt("SLDUST");
+                    // Accommodate both old shape files and new 2012 shape files
+                    result.address.senate_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
+                    result.address.senate_code = properties.has("SLDUST") ? properties.getInt("SLDUST") : properties.getInt("DISTRICT");
                     break;
                 }
                 results.add(result);
