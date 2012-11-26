@@ -35,9 +35,9 @@ public class GeoServer implements DistAssignInterface {
     public class ParallelRequest implements Callable<Result> {
         public final DistAssignInterface adapter;
         public final Address address;
-        public final ArrayList<DistrictService.TYPE> types;
+        public final List<DistrictService.TYPE> types;
 
-        ParallelRequest(DistAssignInterface adapter, Address address, ArrayList<DistrictService.TYPE> types) {
+        ParallelRequest(DistAssignInterface adapter, Address address, List<DistrictService.TYPE> types) {
             this.address = address;
             this.adapter = adapter;
             this.types = types;
@@ -230,7 +230,7 @@ public class GeoServer implements DistAssignInterface {
     }
 
     @Override
-    public ArrayList<Result> assignDistricts(ArrayList<Address> addresses, ArrayList<TYPE> types) throws DistException {
+    public ArrayList<Result> assignDistricts(ArrayList<Address> addresses, List<TYPE> types) throws DistException {
         ArrayList<Result> results = new ArrayList<Result>();
         ExecutorService executor = Executors.newFixedThreadPool(5);
         ArrayList<Future<Result>> futureResults = new ArrayList<Future<Result>>();
@@ -254,7 +254,7 @@ public class GeoServer implements DistAssignInterface {
 
 
     @Override
-    public Result assignDistricts(Address address, ArrayList<TYPE> types) {
+    public Result assignDistricts(Address address, List<TYPE> types) {
         if (address==null) return null;
 
         Result result = new Result();

@@ -7,6 +7,7 @@ import gov.nysenate.sage.adapter.GeoServer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class DistrictService {
     public enum TYPE {ASSEMBLY,CONGRESSIONAL,COUNTY,ELECTION,SENATE,SCHOOL,TOWN};
@@ -39,8 +40,8 @@ public class DistrictService {
     public interface DistAssignInterface {
         public Result assignDistrict(Address address, DistrictService.TYPE type) throws DistException;
         public ArrayList<Result> assignDistrict(ArrayList<Address> addresses, DistrictService.TYPE type) throws DistException;
-        public ArrayList<Result> assignDistricts(ArrayList<Address> addresses, ArrayList<TYPE> types) throws DistException;
-        public Result assignDistricts(Address address, ArrayList<TYPE> types) throws DistException;
+        public ArrayList<Result> assignDistricts(ArrayList<Address> addresses, List<TYPE> types) throws DistException;
+        public Result assignDistricts(Address address, List<TYPE> types) throws DistException;
     }
 
     private final HashMap<String, DistAssignInterface> adapters;
@@ -66,11 +67,11 @@ public class DistrictService {
         return assignDistricts(address, new ArrayList<TYPE>(Arrays.asList(TYPE.values())), adapterName);
     }
 
-    public ArrayList<Result> assignDistricts(ArrayList<Address> addresses, ArrayList<TYPE> types, String adapterName) throws DistException {
+    public ArrayList<Result> assignDistricts(ArrayList<Address> addresses, List<TYPE> types, String adapterName) throws DistException {
         return adapters.get(adapterName).assignDistricts(addresses, types);
     }
 
-    public Result assignDistricts(Address address, ArrayList<TYPE> types, String adapterName) throws DistException {
+    public Result assignDistricts(Address address, List<TYPE> types, String adapterName) throws DistException {
         return adapters.get(adapterName).assignDistricts(address, types);
     }
 }
