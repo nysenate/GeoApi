@@ -181,6 +181,18 @@ public class NYC extends StreetFile {
                     }
                     addressRange.bldgParity = (addressRange.bldgLoNum % 2 == 0) ? "EVENS" : "ODDS";
 
+                    // Account for split number buildings like 10-22
+                    try {
+                        // If the building suffix is also a number, combine them (is this always the correct thing? might not be)
+                        Integer.parseInt(addressRange.bldgLoChr);
+                        addressRange.bldgLoNum = Integer.parseInt(String.valueOf(addressRange.bldgLoNum)+addressRange.bldgLoChr);
+                        addressRange.bldgLoChr = "";
+                        addressRange.bldgHiNum = Integer.parseInt(String.valueOf(addressRange.bldgHiNum)+addressRange.bldgHiChr);
+                        addressRange.bldgHiChr = "";
+                    } catch (NumberFormatException e) {
+                        // The building suffix is not a number, pass
+                    }
+
                     addressRange.electionCode = (rangeMatcher.group(5) != null ? Integer.parseInt(rangeMatcher.group(5)) : 0);
                     addressRange.assemblyCode = (rangeMatcher.group(6) != null ? Integer.parseInt(rangeMatcher.group(6)) : 0);
                     addressRange.zip5 = (rangeMatcher.group(7) != null ? Integer.parseInt(rangeMatcher.group(7)) : 0);
