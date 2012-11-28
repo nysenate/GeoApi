@@ -18,6 +18,7 @@ import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 public class NYC extends StreetFile {
     private final String town;
+    private final boolean DEBUG = false;
 
     public NYC(int countyCode, String town, File street_file) throws Exception {
         super(countyCode, street_file);
@@ -144,11 +145,12 @@ public class NYC extends StreetFile {
         String aptRegex = "(?:([0-9]+)(?:[-]?([0-9A-Z]+))?)";
         Pattern rangePattern = Pattern.compile("(?:\\s*"+aptRegex+"\\s+"+aptRegex+"?)?\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)");
 
+        int count = 0;
         BOEAddressRange addressRange = null;
         for (String line : convertToSingleColumn(br)) {
+            if (DEBUG) System.out.println(line);
             if (line.trim().length() == 0) continue;
 
-            System.out.println(line);
             if(addressRange == null) {
                 // Address Street Line
                 addressRange = new BOEAddressRange();
@@ -157,11 +159,16 @@ public class NYC extends StreetFile {
                 addressRange.state = "NY";
                 addressRange.countyCode = county_code;
                 AddressUtils.normalizeAddress(addressRange);
-                System.out.println(addressRange.street);
 
             } else {
                 Matcher rangeMatcher = rangePattern.matcher(line);
                 if (rangeMatcher.find()) {
+                    if (DEBUG) {
+                        System.out.println(addressRange.street);
+                        for (int i=0; i <= rangeMatcher.groupCount(); i++) {
+                            System.out.println(rangeMatcher.group(i));
+                        }
+                    }
                     addressRange.bldgLoNum = (rangeMatcher.group(1) != null ? Integer.parseInt(rangeMatcher.group(1)) : 0);
                     addressRange.bldgLoChr = rangeMatcher.group(2);
                     addressRange.bldgHiNum = (rangeMatcher.group(3) != null ? Integer.parseInt(rangeMatcher.group(3)) : 0);
@@ -182,6 +189,9 @@ public class NYC extends StreetFile {
                     // addressRange.mc?? = (rangeMatcher.group(10) != null ? Integer.parseInt(rangeMatcher.group(10)) : 0);
                     // addressRange.co?? = (rangeMatcher.group(11) != null ? Integer.parseInt(rangeMatcher.group(11)) : 0);
                     save_record(addressRange, query_runner);
+                    if (++count % 1000 == 0) {
+                        System.out.println(count);
+                    }
                 } else {
                     // Address Street Line
                     addressRange = new BOEAddressRange();
@@ -190,7 +200,6 @@ public class NYC extends StreetFile {
                     addressRange.state = "NY";
                     addressRange.countyCode = county_code;
                     AddressUtils.normalizeAddress(addressRange);
-                    System.out.println(addressRange.street);
                 }
             }
         }
