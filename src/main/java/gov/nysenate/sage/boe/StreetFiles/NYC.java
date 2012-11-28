@@ -141,16 +141,8 @@ public class NYC extends StreetFile {
     public void save(MysqlDataSource db) throws Exception {
         QueryRunner query_runner = new QueryRunner(db);
         BufferedReader br = new BufferedReader(new FileReader(street_file));
-        String aptRegex = "([0-9]+)(?:[-]([0-9A-Z]+))?";
-        Pattern rangePattern = Pattern.compile("(?:\\s*"+aptRegex+"\\s+"+aptRegex+")?\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)");
-
-//        Matcher test = rangePattern.matcher("     1       33    45   31   11422    5   10   4   31");
-//        test.find();
-//        for (int i=0; i<=test.groupCount(); i++) {
-//            System.out.println(test.group(i));
-//        }
-//        System.exit(1);
-
+        String aptRegex = "(?:([0-9]+)(?:[-]?([0-9A-Z]+))?)";
+        Pattern rangePattern = Pattern.compile("(?:\\s*"+aptRegex+"\\s+"+aptRegex+"?)?\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)");
 
         BOEAddressRange addressRange = null;
         for (String line : convertToSingleColumn(br)) {
@@ -170,10 +162,18 @@ public class NYC extends StreetFile {
             } else {
                 Matcher rangeMatcher = rangePattern.matcher(line);
                 if (rangeMatcher.find()) {
-                    addressRange.aptLoNum = (rangeMatcher.group(1) != null ? Integer.parseInt(rangeMatcher.group(1)) : 0);
-                    addressRange.aptLoChr = rangeMatcher.group(2);
-                    addressRange.aptHiNum = (rangeMatcher.group(3) != null ? Integer.parseInt(rangeMatcher.group(3)) : 0);
-                    addressRange.aptHiChr = rangeMatcher.group(4);
+                    addressRange.bldgLoNum = (rangeMatcher.group(1) != null ? Integer.parseInt(rangeMatcher.group(1)) : 0);
+                    addressRange.bldgLoChr = rangeMatcher.group(2);
+                    addressRange.bldgHiNum = (rangeMatcher.group(3) != null ? Integer.parseInt(rangeMatcher.group(3)) : 0);
+                    addressRange.bldgHiChr = rangeMatcher.group(4);
+                    if (addressRange.bldgHiNum == 0) {
+                        addressRange.bldgHiNum = addressRange.bldgLoNum;
+                    }
+                    if (addressRange.bldgHiChr == null) {
+                        addressRange.bldgHiChr = addressRange.bldgLoChr;
+                    }
+                    addressRange.bldgParity = (addressRange.bldgLoNum % 2 == 0) ? "EVENS" : "ODDS";
+
                     addressRange.electionCode = (rangeMatcher.group(5) != null ? Integer.parseInt(rangeMatcher.group(5)) : 0);
                     addressRange.assemblyCode = (rangeMatcher.group(6) != null ? Integer.parseInt(rangeMatcher.group(6)) : 0);
                     addressRange.zip5 = (rangeMatcher.group(7) != null ? Integer.parseInt(rangeMatcher.group(7)) : 0);
