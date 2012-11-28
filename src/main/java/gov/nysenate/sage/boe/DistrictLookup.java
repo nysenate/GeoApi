@@ -77,17 +77,17 @@ public class DistrictLookup {
             a.add(address.zip5);
         }
 
-        if (!address.state.equals("")) {
+        if (address.state != null && !address.state.equals("")) {
             sql += "  AND state=? \n";
             a.add(address.state);
         }
 
-        if (!address.street.equals("")) {
+        if (address.street != null && !address.street.equals("")) {
             // Pretty sure this doesn't cause issues..
             address.street = address.street.replaceAll(" EXT$", "");
 
             // Sometimes the bldg_chr is actually the tail end of the street name
-            if (!address.bldg_chr.equals("") && use_building==true) {
+            if (address.bldg_chr != null && !address.bldg_chr.equals("") && use_building==true) {
 //              // Sometimes the apt_chr is actually the tail end of the street name
 //              if (!address.apt_chr.equals("")) {
 //                  // TODO
