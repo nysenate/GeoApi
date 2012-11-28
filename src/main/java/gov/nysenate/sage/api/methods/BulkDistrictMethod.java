@@ -67,18 +67,6 @@ public class BulkDistrictMethod extends ApiExecution {
         districtService = new DistrictService();
     }
 
-    public static void main(String[] args) throws Exception {
-        BulkDistrictMethod bdMethod = new BulkDistrictMethod();
-
-        String json = "{\"4\":{\"street\":\"West 187th Street\",\"town\":\"New York\",\"state\":\"NY\",\"zip5\":\"10033\",\"apt\":null,\"building\":\"650\"}}";
-        ArrayList<BluebirdAddress> addresses = bdMethod.readAddresses(json);
-        for (BluebirdAddress address : addresses) {
-            for(BOEAddressRange range : bdMethod.streetData.getRanges(address)) {
-                System.out.println(range.id);
-            }
-        }
-    }
-
     private BluebirdAddress requestToAddress(HttpServletRequest request) {
         BluebirdAddress address = new BluebirdAddress(request.getParameter("id"));
 
