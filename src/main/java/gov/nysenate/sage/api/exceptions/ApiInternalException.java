@@ -12,4 +12,8 @@ public class ApiInternalException extends ApiException {
     public ApiInternalException(String message, Throwable t) {
         super(message, t);
     }
+
+    public ApiInternalException(Throwable t) {
+        super(t.getMessage(),t);
+    }
 }
