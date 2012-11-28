@@ -9,6 +9,6 @@ public class BOEStreetAddress extends BOEAddress {
 
     @Override
     public String toString() {
-        return bldg_num+bldg_chr+" "+street+" "+apt_num+apt_chr+", "+town+" "+state+" "+zip5;
+        return bldg_num+bldg_chr+" "+street+" "+((apt_num!=0) ? apt_num : "")+((apt_chr!=null) ? apt_chr : "")+", "+town+" "+state+" "+zip5;
     }
 }

@@ -27,6 +27,11 @@ public class BOEAddressRange extends BOEAddress implements java.io.Serializable 
     public String aptHiChr;
     public String aptParity;
 
+    @Override
+    public String toString() {
+        return id+" "+bldgLoNum+bldgLoChr+" - "+bldgHiNum+bldgHiChr+" "+street+" "+town+" "+zip5;
+    }
+
     public boolean isValid() {
         return street != null && street.length() != 0 && !street.contains("UNKNOWN");
     }
