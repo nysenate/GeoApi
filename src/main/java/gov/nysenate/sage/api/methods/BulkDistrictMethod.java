@@ -130,7 +130,7 @@ public class BulkDistrictMethod extends ApiExecution {
 
     @SuppressWarnings("unused")
     private static class BulkResult {
-        public static enum STATUS { MATCH, INVALID, NOMATCH, MULTIMATCH };
+        public static enum STATUS { STREETNUM, STREETNAME, ZIPCODE, SHAPEFILE, INVALID, NOMATCH };
 
         public STATUS status_code;
         public String message;
@@ -219,7 +219,7 @@ public class BulkDistrictMethod extends ApiExecution {
         bluebirdAddress.longitude = resultAddress.longitude;
         bluebirdAddress.geo_accuracy = resultAddress.geocode_quality;
         BOEAddressRange addressRange = SAGE2Bluebird(distResult.address);
-        return new BulkResult(BulkResult.STATUS.MATCH, "SHAPEFILE MATCH for"+resultAddress, bluebirdAddress, addressRange );
+        return new BulkResult(BulkResult.STATUS.SHAPEFILE, "SHAPEFILE MATCH for"+resultAddress, bluebirdAddress, addressRange );
     }
 
     public class ParallelRequest implements Callable<BulkResult> {
@@ -235,7 +235,7 @@ public class BulkDistrictMethod extends ApiExecution {
                 List<BOEAddressRange> matches = streetData.getRanges(address,true);
                 try {
                     if (matches.size()==1) {
-                        return new BulkResult(BulkResult.STATUS.MATCH,"EXACT MATCH",address,matches.get(0));
+                        return new BulkResult(BulkResult.STATUS.STREETNUM, "EXACT MATCH", address, matches.get(0));
 
                     } else if (matches.size()==0) {
                         // If at first you don't succeed, try again without the building number
@@ -248,7 +248,7 @@ public class BulkDistrictMethod extends ApiExecution {
                             // Consolidate these results to "range fill"
                             BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
                             if (consolidated != null) {
-                                return new BulkResult(BulkResult.STATUS.MATCH,"CONSOLIDATED RANGEFILL",address, consolidated);
+                                return new BulkResult(BulkResult.STATUS.STREETNAME, "CONSOLIDATED RANGEFILL", address, consolidated);
                             } else {
                                 return shapefileLookup(address);
                             }
@@ -257,7 +257,7 @@ public class BulkDistrictMethod extends ApiExecution {
                     } else {
                         BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
                         if (consolidated != null) {
-                            return new BulkResult(BulkResult.STATUS.MATCH,"CONSOLIDATED MULTIMATCH",address, consolidated);
+                            return new BulkResult(BulkResult.STATUS.STREETNAME, "CONSOLIDATED MULTIMATCH", address, consolidated);
                         } else {
                             return shapefileLookup(address);
                         }
