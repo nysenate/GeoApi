@@ -1,6 +1,9 @@
 package gov.nysenate.sage.util;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -12,7 +15,12 @@ public class Resource {
 	private final Properties properties = new Properties();
 
 	public Resource() throws IOException {
-	    properties.load(this.getClass().getClassLoader().getResourceAsStream("app.properties"));
+	    Map<String,String> env = System.getenv();
+	    if (env.containsKey("GEOAPI_CONFIG_FILE")) {
+            properties.load(new FileReader(new File(env.get("GEOAPI_CONFIG_FILE"))));
+	    } else {
+	        properties.load(this.getClass().getClassLoader().getResourceAsStream("app.properties"));
+	    }
 	}
 
 	public String fetch(String key) {
