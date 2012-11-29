@@ -71,12 +71,12 @@ public class RubyGeocoder implements GeocodeInterface {
                 if (jsonResult.has("street"))
                     street += jsonResult.getString("street");
                 street = street.trim();
-                String city = jsonResult.getString("city");
-                String state = jsonResult.getString("state");
-                String zip = jsonResult.getString("zip");
-                double lat = jsonResult.getDouble("lat");
-                double lon = jsonResult.getDouble("lon");
-                int quality = (int)jsonResult.getDouble("score")*100;
+                String city = jsonResult.has("city") ? jsonResult.getString("city") : "";
+                String state = jsonResult.has("state") ? jsonResult.getString("state") : "";
+                String zip = jsonResult.has("zip") ? jsonResult.getString("zip") : "";
+                double lat = jsonResult.has("lat") ? jsonResult.getDouble("lat") : 0;
+                double lon = jsonResult.has("lon") ? jsonResult.getDouble("lon") : 0;
+                int quality = jsonResult.has("score") ? (int)jsonResult.getDouble("score")*100 : 0;
 
                 Address resultAddress = new Address(street, city, state, zip);
                 resultAddress.setGeocode(lat, lon, quality);
