@@ -194,7 +194,11 @@ public class BulkDistrictMethod extends ApiExecution {
         );
     }
 
+    private final boolean SHAPEFILE = false;
     private BulkResult shapefileLookup(BluebirdAddress bluebirdAddress) throws GeoException, DistException{
+        if (!SHAPEFILE)
+            return new BulkResult(BulkResult.STATUS.NOMATCH, "Shapefiles are turned off", bluebirdAddress, new BOEAddressRange() );
+
         if (bluebirdAddress == null) {
             return null;
         }
