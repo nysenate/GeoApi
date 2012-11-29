@@ -66,6 +66,11 @@ public class DistrictLookup {
         rangeHandler = new BeanListHandler<BOEAddressRange>(BOEAddressRange.class, new BasicRowProcessor(rowProcessor));
     }
 
+    public List<BOEAddressRange> getRangesByZip(BOEStreetAddress address) throws SQLException {
+        System.out.println("SELECT * FROM street_data WHERE zip5="+address.zip5);
+        return runner.query("SELECT * FROM street_data WHERE zip5=?", rangeHandler, address.zip5);
+    }
+
     public List<BOEAddressRange> getRanges(BOEStreetAddress address, boolean use_building) throws SQLException {
         ArrayList<Object> a = new ArrayList<Object>();
         String sql = "SELECT * \n"

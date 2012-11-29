@@ -84,6 +84,8 @@ public class AddressUtils {
     }
 
     public static BOEAddressRange consolidateRanges(List<BOEAddressRange> ranges) {
+        if (ranges.size() == 0) return null;
+
         BOEAddressRange base = ranges.get(0);
         int sd = base.senateCode;
         int ed = base.electionCode;

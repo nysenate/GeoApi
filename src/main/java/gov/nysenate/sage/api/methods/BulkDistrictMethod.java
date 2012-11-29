@@ -246,7 +246,13 @@ public class BulkDistrictMethod extends ApiExecution {
                         matches = streetData.getRanges(address,false);
 
                         if (matches.size()==0) {
-                            return shapefileLookup(address);
+                            matches = streetData.getRangesByZip(address);
+                            BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
+                            if (consolidated != null) {
+                                return new BulkResult(BulkResult.STATUS.ZIPCODE, "CONSOLIDATED RANGEFILL", address, consolidated);
+                            } else {
+                                return shapefileLookup(address);
+                            }
 
                         } else {
                             // Consolidate these results to "range fill"
@@ -254,7 +260,13 @@ public class BulkDistrictMethod extends ApiExecution {
                             if (consolidated != null) {
                                 return new BulkResult(BulkResult.STATUS.STREETNAME, "CONSOLIDATED RANGEFILL", address, consolidated);
                             } else {
-                                return shapefileLookup(address);
+                                matches = streetData.getRangesByZip(address);
+                                consolidated = AddressUtils.consolidateRanges(matches);
+                                if (consolidated != null) {
+                                    return new BulkResult(BulkResult.STATUS.ZIPCODE, "CONSOLIDATED RANGEFILL", address, consolidated);
+                                } else {
+                                    return shapefileLookup(address);
+                                }
                             }
                         }
 
@@ -263,7 +275,13 @@ public class BulkDistrictMethod extends ApiExecution {
                         if (consolidated != null) {
                             return new BulkResult(BulkResult.STATUS.STREETNAME, "CONSOLIDATED MULTIMATCH", address, consolidated);
                         } else {
-                            return shapefileLookup(address);
+                            matches = streetData.getRangesByZip(address);
+                            consolidated = AddressUtils.consolidateRanges(matches);
+                            if (consolidated != null) {
+                                return new BulkResult(BulkResult.STATUS.ZIPCODE, "CONSOLIDATED RANGEFILL", address, consolidated);
+                            } else {
+                                return shapefileLookup(address);
+                            }
                         }
                     }
                 } catch (GeoException e) {
