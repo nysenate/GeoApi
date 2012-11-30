@@ -94,7 +94,7 @@ public class NYC extends StreetFile {
                 start_index = end_index;
             }
         }
-
+        
         public ArrayList<String> toSingleColumn() {
             // Flatten each page into 1 column putting lines from each column
             // under the lines from the previous column
@@ -179,8 +179,7 @@ public class NYC extends StreetFile {
                     if (addressRange.bldgHiChr == null) {
                         addressRange.bldgHiChr = addressRange.bldgLoChr;
                     }
-                    addressRange.bldgParity = (addressRange.bldgLoNum % 2 == 0) ? "EVENS" : "ODDS";
-
+                    
                     // Account for split number buildings like 10-22
                     try {
                         // If the building suffix is also a number, combine them (is this always the correct thing? might not be)
@@ -192,6 +191,8 @@ public class NYC extends StreetFile {
                     } catch (NumberFormatException e) {
                         // The building suffix is not a number, pass
                     }
+                    
+                    addressRange.bldgParity = (addressRange.bldgLoNum % 2 == 0) ? "EVENS" : "ODDS";
 
                     addressRange.electionCode = (rangeMatcher.group(5) != null ? Integer.parseInt(rangeMatcher.group(5)) : 0);
                     addressRange.assemblyCode = (rangeMatcher.group(6) != null ? Integer.parseInt(rangeMatcher.group(6)) : 0);
