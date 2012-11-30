@@ -15,9 +15,13 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import java.sql.Connection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DistrictLookup {
     public MysqlDataSource db;
+    public Connection conn;
     public QueryRunner runner;
     public ResultSetHandler<List<BOEAddressRange>> rangeHandler;
 
@@ -64,6 +68,12 @@ public class DistrictLookup {
         column_map.put("vill_code","villCode");
         BeanProcessor rowProcessor = new BeanProcessor(column_map);
         rangeHandler = new BeanListHandler<BOEAddressRange>(BOEAddressRange.class, new BasicRowProcessor(rowProcessor));
+        
+        try {
+            conn = db.getConnection();
+        } catch (SQLException ex) {
+            Logger.getLogger(DistrictLookup.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public List<BOEAddressRange> getRangesByZip(BOEStreetAddress address) throws SQLException {
@@ -129,16 +139,19 @@ public class DistrictLookup {
             }
         }
 
-
-
         if (DEBUG) {
             System.out.println(sql);
             for (Object o : a) {
                 System.out.println(o);
             }
         }
-
-        return runner.query(sql, rangeHandler, a.toArray());
+        
+        if ( !conn.isValid(0) ) {
+            conn.close();
+            conn = db.getConnection();
+        }
+        
+        return runner.query(conn, sql, rangeHandler, a.toArray());
     }
 
     public List<BOEAddressRange> getRanges(BOEStreetAddress address) throws SQLException {
