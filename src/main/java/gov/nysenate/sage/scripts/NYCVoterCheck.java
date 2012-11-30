@@ -11,15 +11,16 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 public class NYCVoterCheck {
 
     public static void main(String[] args) throws Exception {
-        File voter_file = new File("/home/graylin/projects/GeoApi/BOE_Data/Queens-All.txt");
-        Pattern houseNumberPattern = Pattern.compile("([0-9]+)(?: |-)*(.*)");
+        File voter_file = new File("/home/ash/Web/nysenate/GeoApi/BOE_Data/Queens-All.txt");
+        Pattern houseNumberPattern = Pattern.compile("([0-9]+)(?: |-)*([0-9]*)(.*)");
 
         Resource config = new Resource();
         MysqlDataSource db = new MysqlDataSource();
@@ -28,14 +29,17 @@ public class NYCVoterCheck {
         db.setPassword(config.fetch("db.pass"));
         db.setDatabaseName(config.fetch("db.name"));
         DistrictLookup streetData = new DistrictLookup(db);
-
+             
         int total = 0;
         int mismatch = 0;
         int match = 0;
         int nomatch = 0;
         int multimatch = 0;
         int skipped = 0;
-        for(String voter : (List<String>)FileUtils.readLines(voter_file)) {
+        
+        String voter;
+        BufferedReader br = new BufferedReader(new FileReader(voter_file));
+        while ((voter = br.readLine()) != null) {
             BOEStreetAddress address = new BOEStreetAddress();
             try {
                 String county_ems_id = voter.substring(0,9).trim();
@@ -78,9 +82,9 @@ public class NYCVoterCheck {
                 // The house number suffix is not always properly separated!
                 Matcher house_number_matcher = houseNumberPattern.matcher(house_number);
                 if (house_number_matcher.find()) {
-                    address.bldg_num = Integer.parseInt(house_number_matcher.group(1));
-                    if (house_number_suffix=="") {
-                        address.bldg_chr = house_number_matcher.group(2);
+                    address.bldg_num = Integer.parseInt(house_number_matcher.group(1) + house_number_matcher.group(2));
+                    if (house_number_suffix == "") {                        
+                        address.bldg_chr = house_number_matcher.group(3);
                     } else {
                         address.bldg_chr = house_number_suffix;
                     }
@@ -89,7 +93,7 @@ public class NYCVoterCheck {
                     address.bldg_num = Integer.parseInt(house_number);
                     address.bldg_chr = house_number_suffix;
                 }
-
+                
                 address.street = street_name;
                 address.state = "NY";
                 // address.apt_num = Integer.parseInt(apt_number);
@@ -98,41 +102,43 @@ public class NYCVoterCheck {
                 address.congressionalCode = congress_district;
                 address.senateCode = senate_district;
                 AddressUtils.normalizeAddress(address);
-            } catch (NumberFormatException e) {
-                System.out.println("SKIPPED: "+voter);
-                skipped++;
-                continue;
-            }
-            List<BOEAddressRange> results = streetData.getRanges(address);
-            if (results.size() == 0) {
-                nomatch++;
-                //System.out.println("NOMATCH: "+address);
-            } else if (results.size() > 1) {
-                multimatch++;
-                System.out.println(results.size()+" RESULTS:"+address);
-                for (BOEAddressRange range : results) {
-                    System.out.println("   "+range);
-                }
-            } else {
-                BOEAddressRange range = results.get(0);
-                if (range.assemblyCode == address.assemblyCode
-                        && range.senateCode == address.senateCode
-                        && range.congressionalCode == address.congressionalCode
-                        && range.electionCode == address.electionCode) {
-                    match++;
+                        
+                List<BOEAddressRange> results = streetData.getRanges(address);
+                if (results.size() == 0) {
+                    nomatch++;                    
+                    System.out.println("NOMATCH: "+ address);
+                } else if (results.size() > 1) {
+                    multimatch++;
+                    System.out.println(results.size()+" RESULTS:"+address);
+                    for (BOEAddressRange range : results) {
+                        System.out.println("   "+range);
+                    }
                 } else {
-                    mismatch++;
-                    System.out.println("MISMATCH: "+address);
+                    BOEAddressRange range = results.get(0);
+                    if (range.assemblyCode == address.assemblyCode
+                            && range.senateCode == address.senateCode
+                            && range.congressionalCode == address.congressionalCode
+                            && range.electionCode == address.electionCode) {
+                        match++;
+                    } else {
+                        mismatch++;
+                        System.out.println("MISMATCH: "+address);
 
+                    }
                 }
-            }
-
+                } catch (NumberFormatException e) {
+                    System.out.println("SKIPPED: "+voter);
+                    skipped++;
+                    continue;
+                }
+            
+            
             if (++total % 10000 == 0) {
-                System.out.println("TOTAL: "+total+"; MATCH: "+match+"("+(match/(float)total)+"%); MISMATCH: "+mismatch+"; MULTIMATCH: "+multimatch+"; NOMATCH: "+nomatch+"; SKIPPED: "+skipped);
-                // System.in.read();
-            }
-        }
-
-    }
-
+                System.out.println("TOTAL: "+total+"; MATCH: "+match+"("+((match/(float)total) * 100) +"%); MISMATCH: "+mismatch+"; MULTIMATCH: "+multimatch+"; NOMATCH: "+nomatch+"; SKIPPED: "+skipped);
+             }
+        }        
+        br.close();
+        
+    } 
+    
 }
