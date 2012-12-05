@@ -165,11 +165,6 @@
         <version>20090211</version>
     </dependency>
     <dependency>
-        <groupId>org.opengis</groupId>
-        <artifactId>geoapi</artifactId>
-        <version>3.0.0</version>
-    </dependency>
-    <dependency>
         <groupId>commons-dbutils</groupId>
         <artifactId>commons-dbutils</artifactId>
         <version>1.5</version>
