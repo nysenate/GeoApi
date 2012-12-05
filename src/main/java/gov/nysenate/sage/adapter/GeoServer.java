@@ -83,7 +83,7 @@ public class GeoServer implements DistAssignInterface {
 
         try {
             result.source = String.format(API_BASE+"&%s&CQL_FILTER=%s&outputformat=JSON", geotype, URLEncoder.encode(filter,"UTF-8"));
-            logger.debug(result.source);
+            logger.info(result.source);
 
             Content page = Request.Get(result.source).execute().returnContent();
             JSONObject response = new JSONObject(page.asString());
@@ -130,7 +130,7 @@ public class GeoServer implements DistAssignInterface {
             System.out.println(filter);
             url = String.format(url_format, geotype, URLEncoder.encode(filter,"UTF-8"));
 
-            logger.debug(url);
+            logger.info(url);
 
         } catch (UnsupportedEncodingException e) {
             // TODO Auto-generated catch block
@@ -162,7 +162,7 @@ public class GeoServer implements DistAssignInterface {
                 filter = String.format(filter_format, address.latitude, address.longitude);
                 result.source = String.format(url_format, geotype, URLEncoder.encode(filter,"UTF-8"));
 
-                logger.debug(result.source);
+                logger.info(result.source);
                 page = Request.Get(result.source).execute().returnContent();
                 JSONObject response = new JSONObject(page.asString());
                 JSONArray features = response.getJSONArray("features");
