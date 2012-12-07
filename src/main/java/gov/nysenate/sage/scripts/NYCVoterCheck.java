@@ -103,7 +103,7 @@ public class NYCVoterCheck {
                 address.senateCode = senate_district;
                 AddressUtils.normalizeAddress(address);
                         
-                List<BOEAddressRange> results = streetData.getRanges(address);
+                List<BOEAddressRange> results = streetData.getRangesByHouse(address);
                 if (results.size() == 0) {
                     nomatch++;                    
                     System.out.println("NOMATCH: "+ address);

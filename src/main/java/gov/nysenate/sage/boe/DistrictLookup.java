@@ -1,7 +1,5 @@
 package gov.nysenate.sage.boe;
 
-import gov.nysenate.sage.util.Resource;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,26 +24,6 @@ public class DistrictLookup {
     public ResultSetHandler<List<BOEAddressRange>> rangeHandler;
 
     public boolean DEBUG = false;
-
-    public static void main(String[] args) throws Exception {
-        System.out.println("Starting up...");
-
-        Resource config = new Resource();
-        MysqlDataSource db = new MysqlDataSource();
-        db.setServerName(config.fetch("db.host"));
-        db.setUser(config.fetch("db.user"));
-        db.setPassword(config.fetch("db.pass"));
-        db.setDatabaseName(config.fetch("db.name"));
-        System.out.println(config.fetch("db.host")+"|"+config.fetch("db.user")+"|"+config.fetch("db")+"|"+config.fetch("db.name"));
-
-        DistrictLookup streetData = new DistrictLookup(db);
-        BOEStreetAddress address = AddressUtils.parseAddress("1204 10th Ave, Colonie NY 12189");
-        System.out.println(address);
-
-        for (BOEAddressRange range : streetData.getRanges(address)) {
-            System.out.println(range.getId());
-        }
-    }
 
     public DistrictLookup(MysqlDataSource db) {
         runner = new QueryRunner(db);
@@ -77,11 +55,18 @@ public class DistrictLookup {
     }
 
     public List<BOEAddressRange> getRangesByZip(BOEStreetAddress address) throws SQLException {
-        System.out.println("SELECT * FROM street_data WHERE zip5="+address.zip5);
-        return runner.query("SELECT * FROM street_data WHERE zip5=?", rangeHandler, address.zip5);
+        return getRanges(address, false, false);
     }
 
-    public List<BOEAddressRange> getRanges(BOEStreetAddress address, boolean use_building) throws SQLException {
+	public List<BOEAddressRange> getRangesByHouse(BOEStreetAddress address) throws SQLException {
+		return getRanges(address, true, true);
+	}
+
+	public List<BOEAddressRange> getRangesByStreet(BOEStreetAddress address) throws SQLException {
+		return getRanges(address, true, false);
+	}
+
+    public List<BOEAddressRange> getRanges(BOEStreetAddress address, boolean useStreet, boolean useHouse) throws SQLException {
         ArrayList<Object> a = new ArrayList<Object>();
         String sql = "SELECT * \n"
                    + "FROM street_data \n"
@@ -102,13 +87,7 @@ public class DistrictLookup {
             address.street = address.street.replaceAll(" EXT$", "");
 
             // Sometimes the bldg_chr is actually the tail end of the street name
-            if (address.bldg_chr != null && !address.bldg_chr.equals("") && use_building==true) {
-//              // Sometimes the apt_chr is actually the tail end of the street name
-//              if (!address.apt_chr.equals("")) {
-//                  // TODO
-//              } else {
-//                  // TODO
-//              }
+            if (address.bldg_chr != null && !address.bldg_chr.equals("") && useHouse) {
               sql += "  AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
               a.add(address.bldg_chr+" "+address.street+"%");
               a.add(address.street+"%");
@@ -118,20 +97,9 @@ public class DistrictLookup {
             } else {
                 sql += "  AND (street LIKE ?) \n";
                 a.add(address.street+"%");
-//              // Sometimes the apt_chr is actually the tail end of the street name
-//                if (address.apt_chr.equals("")) {
-//                    sql += "  AND (street LIKE ?) \n";
-//                    a.add(address.street+"%");
-//
-//                } else {
-//                    sql += "  AND (street LIKE ? OR street LIKE ?)";
-//                    a.add(address.street+"%");
-//                    a.add(address.street+" "+address.apt_chr+"%");
-//                }
-
             }
 
-            if (address.bldg_num != 0 && use_building==true) {
+            if (address.bldg_num != 0 && useHouse) {
                 sql += "  AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity=? )) \n";
                 a.add(address.bldg_num);
                 a.add(address.bldg_num);
@@ -152,9 +120,5 @@ public class DistrictLookup {
         }
         
         return runner.query(conn, sql, rangeHandler, a.toArray());
-    }
-
-    public List<BOEAddressRange> getRanges(BOEStreetAddress address) throws SQLException {
-        return getRanges(address, true);
     }
 }

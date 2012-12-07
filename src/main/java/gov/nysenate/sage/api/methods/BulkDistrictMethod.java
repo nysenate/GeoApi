@@ -76,13 +76,18 @@ public class BulkDistrictMethod extends ApiExecution {
         String zip5 = request.getParameter("zip5");
         String apt_num = request.getParameter("apt_num");
         String bldg_num = request.getParameter("bldg_num");
-
+        String latitude = request.getParameter("latitude");
+        String longitude = request.getParameter("longitude");
+        
         address.street = (street==null ? "" : street.toUpperCase().trim());
         address.town = (town==null ? "" : town.toUpperCase().trim());
         address.state = (state==null ? "" : state.toUpperCase().trim());
         address.zip5 = (zip5==null ? 0 : Integer.parseInt(zip5.trim()));
         address.apt_num = (apt_num==null ? 0 : Integer.parseInt(apt_num.trim()));
         address.bldg_num = (bldg_num==null ? 0 : Integer.parseInt(bldg_num.trim()));
+        address.latitude = (latitude.equals("null") ? 0 : Double.parseDouble(latitude));
+        address.longitude = (longitude.equals("null") ? 0 : Double.parseDouble(longitude));
+        address.geo_accuracy = (address.latitude==0 || address.longitude==0)? 0 : 100; 
         address.bldg_chr = "";
         address.apt_chr = "";
         AddressUtils.normalizeAddress(address);
@@ -99,7 +104,9 @@ public class BulkDistrictMethod extends ApiExecution {
         String zip5 = json.getString("zip5");
         String apt_num = json.getString("apt");
         String bldg_num = json.getString("building");
-
+        String latitude = json.has("latitidue") ? json.getString("latitude") : "0";
+        String longitude = json.has("longitude") ? json.getString("longitude") : "0";
+        
         BluebirdAddress address = new BluebirdAddress(id);
         address.street = (street.equals("null") ? "" : street.toUpperCase());
         address.town = (town.equals("null") ? "" : town.toUpperCase());
@@ -107,6 +114,9 @@ public class BulkDistrictMethod extends ApiExecution {
         address.zip5 = (zip5.equals("null") || zip5.equals("") ? 0 : Integer.parseInt(zip5));
         address.apt_num = (apt_num.equals("null") || apt_num.equals("") ? 0 : Integer.parseInt(apt_num));
         address.bldg_num = (bldg_num.equals("null") || bldg_num.equals("") ? 0 : Integer.parseInt(bldg_num));
+        address.latitude = (latitude.equals("null") ? 0 : Double.parseDouble(latitude));
+        address.longitude = (longitude.equals("null") ? 0 : Double.parseDouble(longitude));
+        address.geo_accuracy = (address.latitude==0 || address.longitude==0)? 0 : 100; 
         address.bldg_chr = "";
         address.apt_chr = "";
         AddressUtils.normalizeAddress(address);
@@ -122,6 +132,7 @@ public class BulkDistrictMethod extends ApiExecution {
             try {
                 addresses.add(jsonToAddress(bluebirdId, bluebirdAddresses.getJSONObject(bluebirdId)));
             } catch (JSONException e) {
+            	e.printStackTrace();
                 addresses.add(null);
             }
         }
@@ -130,7 +141,7 @@ public class BulkDistrictMethod extends ApiExecution {
 
     @SuppressWarnings("unused")
     private static class BulkResult {
-        public static enum STATUS { STREETNUM, STREETNAME, ZIPCODE, SHAPEFILE, INVALID, NOMATCH };
+        public static enum STATUS { HOUSE, STREET, ZIP5, SHAPEFILE, INVALID, NOMATCH };
 
         public STATUS status_code;
         public String message;
@@ -140,6 +151,10 @@ public class BulkDistrictMethod extends ApiExecution {
         public int congressional_code;
         public int senate_code;
         public int election_code;
+        public String ward_code;
+        public String school_code;
+        public String town_code;
+        public String cleg_code;
         public String address;
         public double latitude;
         public double longitude;
@@ -155,13 +170,17 @@ public class BulkDistrictMethod extends ApiExecution {
             this.congressional_code = match.congressionalCode;
             this.assembly_code = match.assemblyCode;
             this.county_code = match.countyCode;
+            this.cleg_code = match.clegCode;
+            this.town_code = match.townCode;
+            this.school_code = match.schoolCode;
+            this.ward_code = match.wardCode;
             this.latitude = address.latitude;
             this.longitude = address.longitude;
             this.geo_accuracy = address.geo_accuracy;
         }
     }
 
-    private BOEAddressRange SAGE2Bluebird(Address address) {
+    private BOEAddressRange SAGE2Range(Address address) {
         if (address == null) {
             return null;
         }
@@ -179,167 +198,176 @@ public class BulkDistrictMethod extends ApiExecution {
         range.congressionalCode = address.congressional_code;
         range.senateCode = address.senate_code;
         range.countyCode = address.county_code;
+        range.clegCode = address.cleg_code;
+        range.schoolCode = address.school_code;
+        range.wardCode = address.ward_code;
+        range.townCode = address.town_code;
         return range;
     }
+    
     private Address Bluebird2SAGE(BluebirdAddress address) {
         if (address == null) {
             return null;
         }
 
-        return new Address(
+        Address sageAddress = new Address(
             address.street,
             address.town,
             address.state,
             (address.zip5 != 0) ? String.valueOf(address.zip5) : ""
         );
-    }
-
-    private final boolean SHAPEFILE = true;
-    private BulkResult shapefileLookup(BluebirdAddress bluebirdAddress) throws GeoException, DistException{
-        if (!SHAPEFILE)
-            return new BulkResult(BulkResult.STATUS.NOMATCH, "Shapefiles are turned off", bluebirdAddress, new BOEAddressRange() );
-
-        if (bluebirdAddress == null) {
-            return null;
-        }
-
-        Address address = Bluebird2SAGE(bluebirdAddress);
-        Result geoResult = geoService.geocode(address, "rubygeocoder");
-        if (!geoResult.status_code.equals("0")) {
-            throw new GeoException("Bad status code "+geoResult.status_code);
-        }
-        if (geoResult.addresses.size()==0) {
-            System.out.println(address);
-            System.out.println(geoResult.status_code+" - "+geoResult.messages);
-        }
-        // Result distResult = districtService.assignDistricts(geoResult.addresses.get(0), Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.COUNTY), "geoserver");
-        Result distResult = districtService.assignDistricts(geoResult.addresses.get(0), Arrays.asList(DistrictService.TYPE.SENATE), "geoserver");
-        if (!distResult.status_code.equals("0")) {
-            throw new DistException("Bad status code "+distResult.status_code);
-        }
-
-        Address resultAddress = distResult.address;
-        bluebirdAddress.latitude = resultAddress.latitude;
-        bluebirdAddress.longitude = resultAddress.longitude;
-        bluebirdAddress.geo_accuracy = resultAddress.geocode_quality;
-        BOEAddressRange addressRange = SAGE2Bluebird(distResult.address);
-        return new BulkResult(BulkResult.STATUS.SHAPEFILE, "SHAPEFILE MATCH for"+resultAddress, bluebirdAddress, addressRange );
+        sageAddress.setGeocode(address.latitude, address.longitude, address.geo_accuracy);
+        return sageAddress;
     }
 
     public class ParallelRequest implements Callable<BulkResult> {
 
         private final BluebirdAddress address;
-        public ParallelRequest(BluebirdAddress address) {
+        private final boolean useShapefile;
+        private final boolean useGeocoder;
+        private final String geocoder;
+        
+        public ParallelRequest(BluebirdAddress address, boolean useShapefile, boolean useGeocoder, String geocoder) {
             this.address = address;
+            this.useShapefile = useShapefile;
+            this.useGeocoder = useGeocoder;
+            this.geocoder = geocoder;
         }
 
         @Override
         public BulkResult call() throws SQLException {
-            if (address!=null) {
-                List<BOEAddressRange> matches = streetData.getRanges(address,true);
-                try {
-                    if (matches.size()==1) {
-                        return new BulkResult(BulkResult.STATUS.STREETNUM, "EXACT MATCH", address, matches.get(0));
-
-                    } else if (matches.size()==0) {
-                        // If at first you don't succeed, try again without the building number
-                        matches = streetData.getRanges(address,false);
-
-                        if (matches.size()==0) {
-                            matches = streetData.getRangesByZip(address);
-                            BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
-                            if (consolidated != null) {
-                                return new BulkResult(BulkResult.STATUS.ZIPCODE, "CONSOLIDATED RANGEFILL", address, consolidated);
-                            } else {
-                                return shapefileLookup(address);
-                            }
-
-                        } else {
-                            // Consolidate these results to "range fill"
-                            BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
-                            if (consolidated != null) {
-                                return new BulkResult(BulkResult.STATUS.STREETNAME, "CONSOLIDATED RANGEFILL", address, consolidated);
-                            } else {
-                                matches = streetData.getRangesByZip(address);
-                                consolidated = AddressUtils.consolidateRanges(matches);
-                                if (consolidated != null) {
-                                    return new BulkResult(BulkResult.STATUS.ZIPCODE, "CONSOLIDATED RANGEFILL", address, consolidated);
-                                } else {
-                                    return shapefileLookup(address);
-                                }
-                            }
-                        }
-
-                    } else {
-                        BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
-                        if (consolidated != null) {
-                            return new BulkResult(BulkResult.STATUS.STREETNAME, "CONSOLIDATED MULTIMATCH", address, consolidated);
-                        } else {
-                            matches = streetData.getRangesByZip(address);
-                            consolidated = AddressUtils.consolidateRanges(matches);
-                            if (consolidated != null) {
-                                return new BulkResult(BulkResult.STATUS.ZIPCODE, "CONSOLIDATED RANGEFILL", address, consolidated);
-                            } else {
-                                return shapefileLookup(address);
-                            }
-                        }
-                    }
-                } catch (GeoException e) {
-                    e.printStackTrace();
-                    return new BulkResult(BulkResult.STATUS.NOMATCH, "GeoException for: "+address.toString(), address, new BOEAddressRange() );
-                } catch (DistException e) {
-                    e.printStackTrace();
-                    return new BulkResult(BulkResult.STATUS.NOMATCH, "DistException for: "+address.toString(), address, new BOEAddressRange() );
-                }
-
-            } else {
-                return new BulkResult(BulkResult.STATUS.INVALID,"Invalid JSON Entry",new BluebirdAddress("-1"),new BOEAddressRange());
+        	// Don't bother with NULL addresses
+            if (address==null) {
+            	return new BulkResult(BulkResult.STATUS.INVALID,"Invalid JSON Entry",new BluebirdAddress("-1"),new BOEAddressRange());
             }
+            
+            // First attempt a street file lookup by house
+            List<BOEAddressRange> matches = streetData.getRangesByHouse(address);
+            if (matches.size()==1) {
+                return new BulkResult(BulkResult.STATUS.HOUSE, "HOUSE MATCH for "+address, address, matches.get(0));
+            }
+            
+            // Then try a street file lookup by street and consolidate
+            if (address.street != null && !address.street.trim().equals("")) {
+	            matches = streetData.getRangesByStreet(address);
+	            BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
+	            if (consolidated != null) {
+	                return new BulkResult(BulkResult.STATUS.STREET, "STREET MATCH for "+address, address, consolidated);
+	            }
+        	}
+            
+            // Then try a street file lookup by zip5 and consolidate
+            matches = streetData.getRangesByZip(address);
+            BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
+            if (consolidated != null) {
+                return new BulkResult(BulkResult.STATUS.ZIP5, "ZIP5 MATCH for "+address, address, consolidated);
+            }
+            
+            // Unless explicitly disabled by a user option
+            if (!useShapefile) {
+            	return new BulkResult(BulkResult.STATUS.NOMATCH, "Shapefiles disabled.", address, new BOEAddressRange());
+            }
+            
+            // Fall back to shape files
+            Address sageAddress = Bluebird2SAGE(address);
+            if (!sageAddress.is_geocoded()) {
+            	
+            	// Unless explicitly disabled by a user option.
+            	if (!useGeocoder) {
+            		return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocoder disabled. "+address, address, new BOEAddressRange());
+            	}
+            	
+            	// Fill in missing coordinates for addresses.
+            	try {
+		            Result geoResult = geoService.geocode(sageAddress, geocoder);
+		            if (!geoResult.status_code.equals("0")) {
+		            	return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Error ["+geoResult.status_code+"] - "+geoResult.messages.get(0), address, new BOEAddressRange());
+		            } else if (geoResult.addresses.size()!=1) {
+		            	return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.size()+" results found for: "+address.toString(), address, new BOEAddressRange());
+		            } else {
+		            	sageAddress = geoResult.addresses.get(0);
+		            	address.latitude = sageAddress.latitude;
+		            	address.longitude = sageAddress.longitude;
+		            	address.geo_accuracy = sageAddress.geocode_quality;
+		            }
+            	} catch (GeoException e) {
+                    e.printStackTrace();
+                    return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Exception for: "+address.toString(), address, new BOEAddressRange() );
+                }
+            }
+            
+            try {
+	            Result distResult = districtService.assignDistricts(sageAddress, Arrays.asList(DistrictService.TYPE.SENATE,DistrictService.TYPE.TOWN), "geoserver");
+	            if (!distResult.status_code.equals("0")) {
+	            	return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Error ["+distResult.status_code+"] - "+distResult.messages.get(0), address, new BOEAddressRange());
+	            } else {
+	            	sageAddress = distResult.address;
+	            }
+            } catch (DistException e) {
+                 e.printStackTrace();
+                 return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Exception for: "+address.toString(), address, new BOEAddressRange() );
+            }
+            
+            BOEAddressRange addressRange = SAGE2Range(sageAddress);
+            return new BulkResult(BulkResult.STATUS.SHAPEFILE, "SHAPEFILE MATCH for "+sageAddress, address, addressRange );          
         }
     }
     @Override
     public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
-        String type = more.get(RequestCodes.TYPE.code());
-        ArrayList<BulkResult> results = new ArrayList<BulkResult>();
+    	// Load the request addresses
+    	String type = more.get(RequestCodes.TYPE.code());
         ArrayList<BluebirdAddress> bluebirdAddresses;
-        try {
-            if(type.equals("url")) {
-                bluebirdAddresses = new ArrayList<BluebirdAddress>(Arrays.asList(requestToAddress(request)));
-            } else if (type.equals("body")) {
+        if(type.equals("url")) {
+            bluebirdAddresses = new ArrayList<BluebirdAddress>(Arrays.asList(requestToAddress(request)));
+        } else if (type.equals("body")) {
+        	try {
                 String json = IOUtils.toString(request.getInputStream(),"UTF-8");
                 bluebirdAddresses = readAddresses(json);
-            } else {
-                throw new ApiTypeException(type);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new ApiTypeException("No request body found.", e);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                throw new ApiTypeException("Invalid JSON recieved.",e);
             }
+        } else {
+            throw new ApiTypeException(type);
+        }
+        
+        // Load the request options
+        String useShapefileOption = request.getParameter("useShapefile");
+        String useGeocoderOption = request.getParameter("useGeocoder");
+        String geocoderOption = request.getParameter("geocoder");
+        boolean useShapefile = useShapefileOption == null || useShapefileOption.equals("1");
+        boolean useGeocoder = useGeocoderOption == null || useGeocoderOption.equals("1");
+        String geocoder = (geocoderOption==null) ? "geocoder" : geocoderOption;
 
-            ExecutorService executor = Executors.newFixedThreadPool(3);
-            ArrayList<Future<BulkResult>> futureResults = new ArrayList<Future<BulkResult>>();
-
-            for(BluebirdAddress address : bluebirdAddresses) {
-                futureResults.add(executor.submit(new ParallelRequest(address)));
-            }
-
-            for (Future<BulkResult> result : futureResults) {
-                try {
-                    results.add(result.get());
-                } catch (InterruptedException e) {
-                    throw new ApiInternalException(e);
-                } catch (ExecutionException e) {
-                    throw new ApiInternalException(e.getCause());
-                }
-            }
-
-            executor.shutdown();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new ApiTypeException("No request body found.", e);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            throw new ApiTypeException("Invalid JSON recieved.",e);
+        // Make thread count an option for now, TODO: remove this for production?
+        String threadCountOption = request.getParameter("threadCount");
+        int threadCount = (threadCountOption == null) ? 3 : Integer.parseInt(threadCountOption);
+        
+        // Queue up all the tasks into our thread pool
+        System.out.println("Running with "+threadCount+" threads.");
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        ArrayList<Future<BulkResult>> futureResults = new ArrayList<Future<BulkResult>>();
+        for(BluebirdAddress address : bluebirdAddresses) {
+            futureResults.add(executor.submit(new ParallelRequest(address, useShapefile, useGeocoder, geocoder)));
         }
 
+        // Wait for the results to come back 
+        ArrayList<BulkResult> results = new ArrayList<BulkResult>();
+        for (Future<BulkResult> result : futureResults) {
+            try {
+                results.add(result.get());
+            } catch (InterruptedException e) {
+                throw new ApiInternalException(e);
+            } catch (ExecutionException e) {
+                throw new ApiInternalException(e.getCause());
+            }
+        }
+        
+        // then shutdown and return
+        executor.shutdown();
         return results;
     }
-
 }
