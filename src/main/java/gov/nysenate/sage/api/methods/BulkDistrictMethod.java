@@ -172,7 +172,7 @@ public class BulkDistrictMethod extends ApiExecution {
             this.county_code = match.countyCode;
             this.cleg_code = match.clegCode;
             this.town_code = ""; //match.townCode;
-            this.school_code = match.schoolCode;
+            this.school_code = ""; //match.schoolCode;
             this.ward_code = match.wardCode;
             this.latitude = address.latitude;
             this.longitude = address.longitude;
