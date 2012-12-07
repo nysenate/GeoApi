@@ -171,7 +171,7 @@ public class BulkDistrictMethod extends ApiExecution {
             this.assembly_code = match.assemblyCode;
             this.county_code = match.countyCode;
             this.cleg_code = match.clegCode;
-            this.town_code = match.townCode;
+            this.town_code = ""; //match.townCode;
             this.school_code = match.schoolCode;
             this.ward_code = match.wardCode;
             this.latitude = address.latitude;
@@ -297,7 +297,7 @@ public class BulkDistrictMethod extends ApiExecution {
             }
             
             try {
-	            Result distResult = districtService.assignDistricts(sageAddress, Arrays.asList(DistrictService.TYPE.SENATE,DistrictService.TYPE.TOWN), "geoserver");
+	            Result distResult = districtService.assignDistricts(sageAddress, Arrays.asList(DistrictService.TYPE.SENATE), "geoserver");
 	            if (!distResult.status_code.equals("0")) {
 	            	return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Error ["+distResult.status_code+"] - "+distResult.messages.get(0), address, new BOEAddressRange());
 	            } else {
