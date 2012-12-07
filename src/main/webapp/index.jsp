@@ -48,8 +48,8 @@
 							<label>Service</label>
 							<select name="service">
 								<option>Yahoo</option>
-								<option>Google</option>
-								<option>Bing</option>
+								<option>Mapquest</option>
+								<option>OSM</option>
 								<option>GeoCoder</option>
 							</select>
 						</li>
@@ -59,7 +59,7 @@
 					</ol>
 				</form>
 		</div>
-		<p class="message_head"><cite>Reverse GeoCode</cite></p> 
+		<!-- <p class="message_head"><cite>Reverse GeoCode</cite></p> 
 		<div class="message_body"> 
 				<form id="revgeoForm" action="" method="post">
 					<ol>
@@ -85,6 +85,7 @@
 					</ol>
 				</form>
 		</div> 
+		-->
 		<p class="message_head"><cite>Street Lookup</cite></p> 
 		<div class="message_body"> 
 			<form id="streetLookupForm" action="" method="post">

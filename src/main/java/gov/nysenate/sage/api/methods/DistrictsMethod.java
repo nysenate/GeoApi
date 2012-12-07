@@ -33,7 +33,7 @@ public class DistrictsMethod extends ApiExecution {
         districtService = new DistrictService();
     }
 
-    public Object getDistricts(Address address) throws ApiInternalException {
+    public Object getDistricts(Address address, String service) throws ApiInternalException {
         try {
             DistrictResponse dr = new DistrictResponse();
             dr.validated = false;
@@ -45,7 +45,7 @@ public class DistrictsMethod extends ApiExecution {
                 dr.setLon(address.longitude);
 
             } else {
-                Result result = geoService.geocode(address, "yahoo");
+                Result result = geoService.geocode(address, service);
                 if (result == null || !result.status_code.equals("0")) {
                     dr.geocoded = false;
                     dr.errors.add(result.messages.get(0));
@@ -86,7 +86,8 @@ public class DistrictsMethod extends ApiExecution {
     @Override
     public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
         String type = more.get(RequestCodes.TYPE.code());
-        //String service = request.getParameter("service");
+        String service = request.getParameter("service");
+        if (service == null) service = "geocoder";
 
         Address address = null;
         if (type.equals("addr")) {
@@ -108,7 +109,7 @@ public class DistrictsMethod extends ApiExecution {
             throw new ApiTypeException(type);
         }
 
-        return getDistricts(address);
+        return getDistricts(address, service);
     }
     /*
 	@Override

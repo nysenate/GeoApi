@@ -70,7 +70,7 @@ public class GeoService {
 
         geoAdapters.put("yahoo", yahoo);
         geoAdapters.put("mapquest", mapquest);
-        geoAdapters.put("rubygeocoder", ruby);
+        geoAdapters.put("geocoder", ruby);
         geoAdapters.put("osm", osm);
 
         // Reverse Geocoding hasn't been implemented yet
