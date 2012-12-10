@@ -7,12 +7,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.dbutils.QueryRunner;
-
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import javax.sql.DataSource;
 
 
 public abstract class NTS extends StreetFile {
@@ -34,8 +33,8 @@ public abstract class NTS extends StreetFile {
     public abstract void store_extra_districts(BOEAddressRange addressRange, Matcher matcher);
 
     @Override
-    public void save(MysqlDataSource db) throws Exception {
-        QueryRunner query_runner = new QueryRunner(db);
+    public void save(DataSource db) throws Exception {
+        Connection conn = db.getConnection();
         BufferedReader br = new BufferedReader(new FileReader(street_file));
 
         int count = 0;
@@ -46,14 +45,19 @@ public abstract class NTS extends StreetFile {
             addressRange = new BOEAddressRange();
 
             while ((line = br.readLine())!= null) {
+                if (!conn.isValid(1)) {
+                    conn.close();
+                    conn = db.getConnection();
+                }
+
                 if (isEndPage(line)) {
-                    save_record(addressRange, query_runner);
+                    save_record(addressRange, conn);
                     break;
                 }
 
                 // A blank line indicates a new street block
                 if (line.trim().length()==0) {
-                    save_record(addressRange, query_runner);
+                    save_record(addressRange, conn);
                     addressRange = new BOEAddressRange();
                     continue;
                 }
@@ -67,7 +71,7 @@ public abstract class NTS extends StreetFile {
                     }
 
                 } else {
-                    save_record(addressRange, query_runner);
+                    save_record(addressRange, conn);
 
                     addressRange.setStreet(great.group(1).length() != 0 ? great.group(1) : addressRange.getStreet());
                     addressRange.setZip5(Integer.parseInt(great.group(2)));

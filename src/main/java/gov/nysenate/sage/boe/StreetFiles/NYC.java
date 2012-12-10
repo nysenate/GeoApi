@@ -8,13 +8,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.dbutils.QueryRunner;
-
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import javax.sql.DataSource;
 
 public class NYC extends StreetFile {
     private final String town;
@@ -94,7 +93,7 @@ public class NYC extends StreetFile {
                 start_index = end_index;
             }
         }
-        
+
         public ArrayList<String> toSingleColumn() {
             // Flatten each page into 1 column putting lines from each column
             // under the lines from the previous column
@@ -139,8 +138,8 @@ public class NYC extends StreetFile {
     }
 
     @Override
-    public void save(MysqlDataSource db) throws Exception {
-        QueryRunner query_runner = new QueryRunner(db);
+    public void save(DataSource db) throws Exception {
+        Connection conn = db.getConnection();
         BufferedReader br = new BufferedReader(new FileReader(street_file));
         String aptRegex = "(?:([0-9]+)(?:[-]?([0-9A-Z]+))?)";
         Pattern rangePattern = Pattern.compile("(?:\\s*"+aptRegex+"\\s+"+aptRegex+"?)?\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)");
@@ -179,7 +178,7 @@ public class NYC extends StreetFile {
                     if (addressRange.bldgHiChr == null) {
                         addressRange.bldgHiChr = addressRange.bldgLoChr;
                     }
-                    
+
                     // Account for split number buildings like 10-22
                     try {
                         // If the building suffix is also a number, combine them (is this always the correct thing? might not be)
@@ -191,9 +190,8 @@ public class NYC extends StreetFile {
                     } catch (NumberFormatException e) {
                         // The building suffix is not a number, pass
                     }
-                    
-                    addressRange.bldgParity = (addressRange.bldgLoNum % 2 == 0) ? "EVENS" : "ODDS";
 
+                    addressRange.bldgParity = (addressRange.bldgLoNum % 2 == 0) ? "EVENS" : "ODDS";
                     addressRange.electionCode = (rangeMatcher.group(5) != null ? Integer.parseInt(rangeMatcher.group(5)) : 0);
                     addressRange.assemblyCode = (rangeMatcher.group(6) != null ? Integer.parseInt(rangeMatcher.group(6)) : 0);
                     addressRange.zip5 = (rangeMatcher.group(7) != null ? Integer.parseInt(rangeMatcher.group(7)) : 0);
@@ -201,7 +199,11 @@ public class NYC extends StreetFile {
                     addressRange.senateCode = (rangeMatcher.group(9) != null ? Integer.parseInt(rangeMatcher.group(9)) : 0);
                     // addressRange.mc?? = (rangeMatcher.group(10) != null ? Integer.parseInt(rangeMatcher.group(10)) : 0);
                     // addressRange.co?? = (rangeMatcher.group(11) != null ? Integer.parseInt(rangeMatcher.group(11)) : 0);
-                    save_record(addressRange, query_runner);
+                    if (!conn.isValid(1)) {
+                        conn.close();
+                        conn = db.getConnection();
+                    }
+                    save_record(addressRange, conn);
                     if (++count % 1000 == 0) {
                         System.out.println(count);
                     }
