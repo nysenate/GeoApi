@@ -1,6 +1,10 @@
 package gov.nysenate.sage.boe;
 
+import gov.nysenate.sage.boe.StreetFiles.Essex;
+import gov.nysenate.sage.boe.StreetFiles.Fulton;
 import gov.nysenate.sage.boe.StreetFiles.NTS;
+import gov.nysenate.sage.boe.StreetFiles.NYC;
+import gov.nysenate.sage.boe.StreetFiles.Suffolk;
 import gov.nysenate.sage.util.Resource;
 
 import java.io.File;
@@ -459,6 +463,13 @@ public class Main {
                 addressRange.setVillCode(matcher.group(17) != null ? matcher.group(17).trim() : "");
             }
         });
+
+        street_files.add(new NYC(60, "Bronx", new File(base_dir, "Bronx_County_Street_File_2012.txt")));
+        street_files.add(new NYC(63, "Queens", new File(base_dir, "Queens_County_Street_File_2012.txt")));
+
+        street_files.add(new Fulton(17, new File(base_dir,"")));
+        street_files.add(new Suffolk(47, new File(base_dir,"")));
+        street_files.add(new Essex(15, new File(base_dir,"")));
 
         for (StreetFile file : street_files) {
             //StreetFile file = street_files.get(street_files.size()-1);
