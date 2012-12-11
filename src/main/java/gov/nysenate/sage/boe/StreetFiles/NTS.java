@@ -1,5 +1,6 @@
 package gov.nysenate.sage.boe.StreetFiles;
 
+import gov.nysenate.sage.boe.AddressUtils;
 import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.StreetFile;
 
@@ -34,6 +35,7 @@ public abstract class NTS extends StreetFile {
 
     @Override
     public void save(DataSource db) throws Exception {
+        logger.info("Starting "+street_file.getName());
         Connection conn = db.getConnection();
         BufferedReader br = new BufferedReader(new FileReader(street_file));
 
@@ -68,7 +70,7 @@ public abstract class NTS extends StreetFile {
                     // If the format doesn't match it must be a street name overflow
                     if (!line.matches("\\(.*\\)")) {
                         addressRange.setStreet(addressRange.getStreet().trim()+" "+line.trim());
-                        System.out.println("Extended Street: "+addressRange.getStreet());
+                        logger.warn("Extended Street: "+addressRange.getStreet());
                     }
 
                 } else {
@@ -100,11 +102,14 @@ public abstract class NTS extends StreetFile {
                     addressRange.setSchoolCode(great.group(14) != null ? great.group(14).trim() : "000");
                     addressRange.setCountyCode(county_code);
                     store_extra_districts(addressRange, great);
-                    //AddressUtils.normalizeAddress(addressRange);
+                    AddressUtils.normalizeAddress(addressRange);
                 }
             }
-            System.out.println("Done with Page "+count);
-            count++;
+
+            if (++count % 10 == 0) {
+	            logger.info("Done with Page "+count);
+            }
         }
+        logger.info("Done with "+street_file.getName());
     }
 }
