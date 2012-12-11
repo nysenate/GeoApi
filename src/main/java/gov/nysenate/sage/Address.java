@@ -124,7 +124,7 @@ public class Address implements Cloneable {
             str += " ("+latitude+","+longitude+")~"+geocode_quality;
         }
         if (congressional_code != 0 || county_code != 0 || election_code != 0 || !school_code.equals("") || !town_code.equals("") || senate_code != 0 || assembly_code != 0) {
-            str += String.format(" [Con: %02d Cnt: %02d Ele: %02d Sch: %s Twn: %s Sen: %02d Asm: %02d]", congressional_code, county_code, election_code, school_code, town_code, senate_code, assembly_code);
+            str += String.format(" [CO: %02d TN: %s CD: %02d SD: %02d AD: %02d ED: %02d SCH: %s]", county_code, town_code, congressional_code, senate_code, assembly_code, election_code, school_code);
         }
         return str;
     }
