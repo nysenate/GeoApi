@@ -46,6 +46,7 @@ public class AddressUtils {
     public static BOEAddress normalizeAddress(BOEAddress address) {
         load_constants();
         if (address.town != null && !address.town.equals("")) {
+            address.town = address.town.trim();
             // Fix up the towns
             if (address.town == "CITY/KNG") {
                 address.town = "KINGSTON";
