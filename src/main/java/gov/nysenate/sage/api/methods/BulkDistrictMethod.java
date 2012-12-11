@@ -78,7 +78,7 @@ public class BulkDistrictMethod extends ApiExecution {
         String bldg_num = request.getParameter("bldg_num");
         String latitude = request.getParameter("latitude");
         String longitude = request.getParameter("longitude");
-        
+
         address.street = (street==null ? "" : street.toUpperCase().trim());
         address.town = (town==null ? "" : town.toUpperCase().trim());
         address.state = (state==null ? "" : state.toUpperCase().trim());
@@ -87,7 +87,7 @@ public class BulkDistrictMethod extends ApiExecution {
         address.bldg_num = (bldg_num==null ? 0 : Integer.parseInt(bldg_num.trim()));
         address.latitude = (latitude.equals("null") ? 0 : Double.parseDouble(latitude));
         address.longitude = (longitude.equals("null") ? 0 : Double.parseDouble(longitude));
-        address.geo_accuracy = (address.latitude==0 || address.longitude==0)? 0 : 100; 
+        address.geo_accuracy = (address.latitude==0 || address.longitude==0)? 0 : 100;
         address.bldg_chr = "";
         address.apt_chr = "";
         AddressUtils.normalizeAddress(address);
@@ -104,9 +104,9 @@ public class BulkDistrictMethod extends ApiExecution {
         String zip5 = json.getString("zip5");
         String apt_num = json.getString("apt");
         String bldg_num = json.getString("building");
-        String latitude = json.has("latitidue") ? json.getString("latitude") : "0";
-        String longitude = json.has("longitude") ? json.getString("longitude") : "0";
-        
+        String latitude = json.has("latitidue") ? json.getString("latitude") : "null";
+        String longitude = json.has("longitude") ? json.getString("longitude") : "null";
+
         BluebirdAddress address = new BluebirdAddress(id);
         address.street = (street.equals("null") ? "" : street.toUpperCase());
         address.town = (town.equals("null") ? "" : town.toUpperCase());
@@ -116,7 +116,7 @@ public class BulkDistrictMethod extends ApiExecution {
         address.bldg_num = (bldg_num.equals("null") || bldg_num.equals("") ? 0 : Integer.parseInt(bldg_num));
         address.latitude = (latitude.equals("null") ? 0 : Double.parseDouble(latitude));
         address.longitude = (longitude.equals("null") ? 0 : Double.parseDouble(longitude));
-        address.geo_accuracy = (address.latitude==0 || address.longitude==0)? 0 : 100; 
+        address.geo_accuracy = (address.latitude==0 || address.longitude==0)? 0 : 100;
         address.bldg_chr = "";
         address.apt_chr = "";
         AddressUtils.normalizeAddress(address);
@@ -204,7 +204,7 @@ public class BulkDistrictMethod extends ApiExecution {
         range.townCode = address.town_code;
         return range;
     }
-    
+
     private Address Bluebird2SAGE(BluebirdAddress address) {
         if (address == null) {
             return null;
@@ -226,7 +226,7 @@ public class BulkDistrictMethod extends ApiExecution {
         private final boolean useShapefile;
         private final boolean useGeocoder;
         private final String geocoder;
-        
+
         public ParallelRequest(BluebirdAddress address, boolean useShapefile, boolean useGeocoder, String geocoder) {
             this.address = address;
             this.useShapefile = useShapefile;
@@ -240,13 +240,13 @@ public class BulkDistrictMethod extends ApiExecution {
             if (address==null) {
             	return new BulkResult(BulkResult.STATUS.INVALID,"Invalid JSON Entry",new BluebirdAddress("-1"),new BOEAddressRange());
             }
-            
+
             // First attempt a street file lookup by house
             List<BOEAddressRange> matches = streetData.getRangesByHouse(address);
             if (matches.size()==1) {
                 return new BulkResult(BulkResult.STATUS.HOUSE, "HOUSE MATCH for "+address, address, matches.get(0));
             }
-            
+
             // Then try a street file lookup by street and consolidate
             if (address.street != null && !address.street.trim().equals("")) {
 	            matches = streetData.getRangesByStreet(address);
@@ -255,28 +255,28 @@ public class BulkDistrictMethod extends ApiExecution {
 	                return new BulkResult(BulkResult.STATUS.STREET, "STREET MATCH for "+address, address, consolidated);
 	            }
         	}
-            
+
             // Then try a street file lookup by zip5 and consolidate
             matches = streetData.getRangesByZip(address);
             BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
             if (consolidated != null) {
                 return new BulkResult(BulkResult.STATUS.ZIP5, "ZIP5 MATCH for "+address, address, consolidated);
             }
-            
+
             // Unless explicitly disabled by a user option
             if (!useShapefile) {
             	return new BulkResult(BulkResult.STATUS.NOMATCH, "Shapefiles disabled.", address, new BOEAddressRange());
             }
-            
+
             // Fall back to shape files
             Address sageAddress = Bluebird2SAGE(address);
             if (!sageAddress.is_geocoded()) {
-            	
+
             	// Unless explicitly disabled by a user option.
             	if (!useGeocoder) {
             		return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocoder disabled. "+address, address, new BOEAddressRange());
             	}
-            	
+
             	// Fill in missing coordinates for addresses.
             	try {
 		            Result geoResult = geoService.geocode(sageAddress, geocoder);
@@ -295,7 +295,7 @@ public class BulkDistrictMethod extends ApiExecution {
                     return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Exception for: "+address.toString(), address, new BOEAddressRange() );
                 }
             }
-            
+
             try {
 	            Result distResult = districtService.assignDistricts(sageAddress, Arrays.asList(DistrictService.TYPE.SENATE), "geoserver");
 	            if (!distResult.status_code.equals("0")) {
@@ -307,9 +307,9 @@ public class BulkDistrictMethod extends ApiExecution {
                  e.printStackTrace();
                  return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Exception for: "+address.toString(), address, new BOEAddressRange() );
             }
-            
+
             BOEAddressRange addressRange = SAGE2Range(sageAddress);
-            return new BulkResult(BulkResult.STATUS.SHAPEFILE, "SHAPEFILE MATCH for "+sageAddress, address, addressRange );          
+            return new BulkResult(BulkResult.STATUS.SHAPEFILE, "SHAPEFILE MATCH for "+sageAddress, address, addressRange );
         }
     }
     @Override
@@ -333,7 +333,7 @@ public class BulkDistrictMethod extends ApiExecution {
         } else {
             throw new ApiTypeException(type);
         }
-        
+
         // Load the request options
         String useShapefileOption = request.getParameter("useShapefile");
         String useGeocoderOption = request.getParameter("useGeocoder");
@@ -345,7 +345,7 @@ public class BulkDistrictMethod extends ApiExecution {
         // Make thread count an option for now, TODO: remove this for production?
         String threadCountOption = request.getParameter("threadCount");
         int threadCount = (threadCountOption == null) ? 3 : Integer.parseInt(threadCountOption);
-        
+
         // Queue up all the tasks into our thread pool
         System.out.println("Running with "+threadCount+" threads.");
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
@@ -354,7 +354,7 @@ public class BulkDistrictMethod extends ApiExecution {
             futureResults.add(executor.submit(new ParallelRequest(address, useShapefile, useGeocoder, geocoder)));
         }
 
-        // Wait for the results to come back 
+        // Wait for the results to come back
         ArrayList<BulkResult> results = new ArrayList<BulkResult>();
         for (Future<BulkResult> result : futureResults) {
             try {
@@ -365,7 +365,7 @@ public class BulkDistrictMethod extends ApiExecution {
                 throw new ApiInternalException(e.getCause());
             }
         }
-        
+
         // then shutdown and return
         executor.shutdown();
         return results;
