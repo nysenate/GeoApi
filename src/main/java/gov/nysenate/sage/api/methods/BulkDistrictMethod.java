@@ -104,7 +104,7 @@ public class BulkDistrictMethod extends ApiExecution {
         String zip5 = json.getString("zip5");
         String apt_num = json.getString("apt");
         String bldg_num = json.getString("building");
-        String latitude = json.has("latitidue") ? json.getString("latitude") : "null";
+        String latitude = json.has("latitude") ? json.getString("latitude") : "null";
         String longitude = json.has("longitude") ? json.getString("longitude") : "null";
 
         BluebirdAddress address = new BluebirdAddress(id);
