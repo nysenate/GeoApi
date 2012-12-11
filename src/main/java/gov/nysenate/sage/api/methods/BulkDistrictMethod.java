@@ -210,8 +210,12 @@ public class BulkDistrictMethod extends ApiExecution {
             return null;
         }
 
+        String street_address = "";
+        if (address.bldg_num != 0) { street_address += address.bldg_num; }
+        if (address.bldg_chr != null && !address.bldg_chr.isEmpty()) { street_address += address.bldg_chr; }
+        if (address.street != null && !address.street.isEmpty()) { street_address += " "+address.street; }
         Address sageAddress = new Address(
-            address.street,
+            street_address.trim(),
             address.town,
             address.state,
             (address.zip5 != 0) ? String.valueOf(address.zip5) : ""
