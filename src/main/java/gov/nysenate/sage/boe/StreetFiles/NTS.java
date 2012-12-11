@@ -45,6 +45,7 @@ public abstract class NTS extends StreetFile {
             addressRange = new BOEAddressRange();
 
             while ((line = br.readLine())!= null) {
+                line = line.replace("`", ""); // Sometimes I find random backticks that don't belong
                 if (!conn.isValid(1)) {
                     conn.close();
                     conn = db.getConnection();
