@@ -18,7 +18,7 @@ import org.apache.log4j.Logger;
 
 public abstract class StreetFile {
     public final File street_file;
-    private final Logger logger;
+    protected final Logger logger;
     public final int county_code;
     public final AddressService addressService;
     public final Pattern number_pattern = Pattern.compile("(\\d+|)(.*)");
@@ -26,7 +26,7 @@ public abstract class StreetFile {
     public static boolean USPS_CORRECT = false;
 
     public StreetFile(int countyCode, File street_file) throws Exception  {
-        if (!street_file.canRead()) {
+        if (false && !street_file.canRead()) {
             throw new IOException("Cannot read "+street_file.getAbsolutePath());
         } else {
             this.street_file = street_file;
@@ -47,7 +47,9 @@ public abstract class StreetFile {
 //            return;
 //        }
 
-        addressRange.town = addressRange.town.trim();
+		if (addressRange.town != null)
+			addressRange.town = addressRange.town.trim();
+
         if (USPS_CORRECT == true) {
             Address addr = new Address(addressRange.street,addressRange.town,"NY",String.valueOf(addressRange.zip5));
             if (addressRange.bldgLoNum!=0) {

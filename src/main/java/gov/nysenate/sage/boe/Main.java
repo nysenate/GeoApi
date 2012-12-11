@@ -468,15 +468,26 @@ public class Main {
         street_files.add(new NYC(63, "Queens", new File(base_dir, "Queens_County_Street_File_2012.txt")));
 
         street_files.add(new Fulton(17, new File(base_dir,"")));
-        street_files.add(new Suffolk(47, new File(base_dir,"")));
+        street_files.add(new Suffolk(47, new File(base_dir,"Suffolk County Street Index.txt")));
         street_files.add(new Essex(15, new File(base_dir,"")));
 
-        for (StreetFile file : street_files) {
-            //StreetFile file = street_files.get(street_files.size()-1);
-            System.out.println("Saving "+file.street_file.getAbsolutePath());
-            file.clear(db);
-            file.save(db);
-        }
+//        for (StreetFile file : street_files) {
+//            //StreetFile file = street_files.get(street_files.size()-1);
+//            System.out.println("Saving "+file.street_file.getAbsolutePath());
+//            file.clear(db);
+//            file.save(db);
+//        }
+
+//        StreetFile street_file = new Suffolk(47, new File(base_dir,"Suffolk County Street Index.txt"));
+//        StreetFile street_file = new Essex(15, new File(base_dir,"Essex_County.csv"));
+//        StreetFile street_file = new Fulton(17, new File(base_dir, ""));
+//        StreetFile street_file = new NYC(60, "Bronx", new File(base_dir, "Bronx_County_Street_finder.txt"));
+//        StreetFile street_file = new NYC(62, "Manhattan", new File(base_dir, "manhattan_county_street_finder.txt"));
+//        StreetFile street_file = new NYC(61, "Brooklyn", new File(base_dir, "Brooklyn_County_Street_Finder.txt"));
+//        StreetFile street_file = new NYC(63, "Queens", new File(base_dir, "Queens_County_Street_Finder.txt"));
+        StreetFile street_file = new NYC(64, "Staten Island", new File(base_dir, "Staten_Island_Street_Finder.txt"));
+        street_file.clear(db);
+        street_file.save(db);
     }
 
 }

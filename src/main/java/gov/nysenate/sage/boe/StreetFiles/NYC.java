@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.dbutils.QueryRunner;
+
 public class NYC extends StreetFile {
     private final String town;
     private final boolean DEBUG = false;
@@ -139,12 +141,14 @@ public class NYC extends StreetFile {
 
     @Override
     public void save(DataSource db) throws Exception {
+    	logger.info("Starting "+this.town);
         Connection conn = db.getConnection();
         BufferedReader br = new BufferedReader(new FileReader(street_file));
         String aptRegex = "(?:([0-9]+)(?:[-]?([0-9A-Z]+))?)";
         Pattern rangePattern = Pattern.compile("(?:\\s*"+aptRegex+"\\s+"+aptRegex+"?)?\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)");
 
         int count = 0;
+        new QueryRunner().update(conn, "BEGIN");
         BOEAddressRange addressRange = null;
         for (String line : convertToSingleColumn(br)) {
             if (DEBUG) System.out.println(line);
@@ -204,8 +208,10 @@ public class NYC extends StreetFile {
                         conn = db.getConnection();
                     }
                     save_record(addressRange, conn);
-                    if (++count % 1000 == 0) {
-                        System.out.println(count);
+                    if (++count % 5000 == 0) {
+                        logger.info(count);
+                        new QueryRunner().update(conn, "COMMIT");
+                        new QueryRunner().update(conn, "BEGIN");
                     }
                 } else {
                     // Address Street Line
@@ -218,6 +224,8 @@ public class NYC extends StreetFile {
                 }
             }
         }
+        new QueryRunner().update(conn, "COMMIT");
+        logger.info("Done with "+this.town);
     }
     /*
     public static void main(String[] args) throws Exception {

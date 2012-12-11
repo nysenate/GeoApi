@@ -11,8 +11,10 @@ import java.util.HashMap;
 
 import javax.sql.DataSource;
 
-public class Essex extends StreetFile {
+import org.apache.commons.dbutils.QueryRunner;
 
+public class Essex extends StreetFile {
+	public int currentLine;
     public HashMap<String, String> townMap;
 
     public Essex(int county, File street_file) throws Exception {
@@ -41,17 +43,21 @@ public class Essex extends StreetFile {
 
     @Override
     public void save(DataSource db) throws Exception {
+    	logger.info("Starting Essex");
+    	currentLine = 0;
         Connection conn = db.getConnection();
         BufferedReader br = new BufferedReader(new FileReader(street_file));
 
         String line;
         String[] parts;
         br.readLine(); // Skip the header
+        new QueryRunner().update(conn, "BEGIN");
         while( (line = br.readLine()) != null) {
-            parts = line.split(",");
+            parts = line.split("\t");
             BOEAddressRange range = new BOEAddressRange();
             range.street = parts[0];
-            range.zip5 = Integer.parseInt(parts[1]);
+            if (!parts[1].isEmpty())
+            	range.zip5 = Integer.parseInt(parts[1]);
             range.bldgLoNum = Integer.parseInt(parts[2]);
             range.bldgHiNum = Integer.parseInt(parts[3]);
             range.bldgParity = getParity(parts[4]);
@@ -69,28 +75,36 @@ public class Essex extends StreetFile {
                 conn = db.getConnection();
             }
             save_record(range, conn);
-        }
 
+            if(++currentLine % 5000 == 0) {
+            	new QueryRunner().update(conn, "COMMIT");
+            	new QueryRunner().update(conn, "BEGIN");
+            }
+        }
+        new QueryRunner().update(conn, "COMMIT");
         br.close();
+        logger.info("Done with Essex");
     }
 
     public String getTownCode(String town) {
-        String abbrev = town.substring(0, 7);
+        String abbrev = town.substring(0, Math.min(town.length(),7));
         if (townMap.containsKey(abbrev)) {
-            throw new RuntimeException("Town "+town+" not found in the town code map.");
+        	return townMap.get(abbrev);
         } else {
-            return townMap.get(abbrev);
+        	throw new RuntimeException("Line "+currentLine+": Town "+town+" not found in the town code map.");
         }
     }
 
     public String getParity(String parity) {
-        if(parity == "Evan and Odd Numbers")
+        if(parity.equals("Even and Odd Numbers"))
             return "ALL";
-        else if (parity == "Even Numbers")
+        else if (parity.equals("Even Numbers"))
             return "EVENS";
-        else if (parity == "Odd Numbers")
+        else if (parity.equals("Odd Numbers"))
             return "ODDS";
-        else
-            throw new RuntimeException("Invalid parity input "+parity);
+        else {
+            logger.error("Line "+currentLine+": Invalid parity input "+parity);
+        	return "ALL";
+        }
     }
 }

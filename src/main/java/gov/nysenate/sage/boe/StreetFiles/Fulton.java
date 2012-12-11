@@ -34,6 +34,7 @@ public class Fulton extends StreetFile {
 
     @Override
     public void save(DataSource db) throws Exception {
+    	logger.info("Starting Fulton");
         Connection conn = db.getConnection();
 
         BOEAddressRange range = new BOEAddressRange();
@@ -47,6 +48,7 @@ public class Fulton extends StreetFile {
             range.zip5 = zip5;
             save_record(range, conn);
         }
+        logger.info("Done with Fulton");
     }
 
 }
