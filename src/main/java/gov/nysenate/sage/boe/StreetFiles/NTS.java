@@ -33,6 +33,12 @@ public abstract class NTS extends StreetFile {
 
     public abstract void store_extra_districts(BOEAddressRange addressRange, Matcher matcher);
 
+    public void nts_save_record(BOEAddressRange range, Connection conn, String line) throws Exception{
+        if (range.street != null && !range.street.isEmpty()) {
+            save_record(range, conn);
+        }
+    }
+
     @Override
     public void save(DataSource db) throws Exception {
         logger.info("Starting "+street_file.getName());
@@ -54,13 +60,13 @@ public abstract class NTS extends StreetFile {
                 }
 
                 if (isEndPage(line)) {
-                    save_record(addressRange, conn);
+                    nts_save_record(addressRange, conn, line);
                     break;
                 }
 
                 // A blank line indicates a new street block
                 if (line.trim().length()==0) {
-                    save_record(addressRange, conn);
+                    nts_save_record(addressRange, conn, line);
                     addressRange = new BOEAddressRange();
                     continue;
                 }
@@ -74,7 +80,7 @@ public abstract class NTS extends StreetFile {
                     }
 
                 } else {
-                    save_record(addressRange, conn);
+                    nts_save_record(addressRange, conn, line);
 
                     addressRange.setStreet(great.group(1).length() != 0 ? great.group(1) : addressRange.getStreet());
                     addressRange.setZip5(Integer.parseInt(great.group(2)));
