@@ -62,25 +62,25 @@ public class DistrictLookup {
     }
 
     public List<BOEAddressRange> getRanges(BOEStreetAddress address, boolean useStreet, boolean useHouse) throws SQLException {
-        ArrayList<Object> a = new ArrayList<Object>();
+        ArrayList<Object> params = new ArrayList<Object>();
         String sql = "SELECT * \n"
                    + "FROM street_data \n"
                    + "WHERE 1=1 \n";
 
-        boolean whereZip = address.zip5 != 0;
-        boolean whereState = address.state != null && !address.state.equals("");
-        boolean whereStreet = useStreet && address.street != null && !address.street.equals("");
-        boolean whereBldg = useHouse && address.bldg_num != 0;
-        boolean whereBldgChr = useHouse && address.bldg_chr != null && !address.bldg_chr.equals("");
+        boolean whereZip = (address.zip5 != 0);
+        boolean whereState = (address.state != null && !address.state.isEmpty());
+        boolean whereStreet = (useStreet && address.street != null && !address.street.isEmpty());
+        boolean whereBldg = (useHouse && address.bldg_num != 0);
+        boolean whereBldgChr = (useHouse && address.bldg_chr != null && !address.bldg_chr.isEmpty());
 
         if (whereZip) {
             sql += "  AND zip5=? \n";
-            a.add(address.zip5);
+            params.add(address.zip5);
         }
 
         if (whereState) {
             sql += "  AND state=? \n";
-            a.add(address.state);
+            params.add(address.state);
         }
 
         if (whereStreet) {
@@ -102,22 +102,22 @@ public class DistrictLookup {
                 // Every one else gets a range check; sometimes the suffix is actually part of the street prefix.
                 if (address.bldg_chr != null) {
                     sql += "  AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
-                    a.add(address.bldg_chr+" "+address.street+"%");
-                    a.add(address.street+"%");
-                    a.add(address.bldg_chr);
-                    a.add(address.bldg_chr);
+                    params.add(address.bldg_chr+" "+address.street+"%");
+                    params.add(address.street+"%");
+                    params.add(address.bldg_chr);
+                    params.add(address.bldg_chr);
                 }
 
             } else {
                 sql += "  AND (street LIKE ?) \n";
-                a.add(address.street+"%");
+                params.add(address.street+"%");
             }
 
             if (whereBldg) {
                 sql += "  AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity=? )) \n";
-                a.add(address.bldg_num);
-                a.add(address.bldg_num);
-                a.add((address.bldg_num % 2 == 0 ? "EVENS" : "ODDS"));
+                params.add(address.bldg_num);
+                params.add(address.bldg_num);
+                params.add((address.bldg_num % 2 == 0 ? "EVENS" : "ODDS"));
             }
         }
 
@@ -125,7 +125,7 @@ public class DistrictLookup {
         if (whereZip || whereStreet) {
             if (DEBUG) {
                 System.out.println(sql);
-                for (Object o : a) {
+                for (Object o : params) {
                     System.out.println(o);
                 }
             }
@@ -135,7 +135,7 @@ public class DistrictLookup {
                 conn = db.getConnection();
             }
 
-            return runner.query(conn, sql, rangeHandler, a.toArray());
+            return runner.query(conn, sql, rangeHandler, params.toArray());
         } else {
             if (DEBUG) {
                 System.out.println("Skipping address: no identifying information");
