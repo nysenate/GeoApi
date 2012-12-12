@@ -291,6 +291,8 @@ public class BulkDistrictMethod extends ApiExecution {
 		            	return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Error ["+geoResult.status_code+"] - "+geoResult.messages.get(0), address, new BOEAddressRange());
 		            } else if (geoResult.addresses.size()!=1) {
 		            	return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.size()+" results found for: "+address.toString(), address, new BOEAddressRange());
+		            } else if (geoResult.addresses.get(0).geocode_quality < 40){
+		                return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.get(0).geocode_quality+" must be atleast 40 (state level lookup) for "+address.toString(), address, new BOEAddressRange());
 		            } else {
 		            	sageAddress = geoResult.addresses.get(0);
 		            	address.latitude = sageAddress.latitude;
