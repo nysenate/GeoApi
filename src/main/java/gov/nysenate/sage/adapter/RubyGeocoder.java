@@ -76,8 +76,10 @@ public class RubyGeocoder implements GeocodeInterface {
                 String zip = jsonResult.has("zip") ? jsonResult.getString("zip") : "";
                 double lat = jsonResult.has("lat") ? jsonResult.getDouble("lat") : 0;
                 double lon = jsonResult.has("lon") ? jsonResult.getDouble("lon") : 0;
-                int quality = jsonResult.has("score") ? (int)jsonResult.getDouble("score")*100 : 0;
-
+                int quality = jsonResult.has("score") ? (int)(jsonResult.getDouble("score")*100) : 0;
+                if (quality == 100) {
+                    quality = 99; // No geocode is perfect
+                }
                 Address resultAddress = new Address(street, city, state, zip);
                 resultAddress.setGeocode(lat, lon, quality);
                 result.addresses.add(resultAddress);
