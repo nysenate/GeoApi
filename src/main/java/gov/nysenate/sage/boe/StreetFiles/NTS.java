@@ -28,7 +28,7 @@ public abstract class NTS extends StreetFile {
     }
 
     public boolean isEndPage(String line) {
-        return line.contains("r_strstd") || line.contains("Total No. of Street Segments");
+        return line.contains("r_strstd") || line.contains("-------------------") || line.contains("Total No. of Street Segments");
     }
 
     public abstract void store_extra_districts(BOEAddressRange addressRange, Matcher matcher);
