@@ -67,22 +67,28 @@ public class DistrictLookup {
                    + "FROM street_data \n"
                    + "WHERE 1=1 \n";
 
-        if (address.zip5 != 0) {
+        boolean whereZip = address.zip5 != 0;
+        boolean whereState = address.state != null && !address.state.equals("");
+        boolean whereStreet = useStreet && address.street != null && !address.street.equals("");
+        boolean whereBldg = useHouse && address.bldg_num != 0;
+        boolean whereBldgChr = useHouse && address.bldg_chr != null && !address.bldg_chr.equals("");
+
+        if (whereZip) {
             sql += "  AND zip5=? \n";
             a.add(address.zip5);
         }
 
-        if (address.state != null && !address.state.equals("")) {
+        if (whereState) {
             sql += "  AND state=? \n";
             a.add(address.state);
         }
 
-        if (useStreet && address.street != null && !address.street.equals("")) {
+        if (whereStreet) {
             // Pretty sure this doesn't cause issues..
             address.street = address.street.replaceAll(" EXT$", "");
 
             // Sometimes the bldg_chr is actually the tail end of the street name
-            if (useHouse && address.bldg_chr != null && !address.bldg_chr.equals("")) {
+            if (whereBldgChr) {
                 // Handle dashed NYC buildings by collapsing on the dash
                 if (address.bldg_chr.startsWith("-"))  {
                     try {
@@ -107,7 +113,7 @@ public class DistrictLookup {
                 a.add(address.street+"%");
             }
 
-            if (useHouse && address.bldg_num != 0) {
+            if (whereBldg) {
                 sql += "  AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity=? )) \n";
                 a.add(address.bldg_num);
                 a.add(address.bldg_num);
@@ -115,18 +121,26 @@ public class DistrictLookup {
             }
         }
 
-        if (DEBUG) {
-            System.out.println(sql);
-            for (Object o : a) {
-                System.out.println(o);
+        // Only do a lookup if we have meaningful filters on the query
+        if (whereZip || whereStreet) {
+            if (DEBUG) {
+                System.out.println(sql);
+                for (Object o : a) {
+                    System.out.println(o);
+                }
             }
+
+            if ( !conn.isValid(1) ) {
+                conn.close();
+                conn = db.getConnection();
+            }
+
+            return runner.query(conn, sql, rangeHandler, a.toArray());
+        } else {
+            if (DEBUG) {
+                System.out.println("Skipping address: no identifying information");
+            }
+            return new ArrayList<BOEAddressRange>();
         }
-        
-        if ( !conn.isValid(0) ) {
-            conn.close();
-            conn = db.getConnection();
-        }
-        
-        return runner.query(conn, sql, rangeHandler, a.toArray());
     }
 }
