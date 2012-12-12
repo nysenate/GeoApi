@@ -53,13 +53,13 @@ public class DistrictLookup {
         return getRanges(address, false, false);
     }
 
-	public List<BOEAddressRange> getRangesByHouse(BOEStreetAddress address) throws SQLException {
-		return getRanges(address, true, true);
-	}
+    public List<BOEAddressRange> getRangesByHouse(BOEStreetAddress address) throws SQLException {
+        return getRanges(address, true, true);
+    }
 
-	public List<BOEAddressRange> getRangesByStreet(BOEStreetAddress address) throws SQLException {
-		return getRanges(address, true, false);
-	}
+    public List<BOEAddressRange> getRangesByStreet(BOEStreetAddress address) throws SQLException {
+        return getRanges(address, true, false);
+    }
 
     public List<BOEAddressRange> getRanges(BOEStreetAddress address, boolean useStreet, boolean useHouse) throws SQLException {
         ArrayList<Object> a = new ArrayList<Object>();
