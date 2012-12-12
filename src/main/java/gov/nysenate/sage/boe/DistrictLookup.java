@@ -91,9 +91,10 @@ public class DistrictLookup {
                     } catch (NumberFormatException e) {
                         logger.warn("bldg_chr `"+address.bldg_chr+"` not as expected.");
                     }
+                }
 
                 // Every one else gets a range check; sometimes the suffix is actually part of the street prefix.
-                } else {
+                if (address.bldg_chr != null) {
                     sql += "  AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
                     a.add(address.bldg_chr+" "+address.street+"%");
                     a.add(address.street+"%");
