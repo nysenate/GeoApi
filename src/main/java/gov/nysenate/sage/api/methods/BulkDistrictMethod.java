@@ -134,6 +134,9 @@ public class BulkDistrictMethod extends ApiExecution {
             } catch (JSONException e) {
             	e.printStackTrace();
                 addresses.add(null);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                addresses.add(null);
             }
         }
         return addresses;
