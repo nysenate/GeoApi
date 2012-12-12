@@ -41,9 +41,6 @@ public abstract class StreetFile {
     }
 
     public void save_record(BOEAddressRange addressRange, Connection conn) throws Exception {
-//        if (!addressRange.isValid()) {
-//            return;
-//        }
         AddressUtils.normalizeAddress(addressRange);
         new QueryRunner().update(conn, "INSERT INTO street_data (street,town,state,zip5,bldg_lo_num, bldg_lo_chr, bldg_hi_num, bldg_hi_chr, bldg_parity, apt_lo_num, apt_lo_chr, apt_hi_num, apt_hi_chr, apt_parity, election_code, county_code, assembly_code, senate_code, congressional_code, town_code, ward_code, school_code, cleg_code, fire_code, city_code, vill_code) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",addressRange.getStreet(), addressRange.getTown(), "NY", addressRange.getZip5(), addressRange.getBldgLoNum(), addressRange.getBldgLoChr(), addressRange.getBldgHiNum(), addressRange.getBldgHiChr(), addressRange.getBldgParity(), addressRange.getAptLoNum(), addressRange.getAptLoChr(), addressRange.getAptHiNum(), addressRange.getAptHiChr(), addressRange.getAptParity(), addressRange.getElectionCode(), addressRange.getCountyCode(), addressRange.getAssemblyCode(), addressRange.getSenateCode(), addressRange.getCongressionalCode(), addressRange.getTownCode(), addressRange.getWardCode(), addressRange.getSchoolCode(), addressRange.getClegCode(), addressRange.getFireCode(), addressRange.getCityCode(), addressRange.getVillCode());
     }
