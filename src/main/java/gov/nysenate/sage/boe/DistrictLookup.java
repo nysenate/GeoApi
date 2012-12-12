@@ -77,24 +77,36 @@ public class DistrictLookup {
             a.add(address.state);
         }
 
-        if (address.street != null && !address.street.equals("")) {
+        if (useStreet && address.street != null && !address.street.equals("")) {
             // Pretty sure this doesn't cause issues..
             address.street = address.street.replaceAll(" EXT$", "");
 
             // Sometimes the bldg_chr is actually the tail end of the street name
-            if (address.bldg_chr != null && !address.bldg_chr.equals("") && useHouse) {
-              sql += "  AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
-              a.add(address.bldg_chr+" "+address.street+"%");
-              a.add(address.street+"%");
-              a.add(address.bldg_chr);
-              a.add(address.bldg_chr);
+            if (useHouse && address.bldg_chr != null && !address.bldg_chr.equals("")) {
+                // Handle dashed NYC buildings by collapsing on the dash
+                if (address.bldg_chr.startsWith("-"))  {
+                    try {
+                        address.bldg_num = Integer.parseInt(String.valueOf(address.bldg_num)+address.bldg_chr.substring(1));
+                        address.bldg_chr = null;
+                    } catch (NumberFormatException e) {
+                        logger.warn("bldg_chr `"+address.bldg_chr+"` not as expected.");
+                    }
+
+                // Every one else gets a range check; sometimes the suffix is actually part of the street prefix.
+                } else {
+                    sql += "  AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
+                    a.add(address.bldg_chr+" "+address.street+"%");
+                    a.add(address.street+"%");
+                    a.add(address.bldg_chr);
+                    a.add(address.bldg_chr);
+                }
 
             } else {
                 sql += "  AND (street LIKE ?) \n";
                 a.add(address.street+"%");
             }
 
-            if (address.bldg_num != 0 && useHouse) {
+            if (useHouse && address.bldg_num != 0) {
                 sql += "  AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity=? )) \n";
                 a.add(address.bldg_num);
                 a.add(address.bldg_num);
