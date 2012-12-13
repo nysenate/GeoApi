@@ -163,7 +163,10 @@ public class BulkDistrictMethod extends ApiExecution {
         public double longitude;
         public int geo_accuracy;
 
+        public BluebirdAddress bluebird_address;
+
         public BulkResult(STATUS status, String message, BluebirdAddress address, BOEAddressRange match) {
+            this.bluebird_address = address;
             this.address_id = address.id;
             this.status_code = status;
             this.message = message;
@@ -227,21 +230,88 @@ public class BulkDistrictMethod extends ApiExecution {
         return sageAddress;
     }
 
-    public class ParallelRequest implements Callable<BulkResult> {
+    public class DelayResult implements Callable<BulkResult> {
+        public final BulkResult result;
 
+        public DelayResult(BulkResult result) {
+            this.result = result;
+        }
+
+        public BulkResult call() {
+            return result;
+        }
+    }
+
+    public class ParallelShapeFileRequest implements Callable<BulkResult> {
         private final BluebirdAddress address;
-        private final boolean useShapefile;
         private final boolean useGeocoder;
         private final String geocoder;
 
-        public ParallelRequest(BluebirdAddress address, boolean useShapefile, boolean useGeocoder, String geocoder) {
+        public ParallelShapeFileRequest(BluebirdAddress address, boolean useGeocoder, String geocoder) {
             this.address = address;
-            this.useShapefile = useShapefile;
             this.useGeocoder = useGeocoder;
             this.geocoder = geocoder;
         }
 
-        @Override
+        public BulkResult call() {
+            if (address == null) {
+                return new BulkResult(BulkResult.STATUS.INVALID,"Invalid JSON Entry",new BluebirdAddress("-1"),new BOEAddressRange());
+            }
+
+            // Fall back to shape files
+            Address sageAddress = Bluebird2SAGE(address);
+            if (!sageAddress.is_geocoded()) {
+
+                // Unless explicitly disabled by a user option.
+                if (!useGeocoder) {
+                    return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocoder disabled. "+address, address, new BOEAddressRange());
+                }
+
+                // Fill in missing coordinates for addresses.
+                try {
+                    Result geoResult = geoService.geocode(sageAddress, geocoder);
+                    if (!geoResult.status_code.equals("0")) {
+                        return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Error ["+geoResult.status_code+"] - "+geoResult.messages.get(0), address, new BOEAddressRange());
+                    } else if (geoResult.addresses.size()!=1) {
+                        return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.size()+" results found for: "+address.toString(), address, new BOEAddressRange());
+                    } else if (geoResult.addresses.get(0).geocode_quality < 40){
+                        return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.get(0).geocode_quality+" must be atleast 40 (state level lookup) for "+address.toString(), address, new BOEAddressRange());
+                    } else {
+                        sageAddress = geoResult.addresses.get(0);
+                        address.latitude = sageAddress.latitude;
+                        address.longitude = sageAddress.longitude;
+                        address.geo_accuracy = sageAddress.geocode_quality;
+                    }
+                } catch (GeoException e) {
+                    e.printStackTrace();
+                    return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Exception for: "+address.toString(), address, new BOEAddressRange() );
+                }
+            }
+
+            try {
+                Result distResult = districtService.assignDistricts(sageAddress, Arrays.asList(DistrictService.TYPE.SENATE), "geoserver");
+                if (!distResult.status_code.equals("0")) {
+                    return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Error ["+distResult.status_code+"] - "+distResult.messages.get(0), address, new BOEAddressRange());
+                } else {
+                    sageAddress = distResult.address;
+                }
+            } catch (DistException e) {
+                 e.printStackTrace();
+                 return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Exception for: "+address.toString(), address, new BOEAddressRange() );
+            }
+
+            BOEAddressRange addressRange = SAGE2Range(sageAddress);
+            return new BulkResult(BulkResult.STATUS.SHAPEFILE, "SHAPEFILE MATCH for "+sageAddress, address, addressRange );
+        }
+    }
+    
+    public class ParallelStreetFileRequest implements Callable<BulkResult> {
+        private final BluebirdAddress address;
+
+        public ParallelStreetFileRequest(BluebirdAddress address) {
+            this.address = address;
+        }
+
         public BulkResult call() throws SQLException {
         	// Don't bother with NULL addresses
             if (address==null) {
@@ -270,57 +340,10 @@ public class BulkDistrictMethod extends ApiExecution {
                 return new BulkResult(BulkResult.STATUS.ZIP5, "ZIP5 MATCH for "+address, address, consolidated);
             }
 
-            // Unless explicitly disabled by a user option
-            if (!useShapefile) {
-            	return new BulkResult(BulkResult.STATUS.NOMATCH, "Shapefiles disabled.", address, new BOEAddressRange());
-            }
-
-            // Fall back to shape files
-            Address sageAddress = Bluebird2SAGE(address);
-            if (!sageAddress.is_geocoded()) {
-
-            	// Unless explicitly disabled by a user option.
-            	if (!useGeocoder) {
-            		return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocoder disabled. "+address, address, new BOEAddressRange());
-            	}
-
-            	// Fill in missing coordinates for addresses.
-            	try {
-		            Result geoResult = geoService.geocode(sageAddress, geocoder);
-		            if (!geoResult.status_code.equals("0")) {
-		            	return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Error ["+geoResult.status_code+"] - "+geoResult.messages.get(0), address, new BOEAddressRange());
-		            } else if (geoResult.addresses.size()!=1) {
-		            	return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.size()+" results found for: "+address.toString(), address, new BOEAddressRange());
-		            } else if (geoResult.addresses.get(0).geocode_quality < 40){
-		                return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.get(0).geocode_quality+" must be atleast 40 (state level lookup) for "+address.toString(), address, new BOEAddressRange());
-		            } else {
-		            	sageAddress = geoResult.addresses.get(0);
-		            	address.latitude = sageAddress.latitude;
-		            	address.longitude = sageAddress.longitude;
-		            	address.geo_accuracy = sageAddress.geocode_quality;
-		            }
-            	} catch (GeoException e) {
-                    e.printStackTrace();
-                    return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Exception for: "+address.toString(), address, new BOEAddressRange() );
-                }
-            }
-
-            try {
-	            Result distResult = districtService.assignDistricts(sageAddress, Arrays.asList(DistrictService.TYPE.SENATE), "geoserver");
-	            if (!distResult.status_code.equals("0")) {
-	            	return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Error ["+distResult.status_code+"] - "+distResult.messages.get(0), address, new BOEAddressRange());
-	            } else {
-	            	sageAddress = distResult.address;
-	            }
-            } catch (DistException e) {
-                 e.printStackTrace();
-                 return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Exception for: "+address.toString(), address, new BOEAddressRange() );
-            }
-
-            BOEAddressRange addressRange = SAGE2Range(sageAddress);
-            return new BulkResult(BulkResult.STATUS.SHAPEFILE, "SHAPEFILE MATCH for "+sageAddress, address, addressRange );
+            return new BulkResult(BulkResult.STATUS.NOMATCH, "Street file lookup failed.", address, new BOEAddressRange());
         }
     }
+
     @Override
     public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
     	// Load the request addresses
@@ -357,17 +380,44 @@ public class BulkDistrictMethod extends ApiExecution {
 
         // Queue up all the tasks into our thread pool
         System.out.println("Running with "+threadCount+" threads.");
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        ArrayList<Future<BulkResult>> futureResults = new ArrayList<Future<BulkResult>>();
-        for(BluebirdAddress address : bluebirdAddresses) {
-            futureResults.add(executor.submit(new ParallelRequest(address, useShapefile, useGeocoder, geocoder)));
+        ExecutorService streetFileExecutor = Executors.newFixedThreadPool(threadCount);
+        ArrayList<Future<BulkResult>> streetFileResults = new ArrayList<Future<BulkResult>>();
+        for (BluebirdAddress address : bluebirdAddresses) {
+            streetFileResults.add(streetFileExecutor.submit(new ParallelStreetFileRequest(address)));
         }
 
-        // Wait for the results to come back
-        ArrayList<BulkResult> results = new ArrayList<BulkResult>();
-        for (Future<BulkResult> result : futureResults) {
+        // Wait for the street file results to come back
+        ExecutorService shapeFileExecutor = Executors.newFixedThreadPool(threadCount);
+        ArrayList<Future<BulkResult>> finalResults = new ArrayList<Future<BulkResult>>();
+        for (Future<BulkResult> result : streetFileResults) {
             try {
-                results.add(result.get());
+                BulkResult streetFileResult = result.get();
+                Callable<BulkResult> callable;
+                if (streetFileResult.status_code == BulkResult.STATUS.NOMATCH) {
+                    if (useShapefile) {
+                        callable = new ParallelShapeFileRequest(streetFileResult.bluebird_address, useGeocoder, geocoder);
+                    } else {
+                        callable = new DelayResult(new BulkResult(BulkResult.STATUS.NOMATCH, "Shapefiles disabled.", streetFileResult.bluebird_address, new BOEAddressRange()));
+                    }
+                } else {
+                    callable = new DelayResult(streetFileResult);
+                }
+                finalResults.add(shapeFileExecutor.submit(callable));
+
+            } catch (InterruptedException e) {
+                throw new ApiInternalException(e);
+            } catch (ExecutionException e) {
+                throw new ApiInternalException(e.getCause());
+            }
+        }
+
+        // Process final results
+        ArrayList<BulkResult> results = new ArrayList<BulkResult>();
+        for (Future<BulkResult> result : finalResults) {
+            try {
+                BulkResult finalResult = result.get();
+                finalResult.bluebird_address = null; // Unset so it isn't echoed back. HACK!
+                results.add(finalResult);
             } catch (InterruptedException e) {
                 throw new ApiInternalException(e);
             } catch (ExecutionException e) {
@@ -376,7 +426,8 @@ public class BulkDistrictMethod extends ApiExecution {
         }
 
         // then shutdown and return
-        executor.shutdown();
+        streetFileExecutor.shutdown();
+        shapeFileExecutor.shutdown();
         return results;
     }
 }
