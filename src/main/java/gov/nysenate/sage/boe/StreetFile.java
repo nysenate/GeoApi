@@ -24,11 +24,7 @@ public abstract class StreetFile {
     public final Pattern number_pattern = Pattern.compile("(\\d+|)(.*)");
 
     public StreetFile(int countyCode, File street_file) throws Exception  {
-        if (false && !street_file.canRead()) {
-            throw new IOException("Cannot read "+street_file.getAbsolutePath());
-        } else {
-            this.street_file = street_file;
-        }
+        this.street_file = street_file;
         this.county_code = countyCode;
         logger = Logger.getLogger(this.getClass());
         this.addressService = new AddressService();
