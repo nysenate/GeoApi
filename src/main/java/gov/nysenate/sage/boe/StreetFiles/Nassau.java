@@ -13,11 +13,11 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.QueryRunner;
 
-public class NASSAU extends StreetFile {
+public class Nassau extends StreetFile {
 	public int currentLine;
     public HashMap<String, String> townMap;
 
-    public NASSAU(int county, File street_file) throws Exception {
+    public Nassau(int county, File street_file) throws Exception {
         super(county, street_file);
 
         townMap = new HashMap<String, String>();
@@ -30,7 +30,7 @@ public class NASSAU extends StreetFile {
 
     @Override
     public void save(DataSource db) throws Exception {
-    	logger.info("Starting NASSAU");
+    	logger.info("Starting Nassau");
     	currentLine = 0;
         Connection conn = db.getConnection();
         BufferedReader br = new BufferedReader(new FileReader(street_file));
@@ -41,8 +41,6 @@ public class NASSAU extends StreetFile {
         new QueryRunner().update(conn, "BEGIN");
         while( (line = br.readLine()) != null) {
             parts = line.replace("\"", "").split(",");
-            logger.info(line);
-            logger.info("COUNT: "+parts.length);
 
             BOEAddressRange range = new BOEAddressRange();
             range.street = (parts[3]+" "+parts[1]+" "+parts[2]).trim();
@@ -57,6 +55,7 @@ public class NASSAU extends StreetFile {
             if ((parts.length > 14) && (!parts[14].isEmpty())) 
             	range.electionCode = Integer.parseInt(parts[14].substring(3)); 	// ED
             range.assemblyCode = Integer.parseInt(parts[11].substring(3)); 		// AD
+            range.clegCode = parts[12].substring(3);                            // LD
             range.congressionalCode = Integer.parseInt(parts[9].substring(3)); 	// CD 
             range.senateCode = Integer.parseInt(parts[10].substring(3)); 		// SD 
             range.countyCode = this.county_code; 
@@ -88,7 +87,8 @@ public class NASSAU extends StreetFile {
 	    if (townMap.containsKey(abbrev)) {
 	        return townMap.get(abbrev);
 	    } else {
-	        throw new RuntimeException("Line "+currentLine+": Town "+town+" not found in the town code map.");
+	        logger.error("Line "+currentLine+": Town "+town+" not found in the town code map.");
+	        return "";
 	    }
     }
 
