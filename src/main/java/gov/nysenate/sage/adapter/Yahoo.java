@@ -8,7 +8,9 @@ import gov.nysenate.sage.util.Resource;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
@@ -24,21 +26,29 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.http.client.fluent.Content;
-import org.apache.http.client.fluent.Request;
+import org.apache.commons.io.IOUtils;
+
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import oauth.signpost.OAuthConsumer;  
+import oauth.signpost.basic.DefaultOAuthConsumer;
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
+
+
 public class Yahoo implements GeocodeInterface {
     private final Logger logger;
     private final XPath xpath;
     private final DocumentBuilder xmlBuilder;
 
-    private final String API_KEY;
-
+    private final String CONSUMER_KEY;
+    private final String CONSUMER_SECRET;
+    
     public class ParallelRequest implements Callable<Result> {
         public final Yahoo yahoo;
         public final Address address;
@@ -58,15 +68,13 @@ public class Yahoo implements GeocodeInterface {
         logger = Logger.getLogger(this.getClass());
         xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         xpath = XPathFactory.newInstance().newXPath();
-        API_KEY = new Resource().fetch("yahoo.key");
+        CONSUMER_KEY = new Resource().fetch("yahoo.consumer_key");
+        CONSUMER_SECRET = new Resource().fetch("yahoo.consumer_secret");
         logger.info("Initialized Yahoo Adapter");
     }
 
-    /**
-     * Yahoo doesn't implement batch geocoding so we use the single address geocoding
-     * method in parallel for performance improvements on our end.
-    */
-    @Override
+    // Yahoo doesn't implement batch geocoding so we use the single address geocoding
+    // method in parallel for performance improvements on our end.    
     public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException {
         ArrayList<Result> results = new ArrayList<Result>();
         ExecutorService executor = Executors.newFixedThreadPool(5);
@@ -88,37 +96,49 @@ public class Yahoo implements GeocodeInterface {
         executor.shutdown();
         return results;
     }
-
+    
     @Override
     public Result geocode(Address address) throws GeoException {
         if (address==null) return null;
-
-        Content page = null;
-        Document response = null;
+        
+        Document body = null;
         Result result = new Result();
 
         try {
             // Parse the API response
-            result.source = "http://where.yahooapis.com/geocode?appid="+API_KEY+"&q="+URLEncoder.encode(address.as_raw(), "UTF-8");
-            logger.debug(result.source);
-            page = Request.Get(result.source).execute().returnContent();
-            synchronized (xmlBuilder) {
-                response = xmlBuilder.parse(page.asStream());
-            }
+            result.source = "http://yboss.yahooapis.com/geo/placefinder?location="+URLEncoder.encode(address.as_raw(), "UTF-8").replace("+", "%20");
+            logger.info(result.source);
+            URL u = new URL(result.source);  
+            HttpURLConnection uc = (HttpURLConnection) u.openConnection();
+            OAuthConsumer consumer = new DefaultOAuthConsumer(CONSUMER_KEY, CONSUMER_SECRET);
+            consumer.sign(uc);
 
-            result.status_code = xpath.evaluate("ResultSet/Error", response);
-            if(!result.status_code.equals("0")) {
-                result.messages.add(xpath.evaluate("ResultSet/ErrorMessage", response));
+            if (uc.getResponseCode() != 200) {
+                result.status_code = String.valueOf(uc.getResponseCode());
+                result.messages.add(IOUtils.toString(uc.getErrorStream()));
                 return result;
             }
+            
+            synchronized (xmlBuilder) {
+                body = xmlBuilder.parse(uc.getInputStream());
+            }
 
-            NodeList resultset = (NodeList)xpath.evaluate("ResultSet/Result", response, XPathConstants.NODESET);
+            result.status_code = xpath.evaluate("/bossresponse/@responsecode", body);
+            if(!result.status_code.equals("200")) {
+                // TODO: There are no examples of what an error will look like
+                result.messages.add(xpath.evaluate("ResultSet/ErrorMessage", body));
+                return result;
+            } else {
+                result.status_code = "0";
+            }
+
+            NodeList resultset = (NodeList)xpath.evaluate("/bossresponse/placefinder/results/result", body, XPathConstants.NODESET);
             for (int i=0; i < resultset.getLength(); i++) {
                 Node location = resultset.item(i);
                 String street = xpath.evaluate("line1", location);
                 String city = xpath.evaluate("city", location);
                 String state = xpath.evaluate("statecode", location);
-                String zip_code = xpath.evaluate("postal", location);
+                String zip_code = xpath.evaluate("uzip", location);
                 int quality = Integer.valueOf(xpath.evaluate("quality", location));
                 double lat = (Double)xpath.evaluate("offsetlat", location, XPathConstants.NUMBER);
                 double lng = (Double)xpath.evaluate("offsetlon", location, XPathConstants.NUMBER);
@@ -148,12 +168,24 @@ public class Yahoo implements GeocodeInterface {
             return result;
 
         } catch (SAXException e) {
-            String msg = "Malformed XML response for '"+result.source+"'\n"+page.asString();
+            String msg = "Malformed XML response for '"+result.source+"'";
             logger.error(msg, e);
             throw new GeoException(msg, e);
 
         } catch (XPathExpressionException e) {
-            String msg = "Unexpected XML Schema\n\n"+response.toString();
+            String msg = "Unexpected XML Schema\n\n"+body.toString();
+            logger.error(msg, e);
+            throw new GeoException(msg ,e);
+        } catch (OAuthMessageSignerException e) {
+            String msg = "OAuthMessageSignerException";
+            logger.error(msg, e);
+            throw new GeoException(msg ,e);
+        } catch (OAuthExpectationFailedException e) {
+            String msg = "OAuthExpectationFailedException";
+            logger.error(msg, e);
+            throw new GeoException(msg ,e);
+        } catch (OAuthCommunicationException e) {
+            String msg = "OAuthCommunicationException";
             logger.error(msg, e);
             throw new GeoException(msg ,e);
         }
