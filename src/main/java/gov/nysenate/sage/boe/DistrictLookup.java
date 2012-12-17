@@ -13,18 +13,15 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.log4j.Logger;
 
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-import java.sql.Connection;
+import javax.sql.DataSource;
 
 public class DistrictLookup {
-    public MysqlDataSource db;
-    public Connection conn;
     public QueryRunner runner;
     public ResultSetHandler<List<BOEAddressRange>> rangeHandler;
     public final Logger logger = Logger.getLogger(DistrictLookup.class);
     public boolean DEBUG = false;
 
-    public DistrictLookup(MysqlDataSource db) throws Exception {
+    public DistrictLookup(DataSource db) throws Exception {
         runner = new QueryRunner(db);
         Map<String, String> column_map = new HashMap<String, String>();
         column_map.put("congressional_code", "congressionalCode");
@@ -45,8 +42,6 @@ public class DistrictLookup {
         column_map.put("vill_code","villCode");
         BeanProcessor rowProcessor = new BeanProcessor(column_map);
         rangeHandler = new BeanListHandler<BOEAddressRange>(BOEAddressRange.class, new BasicRowProcessor(rowProcessor));
-        
-        conn = db.getConnection();
     }
 
     public List<BOEAddressRange> getRangesByZip(BOEStreetAddress address) throws SQLException {
@@ -130,12 +125,7 @@ public class DistrictLookup {
                 }
             }
 
-            if ( !conn.isValid(1) ) {
-                conn.close();
-                conn = db.getConnection();
-            }
-
-            return runner.query(conn, sql, rangeHandler, params.toArray());
+            return runner.query(sql, rangeHandler, params.toArray());
         } else {
             if (DEBUG) {
                 System.out.println("Skipping address: no identifying information");

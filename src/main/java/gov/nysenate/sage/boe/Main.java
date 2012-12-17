@@ -5,24 +5,21 @@ import gov.nysenate.sage.boe.StreetFiles.Fulton;
 import gov.nysenate.sage.boe.StreetFiles.NTS;
 import gov.nysenate.sage.boe.StreetFiles.NYC;
 import gov.nysenate.sage.boe.StreetFiles.Suffolk;
+import gov.nysenate.sage.util.DB;
 import gov.nysenate.sage.util.Resource;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import javax.sql.DataSource;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
         Resource config = new Resource();
 
-        MysqlDataSource db = new MysqlDataSource();
-        db.setUser(config.fetch("db.user"));
-        db.setPassword(config.fetch("db.pass"));
-        db.setServerName(config.fetch("db.host"));
-        db.setDatabaseName(config.fetch("db.name"));
+        DataSource db = DB.getDataSource();
 
         ArrayList<StreetFile> street_files = new ArrayList<StreetFile>();
 

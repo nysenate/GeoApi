@@ -13,7 +13,7 @@ import gov.nysenate.sage.service.DistrictService;
 import gov.nysenate.sage.service.DistrictService.DistException;
 import gov.nysenate.sage.service.GeoService;
 import gov.nysenate.sage.service.GeoService.GeoException;
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.DB;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -34,8 +34,6 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-
 public class BulkDistrictMethod extends ApiExecution {
 
     public static final ArrayList<DistrictService.TYPE> districtTypes = new ArrayList<DistrictService.TYPE>(Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.COUNTY,DistrictService.TYPE.ELECTION));
@@ -54,15 +52,7 @@ public class BulkDistrictMethod extends ApiExecution {
     private final DistrictService districtService;
 
     public BulkDistrictMethod() throws Exception {
-        Resource config = new Resource();
-
-        MysqlDataSource db = new MysqlDataSource();
-        db.setServerName(config.fetch("db.host"));
-        db.setUser(config.fetch("db.user"));
-        db.setPassword(config.fetch("db.pass"));
-        db.setDatabaseName(config.fetch("db.name"));
-
-        streetData = new DistrictLookup(db);
+        streetData = new DistrictLookup(DB.getDataSource());
         geoService = new GeoService();
         districtService = new DistrictService();
     }

@@ -7,18 +7,15 @@ import gov.nysenate.sage.model.annotations.ListType;
 import gov.nysenate.sage.model.annotations.PersistentObject;
 import gov.nysenate.sage.model.annotations.PrimaryKey;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -28,33 +25,18 @@ import org.apache.log4j.Logger;
  *
  */
 public class Connect {
-
 	Logger logger = Logger.getLogger(Connect.class);
 
 	public static final String ADD = "add";
 	public static final String GET = "get";
 	public static final String SET = "set";
-	public final Resource APP_CONFIG;
-	public final String DATABASE;
-	public final String USER;
-	public final String PASS;
-	public final String DRIVER;
 
 	Connection connection;
-	Properties properties;
-	public Connect() throws IOException {
-	    APP_CONFIG = new Resource();
-	    DATABASE = "jdbc:"+APP_CONFIG.fetch("db.type")+"://"+APP_CONFIG.fetch("db.host")+"/"+APP_CONFIG.fetch("db.name");
-	    USER = APP_CONFIG.fetch("db.user");
-	    PASS = APP_CONFIG.fetch("db.pass");
-	    DRIVER = APP_CONFIG.fetch("db.driver");
-	}
 
 	public Connection getConnection() {
 		if(connection == null) {
 			try {
-				Class.forName(DRIVER).newInstance();
-				connection = DriverManager.getConnection(DATABASE,USER,PASS);
+			    connection = DB.getDataSource().getConnection();
 			} catch (Exception e) {
 				logger.warn(e);
 			}

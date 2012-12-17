@@ -4,15 +4,13 @@ import gov.nysenate.sage.boe.AddressUtils;
 import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.DB;
 
 import java.io.File;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
@@ -22,13 +20,7 @@ public class NYCVoterCheck {
         File voter_file = new File("/home/ash/Web/nysenate/GeoApi/BOE_Data/Queens-All.txt");
         Pattern houseNumberPattern = Pattern.compile("([0-9]+)(?: |-)*([0-9]*)(.*)");
 
-        Resource config = new Resource();
-        MysqlDataSource db = new MysqlDataSource();
-        db.setServerName(config.fetch("db.host"));
-        db.setUser(config.fetch("db.user"));
-        db.setPassword(config.fetch("db.pass"));
-        db.setDatabaseName(config.fetch("db.name"));
-        DistrictLookup streetData = new DistrictLookup(db);
+        DistrictLookup streetData = new DistrictLookup(DB.getDataSource());
              
         int total = 0;
         int mismatch = 0;
