@@ -19,7 +19,7 @@ $use_json = false;
 $location = '';
 
 if ($argc <= 1) {
-  echo "Usage: $prog [-f cfgfile] [--json] [--xml] address";
+  echo "Usage: $prog [-f cfgfile] [--json] [--xml] address\n";
   exit(1);
 }
 
