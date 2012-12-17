@@ -1,9 +1,10 @@
-*.jar
+*.cfg
 *.class
-*.properties
-*.log
+*.jar
 *.json
 *.kml
+*.log
+*.properties
 *.xml
 
 *~
@@ -11,4 +12,5 @@
 .classpath
 .project
 .settings
+
 target
