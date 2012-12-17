@@ -5,8 +5,16 @@
 // Project: SAGE
 // Author: Ken Zalewski
 // Organization: New York State Senate
-// Date: 2012-12-14
+// Date: 2012-12-17
 //
+// NOTE: To use this script, you will need to create a configuration file
+// called yboss_geo.cfg with two entries:
+//    key=<MY_CONSUMER_KEY>
+//    secret=<MY_CONSUMER_SECRET>
+//
+// The -f option can be used to specify a different filename for the
+// configuration file.
+
 
 require('OAuth.php');
 
