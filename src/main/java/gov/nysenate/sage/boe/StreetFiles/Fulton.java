@@ -4,7 +4,6 @@ import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.StreetFile;
 
 import java.io.File;
-import java.sql.Connection;
 
 import javax.sql.DataSource;
 
@@ -12,8 +11,8 @@ public class Fulton extends StreetFile {
 
     public int[] zipcodes;
 
-    public Fulton(int county_code, File street_file) throws Exception {
-        super(county_code, street_file);
+    public Fulton() throws Exception {
+        super(17, new File(""));
 
         // No Street File for this county so we'll use this.
         // 12010 - [min] - Perth
@@ -35,7 +34,6 @@ public class Fulton extends StreetFile {
     @Override
     public void save(DataSource db) throws Exception {
     	logger.info("Starting Fulton");
-        Connection conn = db.getConnection();
 
         BOEAddressRange range = new BOEAddressRange();
         range.state = "NY";
@@ -46,7 +44,7 @@ public class Fulton extends StreetFile {
 
         for (int zip5 : zipcodes) {
             range.zip5 = zip5;
-            save_record(range, conn);
+            save_record(range, db);
         }
         logger.info("Done with Fulton");
     }

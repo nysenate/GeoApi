@@ -6,7 +6,6 @@ import gov.nysenate.sage.boe.StreetFile;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.sql.Connection;
 import java.util.HashMap;
 
 import javax.sql.DataSource;
@@ -45,13 +44,13 @@ public class Essex extends StreetFile {
     public void save(DataSource db) throws Exception {
     	logger.info("Starting Essex");
     	currentLine = 0;
-        Connection conn = db.getConnection();
+        QueryRunner runner = new QueryRunner(db);
         BufferedReader br = new BufferedReader(new FileReader(street_file));
 
         String line;
         String[] parts;
         br.readLine(); // Skip the header
-        new QueryRunner().update(conn, "BEGIN");
+        runner.update("BEGIN");
         while( (line = br.readLine()) != null) {
             parts = line.split("\t");
             BOEAddressRange range = new BOEAddressRange();
@@ -69,19 +68,14 @@ public class Essex extends StreetFile {
             range.senateCode = Integer.parseInt(parts[9]);
             range.countyCode = this.county_code;
             range.state = "NY";
-
-            if (!conn.isValid(1)) {
-                conn.close();
-                conn = db.getConnection();
-            }
-            save_record(range, conn);
+            save_record(range, db);
 
             if(++currentLine % 5000 == 0) {
-            	new QueryRunner().update(conn, "COMMIT");
-            	new QueryRunner().update(conn, "BEGIN");
+            	runner.update("COMMIT");
+            	runner.update("BEGIN");
             }
         }
-        new QueryRunner().update(conn, "COMMIT");
+        runner.update("COMMIT");
         br.close();
         logger.info("Done with Essex");
     }

@@ -6,7 +6,6 @@ import gov.nysenate.sage.boe.StreetFile;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.sql.Connection;
 import java.util.HashMap;
 
 import javax.sql.DataSource;
@@ -32,13 +31,13 @@ public class Nassau extends StreetFile {
     public void save(DataSource db) throws Exception {
     	logger.info("Starting Nassau");
     	currentLine = 0;
-        Connection conn = db.getConnection();
+    	QueryRunner runner = new QueryRunner(db);
         BufferedReader br = new BufferedReader(new FileReader(street_file));
 
         String line;
         String[] parts;
         br.readLine(); // Skip the header
-        new QueryRunner().update(conn, "BEGIN");
+        runner.update("BEGIN");
         while( (line = br.readLine()) != null) {
             parts = line.replace("\"", "").split(",");
 
@@ -66,18 +65,14 @@ public class Nassau extends StreetFile {
             if ((parts.length > 16) && (!parts[16].isEmpty())) 
             	range.fireCode = parts[16].substring(3); 	// FR
             
-            if (!conn.isValid(1)) {
-                conn.close();
-                conn = db.getConnection();
-            }
-            save_record(range, conn);
+            save_record(range, db);
 
             if(++currentLine % 5000 == 0) {
-            	new QueryRunner().update(conn, "COMMIT");
-            	new QueryRunner().update(conn, "BEGIN");
+            	runner.update("COMMIT");
+            	runner.update("BEGIN");
             }
         }
-        new QueryRunner().update(conn, "COMMIT");
+        runner.update("COMMIT");
         br.close();
         logger.info("Done with Nassau");
     }

@@ -1,13 +1,8 @@
 package gov.nysenate.sage.boe;
 
-
-import gov.nysenate.sage.Address;
-import gov.nysenate.sage.Result;
 import gov.nysenate.sage.service.AddressService;
 
 import java.io.File;
-import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.regex.Pattern;
 
@@ -32,13 +27,9 @@ public abstract class StreetFile {
 
     public abstract void save(DataSource db) throws Exception;
 
-    public static void main(String[] args) {
-        System.out.println("1  10th ABBEY CT".replaceAll("^[0-9]+\\s+", ""));
-    }
-
-    public void save_record(BOEAddressRange addressRange, Connection conn) throws Exception {
+    public void save_record(BOEAddressRange addressRange, DataSource db) throws Exception {
         AddressUtils.normalizeAddress(addressRange);
-        new QueryRunner().update(conn, "INSERT INTO street_data (street,town,state,zip5,bldg_lo_num, bldg_lo_chr, bldg_hi_num, bldg_hi_chr, bldg_parity, apt_lo_num, apt_lo_chr, apt_hi_num, apt_hi_chr, apt_parity, election_code, county_code, assembly_code, senate_code, congressional_code, town_code, ward_code, school_code, cleg_code, fire_code, city_code, vill_code) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",addressRange.getStreet(), addressRange.getTown(), "NY", addressRange.getZip5(), addressRange.getBldgLoNum(), addressRange.getBldgLoChr(), addressRange.getBldgHiNum(), addressRange.getBldgHiChr(), addressRange.getBldgParity(), addressRange.getAptLoNum(), addressRange.getAptLoChr(), addressRange.getAptHiNum(), addressRange.getAptHiChr(), addressRange.getAptParity(), addressRange.getElectionCode(), addressRange.getCountyCode(), addressRange.getAssemblyCode(), addressRange.getSenateCode(), addressRange.getCongressionalCode(), addressRange.getTownCode(), addressRange.getWardCode(), addressRange.getSchoolCode(), addressRange.getClegCode(), addressRange.getFireCode(), addressRange.getCityCode(), addressRange.getVillCode());
+        new QueryRunner(db).update("INSERT INTO street_data (street,town,state,zip5,bldg_lo_num, bldg_lo_chr, bldg_hi_num, bldg_hi_chr, bldg_parity, apt_lo_num, apt_lo_chr, apt_hi_num, apt_hi_chr, apt_parity, election_code, county_code, assembly_code, senate_code, congressional_code, town_code, ward_code, school_code, cleg_code, fire_code, city_code, vill_code) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",addressRange.getStreet(), addressRange.getTown(), "NY", addressRange.getZip5(), addressRange.getBldgLoNum(), addressRange.getBldgLoChr(), addressRange.getBldgHiNum(), addressRange.getBldgHiChr(), addressRange.getBldgParity(), addressRange.getAptLoNum(), addressRange.getAptLoChr(), addressRange.getAptHiNum(), addressRange.getAptHiChr(), addressRange.getAptParity(), addressRange.getElectionCode(), addressRange.getCountyCode(), addressRange.getAssemblyCode(), addressRange.getSenateCode(), addressRange.getCongressionalCode(), addressRange.getTownCode(), addressRange.getWardCode(), addressRange.getSchoolCode(), addressRange.getClegCode(), addressRange.getFireCode(), addressRange.getCityCode(), addressRange.getVillCode());
     }
 
     public void clear(DataSource db) throws SQLException {

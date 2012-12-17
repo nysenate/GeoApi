@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -142,13 +141,13 @@ public class NYC extends StreetFile {
     @Override
     public void save(DataSource db) throws Exception {
     	logger.info("Starting "+this.town);
-        Connection conn = db.getConnection();
+        QueryRunner runner = new QueryRunner(db);
         BufferedReader br = new BufferedReader(new FileReader(street_file));
         String aptRegex = "(?:([0-9]+)(?:[-]?([0-9A-Z]+))?)";
         Pattern rangePattern = Pattern.compile("(?:\\s*"+aptRegex+"\\s+"+aptRegex+"?)?\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)");
 
         int count = 0;
-        new QueryRunner().update(conn, "BEGIN");
+        runner.update("BEGIN");
         BOEAddressRange addressRange = null;
         for (String line : convertToSingleColumn(br)) {
             if (DEBUG) System.out.println(line);
@@ -203,15 +202,12 @@ public class NYC extends StreetFile {
                     addressRange.senateCode = (rangeMatcher.group(9) != null ? Integer.parseInt(rangeMatcher.group(9)) : 0);
                     // addressRange.mc?? = (rangeMatcher.group(10) != null ? Integer.parseInt(rangeMatcher.group(10)) : 0);
                     // addressRange.co?? = (rangeMatcher.group(11) != null ? Integer.parseInt(rangeMatcher.group(11)) : 0);
-                    if (!conn.isValid(1)) {
-                        conn.close();
-                        conn = db.getConnection();
-                    }
-                    save_record(addressRange, conn);
+                    save_record(addressRange, db);
+                    
                     if (++count % 5000 == 0) {
                         logger.info(count);
-                        new QueryRunner().update(conn, "COMMIT");
-                        new QueryRunner().update(conn, "BEGIN");
+                        runner.update("COMMIT");
+                        runner.update("BEGIN");
                     }
                 } else {
                     // Address Street Line
@@ -224,7 +220,7 @@ public class NYC extends StreetFile {
                 }
             }
         }
-        new QueryRunner().update(conn, "COMMIT");
+        runner.update("COMMIT");
         logger.info("Done with "+this.town);
     }
     /*

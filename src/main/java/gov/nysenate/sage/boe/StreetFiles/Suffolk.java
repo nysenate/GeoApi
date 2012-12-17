@@ -6,7 +6,6 @@ import gov.nysenate.sage.boe.StreetFile;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.sql.Connection;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,14 +38,14 @@ public class Suffolk extends StreetFile {
     @Override
     public void save(DataSource db) throws Exception {
     	logger.info("Starting Suffolk.");
-    	currentLine = 0;
-        Connection conn = db.getConnection();
+    	QueryRunner runner = new QueryRunner(db);
         BufferedReader br = new BufferedReader(new FileReader(street_file));
-
+        
+        currentLine = 0;
         String line;
         String[] parts;
         br.readLine(); // Skip the header
-        new QueryRunner().update(conn, "BEGIN");
+        runner.update("BEGIN");
         while( (line = br.readLine()) != null) {
         	// Remove the quotes and split on tabs
             parts = line.replace("\"", "").split("\t");
@@ -86,18 +85,14 @@ public class Suffolk extends StreetFile {
             range.aptHiNum = aptHi.num;
             range.aptHiChr = aptHi.chr;
 
-            if(!conn.isValid(1)) {
-                conn.close();
-                conn = db.getConnection();
-            }
-            save_record(range, conn);
+            save_record(range, db);
 
         	if(++currentLine % 5000 == 0) {
-        		new QueryRunner().update(conn, "COMMIT");
-        		new QueryRunner().update(conn, "BEGIN");
+        		runner.update("COMMIT");
+        		runner.update("BEGIN");
         	}
         }
-        new QueryRunner().update(conn, "COMMIT");
+        runner.update("COMMIT");
         br.close();
         logger.info("Done with Suffolk");
     }
