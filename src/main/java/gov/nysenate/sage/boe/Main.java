@@ -1,12 +1,10 @@
 package gov.nysenate.sage.boe;
 
 import gov.nysenate.sage.boe.StreetFiles.Essex;
-import gov.nysenate.sage.boe.StreetFiles.Fulton;
 import gov.nysenate.sage.boe.StreetFiles.NTS;
-import gov.nysenate.sage.boe.StreetFiles.NTSAlt;
 import gov.nysenate.sage.boe.StreetFiles.NYC;
+import gov.nysenate.sage.boe.StreetFiles.Schoharie;
 import gov.nysenate.sage.boe.StreetFiles.Suffolk;
-import gov.nysenate.sage.boe.StreetFiles.Wyoming;
 import gov.nysenate.sage.util.DB;
 import gov.nysenate.sage.util.Resource;
 
@@ -486,7 +484,7 @@ public class Main {
 //        StreetFile street_file = new NYC(63, "Queens", new File(base_dir, "Queens_County_Street_Finder.txt"));
 //        StreetFile street_file = new NYC(64, "Staten Island", new File(base_dir, "Staten_Island_Street_Finder.txt"));
 //        StreetFile street_file = new Wyoming(56, new File(base_dir,"Wyoming County street file"));
-        
+
 //        StreetFile street_file = new NTS(48, new File(base_dir, "sullivan_county.txt")) {
 //           public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
 //               addressRange.setVillCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
@@ -500,17 +498,20 @@ public class Main {
 //              // Csup in 17
 //            }
 //        };
-        
-        // Fix the note off the 3rd page: E CAROGA
-        StreetFile street_file = new NTSAlt(17, new File(base_dir, "fulton_county.txt")) {
-            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
-                // addressRange.setJudiCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
-                addressRange.setVillCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
-            }
-        };
+        StreetFile street_file = new Schoharie(43, new File(base_dir, "Schoharie_County.csv"), new File(base_dir, "AddressesForKenZalewski2.csv"));
         street_file.clear(db);
         street_file.save(db);
-        
+
+//        // Fix the note off the 3rd page: E CAROGA
+//        street_file = new NTSAlt(17, new File(base_dir, "fulton_county.txt")) {
+//            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
+//                // addressRange.setJudiCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
+//                addressRange.setVillCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
+//            }
+//        };
+//        street_file.clear(db);
+//        street_file.save(db);
+//
 //        street_file = new NTSAlt(32, new File(base_dir, "Ontario_County_55th_Senate_Dist_Street_File.txt")) {
 //            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
 //              addressRange.setVillCode(matcher.group(14) != null ? matcher.group(14).trim() : "");
