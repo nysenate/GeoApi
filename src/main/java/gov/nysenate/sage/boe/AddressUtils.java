@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 public class AddressUtils {
     public static boolean DEBUG = false;
     public static HashMap<String,String> suffixMap = null;
+    public static HashMap<String,String> ordinals = null;
     public static Pattern addrPattern = null;
 
     public static BOEStreetAddress parseAddress(String address) {
@@ -61,12 +62,21 @@ public class AddressUtils {
         if (address.street != null) {
             address.street = address.street.trim();
             if (!address.street.equals("")) {
-                // Shorten the suffix if necessary
                 String[] parts = address.street.split(" ");
+
+                // Replace directional suffix if present
                 String possibleSuffix = parts[parts.length-1];
-                if (parts.length > 1 && suffixMap.containsKey(possibleSuffix)) {
-                    address.street = address.street.replaceFirst(possibleSuffix+"$",suffixMap.get(possibleSuffix));
+                if (parts.length > 2 && ordinals.containsKey(possibleSuffix)) {
+                    address.street = address.street.replaceFirst(possibleSuffix+"$", ordinals.get(possibleSuffix));
+                    possibleSuffix = parts[parts.length-2];
                 }
+
+                // Replace street suffix if present
+                if (parts.length > 1 && suffixMap.containsKey(possibleSuffix)) {
+                    address.street = address.street.replaceFirst(possibleSuffix+"( [NSEW])?$",suffixMap.get(possibleSuffix)+"$1");
+                }
+
+                // Remove all numerical suffixes and special characters.
                 address.street = address.street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
                 address.street = address.street.replaceAll("[#:;.,-]", "").replaceAll("'", "").replaceAll(" +", " ");
             }
@@ -75,10 +85,6 @@ public class AddressUtils {
         /* Don't know if we need these
         SET address = REPLACE( address, 'apt', '');
         SET address = REPLACE( address, 'floor', 'fl');
-        SET address = REPLACE( address, 'east', 'e');
-        SET address = REPLACE( address, 'north', 'n');
-        SET address = REPLACE( address, 'west', 'w');
-        SET address = REPLACE( address, 'south', 's');
         */
 
         return address;
@@ -136,6 +142,12 @@ public class AddressUtils {
 
         // String addressee = "([^,]+)";
         addrPattern = Pattern.compile("()(?:"+building+sep+")?"+street+"(?:"+sep+apartment+")?"+"(?:[ ,]+"+city+")?"+"(?:"+sep+state+")?"+"(?:"+sep+zip+")?$");
+
+        ordinals = new HashMap<String,String>();
+        ordinals.put("NORTH", "N");
+        ordinals.put("SOUTH", "S");
+        ordinals.put("EAST", "E");
+        ordinals.put("WEST", "W");
 
         suffixMap = new HashMap<String,String>();
         suffixMap.put("ALLEE","ALY");
@@ -480,6 +492,7 @@ public class AddressUtils {
         suffixMap.put("PKWYS","PKWY");
         suffixMap.put("PASS","PASS");
         suffixMap.put("PASSAGE","PSGE");
+        suffixMap.put("PTH", "PATH"); // TODO: Why was this one missing?
         suffixMap.put("PATH","PATH");
         suffixMap.put("PATHS","PATH");
         suffixMap.put("PIKE","PIKE");
