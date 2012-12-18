@@ -2,9 +2,12 @@ package gov.nysenate.sage.boe;
 
 import gov.nysenate.sage.boe.StreetFiles.Essex;
 import gov.nysenate.sage.boe.StreetFiles.NTS;
+import gov.nysenate.sage.boe.StreetFiles.NTSAlt;
 import gov.nysenate.sage.boe.StreetFiles.NYC;
+import gov.nysenate.sage.boe.StreetFiles.Nassau;
 import gov.nysenate.sage.boe.StreetFiles.Schoharie;
 import gov.nysenate.sage.boe.StreetFiles.Suffolk;
+import gov.nysenate.sage.boe.StreetFiles.Wyoming;
 import gov.nysenate.sage.util.DB;
 import gov.nysenate.sage.util.Resource;
 
@@ -145,12 +148,22 @@ public class Main {
             }
         });
 
+        street_files.add(new Essex(15, new File(base_dir,"Essex_County.csv")));
+
         street_files.add(new NTS(16,new File(base_dir, "Franklin_County_Streets.txt")) {
             @Override
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
                 addressRange.setClegCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
             }
         });
+
+        // Fix the note off the 3rd page: E CAROGA
+        street_files.add(new NTSAlt(17, new File(base_dir, "fulton_county.txt")) {
+            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
+                // addressRange.setJudiCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
+            addressRange.setVillCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
+            }
+        });;
 
         street_files.add(new NTS(18,new File(base_dir, "Genesee_County_StreetReportGenesee61st.txt")) {
             @Override
@@ -207,6 +220,14 @@ public class Main {
             }
         });
 
+        street_files.add(new NTS(23,new File(base_dir, "Lewis County Street File.txt")) {
+            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
+                addressRange.setVillCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
+                addressRange.setClegCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
+                addressRange.setFireCode(matcher.group(17) != null ? matcher.group(17).trim() : "");
+            }
+        });
+
         street_files.add(new NTS(24,new File(base_dir, "Livingston_County_streetfiles.txt")) {
             @Override
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
@@ -215,7 +236,7 @@ public class Main {
             }
         });
 
-        street_files.add(new NTS(25,new File(base_dir, "Madison_County_senate_street_file.txt")) {
+        street_files.add(new NTS(25,new File(base_dir, "Madison_County_Street_File.txt")) {
             @Override
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
                 addressRange.setFireCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
@@ -243,6 +264,8 @@ public class Main {
             }
         });
 
+        street_files.add(new Nassau(28,new File(base_dir, "Nassau Street Index.csv")));
+
         street_files.add(new NTS(29,new File(base_dir, "Niagara_County_2012_STREET_FINDER.txt")) {
             @Override
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
@@ -268,6 +291,21 @@ public class Main {
                 addressRange.setClegCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
                 addressRange.setVillCode(matcher.group(17) != null ? matcher.group(17).trim() : "");
                 //tnwd_code = (matcher.group(18) != null ? matcher.group(18).trim() : "");
+            }
+        });
+
+        street_files.add(new NTSAlt(32, new File(base_dir, "Ontario_County_54th_Senate_Dist_Street_File.txt")) {
+            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
+              addressRange.setVillCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
+              addressRange.setFireCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
+              // Csup in 17
+            }
+        });
+        street_files.add(new NTSAlt(32, new File(base_dir, "Ontario_County_55th_Senate_Dist_Street_File.txt")) {
+            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
+              addressRange.setVillCode(matcher.group(14) != null ? matcher.group(14).trim() : "");
+              addressRange.setFireCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
+              // Csup in 16
             }
         });
 
@@ -368,6 +406,8 @@ public class Main {
             }
         });
 
+        street_files.add(new Schoharie(43, new File(base_dir, "Schoharie_County.csv"), new File(base_dir, "AddressesForKenZalewski2.csv")));
+
         // Fix one missing postal address for PETERSON DRIVE
         street_files.add(new NTS(44,new File(base_dir, "Schuyler_County_Street_Finder.txt")) {
             @Override
@@ -390,6 +430,15 @@ public class Main {
                 addressRange.setClegCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
                 addressRange.setVillCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
             }
+        });
+
+        street_files.add(new Suffolk(47, new File(base_dir,"Suffolk County Street Index.txt")));
+
+        street_files.add(new NTS(48, new File(base_dir, "sullivan_county.txt")) {
+           public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
+               addressRange.setVillCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
+               addressRange.setClegCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
+           }
         });
 
         street_files.add(new NTS(49,new File(base_dir, "Tioga_county_street.txt")) {
@@ -452,6 +501,8 @@ public class Main {
             }
         });
 
+        street_files.add(new Wyoming(56, new File(base_dir,"Wyoming County street file")));
+
         street_files.add(new NTS(57,new File(base_dir, "Yates_County_Street_File_2012.txt")) {
             @Override
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
@@ -461,65 +512,16 @@ public class Main {
             }
         });
 
-        street_files.add(new NYC(60, "Bronx", new File(base_dir, "Bronx_County_Street_File_2012.txt")));
-        street_files.add(new NYC(63, "Queens", new File(base_dir, "Queens_County_Street_File_2012.txt")));
+        street_files.add(new NYC(60, "Bronx", new File(base_dir, "Bronx_County_Street_finder.txt")));
+        street_files.add(new NYC(61, "Brooklyn", new File(base_dir, "Brooklyn_County_Street_Finder.txt")));
+        street_files.add(new NYC(62, "Manhattan", new File(base_dir, "manhattan_county_street_finder.txt")));
+        street_files.add(new NYC(63, "Queens", new File(base_dir, "Queens_County_Street_Finder.txt")));
+        street_files.add(new NYC(64, "Staten Island", new File(base_dir, "Staten_Island_Street_Finder.txt")));
 
-//        street_files.add(new Fulton(17, new File(base_dir,"<No File Needed>")));
-        street_files.add(new Suffolk(47, new File(base_dir,"Suffolk County Street Index.txt")));
-        street_files.add(new Essex(15, new File(base_dir,"Essex_County.csv")));
-
-//        for (StreetFile file : street_files) {
-//            //StreetFile file = street_files.get(street_files.size()-1);
-//            System.out.println("Saving "+file.street_file.getAbsolutePath());
-//            file.clear(db);
-//            file.save(db);
-//        }
-
-//        StreetFile street_file = new Suffolk(47, new File(base_dir,"Suffolk County Street Index.txt"));
-//        StreetFile street_file = new Essex(15, new File(base_dir,"Essex_County.csv"));
-//        StreetFile street_file = new Fulton(17, new File(base_dir, ""));
-//        StreetFile street_file = new NYC(60, "Bronx", new File(base_dir, "Bronx_County_Street_finder.txt"));
-//        StreetFile street_file = new NYC(62, "Manhattan", new File(base_dir, "manhattan_county_street_finder.txt"));
-//        StreetFile street_file = new NYC(61, "Brooklyn", new File(base_dir, "Brooklyn_County_Street_Finder.txt"));
-//        StreetFile street_file = new NYC(63, "Queens", new File(base_dir, "Queens_County_Street_Finder.txt"));
-//        StreetFile street_file = new NYC(64, "Staten Island", new File(base_dir, "Staten_Island_Street_Finder.txt"));
-//        StreetFile street_file = new Wyoming(56, new File(base_dir,"Wyoming County street file"));
-
-//        StreetFile street_file = new NTS(48, new File(base_dir, "sullivan_county.txt")) {
-//           public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
-//               addressRange.setVillCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
-//               addressRange.setClegCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
-//           }
-//        };
-//        StreetFile street_file = new NTSAlt(32, new File(base_dir, "Ontario_County_54th_Senate_Dist_Street_File.txt")) {
-//            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
-//              addressRange.setVillCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
-//              addressRange.setFireCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
-//              // Csup in 17
-//            }
-//        };
-        StreetFile street_file = new Schoharie(43, new File(base_dir, "Schoharie_County.csv"), new File(base_dir, "AddressesForKenZalewski2.csv"));
-        street_file.clear(db);
-        street_file.save(db);
-
-//        // Fix the note off the 3rd page: E CAROGA
-//        street_file = new NTSAlt(17, new File(base_dir, "fulton_county.txt")) {
-//            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
-//                // addressRange.setJudiCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
-//                addressRange.setVillCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
-//            }
-//        };
-//        street_file.clear(db);
-//        street_file.save(db);
-//
-//        street_file = new NTSAlt(32, new File(base_dir, "Ontario_County_55th_Senate_Dist_Street_File.txt")) {
-//            public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
-//              addressRange.setVillCode(matcher.group(14) != null ? matcher.group(14).trim() : "");
-//              addressRange.setFireCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
-//              // Csup in 16
-//            }
-//        };
-//        street_file.save(db);
+        for (StreetFile file : street_files) {
+            file.save(db);
+            System.out.println("");
+        }
     }
 
 }
