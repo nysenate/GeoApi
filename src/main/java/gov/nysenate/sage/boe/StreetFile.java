@@ -19,6 +19,9 @@ public abstract class StreetFile {
     public final Pattern number_pattern = Pattern.compile("(\\d+|)(.*)");
 
     public StreetFile(int countyCode, File street_file) throws Exception  {
+        if (!street_file.canRead()) {
+            throw new RuntimeException("Cannot read: "+street_file.getAbsolutePath());
+        }
         this.street_file = street_file;
         this.county_code = countyCode;
         logger = Logger.getLogger(this.getClass());
