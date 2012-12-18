@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -31,10 +32,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class BulkDistrictMethod extends ApiExecution {
+    private final Logger logger = Logger.getLogger(BulkDistrictMethod.class);
 
     public static final ArrayList<DistrictService.TYPE> districtTypes = new ArrayList<DistrictService.TYPE>(Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.COUNTY,DistrictService.TYPE.ELECTION));
 
@@ -43,6 +46,9 @@ public class BulkDistrictMethod extends ApiExecution {
         public double latitude;
         public double longitude;
         public int geo_accuracy;
+        public boolean parse_failure;
+        public String parse_message;
+        public String geo_method;
 
         public BluebirdAddress(String id) { this.id = id; }
     }
@@ -59,56 +65,204 @@ public class BulkDistrictMethod extends ApiExecution {
 
     private BluebirdAddress requestToAddress(HttpServletRequest request) {
         BluebirdAddress address = new BluebirdAddress(request.getParameter("id"));
+        address.parse_failure = false;
+        address.parse_message = "";
 
-        String street = request.getParameter("street");
-        String town = request.getParameter("town");
-        String state = request.getParameter("state");
-        String zip5 = request.getParameter("zip5");
-        String apt_num = request.getParameter("apt_num");
-        String bldg_num = request.getParameter("bldg_num");
-        String latitude = request.getParameter("latitude");
-        String longitude = request.getParameter("longitude");
+        Map<String,String[]> parameters = request.getParameterMap();
 
-        address.street = (street==null ? "" : street.toUpperCase().trim());
-        address.town = (town==null ? "" : town.toUpperCase().trim());
-        address.state = (state==null ? "" : state.toUpperCase().trim());
-        address.zip5 = (zip5==null ? 0 : Integer.parseInt(zip5.trim()));
-        address.apt_num = (apt_num==null ? 0 : Integer.parseInt(apt_num.trim()));
-        address.bldg_num = (bldg_num==null ? 0 : Integer.parseInt(bldg_num.trim()));
-        address.latitude = (latitude.equals("null") ? 0 : Double.parseDouble(latitude));
-        address.longitude = (longitude.equals("null") ? 0 : Double.parseDouble(longitude));
-        address.geo_accuracy = (address.latitude==0 || address.longitude==0)? 0 : 100;
+        if (parameters.containsKey("street"))
+            address.street = parameters.get("street")[0];
+        else
+            address.street = "";
+
+        if (parameters.containsKey("town"))
+            address.town = parameters.get("town")[0];
+        else
+            address.town = "";
+
+        if (parameters.containsKey("state"))
+            address.state = parameters.get("state")[0];
+        else
+            address.state = "";
+
+        if (parameters.containsKey("zip5") && !parameters.get("zip5").equals("")) {
+            try {
+                address.zip5 = Integer.parseInt(parameters.get("zip5")[0]);
+            } catch (NumberFormatException e) {
+                address.parse_failure = true;
+                address.parse_message += "zip5 must be an integer. ";
+            }
+        } else {
+            address.zip5 = 0;
+        }
+
+        if (parameters.containsKey("apt") && !parameters.get("apt").equals("")) {
+            try {
+                address.apt_num = Integer.parseInt(parameters.get("apt")[0]);
+            } catch (NumberFormatException e) {
+                address.parse_failure = true;
+                address.parse_message += "apt must be an integer. ";
+            }
+        } else {
+            address.apt_num = 0;
+        }
+        if (parameters.containsKey("building") && !parameters.get("building").equals("")) {
+            try {
+                address.bldg_num = Integer.parseInt(parameters.get("building")[0]);
+            } catch (NumberFormatException e) {
+                address.parse_failure = true;
+                address.parse_message += "building must be an integer. ";
+            }
+        } else {
+            address.bldg_num = 0;
+        }
+        if (parameters.containsKey("latitude") && !parameters.get("latitude").equals("")) {
+            try {
+                address.latitude = Double.parseDouble(parameters.get("latitude")[0]);
+            } catch (NumberFormatException e) {
+                address.parse_failure = true;
+                address.parse_message += "latitude must be a double. ";
+            }
+        } else {
+            address.latitude = 0;
+        }
+        if (parameters.containsKey("longitude") && !parameters.get("longitude").equals("")) {
+            try {
+                address.longitude = Double.parseDouble(parameters.get("longitude")[0]);
+            } catch (NumberFormatException e) {
+                address.parse_failure = true;
+                address.parse_message += "longitude must be a double. ";
+            }
+        } else {
+            address.longitude = 0;
+        }
+
+        if (address.latitude==0 || address.longitude==0) {
+            address.geo_method = "NONE";
+            address.geo_accuracy = 0;
+        } else {
+            address.geo_method = "USER";
+            address.geo_accuracy = 100;
+        }
         address.bldg_chr = "";
         address.apt_chr = "";
         AddressUtils.normalizeAddress(address);
         return address;
     }
 
+    private String jsonGetString(JSONObject json, String key) {
+        try {
+            return json.has(key) && !json.isNull(key) ? json.getString(key) : "";
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    private Double jsonGetDouble(JSONObject json, String key) {
+        try {
+            return json.has(key) && !json.isNull(key) && !json.getString(key).equals("") ? json.getDouble(key) : 0;
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    private Integer jsonGetInteger(JSONObject json, String key) {
+        try {
+            return json.has(key) && !json.isNull(key) && !json.getString(key).equals("") ? json.getInt(key) : 0;
+        } catch (JSONException e) {
+            return null;
+        }
+
+    }
+
     private BluebirdAddress jsonToAddress(String id, JSONObject json) throws JSONException {
         // {"street":"West 187th Street ","town":"New York","state":"NY","zip5":"10033","apt":null,"building":"650"}
-        if (json == null) return null;
-
-        String street = json.getString("street");
-        String town = json.getString("town");
-        String state = json.getString("state");
-        String zip5 = json.getString("zip5");
-        String apt_num = json.getString("apt");
-        String bldg_num = json.getString("building");
-        String latitude = json.has("latitude") ? json.getString("latitude") : "null";
-        String longitude = json.has("longitude") ? json.getString("longitude") : "null";
-
         BluebirdAddress address = new BluebirdAddress(id);
-        address.street = (street.equals("null") ? "" : street.toUpperCase());
-        address.town = (town.equals("null") ? "" : town.toUpperCase());
-        address.state = (state.equals("null") ? "" : state.toUpperCase());
-        address.zip5 = (zip5.equals("null") || zip5.equals("") ? 0 : Integer.parseInt(zip5));
-        address.apt_num = (apt_num.equals("null") || apt_num.equals("") ? 0 : Integer.parseInt(apt_num));
-        address.bldg_num = (bldg_num.equals("null") || bldg_num.equals("") ? 0 : Integer.parseInt(bldg_num));
-        address.latitude = (latitude.equals("null") ? 0 : Double.parseDouble(latitude));
-        address.longitude = (longitude.equals("null") ? 0 : Double.parseDouble(longitude));
-        address.geo_accuracy = (address.latitude==0 || address.longitude==0)? 0 : 100;
+
+        if (json == null) {
+            address.parse_failure = true;
+            address.parse_message = "Associated JSON Object was null";
+            return address;
+        } else {
+            address.parse_failure = false;
+            address.parse_message = "";
+        }
+
+        String street = jsonGetString(json, "street");
+        String town = jsonGetString(json,"town");
+        String state = jsonGetString(json,"state");
+        Integer zip5 = jsonGetInteger(json,"zip5");
+        Integer apt_num = jsonGetInteger(json,"apt");
+        Integer bldg_num = jsonGetInteger(json,"building");
+        Double latitude = jsonGetDouble(json, "latitude");
+        Double longitude = jsonGetDouble(json, "longitude");
+
+        if (street == null) {
+            address.parse_failure = true;
+            address.parse_message += "Steet address must be a string. ";
+        } else {
+            address.street = street.toUpperCase();
+        }
+
+        if (town == null) {
+            address.parse_failure = true;
+            address.parse_message += "Town must be a string. ";
+        } else {
+            address.town = town.toUpperCase();
+        }
+
+        if (state == null) {
+            address.parse_failure = true;
+            address.parse_message += "State must be a string. ";
+        } else {
+            address.state = state.toUpperCase();
+        }
+
+        if (zip5 == null) {
+            address.parse_failure = true;
+            address.parse_message += "zip5 must be an integer. ";
+        } else {
+            address.zip5 = zip5;
+        }
+
+        if (bldg_num == null) {
+            address.parse_failure = true;
+            address.parse_message += "bldg_num must be an integer. ";
+        } else {
+            address.bldg_num = bldg_num;
+        }
         address.bldg_chr = "";
+
+        if (apt_num == null) {
+            address.parse_failure = true;
+            address.parse_message += "apt_num must be an integer. ";
+        } else {
+            address.apt_num = apt_num;
+        }
         address.apt_chr = "";
+
+        if (latitude == null) {
+            address.parse_failure = true;
+            address.parse_message += "latitude must be a double. ";
+        } else {
+            address.latitude = latitude;
+        }
+
+        if (longitude == null) {
+            address.parse_failure = true;
+            address.parse_message += "longitude must be an integer. ";
+        } else {
+            address.longitude = longitude;
+        }
+
+        if (address.latitude==0 || address.longitude==0) {
+            address.geo_method = "NONE";
+            address.geo_accuracy = 0;
+        } else {
+            address.geo_method = "USER";
+            address.geo_accuracy = 100;
+        }
+
         AddressUtils.normalizeAddress(address);
         return address;
     }
@@ -123,9 +277,6 @@ public class BulkDistrictMethod extends ApiExecution {
                 addresses.add(jsonToAddress(bluebirdId, bluebirdAddresses.getJSONObject(bluebirdId)));
             } catch (JSONException e) {
             	e.printStackTrace();
-                addresses.add(null);
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
                 addresses.add(null);
             }
         }
@@ -152,6 +303,7 @@ public class BulkDistrictMethod extends ApiExecution {
         public double latitude;
         public double longitude;
         public int geo_accuracy;
+        public String geo_method;
 
         public BluebirdAddress bluebird_address;
 
@@ -173,6 +325,7 @@ public class BulkDistrictMethod extends ApiExecution {
             this.latitude = address.latitude;
             this.longitude = address.longitude;
             this.geo_accuracy = address.geo_accuracy;
+            this.geo_method = address.geo_method;
         }
     }
 
@@ -244,10 +397,6 @@ public class BulkDistrictMethod extends ApiExecution {
         }
 
         public BulkResult call() {
-            if (address == null) {
-                return new BulkResult(BulkResult.STATUS.INVALID,"Invalid JSON Entry",new BluebirdAddress("-1"),new BOEAddressRange());
-            }
-
             // Fall back to shape files
             Address sageAddress = Bluebird2SAGE(address);
             if (!sageAddress.is_geocoded()) {
@@ -287,14 +436,14 @@ public class BulkDistrictMethod extends ApiExecution {
                 }
             } catch (DistException e) {
                  e.printStackTrace();
-                 return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Exception for: "+address.toString(), address, new BOEAddressRange() );
+                 return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Exception for: "+sageAddress, address, new BOEAddressRange() );
             }
 
             BOEAddressRange addressRange = SAGE2Range(sageAddress);
             return new BulkResult(BulkResult.STATUS.SHAPEFILE, "SHAPEFILE MATCH for "+sageAddress, address, addressRange );
         }
     }
-    
+
     public class ParallelStreetFileRequest implements Callable<BulkResult> {
         private final BluebirdAddress address;
 
@@ -303,11 +452,6 @@ public class BulkDistrictMethod extends ApiExecution {
         }
 
         public BulkResult call() throws SQLException {
-        	// Don't bother with NULL addresses
-            if (address==null) {
-            	return new BulkResult(BulkResult.STATUS.INVALID,"Invalid JSON Entry",new BluebirdAddress("-1"),new BOEAddressRange());
-            }
-
             // First attempt a street file lookup by house
             List<BOEAddressRange> matches = streetData.getRangesByHouse(address);
             if (matches.size()==1) {
@@ -346,10 +490,10 @@ public class BulkDistrictMethod extends ApiExecution {
                 String json = IOUtils.toString(request.getInputStream(),"UTF-8");
                 bluebirdAddresses = readAddresses(json);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("No request body found.", e);
                 throw new ApiTypeException("No request body found.", e);
             } catch (JSONException e) {
-                e.printStackTrace();
+                logger.error("Invalid JSON recieved", e);
                 throw new ApiTypeException("Invalid JSON recieved.",e);
             }
         } else {
@@ -369,11 +513,19 @@ public class BulkDistrictMethod extends ApiExecution {
         int threadCount = (threadCountOption == null) ? 3 : Integer.parseInt(threadCountOption);
 
         // Queue up all the tasks into our thread pool
-        System.out.println("Running with "+threadCount+" threads.");
+        logger.info("Processing "+bluebirdAddresses.size()+" addresses with "+threadCount+" threads.");
         ExecutorService streetFileExecutor = Executors.newFixedThreadPool(threadCount);
         ArrayList<Future<BulkResult>> streetFileResults = new ArrayList<Future<BulkResult>>();
         for (BluebirdAddress address : bluebirdAddresses) {
-            streetFileResults.add(streetFileExecutor.submit(new ParallelStreetFileRequest(address)));
+            if (address == null) {
+                BulkResult result = new BulkResult(BulkResult.STATUS.INVALID,"Invalid JSON Entry",new BluebirdAddress("-1"),new BOEAddressRange());
+                streetFileResults.add(streetFileExecutor.submit(new DelayResult(result)));
+            } else if (address.parse_failure) {
+                BulkResult result = new BulkResult(BulkResult.STATUS.INVALID,address.parse_message,address,new BOEAddressRange());
+                streetFileResults.add(streetFileExecutor.submit(new DelayResult(result)));
+            } else {
+                streetFileResults.add(streetFileExecutor.submit(new ParallelStreetFileRequest(address)));
+            }
         }
 
         // Wait for the street file results to come back
