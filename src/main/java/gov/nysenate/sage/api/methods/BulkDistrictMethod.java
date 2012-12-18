@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -61,93 +60,6 @@ public class BulkDistrictMethod extends ApiExecution {
         streetData = new DistrictLookup(DB.getDataSource());
         geoService = new GeoService();
         districtService = new DistrictService();
-    }
-
-    private BluebirdAddress requestToAddress(HttpServletRequest request) {
-        BluebirdAddress address = new BluebirdAddress(request.getParameter("id"));
-        address.parse_failure = false;
-        address.parse_message = "";
-
-        Map<String,String[]> parameters = request.getParameterMap();
-
-        if (parameters.containsKey("street"))
-            address.street = parameters.get("street")[0];
-        else
-            address.street = "";
-
-        if (parameters.containsKey("town"))
-            address.town = parameters.get("town")[0];
-        else
-            address.town = "";
-
-        if (parameters.containsKey("state"))
-            address.state = parameters.get("state")[0];
-        else
-            address.state = "";
-
-        if (parameters.containsKey("zip5") && !parameters.get("zip5").equals("")) {
-            try {
-                address.zip5 = Integer.parseInt(parameters.get("zip5")[0]);
-            } catch (NumberFormatException e) {
-                address.parse_failure = true;
-                address.parse_message += "zip5 must be an integer. ";
-            }
-        } else {
-            address.zip5 = 0;
-        }
-
-        if (parameters.containsKey("apt") && !parameters.get("apt").equals("")) {
-            try {
-                address.apt_num = Integer.parseInt(parameters.get("apt")[0]);
-            } catch (NumberFormatException e) {
-                address.parse_failure = true;
-                address.parse_message += "apt must be an integer. ";
-            }
-        } else {
-            address.apt_num = 0;
-        }
-        if (parameters.containsKey("building") && !parameters.get("building").equals("")) {
-            try {
-                address.bldg_num = Integer.parseInt(parameters.get("building")[0]);
-            } catch (NumberFormatException e) {
-                address.parse_failure = true;
-                address.parse_message += "building must be an integer. ";
-            }
-        } else {
-            address.bldg_num = 0;
-        }
-        if (parameters.containsKey("latitude") && !parameters.get("latitude").equals("")) {
-            try {
-                address.latitude = Double.parseDouble(parameters.get("latitude")[0]);
-            } catch (NumberFormatException e) {
-                address.parse_failure = true;
-                address.parse_message += "latitude must be a double. ";
-            }
-        } else {
-            address.latitude = 0;
-        }
-        if (parameters.containsKey("longitude") && !parameters.get("longitude").equals("")) {
-            try {
-                address.longitude = Double.parseDouble(parameters.get("longitude")[0]);
-            } catch (NumberFormatException e) {
-                address.parse_failure = true;
-                address.parse_message += "longitude must be a double. ";
-            }
-        } else {
-            address.longitude = 0;
-        }
-
-        if (address.latitude==0 || address.longitude==0) {
-            address.geo_method = "NONE";
-            address.geo_accuracy = 0;
-        } else {
-            address.geo_method = "USER";
-            address.geo_accuracy = 100;
-        }
-        address.bldg_chr = "";
-        address.apt_chr = "";
-        AddressUtils.normalizeAddress(address);
-        return address;
     }
 
     private String jsonGetString(JSONObject json, String key) {
@@ -480,26 +392,6 @@ public class BulkDistrictMethod extends ApiExecution {
 
     @Override
     public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
-    	// Load the request addresses
-    	String type = more.get(RequestCodes.TYPE.code());
-        ArrayList<BluebirdAddress> bluebirdAddresses;
-        if(type.equals("url")) {
-            bluebirdAddresses = new ArrayList<BluebirdAddress>(Arrays.asList(requestToAddress(request)));
-        } else if (type.equals("body")) {
-        	try {
-                String json = IOUtils.toString(request.getInputStream(),"UTF-8");
-                bluebirdAddresses = readAddresses(json);
-            } catch (IOException e) {
-                logger.error("No request body found.", e);
-                throw new ApiTypeException("No request body found.", e);
-            } catch (JSONException e) {
-                logger.error("Invalid JSON recieved", e);
-                throw new ApiTypeException("Invalid JSON recieved.",e);
-            }
-        } else {
-            throw new ApiTypeException(type);
-        }
-
         // Load the request options
         String useShapefileOption = request.getParameter("useShapefile");
         String useGeocoderOption = request.getParameter("useGeocoder");
@@ -512,6 +404,39 @@ public class BulkDistrictMethod extends ApiExecution {
         String threadCountOption = request.getParameter("threadCount");
         int threadCount = (threadCountOption == null) ? 3 : Integer.parseInt(threadCountOption);
 
+        try {
+            String json;
+            String type = more.get(RequestCodes.TYPE.code());
+            ArrayList<BluebirdAddress> bluebirdAddresses;
+
+            // Load the request addresses
+            if(type.equals("url")) {
+                json = request.getParameter("json") == null ? "" : request.getParameter("json");
+            } else if (type.equals("body")) {
+                json = IOUtils.toString(request.getInputStream(),"UTF-8");
+            } else {
+                throw new ApiTypeException(type);
+            }
+
+            bluebirdAddresses = readAddresses(json);
+            return getBulkDistrictResults(bluebirdAddresses, useShapefile, useGeocoder, geocoder, threadCount);
+
+        } catch (IOException e) {
+            logger.error("No request body found.", e);
+            throw new ApiTypeException("No request body found.", e);
+        } catch (JSONException e) {
+            logger.error("Invalid JSON recieved", e);
+            throw new ApiTypeException("Invalid JSON recieved.",e);
+        } catch (InterruptedException e) {
+            logger.error("Thread Interrupted" ,e);
+            throw new ApiInternalException(e);
+        } catch (ExecutionException e) {
+            logger.error("Unexpected Execution Exception", e);
+            throw new ApiInternalException(e.getCause());
+        }
+    }
+
+    public ArrayList<BulkResult> getBulkDistrictResults(ArrayList<BluebirdAddress> bluebirdAddresses, boolean useShapefile, boolean useGeocoder, String geocoder, int threadCount) throws InterruptedException, ExecutionException {
         // Queue up all the tasks into our thread pool
         logger.info("Processing "+bluebirdAddresses.size()+" addresses with "+threadCount+" threads.");
         ExecutorService streetFileExecutor = Executors.newFixedThreadPool(threadCount);
@@ -532,39 +457,26 @@ public class BulkDistrictMethod extends ApiExecution {
         ExecutorService shapeFileExecutor = Executors.newFixedThreadPool(threadCount);
         ArrayList<Future<BulkResult>> finalResults = new ArrayList<Future<BulkResult>>();
         for (Future<BulkResult> result : streetFileResults) {
-            try {
-                BulkResult streetFileResult = result.get();
-                Callable<BulkResult> callable;
-                if (streetFileResult.status_code == BulkResult.STATUS.NOMATCH) {
-                    if (useShapefile) {
-                        callable = new ParallelShapeFileRequest(streetFileResult.bluebird_address, useGeocoder, geocoder);
-                    } else {
-                        callable = new DelayResult(new BulkResult(BulkResult.STATUS.NOMATCH, "Shapefiles disabled.", streetFileResult.bluebird_address, new BOEAddressRange()));
-                    }
+            BulkResult streetFileResult = result.get();
+            Callable<BulkResult> callable;
+            if (streetFileResult.status_code == BulkResult.STATUS.NOMATCH) {
+                if (useShapefile) {
+                    callable = new ParallelShapeFileRequest(streetFileResult.bluebird_address, useGeocoder, geocoder);
                 } else {
-                    callable = new DelayResult(streetFileResult);
+                    callable = new DelayResult(new BulkResult(BulkResult.STATUS.NOMATCH, "Shapefiles disabled.", streetFileResult.bluebird_address, new BOEAddressRange()));
                 }
-                finalResults.add(shapeFileExecutor.submit(callable));
-
-            } catch (InterruptedException e) {
-                throw new ApiInternalException(e);
-            } catch (ExecutionException e) {
-                throw new ApiInternalException(e.getCause());
+            } else {
+                callable = new DelayResult(streetFileResult);
             }
+            finalResults.add(shapeFileExecutor.submit(callable));
         }
 
         // Process final results
         ArrayList<BulkResult> results = new ArrayList<BulkResult>();
         for (Future<BulkResult> result : finalResults) {
-            try {
-                BulkResult finalResult = result.get();
-                finalResult.bluebird_address = null; // Unset so it isn't echoed back. HACK!
-                results.add(finalResult);
-            } catch (InterruptedException e) {
-                throw new ApiInternalException(e);
-            } catch (ExecutionException e) {
-                throw new ApiInternalException(e.getCause());
-            }
+            BulkResult finalResult = result.get();
+            finalResult.bluebird_address = null; // Unset so it isn't echoed back. HACK!
+            results.add(finalResult);
         }
 
         // then shutdown and return
