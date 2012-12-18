@@ -17,7 +17,7 @@ import org.apache.commons.dbutils.QueryRunner;
 
 
 public abstract class NTSAlt extends StreetFile {
-    public final Pattern street_pattern = Pattern.compile("^(.*?)\\s+([0-9]+)\\s+(\\d+)\\s*-\\s*(\\d+)\\s+(ODDS|EVENS|)\\s*(INCLUSIVE|EXCLUSIVE|)\\s+?(?:\\s{1,6}(\\w{1,3}|   ))(?:\\s{1,6}(\\w{1,3}|   ))(?:\\s{1,6}(\\w{1,3}|   ))?(?:\\s{1,6}(\\w{1,3}|   ))?(?:\\s{1,6}(\\w{1,3}|   ))?(?:\\s{1,6}(\\w{1,3}|   ))?(?:\\s{1,6}(\\w{1,3}|   ))?(?:\\s{1,6}(\\w{1,3}|   ))?(?:\\s{1,6}(\\w{1,3}|   ))?(?:\\s{1,6}(\\w{1,3}|   ))?(?:\\s{1,9}(\\w{1,3}|   ))?$");
+    public final Pattern street_pattern = Pattern.compile("^(.*?)\\s+([0-9]+)\\s+(\\d+)\\s*-\\s*(\\d+)\\s+(ODDS|EVENS|)\\s*(INCLUSIVE|EXCLUSIVE|)\\s+(\\w{1,3}|  )(?:\\s{1,6}(\\w{1,3}|  ))(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,9}(\\w{1,3}|  ))?$");
 
     public NTSAlt(int countyCode,File street_file) throws Exception {
         super(countyCode, street_file);
@@ -101,13 +101,13 @@ public abstract class NTSAlt extends StreetFile {
                     addressRange.setBldgParity(great.group(5).length() == 0 ? "ALL" : great.group(5));
                     // bounds = great.group(6); // This is always absent or inclusive
                     addressRange.setTown(town);
-                    addressRange.setTownCode(great.group(7) != null ? great.group(8).trim() : "000");
-                    addressRange.setWardCode(great.group(8) != null ? great.group(9).trim() : "000");
-                    addressRange.setElectionCode(great.group(9) != null ? Integer.parseInt(great.group(10).trim()) : 0);
-                    addressRange.setCongressionalCode(great.group(10) != null ? Integer.parseInt(great.group(11).trim()) : 0);
-                    addressRange.setSenateCode(great.group(11) != null ? Integer.parseInt(great.group(12).trim()) : 0);
-                    addressRange.setAssemblyCode(great.group(12) != null ? Integer.parseInt(great.group(13).trim()) : 0);
-                    addressRange.setSchoolCode(great.group(13) != null ? great.group(14).trim() : "000");
+                    addressRange.setTownCode(great.group(7) != null ? great.group(7).trim() : "000");
+                    addressRange.setWardCode(great.group(8) != null ? great.group(8).trim() : "000");
+                    addressRange.setElectionCode(great.group(9) != null ? Integer.parseInt(great.group(9).trim()) : 0);
+                    addressRange.setCongressionalCode(great.group(10) != null ? Integer.parseInt(great.group(10).trim()) : 0);
+                    addressRange.setSenateCode(great.group(11) != null ? Integer.parseInt(great.group(11).trim()) : 0);
+                    addressRange.setAssemblyCode(great.group(12) != null ? Integer.parseInt(great.group(12).trim()) : 0);
+                    addressRange.setSchoolCode(great.group(13) != null ? great.group(13).trim() : "000");
                     addressRange.setCountyCode(county_code);
                     store_extra_districts(addressRange, great);
                     AddressUtils.normalizeAddress(addressRange);

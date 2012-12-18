@@ -160,10 +160,10 @@ public class Main {
         // Fix the note off the 3rd page: E CAROGA
         street_files.add(new NTSAlt(17, new File(base_dir, "fulton_county.txt")) {
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
-                // addressRange.setJudiCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
-            addressRange.setVillCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
+                // addressRange.setJudiCode(matcher.group(14) != null ? matcher.group(14).trim() : "");
+            addressRange.setVillCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
             }
-        });;
+        });
 
         street_files.add(new NTS(18,new File(base_dir, "Genesee_County_StreetReportGenesee61st.txt")) {
             @Override
@@ -296,8 +296,8 @@ public class Main {
 
         street_files.add(new NTSAlt(32, new File(base_dir, "Ontario_County_54th_Senate_Dist_Street_File.txt")) {
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
-              addressRange.setVillCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
-              addressRange.setFireCode(matcher.group(16) != null ? matcher.group(16).trim() : "");
+              addressRange.setVillCode(matcher.group(14) != null ? matcher.group(14).trim() : "");
+              addressRange.setFireCode(matcher.group(15) != null ? matcher.group(15).trim() : "");
               // Csup in 17
             }
         });
