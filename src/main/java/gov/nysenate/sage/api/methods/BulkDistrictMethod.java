@@ -322,19 +322,65 @@ public class BulkDistrictMethod extends ApiExecution {
                 try {
                     Result geoResult = geoService.geocode(sageAddress, geocoder);
                     if (!geoResult.status_code.equals("0")) {
+                        address.geo_method = geocoder.toUpperCase()+" - ERROR "+geoResult.status_code;
                         return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Error ["+geoResult.status_code+"] - "+geoResult.messages.get(0), address, new BOEAddressRange());
-                    } else if (geoResult.addresses.size()!=1) {
+                    } else if (geoResult.addresses.size()==0) {
+                        address.geo_method = geocoder.toUpperCase()+" - NOMATCH";
                         return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.size()+" results found for: "+address.toString(), address, new BOEAddressRange());
+                    } else if (geoResult.addresses.size() > 1) {
+                        // Check to see of any of the results have exactly the same address
+                        // Sometimes services will offer very similar alternatives.
+                        int numResults = geoResult.addresses.size();
+                        double center_lat = 0;
+                        double center_lon = 0;
+                        logger.info(sageAddress);
+                        for(Address geoAddress : geoResult.addresses) {
+                            // I think I need to implement this equivalence
+                            boolean street_match = sageAddress.addr2.toUpperCase().trim().equals(geoAddress.addr2.toUpperCase().trim());
+                            boolean zip5_match = sageAddress.zip5.equals(geoAddress.zip5);
+                            if (street_match && zip5_match) {
+                                logger.info("MATCH: "+geoAddress);
+                                address.geo_method = geocoder.toUpperCase()+" - MULTIPLE EXACT - "+numResults;
+                                sageAddress = geoAddress;
+                                break;
+                            } else {
+                                logger.info(geoAddress);
+                                center_lat += geoAddress.latitude;
+                                center_lon += geoAddress.longitude;
+                            }
+                        }
+
+                        // If not, then if the points are all very close together, pick the
+                        // first one as a best guess. The goecoder should rank them correctly.
+                        if (!sageAddress.is_geocoded()) {
+                            center_lat = center_lat/numResults;
+                            center_lon = center_lon/numResults;
+                            for (Address geoAddress : geoResult.addresses) {
+                                // Geocoding fails if any point is outside the given radius
+                                if (Math.pow(center_lat-geoAddress.latitude,2)+Math.pow(center_lon-geoAddress.longitude, 2) >= Math.pow(.001, 2)) {
+                                    address.geo_method = geocoder.toUpperCase()+" - MULTIPLE DISTANT - "+numResults;
+                                    return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+numResults+" results found for: "+address.toString(), address, new BOEAddressRange());
+                                }
+                            }
+                            address.geo_method = geocoder.toUpperCase()+" - MULTIPLE DISTANT - "+numResults;
+                            sageAddress = geoResult.addresses.get(0);
+                        }
+
                     } else if (geoResult.addresses.get(0).geocode_quality < 40){
+                        address.geo_method = geocoder.toUpperCase()+" - LOW QUALITY "+geoResult.addresses.get(0).geocode_quality;
                         return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.get(0).geocode_quality+" must be atleast 40 (state level lookup) for "+address.toString(), address, new BOEAddressRange());
                     } else {
+                        address.geo_method = geocoder.toUpperCase()+" - SINGLE RESULT";
                         sageAddress = geoResult.addresses.get(0);
-                        address.latitude = sageAddress.latitude;
-                        address.longitude = sageAddress.longitude;
-                        address.geo_accuracy = sageAddress.geocode_quality;
                     }
+
+                    // Push these values back into the Bluebird address as well
+                    address.latitude = sageAddress.latitude;
+                    address.longitude = sageAddress.longitude;
+                    address.geo_accuracy = sageAddress.geocode_quality;
                 } catch (GeoException e) {
                     e.printStackTrace();
+                    address.geo_method = geocoder.toUpperCase()+" - Exception Thrown";
                     return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Exception for: "+address.toString(), address, new BOEAddressRange() );
                 }
             }
