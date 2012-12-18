@@ -50,15 +50,15 @@ public abstract class NTSAlt extends StreetFile {
         String line;
         BOEAddressRange addressRange;
         Pattern districtPattern = Pattern.compile("(?:Ward #?[0-9]+|District [0-9]+|Segments\\s+[0-9]+|- - - - - - - -|----)", Pattern.CASE_INSENSITIVE);
-        
+
         runner.update("BEGIN");
         while( (line = br.readLine()) != null) {
             line = skipToStart(br);
             if (line == null) break;
-            
+
             String town = line.substring(0, line.indexOf("Street Name")).trim().replace("City ", "");
             addressRange = new BOEAddressRange();
-            
+
             while ((line = br.readLine())!= null) {
                 line = line.replace("`", ""); // Sometimes I find random backticks that don't belong
 
@@ -73,7 +73,6 @@ public abstract class NTSAlt extends StreetFile {
                     addressRange = new BOEAddressRange();
                     continue;
                 }
-                logger.info(line);
                 Matcher great = street_pattern.matcher(line.toUpperCase());
                 if(!great.find()) {
                     // If the format doesn't match it must be a street name overflow
