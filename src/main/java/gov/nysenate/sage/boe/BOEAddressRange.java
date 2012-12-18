@@ -29,7 +29,7 @@ public class BOEAddressRange extends BOEAddress implements java.io.Serializable 
 
     @Override
     public String toString() {
-        return id+" "+bldgLoNum+bldgLoChr+" - "+bldgHiNum+bldgHiChr+" "+street+" "+town+" "+zip5;
+        return id+" "+bldgLoNum+(bldgLoChr!=null ? bldgLoChr : "")+" - "+bldgHiNum+(bldgHiChr!=null ? bldgHiChr : "")+" ("+bldgParity+") "+street+" "+town+" "+zip5;
     }
 
     public boolean isValid() {
