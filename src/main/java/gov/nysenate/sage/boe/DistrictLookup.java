@@ -47,18 +47,28 @@ public class DistrictLookup {
     }
 
     public List<BOEAddressRange> getRangesByZip(BOEStreetAddress address) throws SQLException {
-        return getRanges(address, false, false);
+        return getRanges(address, false, false, false);
     }
 
     public List<BOEAddressRange> getRangesByHouse(BOEStreetAddress address) throws SQLException {
-        return getRanges(address, true, true);
+        List<BOEAddressRange> ranges = getRanges(address, true, false, true);
+        if (ranges.size()==0) {
+            return getRanges(address, true, true, true);
+        } else {
+            return ranges;
+        }
     }
 
     public List<BOEAddressRange> getRangesByStreet(BOEStreetAddress address) throws SQLException {
-        return getRanges(address, true, false);
+        List<BOEAddressRange> ranges = getRanges(address, true, false, false);
+        if (ranges.size()==0) {
+            return getRanges(address, true, true, false);
+        } else {
+            return ranges;
+        }
     }
 
-    public List<BOEAddressRange> getRanges(BOEStreetAddress address, boolean useStreet, boolean useHouse) throws SQLException {
+    public List<BOEAddressRange> getRanges(BOEStreetAddress address, boolean useStreet, boolean fuzzy, boolean useHouse) throws SQLException {
         ArrayList<Object> params = new ArrayList<Object>();
         String sql = "SELECT * \n"
                    + "FROM street_data \n"
@@ -98,16 +108,27 @@ public class DistrictLookup {
 
                 // Every one else gets a range check; sometimes the suffix is actually part of the street prefix.
                 if (address.bldg_chr != null) {
-                    sql += "  AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
-                    params.add(address.bldg_chr+" "+address.street+"%");
-                    params.add(address.street+"%");
+                    if (fuzzy) {
+                        sql += "  AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
+                        params.add(address.bldg_chr+" "+address.street+"%");
+                        params.add(address.street+"%");
+                    } else {
+                        sql += "  AND (street = ? OR (street = ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
+                        params.add(address.bldg_chr+" "+address.street);
+                        params.add(address.street);
+                    }
                     params.add(address.bldg_chr);
                     params.add(address.bldg_chr);
                 }
 
             } else {
-                sql += "  AND (street LIKE ?) \n";
-                params.add(address.street+"%");
+                if (fuzzy) {
+                    sql += "  AND (street LIKE ?) \n";
+                    params.add(address.street+"%");
+                } else {
+                    sql += "  AND (street = ?) \n";
+                    params.add(address.street);
+                }
             }
 
             if (whereBldg) {
