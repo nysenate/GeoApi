@@ -386,7 +386,7 @@ public class BulkDistrictMethod extends ApiExecution {
             }
 
             try {
-                Result distResult = districtService.assignDistricts(sageAddress, Arrays.asList(DistrictService.TYPE.SENATE), "geoserver");
+                Result distResult = districtService.assignAll(sageAddress, "geoserver");
                 if (!distResult.status_code.equals("0")) {
                     return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Error ["+distResult.status_code+"] - "+distResult.messages.get(0), address, new BOEAddressRange());
                 } else {
