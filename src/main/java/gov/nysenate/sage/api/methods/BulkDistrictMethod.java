@@ -38,8 +38,6 @@ import org.json.JSONObject;
 public class BulkDistrictMethod extends ApiExecution {
     private final Logger logger = Logger.getLogger(BulkDistrictMethod.class);
 
-    public static final ArrayList<DistrictService.TYPE> districtTypes = new ArrayList<DistrictService.TYPE>(Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.COUNTY,DistrictService.TYPE.ELECTION));
-
     private class BluebirdAddress extends BOEStreetAddress {
         public String id;
         public double latitude;
@@ -386,7 +384,7 @@ public class BulkDistrictMethod extends ApiExecution {
             }
 
             try {
-                Result distResult = districtService.assignAll(sageAddress, "geoserver");
+                Result distResult = districtService.assignDistricts(sageAddress, new ArrayList<DistrictService.TYPE>(Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.COUNTY,DistrictService.TYPE.SCHOOL,DistrictService.TYPE.TOWN)), "geoserver");
                 if (!distResult.status_code.equals("0")) {
                     return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Error ["+distResult.status_code+"] - "+distResult.messages.get(0), address, new BOEAddressRange());
                 } else {
