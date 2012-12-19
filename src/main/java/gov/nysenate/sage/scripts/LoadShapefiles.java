@@ -1,5 +1,7 @@
-package gov.nysenate.sage.boe;
+package gov.nysenate.sage.scripts;
 
+import gov.nysenate.sage.boe.BOEAddressRange;
+import gov.nysenate.sage.boe.StreetFile;
 import gov.nysenate.sage.boe.StreetFiles.Essex;
 import gov.nysenate.sage.boe.StreetFiles.NTS;
 import gov.nysenate.sage.boe.StreetFiles.NTSAlt;
@@ -17,7 +19,7 @@ import java.util.regex.Matcher;
 
 import javax.sql.DataSource;
 
-public class Main {
+public class LoadShapefiles {
 
     public static void main(String[] args) throws Exception {
         Resource config = new Resource();
