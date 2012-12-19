@@ -6,14 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.BeanProcessor;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.log4j.Logger;
-
-import javax.sql.DataSource;
 
 public class DistrictLookup {
     public QueryRunner runner;
@@ -31,8 +31,10 @@ public class DistrictLookup {
         column_map.put("assembly_code","assemblyCode");
         column_map.put("bldg_lo_num","bldgLoNum");
         column_map.put("bldg_hi_num","bldgHiNum");
+        column_map.put("bldg_parity","bldgParity");
         column_map.put("apt_lo_num", "aptLoNum");
         column_map.put("apt_hi_num", "aptHiNum");
+        column_map.put("apt_parity","aptParity");
         column_map.put("town_code","townCode");
         column_map.put("ward_code", "wardCode");
         column_map.put("school_code", "schoolCode");
