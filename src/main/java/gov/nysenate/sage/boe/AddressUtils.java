@@ -135,10 +135,11 @@ public class AddressUtils {
         String state = "([A-Z]{2})";
         String city = "([A-Z. '-]+?)";
         String street = "((?: ?[-.'A-Z0-9]){2,}?)";
-        String building = "(?:([0-9]+)(?:[ -]?([A-Z]|[0-9]+))?| 1/2)";
+        String building = "(?:([0-9]+)([A-Z]|-[0-9]+| 1/2)?)";
+//        String building = "(?:([0-9]+)(?:[ -]*([A-Z]|[0-9]+|1/2)?))";
      // String apt_number = "([0-9]+)?(?:[ -]?([A-Z]))?"; // Old
-        String apt_number = "(?:(?:([0-9]+?)(?:ND|ST|RD|TH)?(?:[ -]*([A-Z]+))?)|(?:([A-Z])(?:[ -]*([0-9]+))?)|BSMT|BSMNT|PH|PENTHOUSE)(?:FL)?";
-        String apartment = "(?:(?:#|APT)[. ]*(?:#|FL)?)?"+apt_number+"?";
+        String apt_number = "(?:(?:([0-9]+?)(?:ND|ST|RD|TH)?(?:[ -]*([A-Z]+))?)|(?:([A-Z]+)(?:[ -]*([0-9]+))?)|BSMT|BSMNT|PH|PENTHOUSE)(?:FL)?";
+        String apartment = "(?:(?:#|APT|STE|UNIT|LOWR)[. ]*(?:#|FL)?)"+apt_number+"?";
 
         // String addressee = "([^,]+)";
         addrPattern = Pattern.compile("()(?:"+building+sep+")?"+street+"(?:"+sep+apartment+")?"+"(?:[ ,]+"+city+")?"+"(?:"+sep+state+")?"+"(?:"+sep+zip+")?$");
