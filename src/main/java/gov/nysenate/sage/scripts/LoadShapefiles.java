@@ -2,6 +2,7 @@ package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.StreetFile;
+import gov.nysenate.sage.boe.StreetFiles.Erie;
 import gov.nysenate.sage.boe.StreetFiles.Essex;
 import gov.nysenate.sage.boe.StreetFiles.NTS;
 import gov.nysenate.sage.boe.StreetFiles.NTSAlt;
@@ -9,6 +10,7 @@ import gov.nysenate.sage.boe.StreetFiles.NYC;
 import gov.nysenate.sage.boe.StreetFiles.Nassau;
 import gov.nysenate.sage.boe.StreetFiles.Schoharie;
 import gov.nysenate.sage.boe.StreetFiles.Suffolk;
+import gov.nysenate.sage.boe.StreetFiles.Westchester;
 import gov.nysenate.sage.boe.StreetFiles.Wyoming;
 import gov.nysenate.sage.util.DB;
 import gov.nysenate.sage.util.Resource;
@@ -149,6 +151,8 @@ public class LoadShapefiles {
                 addressRange.setVillCode(matcher.group(17) != null ? matcher.group(17).trim() : "");
             }
         });
+
+        street_files.add(new Erie(14, new File(base_dir, "Erie_County_STREETS_120827.csv")));
 
         street_files.add(new Essex(15, new File(base_dir,"Essex_County.csv")));
 
@@ -503,6 +507,7 @@ public class LoadShapefiles {
             }
         });
 
+        street_files.add(new Westchester(55, new File(base_dir, "Westchester_County_str_dir.csv")));
         street_files.add(new Wyoming(56, new File(base_dir,"Wyoming County street file")));
 
         street_files.add(new NTS(57,new File(base_dir, "Yates_County_Street_File_2012.txt")) {
