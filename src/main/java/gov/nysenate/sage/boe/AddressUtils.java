@@ -81,7 +81,7 @@ public class AddressUtils {
 
                 // Remove all numerical suffixes and special characters.
                 address.street = address.street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
-                address.street = address.street.replaceAll("[#:;.,-]", "").replaceAll("'", "").replaceAll(" +", " ");
+                address.street = address.street.replaceAll("[#:;.,]", "").replaceAll("'", "").replaceAll(" +", " ").replaceAll("-", " ");
 
                 // Apply all the common street abbreviations.
                 address.street = " "+address.street+" "; // Make regex easier
@@ -149,7 +149,7 @@ public class AddressUtils {
 //        String building = "(?:([0-9]+)(?:[ -]*([A-Z]|[0-9]+|1/2)?))";
      // String apt_number = "([0-9]+)?(?:[ -]?([A-Z]))?"; // Old
         String apt_number = "(?:(?:(?:([0-9]+?)(?:ND|ST|RD|TH)?(?:[ -]*([A-Z]+))?)|(?:([A-Z]+)(?:[ -]*([0-9]+))?)|BSMT|BSMNT|PH|PENTHOUSE)(?:FL)?)";
-        String apartment = "(?:(?:#|APT|STE|UNIT|LOWR|UPPR|LOT|BOX|LEFT|RIGHT)[. ]*(?:#|FL)?)"+apt_number+"?";
+        String apartment = "(?:(?:#|APT|STE|UNIT|LOWR|UPPR|LOT|BOX|LEFT|RIGHT|RM)[. ]*(?:#|FL)?)"+apt_number+"?";
 
         // String addressee = "([^,]+)";
         addrPattern = Pattern.compile("()(?:"+building+sep+")?"+street+"(?:"+sep+apartment+")?"+"(?:[ ,]+"+city+")?"+"(?:"+sep+state+")?"+"(?:"+sep+zip+")?$");
@@ -177,13 +177,20 @@ public class AddressUtils {
         commonAbbreviations.put("FOURTEENTH", "14");
         commonAbbreviations.put("FIFTEENTH", "15");
         commonAbbreviations.put("SIXTEENTH", "16");
+        commonAbbreviations.put("SEVENTEENTH", "17");
 
         // See http://www.semaphorecorp.com/cgi/abbrev.html
         commonAbbreviations.put("SAINT", "ST");
         commonAbbreviations.put("MOUNT", "MT");
         commonAbbreviations.put("MOUNTAIN", "MTN");
         commonAbbreviations.put("ROUTE", "RTE");
+        commonAbbreviations.put("RT", "RTE");
         commonAbbreviations.put("HEIGHTS", "HGTS");
+        commonAbbreviations.put("NO", "N");
+        commonAbbreviations.put("SO", "N");
+
+
+
 
         suffixMap = new HashMap<String,String>();
         suffixMap.put("ALLEE","ALY");
