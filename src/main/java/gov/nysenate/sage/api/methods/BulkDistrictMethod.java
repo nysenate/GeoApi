@@ -231,8 +231,13 @@ public class BulkDistrictMethod extends ApiExecution {
             this.county_code = match.countyCode;
             this.cleg_code = match.clegCode;
             this.council_code = match.ccCode;
-            this.town_code = ""; //match.townCode;
-            this.school_code = ""; //match.schoolCode;
+            if (status == STATUS.SHAPEFILE) {
+                this.town_code = match.townCode;
+                this.school_code = match.schoolCode;
+            } else {
+                this.town_code = ""; //match.townCode;
+                this.school_code = ""; //match.schoolCode;
+            }
             this.ward_code = match.wardCode;
             this.latitude = address.latitude;
             this.longitude = address.longitude;
