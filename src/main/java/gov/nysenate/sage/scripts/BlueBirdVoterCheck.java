@@ -33,7 +33,7 @@ public class BlueBirdVoterCheck {
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Chautauqua County Home Only.txt");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Chenango County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Clinton County Home Only.TXT");
-      File voter_file = new File("/home/stefan/street files/voterfiles/Columbia County Home Only.TXT");
+//      File voter_file = new File("/home/stefan/street files/voterfiles/Columbia County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Cortland County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Delaware County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Dutchess County Home Only.TXT");
@@ -58,19 +58,28 @@ public class BlueBirdVoterCheck {
 //      File voter_file = new File("/home/stefan/street files/voterfiles/PutnamCoHome.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Rockland County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Saratoga County Home Only.txt");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/SchoharieCoHomeOnly.TXT");
+
+    	// missing ed, cd, and ad .. no way to recover ?
+//    	File voter_file = new File("/home/stefan/street files/voterfiles/SchoharieCoHomeOnly.TXT");
+    	
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Seneca County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Steuben County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/St. Lawrence County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/SullivanCoHome.TXT");
+//      File voter_file = new File("/home/stefan/street files/voterfiles/(47) Suffolk Home.TXT");
+    	
+    	// delete columns for  po box and address 3  
 //      File voter_file = new File("/home/stefan/street files/voterfiles/TiogaCoHome.TXT");
+    	
 //      File voter_file = new File("/home/stefan/street files/voterfiles/TompkinsCoHome.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Ulster County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Warren County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/WashingtonCo Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/Wayne County Home Only.TXT");
 //      File voter_file = new File("/home/stefan/street files/voterfiles/WestchesterCo Home.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/WyomingCoHome.TXT");
+
+        // CD is empty , replace null with 27
+      File voter_file = new File("/home/stefan/street files/voterfiles/WyomingCoHome.TXT");
 
         Pattern houseNumberPattern = Pattern.compile("([0-9]+)(?: |-)*([0-9]*)(.*)");
 
