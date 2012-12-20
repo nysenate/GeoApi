@@ -148,8 +148,8 @@ public class AddressUtils {
         String building = "(?:([0-9]+)([A-Z]|-[0-9]+| 1/2)?)";
 //        String building = "(?:([0-9]+)(?:[ -]*([A-Z]|[0-9]+|1/2)?))";
      // String apt_number = "([0-9]+)?(?:[ -]?([A-Z]))?"; // Old
-        String apt_number = "(?:(?:([0-9]+?)(?:ND|ST|RD|TH)?(?:[ -]*([A-Z]+))?)|(?:([A-Z]+)(?:[ -]*([0-9]+))?)|BSMT|BSMNT|PH|PENTHOUSE)(?:FL)?";
-        String apartment = "(?:(?:#|APT|STE|UNIT|LOWR)[. ]*(?:#|FL)?)"+apt_number+"?";
+        String apt_number = "(?:(?:(?:([0-9]+?)(?:ND|ST|RD|TH)?(?:[ -]*([A-Z]+))?)|(?:([A-Z]+)(?:[ -]*([0-9]+))?)|BSMT|BSMNT|PH|PENTHOUSE)(?:FL)?)";
+        String apartment = "(?:(?:#|APT|STE|UNIT|LOWR|UPPR|LOT)[. ]*(?:#|FL)?)"+apt_number+"?";
 
         // String addressee = "([^,]+)";
         addrPattern = Pattern.compile("()(?:"+building+sep+")?"+street+"(?:"+sep+apartment+")?"+"(?:[ ,]+"+city+")?"+"(?:"+sep+state+")?"+"(?:"+sep+zip+")?$");
