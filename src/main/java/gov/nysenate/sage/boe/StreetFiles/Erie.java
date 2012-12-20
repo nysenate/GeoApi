@@ -140,7 +140,7 @@ public class Erie extends StreetFile {
             range.congressionalCode = getDistrict(parts[11]);
             range.senateCode = getDistrict(parts[12]);
             range.assemblyCode = getDistrict(parts[13]);
-            range.clegCode = String.valueOf(getDistrict(parts[14]));
+            range.clegCode = getDistrict(parts[14]);
             range.countyCode = county_code;
             range.state = "NY";
             save_record(range, db);

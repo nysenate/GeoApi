@@ -150,10 +150,10 @@ public class BOEAddressRange extends BOEAddress implements java.io.Serializable 
     public void setTownCode(String townCode) {
         this.townCode = townCode;
     }
-    public String getWardCode() {
+    public int getWardCode() {
         return wardCode;
     }
-    public void setWardCode(String wardCode) {
+    public void setWardCode(int wardCode) {
         this.wardCode = wardCode;
     }
     public String getSchoolCode() {
@@ -162,10 +162,10 @@ public class BOEAddressRange extends BOEAddress implements java.io.Serializable 
     public void setSchoolCode(String schoolCode) {
         this.schoolCode = schoolCode;
     }
-    public String getClegCode() {
+    public int getClegCode() {
         return clegCode;
     }
-    public void setClegCode(String clegCode) {
+    public void setClegCode(int clegCode) {
         this.clegCode = clegCode;
     }
     public String getCityCode() {
@@ -197,5 +197,13 @@ public class BOEAddressRange extends BOEAddress implements java.io.Serializable 
     }
     public void setBldgParity(String bldgParity) {
         this.bldgParity = bldgParity;
+    }
+
+    public int getCcCode() {
+        return ccCode;
+    }
+
+    public void setCcCode(int ccCode) {
+        this.ccCode = ccCode;
     }
 }

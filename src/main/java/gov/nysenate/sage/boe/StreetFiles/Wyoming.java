@@ -1,5 +1,8 @@
 package gov.nysenate.sage.boe.StreetFiles;
 
+import gov.nysenate.sage.boe.BOEAddressRange;
+import gov.nysenate.sage.boe.StreetFile;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -11,44 +14,41 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.QueryRunner;
 
-import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.StreetFile;
-
 public class Wyoming extends StreetFile {
-    private File street_index;
-    private HashMap<String, String> townMap;
-    
+    private final File street_index;
+    private final HashMap<String, String> townMap;
+
     public Wyoming(int countyCode, File street_index) throws Exception {
         super(countyCode, street_index);
         this.street_index = street_index;
-        
+
         townMap = new HashMap<String, String>();
-        townMap.put("1", "ARCADE"); 
-        townMap.put("2", "ATTICA"); 
-        townMap.put("3", "BENNIN"); 
-        townMap.put("4", "CASTIL"); 
-        townMap.put("5", "COVING"); 
-        townMap.put("6", "EAGLE"); 
-        townMap.put("7", "GAINEV"); 
-        townMap.put("8", "GENESF"); 
-        townMap.put("9", "JAVA"); 
-        townMap.put("10", "MIDDLE"); 
-        townMap.put("11", "ORANGV"); 
+        townMap.put("1", "ARCADE");
+        townMap.put("2", "ATTICA");
+        townMap.put("3", "BENNIN");
+        townMap.put("4", "CASTIL");
+        townMap.put("5", "COVING");
+        townMap.put("6", "EAGLE");
+        townMap.put("7", "GAINEV");
+        townMap.put("8", "GENESF");
+        townMap.put("9", "JAVA");
+        townMap.put("10", "MIDDLE");
+        townMap.put("11", "ORANGV");
         townMap.put("12", "PERRY");
         townMap.put("13", "PIKE");
-        townMap.put("14", "SHELDO"); 
-        townMap.put("15", "WARSAW"); 
+        townMap.put("14", "SHELDO");
+        townMap.put("15", "WARSAW");
         townMap.put("16", "WETHER");
     }
-    
+
     public boolean isStartPage(String line) {
         return line.contains("===============");
     }
-    
+
     public boolean isEndPage(String line) {
         return line.contains("") || line.contains("========");
     }
-    
+
     public String getTownCode(String townId) {
         if (townMap.containsKey(townId)) {
             return townMap.get(townId);
@@ -57,7 +57,7 @@ public class Wyoming extends StreetFile {
             return "";
         }
     }
-    
+
     public String getParity(String parityId) {
         if (parityId.equals("B")) {
             return "ALL";
@@ -70,7 +70,7 @@ public class Wyoming extends StreetFile {
             return "";
         }
     }
-    
+
     @Override
     public void save(DataSource db) throws Exception {
         logger.info("Starting "+street_file.getName());
@@ -78,7 +78,7 @@ public class Wyoming extends StreetFile {
         QueryRunner runner = new QueryRunner(db);
         BufferedReader br = new BufferedReader(new FileReader(street_index));
         String line;
-        
+
         int counter = 0;
         runner.update("BEGIN");
         while ((line = br.readLine()) != null) {
@@ -86,9 +86,9 @@ public class Wyoming extends StreetFile {
                 while ((line=br.readLine())!=null) {
                     if (line.isEmpty())
                         continue;
-                    else if (isEndPage(line)) 
+                    else if (isEndPage(line))
                         break;
-                    
+
                     Matcher lineMatcher = linePattern.matcher(line);
                     if (lineMatcher.find()) {
                         BOEAddressRange range = new BOEAddressRange();
@@ -104,14 +104,14 @@ public class Wyoming extends StreetFile {
                         range.bldgHiNum = Integer.parseInt(lineMatcher.group(10));
                         range.bldgParity = getParity(lineMatcher.group(11));
                         range.townCode = getTownCode(lineMatcher.group(1));
-                        range.wardCode = lineMatcher.group(2);
+                        range.wardCode = Integer.parseInt(lineMatcher.group(2));
                         range.electionCode = Integer.parseInt(lineMatcher.group(3));
                         range.assemblyCode = 147;
                         range.senateCode = 59;
                         range.congressionalCode = 27;
                         range.countyCode = 56;
                         save_record(range, db);
-                        
+
                         if (++counter % 5000 == 0) {
                             runner.update("COMMIT");
                             runner.update("BEGIN");
@@ -134,8 +134,8 @@ public class Wyoming extends StreetFile {
          $count = count($value);
          // var_dump($count);
 
-         // messy error checking, 
-         // 11 = there isn't a street type (RD, ST etc), 135 of these 
+         // messy error checking,
+         // 11 = there isn't a street type (RD, ST etc), 135 of these
          // 10 =  sometimes there isn't a Street type or road, only 1 of them
          if($count == 12 ){
              $Output[$key] = array(

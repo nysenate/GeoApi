@@ -131,7 +131,7 @@ public class Westchester extends StreetFile {
                 range.street = (parts[2].trim()+" "+parts[3].trim()+" "+parts[4].trim()+" "+parts[5].trim()).trim();
                 range.town = getTown(townId);
                 range.townCode = getTownCode(townId);
-                range.wardCode = townWardMatcher.group(2);
+                range.wardCode = Integer.parseInt(townWardMatcher.group(2));
                 range.electionCode = Integer.parseInt(townWardMatcher.group(3));
                 range.congressionalCode = getDistrict(parts[10]);
                 range.senateCode = getDistrict(parts[11]);

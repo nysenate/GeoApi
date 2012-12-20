@@ -102,7 +102,7 @@ public abstract class NTSAlt extends StreetFile {
                     // bounds = great.group(6); // This is always absent or inclusive
                     addressRange.setTown(town);
                     addressRange.setTownCode(great.group(7) != null ? great.group(7).trim() : "000");
-                    addressRange.setWardCode(great.group(8) != null ? great.group(8).trim() : "000");
+                    addressRange.setWardCode(great.group(8) != null && !great.group(8).trim().isEmpty()? Integer.parseInt(great.group(8).trim()) : 0);
                     addressRange.setElectionCode(great.group(9) != null ? Integer.parseInt(great.group(9).trim()) : 0);
                     addressRange.setCongressionalCode(great.group(10) != null ? Integer.parseInt(great.group(10).trim()) : 0);
                     addressRange.setSenateCode(great.group(11) != null ? Integer.parseInt(great.group(11).trim()) : 0);

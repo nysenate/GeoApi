@@ -124,13 +124,13 @@ public class Schoharie extends StreetFile {
             range.bldgHiNum = Integer.parseInt(bldgParts[1]);
             range.bldgParity = getParity(bldgParts[2]);
             range.townCode = parts[2]; //getTownCode(parts[2]);
-            range.wardCode = parts[3];
+            range.wardCode = Integer.parseInt(parts[3]);
             range.electionCode = Integer.parseInt(parts[4]);
             range.congressionalCode = Integer.parseInt(parts[5]);
             range.senateCode = Integer.parseInt(parts[6]);
             range.assemblyCode = Integer.parseInt(parts[7]);
             range.schoolCode = parts[8];
-            range.clegCode = parts[9];
+            range.clegCode = Integer.parseInt(parts[9]);
             range.cityCode = parts[10];
             range.villCode = parts[11];
             range.fireCode = parts[12];

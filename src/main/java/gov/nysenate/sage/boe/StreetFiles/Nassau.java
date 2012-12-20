@@ -21,7 +21,7 @@ public class Nassau extends StreetFile {
 
         townMap = new HashMap<String, String>();
         townMap.put("1", "-GLEN");
-        townMap.put("2", "HEMPST");        
+        townMap.put("2", "HEMPST");
         townMap.put("3", "-LONG");
         townMap.put("4", "N HEMP");
         townMap.put("5", "OYSTER");
@@ -49,22 +49,22 @@ public class Nassau extends StreetFile {
             range.bldgHiNum = Integer.parseInt(parts[5]);
             range.bldgParity = getParity(parts[6]);
             range.town = parts[7];
-            if ((parts.length > 15) && (!parts[15].isEmpty())) 
+            if ((parts.length > 15) && (!parts[15].isEmpty()))
             	range.townCode = getTownCode(parts[15]); // TW
-            if ((parts.length > 14) && (!parts[14].isEmpty())) 
+            if ((parts.length > 14) && (!parts[14].isEmpty()))
             	range.electionCode = Integer.parseInt(parts[14].substring(3)); 	// ED
             range.assemblyCode = Integer.parseInt(parts[11].substring(3)); 		// AD
-            range.clegCode = parts[12].substring(3);                            // LD
-            range.congressionalCode = Integer.parseInt(parts[9].substring(3)); 	// CD 
-            range.senateCode = Integer.parseInt(parts[10].substring(3)); 		// SD 
-            range.countyCode = this.county_code; 
+            range.clegCode = Integer.parseInt(parts[12].substring(3));                            // LD
+            range.congressionalCode = Integer.parseInt(parts[9].substring(3)); 	// CD
+            range.senateCode = Integer.parseInt(parts[10].substring(3)); 		// SD
+            range.countyCode = this.county_code;
             range.state = "NY";
-            
-            if ((parts.length > 17) && (!parts[17].isEmpty())) 
+
+            if ((parts.length > 17) && (!parts[17].isEmpty()))
             	range.villCode = parts[17].substring(3); 	// VI
-            if ((parts.length > 16) && (!parts[16].isEmpty())) 
+            if ((parts.length > 16) && (!parts[16].isEmpty()))
             	range.fireCode = parts[16].substring(3); 	// FR
-            
+
             save_record(range, db);
 
             if(++currentLine % 5000 == 0) {

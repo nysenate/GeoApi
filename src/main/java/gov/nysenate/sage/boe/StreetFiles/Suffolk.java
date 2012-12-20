@@ -40,7 +40,7 @@ public class Suffolk extends StreetFile {
     	logger.info("Starting Suffolk.");
     	QueryRunner runner = new QueryRunner(db);
         BufferedReader br = new BufferedReader(new FileReader(street_file));
-        
+
         currentLine = 0;
         String line;
         String[] parts;
@@ -59,7 +59,7 @@ public class Suffolk extends StreetFile {
             range.senateCode = Integer.parseInt(parts[16]);
             range.assemblyCode = Integer.parseInt(parts[17]);
             if (parts.length > 18)
-            	range.clegCode = parts[18];
+            	range.clegCode = Integer.parseInt(parts[18]);
             if (parts.length > 20)
             	range.schoolCode = parts[20];
             if (parts.length > 21)

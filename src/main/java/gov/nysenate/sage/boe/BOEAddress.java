@@ -14,11 +14,12 @@ public class BOEAddress {
     public int congressionalCode;
 
     public String townCode;
-    public String wardCode;
+    public int wardCode;
     public String schoolCode;
 
-    public String clegCode;
+    public int clegCode;
     public String cityCode;
     public String fireCode;
     public String villCode;
+    public int ccCode;
 }

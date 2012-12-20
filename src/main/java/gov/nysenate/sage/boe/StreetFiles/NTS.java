@@ -48,7 +48,7 @@ public abstract class NTS extends StreetFile {
         int count = 0;
         String line;
         BOEAddressRange addressRange;
-        
+
         runner.update("BEGIN");
         while( (line = br.readLine()) != null) {
             skipToStart(br);
@@ -98,7 +98,7 @@ public abstract class NTS extends StreetFile {
                     // bounds = great.group(6); // This is always absent or inclusive
                     addressRange.setTown(great.group(7).replaceAll("\\s{2,}", " "));
                     addressRange.setTownCode(great.group(8) != null ? great.group(8).trim() : "000");
-                    addressRange.setWardCode(great.group(9) != null ? great.group(9).trim() : "000");
+                    addressRange.setWardCode(great.group(9) != null && !great.group(9).trim().isEmpty() ? Integer.parseInt(great.group(9).trim()) : 0);
                     addressRange.setElectionCode(great.group(10) != null ? Integer.parseInt(great.group(10).trim()) : 0);
                     addressRange.setCongressionalCode(great.group(11) != null ? Integer.parseInt(great.group(11).trim()) : 0);
                     addressRange.setSenateCode(great.group(12) != null ? Integer.parseInt(great.group(12).trim()) : 0);

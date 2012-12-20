@@ -37,6 +37,7 @@ public class DistrictLookup {
         column_map.put("apt_parity","aptParity");
         column_map.put("town_code","townCode");
         column_map.put("ward_code", "wardCode");
+        column_map.put("cc_code", "ccCode");
         column_map.put("school_code", "schoolCode");
         column_map.put("cleg_code","clegCode");
         column_map.put("fire_code","fireCode");

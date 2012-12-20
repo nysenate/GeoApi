@@ -88,10 +88,11 @@ public class AddressUtils {
                 for (Entry<String, String> entry : commonAbbreviations.entrySet()) {
                     address.street = address.street.replace(" "+entry.getKey()+" ", " "+entry.getValue()+" ");
                 }
-                for (Entry<String, String> entry : suffixMap.entrySet()) {
-                    address.street = address.street.replace(" "+entry.getKey()+" ", " "+entry.getValue()+" ");
-                }
-                address.street = address.street.replaceAll(" ", "");
+                address.street = address.street.trim();
+//                for (Entry<String, String> entry : suffixMap.entrySet()) {
+//                    address.street = address.street.replace(" "+entry.getKey()+" ", " "+entry.getValue()+" ");
+//                }
+//                address.street = address.street.replaceAll(" ", "");
             }
         }
 
@@ -113,9 +114,10 @@ public class AddressUtils {
         int ad = base.assemblyCode;
         int county = base.countyCode;
         String school = base.schoolCode;
-        String ward = base.wardCode;
+        int ward = base.wardCode;
         String townCode = base.townCode;
-        String cleg = base.clegCode;
+        int ccCode = base.ccCode;
+        int cleg = base.clegCode;
 
         for (int i=1; i < ranges.size(); i++) {
             BOEAddressRange range = ranges.get(i);
@@ -128,13 +130,14 @@ public class AddressUtils {
             // County Specific
             if (!range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
             if (!range.townCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode = ""; }
-            if (!range.clegCode.equals(cleg) || range.countyCode!=base.countyCode) { cleg = ""; }
+            if (range.clegCode != cleg || range.countyCode!=base.countyCode) { cleg = 0; }
 
             // Town specific
-            if (!range.wardCode.equals(ward) || range.countyCode!=base.countyCode || !range.town.equals(base.town)) { ward = ""; }
+            if (range.wardCode != ward || range.countyCode!=base.countyCode || !range.town.equals(base.town)) { ward = 0; }
+            if (range.ccCode != ccCode || range.countyCode!=base.countyCode || !range.town.equals(base.town)) { ccCode = 0; }
 
             // Ward Specific (maybe)
-            if (range.electionCode != ed || range.countyCode!=base.countyCode || !range.town.equals(base.town) || !range.wardCode.equals(base.wardCode)) { ed = 0; }
+            if (range.electionCode != ed || range.countyCode!=base.countyCode || !range.town.equals(base.town) || range.wardCode == base.wardCode) { ed = 0; }
         }
 
         if (sd != 0) {
@@ -146,6 +149,7 @@ public class AddressUtils {
             range.schoolCode = school;
             range.wardCode = ward;
             range.clegCode = cleg;
+            range.ccCode = ccCode;
             range.townCode = townCode;
             range.countyCode = county;
             range.state = base.state;

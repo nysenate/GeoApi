@@ -42,10 +42,10 @@ public class Address implements Cloneable {
     public int election_code = 0;
 
     public String town_code = "";
-    public String ward_code = "";
+    public int ward_code = 0;
     public String school_code = "";
 
-    public String cleg_code = "";
+    public int cleg_code = 0;
     public String city_code = "";
     public String fire_code = "";
     public String vill_code = "";

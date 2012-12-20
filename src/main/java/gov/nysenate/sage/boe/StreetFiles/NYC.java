@@ -201,9 +201,9 @@ public class NYC extends StreetFile {
                     addressRange.congressionalCode = (rangeMatcher.group(8) != null ? Integer.parseInt(rangeMatcher.group(8)) : 0);
                     addressRange.senateCode = (rangeMatcher.group(9) != null ? Integer.parseInt(rangeMatcher.group(9)) : 0);
                     // addressRange.mc?? = (rangeMatcher.group(10) != null ? Integer.parseInt(rangeMatcher.group(10)) : 0);
-                    // addressRange.co?? = (rangeMatcher.group(11) != null ? Integer.parseInt(rangeMatcher.group(11)) : 0);
+                    addressRange.ccCode = (rangeMatcher.group(11) != null ? Integer.parseInt(rangeMatcher.group(11)) : 0);
                     save_record(addressRange, db);
-                    
+
                     if (++count % 5000 == 0) {
                         logger.info(count);
                         runner.update("COMMIT");
