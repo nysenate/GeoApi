@@ -128,8 +128,8 @@ public class AddressUtils {
             if (range.countyCode != county) { county = 0; }
 
             // County Specific
-            if (!range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
-            if (!range.townCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode = ""; }
+            if (range.schoolCode==null || !range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
+            if (range.townCode == null || !range.townCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode = ""; }
             if (range.clegCode != cleg || range.countyCode!=base.countyCode) { cleg = 0; }
 
             // Town specific
