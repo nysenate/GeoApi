@@ -5,14 +5,14 @@ import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
 import gov.nysenate.sage.util.DB;
+import gov.nysenate.sage.util.Resource;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
 
 import org.apache.log4j.Logger;
 
@@ -27,64 +27,65 @@ public class BlueBirdVoterCheck {
 	}
     public static void main(String[] args) throws Exception {
     	Logger logger = Logger.getLogger(BlueBirdVoterCheck.class);
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Albany County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/CattaraugusHomeOnly.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Cayuga County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Chautauqua County Home Only.txt");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Chenango County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Clinton County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Columbia County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Cortland County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Delaware County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Dutchess County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Erie County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/EssexCoHome.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Franklin County Home Only.txt");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/FultonCoPrimary1.txt");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/GeneseeCoHome.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/GreenCoHomeOnly.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/HerkimerCoHome.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Jefferson County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Lewis County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Madison County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Monroe County Home Only.txt");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/NassauCoHomeOnly.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Niagara County Home Only.txt");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Oneida County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Onondaga County Home Only.txt");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Ontario County Home Only.txt");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/OrangeCoHome.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Oswego County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/PutnamCoHome.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Rockland County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Saratoga County Home Only.txt");
+    	Resource config = new Resource();
+    	// TODO: Make sure to add this entry to your app.properties file!
+    	File base_dir = new File(config.fetch("voter_file.data"));
 
-    	// missing ed, cd, and ad .. no way to recover ?
-//    	File voter_file = new File("/home/stefan/street files/voterfiles/SchoharieCoHomeOnly.TXT");
-    	
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Seneca County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Steuben County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/St. Lawrence County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/SullivanCoHome.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/(47) Suffolk Home.TXT");
-    	
-    	// delete columns for  po box and address 3  
-//      File voter_file = new File("/home/stefan/street files/voterfiles/TiogaCoHome.TXT");
-    	
-//      File voter_file = new File("/home/stefan/street files/voterfiles/TompkinsCoHome.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Ulster County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Warren County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/WashingtonCo Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/Wayne County Home Only.TXT");
-//      File voter_file = new File("/home/stefan/street files/voterfiles/WestchesterCo Home.TXT");
+//      File voter_file = new File(base_dir, "Albany County Home Only.TXT");
+//      File voter_file = new File(base_dir, "CattaraugusHomeOnly.TXT");
+//      File voter_file = new File(base_dir, "Cayuga County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Chautauqua County Home Only.txt");
+//      File voter_file = new File(base_dir, "Chenango County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Clinton County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Columbia County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Cortland County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Delaware County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Dutchess County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Erie County Home Only.TXT");
+//      File voter_file = new File(base_dir, "EssexCoHome.TXT");
+//      File voter_file = new File(base_dir, "Franklin County Home Only.txt");
+//      File voter_file = new File(base_dir, "FultonCoPrimary1.txt");
+//      File voter_file = new File(base_dir, "GeneseeCoHome.TXT");
+      File voter_file = new File(base_dir, "GreenCoHomeOnly.TXT");
+//      File voter_file = new File(base_dir, "HerkimerCoHome.TXT");
+//      File voter_file = new File(base_dir, "Jefferson County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Lewis County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Madison County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Monroe County Home Only.txt");
+//      File voter_file = new File(base_dir, "NassauCoHomeOnly.TXT");
+//      File voter_file = new File(base_dir, "Niagara County Home Only.txt");
+//      File voter_file = new File(base_dir, "Oneida County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Onondaga County Home Only.txt");
+//      File voter_file = new File(base_dir, "Ontario County Home Only.txt");
+//      File voter_file = new File(base_dir, "OrangeCoHome.TXT");
+//      File voter_file = new File(base_dir, "Oswego County Home Only.TXT");
+//      File voter_file = new File(base_dir, "PutnamCoHome.TXT");
+//      File voter_file = new File(base_dir, "Rockland County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Saratoga County Home Only.txt");
 
-        // CD is empty , replace null with 27
-      File voter_file = new File("/home/stefan/street files/voterfiles/WyomingCoHome.TXT");
+//      // missing ed, cd, and ad .. no way to recover ?
+//      File voter_file = new File(base_dir, "SchoharieCoHomeOnly.TXT");
+//      File voter_file = new File(base_dir, "Seneca County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Steuben County Home Only.TXT");
+//      File voter_file = new File(base_dir, "St. Lawrence County Home Only.TXT");
+//      File voter_file = new File(base_dir, "SullivanCoHome.TXT");
+
+//      // delete columns for  po box and address 3
+//      File voter_file = new File(base_dir, "TiogaCoHome.TXT");
+//      File voter_file = new File(base_dir, "TompkinsCoHome.TXT");
+//      File voter_file = new File(base_dir, "Ulster County Home Only.TXT");
+//      File voter_file = new File(base_dir, "Warren County Home Only.TXT");
+//      File voter_file = new File(base_dir, "WashingtonCo Home Only.TXT");
+//      File voter_file = new File(base_dir, "Wayne County Home Only.TXT");
+//      File voter_file = new File(base_dir, "WestchesterCo Home.TXT");
+
+//      // CD is empty , replace null with 27
+//      File voter_file = new File(base_dir, "WyomingCoHome.TXT");
 
         Pattern houseNumberPattern = Pattern.compile("([0-9]+)(?: |-)*([0-9]*)(.*)");
 
         DistrictLookup streetData = new DistrictLookup(DB.getDataSource());
-             
+
         int total = 0;
         int mismatch = 0;
         int match = 0;
@@ -100,7 +101,7 @@ public class BlueBirdVoterCheck {
 
             parts = voter.split("\t");
 //            logger.info(voter);
-            line++;  
+            line++;
             BOEStreetAddress address = new BOEStreetAddress();
             try {
                 String last_name = parts[3];
@@ -108,7 +109,7 @@ public class BlueBirdVoterCheck {
                 if(parts[2].length() > 0){
                 	String middle_initial = parts[2].substring(0,1).trim();
                 }
-     
+
                 String city = parts[6];
                 String full_address = parts[5];
                 int zip5 = getInteger(parts[8]);
@@ -125,19 +126,19 @@ public class BlueBirdVoterCheck {
                 String phone_number = parts[12];
                 address.town = city;
                 address.zip5 = zip5;
-                
-                
+
+
                 // The house number suffix is not always properly separated!
                 Matcher house_number_matcher = houseNumberPattern.matcher(full_address);
                 if (house_number_matcher.find()) {
                     address.bldg_num = Integer.parseInt(house_number_matcher.group(1) + house_number_matcher.group(2));
-           
+
                 } else {
                     System.out.println("houseNumberPattern not matched:"+full_address);
                 }
-                
-                
-                
+
+
+
                 address = AddressUtils.parseAddress(full_address+", "+address.town+" NY "+address.zip5);
 
                 address.state = "NY";
@@ -151,7 +152,7 @@ public class BlueBirdVoterCheck {
 
                 List<BOEAddressRange> results = streetData.getRangesByHouse(address);
                 if (results.size() == 0) {
-                    nomatch++;                    
+                    nomatch++;
                     System.out.println("NOMATCH: ["+line+"] "+address.bldg_num+address.bldg_chr+" "+address.street+", "+address.town+" "+address.zip5);
                 } else if (results.size() > 1) {
                     multimatch++;
@@ -177,14 +178,14 @@ public class BlueBirdVoterCheck {
                     skipped++;
                     continue;
                 }
-            
+
             if (++total % 10000 == 0) {
                 System.out.println("TOTAL: "+total+"; MATCH: "+match+"("+((match/(float)total) * 100) +"%); MISMATCH: "+mismatch+"; MULTIMATCH: "+multimatch+"; NOMATCH: "+nomatch+"; SKIPPED: "+skipped);
              }
-        }        
+        }
         br.close();
         System.out.println("TOTAL: "+total+"; MATCH: "+match+"("+((match/(float)total) * 100) +"%); MISMATCH: "+mismatch+"; MULTIMATCH: "+multimatch+"; NOMATCH: "+nomatch+"; SKIPPED: "+skipped);
- 
-    } 
-    
+
+    }
+
 }
