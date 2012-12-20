@@ -205,7 +205,7 @@ public class BulkDistrictMethod extends ApiExecution {
         public int congressional_code;
         public int senate_code;
         public int election_code;
-        public int cc_code;
+        public int council_code;
         public int ward_code;
         public String school_code;
         public String town_code;
@@ -230,7 +230,7 @@ public class BulkDistrictMethod extends ApiExecution {
             this.assembly_code = match.assemblyCode;
             this.county_code = match.countyCode;
             this.cleg_code = match.clegCode;
-            this.cc_code = match.ccCode;
+            this.council_code = match.ccCode;
             this.town_code = ""; //match.townCode;
             this.school_code = ""; //match.schoolCode;
             this.ward_code = match.wardCode;
