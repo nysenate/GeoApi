@@ -109,13 +109,29 @@ public class AddressUtils {
         int cong = base.congressionalCode;
         int ad = base.assemblyCode;
         int county = base.countyCode;
+        String school = base.schoolCode;
+        String ward = base.wardCode;
+        String townCode = base.townCode;
+        String cleg = base.clegCode;
+
         for (int i=1; i < ranges.size(); i++) {
             BOEAddressRange range = ranges.get(i);
+            // State wide
             if (range.senateCode != sd) { sd = 0; }
-            if (range.electionCode != ed) { ed = 0; }
             if (range.congressionalCode != cong) { cong = 0; }
             if (range.assemblyCode != ad) { ad = 0; }
             if (range.countyCode != county) { county = 0; }
+
+            // County Specific
+            if (!range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
+            if (!range.townCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode = ""; }
+            if (!range.clegCode.equals(cleg) || range.countyCode!=base.countyCode) { cleg = ""; }
+
+            // Town specific
+            if (!range.wardCode.equals(ward) || range.countyCode!=base.countyCode || !range.town.equals(base.town)) { ward = ""; }
+
+            // Ward Specific (maybe)
+            if (range.electionCode != ed || range.countyCode!=base.countyCode || !range.town.equals(base.town) || !range.wardCode.equals(base.wardCode)) { ed = 0; }
         }
 
         if (sd != 0) {
@@ -124,6 +140,10 @@ public class AddressUtils {
             range.assemblyCode = ad;
             range.electionCode = ed;
             range.congressionalCode = cong;
+            range.schoolCode = school;
+            range.wardCode = ward;
+            range.clegCode = cleg;
+            range.townCode = townCode;
             range.countyCode = county;
             range.state = base.state;
             range.street = base.street;
