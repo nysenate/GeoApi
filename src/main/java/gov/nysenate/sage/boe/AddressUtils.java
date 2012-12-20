@@ -69,14 +69,19 @@ public class AddressUtils {
 
                 // Replace directional suffix if present
                 String possibleSuffix = parts[parts.length-1];
-                if (parts.length > 2 && ordinals.containsKey(possibleSuffix)) {
-                    address.street = address.street.replaceFirst(possibleSuffix+"$", ordinals.get(possibleSuffix));
-                    possibleSuffix = parts[parts.length-2];
+                if (parts.length > 2) {
+                    if (ordinals.containsKey(possibleSuffix)) {
+                        address.street = address.street.replaceFirst(possibleSuffix+"$", ordinals.get(possibleSuffix));
+                        possibleSuffix = parts[parts.length-2];
+                    } else if (possibleSuffix.matches("[0-9]+[A-Z]?|EXT")) {
+                        // If it is a number or EXT, suffix is before that
+                        possibleSuffix = parts[parts.length-2];
+                    }
                 }
 
                 // Replace street suffix if present
                 if (parts.length > 1 && suffixMap.containsKey(possibleSuffix)) {
-                    address.street = address.street.replaceFirst(possibleSuffix+"( [NSEW])?$",suffixMap.get(possibleSuffix)+"$1");
+                    address.street = address.street.replaceFirst(possibleSuffix+"( [NSEW]| [0-9]+[A-Z]?| EXT)?$",suffixMap.get(possibleSuffix)+"$1");
                 }
 
                 // Remove all numerical suffixes and special characters.
@@ -175,8 +180,8 @@ public class AddressUtils {
         String building = "(?:([0-9]+)([A-Z]|-[0-9]+| 1/2)?)";
 //        String building = "(?:([0-9]+)(?:[ -]*([A-Z]|[0-9]+|1/2)?))";
      // String apt_number = "([0-9]+)?(?:[ -]?([A-Z]))?"; // Old
-        String apt_number = "(?:(?:(?:([0-9]+?)(?:ND|ST|RD|TH)?(?:[ -]*([A-Z]+))?)|(?:([A-Z]+)(?:[ -]*([0-9]+))?)|BSMT|BSMNT|PH|PENTHOUSE)(?:FL)?)";
-        String apartment = "(?:(?:#|APT|STE|UNIT|LOWR|UPPR|LOT|BOX|LEFT|RIGHT|RM)[. ]*(?:#|FL)?)"+apt_number+"?";
+        String apt_number = "(?:(?:(?:([0-9]+?)(?:ND|ST|RD|TH)?(?:[ -]*([A-Z0-9]+))?)|(?:([A-Z]+)(?:[ -]*([0-9]+))?)|BSMT|BSMNT|PH|PENTHOUSE)(?:FL)?)";
+        String apartment = "(?:(?:#|APT|STE|UNIT|BLDG|LOWR|UPPR|LOT|BOX|LEFT|RIGHT|TRLR|RM)[. ]*(?:#|FL)?)"+apt_number+"?";
 
         // String addressee = "([^,]+)";
         addrPattern = Pattern.compile("()(?:"+building+sep+")?"+street+"(?:"+sep+apartment+")?"+"(?:[ ,]+"+city+")?"+"(?:"+sep+state+")?"+"(?:"+sep+zip+")?$");
