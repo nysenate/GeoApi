@@ -149,7 +149,7 @@ public class AddressUtils {
 //        String building = "(?:([0-9]+)(?:[ -]*([A-Z]|[0-9]+|1/2)?))";
      // String apt_number = "([0-9]+)?(?:[ -]?([A-Z]))?"; // Old
         String apt_number = "(?:(?:(?:([0-9]+?)(?:ND|ST|RD|TH)?(?:[ -]*([A-Z]+))?)|(?:([A-Z]+)(?:[ -]*([0-9]+))?)|BSMT|BSMNT|PH|PENTHOUSE)(?:FL)?)";
-        String apartment = "(?:(?:#|APT|STE|UNIT|LOWR|UPPR|LOT)[. ]*(?:#|FL)?)"+apt_number+"?";
+        String apartment = "(?:(?:#|APT|STE|UNIT|LOWR|UPPR|LOT|BOX|LEFT|RIGHT)[. ]*(?:#|FL)?)"+apt_number+"?";
 
         // String addressee = "([^,]+)";
         addrPattern = Pattern.compile("()(?:"+building+sep+")?"+street+"(?:"+sep+apartment+")?"+"(?:[ ,]+"+city+")?"+"(?:"+sep+state+")?"+"(?:"+sep+zip+")?$");
@@ -178,8 +178,12 @@ public class AddressUtils {
         commonAbbreviations.put("FIFTEENTH", "15");
         commonAbbreviations.put("SIXTEENTH", "16");
 
+        // See http://www.semaphorecorp.com/cgi/abbrev.html
         commonAbbreviations.put("SAINT", "ST");
         commonAbbreviations.put("MOUNT", "MT");
+        commonAbbreviations.put("MOUNTAIN", "MTN");
+        commonAbbreviations.put("ROUTE", "RTE");
+        commonAbbreviations.put("HEIGHTS", "HGTS");
 
         suffixMap = new HashMap<String,String>();
         suffixMap.put("ALLEE","ALY");
