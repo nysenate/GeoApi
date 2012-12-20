@@ -234,10 +234,14 @@ public class BulkDistrictMethod extends ApiExecution {
             if (status == STATUS.SHAPEFILE) {
                 this.town_code = match.townCode;
                 this.school_code = match.schoolCode;
+            } else if (county_code==14 || county_code==15 || county_code==28 || county_code==43 || county_code==47 || county_code==55 || county_code==56) {
+                this.town_code = match.townCode;
+                this.school_code = "";
             } else {
-                this.town_code = ""; //match.townCode;
-                this.school_code = ""; //match.schoolCode;
+                this.town_code = "";
+                this.school_code = "";
             }
+
             this.ward_code = match.wardCode;
             this.latitude = address.latitude;
             this.longitude = address.longitude;
