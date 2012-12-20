@@ -2,6 +2,7 @@ package gov.nysenate.sage.boe;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,6 +10,8 @@ public class AddressUtils {
     public static boolean DEBUG = false;
     public static HashMap<String,String> suffixMap = null;
     public static HashMap<String,String> ordinals = null;
+    public static HashMap<String,String> commonAbbreviations = null;
+
     public static Pattern addrPattern = null;
 
     public static BOEStreetAddress parseAddress(String address) {
@@ -79,6 +82,13 @@ public class AddressUtils {
                 // Remove all numerical suffixes and special characters.
                 address.street = address.street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
                 address.street = address.street.replaceAll("[#:;.,-]", "").replaceAll("'", "").replaceAll(" +", " ");
+
+                // Apply all the common street abbreviations.
+                address.street = " "+address.street+" "; // Make regex easier
+                for (Entry<String, String> entry : commonAbbreviations.entrySet()) {
+                    address.street = address.street.replace(" "+entry.getKey()+" ", " "+entry.getValue()+" ");
+                }
+                address.street = address.street.trim();
             }
         }
 
@@ -149,6 +159,27 @@ public class AddressUtils {
         ordinals.put("SOUTH", "S");
         ordinals.put("EAST", "E");
         ordinals.put("WEST", "W");
+
+        commonAbbreviations = new HashMap<String, String>();
+        commonAbbreviations.put("FIRST", "1");
+        commonAbbreviations.put("SECOND", "2");
+        commonAbbreviations.put("THIRD", "3");
+        commonAbbreviations.put("FOURTH", "4");
+        commonAbbreviations.put("FIFTH", "5");
+        commonAbbreviations.put("SIXTH", "6");
+        commonAbbreviations.put("SEVENTH", "7");
+        commonAbbreviations.put("EIGHTH", "8");
+        commonAbbreviations.put("NINETH", "9");
+        commonAbbreviations.put("TENTH", "10");
+        commonAbbreviations.put("ELEVENTH", "11");
+        commonAbbreviations.put("TWELVETH", "12");
+        commonAbbreviations.put("THIRTEENTH", "13");
+        commonAbbreviations.put("FOURTEENTH", "14");
+        commonAbbreviations.put("FIFTEENTH", "15");
+        commonAbbreviations.put("SIXTEENTH", "16");
+
+        commonAbbreviations.put("SAINT", "ST");
+        commonAbbreviations.put("MOUNT", "MT");
 
         suffixMap = new HashMap<String,String>();
         suffixMap.put("ALLEE","ALY");
