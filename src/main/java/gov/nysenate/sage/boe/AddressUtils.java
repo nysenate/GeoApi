@@ -88,7 +88,10 @@ public class AddressUtils {
                 for (Entry<String, String> entry : commonAbbreviations.entrySet()) {
                     address.street = address.street.replace(" "+entry.getKey()+" ", " "+entry.getValue()+" ");
                 }
-                address.street = address.street.trim();
+                for (Entry<String, String> entry : suffixMap.entrySet()) {
+                    address.street = address.street.replace(" "+entry.getKey()+" ", " "+entry.getValue()+" ");
+                }
+                address.street = address.street.replaceAll(" ", "");
             }
         }
 
@@ -186,6 +189,7 @@ public class AddressUtils {
         commonAbbreviations.put("THIRD", "3");
         commonAbbreviations.put("FOURTH", "4");
         commonAbbreviations.put("FIFTH", "5");
+//        commonAbbreviations.put("FIVE", "5");
         commonAbbreviations.put("SIXTH", "6");
         commonAbbreviations.put("SEVENTH", "7");
         commonAbbreviations.put("EIGHTH", "8");
