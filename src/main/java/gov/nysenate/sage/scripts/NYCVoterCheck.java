@@ -5,6 +5,7 @@ import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
 import gov.nysenate.sage.util.DB;
+import gov.nysenate.sage.util.Resource;
 
 import java.io.File;
 import java.util.List;
@@ -17,7 +18,14 @@ import java.io.FileReader;
 public class NYCVoterCheck {
 
     public static void main(String[] args) throws Exception {
-        File voter_file = new File("/home/ash/Web/nysenate/GeoApi/BOE_Data/Queens-All.txt");
+    	Resource config = new Resource();
+    	File base_dir = new File(config.fetch("voter_file.data"));
+    	File voter_file = new File(base_dir, "Brooklyn-all.txt");
+//    	File voter_file = new File(base_dir, "Bronx-all.txt");
+//		File voter_file = new File(base_dir, "Manhattan-all.txt");
+//		File voter_file = new File(base_dir, "Queens-all.txt");
+//    	File voter_file = new File(base_dir, "Staten Island-all.txt");
+
         Pattern houseNumberPattern = Pattern.compile("([0-9]+)(?: |-)*([0-9]*)(.*)");
 
         DistrictLookup streetData = new DistrictLookup(DB.getDataSource());
