@@ -8,6 +8,7 @@
 -- DROP TABLE IF EXISTS senator;
 -- DROP TABLE IF EXISTS social;
 -- DROP TABLE IF EXISTS office;
+-- DROP TABLE IF EXISTS street_data;
 
 CREATE TABLE apiuser (
   id int PRIMARY KEY AUTO_INCREMENT,
@@ -83,4 +84,38 @@ CREATE TABLE office (
   phone varchar(255) DEFAULT NULL,
   fax varchar(255) DEFAULT NULL,
   contact varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+CREATE TABLE street_data (
+  id int(10) unsigned NOT NULL AUTO_INCREMENT,
+  street varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  town varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  state varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  zip5 int(5) unsigned DEFAULT NULL,
+  bldg_lo_num int(10) unsigned DEFAULT NULL,
+  bldg_lo_chr varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  bldg_hi_num int(10) unsigned DEFAULT NULL,
+  bldg_hi_chr varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  bldg_parity enum('ODDS','EVENS','ALL') COLLATE utf8_unicode_ci DEFAULT NULL,
+  apt_lo_num int(10) unsigned DEFAULT NULL,
+  apt_lo_chr varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  apt_hi_num int(10) unsigned DEFAULT NULL,
+  apt_hi_chr varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  apt_parity enum('ODDS','EVENS','ALL') COLLATE utf8_unicode_ci DEFAULT NULL,
+  election_code int(10) unsigned DEFAULT NULL,
+  county_code int(10) unsigned DEFAULT NULL,
+  assembly_code int(10) unsigned DEFAULT NULL,
+  senate_code int(10) unsigned DEFAULT NULL,
+  congressional_code int(10) unsigned DEFAULT NULL,
+  town_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  ward_code int(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  school_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  cleg_code int(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  cc_code int(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  fire_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  city_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  vill_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY street (street),
+  KEY zip5 (zip5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
