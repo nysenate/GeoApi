@@ -134,7 +134,7 @@ public class BlueBirdVoterCheck {
                     address.bldg_num = Integer.parseInt(house_number_matcher.group(1) + house_number_matcher.group(2));
 
                 } else {
-                    System.out.println("houseNumberPattern not matched:"+full_address);
+//                    System.out.println("houseNumberPattern not matched:"+full_address);
                 }
 
 
@@ -153,12 +153,12 @@ public class BlueBirdVoterCheck {
                 List<BOEAddressRange> results = streetData.getRangesByHouse(address);
                 if (results.size() == 0) {
                     nomatch++;
-                    System.out.println("NOMATCH: ["+line+"] "+address.bldg_num+address.bldg_chr+" "+address.street+", "+address.town+" "+address.zip5);
+//                    System.out.println("NOMATCH: ["+line+"] "+address.bldg_num+address.bldg_chr+" "+address.street+", "+address.town+" "+address.zip5);
                 } else if (results.size() > 1) {
                     multimatch++;
-                    System.out.println(results.size()+" RESULTS: ["+line+"] "+address.bldg_num+address.bldg_chr+" "+address.street+", "+address.town+" "+address.zip5);
+//                    System.out.println(results.size()+" RESULTS: ["+line+"] "+address.bldg_num+address.bldg_chr+" "+address.street+", "+address.town+" "+address.zip5);
                     for (BOEAddressRange range : results) {
-                        System.out.println("   "+range);
+//                        System.out.println("   "+range);
                     }
                 } else {
                     BOEAddressRange range = results.get(0);
@@ -169,7 +169,7 @@ public class BlueBirdVoterCheck {
                         match++;
                     } else {
                         mismatch++;
-                        System.out.println("MISMATCH: ["+line+"] "+address.bldg_num+address.bldg_chr+" "+address.street+", "+address.town+" "+address.zip5);
+//                        System.out.println("MISMATCH: ["+line+"] "+address.bldg_num+address.bldg_chr+" "+address.street+", "+address.town+" "+address.zip5);
                     }
                 }
                 } catch (NumberFormatException e) {
@@ -184,7 +184,7 @@ public class BlueBirdVoterCheck {
              }
         }
         br.close();
-        System.out.println("TOTAL: "+total+"; MATCH: "+match+"("+((match/(float)total) * 100) +"%); MISMATCH: "+mismatch+"; MULTIMATCH: "+multimatch+"; NOMATCH: "+nomatch+"; SKIPPED: "+skipped);
+        System.out.println("FINAL TOTAL: "+total+"; MATCH: "+match+"("+((match/(float)total) * 100) +"%); MISMATCH: "+mismatch+"; MULTIMATCH: "+multimatch+"; NOMATCH: "+nomatch+"; SKIPPED: "+skipped);
 
     }
 

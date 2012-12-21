@@ -130,7 +130,8 @@ public class NYCVoterCheck {
              }
         }        
         br.close();
-        
+        System.out.println("FINAL TOTAL: "+total+"; MATCH: "+match+"("+((match/(float)total) * 100) +"%); MISMATCH: "+mismatch+"; MULTIMATCH: "+multimatch+"; NOMATCH: "+nomatch+"; SKIPPED: "+skipped);
+
     } 
     
 }
