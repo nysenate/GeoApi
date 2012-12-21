@@ -114,6 +114,7 @@ public class LoadShapefiles {
         });
 
         // Had to remove a random tick mark, ???
+        // zip5: 12134 -> 12184
         street_files.add(new NTS(10,new File(base_dir, "Columbia_County_2012StreetIndex.txt")) {
             @Override
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
@@ -387,6 +388,7 @@ public class LoadShapefiles {
         });
 
         // Deleted 3 incomplete lines from the beginning of this file.
+        // THYME CIR          12048 <- should be 12148
         street_files.add(new NTS(41,new File(base_dir, "Saratoga_County_STREET_FILE.txt")) {
             @Override
             public void store_extra_districts(BOEAddressRange addressRange, Matcher matcher) {
