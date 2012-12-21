@@ -94,6 +94,7 @@ public class AddressUtils {
                     address.street = address.street.replace(" "+entry.getKey()+" ", " "+entry.getValue()+" ");
                 }
                 address.street = address.street.trim();
+//                // This was a little too dangerous/aggressive I think
 //                for (Entry<String, String> entry : suffixMap.entrySet()) {
 //                    address.street = address.street.replace(" "+entry.getKey()+" ", " "+entry.getValue()+" ");
 //                }
