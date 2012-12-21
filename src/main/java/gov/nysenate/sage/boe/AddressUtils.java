@@ -78,8 +78,8 @@ public class AddressUtils {
                     if (ordinals.containsKey(possibleSuffix)) {
                         address.street = address.street.replaceFirst(possibleSuffix+"$", ordinals.get(possibleSuffix));
                         possibleSuffix = parts[parts.length-2];
-                    } else if (possibleSuffix.matches("[0-9]+[A-Z]?|EXT")) {
-                        // If it is a number or EXT, suffix is before that
+                    } else if (possibleSuffix.matches("[NEWS]|[0-9]+[A-Z]?|EXT")) {
+                        // If it is an ordinal, number, or EXT, suffix is before that
                         possibleSuffix = parts[parts.length-2];
                     }
                 }
