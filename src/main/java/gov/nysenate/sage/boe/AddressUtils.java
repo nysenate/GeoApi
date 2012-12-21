@@ -50,7 +50,7 @@ public class AddressUtils {
     public static BOEAddress normalizeAddress(BOEAddress address) {
         load_constants();
         if (address.town != null && !address.town.equals("")) {
-            address.town = address.town.trim();
+            address.town = address.town.toUpperCase().trim();
             // Fix up the towns
             if (address.town == "CITY/KNG") {
                 address.town = "KINGSTON";
@@ -63,7 +63,7 @@ public class AddressUtils {
         }
 
         if (address.street != null) {
-            address.street = address.street.trim();
+            address.street = address.street.toUpperCase().trim();
             if (!address.street.equals("")) {
                 String[] parts = address.street.split(" ");
 
