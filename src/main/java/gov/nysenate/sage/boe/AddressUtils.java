@@ -328,7 +328,7 @@ public class AddressUtils {
         suffixMap.put("CRT","CT");
         suffixMap.put("CT","CT");
         suffixMap.put("COURTS","CTS");
-        suffixMap.put("cts","cts");
+        suffixMap.put("CTS","CTS");
         suffixMap.put("COVE","CV");
         suffixMap.put("CV","CV");
         suffixMap.put("COVES","CVS");
