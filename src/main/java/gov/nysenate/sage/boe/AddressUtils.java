@@ -70,6 +70,11 @@ public class AddressUtils {
                 // Replace directional suffix if present
                 String possibleSuffix = parts[parts.length-1];
                 if (parts.length > 2) {
+                    if (ordinals.containsKey(parts[0])) {
+                        address.street = address.street.replaceFirst("^"+parts[0], ordinals.get(parts[0]));
+                    }
+                }
+                if (parts.length > 2) {
                     if (ordinals.containsKey(possibleSuffix)) {
                         address.street = address.street.replaceFirst(possibleSuffix+"$", ordinals.get(possibleSuffix));
                         possibleSuffix = parts[parts.length-2];
