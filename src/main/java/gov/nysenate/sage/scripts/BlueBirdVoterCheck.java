@@ -69,6 +69,7 @@ public class BlueBirdVoterCheck {
 //      File voter_file = new File(base_dir, "Steuben County Home Only.TXT");
 //      File voter_file = new File(base_dir, "St. Lawrence County Home Only.TXT");
 //      File voter_file = new File(base_dir, "SullivanCoHome.TXT");
+//      File voter_file = new File(base_dir, "(47) Suffolk Home.TXT");
 
 //      // delete columns for  po box and address 3
 //      File voter_file = new File(base_dir, "TiogaCoHome.TXT");

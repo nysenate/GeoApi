@@ -20,11 +20,11 @@ public class NYCVoterCheck {
     public static void main(String[] args) throws Exception {
     	Resource config = new Resource();
     	File base_dir = new File(config.fetch("voter_file.data"));
-    	File voter_file = new File(base_dir, "Brooklyn-all.txt");
-//    	File voter_file = new File(base_dir, "Bronx-all.txt");
-//		File voter_file = new File(base_dir, "Manhattan-all.txt");
-//		File voter_file = new File(base_dir, "Queens-all.txt");
-//    	File voter_file = new File(base_dir, "Staten Island-all.txt");
+//    	File voter_file = new File(base_dir, "Brooklyn-all.txt");
+    	File voter_file = new File(base_dir, "Bronx-All.txt");
+//		File voter_file = new File(base_dir, "Manhattan-All.txt");
+//		File voter_file = new File(base_dir, "Queens-All.txt");
+//    	File voter_file = new File(base_dir, "Staten Island-All.txt");
 
         Pattern houseNumberPattern = Pattern.compile("([0-9]+)(?: |-)*([0-9]*)(.*)");
 
