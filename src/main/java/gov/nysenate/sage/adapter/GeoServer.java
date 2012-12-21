@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
 import org.apache.log4j.Logger;
@@ -144,78 +145,77 @@ public class GeoServer implements DistAssignInterface {
         return assignDistrict(new ArrayList<Address>(Arrays.asList(new Address[]{address})), type).get(0);
     }
 
-    @Override
     public ArrayList<Result> assignDistrict(ArrayList<Address> addresses, DistrictService.TYPE type) throws DistException {
-        String filter = "";
-        Content page= null;
-        Result result = null;
-        String geotype = "typename=nysenate:"+type.toString().toLowerCase();
-        String filter_format = "INTERSECTS(the_geom, POINT ( %f %f ))";
-        ArrayList<Result> results = new ArrayList<Result>();
+        return assignDistricts(addresses, new ArrayList<TYPE>(Arrays.asList(type)));
+    }
 
+    public Result assignDistricts(Address address, List<TYPE> types) throws DistException {
+        Result result = new Result();
+        result.address = address.clone();
+
+        Content page = null;
         try {
+            ArrayList<String> geotypes = new ArrayList<String>();
+            for (TYPE type : types) {
+                geotypes.add("nysenate:"+type.toString().toLowerCase());
+            }
+
+            String geotype = "typename="+StringUtils.join(geotypes, ",");
             String url_format = API_BASE+"&%s&CQL_FILTER=%s&outputformat=JSON";
-            for (Address address : addresses) {
-                result = new Result();
-                result.address = address.clone();//new Address(address);
+            String filter = String.format("INTERSECTS(the_geom, POINT ( %f %f ))", address.latitude, address.longitude);
+            result.source = String.format(url_format, geotype, URLEncoder.encode(filter,"UTF-8"));
+            logger.info(result.source);
 
-                filter = String.format(filter_format, address.latitude, address.longitude);
-                result.source = String.format(url_format, geotype, URLEncoder.encode(filter,"UTF-8"));
+            page = Request.Get(result.source).execute().returnContent();
+            JSONObject response = new JSONObject(page.asString());
+            JSONArray features = response.getJSONArray("features");
 
-                logger.info(result.source);
-                page = Request.Get(result.source).execute().returnContent();
-                JSONObject response = new JSONObject(page.asString());
-                JSONArray features = response.getJSONArray("features");
+            // Should only match one feature per layer as a point intersection
+            if (features.length()==0) {
+                result.status_code = "1";
+                result.messages.add("No matching features found for "+address.toString()+" in "+geotype);
+                return result;
+            } else if (features.length() > types.size()) {
+                result.status_code = "2";
+                result.messages.add("Multiple matching features found for some layers. aborting.");
+                return result;
+            }
 
-                // Should only match one feature as a point intersection
-                if (features.length()==0) {
-                    result.status_code = "1";
-                    result.messages.add("No matching "+type+" features found for "+address.toString());
-                    results.add(result);
-                    continue;
-                } else if (features.length() > 1) {
-                    result.messages.add("Multiple matching features found. Using the first one.");
-                }
-
-                JSONObject feature = features.getJSONObject(0);
+            for (int i=0; i < features.length(); i++) {
+                JSONObject feature = features.getJSONObject(i);
                 JSONObject properties = feature.getJSONObject("properties");
-
-                switch (type) {
-                case SCHOOL:
+                String layer = feature.getString("id").split("\\.")[0];
+                if (layer.equals("school")) {
                     result.address.school_name = properties.getString("NAME");
                     result.address.school_code = properties.getString("TFCODE");
-                    break;
-                case TOWN:
+                } else if (layer.equals("town")) {
                     result.address.town_name = properties.getString("NAME");
                     result.address.town_code = properties.getString("ABBREV");
-                    break;
-                case ELECTION:
+                } else if (layer.equals("election")) {
                     result.address.election_code = properties.getInt("ED");
                     result.address.election_name = "ED "+address.school_code;
-                    break;
-                case CONGRESSIONAL:
+                } else if (layer.equals("congressional")) {
                     // Accommodate both old shape files and new 2012 shape files
                     result.address.congressional_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
                     result.address.congressional_code = properties.has("CD111FP") ? properties.getInt("CD111FP") : properties.getInt("DISTRICT");
-                    break;
-                case COUNTY:
+                } else if (layer.equals("county")) {
                     result.address.county_name = properties.getString("NAMELSAD"); // or NAME
                     result.address.county_code = COUNTY_CODES.get(properties.getInt("COUNTYFP"));
-                    break;
-                case ASSEMBLY:
+                } else if (layer.equals("assembly")) {
                     // Accommodate both old shape files and new 2012 shape files
                     result.address.assembly_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
                     result.address.assembly_code = properties.has("SLDLST") ? properties.getInt("SLDLST") : properties.getInt("DISTRICT");
-                    break;
-                case SENATE:
+                } else if (layer.equals("senate")) {
                     // Accommodate both old shape files and new 2012 shape files
                     result.address.senate_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
                     result.address.senate_code = properties.has("SLDUST") ? properties.getInt("SLDUST") : properties.getInt("DISTRICT");
-                    break;
+                } else {
+                    result.status_code = "3";
+                    result.messages.add("Unidentified feature id "+feature.getString("id")+" found, aborting");
+                    return result;
                 }
-                results.add(result);
             }
-            return results;
+            return result;
 
         } catch (IOException e) {
             String msg = "Error opening API resource '"+result.source+"'";
@@ -250,31 +250,5 @@ public class GeoServer implements DistAssignInterface {
         }
         executor.shutdown();
         return results;
-    }
-
-
-    @Override
-    public Result assignDistricts(Address address, List<TYPE> types) {
-        if (address==null) return null;
-
-        Result result = new Result();
-        for (TYPE type : types) {
-            try {
-                Result typeResult = assignDistrict(address, type);
-
-                // Don't quit on one bad lookup, try them all but alter that status code
-                if (!typeResult.status_code.equals("0")) {
-                    result.status_code = typeResult.status_code;
-                    result.messages.addAll(typeResult.messages);
-                } else {
-                    // Accumulate districts on the result address
-                    address = typeResult.address;
-                }
-            } catch (DistException e) {
-                return null;
-            }
-        }
-        result.address = address;
-        return result;
     }
 }
