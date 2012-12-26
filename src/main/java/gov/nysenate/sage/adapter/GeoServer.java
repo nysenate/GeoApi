@@ -69,18 +69,9 @@ public class GeoServer implements DistAssignInterface {
             COUNTY_CODES.put(Integer.parseInt(parts[2]), Integer.parseInt(parts[0]));
         }
     }
-    public Result lookupByName(String name, DistrictService.TYPE type) {
-        String filter;
+    public Result getFeatures(String filter, DistrictService.TYPE type) {
         Result result = new Result();
         String geotype = "typename=nysenate:"+type.toString().toLowerCase();
-
-        if (type == DistrictService.TYPE.ELECTION) {
-            return null; //Election districts are non-unique and can't be looked up
-        } else if (type == DistrictService.TYPE.SCHOOL || type == DistrictService.TYPE.TOWN) {
-            filter = String.format("NAME LIKE '%s'",name);
-        } else {
-            filter = String.format("NAMELSAD LIKE '%s'",name);
-        }
 
         try {
             result.source = String.format(API_BASE+"&%s&CQL_FILTER=%s&outputformat=JSON", geotype, URLEncoder.encode(filter,"UTF-8"));
@@ -100,8 +91,8 @@ public class GeoServer implements DistAssignInterface {
                 JSONObject feature = features.getJSONObject(0);
                 JSONObject properties = feature.getJSONObject("properties");
                 result.status_code = "0";
-                result.address = new Address(name);
-                result.address.setGeocode(properties.getDouble("INTPTLAT"), properties.getDouble("INTPTLON"), 100);
+                result.address = new Address(filter);
+                //result.address.setGeocode(properties.getDouble("INTPTLAT"), properties.getDouble("INTPTLON"), 100);
             }
             return result;
         } catch (IOException e) {

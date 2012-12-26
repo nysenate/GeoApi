@@ -9,11 +9,9 @@ import gov.nysenate.sage.service.DistrictService;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -98,14 +96,6 @@ public class ApiController {
 		Connect c = new Connect();
 		Gson gson = new Gson();
 
-	    String in;
-		HashMap<Integer,String> map = new HashMap<Integer,String>();
-		BufferedReader br = new BufferedReader(new FileReader(zoomFile));
-		while((in = br.readLine()) != null) {
-			map.put(new Integer(in.split(":")[0]), in.split(":")[1]);
-		}
-		br.close();
-
 		FileUtils.forceMkdir(writeDirectory);
 
 		for(int i = 1; i <= 62; i++) {
@@ -113,27 +103,19 @@ public class ApiController {
 
 			PrintWriter pw = new PrintWriter(fw);
 
-			Result result = geoserver.lookupByName("State Senate District " + i, DistrictService.TYPE.SENATE);
+			Result result = geoserver.getFeatures("DISTRICT="+i, DistrictService.TYPE.SENATE);
+			if (!result.status_code.equals("0")) {
+			    System.out.println("ERROR: "+result.messages.get(0));
+			    continue;
+			}
+
 			SenateMapInfo smi;
 			Senate senate = (Senate) c.getObject(Senate.class, "district", "State Senate District " + i);
 
-			Pattern p = Pattern.compile("(\\d+) \\((.*?),(.*?)\\)");
-			Matcher m = p.matcher(map.get(i));
-
-			if(m.find()) {
-				smi = new SenateMapInfo(
-				        result.address.latitude,
-				        result.address.longitude,
-						new Double(m.group(1)),
-						new Double(m.group(2)),
-						new Double(m.group(3)),senate);
-			}
-			else {
-				smi = new SenateMapInfo(
-				        result.address.latitude,
-                        result.address.longitude,
-						new Double(map.get(i)),null,null,senate);
-			}
+			smi = new SenateMapInfo(
+			        result.address.latitude,
+                    result.address.longitude,
+					0,null,null,senate);
 
             if(geo)
                 pw.write(gson.toJson(smi));
