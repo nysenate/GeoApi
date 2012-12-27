@@ -108,8 +108,13 @@
             markers.setZIndex(vectorLayer.getZIndex());
             map.addLayer(markers);
         <% } %>
-    });
 
+        // Default to a zoom on NY State
+        map.zoomToExtent(new OpenLayers.Bounds(-80,40.38,-71.66,45.03).transform(
+                new OpenLayers.Projection("EPSG:4326"),
+                map.getProjectionObject()
+        ));
+    });
     </script>
 </head>
 <body>
