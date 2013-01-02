@@ -1,7 +1,8 @@
-package gov.nysenate.sage.BulkProcessing;
+package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
+import gov.nysenate.sage.BulkProcessing.Mailer;
 import gov.nysenate.sage.model.BulkProcessing.BulkFileType;
 import gov.nysenate.sage.model.BulkProcessing.BulkInterface;
 import gov.nysenate.sage.model.BulkProcessing.JobProcess;
@@ -32,7 +33,7 @@ import java.util.concurrent.Future;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
-public class Processor {
+public class ProcessBulkUploads {
 
     public class BatchResult {
         public ArrayList<Address> addressSet;
@@ -131,10 +132,10 @@ public class Processor {
     private final DistrictService districtService;
 
     public static void main(String[] args) throws Exception {
-        new Processor().process_files();
+        new ProcessBulkUploads().process_files();
     }
 
-	public Processor() throws Exception {
+	public ProcessBulkUploads() throws Exception {
 	    logger = Logger.getLogger(this.getClass());
 	    geoService = new GeoService();
 	    districtService = new DistrictService();

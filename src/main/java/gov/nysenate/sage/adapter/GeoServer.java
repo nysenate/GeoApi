@@ -141,6 +141,8 @@ public class GeoServer implements DistAssignInterface {
     }
 
     public Result assignDistricts(Address address, List<TYPE> types) throws DistException {
+        if (address == null) return null;
+
         Result result = new Result();
         result.address = address.clone();
 

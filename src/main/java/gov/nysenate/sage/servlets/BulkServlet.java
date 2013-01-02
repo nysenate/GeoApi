@@ -1,8 +1,8 @@
 package gov.nysenate.sage.servlets;
 
-import gov.nysenate.sage.BulkProcessing.Processor;
 import gov.nysenate.sage.model.BulkProcessing.BulkFileType;
 import gov.nysenate.sage.model.BulkProcessing.JobProcess;
+import gov.nysenate.sage.scripts.ProcessBulkUploads;
 import gov.nysenate.sage.util.Connect;
 import gov.nysenate.sage.util.Resource;
 
@@ -149,7 +149,7 @@ public class BulkServlet extends HttpServlet {
             // Transfer the file contents,
             //  * Count the records for estimation purposes.
             //  * Use the same line delimiter as the source file.
-            String newLine = Processor.getNewLineDelim(source);
+            String newLine = ProcessBulkUploads.getNewLineDelim(source);
             int count = 0;
             String in = null;
             target.write(header + newLine);
