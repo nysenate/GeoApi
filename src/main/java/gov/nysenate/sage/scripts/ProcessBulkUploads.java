@@ -190,8 +190,10 @@ public class ProcessBulkUploads {
                 process_file(source, dest, dfe, newLineDelim);
 
                 // Cleanup and move on
+                logger.info("Closing file handles.");
                 source.close();
                 dest.close();
+                logger.info("Sending out completion emails");
                 Mailer.mailAdminComplete(jp);
                 Mailer.mailUserComplete(jp);
                 logger.info("deleting job process for file " + jp.getFileName() + " after succesful completion");
@@ -234,10 +236,12 @@ public class ProcessBulkUploads {
                 records = originalBatches.get(i).recordSet;
             }
 
+            logger.info("Writing results for batch "+i+1);
             for (BulkInterface record : records) {
                 dest.write(record + newLine);
             }
         }
+        logger.info("Finished processing batches, shutting down threads.");
         geocodeExecutor.shutdown();
         distAssignExecutor.shutdown();
     }

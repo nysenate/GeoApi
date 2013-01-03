@@ -44,7 +44,7 @@ public class Mailer {
 										@Override
 										protected PasswordAuthentication getPasswordAuthentication() {
 											return new PasswordAuthentication(SMTP_ACCOUNT_USER, SMTP_ACCOUNT_PASS);}});
-		session.setDebug(false);
+
 		Message msg = new MimeMessage(session);
 		InternetAddress addressFrom = new InternetAddress(from);
 		addressFrom.setPersonal(fromDisplay);
