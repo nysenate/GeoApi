@@ -98,7 +98,7 @@ public class ApiController {
 
 		FileUtils.forceMkdir(writeDirectory);
 
-		for(int i = 1; i <= 62; i++) {
+		for(int i = 1; i <= 63; i++) {
 			FileWriter fw = new FileWriter(new File(writeDirectory,"/sd" + i + ".json"));
 
 			PrintWriter pw = new PrintWriter(fw);
