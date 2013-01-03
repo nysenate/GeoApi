@@ -20,6 +20,8 @@ import gov.nysenate.sage.util.Connect;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -57,7 +59,8 @@ public class DistrictsMethod extends ApiExecution {
                 }
             }
 
-            Result result = districtService.assignAll(address, "geoserver");
+            List<DistrictService.TYPE> types = Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.SCHOOL,DistrictService.TYPE.COUNTY,DistrictService.TYPE.TOWN);
+            Result result = districtService.assignDistricts(address, types, "geoserver");
             if (result == null || !result.status_code.equals("0")) {
                 dr.distassigned = false;
                 dr.errors.addAll(result.messages);
@@ -67,7 +70,8 @@ public class DistrictsMethod extends ApiExecution {
                 dr.setAssembly((Assembly)db.getObject(Assembly.class, "district", "Assembly District "+result.address.assembly_code));
                 dr.setCongressional((Congressional)db.getObject(Congressional.class, "district", "Congressional District "+result.address.congressional_code));
                 dr.setCounty(new County(result.address.county_name));
-                dr.setElection(new Election("Election District "+result.address.election_code));
+                // dr.setElection(new Election("Election District "+result.address.election_code));
+                dr.setElection(new Election(""));
                 dr.setSenate((Senate)db.getObject(Senate.class, "district", "State Senate District "+result.address.senate_code));
                 dr.setSchool(new School("School District "+result.address.school_code));
                 dr.setTown(new Town(result.address.town_code));

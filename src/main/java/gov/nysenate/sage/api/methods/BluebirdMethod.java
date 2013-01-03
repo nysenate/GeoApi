@@ -20,6 +20,8 @@ import gov.nysenate.sage.service.GeoService;
 import gov.nysenate.sage.service.GeoService.GeoException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -94,7 +96,8 @@ public class BluebirdMethod extends ApiExecution {
 
         dr.distassigned = false;
         try {
-            Result result = districtService.assignAll(address, "geoserver");
+            List<DistrictService.TYPE> types = Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.SCHOOL,DistrictService.TYPE.COUNTY,DistrictService.TYPE.TOWN);
+            Result result = districtService.assignDistricts(address, types, "geoserver");
 
             if (!result.status_code.equals("0")) {
                 dr.errors.addAll(result.messages);
@@ -105,8 +108,8 @@ public class BluebirdMethod extends ApiExecution {
                 dr.setAssembly(new Assembly(address.assembly_code+""));
                 dr.setCongressional(new Congressional(address.congressional_code+""));
                 dr.setCounty(new County(null,address.county_code+""));
-                dr.setElection(new Election(address.election_code+""));
-
+                //dr.setElection(new Election(address.election_code+""));
+                dr.setElection(new Election(""));
                 dr.setSenate(new Senate(address.senate_code+""));
                 dr.setSchool(new School(address.school_code+""));
                 dr.setTown(new Town(address.town_code));
