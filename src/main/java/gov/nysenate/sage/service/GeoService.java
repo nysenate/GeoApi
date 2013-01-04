@@ -76,14 +76,23 @@ public class GeoService {
     }
 
     public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter) throws GeoException {
-        return geoAdapters.get(adapter.toLowerCase()).geocode(addresses, Address.TYPE.MIXED);
+        return getAdapter(adapter).geocode(addresses, Address.TYPE.MIXED);
     }
 
     public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter, Address.TYPE hint) throws GeoException {
-        return geoAdapters.get(adapter.toLowerCase()).geocode(addresses, hint);
+        return getAdapter(adapter).geocode(addresses, hint);
     }
 
     public Result geocode(Address address, String adapter) throws GeoException {
-        return geoAdapters.get(adapter.toLowerCase()).geocode(address);
+        return getAdapter(adapter).geocode(address);
+    }
+
+    private GeocodeInterface getAdapter(String adapter) throws GeoException {
+        adapter = adapter.toLowerCase();
+        if (geoAdapters.containsKey(adapter)) {
+            return geoAdapters.get(adapter);
+        } else {
+            throw new GeoException("Adapter "+adapter+" not valid.");
+        }
     }
 }

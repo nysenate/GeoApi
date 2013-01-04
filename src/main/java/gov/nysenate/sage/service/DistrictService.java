@@ -68,10 +68,19 @@ public class DistrictService {
     }
 
     public ArrayList<Result> assignDistricts(ArrayList<Address> addresses, List<TYPE> types, String adapterName) throws DistException {
-        return adapters.get(adapterName).assignDistricts(addresses, types);
+        return getAdapter(adapterName).assignDistricts(addresses, types);
     }
 
     public Result assignDistricts(Address address, List<TYPE> types, String adapterName) throws DistException {
-        return adapters.get(adapterName).assignDistricts(address, types);
+        return getAdapter(adapterName).assignDistricts(address, types);
+    }
+
+    private DistAssignInterface getAdapter(String adapter) throws DistException {
+        adapter = adapter.toLowerCase();
+        if (adapters.containsKey(adapter)) {
+            return adapters.get(adapter);
+        } else {
+            throw new DistException("Adapter "+adapter+" not valid.");
+        }
     }
 }
