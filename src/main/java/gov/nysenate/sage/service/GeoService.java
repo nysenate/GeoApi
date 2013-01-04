@@ -73,10 +73,6 @@ public class GeoService {
         geoAdapters.put("geocoder", ruby);
         geoAdapters.put("rubygeocoder", ruby);
         geoAdapters.put("osm", osm);
-
-        // Reverse Geocoding hasn't been implemented yet
-        // revAdapters.put("yahoo", yahoo);
-        // revAdapters.put("mapquest", mapquest);
     }
 
     public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter) throws GeoException {
