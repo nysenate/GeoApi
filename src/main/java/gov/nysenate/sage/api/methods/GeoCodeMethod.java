@@ -85,7 +85,6 @@ public class GeoCodeMethod extends ApiExecution {
 
         try {
             ArrayList<Object> ret = new ArrayList<Object>();
-            System.out.println(service);
             ArrayList<Result> results = geoservice.geocode(addresses, service);
             for (Result result : results) {
                 if (result == null) {
