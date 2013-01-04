@@ -108,14 +108,29 @@ CREATE TABLE street_data (
   senate_code int(10) unsigned DEFAULT NULL,
   congressional_code int(10) unsigned DEFAULT NULL,
   town_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  ward_code int(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  senate_town_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  ward_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   school_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  cleg_code int(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  senate_school_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  cleg_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   cc_code int(10) COLLATE utf8_unicode_ci DEFAULT NULL,
   fire_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   city_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   vill_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  extra tinyint(1) DEFAULT NULL,
   PRIMARY KEY (id),
   KEY street (street),
-  KEY zip5 (zip5)
+  KEY town (town),
+  KEY zip5 (zip5),
+  KEY state (state),
+  KEY extra (extra)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+CREATE TABLE street_data_map (
+  map_col varchar(255) NOT NULL,
+  key_name varchar(255) DEFAULT NULL,
+  key_value varchar(255) DEFAULT NULL,
+  from_code varchar(255) NOT NULL,
+  to_code varchar(255) NOT NULL,
+  UNIQUE KEY map_col (map_col,key_name,key_value,from_code)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Map street data columns to senate preferred values.';
