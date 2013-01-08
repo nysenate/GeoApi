@@ -30,7 +30,6 @@ public class Config extends Observable{
             logger.debug(String.format("Fetching config[%s]=%s",key, value));
             value = resolveVariables(value);
             INSTANCE.properties.setProperty(key, value);
-            logger.debug(String.format("Returning config[%s]=%s",key, value));
             return value;
         } else {
             logger.warn("Missing config property: "+key);
@@ -73,20 +72,22 @@ public class Config extends Observable{
 
     private synchronized Properties loadProperties() {
         // Check lastModified every X milliseconds for changes
-        if (properties == null || (System.currentTimeMillis()-checkTime > checkInterval && propertyFile.lastModified() > readTime)) {
-            // Read new properties file...
-            properties = new Properties();
-            propertyFile = new File(getPropertiesPath());
-            readTime = System.currentTimeMillis();
-            logger.debug(String.format("(Re)Loading '%s' at: %d",propertyFile.getAbsolutePath(),readTime));
-            try {
-                properties.load(new FileReader(propertyFile));
-                setChanged();
-                notifyObservers();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                return null;
+        if (properties == null || System.currentTimeMillis()-checkTime > checkInterval) {
+            checkTime = System.currentTimeMillis();
+            if (propertyFile.lastModified() > readTime) {
+                // Read new properties file...
+                properties = new Properties();
+                propertyFile = new File(getPropertiesPath());
+                readTime = System.currentTimeMillis();
+                logger.debug(String.format("(Re)Loading '%s' at: %d",propertyFile.getAbsolutePath(),readTime));
+                try {
+                    properties.load(new FileReader(propertyFile));
+                    setChanged();
+                    notifyObservers();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    logger.error("Could not load propertyFile: "+propertyFile.getAbsolutePath(),e);
+                }
             }
         }
         return properties;

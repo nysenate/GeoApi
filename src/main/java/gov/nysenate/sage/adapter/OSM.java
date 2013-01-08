@@ -83,7 +83,7 @@ public class OSM implements GeocodeInterface {
         try {
             // Parse the API response
             result.source = "http://open.mapquestapi.com/nominatim/v1/search?format=json&q="
-                    + URLEncoder.encode(address.as_raw())
+                    + URLEncoder.encode(address.as_raw(), "UTF-8")
                     + "&addressdetails=1&limit=3&viewbox=-1.99%2C52.02%2C0.78%2C50.94";
             logger.info(result.source);
             page = Request.Get(result.source).execute().returnContent();

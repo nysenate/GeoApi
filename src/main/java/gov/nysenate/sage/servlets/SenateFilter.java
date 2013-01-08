@@ -3,7 +3,6 @@ package gov.nysenate.sage.servlets;
 import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -15,8 +14,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -39,8 +37,10 @@ public class SenateFilter implements Filter, Observer {
         ServletContext servletContext = filterConfig.getServletContext();
         String contextPath = servletContext.getContextPath();
 
-        Collection<String> apiMappings = servletContext.getServletRegistration("ApiServlet").getMappings();
-        apiFilter = contextPath+"("+StringUtils.join(apiMappings,"|")+").*";
+        // Requires Tomcat 7
+        // Collection<String> apiMappings = servletContext.getServletRegistration("ApiServlet").getMappings();
+        // apiFilter = contextPath+"("+StringUtils.join(apiMappings,"|")+").*";
+        apiFilter = contextPath+"/api/.*";
         logger.debug("Challenging requests for: "+apiFilter);
         configure();
     }
