@@ -74,7 +74,7 @@ public class Config extends Observable{
         // Check lastModified every X milliseconds for changes
         if (properties == null || System.currentTimeMillis()-checkTime > checkInterval) {
             checkTime = System.currentTimeMillis();
-            if (propertyFile.lastModified() > readTime) {
+            if (propertyFile == null || propertyFile.lastModified() > readTime) {
                 // Read new properties file...
                 properties = new Properties();
                 propertyFile = new File(getPropertiesPath());
