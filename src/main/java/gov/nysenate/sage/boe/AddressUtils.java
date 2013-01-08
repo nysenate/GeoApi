@@ -125,8 +125,10 @@ public class AddressUtils {
         int ad = base.assemblyCode;
         int county = base.countyCode;
         String school = base.schoolCode;
+        String senateSchool = base.senateSchoolCode;
         int ward = base.wardCode;
         String townCode = base.townCode;
+        String senateTownCode = base.senateTownCode;
         int ccCode = base.ccCode;
         int cleg = base.clegCode;
 
@@ -139,8 +141,8 @@ public class AddressUtils {
             if (range.countyCode != county) { county = 0; }
 
             // County Specific
-            if (range.schoolCode==null || !range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
-            if (range.townCode == null || !range.townCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode = ""; }
+            if (range.schoolCode==null || !range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; senateSchool = ""; }
+            if (range.townCode == null || !range.townCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode = ""; senateTownCode = ""; }
             if (range.clegCode != cleg || range.countyCode!=base.countyCode) { cleg = 0; }
 
             // Town specific
@@ -158,10 +160,12 @@ public class AddressUtils {
             range.electionCode = ed;
             range.congressionalCode = cong;
             range.schoolCode = school;
+            range.senateSchoolCode = senateSchool;
             range.wardCode = ward;
             range.clegCode = cleg;
             range.ccCode = ccCode;
             range.townCode = townCode;
+            range.senateTownCode = senateTownCode;
             range.countyCode = county;
             range.state = base.state;
             range.street = base.street;

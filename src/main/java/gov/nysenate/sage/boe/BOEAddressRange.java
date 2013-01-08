@@ -27,6 +27,9 @@ public class BOEAddressRange extends BOEAddress implements java.io.Serializable 
     public String aptHiChr;
     public String aptParity;
 
+    public String senateTownCode;
+    public String senateSchoolCode;
+
     @Override
     public String toString() {
         return id+" "+bldgLoNum+(bldgLoChr!=null ? bldgLoChr : "")+" - "+bldgHiNum+(bldgHiChr!=null ? bldgHiChr : "")+" ("+bldgParity+") "+street+" "+town+" "+zip5;
@@ -205,5 +208,21 @@ public class BOEAddressRange extends BOEAddress implements java.io.Serializable 
 
     public void setCcCode(int ccCode) {
         this.ccCode = ccCode;
+    }
+
+    public String getSenateTownCode() {
+        return senateTownCode;
+    }
+
+    public void setSenateTownCode(String senateTownCode) {
+        this.senateTownCode = senateTownCode;
+    }
+
+    public String getSenateSchoolCode() {
+        return senateSchoolCode;
+    }
+
+    public void setSenateSchoolCode(String senateSchoolCode) {
+        this.senateSchoolCode = senateSchoolCode;
     }
 }
