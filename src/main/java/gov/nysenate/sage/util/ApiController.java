@@ -89,6 +89,15 @@ public class ApiController {
         return user;
     }
 
+    public static ApiUser getUser(String apiKey) throws Exception {
+        Connect db = new Connect();
+        try {
+            return (ApiUser)db.getObject(ApiUser.class, "apikey", apiKey);
+        } finally {
+            db.close();
+        }
+    }
+
 	/*
 	 * used to write the json used for maps and for raw data
 	 */

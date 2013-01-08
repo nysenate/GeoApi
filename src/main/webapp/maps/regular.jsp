@@ -1,4 +1,4 @@
-<%@ page import="gov.nysenate.sage.util.Resource" %>
+<%@ page import="gov.nysenate.sage.util.Config" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -21,7 +21,7 @@
                 // Load the matching features from geoserver
                 protocol: new OpenLayers.Protocol.WFS({
                     version: "1.1.0",
-                    url: "<%=Resource.get("geoserver.url")%>/wfs",
+                    url: "<%=Config.read("geoserver.url")%>/wfs",
                     featurePrefix: 'nysenate', //geoserver worspace name
                     featureType: "senate", //geoserver Layer Name
                     geometryName: "geometry", // field in Feature Type details with type "Geometry"

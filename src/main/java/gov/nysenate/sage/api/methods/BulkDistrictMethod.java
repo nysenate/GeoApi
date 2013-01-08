@@ -55,7 +55,7 @@ public class BulkDistrictMethod extends ApiExecution {
     private final DistrictService districtService;
 
     public BulkDistrictMethod() throws Exception {
-        streetData = new DistrictLookup(DB.getDataSource());
+        streetData = new DistrictLookup(DB.INSTANCE.getDataSource());
         geoService = new GeoService();
         districtService = new DistrictService();
     }

@@ -4,7 +4,7 @@ package gov.nysenate.sage.connectors;
 import generated.dmv.AmsValidateResponse;
 import gov.nysenate.sage.model.ErrorResponse;
 import gov.nysenate.sage.model.ValidateResponse;
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.Config;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,7 +18,12 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.*;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
+import javax.xml.soap.SOAPConnection;
+import javax.xml.soap.SOAPConnectionFactory;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.soap.SOAPPart;
 import javax.xml.transform.stream.StreamSource;
 
 import com.google.gson.Gson;
@@ -35,9 +40,9 @@ public class DMVConnect {
 
 	public static String validateAddress(String addr, String city, String state, String zip, String punctuation, String format) throws Exception {
 		AmsValidateResponse avr = connect(constructSoap(addr,city,state,zip));
-		
+
 		Object response = null;
-		
+
 		if(avr.getAmsValidateResult().getSYSTEMMESSAGES().getMESSAGETEXT1() != null) {
 			response = new ErrorResponse(avr.getAmsValidateResult().getSYSTEMMESSAGES().getMESSAGETEXT1());
 		}
@@ -48,10 +53,10 @@ public class DMVConnect {
 			vr.setState(avr.getAmsValidateResult().getOUTPUT().getSTDSTATE());
 			vr.setZip4(Integer.toString(avr.getAmsValidateResult().getOUTPUT().getZIPADDON()));
 			vr.setZip5(Integer.toString(avr.getAmsValidateResult().getOUTPUT().getZIP()));
-			
+
 			response = vr;
 		}
-		
+
 		if(format.equals("xml")) {
 			XStream xstream = new XStream(new DomDriver());
 			xstream.processAnnotations(new Class[]{ValidateResponse.class, ErrorResponse.class});
@@ -60,7 +65,7 @@ public class DMVConnect {
 		Gson gson = new Gson();
 		return gson.toJson(response);
 	}
-	
+
 	private static AmsValidateResponse connect(String command) throws Exception {
 		// Create a trust manager that does not validate certificate chains
 		TrustManager[] trustAllCerts = new TrustManager[]{
@@ -76,7 +81,7 @@ public class DMVConnect {
 		        }
 		    }
 		};
-		
+
 		try {
 		    SSLContext sc = SSLContext.getInstance("SSL");
 		    sc.init(null, trustAllCerts, new java.security.SecureRandom());
@@ -87,53 +92,53 @@ public class DMVConnect {
 		// Create the connection
 		SOAPConnectionFactory scf = SOAPConnectionFactory.newInstance();
 		SOAPConnection conn = scf.createConnection();
-				
+
 		// Create message
 		MessageFactory mf = MessageFactory.newInstance();
 		SOAPMessage msg = mf.createMessage();
-							
+
 		// Object for message parts
 		SOAPPart sp = msg.getSOAPPart();
 		StreamSource prepMsg = new StreamSource(
 		  new StringReader(command));
 		sp.setContent(prepMsg);
-		
+
 		MimeHeaders hd = msg.getMimeHeaders();
         hd.addHeader("SOAPAction", "http://www.nysdmv.com/DMVAMSWS/AmsValidate");
         hd.addHeader("Host", "wsc.dmv.state.ny.us");
-		
+
 		// Save message
 		msg.saveChanges();
-				
+
 		// Send
-		SOAPMessage rp = conn.call(msg, Resource.get(DMV_URL));
-				
+		SOAPMessage rp = conn.call(msg, Config.read(DMV_URL));
+
 		// Get reply content
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		
+
 		rp.writeTo(baos);
-		
-		String response = baos.toString();		
+
+		String response = baos.toString();
 		conn.close();
-		
+
 		Pattern p = Pattern.compile("<AmsValidateResponse.*?</AmsValidateResponse>");
 		Matcher m = p.matcher(response);
-		
+
 		if(m.find()) {
 			response = response.substring(m.start(),m.end());
 		}
-				
+
 		return (AmsValidateResponse)parseStream(response);
-		
+
 	}
-	
+
 	private static String constructSoap(String addr, String city, String state, String zip) {
 		String soap = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:dmv=\"http://www.nysdmv.com/DMVAMSWS/\">"
 			+ "<soapenv:Header>"
 			+ "<wsse:Security xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\">"
-			+ "<wsse:UsernameToken wsu:Id=\"" + Resource.get(DMV_TOKEN) +"\" xmlns:wsu=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">"
-			+ "<wsse:Username>" + Resource.get(DMV_USER) + "</wsse:Username>"
-			+ "<wsse:Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText\">" + Resource.get(DMV_PASS) + "</wsse:Password>"
+			+ "<wsse:UsernameToken wsu:Id=\"" + Config.read(DMV_TOKEN) +"\" xmlns:wsu=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">"
+			+ "<wsse:Username>" + Config.read(DMV_USER) + "</wsse:Username>"
+			+ "<wsse:Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText\">" + Config.read(DMV_PASS) + "</wsse:Password>"
 			+ "</wsse:UsernameToken>"
 			+ "</wsse:Security>"
 			+ "</soapenv:Header>"
@@ -148,12 +153,12 @@ public class DMVConnect {
 			+ "</dmv:AmsValidate>"
 			+ "</soapenv:Body>"
 			+ "</soapenv:Envelope>";
-		
+
 		return soap;
 	}
-	
+
 	private static Object parseStream(String s) throws Exception{
-		
+
 		String packageName = "generated.dmv";
 		JAXBContext jc = JAXBContext.newInstance(packageName);
 		Unmarshaller u = jc.createUnmarshaller();

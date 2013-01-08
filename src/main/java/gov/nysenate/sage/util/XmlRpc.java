@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,16 +25,24 @@ import org.apache.xmlrpc.client.XmlRpcCommonsTransportFactory;
 
 
 @SuppressWarnings("unchecked")
-public class XmlRpc {
-	
-	private Logger logger = Logger.getLogger(XmlRpc.class);
+public class XmlRpc implements Observer{
+
+	private final Logger logger = Logger.getLogger(XmlRpc.class);
 
 	String SERVICES_URL = "http://www.nysenate.gov/services/xmlrpc";
-	String API_KEY = Resource.get("nysenate.key");
-	String DOMAIN = Resource.get("nysenate.domain");
-
+    String DOMAIN = Config.read("nysenate.domain");
+    String API_KEY = Config.read("nysenate.key");
 	String NODE_GET = "node.get";
 	String VIEWS_GET = "views.get";
+
+	public XmlRpc() {
+	    Config.notify(this);
+	}
+
+	public void update(Observable o, Object arg) {
+	    DOMAIN = Config.read("nysenate.domain");
+	    API_KEY = Config.read("nysenate.key");
+	}
 
 	public HashMap<String, Object> getMap(Object o) {
 
@@ -76,7 +86,7 @@ public class XmlRpc {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param viewName
 	 *            required
 	 * @param displayId
@@ -118,7 +128,7 @@ public class XmlRpc {
 		long time = (new Date()).getTime();
 		String nonce = generateServiceNonce(time);
 		String hash = generateServicesHash(time, nonce, methodName);
-		
+
 		List<Object> params = new ArrayList<Object>();
 		params.add(hash);
 		params.add(DOMAIN);
@@ -133,16 +143,16 @@ public class XmlRpc {
 
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
-			
+
 			byte[] md5Digest = md.digest(Long.toString(time).getBytes());
 
 			nonce = "";
 			for (byte b : md5Digest) {
 				nonce += String.format("%02x", b);
 			}
-			
+
 			return nonce.substring(0, 20);
-			
+
 		} catch (NoSuchAlgorithmException e) {
 			logger.warn(e);
 		}
@@ -157,24 +167,24 @@ public class XmlRpc {
 		Mac mac;
 		try {
 			mac = Mac.getInstance("HmacSHA256");
-			
+
 			SecretKeySpec secret = new SecretKeySpec(
 					API_KEY.getBytes(),"HmacSHA256");
-			
+
 			mac.init(secret);
-		
+
 			byte[] shaDigest = mac.doFinal(
 						(time + ";" +
 						DOMAIN + ";" +
 						nonce + ";" +
 						methodName).getBytes());
-			
+
 			hash = "";
-			
+
 			for (byte b : shaDigest) {
 				hash += String.format("%02x", b);
 			}
-			
+
 		} catch (NoSuchAlgorithmException e) {
 			logger.warn(e);
 		} catch (InvalidKeyException e) {
@@ -196,23 +206,23 @@ public class XmlRpc {
 
 	public Object getXmlRpcResponse(String methodName, List<Object> parameters) {
 		XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-		
+
 		try {
 			config.setServerURL(new URL(SERVICES_URL));
-			
+
 			XmlRpcClientRequestImpl req = new XmlRpcClientRequestImpl(config,
 					methodName, parameters);
-			
-			
-			
+
+
+
 			return getXmlRpcClient(config).execute(req);
-			
+
 		} catch (XmlRpcException e) {
 			logger.warn(e);
 		} catch (MalformedURLException e) {
 			logger.warn(e);
 		}
-		
+
 		return null;
 	}
 

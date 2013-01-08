@@ -36,7 +36,7 @@ public class Connect {
 	public Connection getConnection() {
 		if(connection == null) {
 			try {
-			    connection = DB.getDataSource().getConnection();
+			    connection = DB.INSTANCE.getDataSource().getConnection();
 			} catch (Exception e) {
 				logger.warn(e);
 			}

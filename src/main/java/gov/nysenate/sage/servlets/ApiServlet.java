@@ -25,7 +25,6 @@ import gov.nysenate.sage.model.ValidateResponse;
 import gov.nysenate.sage.model.districts.DistrictResponse;
 import gov.nysenate.sage.util.ApiController;
 import gov.nysenate.sage.util.Connect;
-import gov.nysenate.sage.util.Resource;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -48,7 +47,6 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class ApiServlet extends HttpServlet {
     private final Logger logger = Logger.getLogger(ApiServlet.class);
-    private Resource APP_CONFIG;
     private static final long serialVersionUID = 1L;
 
     HashMap<String,ApiMethod> methods = null;
@@ -60,7 +58,6 @@ public class ApiServlet extends HttpServlet {
 
         try {
             super.init(config);
-            APP_CONFIG = new Resource();
             methods = getMethods();
             control = new ApiController();
         } catch (Exception e) {
@@ -78,19 +75,18 @@ public class ApiServlet extends HttpServlet {
 
         StringTokenizer stok = new StringTokenizer(uri,"/");
 
-        String key = request.getParameter("key");
+
         String format = null;
         String command = null;
         String type = null;
 
         try {
-            ApiUser user = null;
+            String key = (String)request.getAttribute("api_key");
             if(key == null)
-                user = control.getUser(APP_CONFIG.fetch("user.default"),db);
-            else
-                user = control.getUser(key,db);
+                throw new ApiAuthenticationException();
 
-            if(user == null)
+            ApiUser user = control.getUser(key,db);
+            if (user == null)
                 throw new ApiAuthenticationException();
 
             format = stok.nextToken();
@@ -199,7 +195,7 @@ public class ApiServlet extends HttpServlet {
     }
 
 
-    @SuppressWarnings({ "unchecked", "serial" })
+    @SuppressWarnings("serial")
     public static HashMap<String, ApiMethod> getMethods() throws Exception {
         return new HashMap<String, ApiMethod>() {{
 

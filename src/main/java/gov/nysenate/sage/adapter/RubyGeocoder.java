@@ -4,7 +4,7 @@ import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
 import gov.nysenate.sage.service.GeoService.GeoException;
 import gov.nysenate.sage.service.GeoService.GeocodeInterface;
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -22,16 +22,14 @@ import org.json.JSONObject;
 public class RubyGeocoder implements GeocodeInterface {
     private final Logger logger;
     private final int BATCH_SIZE = 24;
-    private final Resource APP_CONFIG;
     private final String GEO_BASE;
     private final String GEO_BASE_BULK;
 
     public RubyGeocoder() throws Exception {
         logger = Logger.getLogger(this.getClass());
         logger.info("Initialized RubyGeocoder Adapter");
-        APP_CONFIG = new Resource();
-        GEO_BASE = APP_CONFIG.fetch("geocoder.url");
-        GEO_BASE_BULK = APP_CONFIG.fetch("geocoder_bulk.url");
+        GEO_BASE = Config.read("geocoder.url");
+        GEO_BASE_BULK = Config.read("geocoder_bulk.url");
     }
 
     @Override

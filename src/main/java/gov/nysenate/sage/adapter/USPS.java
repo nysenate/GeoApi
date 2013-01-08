@@ -3,7 +3,7 @@ package gov.nysenate.sage.adapter;
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
 import gov.nysenate.sage.service.AddressService.AddressInterface;
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -36,7 +36,7 @@ public class USPS implements AddressInterface {
     private final XPath xpath;
 
     public USPS() throws Exception {
-        API_ID = new Resource().fetch("usps.key");
+        API_ID = Config.read("usps.key");
         logger = Logger.getLogger(this.getClass());
         xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         xpath = XPathFactory.newInstance().newXPath();

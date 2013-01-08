@@ -4,7 +4,7 @@ import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
 import gov.nysenate.sage.service.GeoService.GeoException;
 import gov.nysenate.sage.service.GeoService.GeocodeInterface;
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -87,7 +87,7 @@ public class MapQuest implements GeocodeInterface{
         // Show only one result per location
         // Use XML output
         // Don't bother with the map thumbnail images
-        BASE_URL ="http://www.mapquestapi.com/geocoding/v1/batch?key="+new Resource().fetch("mapquest.key")+"&outFormat=xml&thumbMaps=false&maxResults=1";
+        BASE_URL ="http://www.mapquestapi.com/geocoding/v1/batch?key="+Config.read("mapquest.key")+"&outFormat=xml&thumbMaps=false&maxResults=1";
         logger.info("Initialized MapQuest Adapter");
     }
 

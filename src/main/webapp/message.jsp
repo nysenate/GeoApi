@@ -6,9 +6,9 @@
 %>
 <html>
 	<head>
-		<link href="/GeoApi/style.css" rel="stylesheet" type="text/css">
+		<link href="<%=request.getContextPath()%>/style.css" rel="stylesheet" type="text/css">
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-		<link href="/GeoApi/fileuploader.css" rel="stylesheet" type="text/css">
+		<link href="<%=request.getContextPath()%>/fileuploader.css" rel="stylesheet" type="text/css">
 		<title></title>
 		
 	</head>

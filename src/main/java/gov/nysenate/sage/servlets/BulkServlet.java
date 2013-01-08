@@ -3,8 +3,8 @@ package gov.nysenate.sage.servlets;
 import gov.nysenate.sage.model.BulkProcessing.BulkFileType;
 import gov.nysenate.sage.model.BulkProcessing.JobProcess;
 import gov.nysenate.sage.scripts.ProcessBulkUploads;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.Connect;
-import gov.nysenate.sage.util.Resource;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,6 +13,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -30,11 +32,9 @@ import org.json.JSONObject;
  * Servlet implementation class UploadServlet
  */
 @SuppressWarnings("serial")
-public class BulkServlet extends HttpServlet {
-    private Logger logger;
+public class BulkServlet extends HttpServlet implements Observer {
+    private final Logger logger = Logger.getLogger(BulkServlet.class);
     private File uploadDir;
-    private Resource appConfig;
-
     class SubmitException extends Exception {
         public SubmitException() { super(); }
         public SubmitException(String message) { super(message); }
@@ -48,22 +48,13 @@ public class BulkServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        logger = Logger.getLogger(BulkServlet.class);
-
-        try {
-            appConfig = new Resource();
-        } catch (IOException e) {
-            throw new ServletException("Could not open app.properties for reading.", e);
-        }
-
-        try {
-            uploadDir = new File(appConfig.fetch("bulk.uploads"));
-            FileUtils.forceMkdir(uploadDir);
-        } catch (IOException e) {
-            throw new ServletException("Could not create uploads folder.", e);
-        }
+        Config.notify(this);
+        configure();
     }
 
+    public void configure() {
+        uploadDir = getUploadDir();
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -127,6 +118,8 @@ public class BulkServlet extends HttpServlet {
     private void processUpload(HttpServletRequest request, HttpServletResponse response) throws IOException {
         logger.info("Processing File Upload");
 
+        BufferedReader source=null;
+        BufferedWriter target=null;
         try {
             String sourceFilename = request.getHeader("X-File-Name");
             if (sourceFilename == null)
@@ -134,8 +127,8 @@ public class BulkServlet extends HttpServlet {
 
             // Open the uploaded file and a writer to its new destination
             File targetFile = new File(uploadDir, + (new Date().getTime()) + "-" + sourceFilename.replaceAll("( |%20)","_"));
-            BufferedReader source = new BufferedReader(new InputStreamReader(request.getInputStream()));
-            BufferedWriter target = new BufferedWriter(new FileWriter(targetFile));
+            source = new BufferedReader(new InputStreamReader(request.getInputStream()));
+            target = new BufferedWriter(new FileWriter(targetFile));
 
             //Check BulkFileType enum to see if header is ok for processing
             String header = source.readLine();
@@ -157,8 +150,6 @@ public class BulkServlet extends HttpServlet {
                 target.write(in + newLine);
                 count++;
             }
-            source.close();
-            target.close();
 
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().print(new JSONObject()
@@ -180,6 +171,9 @@ public class BulkServlet extends HttpServlet {
         } catch (JSONException e) {
             logger.error(e);
             response.getWriter().print("{\"success\":false}");
+        } finally {
+            source.close();
+            target.close();
         }
     }
 
@@ -190,5 +184,20 @@ public class BulkServlet extends HttpServlet {
             }
         }
         return null;
+    }
+
+    public File getUploadDir() {
+        String uploadsFolder = Config.read("bulk.uploads");
+        File uploadDir = new File(uploadsFolder);
+        try {
+            FileUtils.forceMkdir(uploadDir);
+        }  catch (IOException e) {
+            logger.error("Could not ensure that '"+uploadsFolder+"' exists.",e);
+        }
+        return uploadDir;
+    }
+
+    public void update(Observable config, Object arg) {
+        configure();
     }
 }

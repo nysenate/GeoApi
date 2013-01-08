@@ -5,7 +5,7 @@ import generated.geocoder.GeocoderResult;
 import generated.geocoder.GeocoderResults;
 import gov.nysenate.sage.model.Point;
 import gov.nysenate.sage.model.abstracts.AbstractGeocoder;
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.Config;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -21,27 +21,27 @@ import com.google.gson.Gson;
 
 /**
  * @author Jared Williams
- * 
+ *
  * used to connect to Google maps API to geocode and reverse geocode, models for
  * response are located in package "generated.google"
  */
 public class GeocoderConnect implements AbstractGeocoder {
-	
-	private final String GEO_BASE = Resource.get("geocoder.url");
-	private final String GEO_BASE_BULK = Resource.get("geocoder_bulk.url");
-	
+
+	private final String GEO_BASE = Config.read("geocoder.url");
+	private final String GEO_BASE_BULK = Config.read("geocoder_bulk.url");
+
 	public GeocoderConnect() {
 
 	}
-	
+
 	public Point doParsing(String address) {
 		return getPoint(constructUrl(address));
 	}
-	
+
 	public Point doParsing(String addr, String city, String state, String zip4, String zip5) {
 		return getPoint(constructUrl(addr, city, state, zip4, zip5));
 	}
-	
+
 	public Point getPoint(String url) {
 		BufferedReader geo = null;
 		String json = null;
@@ -55,13 +55,13 @@ public class GeocoderConnect implements AbstractGeocoder {
 			e.printStackTrace();
 			return null;
 		}
-				
+
 		GeocoderResults result = getGeocoderResults(json);
-		
+
 		List<GeocoderResult> results = result.getGeocoderResults();
-		
+
 		GeocoderResult point =  null;
-		
+
 		try {
 			point = results.iterator().next();
 			return new Point(new Double(point.getLat()), new Double(point.getLon()));
@@ -70,24 +70,24 @@ public class GeocoderConnect implements AbstractGeocoder {
 			return null;
 		}
 	}
-	
+
 	public GeocoderResults getGeocoderResults(String json) {
 		Gson gson = new Gson();
-		return (GeocoderResults)gson.fromJson("{\"geocoderResults\":" + json + "}", GeocoderResults.class);
+		return gson.fromJson("{\"geocoderResults\":" + json + "}", GeocoderResults.class);
 	}
-	
+
 	public String constructUrl(String address) {
 		return GEO_BASE + "address=" + address;
 	}
-	
+
 	public String constructUrl(String addr, String city, String state, String zip4, String zip5) {
 		return GEO_BASE + "street=" + addr + "&city=" + city + "&state=" + state + "&zip=" + zip5;
 	}
-	
+
 	public List<Point> doBulkParsing(String json) throws UnsupportedEncodingException {
 		return getBulkPoints(constructBulkUrl(json));
 	}
-	
+
 	public List<Point> getBulkPoints(String url) {
 		BufferedReader geo = null;
 		String json = null;
@@ -101,11 +101,11 @@ public class GeocoderConnect implements AbstractGeocoder {
 			e.printStackTrace();
 			return null;
 		}
-						
+
 		GeocoderResults result = getGeocoderResults("[" + json + "]");
-		
+
 		List<GeocoderResult> results = result.getGeocoderResults();
-				
+
 		ArrayList<Point> points = new ArrayList<Point>();
 		for(GeocoderResult gr:results) {
 			try {
@@ -119,7 +119,7 @@ public class GeocoderConnect implements AbstractGeocoder {
 		return points;
 
 	}
-	
+
 	public String constructBulkUrl(String json) throws UnsupportedEncodingException {
 		return GEO_BASE_BULK + "json=" + URLEncoder.encode(json, "utf-8");
 	}
