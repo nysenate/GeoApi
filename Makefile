@@ -1,6 +1,6 @@
-# A simple Makefile for SAGE
+# Makefile - A simple Makefile for SAGE
 #
-# Project: Bluebird-CRM
+# Project: GeoApi / SAGE
 # Author: Ken Zalewski
 # Organization: New York State Senate
 # Date: 2013-01-08
