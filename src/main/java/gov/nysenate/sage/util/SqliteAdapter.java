@@ -1,25 +1,29 @@
 package gov.nysenate.sage.util;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
 public class SqliteAdapter {
-	private Logger logger = Logger.getLogger(SqliteAdapter.class);
-	
+	private final Logger logger = Logger.getLogger(SqliteAdapter.class);
+
 	private static SqliteAdapter sqliteAdapter = null;
-	
+
 	public static synchronized SqliteAdapter getInstance() {
 		if(sqliteAdapter == null) {
 			sqliteAdapter = new SqliteAdapter();
 		}
 		return sqliteAdapter;
 	}
-	
+
 	private Connection connection = null;
-	private final String sqliteLocation = Resource.get("sqlite.path");
-	
+	private final String sqliteLocation = Config.read("sqlite.path");
+
 	private SqliteAdapter() {
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -27,7 +31,7 @@ public class SqliteAdapter {
 			logger.error(e);
 		}
 	}
-	
+
 	private Connection getConnection() {
 		try {
 			if(connection == null || connection.isClosed()) {
@@ -36,10 +40,10 @@ public class SqliteAdapter {
 		} catch (SQLException e) {
 			logger.error(e);
 		}
-		
+
 		return connection;
 	}
-	
+
 	private void closeConnection() {
 		try {
 			if(!connection.isClosed()) {
@@ -49,7 +53,7 @@ public class SqliteAdapter {
 			logger.error(e);
 		}
 	}
-	
+
 	public ArrayList<String> getStreetsForZip(String zip) {
 		ArrayList<String> results = new ArrayList<String>();
 		if(zip.matches("\\d{5}")) {
@@ -57,20 +61,20 @@ public class SqliteAdapter {
 			try {
 				prep = getConnection().prepareStatement("select street from feature where zip=?");
 				prep.setInt(1, new Integer(zip));
-				
+
 				ResultSet rs = prep.executeQuery();
-				
+
 				while(rs.next()) {
 					results.add(rs.getString("street"));
 				}
-				
+
 				this.closeConnection();
-				
+
 				return results;
 			} catch (SQLException e) {
 				logger.error(e);
 			}
-			
+
 		}
 		return null;
 	}

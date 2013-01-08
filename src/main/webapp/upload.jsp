@@ -9,11 +9,12 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<link href="/GeoApi/style.css" rel="stylesheet" type="text/css">
+
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
-<script type="text/javascript" src="/GeoApi/js/fileuploader.js"></script>
-<link href="/GeoApi/fileuploader.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery.min.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/js/fileuploader.js"></script>
+<link href="<%=request.getContextPath()%>/style.css" rel="stylesheet" type="text/css">
+<link href="<%=request.getContextPath()%>/fileuploader.css" rel="stylesheet" type="text/css">
 <script type="text/javascript">
 $(document).ready(function() {
 	var canSubmit = false;

@@ -2,9 +2,18 @@ package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.StreetFile;
-import gov.nysenate.sage.boe.StreetFiles.*;
+import gov.nysenate.sage.boe.StreetFiles.Erie;
+import gov.nysenate.sage.boe.StreetFiles.Essex;
+import gov.nysenate.sage.boe.StreetFiles.NTS;
+import gov.nysenate.sage.boe.StreetFiles.NTSAlt;
+import gov.nysenate.sage.boe.StreetFiles.NYC;
+import gov.nysenate.sage.boe.StreetFiles.Nassau;
+import gov.nysenate.sage.boe.StreetFiles.Schoharie;
+import gov.nysenate.sage.boe.StreetFiles.Suffolk;
+import gov.nysenate.sage.boe.StreetFiles.Westchester;
+import gov.nysenate.sage.boe.StreetFiles.Wyoming;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
-import gov.nysenate.sage.util.Resource;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -14,13 +23,12 @@ import java.util.regex.Matcher;
 public class LoadStreetFiles {
 
     public static void main(String[] args) throws Exception {
-        Resource config = new Resource();
 
-        DataSource db = DB.getDataSource();
+        DataSource db = DB.INSTANCE.getDataSource();
 
         ArrayList<StreetFile> street_files = new ArrayList<StreetFile>();
 
-        File base_dir = new File(config.fetch("street_file.data"));
+        File base_dir = new File(Config.read("street_file.data"));
 
         street_files.add(new NTS(1, new File(base_dir, "Albany_County_Street_Index.txt")) {
             @Override

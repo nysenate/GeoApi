@@ -1,18 +1,22 @@
 package gov.nysenate.sage.servlets;
 
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -21,43 +25,62 @@ import org.apache.log4j.Logger;
  * filers application requests based on ip address and api requests based on ip
  * and api key
  */
-public class SenateFilter implements Filter {
+public class SenateFilter implements Filter, Observer {
     private Logger logger;
-    private final String SENATE_IP_RANGE = Resource.get("user.ip_filter");
+
+    private String ipFilter;
+    private String apiFilter;
+    private String defaultKey;
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        logger = Logger.getLogger(this.getClass());
+        Config.notify(this);
+        ServletContext servletContext = filterConfig.getServletContext();
+        String contextPath = servletContext.getContextPath();
+
+        Collection<String> apiMappings = servletContext.getServletRegistration("ApiServlet").getMappings();
+        apiFilter = contextPath+"("+StringUtils.join(apiMappings,"|")+").*";
+        logger.debug("Challenging requests for: "+apiFilter);
+        configure();
+    }
+
+    public void configure() {
+        ipFilter = Config.read("user.ip_filter");
+        defaultKey = Config.read("user.default");
+        logger.debug(String.format("Allowing access on %s via %s",ipFilter,defaultKey));
+    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        // Requests from outside the SENATE_IP_RANGE are redirected unless they
-        //  a. Supply a key to an API request [key is validated elsewhere]
-        //  b. Are requesting a GeoAPI/maps/* resource
         String key = request.getParameter("key");
-        String uri = ((HttpServletRequest)request).getRequestURI();
         String remote_ip = request.getRemoteAddr();
+        String uri = ((HttpServletRequest)request).getRequestURI();
+        if (key != null)
+            logger.debug(String.format("%s from %s using %s",uri, remote_ip,  key));
+        else
+            logger.debug(String.format("%s from %s using %s",uri, remote_ip,  "no key"));
 
-        logger.debug(String.format("%s - %s",remote_ip, uri));
-        if (!remote_ip.matches(SENATE_IP_RANGE)) {
+        // Challenge API Requests to authorize
+        if (uri.matches(apiFilter)) {
 
-            if (uri.matches("(/GeoApi)?/api/.*") && key==null) {
-                logger.debug("API Request Denied: Offsite Request Missing Key");
-                ((HttpServletResponse)response).sendRedirect("http://www.nysenate.gov");
-                return;
+            // Special IPs can use the default user
+            logger.debug(String.format("User key is '%s'",key));
+            if (key == null && remote_ip.matches(ipFilter)) {
+                key = defaultKey;
+                logger.debug("Using default user: "+key);
             }
 
-            if (!uri.matches("(/GeoApi)?(/maps/.*?)")) {
-                logger.debug("Application Request Denied. Offsite Request.");
-                ((HttpServletResponse)response).sendRedirect("http://www.nysenate.gov");
-                return;
-            }
+            request.setAttribute("api_key", key);
         }
 
         chain.doFilter(request, response);
     }
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        logger = Logger.getLogger(this.getClass());
-    }
-
-    @Override
     public void destroy() {}
+
+    public void update(Observable o, Object arg) {
+        configure();
+    }
 }

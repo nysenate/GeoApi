@@ -2,9 +2,9 @@ package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.util.ApiController;
 import gov.nysenate.sage.util.AssemblyScraper;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.sage.util.NYSenateServices;
-import gov.nysenate.sage.util.Resource;
 
 import java.io.File;
 
@@ -14,7 +14,6 @@ public class GenerateMetadata {
 
     public static void main(String[] args) throws Exception {
         ApiController controller = new ApiController();
-        Resource APP_CONFIG = new Resource();
 
         System.out.println("indexing assembly... ");
         new AssemblyScraper().index();
@@ -25,8 +24,8 @@ public class GenerateMetadata {
         System.out.println();
 
         File zoomFile = FileUtils.toFile(ClassLoader.getSystemResource("zoom"));
-        File writeDirectory = new File(APP_CONFIG.fetch("json.directory"));
-        File writeRawDirectory = new File(APP_CONFIG.fetch("json.raw_directory"));
+        File writeDirectory = new File(Config.read("json.directory"));
+        File writeRawDirectory = new File(Config.read("json.raw_directory"));
         System.out.println("Writing JSON");
         controller.writeJson(writeDirectory, zoomFile, true);
         System.out.println("Writing Raw JSON");

@@ -1,4 +1,4 @@
-var api = "/GeoApi/api/json/";
+var api = contextPath+"/api/json/";
 var districts = "districts/extended?";
 var geocode = "geocode/extended?";
 var revgeo = "revgeo/latlon/";

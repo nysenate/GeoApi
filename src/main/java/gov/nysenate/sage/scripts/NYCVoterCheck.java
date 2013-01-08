@@ -4,22 +4,20 @@ import gov.nysenate.sage.boe.AddressUtils;
 import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
-import gov.nysenate.sage.util.Resource;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-
 public class NYCVoterCheck {
 
     public static void main(String[] args) throws Exception {
-    	Resource config = new Resource();
-    	File base_dir = new File(config.fetch("voter_file.data"));
+    	File base_dir = new File(Config.read("voter_file.data"));
 //    	File voter_file = new File(base_dir, "Brooklyn-all.txt");
     	File voter_file = new File(base_dir, "Bronx-All.txt");
 //		File voter_file = new File(base_dir, "Manhattan-All.txt");
@@ -28,15 +26,15 @@ public class NYCVoterCheck {
 
         Pattern houseNumberPattern = Pattern.compile("([0-9]+)(?: |-)*([0-9]*)(.*)");
 
-        DistrictLookup streetData = new DistrictLookup(DB.getDataSource());
-             
+        DistrictLookup streetData = new DistrictLookup(DB.INSTANCE.getDataSource());
+
         int total = 0;
         int mismatch = 0;
         int match = 0;
         int nomatch = 0;
         int multimatch = 0;
         int skipped = 0;
-        
+
         String voter;
         BufferedReader br = new BufferedReader(new FileReader(voter_file));
         while ((voter = br.readLine()) != null) {
@@ -83,7 +81,7 @@ public class NYCVoterCheck {
                 Matcher house_number_matcher = houseNumberPattern.matcher(house_number);
                 if (house_number_matcher.find()) {
                     address.bldg_num = Integer.parseInt(house_number_matcher.group(1) + house_number_matcher.group(2));
-                    if (house_number_suffix == "") {                        
+                    if (house_number_suffix == "") {
                         address.bldg_chr = house_number_matcher.group(3);
                     } else {
                         address.bldg_chr = house_number_suffix;
@@ -93,7 +91,7 @@ public class NYCVoterCheck {
                     address.bldg_num = Integer.parseInt(house_number);
                     address.bldg_chr = house_number_suffix;
                 }
-                
+
                 address.street = street_name;
                 address.state = "NY";
                 // address.apt_num = Integer.parseInt(apt_number);
@@ -102,10 +100,10 @@ public class NYCVoterCheck {
                 address.congressionalCode = congress_district;
                 address.senateCode = senate_district;
                 AddressUtils.normalizeAddress(address);
-                        
+
                 List<BOEAddressRange> results = streetData.getRangesByHouse(address);
                 if (results.size() == 0) {
-                    nomatch++;                    
+                    nomatch++;
                     System.out.println("NOMATCH: "+ address);
                 } else if (results.size() > 1) {
                     multimatch++;
@@ -131,15 +129,15 @@ public class NYCVoterCheck {
                     skipped++;
                     continue;
                 }
-            
-            
+
+
             if (++total % 10000 == 0) {
                 System.out.println("TOTAL: "+total+"; MATCH: "+match+"("+((match/(float)total) * 100) +"%); MISMATCH: "+mismatch+"; MULTIMATCH: "+multimatch+"; NOMATCH: "+nomatch+"; SKIPPED: "+skipped);
              }
-        }        
+        }
         br.close();
         System.out.println("FINAL TOTAL: "+total+"; MATCH: "+match+"("+((match/(float)total) * 100) +"%); MISMATCH: "+mismatch+"; MULTIMATCH: "+multimatch+"; NOMATCH: "+nomatch+"; SKIPPED: "+skipped);
 
-    } 
-    
+    }
+
 }
