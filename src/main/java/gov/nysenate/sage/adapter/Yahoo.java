@@ -4,7 +4,7 @@ import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
 import gov.nysenate.sage.service.GeoService.GeoException;
 import gov.nysenate.sage.service.GeoService.GeocodeInterface;
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -26,19 +26,18 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.io.IOUtils;
+import oauth.signpost.OAuthConsumer;
+import oauth.signpost.basic.DefaultOAuthConsumer;
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import oauth.signpost.OAuthConsumer;  
-import oauth.signpost.basic.DefaultOAuthConsumer;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
 
 
 public class Yahoo implements GeocodeInterface {
@@ -48,7 +47,7 @@ public class Yahoo implements GeocodeInterface {
 
     private final String CONSUMER_KEY;
     private final String CONSUMER_SECRET;
-    
+
     public class ParallelRequest implements Callable<Result> {
         public final Yahoo yahoo;
         public final Address address;
@@ -68,13 +67,13 @@ public class Yahoo implements GeocodeInterface {
         logger = Logger.getLogger(this.getClass());
         xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         xpath = XPathFactory.newInstance().newXPath();
-        CONSUMER_KEY = new Resource().fetch("yahoo.consumer_key");
-        CONSUMER_SECRET = new Resource().fetch("yahoo.consumer_secret");
+        CONSUMER_KEY = Config.read("yahoo.consumer_key");
+        CONSUMER_SECRET = Config.read("yahoo.consumer_secret");
         logger.info("Initialized Yahoo Adapter");
     }
 
     // Yahoo doesn't implement batch geocoding so we use the single address geocoding
-    // method in parallel for performance improvements on our end.    
+    // method in parallel for performance improvements on our end.
     public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException {
         ArrayList<Result> results = new ArrayList<Result>();
         ExecutorService executor = Executors.newFixedThreadPool(5);
@@ -96,11 +95,11 @@ public class Yahoo implements GeocodeInterface {
         executor.shutdown();
         return results;
     }
-    
+
     @Override
     public Result geocode(Address address) throws GeoException {
         if (address==null) return null;
-        
+
         Document body = null;
         Result result = new Result();
 
@@ -108,7 +107,7 @@ public class Yahoo implements GeocodeInterface {
             // Parse the API response
             result.source = "http://yboss.yahooapis.com/geo/placefinder?location="+URLEncoder.encode(address.as_raw(), "UTF-8").replace("+", "%20");
             logger.info(result.source);
-            URL u = new URL(result.source);  
+            URL u = new URL(result.source);
             HttpURLConnection uc = (HttpURLConnection) u.openConnection();
             OAuthConsumer consumer = new DefaultOAuthConsumer(CONSUMER_KEY, CONSUMER_SECRET);
             consumer.sign(uc);
@@ -118,7 +117,7 @@ public class Yahoo implements GeocodeInterface {
                 result.messages.add(IOUtils.toString(uc.getErrorStream()));
                 return result;
             }
-            
+
             synchronized (xmlBuilder) {
                 body = xmlBuilder.parse(uc.getInputStream());
             }

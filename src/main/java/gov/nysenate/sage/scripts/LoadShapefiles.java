@@ -12,8 +12,8 @@ import gov.nysenate.sage.boe.StreetFiles.Schoharie;
 import gov.nysenate.sage.boe.StreetFiles.Suffolk;
 import gov.nysenate.sage.boe.StreetFiles.Westchester;
 import gov.nysenate.sage.boe.StreetFiles.Wyoming;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
-import gov.nysenate.sage.util.Resource;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,13 +24,12 @@ import javax.sql.DataSource;
 public class LoadShapefiles {
 
     public static void main(String[] args) throws Exception {
-        Resource config = new Resource();
 
-        DataSource db = DB.getDataSource();
+        DataSource db = DB.INSTANCE.getDataSource();
 
         ArrayList<StreetFile> street_files = new ArrayList<StreetFile>();
 
-        File base_dir = new File(config.fetch("street_file.data"));
+        File base_dir = new File(Config.read("street_file.data"));
 
         street_files.add(new NTS(1, new File(base_dir, "Albany_County_Street_Index.txt")) {
             @Override

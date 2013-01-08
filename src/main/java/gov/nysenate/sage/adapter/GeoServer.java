@@ -6,7 +6,7 @@ import gov.nysenate.sage.service.DistrictService;
 import gov.nysenate.sage.service.DistrictService.DistAssignInterface;
 import gov.nysenate.sage.service.DistrictService.DistException;
 import gov.nysenate.sage.service.DistrictService.TYPE;
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.Config;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +57,7 @@ public class GeoServer implements DistAssignInterface {
     HashMap<Integer, Integer> COUNTY_CODES;
 
     public GeoServer() throws Exception {
-        API_BASE = new Resource().fetch("geoserver.url")+"/wfs?service=WFS&version=1.1.0&request=GetFeature";
+        API_BASE = Config.read("geoserver.url")+"/wfs?service=WFS&version=1.1.0&request=GetFeature";
         logger = Logger.getLogger(this.getClass());
 
         COUNTY_CODES = new HashMap<Integer, Integer>();

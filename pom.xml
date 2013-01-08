@@ -26,8 +26,8 @@
           <plugin>
               <artifactId>maven-compiler-plugin</artifactId>
               <configuration>
-                  <source>1.6</source>
-                  <target>1.6</target>
+                  <source>1.7</source>
+                  <target>1.7</target>
               </configuration>
           </plugin>
       </plugins>
@@ -91,7 +91,6 @@
           <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
           <version>1.2.16</version>
-          <scope>compile</scope>
       </dependency>
       <dependency>
           <groupId>org.jdom</groupId>
@@ -165,9 +164,9 @@
     	<version>1.4.5</version>
     </dependency>
     <dependency>
-    	<groupId>javax.servlet</groupId>
-    	<artifactId>servlet-api</artifactId>
-    	<version>2.5</version>
+        <groupId>org.apache.tomcat</groupId>
+        <artifactId>tomcat-servlet-api</artifactId>
+        <version>7.0.34</version>
     </dependency>
     <dependency>
     	<groupId>org.jasypt</groupId>

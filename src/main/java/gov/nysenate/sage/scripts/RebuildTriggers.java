@@ -1,16 +1,17 @@
 package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.util.DB;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.tomcat.jdbc.pool.DataSource;
 
 import java.sql.SQLException;
+
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.tomcat.jdbc.pool.DataSource;
 
 public class RebuildTriggers {
 
     public static void main(String[] args) throws Exception{
 
-        DataSource db = DB.getDataSource();
+        DataSource db = DB.INSTANCE.getDataSource();
         QueryRunner runner = new QueryRunner(db);
 
         System.out.println("Rebuilding Triggers");

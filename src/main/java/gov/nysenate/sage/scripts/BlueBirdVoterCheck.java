@@ -4,8 +4,8 @@ import gov.nysenate.sage.boe.AddressUtils;
 import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
-import gov.nysenate.sage.util.Resource;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,9 +27,8 @@ public class BlueBirdVoterCheck {
 	}
     public static void main(String[] args) throws Exception {
     	Logger logger = Logger.getLogger(BlueBirdVoterCheck.class);
-    	Resource config = new Resource();
     	// TODO: Make sure to add this entry to your app.properties file!
-    	File base_dir = new File(config.fetch("voter_file.data"));
+    	File base_dir = new File(Config.read("voter_file.data"));
 
 //      File voter_file = new File(base_dir, "Albany County Home Only.TXT");
 //      File voter_file = new File(base_dir, "CattaraugusHomeOnly.TXT");
@@ -85,7 +84,7 @@ public class BlueBirdVoterCheck {
 
         Pattern houseNumberPattern = Pattern.compile("([0-9]+)(?: |-)*([0-9]*)(.*)");
 
-        DistrictLookup streetData = new DistrictLookup(DB.getDataSource());
+        DistrictLookup streetData = new DistrictLookup(DB.INSTANCE.getDataSource());
 
         int total = 0;
         int mismatch = 0;

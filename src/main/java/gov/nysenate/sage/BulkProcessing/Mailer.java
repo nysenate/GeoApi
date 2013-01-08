@@ -1,7 +1,7 @@
 package gov.nysenate.sage.BulkProcessing;
 
 import gov.nysenate.sage.model.BulkProcessing.JobProcess;
-import gov.nysenate.sage.util.Resource;
+import gov.nysenate.sage.util.Config;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -19,13 +19,13 @@ import javax.mail.internet.MimeMessage;
 
 
 public class Mailer {
-	private static final String SMTP_HOST_NAME = Resource.get("smtp.host");
-	private static final String SMTP_DEBUG = Resource.get("smtp.debug");
-	private static final String SMTP_ACTIVE = Resource.get("smtp.active");
-	private static final String SMTP_PORT = Resource.get("smtp.port");
-	private static final String SMTP_ACCOUNT_USER = Resource.get("smtp.user");
-	private static final String SMTP_ACCOUNT_PASS = Resource.get("smtp.pass");
-	private static final String STMP_USER = Resource.get("smtp.admin");
+	private static final String SMTP_HOST_NAME = Config.read("smtp.host");
+	private static final String SMTP_DEBUG = Config.read("smtp.debug");
+	private static final String SMTP_ACTIVE = Config.read("smtp.active");
+	private static final String SMTP_PORT = Config.read("smtp.port");
+	private static final String SMTP_ACCOUNT_USER = Config.read("smtp.user");
+	private static final String SMTP_ACCOUNT_PASS = Config.read("smtp.pass");
+	private static final String STMP_USER = Config.read("smtp.admin");
 
 	public static void sendMail(String to, String subject, String message, String from, String fromDisplay) throws Exception {
 	    if (!SMTP_ACTIVE.equals("true")) return;
@@ -120,7 +120,7 @@ public class Mailer {
 		try {
 			sendMail(jp.getContact(),
 					"SAGE Districting Completed",
-					"Your request from " + new Date(jp.getRequestTime()) + " has been completed and can be downloaded at "+Resource.get("smtp.context")+"/downloads/" + jp.getFileName() +
+					"Your request from " + new Date(jp.getRequestTime()) + " has been completed and can be downloaded at "+Config.read("smtp.context")+"/downloads/" + jp.getFileName() +
 					"<br/><br/>This is an automated message.",
 					STMP_USER,
 					"SAGE");

@@ -10,9 +10,9 @@ import gov.nysenate.sage.service.DistrictService;
 import gov.nysenate.sage.service.DistrictService.DistException;
 import gov.nysenate.sage.service.GeoService;
 import gov.nysenate.sage.service.GeoService.GeoException;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.Connect;
 import gov.nysenate.sage.util.DelimitedFileExtractor;
-import gov.nysenate.sage.util.Resource;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -123,7 +123,6 @@ public class ProcessBulkUploads {
 
 	private final Logger logger;
     private final FileLock lock;
-    private final Resource appConfig;
 
     private final File UPLOAD_DIR;
     private final File DOWNLOAD_DIR;
@@ -140,13 +139,12 @@ public class ProcessBulkUploads {
 	    geoService = new GeoService();
 	    districtService = new DistrictService();
 
-        appConfig = new Resource();
-        BATCH_SIZE = Integer.parseInt(appConfig.fetch("bulk.batch_size"));
-        GEOCODE_THREADS = Integer.parseInt(appConfig.fetch("bulk.threads.geocode"));
-        DISTASSIGN_THREADS = Integer.parseInt(appConfig.fetch("bulk.threads.distassign"));
-	    UPLOAD_DIR = new File(appConfig.fetch("bulk.uploads"));
+        BATCH_SIZE = Integer.parseInt(Config.read("bulk.batch_size"));
+        GEOCODE_THREADS = Integer.parseInt(Config.read("bulk.threads.geocode"));
+        DISTASSIGN_THREADS = Integer.parseInt(Config.read("bulk.threads.distassign"));
+	    UPLOAD_DIR = new File(Config.read("bulk.uploads"));
 	    FileUtils.forceMkdir(UPLOAD_DIR);
-	    DOWNLOAD_DIR = new File(appConfig.fetch("bulk.downloads"));
+	    DOWNLOAD_DIR = new File(Config.read("bulk.downloads"));
 	    FileUtils.forceMkdir(DOWNLOAD_DIR);
 
 	    // Grab a lock or fail
