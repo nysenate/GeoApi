@@ -22,19 +22,19 @@ SRC_DIR= src/main/java
 
 CLASSPATH=\
 	$(LOCAL_LIBDIR)/commons-dbutils-1.5.jar:\
-	$(LOCAL_LIBDIR)/commons-io-1.4.jar:\
-	$(LOCAL_LIBDIR)/commons-lang-2.5.jar:\
-	$(LOCAL_LIBDIR)/fluent-hc-4.2.1.jar:\
-	$(LOCAL_LIBDIR)/gson-1.4.jar:\
-	$(LOCAL_LIBDIR)/httpclient-4.2.1.jar:\
+	$(LOCAL_LIBDIR)/commons-io-2.4.jar:\
+	$(LOCAL_LIBDIR)/commons-lang3-3.1.jar:\
+	$(LOCAL_LIBDIR)/fluent-hc-4.2.2.jar:\
+	$(LOCAL_LIBDIR)/gson-2.2.2.jar:\
+	$(LOCAL_LIBDIR)/httpclient-4.2.2.jar:\
 	$(LOCAL_LIBDIR)/jasypt-1.9.0.jar:\
-	$(LOCAL_LIBDIR)/javax.mail-1.4.5.jar:\
-	$(LOCAL_LIBDIR)/json-20090211.jar:\
-	$(LOCAL_LIBDIR)/log4j-1.2.16.jar:\
-	$(LOCAL_LIBDIR)/signpost-core-1.2.jar:\
-	$(LOCAL_LIBDIR)/xmlrpc-client-3.0.jar:\
-	$(LOCAL_LIBDIR)/xmlrpc-common-3.0.jar:\
-	$(LOCAL_LIBDIR)/xstream-1.3.1.jar:\
+	$(LOCAL_LIBDIR)/javamail-1.4.5.jar:\
+	$(LOCAL_LIBDIR)/json-20121202.jar:\
+	$(LOCAL_LIBDIR)/log4j-1.2.17.jar:\
+	$(LOCAL_LIBDIR)/signpost-core-1.2.1.2.jar:\
+	$(LOCAL_LIBDIR)/xmlrpc-client-3.1.3.jar:\
+	$(LOCAL_LIBDIR)/xmlrpc-common-3.1.3.jar:\
+	$(LOCAL_LIBDIR)/xstream-1.4.3.jar:\
 	$(TOMCAT_LIBDIR)/servlet-api.jar:\
 	$(TOMCAT_LIBDIR)/tomcat-jdbc.jar:\
 	$(SRC_DIR)
@@ -43,7 +43,7 @@ CLASSPATH:= $(subst : ,:,$(CLASSPATH))
 JAVA_SRC= $(shell find $(SRC_DIR) -name "*.java")
 JAVA_OBJ= $(subst $(SRC_DIR),$(TARGET_DIR),$(JAVA_SRC:.java=.class))
 
-JFLAGS= -cp "$(CLASSPATH)" -d "$(TARGET_DIR)"
+JFLAGS= -cp "$(CLASSPATH)" -d "$(TARGET_DIR)" -Xlint:deprecation
 
 default: build
 
