@@ -182,7 +182,7 @@ public class USPS implements AddressInterface {
         for (int a=1; a <= addresses.size(); a++) {
             Address address = addresses.get(a-1);
             batchResults.add(new Result());
-            request += String.format("<Address ID=\"%s\"><Zip5>%s</Zip5></Address>", a-1, address.zip5);
+            request += String.format("<ZipCode ID=\"%s\"><Zip5>%s</Zip5></ZipCode>", a-1, address.zip5);
 
             // Stop here unless we've filled this batch request
             if (a%BATCH_SIZE != 0 && a != addresses.size()) continue;
@@ -191,6 +191,7 @@ public class USPS implements AddressInterface {
                 request += "</CityStateLookupRequest>";
                 url = API_BASE+"?API=CityStateLookup&XML="+URLEncoder.encode(request, "UTF-8");
                 logger.info(url);
+                logger.debug(request);
                 page = Request.Get(url).execute().returnContent();
                 response = xmlBuilder.parse(page.asStream());
 
@@ -208,7 +209,7 @@ public class USPS implements AddressInterface {
                     }
 
                 } else {
-                    NodeList responses = (NodeList)xpath.evaluate("AddressValidateResponse/Address", response, XPathConstants.NODESET);
+                    NodeList responses = (NodeList)xpath.evaluate("CityStateLookupResponse/ZipCode", response, XPathConstants.NODESET);
                     for (int i=0; i<responses.getLength(); i++) {
                         Node addressResponse = responses.item(i);
 
