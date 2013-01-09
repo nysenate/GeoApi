@@ -251,7 +251,7 @@ public class ApiServlet extends HttpServlet {
             put("citystatelookup", new ApiMethod("citystatelookup",
                 new CityStateLookupMethod(),
                 true,
-                new ArrayList<String>(Arrays.asList("extended")),
+                new ArrayList<String>(Arrays.asList("extended","zip")),
                 new ArrayList<String>(Arrays.asList("json", "xml")),
                 new ArrayList<Class<? extends Object>>(Arrays.asList(ValidateResponse.class, ErrorResponse.class))));
 

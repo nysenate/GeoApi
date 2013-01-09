@@ -25,10 +25,18 @@ public class CityStateLookupMethod extends ApiExecution {
 	@Override
 	public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiException {
         String type = more.get(RequestCodes.TYPE.code());
-        if(!type.equals("extended"))
-            throw new ApiTypeException(type);
+        Address address;
 
-        Result result = addressService.lookupCityState(new Address("","","","",request.getParameter("zip5"),""),"usps");
+        System.out.println(type);
+        if(type.equals("extended")) {
+            address = new Address("","","","",request.getParameter("zip5"),"");
+        } else if (type.equals("zip")) {
+            address = new Address("","","","",more.get(RequestCodes.ZIP.code()),"");
+        } else {
+            throw new ApiTypeException(type);
+        }
+
+        Result result = addressService.lookupCityState(address,"usps");
 
         if (result==null) {
             throw new ApiInternalException();
