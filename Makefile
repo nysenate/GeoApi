@@ -19,6 +19,7 @@ TOMCAT_LIBDIR= /opt/tomcat/lib
 
 JAVAC= javac
 SRC_DIR= src/main/java
+LIB_DIR= lib
 
 CLASSPATH=\
 	$(LOCAL_LIBDIR)/commons-dbutils-1.5.jar:\
@@ -29,7 +30,6 @@ CLASSPATH=\
 	$(LOCAL_LIBDIR)/httpclient-4.2.2.jar:\
 	$(LOCAL_LIBDIR)/jasypt-1.9.0.jar:\
 	$(LOCAL_LIBDIR)/javamail-1.4.5.jar:\
-	$(LOCAL_LIBDIR)/json-20121202.jar:\
 	$(LOCAL_LIBDIR)/log4j-1.2.17.jar:\
 	$(LOCAL_LIBDIR)/signpost-core-1.2.1.2.jar:\
 	$(LOCAL_LIBDIR)/xmlrpc-client-3.1.3.jar:\
@@ -37,8 +37,16 @@ CLASSPATH=\
 	$(LOCAL_LIBDIR)/xstream-1.4.3.jar:\
 	$(TOMCAT_LIBDIR)/servlet-api.jar:\
 	$(TOMCAT_LIBDIR)/tomcat-jdbc.jar:\
+	$(LIB_DIR)/json-20121202.jar:\
 	$(SRC_DIR)
 CLASSPATH:= $(subst : ,:,$(CLASSPATH))
+
+# JARs that are not necessary for compilation, but are used at runtime
+RUNTIME_JARS=\
+	$(LOCAL_LIBDIR)/commons-codec-1.7.jar:\
+	$(LOCAL_LIBDIR)/commons-logging-1.1.1.jar:\
+	$(LOCAL_LIBDIR)/httpcore-4.3-alpha1.jar:\
+	$(LOCAL_LIBDIR)/mysql-connector-java-5.1.22.jar
 
 JAVA_SRC= $(shell find $(SRC_DIR) -name "*.java")
 JAVA_OBJ= $(subst $(SRC_DIR),$(TARGET_DIR),$(JAVA_SRC:.java=.class))
