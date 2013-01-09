@@ -36,6 +36,7 @@ public class DistrictsMethod extends ApiExecution {
     }
 
     public Object getDistricts(Address address, String service) throws ApiInternalException {
+        Connect db = new Connect();
         try {
             DistrictResponse dr = new DistrictResponse();
             dr.validated = false;
@@ -66,7 +67,6 @@ public class DistrictsMethod extends ApiExecution {
                 dr.errors.addAll(result.messages);
 
             } else {
-                Connect db = new Connect();
                 dr.setAssembly((Assembly)db.getObject(Assembly.class, "district", "Assembly District "+result.address.assembly_code));
                 dr.setCongressional((Congressional)db.getObject(Congressional.class, "district", "Congressional District "+result.address.congressional_code));
                 dr.setCounty(new County(result.address.county_name));
@@ -84,6 +84,8 @@ public class DistrictsMethod extends ApiExecution {
             throw new ApiInternalException("Unable to connect to database.", e);
         } catch (Exception e) {
             throw new ApiInternalException("Error retrieving object.", e);
+        } finally {
+            db.close();
         }
     }
 
