@@ -55,7 +55,7 @@ public enum DB implements Observer {
         p.setTestWhileIdle(false);
         p.setValidationQuery("SELECT 1");
 
-        // Connections are considered abandoned after staying opne for 60+ seconds
+        // Connections are considered abandoned after staying open for 60+ seconds
         // This should be set to longer than the longest expected query!
         p.setLogAbandoned(true);
         p.setRemoveAbandoned(true);
