@@ -45,7 +45,7 @@ CLASSPATH:= $(subst : ,:,$(CLASSPATH))
 RUNTIME_JARS=\
 	$(LOCAL_LIBDIR)/commons-codec-1.7.jar:\
 	$(LOCAL_LIBDIR)/commons-logging-1.1.1.jar:\
-	$(LOCAL_LIBDIR)/httpcore-4.3-alpha1.jar:\
+	$(LOCAL_LIBDIR)/httpcore-4.2.3.jar:\
 	$(LOCAL_LIBDIR)/mysql-connector-java-5.1.22.jar:\
 	$(LOCAL_LIBDIR)/sqlite-jdbc-3.7.2.jar
 
