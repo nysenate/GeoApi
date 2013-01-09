@@ -129,13 +129,8 @@ public class ProcessBulkUploads {
     private final DistrictService districtService;
 
 
-    public static void main(String[] args) {
-        try {
-            new ProcessBulkUploads().process_files();
-        }
-        catch (Exception ex) {
-            System.err.println("Unable to process bulk upload: "+ex.getMessage());
-        }
+    public static void main(String[] args) throws Exception {
+        new ProcessBulkUploads().process_files();
     }
 
 
@@ -161,7 +156,8 @@ public class ProcessBulkUploads {
             lockFile.deleteOnExit();
         }
         else {
-            throw new IOException("Lock file ["+lockFile.getAbsolutePath()+"] already exists");
+            System.err.println("Lock file ["+lockFile.getAbsolutePath()+"] already exists; exiting immediately");
+            System.exit(1);
         }
     }
 
