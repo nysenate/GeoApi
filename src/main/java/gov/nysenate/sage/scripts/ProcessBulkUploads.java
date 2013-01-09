@@ -17,12 +17,10 @@ import gov.nysenate.sage.util.DelimitedFileExtractor;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.CharBuffer;
-import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -117,12 +115,12 @@ public class ProcessBulkUploads {
         }
     }
 
-	final int BATCH_SIZE;
-	final int GEOCODE_THREADS;
-	final int DISTASSIGN_THREADS;
+    final int BATCH_SIZE;
+    final int GEOCODE_THREADS;
+    final int DISTASSIGN_THREADS;
 
-	private final Logger logger;
-    private final FileLock lock;
+    private static final String TEMP_FILENAME = "bulk_process.lock";
+    private final Logger logger;
 
     private final File UPLOAD_DIR;
     private final File DOWNLOAD_DIR;
@@ -130,30 +128,43 @@ public class ProcessBulkUploads {
     private final GeoService geoService;
     private final DistrictService districtService;
 
-    public static void main(String[] args) throws Exception {
-        new ProcessBulkUploads().process_files();
+
+    public static void main(String[] args) {
+        try {
+            new ProcessBulkUploads().process_files();
+        }
+        catch (Exception ex) {
+            System.err.println("Unable to process bulk upload: "+ex.getMessage());
+        }
     }
 
-	public ProcessBulkUploads() throws Exception {
-	    logger = Logger.getLogger(this.getClass());
-	    geoService = new GeoService();
-	    districtService = new DistrictService();
+
+    public ProcessBulkUploads() throws Exception {
+        logger = Logger.getLogger(this.getClass());
+        geoService = new GeoService();
+        districtService = new DistrictService();
 
         BATCH_SIZE = Integer.parseInt(Config.read("bulk.batch_size"));
         GEOCODE_THREADS = Integer.parseInt(Config.read("bulk.threads.geocode"));
         DISTASSIGN_THREADS = Integer.parseInt(Config.read("bulk.threads.distassign"));
-	    UPLOAD_DIR = new File(Config.read("bulk.uploads"));
-	    FileUtils.forceMkdir(UPLOAD_DIR);
-	    DOWNLOAD_DIR = new File(Config.read("bulk.downloads"));
-	    FileUtils.forceMkdir(DOWNLOAD_DIR);
+        UPLOAD_DIR = new File(Config.read("bulk.uploads"));
+        FileUtils.forceMkdir(UPLOAD_DIR);
+        DOWNLOAD_DIR = new File(Config.read("bulk.downloads"));
+        FileUtils.forceMkdir(DOWNLOAD_DIR);
 
-	    // Grab a lock or fail
-	    File lockFile = FileUtils.toFile(this.getClass().getClassLoader().getResource(".job_lock_file"));
-	    lock = new FileOutputStream(lockFile).getChannel().tryLock();
-        if (lock == null) {
-            throw new Exception("Cannot acquire job lock.");
+        // If the lock file already exists, then fail.  Otherwise, create
+        // it and arrange for it to be automatically deleted on exit.
+        String tempDir = System.getProperty("java.io.tmpdir", "/tmp");
+        File lockFile = new File(tempDir, TEMP_FILENAME);
+        boolean rc = lockFile.createNewFile();
+        if (rc == true) {
+            lockFile.deleteOnExit();
         }
-	}
+        else {
+            throw new IOException("Lock file ["+lockFile.getAbsolutePath()+"] already exists");
+        }
+    }
+
 
     public void process_files() throws IOException {
         Connect db = new Connect();
@@ -285,44 +296,44 @@ public class ProcessBulkUploads {
         return new BatchResult(addressSet,recordSet);
     }
 
-	public String padLeft(String string, String padWith, int length) {
-		while(string.length() < length)
-			string = padWith + string;
-		return string;
-	}
+    public String padLeft(String string, String padWith, int length) {
+        while(string.length() < length)
+            string = padWith + string;
+        return string;
+    }
 
-	public BulkFileType getBulkFileType(Class<? extends BulkInterface> clazz) {
-		for(BulkFileType bulkFileType:BulkFileType.values()) {
-			if(bulkFileType.clazz().equals(clazz))
-				return bulkFileType;
-		}
-		return null;
-	}
+    public BulkFileType getBulkFileType(Class<? extends BulkInterface> clazz) {
+        for(BulkFileType bulkFileType:BulkFileType.values()) {
+            if(bulkFileType.clazz().equals(clazz))
+                return bulkFileType;
+        }
+        return null;
+    }
 
-	/*
-	 * @author: Jared Williams
-	 *
-	 * Determine the line-ending type of the contents of a BufferedReader.
-	 */
-	public static String getNewLineDelim(BufferedReader br) throws IOException {
-	    // Create a CharBuffer to store the first line + line ending then reset
-		br.mark(65535);
-		int size = br.readLine().length();
-		CharBuffer cb = CharBuffer.allocate(size + 2);
-		br.reset();
+    /*
+     * @author: Jared Williams
+     *
+     * Determine the line-ending type of the contents of a BufferedReader.
+     */
+    public static String getNewLineDelim(BufferedReader br) throws IOException {
+        // Create a CharBuffer to store the first line + line ending then reset
+        br.mark(65535);
+        int size = br.readLine().length();
+        CharBuffer cb = CharBuffer.allocate(size + 2);
+        br.reset();
 
-		// Fill the CharBuffer and isolate the line ending characters.
-		br.read(cb);
-		br.reset();
-		String lineEnding = new String(cb.array()).substring(size);
+        // Fill the CharBuffer and isolate the line ending characters.
+        br.read(cb);
+        br.reset();
+        String lineEnding = new String(cb.array()).substring(size);
 
-		// Use regex to determine the line ending because the
-		// second byte could be part of the next line.
-		if(lineEnding.matches("\r\n"))
-			return "\r\n";
-		else if(lineEnding.matches("\r."))
-			return "\r";
-		else
-			return "\n";
-	}
+        // Use regex to determine the line ending because the
+        // second byte could be part of the next line.
+        if(lineEnding.matches("\r\n"))
+            return "\r\n";
+        else if(lineEnding.matches("\r."))
+            return "\r";
+        else
+            return "\n";
+    }
 }
