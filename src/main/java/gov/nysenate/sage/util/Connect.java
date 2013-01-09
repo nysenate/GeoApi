@@ -38,7 +38,8 @@ public class Connect {
 			try {
 			    connection = DB.INSTANCE.getDataSource().getConnection();
 			} catch (Exception e) {
-				logger.warn(e);
+				logger.error(e);
+				e.printStackTrace();
 			}
 		}
 		return connection;
