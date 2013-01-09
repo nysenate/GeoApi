@@ -38,15 +38,16 @@ public class RebuildTriggers {
             "(SELECT `to_code` FROM `street_data_map`\n" +
             " WHERE `map_col` = 'town_code' \n" +
             " AND `county_code` = NEW.county_code\n" +
-            " AND `from_code` = TRIM(LEADING '0' FROM NEW.town_code)\n" +
+            " AND (`from_code` = TRIM(LEADING '0' FROM NEW.town_code) OR `to_code` = NEW.town_code)\n" +
             ");\n" +
             "SET NEW.senate_school_code = \n" +
             "(SELECT `to_code` FROM `street_data_map`\n" +
             " WHERE `map_col` = 'school_code'\n" +
             " AND `county_code` = NEW.county_code\n" +
-            " AND `from_code` = TRIM(LEADING '0' FROM NEW.school_code)\n" +
+            " AND (`from_code` = TRIM(LEADING '0' FROM NEW.school_code) OR `to_code` = TRIM(LEADING '0' FROM NEW.school_code))\n" +
             ");\n" +
             "END;\n");
+
         System.out.println("Rebuilt senate school and town check trigger.");
     }
 
