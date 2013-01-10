@@ -7,6 +7,7 @@ import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.boe.AddressUtils;
 import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.BOEStreetAddress;
+import gov.nysenate.sage.boe.BluebirdAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
 import gov.nysenate.sage.model.ApiExecution;
 import gov.nysenate.sage.service.DistrictService;
@@ -37,18 +38,6 @@ import org.json.JSONObject;
 
 public class BulkDistrictMethod extends ApiExecution {
     private final Logger logger = Logger.getLogger(BulkDistrictMethod.class);
-
-    private class BluebirdAddress extends BOEStreetAddress {
-        public String id;
-        public double latitude;
-        public double longitude;
-        public int geo_accuracy;
-        public boolean parse_failure;
-        public String parse_message;
-        public String geo_method;
-
-        public BluebirdAddress(String id) { this.id = id; }
-    }
 
     private final GeoService geoService;
     private final DistrictLookup streetData;
@@ -82,7 +71,6 @@ public class BulkDistrictMethod extends ApiExecution {
         } catch (JSONException e) {
             return null;
         }
-
     }
 
     private BluebirdAddress jsonToAddress(String id, JSONObject json) throws JSONException {
@@ -257,50 +245,6 @@ public class BulkDistrictMethod extends ApiExecution {
         }
     }
 
-    private BOEAddressRange SAGE2Range(Address address) {
-        if (address == null) {
-            return null;
-        }
-
-        BOEAddressRange range = new BOEAddressRange();
-        range.street = address.addr2;
-        range.town = address.city;
-        range.state = address.state;
-        try {
-            range.zip5 = Integer.parseInt(address.zip5);
-        } catch (NumberFormatException e) {
-            range.zip5 = 0;
-        }
-        range.assemblyCode = address.assembly_code;
-        range.congressionalCode = address.congressional_code;
-        range.senateCode = address.senate_code;
-        range.countyCode = address.county_code;
-        range.clegCode = address.cleg_code;
-        range.schoolCode = address.school_code;
-        range.wardCode = address.ward_code;
-        range.townCode = address.town_code;
-        return range;
-    }
-
-    private Address Bluebird2SAGE(BluebirdAddress address) {
-        if (address == null) {
-            return null;
-        }
-
-        String street_address = "";
-        if (address.bldg_num != 0) { street_address += address.bldg_num; }
-        if (address.bldg_chr != null && !address.bldg_chr.isEmpty()) { street_address += address.bldg_chr; }
-        if (address.street != null && !address.street.isEmpty()) { street_address += " "+address.street; }
-        Address sageAddress = new Address(
-            street_address.trim(),
-            address.town,
-            address.state,
-            (address.zip5 != 0) ? String.valueOf(address.zip5) : ""
-        );
-        sageAddress.setGeocode(address.latitude, address.longitude, address.geo_accuracy);
-        return sageAddress;
-    }
-
     public class DelayResult implements Callable<BulkResult> {
         public final BulkResult result;
 
@@ -326,7 +270,7 @@ public class BulkDistrictMethod extends ApiExecution {
 
         public BulkResult call() {
             // Fall back to shape files
-            Address sageAddress = Bluebird2SAGE(address);
+            Address sageAddress = AddressUtils.convertBluebirdToSAGE(address);
             if (!sageAddress.is_geocoded()) {
 
                 // Unless explicitly disabled by a user option.
@@ -413,7 +357,7 @@ public class BulkDistrictMethod extends ApiExecution {
                  return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Exception for: "+sageAddress, address, new BOEAddressRange() );
             }
 
-            BOEAddressRange addressRange = SAGE2Range(sageAddress);
+            BOEAddressRange addressRange = AddressUtils.convertSageToRange(sageAddress);
             return new BulkResult(BulkResult.STATUS.SHAPEFILE, "SHAPEFILE MATCH for "+sageAddress, address, addressRange );
         }
     }

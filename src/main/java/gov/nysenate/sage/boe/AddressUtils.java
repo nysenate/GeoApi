@@ -1,5 +1,7 @@
 package gov.nysenate.sage.boe;
 
+import gov.nysenate.sage.Address;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -15,7 +17,7 @@ public class AddressUtils {
     public static Pattern addrPattern = null;
 
     public static BOEStreetAddress parseAddress(String address) {
-        load_constants();
+        loadConstants();
         Matcher m = addrPattern.matcher(address.toUpperCase());
         if (m.find()) {
             if (DEBUG) {
@@ -48,7 +50,7 @@ public class AddressUtils {
     }
 
     public static BOEAddress normalizeAddress(BOEAddress address) {
-        load_constants();
+        loadConstants();
         if (address.town != null && !address.town.equals("")) {
             address.town = address.town.toUpperCase().trim();
             // Fix up the towns
@@ -180,7 +182,53 @@ public class AddressUtils {
 
     }
 
-    public static void load_constants() {
+    public static BOEAddressRange convertSageToRange(Address address) {
+        if (address == null) {
+            return null;
+        }
+
+        BOEAddressRange range = new BOEAddressRange();
+        range.street = address.addr2;
+        range.town = address.city;
+        range.state = address.state;
+        try {
+            range.zip5 = Integer.parseInt(address.zip5);
+        } catch (NumberFormatException e) {
+            range.zip5 = 0;
+        }
+        range.assemblyCode = address.assembly_code;
+        range.congressionalCode = address.congressional_code;
+        range.senateCode = address.senate_code;
+        range.countyCode = address.county_code;
+        range.clegCode = address.cleg_code;
+        range.schoolCode = address.school_code;
+        range.wardCode = address.ward_code;
+        range.townCode = address.town_code;
+        return range;
+    }
+
+    public static Address convertBluebirdToSAGE(BluebirdAddress address) {
+        if (address == null) {
+            return null;
+        }
+
+        String street_address = "";
+        if (address.bldg_num != 0) { street_address += address.bldg_num; }
+        if (address.bldg_chr != null && !address.bldg_chr.isEmpty()) { street_address += address.bldg_chr; }
+        if (address.street != null && !address.street.isEmpty()) { street_address += " "+address.street; }
+
+        Address sageAddress = new Address(
+                street_address.trim(),
+                address.town,
+                address.state,
+                (address.zip5 != 0) ? String.valueOf(address.zip5) : ""
+        );
+
+        sageAddress.setGeocode(address.latitude, address.longitude, address.geo_accuracy);
+        return sageAddress;
+    }
+
+    public static void loadConstants() {
         if (addrPattern!=null && suffixMap != null)
             return;
 
@@ -190,8 +238,8 @@ public class AddressUtils {
         String city = "([A-Z. '-]+?)";
         String street = "((?: ?[-.'A-Z0-9]){2,}?)";
         String building = "(?:([0-9]+)([A-Z]|-[0-9]+| 1/2)?)";
-//        String building = "(?:([0-9]+)(?:[ -]*([A-Z]|[0-9]+|1/2)?))";
-     // String apt_number = "([0-9]+)?(?:[ -]?([A-Z]))?"; // Old
+        // String building = "(?:([0-9]+)(?:[ -]*([A-Z]|[0-9]+|1/2)?))";
+        // String apt_number = "([0-9]+)?(?:[ -]?([A-Z]))?"; // Old
         String apt_number = "(?:(?:(?:([0-9]+?)(?:ND|ST|RD|TH)?(?:[ -]*([A-Z0-9]+))?)|(?:([A-Z]+)(?:[ -]*([0-9]+))?)|BSMT|BSMNT|PH|PENTHOUSE)(?:FL)?)";
         String apartment = "(?:(?:#|APT|STE|UNIT|BLDG|LOWR|UPPR|LOT|BOX|LEFT|RIGHT|TRLR|RM)[. ]*(?:#|FL)?)"+apt_number+"?";
 
@@ -210,7 +258,6 @@ public class AddressUtils {
         commonAbbreviations.put("THIRD", "3");
         commonAbbreviations.put("FOURTH", "4");
         commonAbbreviations.put("FIFTH", "5");
-//        commonAbbreviations.put("FIVE", "5");
         commonAbbreviations.put("SIXTH", "6");
         commonAbbreviations.put("SEVENTH", "7");
         commonAbbreviations.put("EIGHTH", "8");
@@ -233,9 +280,6 @@ public class AddressUtils {
         commonAbbreviations.put("HEIGHTS", "HGTS");
         commonAbbreviations.put("NO", "N");
         commonAbbreviations.put("SO", "N");
-
-
-
 
         suffixMap = new HashMap<String,String>();
         suffixMap.put("ALLEE","ALY");
