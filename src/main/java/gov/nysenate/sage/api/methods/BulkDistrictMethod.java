@@ -231,9 +231,16 @@ public class BulkDistrictMethod extends ApiExecution {
             this.county_code = match.countyCode;
             this.cleg_code = match.clegCode;
             this.council_code = match.ccCode;
+
+            // Shape file lookups return the correct senate preferred town and school codes.
+            // Street file data requires mapping to separate senate town and senate school codes.
+
             if (status == STATUS.SHAPEFILE) {
                 this.town_code = match.townCode;
                 this.school_code = match.schoolCode;
+            } else if (status == STATUS.HOUSE || status == STATUS.STREET || status == STATUS.ZIP5 ){
+                this.town_code = match.senateTownCode;
+                this.school_code = match.senateSchoolCode;
             } else if (county_code==14 || county_code==15 || county_code==28 || county_code==43 || county_code==47 || county_code==55 || county_code==56) {
                 this.town_code = match.townCode;
                 this.school_code = "";
