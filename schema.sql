@@ -127,5 +127,5 @@ CREATE TABLE street_data_map (
   county_code int(10) unsigned NOT NULL,
   from_code varchar(255) NOT NULL,
   to_code varchar(255) NOT NULL,
-  UNIQUE KEY map_col (map_col,key_name,key_value,from_code)
+  UNIQUE KEY map_col (map_col,county_code,from_code)
 ) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Map street data columns to senate preferred values.';
