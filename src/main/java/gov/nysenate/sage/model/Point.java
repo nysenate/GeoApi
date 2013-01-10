@@ -1,6 +1,6 @@
 package gov.nysenate.sage.model;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("point")
 public class Point {
