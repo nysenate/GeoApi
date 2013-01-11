@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -31,7 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class GeoServer implements DistAssignInterface {
+public class GeoServer implements DistAssignInterface, Observer {
 
     public class ParallelRequest implements Callable<Result> {
         public final DistAssignInterface adapter;
@@ -50,25 +52,33 @@ public class GeoServer implements DistAssignInterface {
         }
     }
 
-
     private final Logger logger;
-    public String API_BASE;
+    private String API_BASE;
 
     HashMap<Integer, Integer> COUNTY_CODES;
 
     public GeoServer() throws Exception {
-        API_BASE = Config.read("geoserver.url")+"/wfs?service=WFS&version=1.1.0&request=GetFeature";
+        Config.notify(this);
+        configure();
         logger = Logger.getLogger(this.getClass());
 
         COUNTY_CODES = new HashMap<Integer, Integer>();
         File county_code_file = FileUtils.toFile(this.getClass().getClassLoader().getResource("county_codes.tsv"));
-        @SuppressWarnings("unchecked")
         List<String> lines = FileUtils.readLines(county_code_file, "UTF-8");
         for (String line : lines) {
             String[] parts = line.split("\t");
             COUNTY_CODES.put(Integer.parseInt(parts[2]), Integer.parseInt(parts[0]));
         }
     }
+
+    private void configure() {
+        API_BASE = Config.read("geoserver.url")+"/wfs?service=WFS&version=1.1.0&request=GetFeature";
+    }
+
+    public void update(Observable o, Object arg) {
+        configure();
+    }
+
     public Result getFeatures(String filter, DistrictService.TYPE type) {
         Result result = new Result();
         String geotype = "typename=nysenate:"+type.toString().toLowerCase();
@@ -88,11 +98,12 @@ public class GeoServer implements DistAssignInterface {
             } else if (features.length() > 1) {
                 return null;
             } else {
-                JSONObject feature = features.getJSONObject(0);
-                JSONObject properties = feature.getJSONObject("properties");
                 result.status_code = "0";
                 result.address = new Address(filter);
-                //result.address.setGeocode(properties.getDouble("INTPTLAT"), properties.getDouble("INTPTLON"), 100);
+                // TODO: What is supposed to happen here?
+                // JSONObject feature = features.getJSONObject(0);
+                // JSONObject properties = feature.getJSONObject("properties");
+                // result.address.setGeocode(properties.getDouble("INTPTLAT"), properties.getDouble("INTPTLON"), 100);
             }
             return result;
         } catch (IOException e) {
@@ -114,7 +125,7 @@ public class GeoServer implements DistAssignInterface {
         String url_format = API_BASE+"&%s&CQL_FILTER=%s&outputformat=JSON";
         String filter_format = "CROSS(the_geom, LINESTRING(%f %f, %f %f)) OR CROSS(the_geom, LINESTRING(%f %f, %f %f))";
         try {
-            distance = distanceFeet/364400; //Approx feet per degree at our altitude
+            distance = distanceFeet/364400; //Approximate feet per degree at our altitude
             double x = address.latitude;
             double y = address.longitude;
             filter = String.format(filter_format, x, y-distance, x, y+distance, x-distance, y, x+distance, y);
