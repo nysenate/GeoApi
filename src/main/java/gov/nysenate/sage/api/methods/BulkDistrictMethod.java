@@ -14,6 +14,7 @@ import gov.nysenate.sage.service.DistrictService;
 import gov.nysenate.sage.service.DistrictService.DistException;
 import gov.nysenate.sage.service.GeoService;
 import gov.nysenate.sage.service.GeoService.GeoException;
+import gov.nysenate.sage.util.JsonUtil;
 import gov.nysenate.sage.util.DB;
 
 import java.io.IOException;
@@ -49,32 +50,10 @@ public class BulkDistrictMethod extends ApiExecution {
         districtService = new DistrictService();
     }
 
-    private String jsonGetString(JSONObject json, String key) {
-        try {
-            return json.has(key) && !json.isNull(key) ? json.getString(key) : "";
-        } catch (JSONException e) {
-            return null;
-        }
-    }
-
-    private Double jsonGetDouble(JSONObject json, String key) {
-        try {
-            return json.has(key) && !json.isNull(key) && !json.getString(key).equals("") ? json.getDouble(key) : 0;
-        } catch (JSONException e) {
-            return null;
-        }
-    }
-
-    private Integer jsonGetInteger(JSONObject json, String key) {
-        try {
-            return json.has(key) && !json.isNull(key) && !json.getString(key).equals("") ? json.getInt(key) : 0;
-        } catch (JSONException e) {
-            return null;
-        }
-    }
-
     private BluebirdAddress jsonToAddress(String id, JSONObject json) throws JSONException {
+        // Sample JSON:
         // {"street":"West 187th Street ","town":"New York","state":"NY","zip5":"10033","apt":null,"building":"650"}
+
         BluebirdAddress address = new BluebirdAddress(id);
 
         if (json == null) {
@@ -86,14 +65,14 @@ public class BulkDistrictMethod extends ApiExecution {
             address.parse_message = "";
         }
 
-        String street = jsonGetString(json, "street");
-        String town = jsonGetString(json,"town");
-        String state = jsonGetString(json,"state");
-        Integer zip5 = jsonGetInteger(json,"zip5");
-        Integer apt_num = jsonGetInteger(json,"apt");
-        Integer bldg_num = jsonGetInteger(json,"building");
-        Double latitude = jsonGetDouble(json, "latitude");
-        Double longitude = jsonGetDouble(json, "longitude");
+        String street = JsonUtil.getString(json,"street");
+        String town = JsonUtil.getString(json,"town");
+        String state = JsonUtil.getString(json,"state");
+        Integer zip5 = JsonUtil.getInteger(json,"zip5");
+        Integer apt_num = JsonUtil.getInteger(json,"apt");
+        Integer bldg_num = JsonUtil.getInteger(json,"building");
+        Double latitude = JsonUtil.getDouble(json,"latitude");
+        Double longitude = JsonUtil.getDouble(json,"longitude");
 
         if (street == null) {
             address.parse_failure = true;
