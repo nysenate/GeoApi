@@ -52,7 +52,6 @@ public class GeoServer implements DistAssignInterface, Observer {
         }
     }
 
-
     private final Logger logger;
     private String API_BASE;
 
@@ -65,7 +64,6 @@ public class GeoServer implements DistAssignInterface, Observer {
 
         COUNTY_CODES = new HashMap<Integer, Integer>();
         File county_code_file = FileUtils.toFile(this.getClass().getClassLoader().getResource("county_codes.tsv"));
-        @SuppressWarnings("unchecked")
         List<String> lines = FileUtils.readLines(county_code_file, "UTF-8");
         for (String line : lines) {
             String[] parts = line.split("\t");
@@ -100,11 +98,12 @@ public class GeoServer implements DistAssignInterface, Observer {
             } else if (features.length() > 1) {
                 return null;
             } else {
-                JSONObject feature = features.getJSONObject(0);
-                JSONObject properties = feature.getJSONObject("properties");
                 result.status_code = "0";
                 result.address = new Address(filter);
-                //result.address.setGeocode(properties.getDouble("INTPTLAT"), properties.getDouble("INTPTLON"), 100);
+                // TODO: What is supposed to happen here?
+                // JSONObject feature = features.getJSONObject(0);
+                // JSONObject properties = feature.getJSONObject("properties");
+                // result.address.setGeocode(properties.getDouble("INTPTLAT"), properties.getDouble("INTPTLON"), 100);
             }
             return result;
         } catch (IOException e) {
@@ -126,7 +125,7 @@ public class GeoServer implements DistAssignInterface, Observer {
         String url_format = API_BASE+"&%s&CQL_FILTER=%s&outputformat=JSON";
         String filter_format = "CROSS(the_geom, LINESTRING(%f %f, %f %f)) OR CROSS(the_geom, LINESTRING(%f %f, %f %f))";
         try {
-            distance = distanceFeet/364400; //Approx feet per degree at our altitude
+            distance = distanceFeet/364400; //Approximate feet per degree at our altitude
             double x = address.latitude;
             double y = address.longitude;
             filter = String.format(filter_format, x, y-distance, x, y+distance, x-distance, y, x+distance, y);
