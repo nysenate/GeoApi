@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -31,7 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class GeoServer implements DistAssignInterface {
+public class GeoServer implements DistAssignInterface, Observer {
 
     public class ParallelRequest implements Callable<Result> {
         public final DistAssignInterface adapter;
@@ -52,12 +54,13 @@ public class GeoServer implements DistAssignInterface {
 
 
     private final Logger logger;
-    public String API_BASE;
+    private String API_BASE;
 
     HashMap<Integer, Integer> COUNTY_CODES;
 
     public GeoServer() throws Exception {
-        API_BASE = Config.read("geoserver.url")+"/wfs?service=WFS&version=1.1.0&request=GetFeature";
+        Config.notify(this);
+        configure();
         logger = Logger.getLogger(this.getClass());
 
         COUNTY_CODES = new HashMap<Integer, Integer>();
@@ -69,6 +72,15 @@ public class GeoServer implements DistAssignInterface {
             COUNTY_CODES.put(Integer.parseInt(parts[2]), Integer.parseInt(parts[0]));
         }
     }
+
+    private void configure() {
+        API_BASE = Config.read("geoserver.url")+"/wfs?service=WFS&version=1.1.0&request=GetFeature";
+    }
+
+    public void update(Observable o, Object arg) {
+        configure();
+    }
+
     public Result getFeatures(String filter, DistrictService.TYPE type) {
         Result result = new Result();
         String geotype = "typename=nysenate:"+type.toString().toLowerCase();

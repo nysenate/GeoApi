@@ -13,6 +13,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -40,13 +42,13 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 
-public class Yahoo implements GeocodeInterface {
+public class Yahoo implements GeocodeInterface, Observer {
     private final Logger logger;
     private final XPath xpath;
     private final DocumentBuilder xmlBuilder;
 
-    private final String CONSUMER_KEY;
-    private final String CONSUMER_SECRET;
+    private String CONSUMER_KEY;
+    private String CONSUMER_SECRET;
 
     public class ParallelRequest implements Callable<Result> {
         public final Yahoo yahoo;
@@ -64,13 +66,22 @@ public class Yahoo implements GeocodeInterface {
     }
 
     public Yahoo() throws Exception {
+        Config.notify(this);
+        configure();
         logger = Logger.getLogger(this.getClass());
         xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         xpath = XPathFactory.newInstance().newXPath();
-        CONSUMER_KEY = Config.read("yahoo.consumer_key");
-        CONSUMER_SECRET = Config.read("yahoo.consumer_secret");
         logger.info("Initialized Yahoo Adapter");
     }
+
+    private void configure() {
+        CONSUMER_KEY = Config.read("yahoo.consumer_key");
+        CONSUMER_SECRET = Config.read("yahoo.consumer_secret");
+    }
+    public void update(Observable o, Object arg) {
+        configure();
+    }
+
 
     // Yahoo doesn't implement batch geocoding so we use the single address geocoding
     // method in parallel for performance improvements on our end.
