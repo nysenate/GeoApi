@@ -2,6 +2,7 @@ package gov.nysenate.sage.api.methods;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
+import gov.nysenate.sage.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.ApiExecution;
@@ -90,13 +91,16 @@ public class DistrictsMethod extends ApiExecution {
     }
 
     @Override
-    public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
+    public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiFormatException, ApiTypeException, ApiInternalException {
         String type = more.get(RequestCodes.TYPE.code());
         String service = request.getParameter("service");
         if (service == null) service = "geocoder";
 
         Address address = null;
         if (type.equals("addr")) {
+            if (service.equals("geocoder")) {
+                throw new ApiFormatException("Ruby Geocoder cannot accept an unparsed address");
+            }
             address = new Address(more.get(RequestCodes.ADDRESS.code()));
         } else if (type.equals("extended")) {
             address = new Address(
