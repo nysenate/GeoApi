@@ -76,9 +76,8 @@
                     officeMarker.office = office;
                     markers.addMarker(officeMarker);             
                     officeMarker.events.register('mousedown',officeMarker, function(event) {
-                        hasCloseBox = true;
-                        anchorObject = null;
-                        
+                        var hasCloseBox = true;
+                        var anchorObject = null;
                         var my_popup = this.popup;
                         // Attach the pop-up to the trigger for later retrieval
                         if (my_popup == null) {
@@ -86,7 +85,7 @@
                                 "Office Data",
                                 event.object.lonlat,
                                 new OpenLayers.Size(200,00),
-                                office.officeName + "<br>" + office.street + "<br>" + office.city + ", " + office.state + "<br>Phone: " +office.phone + "<br>Fax: " + office.fax,
+                                this.office.officeName + "<br>" + this.office.street + "<br>" + this.office.city + ", " + this.office.state + "<br>Phone: " +this.office.phone + "<br>Fax: " + this.office.fax,
                                 anchorObject, hasCloseBox,
                                 function() {
                                     my_popup.toggle();
