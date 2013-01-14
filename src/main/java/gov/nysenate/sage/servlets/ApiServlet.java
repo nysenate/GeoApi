@@ -71,7 +71,8 @@ public class ApiServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         Connect db = new Connect();
         String uri = java.net.URLDecoder.decode(request.getRequestURI(),"utf-8").toLowerCase().replaceAll("(/geoapi/|api/)", "");
-        logger.info("Remote IP: "+request.getRemoteAddr()+"; Request URI: " + uri);
+        String queryString = request.getQueryString();
+        logger.info("Remote IP: "+request.getRemoteAddr()+"; Request URI: " + uri + ((queryString==null) ? "" : "?"+queryString));
 
         StringTokenizer stok = new StringTokenizer(uri,"/");
 
