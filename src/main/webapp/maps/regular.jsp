@@ -22,7 +22,7 @@
                 protocol: new OpenLayers.Protocol.WFS({
                     version: "1.1.0",
                     url: "<%=Config.read("geoserver.url")%>/wfs",
-                    featurePrefix: 'nysenate', //geoserver worspace name
+                    featurePrefix: 'nysenate', //geoserver workspace name
                     featureType: "senate", //geoserver Layer Name
                     geometryName: "geometry", // field in Feature Type details with type "Geometry"
                     filter: new OpenLayers.Filter.Comparison({
