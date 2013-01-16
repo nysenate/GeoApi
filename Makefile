@@ -47,7 +47,8 @@ RUNTIME_JARS=\
 	$(LOCAL_LIBDIR)/commons-logging-1.1.1.jar:\
 	$(LOCAL_LIBDIR)/httpcore-4.2.3.jar:\
 	$(LOCAL_LIBDIR)/mysql-connector-java-5.1.22.jar:\
-	$(LOCAL_LIBDIR)/sqlite-jdbc-3.7.2.jar
+	$(LOCAL_LIBDIR)/sqlite-jdbc-3.7.2.jar:\
+	$(LOCAL_LIBDIR)/ws-commons-util-1.0.2.jar
 
 JAVA_SRC= $(shell find $(SRC_DIR) -name "*.java")
 JAVA_OBJ= $(subst $(SRC_DIR),$(TARGET_DIR),$(JAVA_SRC:.java=.class))
