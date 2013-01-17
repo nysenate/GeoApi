@@ -49,6 +49,7 @@ public class Connect {
 		try {
 			if(connection != null) {
 				connection.close();
+				connection = null;
 			}
 		} catch (SQLException e) {
 			logger.warn(e);
