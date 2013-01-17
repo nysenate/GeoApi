@@ -176,7 +176,8 @@ public class ProcessBulkUploads {
                 Class<? extends BulkInterface> clazz = (Class<? extends BulkInterface>) Class.forName(jp.getClassName());
                 BulkFileType bulkFileType = this.getBulkFileType(clazz);
                 if (bulkFileType == null) {
-                    throw new Exception("Unknown BulkFileType in file: "+jp.getFileName());
+                    logger.error("Unknown BulkFileType in file: "+jp.getFileName());
+                    continue;
                 }
                 DelimitedFileExtractor dfe = new DelimitedFileExtractor(bulkFileType.delimiter(), bulkFileType.header(), clazz);
 
@@ -202,7 +203,10 @@ public class ProcessBulkUploads {
                 Mailer.mailAdminComplete(jp);
                 Mailer.mailUserComplete(jp);
                 logger.info("deleting job process for file " + jp.getFileName() + " after succesful completion");
-                db.deleteObjectById(JobProcess.class, "filename", jp.getFileName());
+                if (!db.deleteObjectById(JobProcess.class, "filename", jp.getFileName())) {
+                    logger.error("Unable to remove job "+jp.getFileName());
+                    continue;
+                }
             }
 
         } catch (Exception e) {
