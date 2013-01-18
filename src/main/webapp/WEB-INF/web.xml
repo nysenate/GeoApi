@@ -20,6 +20,10 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
   <servlet>
+    <servlet-name>MapServlet</servlet-name>
+    <servlet-class>gov.nysenate.sage.servlets.MapServlet</servlet-class>
+  </servlet>
+  <servlet>
     <description></description>
     <display-name>ApiServlet</display-name>
     <servlet-name>ApiServlet</servlet-name>
@@ -39,4 +43,9 @@
     <servlet-name>BulkServlet</servlet-name>
     <url-pattern>/bulk/*</url-pattern>
   </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>MapServlet</servlet-name>
+    <url-pattern>/maps/</url-pattern>
+  </servlet-mapping>
+  
 </web-app>
