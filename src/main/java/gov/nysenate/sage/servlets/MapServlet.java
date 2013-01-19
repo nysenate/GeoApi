@@ -66,7 +66,9 @@ public class MapServlet extends HttpServlet {
                 Matcher districtMatcher = districtNamePattern.matcher(senate.getDistrict());
                 if (districtMatcher.find()) {
                     int districtNumber = Integer.parseInt(districtMatcher.group(1));
-                    districtData.put(districtNumber, senate);
+                    // getObjects doesn't recursively pull in data from joined tables. Do it here
+                    Senate fullSenate = (Senate)db.getObject(Senate.class, "district", senate.getDistrict());
+                    districtData.put(districtNumber, fullSenate);
                 } else {
                     logger.info("Skipping '"+senate.getDistrict()+"'; invalid district name.");
                 }
@@ -90,7 +92,7 @@ public class MapServlet extends HttpServlet {
             districtNumber = Integer.parseInt(districtParam);
             if (districtData.containsKey(districtNumber)) {
                 Senate district = districtData.get(districtNumber);
-                request.setAttribute("office_data", mapper.writeValueAsString(district.getSenator().getOffices()));
+                office_data = mapper.writeValueAsString(district.getSenator().getOffices());
             } else {
                 logger.warn("Office data not found for district "+districtNumber);
             }
