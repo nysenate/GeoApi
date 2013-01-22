@@ -1,6 +1,10 @@
-package gov.nysenate.sage.boe;
+package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.Address;
+import gov.nysenate.sage.boe.BOEAddress;
+import gov.nysenate.sage.boe.BOEAddressRange;
+import gov.nysenate.sage.boe.BOEStreetAddress;
+import gov.nysenate.sage.boe.BluebirdAddress;
 
 import java.util.HashMap;
 import java.util.List;
@@ -126,10 +130,10 @@ public class AddressUtils {
         int cong = base.congressionalCode;
         int ad = base.assemblyCode;
         int county = base.countyCode;
-        String school = base.schoolCode;
+        String school = base.boeSchoolCode;
         String senateSchool = base.senateSchoolCode;
         int ward = base.wardCode;
-        String townCode = base.townCode;
+        String townCode = base.boeTownCode;
         String senateTownCode = base.senateTownCode;
         int ccCode = base.ccCode;
         int cleg = base.clegCode;
@@ -143,9 +147,9 @@ public class AddressUtils {
             if (range.countyCode != county) { county = 0; }
 
             // County Specific
-            if (range.schoolCode==null || !range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
+            if (range.boeSchoolCode ==null || !range.boeSchoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
             if (range.senateSchoolCode == null || !range.senateSchoolCode.equals(senateSchool) || range.countyCode != base.countyCode) { senateSchool = ""; }
-            if (range.townCode == null || !range.townCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode = ""; }
+            if (range.boeTownCode == null || !range.boeTownCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode = ""; }
             if (range.senateTownCode == null || !range.senateTownCode.equals(senateTownCode) || range.countyCode!=base.countyCode) { senateTownCode = ""; }
             if (range.clegCode != cleg || range.countyCode!=base.countyCode) { cleg = 0; }
 
@@ -163,12 +167,12 @@ public class AddressUtils {
             range.assemblyCode = ad;
             range.electionCode = ed;
             range.congressionalCode = cong;
-            range.schoolCode = school;
+            range.boeSchoolCode = school;
             range.senateSchoolCode = senateSchool;
             range.wardCode = ward;
             range.clegCode = cleg;
             range.ccCode = ccCode;
-            range.townCode = townCode;
+            range.boeTownCode = townCode;
             range.senateTownCode = senateTownCode;
             range.countyCode = county;
             range.state = base.state;
@@ -201,9 +205,9 @@ public class AddressUtils {
         range.senateCode = address.senate_code;
         range.countyCode = address.county_code;
         range.clegCode = address.cleg_code;
-        range.schoolCode = address.school_code;
+        range.senateSchoolCode = address.school_code;
         range.wardCode = address.ward_code;
-        range.townCode = address.town_code;
+        range.senateTownCode = address.town_code;
         return range;
     }
 
