@@ -2,6 +2,7 @@ package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.districts.Congressional;
 import gov.nysenate.sage.model.districts.Member;
+import gov.nysenate.sage.util.Connect;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,112 +16,117 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 
+public class CongressScraper
+{
+  private final Logger logger = Logger.getLogger(CongressScraper.class);
+  private final String HOUSE_URL = "http://www.house.gov/representatives/";
 
-public class CongressScraper {
-	private final Logger logger = Logger.getLogger(CongressScraper.class);
 
-	private final String HOUSE_URL = "http://www.house.gov/representatives/";
+  public void index(Connect dbconn) throws IOException
+  {
+    List<Congressional> persons = getCongressPersons();
 
-	public void index() throws IOException {
-		Connect connect = new Connect();
+    if (persons != null && !persons.isEmpty()) {
+      try {
+        logger.info("Deleting Congress Member data from the database");
+        dbconn.deleteObjectById(Member.class, "type", Member.MemberType.Congress.value() + "");
+        dbconn.deleteObjects(Congressional.class, false);
+      }
+      catch (Exception e) {
+        logger.warn(e);
+      }
 
-		List<Congressional> persons =  getCongressPersons();
+      logger.info("Persisting new Congress data");
+      for (Congressional c : persons) {
+        dbconn.persist(c);
+      }
+    }
+  } // index()
 
-		if(persons != null && !persons.isEmpty()) {
-			try {
-				logger.info("Deleting Congress Member data from the database");
-				connect.deleteObjectById(Member.class, "type", Member.MemberType.Congress.value() + "");
-				connect.deleteObjects(Congressional.class, false);
-			}
-			catch (Exception e) {
-				logger.warn(e);
-			}
 
-			logger.info("Persisting new assembly data");
-			for(Congressional c:persons) {
-				connect.persist(c);
-			}
-		}
+  public void index() throws IOException
+  {
+    Connect dbconn = new Connect();
+    index(dbconn);
+    dbconn.close();
+  } // index()
 
-		connect.close();
-	}
 
-	public static void main(String[] args) throws IOException {
-		CongressScraper s = new CongressScraper();
-		s.index();
-	}
+  public static void main(String[] args) throws IOException {
+    CongressScraper s = new CongressScraper();
+    s.index();
+  }
 
-	public List<Congressional> getCongressPersons()  {
-		List<Congressional> ret = new ArrayList<Congressional>();
 
-		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(new URL(HOUSE_URL).openStream()));
+  public List<Congressional> getCongressPersons() {
+    List<Congressional> ret = new ArrayList<Congressional>();
 
-			Pattern newYorkPattern = Pattern.compile("<h2 id=\"state_ny\">New York</h2>");
-			Pattern bodyStartPattern = Pattern.compile("<tbody>");
-			Pattern bodyEndPattern = Pattern.compile("</tbody>");
-			Pattern dataStartPattern = Pattern.compile("<tr>");
-			Pattern dataEndPattern = Pattern.compile("</tr>");
+    try {
+      BufferedReader br = new BufferedReader(new InputStreamReader(new URL(HOUSE_URL).openStream()));
 
-			Matcher m = null;
+      Pattern newYorkPattern = Pattern.compile("<h2 id=\"state_ny\">New York</h2>");
+      Pattern bodyStartPattern = Pattern.compile("<tbody>");
+      Pattern bodyEndPattern = Pattern.compile("</tbody>");
+      Pattern dataStartPattern = Pattern.compile("<tr>");
+      Pattern dataEndPattern = Pattern.compile("</tr>");
 
-			boolean stateOn = false;;
-			boolean bodyOn = false;
-			boolean dataOn = false;
+      Matcher m = null;
 
-			StringBuffer data = null;
+      boolean stateOn = false;;
+      boolean bodyOn = false;
+      boolean dataOn = false;
 
-			String in = null;
+      StringBuffer data = null;
 
-			while((in = br.readLine()) != null) {
-				if(!stateOn && (m = newYorkPattern.matcher(in)) != null && m.find()) {
-					stateOn = true;
-				}
-				if(bodyOn && (m = bodyEndPattern.matcher(in)) != null && m.find()) {
-					stateOn = false;
-					bodyOn = false;
-				}
-				if(dataOn && (m = dataEndPattern.matcher(in)) != null && m.find()) {
-					dataOn = false;
+      String in = null;
 
-					if(data != null) {
-						String[] tuple = data.toString().split("\n");
+      while ((in = br.readLine()) != null) {
+        if (!stateOn && (m = newYorkPattern.matcher(in)) != null && m.find()) {
+          stateOn = true;
+        }
+        if (bodyOn && (m = bodyEndPattern.matcher(in)) != null && m.find()) {
+          stateOn = false;
+          bodyOn = false;
+        }
+        if (dataOn && (m = dataEndPattern.matcher(in)) != null && m.find()) {
+          dataOn = false;
 
-						String district = tuple[0].replaceAll("<.*?>", "");
+          if (data != null) {
+            String[] tuple = data.toString().split("\n");
+            String district = tuple[0].replaceAll("<.*?>", "");
+            String name = tuple[2].replaceAll("<.*?>", "").trim();
+            String url = tuple[1].replaceAll("(?i)<td><a href=\"(.*?)\">","$1");
 
-						String name = tuple[2].replaceAll("<.*?>", "").trim();
+            Congressional c = new Congressional(
+                "Congressional District " + district,
+                new Member(name, url, Member.MemberType.Congress));
 
-						String url = tuple[1].replaceAll("(?i)<td><a href=\"(.*?)\">","$1");
+            ret.add(c);
+            data = null;
+          }
+        }
 
-						Congressional c = new Congressional(
-								"Congressional District " + district,new Member(name, url, Member.MemberType.Congress));
+        if (dataOn) {
+          if (data == null) {
+            data = new StringBuffer();
+          }
+          data.append(in).append("\n");
+        }
 
-						ret.add(c);
+        if (stateOn && !bodyOn && (m = bodyStartPattern.matcher(in)) != null && m.find()) {
+          bodyOn = true;
+        }
+        if (bodyOn && !dataOn && (m = dataStartPattern.matcher(in)) != null && m.find()) {
+          dataOn = true;
+        }
+      }
 
-						data = null;
-					}
-				}
+      br.close();
+    }
+    catch (IOException e) {
+      logger.error(e);
+    }
 
-				if(dataOn) {
-					if(data == null)
-						data = new StringBuffer();
-					data.append(in).append("\n");
-				}
-
-				if(stateOn && !bodyOn && (m = bodyStartPattern.matcher(in)) != null && m.find()) {
-					bodyOn = true;
-				}
-				if(bodyOn && !dataOn && (m = dataStartPattern.matcher(in)) != null && m.find()) {
-					dataOn = true;
-				}
-			}
-
-			br.close();
-		}
-		catch(IOException e) {
-			logger.error(e);
-		}
-
-		return ret;
-	}
+    return ret;
+  } // getCongressPersons()
 }
