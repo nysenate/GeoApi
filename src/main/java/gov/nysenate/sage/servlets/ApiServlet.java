@@ -23,7 +23,7 @@ import gov.nysenate.sage.model.Metric;
 import gov.nysenate.sage.model.Point;
 import gov.nysenate.sage.model.ValidateResponse;
 import gov.nysenate.sage.model.districts.DistrictResponse;
-import gov.nysenate.sage.util.ApiController;
+import gov.nysenate.sage.util.ApiAuth;
 import gov.nysenate.sage.util.Connect;
 
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class ApiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     HashMap<String,ApiMethod> methods = null;
-    ApiController control = null;
+    ApiAuth auth = null;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -59,7 +59,7 @@ public class ApiServlet extends HttpServlet {
         try {
             super.init(config);
             methods = getMethods();
-            control = new ApiController();
+            auth = new ApiAuth();
         } catch (Exception e) {
             throw new ServletException(e);
         }
@@ -86,7 +86,7 @@ public class ApiServlet extends HttpServlet {
             if(key == null)
                 throw new ApiAuthenticationException();
 
-            ApiUser user = control.getUser(key,db);
+            ApiUser user = auth.getUser(key, db);
             if (user == null)
                 throw new ApiAuthenticationException();
 
