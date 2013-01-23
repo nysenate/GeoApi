@@ -1,4 +1,4 @@
-package gov.nysenate.sage.util;
+package gov.nysenate.sage.boe;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.boe.BOEAddress;
@@ -130,10 +130,10 @@ public class AddressUtils {
         int cong = base.congressionalCode;
         int ad = base.assemblyCode;
         int county = base.countyCode;
-        String school = base.boeSchoolCode;
+        String school = base.schoolCode;
         String senateSchool = base.senateSchoolCode;
         int ward = base.wardCode;
-        String townCode = base.boeTownCode;
+        String townCode = base.townCode;
         String senateTownCode = base.senateTownCode;
         int ccCode = base.ccCode;
         int cleg = base.clegCode;
@@ -147,10 +147,8 @@ public class AddressUtils {
             if (range.countyCode != county) { county = 0; }
 
             // County Specific
-            if (range.boeSchoolCode ==null || !range.boeSchoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
+            if (range.schoolCode ==null || !range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
             if (range.senateSchoolCode == null || !range.senateSchoolCode.equals(senateSchool) || range.countyCode != base.countyCode) { senateSchool = ""; }
-            if (range.boeTownCode == null || !range.boeTownCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode = ""; }
-            if (range.senateTownCode == null || !range.senateTownCode.equals(senateTownCode) || range.countyCode!=base.countyCode) { senateTownCode = ""; }
             if (range.clegCode != cleg || range.countyCode!=base.countyCode) { cleg = 0; }
 
             // Town specific
@@ -167,12 +165,12 @@ public class AddressUtils {
             range.assemblyCode = ad;
             range.electionCode = ed;
             range.congressionalCode = cong;
-            range.boeSchoolCode = school;
+            range.schoolCode = school;
             range.senateSchoolCode = senateSchool;
             range.wardCode = ward;
             range.clegCode = cleg;
             range.ccCode = ccCode;
-            range.boeTownCode = townCode;
+            range.townCode = townCode;
             range.senateTownCode = senateTownCode;
             range.countyCode = county;
             range.state = base.state;
