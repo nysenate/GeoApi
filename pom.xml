@@ -58,14 +58,14 @@
       <dependency>
           <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-core-lgpl</artifactId>
-          <version>1.6.0</version>
+          <version>1.9.11</version>
           <type>jar</type>
           <scope>compile</scope>
       </dependency>
       <dependency>
           <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-mapper-lgpl</artifactId>
-          <version>1.6.0</version>
+          <version>1.9.11</version>
           <type>jar</type>
           <scope>compile</scope>
       </dependency>
