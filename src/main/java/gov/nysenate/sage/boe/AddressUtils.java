@@ -149,6 +149,8 @@ public class AddressUtils {
             // County Specific
             if (range.schoolCode ==null || !range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
             if (range.senateSchoolCode == null || !range.senateSchoolCode.equals(senateSchool) || range.countyCode != base.countyCode) { senateSchool = ""; }
+            if (range.townCode ==null || !range.townCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode= ""; }
+            if (range.senateTownCode == null || !range.senateTownCode.equals(senateTownCode) || range.countyCode != base.countyCode) { senateTownCode= ""; }
             if (range.clegCode != cleg || range.countyCode!=base.countyCode) { cleg = 0; }
 
             // Town specific
