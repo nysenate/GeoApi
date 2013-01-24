@@ -76,7 +76,7 @@ public class Erie extends StreetFile {
         townCodeMap.put("NEWS","NEWSTE");
         townCodeMap.put("ORPK","ORPK");
         townCodeMap.put("SARD","SARDIN");
-        townCodeMap.put("TTON","TONAW");
+        townCodeMap.put("TTON","TONAWA");
         townCodeMap.put("WALS","WALES");
         townCodeMap.put("WSEN","W SENE");
     }
