@@ -158,7 +158,7 @@ public class AddressUtils {
             if (range.ccCode != ccCode || range.countyCode!=base.countyCode || !range.town.equals(base.town)) { ccCode = 0; }
 
             // Ward Specific (maybe)
-            if (range.electionCode != ed || range.countyCode!=base.countyCode || !range.town.equals(base.town) || range.wardCode == base.wardCode) { ed = 0; }
+            if (range.electionCode != ed || range.countyCode!=base.countyCode || !range.town.equals(base.town) || range.wardCode != base.wardCode) { ed = 0; }
         }
 
         if (sd != 0) {
