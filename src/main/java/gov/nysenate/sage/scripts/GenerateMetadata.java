@@ -10,6 +10,10 @@ import gov.nysenate.sage.util.NYSenateServices;
 import java.io.File;
 
 
+/**
+ * @author Ken Zalewski
+ */
+
 public class GenerateMetadata
 {
   private static final int MAX_DISTRICTS = 63;
@@ -17,14 +21,14 @@ public class GenerateMetadata
   public static void main(String[] args) throws Exception
   {
     if (args.length == 0) {
-      System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s] [--json|-j]");
+      System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s] [--maps|-m]");
       System.exit(1);
     }
 
     boolean processAssembly = false;
     boolean processCongress = false;
     boolean processSenate = false;
-    boolean generateJson = false;
+    boolean generateMaps = false;
 
     for (int i = 0; i < args.length; i++) {
       String arg = args[i];
@@ -32,7 +36,7 @@ public class GenerateMetadata
         processAssembly = true;
         processSenate = true;
         processCongress = true;
-        generateJson = true;
+        generateMaps = true;
       }
       else if (arg.equals("--assembly") || arg.equals("-a")) {
         processAssembly = true;
@@ -43,8 +47,8 @@ public class GenerateMetadata
       else if (arg.equals("--senate") || arg.equals("-s")) {
         processSenate = true;
       }
-      else if (arg.equals("--json") || arg.equals("-j")) {
-        generateJson = true;
+      else if (arg.equals("--maps") || arg.equals("-m")) {
+        generateMaps = true;
       }
       else {
         System.err.println(arg+": Invalid option");
@@ -70,7 +74,7 @@ public class GenerateMetadata
     dbconn.close();
     dbconn = null;
 
-    if (generateJson) {
+    if (generateMaps) {
       File writeDir = new File(Config.read("district_maps.dir"));
       System.out.println("Generating map data for all NYSenate districts; output will be in "+writeDir.getCanonicalPath());
       generateDistrictMapData(writeDir);
@@ -83,10 +87,10 @@ public class GenerateMetadata
     outDir.mkdirs();
     for (int distnum = 1; distnum <= MAX_DISTRICTS; distnum++) {
       SenateDistrictMap districtMap = new SenateDistrictMap(distnum);
-      String fileName = String.format("sd%02d", distnum);
+      String fileName = String.format("sd%02d.json", distnum);
       File outFile = new File(outDir, fileName);
       districtMap.loadCoordinates();
-      districtMap.writeCoordinates(outFile);
+      districtMap.writeCoordinatesAsJson(outFile);
     }
   } // generateDistrictMapData()
 }
