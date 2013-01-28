@@ -124,7 +124,7 @@ public class DistrictMap
   {
     try {
       FileWriter fw = new FileWriter(outFile);
-      fw.write(m_polygon.toString());
+      fw.write(this.toString());
       fw.close();
       return true;
     }
@@ -136,6 +136,39 @@ public class DistrictMap
 
 
   /**
+   * Dump the current list of coordinates for this district to a file as JSON.
+   *
+   * @param outFile the file to which coordinates will be written
+   * @return true on success, false on failure
+   */
+  public boolean writeCoordinatesAsJson(File outFile)
+  {
+    try {
+      FileWriter fw = new FileWriter(outFile);
+      fw.write(this.toJson());
+      fw.close();
+      return true;
+    }
+    catch (IOException ioEx) {
+      logger.error("Unable to save coordinates to file");
+      return false;
+    }
+  } // writeCoordinatesAsJson()
+
+
+  /**
+   * Get the polygon that is used by this DistrictMap
+   *
+   * @return the polygon used by this DistrictMap, or null if no coordinate
+   * data has been loaded
+   */
+  public Polygon getPolygon()
+  {
+    return m_polygon;
+  } // getPolygon()
+
+
+  /**
    * Get the string representation of this DistrictMap.
    *
    * @return a string that represents this DistrictMap
@@ -144,5 +177,16 @@ public class DistrictMap
   {
     return m_polygon.toString();
   } // toString()
+
+
+  /**
+   * Get the JSON representation of this DistrictMap.
+   *
+   * @return a JSON string that represents this DistrictMap
+   */
+  public String toJson()
+  {
+    return m_polygon.toJson();
+  } // toJson()
 
 } // DistrictMap
