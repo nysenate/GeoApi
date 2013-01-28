@@ -75,7 +75,7 @@ public class DistrictsMethod extends ApiExecution {
                 dr.setElection(new Election(""));
                 dr.setSenate((Senate)db.getObject(Senate.class, "district", "State Senate District "+result.address.senate_code));
                 dr.setSchool(new School("School District "+result.address.school_code));
-                dr.setTown(new Town(result.address.town_code));
+                dr.setTown(new Town("Town " + result.address.town_code));
             }
 
             return dr;

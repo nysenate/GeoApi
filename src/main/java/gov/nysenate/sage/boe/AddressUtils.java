@@ -1,6 +1,10 @@
 package gov.nysenate.sage.boe;
 
 import gov.nysenate.sage.Address;
+import gov.nysenate.sage.boe.BOEAddress;
+import gov.nysenate.sage.boe.BOEAddressRange;
+import gov.nysenate.sage.boe.BOEStreetAddress;
+import gov.nysenate.sage.boe.BluebirdAddress;
 
 import java.util.HashMap;
 import java.util.List;
@@ -143,10 +147,10 @@ public class AddressUtils {
             if (range.countyCode != county) { county = 0; }
 
             // County Specific
-            if (range.schoolCode==null || !range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
+            if (range.schoolCode ==null || !range.schoolCode.equals(school) || range.countyCode!=base.countyCode) { school = ""; }
             if (range.senateSchoolCode == null || !range.senateSchoolCode.equals(senateSchool) || range.countyCode != base.countyCode) { senateSchool = ""; }
-            if (range.townCode == null || !range.townCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode = ""; }
-            if (range.senateTownCode == null || !range.senateTownCode.equals(senateTownCode) || range.countyCode!=base.countyCode) { senateTownCode = ""; }
+            if (range.townCode ==null || !range.townCode.equals(townCode) || range.countyCode!=base.countyCode) { townCode= ""; }
+            if (range.senateTownCode == null || !range.senateTownCode.equals(senateTownCode) || range.countyCode != base.countyCode) { senateTownCode= ""; }
             if (range.clegCode != cleg || range.countyCode!=base.countyCode) { cleg = 0; }
 
             // Town specific
@@ -154,7 +158,7 @@ public class AddressUtils {
             if (range.ccCode != ccCode || range.countyCode!=base.countyCode || !range.town.equals(base.town)) { ccCode = 0; }
 
             // Ward Specific (maybe)
-            if (range.electionCode != ed || range.countyCode!=base.countyCode || !range.town.equals(base.town) || range.wardCode == base.wardCode) { ed = 0; }
+            if (range.electionCode != ed || range.countyCode!=base.countyCode || !range.town.equals(base.town) || range.wardCode != base.wardCode) { ed = 0; }
         }
 
         if (sd != 0) {
@@ -201,9 +205,9 @@ public class AddressUtils {
         range.senateCode = address.senate_code;
         range.countyCode = address.county_code;
         range.clegCode = address.cleg_code;
-        range.schoolCode = address.school_code;
+        range.senateSchoolCode = address.school_code;
         range.wardCode = address.ward_code;
-        range.townCode = address.town_code;
+        range.senateTownCode = address.town_code;
         return range;
     }
 
