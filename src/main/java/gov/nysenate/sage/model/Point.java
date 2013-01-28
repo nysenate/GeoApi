@@ -83,4 +83,16 @@ public class Point extends Point2D.Double
   {
     return getLatitude()+","+getLongitude();
   } // toString()
+
+
+  /**
+   * Get the JSON representation of this Point.  The JSON representation
+   * is of the form [<latitude>,<longitude>]
+   *
+   * @return a string containing the JSON representation of this Point
+   */
+  public String toJson()
+  {
+    return "["+this.toString()+"]";
+  } // toJson()
 } // Point
