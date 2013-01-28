@@ -105,4 +105,29 @@ public class Polygon
     }
     return s.toString();
   } // toString()
+
+
+  /**
+   * Get the JSON representation of this polygon.  The JSON representation
+   * is of the form: [<point>,<point>,.....]
+   * The JSON representation of a Point is described elsewhere.
+   *
+   * @return a string containing the JSON representation of this polygon
+   */
+  public String toJson()
+  {
+    StringBuilder s = new StringBuilder("[");
+    boolean gotFirst = false;
+    for (Point p : m_points) {
+      if (gotFirst) {
+        s.append(",");
+      }
+      else {
+        gotFirst = true;
+      }
+      s.append(p.toJson());
+    }
+    s.append("]");
+    return s.toString();
+  } // toJson()
 } // Polygon
