@@ -28,7 +28,7 @@ import com.google.gson.Gson;
 public class GeocoderConnect implements AbstractGeocoder {
 
 	private final String GEO_BASE = Config.read("geocoder.url");
-	private final String GEO_BASE_BULK = Config.read("geocoder_bulk.url");
+	private final String GEO_BASE_BULK = Config.read("geocoder.bulk.url");
 
 	public GeocoderConnect() {
 
