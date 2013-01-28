@@ -29,7 +29,7 @@ public class RubyGeocoder implements GeocodeInterface {
         logger = Logger.getLogger(this.getClass());
         logger.info("Initialized RubyGeocoder Adapter");
         GEO_BASE = Config.read("geocoder.url");
-        GEO_BASE_BULK = Config.read("geocoder_bulk.url");
+        GEO_BASE_BULK = Config.read("geocoder.bulk.url");
     }
 
     @Override
