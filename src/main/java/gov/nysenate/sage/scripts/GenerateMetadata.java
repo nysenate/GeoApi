@@ -12,8 +12,7 @@ import java.io.File;
 
 public class GenerateMetadata
 {
-  private static final int MAX_DISTRICTS = 2;
-  //private static final int MAX_DISTRICTS = 63;
+  private static final int MAX_DISTRICTS = 63;
 
   public static void main(String[] args) throws Exception
   {
