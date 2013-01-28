@@ -187,7 +187,7 @@ public class BulkServlet extends HttpServlet implements Observer {
     }
 
     public File getUploadDir() {
-        String uploadsFolder = Config.read("bulk.uploads");
+        String uploadsFolder = Config.read("bulk.upload.dir");
         File uploadDir = new File(uploadsFolder);
         try {
             FileUtils.forceMkdir(uploadDir);
