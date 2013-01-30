@@ -23,28 +23,31 @@ public class RebuildTriggers {
         }
     }
 
+    /**
+     * When inserting street data, perform senate school code and senate town code assignments
+     * using mapping data in the `street_data_map` table. The values in the `from_code` column
+     * have been trimmed prior to insertion.
+     *
+     * @param runner    QueryRunner with data source set
+     */
+
     public static void rebuildSchoolTownTrigger( QueryRunner runner ) throws SQLException {
 
        runner.update("DROP TRIGGER IF EXISTS senate_code_check;");
-
-       // When inserting street data, perform senate school code and senate town code assignments
-       // using mapping data in the `street_data_map` table. The values in the `from_code` column
-       // have been trimmed prior to insertion.
-
        runner.update(
             "CREATE TRIGGER senate_code_check BEFORE INSERT ON `street_data`\n" +
             "FOR EACH ROW BEGIN \n" +
-            "SET NEW.senate_town_code = \n" +
+            "SET NEW.town_code = \n" +
             "(SELECT `to_code` FROM `street_data_map`\n" +
             " WHERE `map_col` = 'town_code' \n" +
             " AND `county_code` = NEW.county_code\n" +
-            " AND (`from_code` = TRIM(LEADING '0' FROM NEW.town_code) OR `to_code` = NEW.town_code)\n" +
+            " AND (`from_code` = TRIM(LEADING '0' FROM NEW.boe_town_code) OR `to_code` = NEW.boe_town_code)\n" +
             ");\n" +
-            "SET NEW.senate_school_code = \n" +
+            "SET NEW.school_code = \n" +
             "(SELECT `to_code` FROM `street_data_map`\n" +
             " WHERE `map_col` = 'school_code'\n" +
             " AND `county_code` = NEW.county_code\n" +
-            " AND (`from_code` = TRIM(LEADING '0' FROM NEW.school_code) OR `to_code` = TRIM(LEADING '0' FROM NEW.school_code))\n" +
+            " AND (`from_code` = TRIM(LEADING '0' FROM NEW.boe_school_code) OR `to_code` = TRIM(LEADING '0' FROM NEW.boe_school_code))\n" +
             ");\n" +
             "END;\n");
 
