@@ -25,4 +25,19 @@ public class Result {
     public ArrayList<String> messages = new ArrayList<String>();
     public String status_code = "0";
     public String source = "";
+
+    public Result() {}
+
+    public Result(Address address, ArrayList<String> messages) {
+        this.address = address;
+        this.messages = messages;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
 }
