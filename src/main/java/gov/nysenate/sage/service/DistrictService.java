@@ -3,6 +3,7 @@ package gov.nysenate.sage.service;
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
 import gov.nysenate.sage.adapter.GeoServer;
+import gov.nysenate.sage.adapter.StreetData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 
 public class DistrictService {
-    public enum TYPE {ASSEMBLY,CONGRESSIONAL,COUNTY,ELECTION,SENATE,SCHOOL,TOWN};
+
+    public enum TYPE {
+        ASSEMBLY,CONGRESSIONAL,COUNTY,ELECTION,SENATE,SCHOOL,TOWN
+    };
 
     @SuppressWarnings("serial")
     public static class DistException extends Exception {
@@ -49,6 +53,7 @@ public class DistrictService {
     public DistrictService() throws Exception {
         adapters = new HashMap<String, DistAssignInterface>();
         adapters.put("geoserver", new GeoServer());
+        adapters.put("streetdata", new StreetData());
     }
 
     public Result assignDistrict(Address address, TYPE type, String adapterName) throws DistException {
