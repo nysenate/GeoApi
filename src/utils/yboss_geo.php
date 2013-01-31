@@ -24,22 +24,26 @@ define('BASE_URI', 'http://yboss.yahooapis.com/geo/placefinder');
 $prog = $argv[0];
 $cfgfile = DEFAULT_CONFIG_FILE;
 $use_json = false;
+$decode_json = false;
 $location = '';
 
 if ($argc <= 1) {
-  echo "Usage: $prog [-f cfgfile] [--json] [--xml] address\n";
+  echo "Usage: $prog [-f cfgfile] [--json [--decode]] [--xml] address\n";
   exit(1);
 }
 
 for ($i = 1; $i < $argc; $i++) {
   switch ($argv[$i]) {
-    case '-f':
+    case '--config-file': case '-f':
       $cfgfile = $argv[++$i];
       break;
-    case "--json":
+    case '--decode': case '-d':
+      $decode_json = true;
+      break;
+    case '--json': case '-j':
       $use_json = true;
       break;
-    case "--xml":
+    case '--xml': case '-x':
       $use_json = false;
       break;
     default:
@@ -74,8 +78,9 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 $rsp = curl_exec($ch);
-if ($use_json) {
+if ($use_json && $decode_json) {
   $rsp = json_decode($rsp);
 }
 print_r($rsp);
+echo "\n";
 ?>
