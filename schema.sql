@@ -34,17 +34,24 @@ CREATE TABLE jobprocess (
   requestTime bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
-
 CREATE TABLE assembly (
-  district varchar(255) PRIMARY KEY
+  district smallint PRIMARY KEY
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE congressional (
-  district varchar(255) PRIMARY KEY
+  district smallint PRIMARY KEY
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+CREATE TABLE county (
+  id smallint(6) NOT NULL,
+  name varchar(45) NOT NULL,
+  fips_code smallint(6) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE senate (
-  district varchar(50) PRIMARY KEY,
+  district smallint PRIMARY KEY,
   districturl varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -53,7 +60,7 @@ CREATE TABLE senator (
   contact varchar(255) DEFAULT NULL,
   url varchar(255) DEFAULT NULL,
   imageurl varchar(255) DEFAULT NULL,
-  district varchar(50) DEFAULT NULL
+  district smallint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE social (
