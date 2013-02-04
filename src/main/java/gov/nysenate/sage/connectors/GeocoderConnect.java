@@ -25,6 +25,7 @@ import com.google.gson.Gson;
  * used to connect to Google maps API to geocode and reverse geocode, models for
  * response are located in package "generated.google"
  */
+@Deprecated
 public class GeocoderConnect implements AbstractGeocoder {
 
 	private final String GEO_BASE = Config.read("geocoder.url");

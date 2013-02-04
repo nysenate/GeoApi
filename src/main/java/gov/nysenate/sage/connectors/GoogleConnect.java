@@ -18,6 +18,7 @@ import java.util.List;
  * used to connect to Google maps API to geocode and reverse geocode, models for
  * response are located in package "generated.google"
  */
+@Deprecated
 public class GoogleConnect extends ParseStream implements AbstractGeocoder,AbstractReverseGeocoder  {
 	
 	private final  String GM_SENSOR = "&sensor=false";

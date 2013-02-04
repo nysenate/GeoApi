@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 import com.google.gson.Gson;
 
-
+@Deprecated
 public class GeoServerConnect {
   static String GEO_CQL_START = "&CQL_FILTER=";
   static String GEO_API = "geoserver.url";
@@ -204,8 +204,6 @@ public class GeoServerConnect {
           + ((xOrY) ? y:y - amt) + "))" + GEO_OUTPUT;
     }
   }
-
-
 
   public class WFS_POLY extends WFS_ {
     String GEO_TYPE = "&typename=";

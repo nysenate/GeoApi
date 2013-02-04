@@ -19,6 +19,7 @@ import javax.xml.bind.Unmarshaller;
  * used to connect to USPS AMS api and retrieve valided addresses, zip codes or retrieve
  * information based on zip codes
  */
+@Deprecated
 public class USPSConnect {
 
 	public static final String API_ID = Config.read("usps.key");

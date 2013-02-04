@@ -21,6 +21,7 @@ import java.util.List;
  *
  * https://www.bingmapsportal.com
  */
+@Deprecated
 public class BingConnect extends ParseStream implements AbstractGeocoder,AbstractReverseGeocoder {
 	private final String BING_API = "http://dev.virtualearth.net/REST/v1/Locations/";
 	private final String BING_KEY = "?o=xml&key=";

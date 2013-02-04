@@ -17,6 +17,7 @@ import java.util.List;
  * used to connect to Yahoo maps API to geocode and reverse geocode, models for
  * response are located in package "generated.yahoo"
  */
+@Deprecated
 public class YahooConnect extends ParseStream implements AbstractGeocoder,AbstractReverseGeocoder {
 	private final String YH_API = "http://where.yahooapis.com/geocode?q=";
 	private final String YH_KEY = "&appid=";

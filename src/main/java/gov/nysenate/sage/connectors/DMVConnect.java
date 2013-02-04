@@ -30,8 +30,7 @@ import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
-
-
+@Deprecated
 public class DMVConnect {
 	private static final String DMV_URL = "dmv.url";
 	private static final String DMV_USER = "dmv.user";

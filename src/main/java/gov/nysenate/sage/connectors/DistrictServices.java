@@ -31,6 +31,7 @@ import gov.nysenate.sage.util.Connect;
  * used for district related queries in the ApiServlet
  *
  */
+@Deprecated
 public class DistrictServices {  
   static double CROSS_DISTANCE = 0.005;
   

@@ -8,6 +8,7 @@ import java.util.List;
  * 
  *         This class processes geocoding and reverse geocoding requests
  */
+@Deprecated
 public class GeoCode {
 
 	static final String GOOGLE = "google";
