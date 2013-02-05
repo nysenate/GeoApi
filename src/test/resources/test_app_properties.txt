@@ -1,0 +1,15 @@
+simple.key = simple_value
+spaces.key = spaces  value
+variable.key = {{simple.key}} variable
+repeated.variable.key = {{simple.key}} - {{simple.key}} variable
+
+key.1 = \"one\"
+key.2 = two
+key.3 = 'three'
+nested.keys = {{key.1}} {{key.2}} {{key.2}} {{key.3}}
+
+###Comments here = 0####
+
+unknown.variable.key = {{some.variable123}}
+bad key = bad value
+new.key = new value
