@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+@Deprecated
 @XStreamAlias("districts")
 public class DistrictResponse extends Response {
     public boolean validated;

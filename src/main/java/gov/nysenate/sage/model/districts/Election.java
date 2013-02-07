@@ -2,6 +2,7 @@ package gov.nysenate.sage.model.districts;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+@Deprecated
 @XStreamAlias("election")
 public class Election {
 	String district;

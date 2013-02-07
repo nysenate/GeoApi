@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.districts;
 
+@Deprecated
 public class Census {
 	String fips;
 	

@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.annotations.ForeignKey;
 import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
+@Deprecated
 public class Social {
 	@XStreamOmitField @ForeignKey(Senator.class) String contact;
 	@Expose String faceBook;

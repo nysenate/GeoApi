@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
-
+@Deprecated
 public class Senator {
 	@Expose String name;
 	@Expose @PrimaryKey String contact;

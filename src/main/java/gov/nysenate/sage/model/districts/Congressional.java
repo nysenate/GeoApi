@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.annotations.PrimaryKey;
 import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+@Deprecated
 @XStreamAlias("congressional")
 public class Congressional {
 	@Expose @PrimaryKey String district;

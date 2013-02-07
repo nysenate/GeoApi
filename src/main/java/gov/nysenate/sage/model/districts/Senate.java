@@ -9,7 +9,7 @@ import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-
+@Deprecated
 @XStreamAlias("senate")
 public class Senate {
 	@Expose @PrimaryKey String district;

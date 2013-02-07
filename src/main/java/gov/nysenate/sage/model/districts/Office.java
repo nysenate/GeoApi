@@ -9,6 +9,7 @@ import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
+@Deprecated
 @XStreamAlias("office")
 public class Office {
 	@Expose String street;
