@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model;
+package gov.nysenate.sage.model.geo;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.google.gson.annotations.SerializedName;

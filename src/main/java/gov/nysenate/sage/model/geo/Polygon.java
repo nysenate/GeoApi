@@ -1,6 +1,6 @@
-package gov.nysenate.sage.model;
+package gov.nysenate.sage.model.geo;
 
-import gov.nysenate.sage.model.Point;
+import gov.nysenate.sage.model.geo.Point;
 
 import java.lang.StringBuilder;
 import java.util.ArrayList;
