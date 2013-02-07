@@ -364,7 +364,7 @@ public class BulkDistrictMethod extends ApiExecution
             // Then try a street file lookup by street and consolidate
             if (address.street != null && !address.street.trim().equals("")) {
 	            matches = streetData.getRangesByStreet(address);
-	            BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
+	            BOEAddressRange consolidated = DistrictLookup.consolidateRanges(matches);
 	            if (consolidated != null) {
 	                return new BulkResult(BulkResult.STATUS.STREET, "STREET MATCH for "+address, address, consolidated);
 	            }
@@ -372,7 +372,7 @@ public class BulkDistrictMethod extends ApiExecution
 
             // Then try a street file lookup by zip5 and consolidate
             matches = streetData.getRangesByZip(address);
-            BOEAddressRange consolidated = AddressUtils.consolidateRanges(matches);
+            BOEAddressRange consolidated = DistrictLookup.consolidateRanges(matches);
             if (consolidated != null) {
                 return new BulkResult(BulkResult.STATUS.ZIP5, "ZIP5 MATCH for "+address, address, consolidated);
             }
