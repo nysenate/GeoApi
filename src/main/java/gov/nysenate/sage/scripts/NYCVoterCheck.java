@@ -4,6 +4,7 @@ import gov.nysenate.sage.boe.AddressUtils;
 import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
 
@@ -26,7 +27,7 @@ public class NYCVoterCheck {
 
         Pattern houseNumberPattern = Pattern.compile("([0-9]+)(?: |-)*([0-9]*)(.*)");
 
-        DistrictLookup streetData = new DistrictLookup(DB.INSTANCE.getDataSource());
+        DistrictLookup streetData = new DistrictLookup(ApplicationFactory.getDataSource());
 
         int total = 0;
         int mismatch = 0;

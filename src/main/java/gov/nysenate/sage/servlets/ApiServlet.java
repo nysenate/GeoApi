@@ -20,7 +20,7 @@ import gov.nysenate.sage.model.ApiMethod;
 import gov.nysenate.sage.model.ApiUser;
 import gov.nysenate.sage.model.ErrorResponse;
 import gov.nysenate.sage.model.Metric;
-import gov.nysenate.sage.model.Point;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.ValidateResponse;
 import gov.nysenate.sage.model.districts.DistrictResponse;
 import gov.nysenate.sage.util.ApiAuth;

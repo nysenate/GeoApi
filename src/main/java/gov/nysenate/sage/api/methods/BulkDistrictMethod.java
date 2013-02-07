@@ -9,6 +9,7 @@ import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.BluebirdAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.ApiExecution;
 import gov.nysenate.sage.service.DistrictService;
 import gov.nysenate.sage.service.DistrictService.DistException;
@@ -45,7 +46,7 @@ public class BulkDistrictMethod extends ApiExecution {
     private final DistrictService districtService;
 
     public BulkDistrictMethod() throws Exception {
-        streetData = new DistrictLookup(DB.INSTANCE.getDataSource());
+        streetData = new DistrictLookup(ApplicationFactory.getDataSource());
         geoService = new GeoService();
         districtService = new DistrictService();
     }

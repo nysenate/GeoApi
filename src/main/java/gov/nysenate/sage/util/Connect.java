@@ -1,5 +1,6 @@
 package gov.nysenate.sage.util;
 
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.MappedFields;
 import gov.nysenate.sage.model.annotations.ForeignKey;
 import gov.nysenate.sage.model.annotations.Ignore;
@@ -24,6 +25,7 @@ import org.apache.log4j.Logger;
  * @author Jared Williams
  *
  */
+@Deprecated
 public class Connect {
 	Logger logger = Logger.getLogger(Connect.class);
 
@@ -36,7 +38,7 @@ public class Connect {
 	public Connection getConnection() {
 		if(connection == null) {
 			try {
-			    connection = DB.INSTANCE.getDataSource().getConnection();
+			    connection = ApplicationFactory.getDataSource().getConnection();
 			} catch (Exception e) {
 				logger.error(e);
 				e.printStackTrace();

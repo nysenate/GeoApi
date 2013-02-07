@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts;
 
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.DB;
 
 import java.sql.SQLException;
@@ -11,7 +12,7 @@ public class RebuildTriggers {
 
     public static void main(String[] args) throws Exception{
 
-        DataSource db = DB.INSTANCE.getDataSource();
+        DataSource db = ApplicationFactory.getDataSource();
         QueryRunner runner = new QueryRunner(db);
 
         System.out.println("Rebuilding Triggers");

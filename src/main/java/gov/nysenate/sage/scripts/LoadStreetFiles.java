@@ -12,6 +12,7 @@ import gov.nysenate.sage.boe.StreetFiles.Schoharie;
 import gov.nysenate.sage.boe.StreetFiles.Suffolk;
 import gov.nysenate.sage.boe.StreetFiles.Westchester;
 import gov.nysenate.sage.boe.StreetFiles.Wyoming;
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
 
@@ -24,7 +25,7 @@ public class LoadStreetFiles {
 
     public static void main(String[] args) throws Exception {
 
-        DataSource db = DB.INSTANCE.getDataSource();
+        DataSource db = ApplicationFactory.getDataSource();
 
         ArrayList<StreetFile> street_files = new ArrayList<StreetFile>();
 

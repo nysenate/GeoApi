@@ -1,8 +1,8 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.adapter.GeoServer;
-import gov.nysenate.sage.model.Point;
-import gov.nysenate.sage.model.Polygon;
+import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.service.DistrictService;
 
 import java.io.File;

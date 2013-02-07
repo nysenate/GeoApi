@@ -24,7 +24,6 @@ public class ResourceLoader implements Filter {
     public void init(FilterConfig fConfig) throws ServletException {
         timeLoaded = lastChecked = System.currentTimeMillis();
         log4jConfigFile = new File(this.getClass().getClassLoader().getResource("log4j.xml").getPath());
-
     }
 
     private synchronized void log4jReload() {
@@ -46,7 +45,6 @@ public class ResourceLoader implements Filter {
 
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 	    log4jReload();
-	    Config.refresh();
         chain.doFilter(request, response);
 	}
 

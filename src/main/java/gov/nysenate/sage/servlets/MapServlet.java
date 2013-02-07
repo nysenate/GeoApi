@@ -30,7 +30,6 @@ public class MapServlet extends HttpServlet
   private HashMap<Integer, Senate> m_districtData;
   private HashMap<Integer, Double[][]> m_mappingData;
 
-
   public void init(ServletConfig config)
   {
     m_objMapper = new ObjectMapper();
