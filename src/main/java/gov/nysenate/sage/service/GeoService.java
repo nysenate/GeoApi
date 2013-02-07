@@ -6,93 +6,107 @@ import gov.nysenate.sage.adapter.MapQuest;
 import gov.nysenate.sage.adapter.OSM;
 import gov.nysenate.sage.adapter.RubyGeocoder;
 import gov.nysenate.sage.adapter.Yahoo;
+import gov.nysenate.sage.adapter.YahooBoss;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
  *
- * @author graylin
+ * @author Graylin Kim
  *
  * Service layer that wraps all the geocode and reverse geocode adapters into
  * a simple interface.
  */
-public class GeoService {
+public class GeoService
+{
+  @SuppressWarnings("serial")
+  public static class GeoException extends Exception {
+    public GeoException() {}
+    public GeoException(String msg) { super(msg); }
+    public GeoException(String msg, Throwable t) { super(msg, t); }
+    public GeoException(Throwable t) { super(t); }
+  }
 
-    @SuppressWarnings("serial")
-    public static class GeoException extends Exception {
-        public GeoException() {}
-        public GeoException(String msg) { super(msg); }
-        public GeoException(String msg, Throwable t) { super(msg, t); }
-        public GeoException(Throwable t) { super(t); }
+  /**
+   * Accepts single address or a list of addresses and returns geocoded result:
+   *   result.status_code = 0 on success
+   *   result.messages = list of response messages if failure
+   *   result.address = best match address for result if successful
+   *   result.addresses = list of all returned address for result if successful
+   *
+   * If any incoming addresses are null a NULL result value is returned in its place.
+   * For bulk requests this ensures that index matching from the incoming address
+   * list to the returned results list is kept.
+   *
+   * Errors loading the API and parsing the API response are wrapped in a GeoException
+   * and thrown, terminating the geo-coding process and throwing away previous results.
+   *
+   *  TODO: Implement Either:
+   *   A) Attach previous results to exception instead of throwing them away.
+   *   B) Struggle on after exceptions via NULL results in the results list.
+   */
+  public interface GeocodeInterface
+  {
+    public Result geocode(Address address) throws GeoException;
+    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException;
+  }
+
+  // All adapters able to reverse geocode must implement this interface.
+  public interface ReverseGeocodeInterface
+  {
+    public Result reverseGeocode(Address address) throws GeoException;
+    public ArrayList<Result> reverseGeocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException;
+  }
+
+  // Adapters implementing each interface are stored in hashes so that a class
+  // using the GeoService can invoke specific adapters by name.
+  private final HashMap<String, GeocodeInterface> geoAdapters = new HashMap<String, GeocodeInterface>();
+  // private final HashMap<String, ReverseGeocodeInterface> revAdapters = new HashMap<String, ReverseGeocodeInterface>();
+
+
+  public GeoService() throws Exception
+  {
+    Yahoo yahoo = new Yahoo();
+    YahooBoss yahooBoss = new YahooBoss();
+    MapQuest mapquest = new MapQuest();
+    RubyGeocoder ruby = new RubyGeocoder();
+    OSM osm = new OSM();
+
+    geoAdapters.put("yahoo", yahoo);
+    geoAdapters.put("yahooboss", yahooBoss);
+    geoAdapters.put("mapquest", mapquest);
+    geoAdapters.put("geocoder", ruby);
+    geoAdapters.put("rubygeocoder", ruby);
+    geoAdapters.put("osm", osm);
+  } // GeoService()
+
+
+  public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter) throws GeoException
+  {
+    return getAdapter(adapter).geocode(addresses, Address.TYPE.MIXED);
+  } // geocode()
+
+  public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter, Address.TYPE hint) throws GeoException
+  {
+    return getAdapter(adapter).geocode(addresses, hint);
+  } // geocode()
+
+
+  public Result geocode(Address address, String adapter) throws GeoException
+  {
+    return getAdapter(adapter).geocode(address);
+  } // geocode()
+
+
+  private GeocodeInterface getAdapter(String adapter) throws GeoException
+  {
+    adapter = adapter.toLowerCase();
+    if (geoAdapters.containsKey(adapter)) {
+      return geoAdapters.get(adapter);
     }
-
-    /**
-     *  Accepts single address or a list of addresses and returns geocoded result:
-     *      result.status_code = 0 on success
-     *      result.messages = list of response messages if failure
-     *      result.address = best match address for result if successful
-     *      result.addresses = list of all returned address for result if successful
-     *
-     *  If any incoming addresses are null a NULL result value is returned in its place.
-     *  For bulk requests this ensures that index matching from the incoming address
-     *  list to the returned results list is kept.
-     *
-     *  Errors loading the API and parsing the API response are wrapped in a GeoException
-     *  and thrown, terminating the geo-coding process and throwing away previous results.
-     *
-     *   TODO: Implement Either:
-     *      A) Attach previous results to exception instead of throwing them away.
-     *      B) Struggle on after exceptions via NULL results in the results list.
-     */
-    public interface GeocodeInterface {
-        public Result geocode(Address address) throws GeoException;
-        public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException;
+    else {
+      throw new GeoException("Adapter "+adapter+" not valid.");
     }
-
-    // All adapters able to reverse geocode must implement this interface.
-    public interface ReverseGeocodeInterface {
-        public Result reverseGeocode(Address address) throws GeoException;
-        public ArrayList<Result> reverseGeocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException;
-    }
-
-    // Adapters implementing each interface are stored in hashes so that a class
-    // using the GeoService can invoke specific adapters by name.
-    private final HashMap<String, GeocodeInterface> geoAdapters = new HashMap<String, GeocodeInterface>();
-    // private final HashMap<String, ReverseGeocodeInterface> revAdapters = new HashMap<String, ReverseGeocodeInterface>();
-
-
-    public GeoService() throws Exception {
-        Yahoo yahoo = new Yahoo();
-        MapQuest mapquest = new MapQuest();
-        RubyGeocoder ruby = new RubyGeocoder();
-        OSM osm = new OSM();
-
-        geoAdapters.put("yahoo", yahoo);
-        geoAdapters.put("mapquest", mapquest);
-        geoAdapters.put("geocoder", ruby);
-        geoAdapters.put("rubygeocoder", ruby);
-        geoAdapters.put("osm", osm);
-    }
-
-    public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter) throws GeoException {
-        return getAdapter(adapter).geocode(addresses, Address.TYPE.MIXED);
-    }
-
-    public ArrayList<Result> geocode(ArrayList<Address> addresses, String adapter, Address.TYPE hint) throws GeoException {
-        return getAdapter(adapter).geocode(addresses, hint);
-    }
-
-    public Result geocode(Address address, String adapter) throws GeoException {
-        return getAdapter(adapter).geocode(address);
-    }
-
-    private GeocodeInterface getAdapter(String adapter) throws GeoException {
-        adapter = adapter.toLowerCase();
-        if (geoAdapters.containsKey(adapter)) {
-            return geoAdapters.get(adapter);
-        } else {
-            throw new GeoException("Adapter "+adapter+" not valid.");
-        }
-    }
+  } // getAdapter()
 }
