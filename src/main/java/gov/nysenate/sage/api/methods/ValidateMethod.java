@@ -40,11 +40,11 @@ public class ValidateMethod extends ApiExecution {
 
 	    if (result==null) {
 	        throw new ApiInternalException();
-	    } else if (result.status_code.equals("0")) {
-	        return new ValidateResponse(result.address);
+	    } else if (result.getStatus().equals("0")) {
+	        return new ValidateResponse(result.getAddress());
 	    } else {
 	        String msg = "";
-	        for (String m : result.messages) {
+	        for (String m : result.getMessages()) {
 	            msg += "\n"+m;
 	        }
 	        return new ErrorResponse(msg.toString());
