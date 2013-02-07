@@ -8,9 +8,12 @@ import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.StringBuilder;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
 import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
@@ -19,42 +22,57 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class RubyGeocoder implements GeocodeInterface {
+public class RubyGeocoder implements GeocodeInterface, Observer
+{
+    private static final String DEFAULT_BASE_URL = "http://geocoder.nysenate.gov/GeoRubyAdapter/api";
     private final Logger logger;
     private final int BATCH_SIZE = 24;
-    private final String GEO_BASE;
-    private final String GEO_BASE_BULK;
+    private String m_baseUrl;
+    private String m_baseBulkUrl;
 
-    public RubyGeocoder() throws Exception {
+
+    public RubyGeocoder() throws Exception
+    {
+        Config.notify(this);
+        configure();
         logger = Logger.getLogger(this.getClass());
         logger.info("Initialized RubyGeocoder Adapter");
-        GEO_BASE = Config.read("geocoder.url");
-        GEO_BASE_BULK = Config.read("geocoder.bulk.url");
     }
 
+
+    public void update(Observable o, Object arg)
+    {
+        configure();
+    } // update()
+
+
     @Override
-    public Result geocode(Address address) {
-        if (address == null)
+    public Result geocode(Address address)
+    {
+        if (address == null) {
             return null;
+        }
 
         Content page = null;
-        Result result = new Result();
+        String urlText;
 
         if (address.is_parsed()) {
-            result.source = GEO_BASE+"street="+address.addr2+"&city="+address.city+"&state="+address.state+"&zip="+address.zip5;
-        } else {
-            result.source = GEO_BASE+"address="+address.raw;
+            urlText = m_baseUrl+"?street="+address.addr2+"&city="+address.city+"&state="+address.state+"&zip="+address.zip5;
         }
-        result.source = result.source.replaceAll(" ", "%20");
+        else {
+            urlText = m_baseUrl+"address="+address.raw;
+        }
+        urlText = urlText.replaceAll(" ", "%20");
 
         try {
-            logger.info(result.source);
-            page = Request.Get(result.source).execute().returnContent();
+            Result result = new Result(urlText);
+            logger.info(urlText);
+            page = Request.Get(urlText).execute().returnContent();
 
             JSONArray array = new JSONArray(page.asString());
-            if (array.length()==0) {
-                result.status_code = "404";
-                result.messages.add("Lookup failure for "+address.toString());
+            if (array.length() == 0) {
+                result.setStatus("404");
+                result.addMessage("Lookup failure for "+address.toString());
                 return result;
             }
 
@@ -80,30 +98,33 @@ public class RubyGeocoder implements GeocodeInterface {
                 }
                 Address resultAddress = new Address(street, city, state, zip);
                 resultAddress.setGeocode(lat, lon, quality);
-                result.addresses.add(resultAddress);
-                result.status_code = "0";
-            } else {
-                result.status_code = "1";
-                result.messages.add("Empty object returned to indicate geocode failure.");
+                result.addAddress(resultAddress);
+                result.setStatus("0");
+            }
+            else {
+                result.setStatus("1");
+                result.addMessage("Empty object returned to indicate geocode failure.");
             }
             return result;
-
-        } catch (MalformedURLException e) {
-            logger.error("Malformed URL '"+result.source+"', check api key and address values.", e);
+        }
+        catch (MalformedURLException e) {
+            logger.error("Malformed URL '"+urlText+"', check API key and address values.", e);
             return null;
-
-        } catch (IOException e) {
-            logger.error("Error opening API resource '"+result.source+"'", e);
+        }
+        catch (IOException e) {
+            logger.error("Error opening API resource '"+urlText+"'", e);
             return null;
-
-        } catch (JSONException e) {
+        }
+        catch (JSONException e) {
             logger.error("Malformed JSON Response received:\n"+page.asString(), e);
             return null;
         }
     }
 
+
     @Override
-    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException {
+    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException
+    {
 
         // RubyGeocoder has a special bulk method if all addresses are parsed
         if (hint == Address.TYPE.PARSED) {
@@ -119,54 +140,58 @@ public class RubyGeocoder implements GeocodeInterface {
         return results;
     }
 
-    private ArrayList<Result> geocodeParsedBulk(ArrayList<Address> addresses) throws GeoException {
+
+    private ArrayList<Result> geocodeParsedBulk(ArrayList<Address> addresses) throws GeoException
+    {
         Content page = null;
+        String urlText = "";
         ArrayList<Result> results = new ArrayList<Result>();
         ArrayList<Result> batchResults = new ArrayList<Result>();
 
-        if (addresses.size()==0)
+        if (addresses.size() == 0) {
             return results;
-
-        String url = "";
-        String json = "";
+        }
 
         try {
-            json = "";
+            StringBuilder json = new StringBuilder();
             // Start with a=1 to make the batch boundary condition work nicely
-            for (int a=1; a <= addresses.size(); a++) {
+            for (int a = 1; a <= addresses.size(); a++) {
                 Address address = addresses.get(a-1);
                 if (address == null) {
                     batchResults.add(null);
-                } else {
+                }
+                else {
                     batchResults.add(new Result());
-                    json += "{\"street\":\""+address.addr2+"\", \"city\": \""+address.city+"\", \"state\": \""+address.state+"\", \"zip5\": \""+address.zip5+"\"},";
+                    json.append(",");
+                    json.append(addressToJson(address)); 
                 }
 
                 // Stop here unless we've filled this batch request
-                if (a%BATCH_SIZE != 0 && a != addresses.size()) continue;
+                if (a%BATCH_SIZE != 0 && a != addresses.size()) {
+                    continue;
+                }
 
-                url = GEO_BASE_BULK + "json=[" + URLEncoder.encode(json.substring(0, json.length()-1), "utf-8")+"]";
-                logger.info(url);
-                page = Request.Get(url).execute().returnContent();
+                urlText = m_baseBulkUrl+"?json=["+URLEncoder.encode(json.substring(1), "utf-8")+"]";
+                logger.info(urlText);
+                page = Request.Get(urlText).execute().returnContent();
 
                 // Log the source URL for all results
                 for (Result result : batchResults) {
-                    //result.status_code = "0"; // Rubygeocoder doesn't report errors?
-                    result.source = url;
+                    //result.setStatus("0"); // RubyGeo doesn't report errors?
+                    result.setSource(urlText);
                 }
 
-                // Each address specified produces its own result node
-                // Because null addresses aren't sent to mapquest we need
+                // Each address specified produces its own result node.
+                // Because null addresses aren't sent to MapQuest we need
                 // to track an offset to the corresponding result.
                 int resultOffset = 0;
                 JSONArray jsonResults = new JSONArray("["+page.asString()+"]");
-                for (int i=0; i<jsonResults.length(); i++) {
+                for (int i = 0; i < jsonResults.length(); i++) {
                     JSONObject jsonResult = jsonResults.getJSONObject(i);
                     Result result;
                     while ((result = batchResults.get(i+resultOffset)) == null) {
                         resultOffset++;
                     }
-
 
                     // If we don't have a lat then it was a geocode failure
                     if (jsonResult.has("lat")) {
@@ -182,40 +207,63 @@ public class RubyGeocoder implements GeocodeInterface {
 
                         Address resultAddress = new Address(street, city, state, zip);
                         resultAddress.setGeocode(lat, lon, quality);
-                        result.addresses.add(resultAddress);
+                        result.addAddress(resultAddress);
 
-                    } else {
-                        result.status_code = "1";
-                        result.messages.add("Empty object returned to indicate geocode failure.");
+                    }
+                    else {
+                        result.setStatus("1");
+                        result.addMessage("Empty object returned to indicate geocode failure.");
                     }
                 }
 
-                json = "";
+                json = new StringBuilder();
                 results.addAll(batchResults);
                 batchResults.clear();
             }
 
             return results;
-
-        }  catch (UnsupportedEncodingException e) {
+        }
+        catch (UnsupportedEncodingException e) {
             String msg = "UTF-8 encoding not supported!?";
             logger.error(msg);
             throw new GeoException(msg);
-
-        } catch (MalformedURLException e) {
-            String msg = "Malformed URL '"+url+"', check api key and address values.";
+        }
+        catch (MalformedURLException e) {
+            String msg = "Malformed URL '"+urlText+"', check API key and address values.";
             logger.error(msg, e);
             throw new GeoException(msg);
 
-        } catch (IOException e) {
-            String msg = "Error opening API resource '"+url+"'";
+        }
+        catch (IOException e) {
+            String msg = "Error opening API resource '"+urlText+"'";
             logger.error(msg, e);
             throw new GeoException(msg);
 
-        } catch (JSONException e) {
+        }
+        catch (JSONException e) {
             String msg = "Malformed JSON Response received:\n"+page.asString();
             logger.error(msg, e);
             throw new GeoException(msg);
         }
     }
+
+
+    private void configure()
+    {
+        m_baseUrl = Config.read("geocoder.url");
+        m_baseBulkUrl = Config.read("geocoder.bulk.url");
+
+        if (m_baseUrl.isEmpty()) {
+            m_baseUrl = DEFAULT_BASE_URL+"/geocode";
+        }
+        if (m_baseBulkUrl.isEmpty()) {
+            m_baseBulkUrl = DEFAULT_BASE_URL+"/bulk";
+        }
+    } // configure()
+
+
+    private String addressToJson(Address address)
+    {
+        return String.format("{\"street\":\"%s\",\"city\":\"%s\",\"state\":\"%s\",\"zip5\":\"%s\"}", address.addr2, address.city, address.state, address.zip5);
+    } // addressToJson()
 }
