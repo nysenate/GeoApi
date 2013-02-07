@@ -1,5 +1,6 @@
 package gov.nysenate.sage.servlets;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.model.districts.Senate;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.Connect;
@@ -19,7 +20,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
 
 
 public class MapServlet extends HttpServlet

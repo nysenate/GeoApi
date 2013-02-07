@@ -86,7 +86,7 @@ CREATE TABLE office (
   contact varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
-CREATE TABLE street_data (
+CREATE TABLE `street_data` (
   id int(10) unsigned NOT NULL AUTO_INCREMENT,
   street varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   town varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -107,11 +107,11 @@ CREATE TABLE street_data (
   assembly_code int(10) unsigned DEFAULT NULL,
   senate_code int(10) unsigned DEFAULT NULL,
   congressional_code int(10) unsigned DEFAULT NULL,
+  boe_town_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   town_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  senate_town_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   ward_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  school_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  senate_school_code smallint unsigned DEFAULT NULL,
+  boe_school_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  school_code varchar(3) COLLATE utf8_unicode_ci DEFAULT NULL,
   cleg_code int(10) DEFAULT NULL,
   cc_code int(10) DEFAULT NULL,
   fire_code varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
