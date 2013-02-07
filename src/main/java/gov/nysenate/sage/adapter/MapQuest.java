@@ -13,6 +13,8 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -31,19 +33,25 @@ import org.xml.sax.SAXException;
 
 /**
  *
- * @author graylin
- *
- *
+ * @author Graylin Kim
  */
-public class MapQuest implements GeocodeInterface{
+
+public class MapQuest implements GeocodeInterface, Observer
+{
+    private static final String DEFAULT_BASE_URL = "http://www.mapquestapi.com/geocoding/v1/batch";
     private final Logger logger;
     private final DocumentBuilder xmlBuilder;
     private final XPath xpath;
-    private final String BASE_URL;
     private final int BATCH_SIZE = 95;
     private final HashMap<String, Integer> qualityMap;
+    private String m_queryUrl;
 
-    public MapQuest() throws Exception {
+
+    public MapQuest() throws Exception
+    {
+        Config.notify(this);
+        configure();
+
         logger = Logger.getLogger(this.getClass());
         xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         xpath = XPathFactory.newInstance().newXPath();
@@ -84,36 +92,42 @@ public class MapQuest implements GeocodeInterface{
         qualityMap.put("Z2", 64);
         qualityMap.put("Z3", 75);
 
-        // Show only one result per location
-        // Use XML output
-        // Don't bother with the map thumbnail images
-        BASE_URL ="http://www.mapquestapi.com/geocoding/v1/batch?key="+Config.read("mapquest.key")+"&outFormat=xml&thumbMaps=false&maxResults=1";
         logger.info("Initialized MapQuest Adapter");
     }
 
+
+    public void update(Observable o, Object arg)
+    {
+        configure();
+    } // update()
+
+
     @Override
-    public Result geocode(Address address) throws GeoException {
+    public Result geocode(Address address) throws GeoException
+    {
         // Always use bulk with mapquest
         return geocode(new ArrayList<Address>(Arrays.asList(address)), Address.TYPE.MIXED).get(0);
     }
 
+
     @Override
-    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException {
+    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException
+    {
         Content page = null;
         Document response = null;
         ArrayList<Result> results = new ArrayList<Result>();
         ArrayList<Result> batchResults = new ArrayList<Result>();
-
-        String url = BASE_URL;
+        String url = null;
 
         try {
             // Start with a=1 to make the batch boundary condition work nicely
-            for (int a=1; a <= addresses.size(); a++) {
+            for (int a = 1; a <= addresses.size(); a++) {
                 Address address = addresses.get(a-1);
                 if (address == null) {
                     batchResults.add(null);
-                } else {
-                    url += "&location="+URLEncoder.encode(address.as_raw(), "UTF-8");
+                }
+                else {
+                    url = m_queryUrl+"&location="+URLEncoder.encode(address.as_raw(), "UTF-8");
                     batchResults.add(new Result());
                 }
 
@@ -129,8 +143,8 @@ public class MapQuest implements GeocodeInterface{
                 String status = xpath.evaluate("response/info/statusCode", response);
                 for (Result result : batchResults) {
                     if (result != null) {
-                        result.status_code = status;
-                        result.source = url;
+                        result.setStatus(status);
+                        result.setSource(url);
                     }
                 }
 
@@ -146,7 +160,7 @@ public class MapQuest implements GeocodeInterface{
                     // Log the error messages in each of the results.
                     for (Result result : batchResults) {
                         if (result != null) {
-                            result.messages = resultMessages;
+                            result.setMessages(resultMessages);
                         }
                     }
 
@@ -182,12 +196,11 @@ public class MapQuest implements GeocodeInterface{
 
                             Address resultAddress = new Address(street, city, state, zip_code);
                             resultAddress.setGeocode(lat, lng, quality);
-                            result.addresses.add(resultAddress);
+                            result.addAddress(resultAddress);
                         }
-                        result.address = result.addresses.get(0);
+                        result.setAddress(result.getFirstAddress());
                     }
                 }
-                url = BASE_URL;
                 results.addAll(batchResults);
                 batchResults.clear();
             }
@@ -219,4 +232,21 @@ public class MapQuest implements GeocodeInterface{
             throw new GeoException(msg ,e);
         }
     }
+
+
+    private void configure()
+    {
+        String baseUrl = Config.read("mapquest.url");
+        String apiKey = Config.read("mapquest.key");
+
+        if (baseUrl.isEmpty()) {
+            baseUrl = DEFAULT_BASE_URL;
+        }
+
+        // Show only one result per location
+        // Use XML output
+        // Don't bother with the map thumbnail images
+        m_queryUrl = baseUrl+"?key="+apiKey+"&outFormat=xml&thumbMaps=false&maxResults=1";
+        return;
+    } // configure()
 }
