@@ -4,12 +4,15 @@ import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
 import gov.nysenate.sage.service.GeoService.GeoException;
 import gov.nysenate.sage.service.GeoService.GeocodeInterface;
+import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -24,11 +27,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
 
-public class OSM implements GeocodeInterface {
 
+public class OSM implements GeocodeInterface, Observer
+{
+    private static final String DEFAULT_BASE_URL = "http://open.mapquestapi.com/nominatim/v1/search";
     private final Logger logger;
+    private String m_baseUrl;
 
-    public class ParallelRequest implements Callable<Result> {
+
+    public class ParallelRequest implements Callable<Result>
+    {
         public final OSM osm;
         public final Address address;
 
@@ -44,13 +52,25 @@ public class OSM implements GeocodeInterface {
 
     }
 
-    public OSM() throws Exception {
+
+    public OSM() throws Exception
+    {
+        Config.notify(this);
+        configure();
         logger = Logger.getLogger(this.getClass());
         logger.info("Initialized OSM Adapter");
-    }
+    } // OSM()
+
+
+    public void update(Observable o, Object arg)
+    {
+        configure();
+    } // update()
+
 
     @Override
-    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException {
+    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException
+    {
         ArrayList<Result> results = new ArrayList<Result>();
         ExecutorService executor = Executors.newFixedThreadPool(5);
         ArrayList<Future<Result>> futureResults = new ArrayList<Future<Result>>();
@@ -72,9 +92,13 @@ public class OSM implements GeocodeInterface {
         return results;
     }
 
+
     @Override
-    public Result geocode(Address address) throws GeoException {
-        if (address==null) return null;
+    public Result geocode(Address address) throws GeoException
+    {
+        if (address == null) {
+            return null;
+        }
 
         Content page = null;
         Document response = null;
@@ -82,14 +106,15 @@ public class OSM implements GeocodeInterface {
 
         try {
             // Parse the API response
-            result.source = "http://open.mapquestapi.com/nominatim/v1/search?format=json&q="
+            String urlText = m_baseUrl+"?format=json&q="
                     + URLEncoder.encode(address.as_raw(), "UTF-8")
                     + "&addressdetails=1&limit=3&viewbox=-1.99%2C52.02%2C0.78%2C50.94";
-            logger.info(result.source);
-            page = Request.Get(result.source).execute().returnContent();
+            result.setSource(urlText);
+            logger.info(urlText);
+            page = Request.Get(urlText).execute().returnContent();
 
             if (page.asString().equals("[]")) {
-                result.messages.add("ResultSet/ErrorMessage");
+                result.addMessage("ResultSet/ErrorMessage");
                 return result;
             }
 
@@ -127,7 +152,7 @@ public class OSM implements GeocodeInterface {
                          String zip_code = jsonAddress.optString("postcode");
                          Address resultAddress = new Address(street, city, state, zip_code);
                          resultAddress.setGeocode(lat, lon, 80);
-                         result.addresses.add(resultAddress);
+                         result.addAddress(resultAddress);
                      }
                      return result;
         }
@@ -138,15 +163,15 @@ public class OSM implements GeocodeInterface {
             throw new GeoException(msg);
 
         } catch (MalformedURLException e) {
-            String msg = "Malformed URL '"+result.source+"', check api key and address values.";
+            String msg = "Malformed URL '"+result.getSource()+"', check api key and address values.";
             logger.error(msg, e);
             throw new GeoException(msg, e);
 
         } catch (IOException e) {
-            String msg = "Error opening API resource '"+result.source+"'";
+            String msg = "Error opening API resource '"+result.getSource()+"'";
             logger.error(msg, e);
-            result.status_code = "500";
-            result.messages.add(e.getMessage());
+            result.setStatus("500");
+            result.addMessage(e.getMessage());
             return result;
         } catch (JSONException e) {
             String msg = "Malformed JSON Response received:\n";
@@ -154,4 +179,14 @@ public class OSM implements GeocodeInterface {
             throw new GeoException(msg);
         }
     }
+
+
+    private void configure()
+    {
+        m_baseUrl = Config.read("osm.url");
+
+        if (m_baseUrl.isEmpty()) {
+            m_baseUrl = DEFAULT_BASE_URL;
+        }
+    } // configure()
 }
