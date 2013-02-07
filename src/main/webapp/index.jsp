@@ -51,6 +51,7 @@ contextPath = "<%=request.getContextPath()%>";
               <label>Service</label>
               <select name="service">
                 <option>Yahoo</option>
+                <option value="YahooBoss">Yahoo BOSS</option>
                 <option>Mapquest</option>
                 <option>OSM</option>
                 <option>GeoCoder</option>
@@ -79,6 +80,7 @@ contextPath = "<%=request.getContextPath()%>";
               <label>Service</label>
               <select name="service">
                 <option>Yahoo</option>
+                <option>YahooBoss</option>
                 <option>Google</option>
                 <option>Bing</option>
               </select>
