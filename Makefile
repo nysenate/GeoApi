@@ -28,8 +28,8 @@ CLASSPATH=\
 	$(LOCAL_LIBDIR)/fluent-hc-4.2.2.jar:\
 	$(LOCAL_LIBDIR)/gson-2.2.2.jar:\
 	$(LOCAL_LIBDIR)/httpclient-4.2.2.jar:\
-	$(LOCAL_LIBDIR)/jackson-core-lgpl-1.9.11.jar:\
-	$(LOCAL_LIBDIR)/jackson-mapper-lgpl-1.9.11.jar:\
+	$(LOCAL_LIBDIR)/jackson-core-2.1.3.jar:\
+	$(LOCAL_LIBDIR)/jackson-databind-2.1.3.jar:\
 	$(LOCAL_LIBDIR)/jasypt-1.9.0.jar:\
 	$(LOCAL_LIBDIR)/javamail-1.4.5.jar:\
 	$(LOCAL_LIBDIR)/log4j-1.2.17.jar:\
