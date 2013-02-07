@@ -1,51 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
-  <display-name>GeoApi</display-name>
-  <filter>
-    <display-name>ResourceLoader</display-name>
-    <filter-name>ResourceLoader</filter-name>
-    <filter-class>gov.nysenate.sage.servlets.ResourceLoader</filter-class>
-  </filter>
-  <filter-mapping>
-    <filter-name>ResourceLoader</filter-name>
-    <url-pattern>/*</url-pattern>
-  </filter-mapping>
-  <filter>
-    <display-name>SenateFilter</display-name>
-    <filter-name>SenateFilter</filter-name>
-    <filter-class>gov.nysenate.sage.servlets.SenateFilter</filter-class>
-  </filter>
-  <filter-mapping>
-    <filter-name>SenateFilter</filter-name>
-    <url-pattern>/*</url-pattern>
-  </filter-mapping>
-  <servlet>
-    <servlet-name>MapServlet</servlet-name>
-    <servlet-class>gov.nysenate.sage.servlets.MapServlet</servlet-class>
-  </servlet>
-  <servlet>
-    <description></description>
-    <display-name>ApiServlet</display-name>
-    <servlet-name>ApiServlet</servlet-name>
-    <servlet-class>gov.nysenate.sage.servlets.ApiServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ApiServlet</servlet-name>
-    <url-pattern>/api/*</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description></description>
-    <display-name>BulkServlet</display-name>
-    <servlet-name>BulkServlet</servlet-name>
-    <servlet-class>gov.nysenate.sage.servlets.BulkServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>BulkServlet</servlet-name>
-    <url-pattern>/bulk/*</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MapServlet</servlet-name>
-    <url-pattern>/maps/</url-pattern>
-  </servlet-mapping>
-  
+
+    <display-name>GeoApi</display-name>
+
+    <listener>
+        <description>Context initialization and shutdown</description>
+        <display-name>SageContextListener</display-name>
+        <listener-class>gov.nysenate.sage.listener.SageContextListener</listener-class>
+    </listener>
+
+    <!-- Filters -->
+    <filter>
+        <display-name>ResourceFilter</display-name>
+        <filter-name>ResourceFilter</filter-name>
+        <filter-class>gov.nysenate.sage.filter.ResourceFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>ResourceFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <display-name>ApiFilter</display-name>
+        <filter-name>ApiFilter</filter-name>
+        <filter-class>gov.nysenate.sage.filter.ApiFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>ApiFilter</filter-name>
+        <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
+
+    <!-- API Controller mappings -->
+    <servlet>
+        <display-name>ValidateAddressController</display-name>
+        <servlet-name>ValidateAddressController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.api.ValidateAddressController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ValidateAddressController</servlet-name>
+        <url-pattern>/api/validate/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>DistrictController</display-name>
+        <servlet-name>DistrictController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.api.DistrictController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DistrictController</servlet-name>
+        <url-pattern>/api/district/*</url-pattern>
+    </servlet-mapping>
+
+
+
+
+
+
+    <!--
+    <servlet>
+        <servlet-name>MapServlet</servlet-name>
+        <servlet-class>gov.nysenate.sage.servlets.MapServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <description></description>
+        <display-name>ApiServlet</display-name>
+        <servlet-name>ApiServlet</servlet-name>
+        <servlet-class>gov.nysenate.sage.servlets.ApiServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApiServlet</servlet-name>
+        <url-pattern>/api/*</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <description></description>
+        <display-name>BulkServlet</display-name>
+        <servlet-name>BulkServlet</servlet-name>
+        <servlet-class>gov.nysenate.sage.servlets.BulkServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>BulkServlet</servlet-name>
+        <url-pattern>/bulk/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>MapServlet</servlet-name>
+        <url-pattern>/maps/</url-pattern>
+    </servlet-mapping>
+    -->
 </web-app>

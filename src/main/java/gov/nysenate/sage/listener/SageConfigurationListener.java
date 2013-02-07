@@ -21,8 +21,8 @@ import java.util.Observable;
  * the {@link org.apache.commons.configuration.PropertiesConfiguration} class.
  */
 public class SageConfigurationListener extends Observable
-                                       implements ConfigurationListener, ConfigurationErrorListener {
-
+                                       implements ConfigurationListener, ConfigurationErrorListener
+{
     public Logger logger = Logger.getLogger(this.getClass());
     public SageConfigurationListener() {}
 

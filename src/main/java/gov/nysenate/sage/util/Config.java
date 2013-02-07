@@ -62,7 +62,7 @@ public class Config
     public String getValue(String key)
     {
         String value = this.config.getString(key, "");
-        logger.debug(String.format("Reading config[%s] = %s", key, value));
+        logger.trace(String.format("Reading config[%s] = %s", key, value));
         String resolvedValue = resolveVariables(value);
         if (value != resolvedValue)
         {
