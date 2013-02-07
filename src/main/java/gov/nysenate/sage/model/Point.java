@@ -1,16 +1,23 @@
 package gov.nysenate.sage.model;
 
-import java.awt.geom.Point2D;
-
-//import com.thoughtworks.xstream.annotations.XStreamAlias;
-//@XStreamAlias("point")
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * @author Ken Zalewski
  */
 
-public class Point extends Point2D.Double
+@XStreamAlias("point")
+public class Point
 {
+  @XStreamAlias("lat")
+  @SerializedName("lat")
+  private double m_latitude;
+  @XStreamAlias("lon")
+  @SerializedName("lon")
+  private double m_longitude;
+  @XStreamAlias("address")
+  @SerializedName("address")
   private String m_address;
   
 
@@ -35,7 +42,8 @@ public class Point extends Point2D.Double
    */
   public Point(double lat, double lon, String address)
   {
-    super(lat, lon);
+    m_latitude = lat;
+    m_longitude = lon;
     m_address = address;
   } // Point()
 
@@ -47,7 +55,7 @@ public class Point extends Point2D.Double
    */
   public double getLatitude()
   {
-    return super.getX();
+    return m_latitude;
   } // getLatitude()
 
 
@@ -58,7 +66,7 @@ public class Point extends Point2D.Double
    */
   public double getLongitude()
   {
-    return super.getY();
+    return m_longitude;
   } // getLongitude()
 
 
