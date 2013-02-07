@@ -10,8 +10,8 @@ import java.util.Observer;
 /** Test the Config implementation using the test_app_properties.txt resource file. *
  * @see Config*/
 
-public class ConfigTest {
-
+public class ConfigTest
+{
     private SageConfigurationListener listener;
     private Config config;
 
@@ -41,23 +41,23 @@ public class ConfigTest {
     public void configReturnsCorrectValuesForValidKeys() throws Exception
     {
         /** Check common keys that should not change any time soon */
-        assertEquals("simple_value", config.readProperty("simple.key"));
-        assertEquals("spaces  value", config.readProperty("spaces.key"));
+        assertEquals("simple_value", config.getValue("simple.key"));
+        assertEquals("spaces  value", config.getValue("spaces.key"));
     }
 
     @Test
     public void configReturnsCorrectValueForVariableKeys() throws Exception
     {
-        assertEquals("simple_value variable", config.readProperty("variable.key"));
-        assertEquals("simple_value - simple_value variable", config.readProperty("repeated.variable.key"));
-        assertEquals("\"one\" two two 'three'", config.readProperty("nested.keys"));
+        assertEquals("simple_value variable", config.getValue("variable.key"));
+        assertEquals("simple_value - simple_value variable", config.getValue("repeated.variable.key"));
+        assertEquals("\"one\" two two 'three'", config.getValue("nested.keys"));
     }
 
     @Test
     public void configReturnsEmptyStringOnInvalidKey()
     {
-        assertEquals("", config.readProperty("bad key"));
-        assertEquals("", config.readProperty("unknown.variable.key"));
+        assertEquals("", config.getValue("bad key"));
+        assertEquals("", config.getValue("unknown.variable.key"));
     }
 
     @Test
@@ -77,7 +77,7 @@ public class ConfigTest {
 
         /** Trigger an update on the properties file using a variable value
          * which sets the key value again. */
-        config.readProperty("variable.key");
+        config.getValue("variable.key");
 
         /** Check that update was called on observers */
         assertTrue(d1.isUpdated);

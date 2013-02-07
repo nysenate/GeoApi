@@ -20,12 +20,18 @@ import org.apache.log4j.Logger;
  * other classes. This design was chosen to allow for the Config class to provide
  * functionality in a testing environment.
  *
+ * In the event of property file modifications while the context is deployed
+ * the SageConfigurationListener instance supplied will intercept file change events
+ * and notify the observers. To observe Config for changes simply call notifyOnChange()
+ * which delegates the Observer to SageConfigurationListener.
+ *
+ * @see gov.nysenate.sage.factory.ApplicationFactory
  * @see gov.nysenate.sage.listener.SageConfigurationListener
  */
 
-public class Config {
-
-    private static Logger logger = Logger.getLogger(Config.class);
+public class Config
+{
+    private final Logger logger = Logger.getLogger(Config.class);
 
     /** Pattern to replace {{variables}} used in the property file. */
     private static final Pattern variablePattern = Pattern.compile("\\{\\{(.*?)\\}\\}");
@@ -53,10 +59,10 @@ public class Config {
      * @param key - Property key to look up the value for.
      * @return String - Value of property or empty string if not found.
      */
-    public String readProperty(String key)
+    public String getValue(String key)
     {
         String value = this.config.getString(key, "");
-        logger.debug(String.format("Reading config[%s] = %s",key, value));
+        logger.debug(String.format("Reading config[%s] = %s", key, value));
         String resolvedValue = resolveVariables(value);
         if (value != resolvedValue)
         {
@@ -76,6 +82,14 @@ public class Config {
     }
 
     /**
+     * @return File - A File object containing the property file loaded.
+     */
+    public File getPropertyFile()
+    {
+        return config.getFile();
+    }
+
+    /**
      * Resolves variables in the property value.
      * @param value
      * @return
@@ -85,20 +99,11 @@ public class Config {
         Matcher variableMatcher = variablePattern.matcher(value);
         while(variableMatcher.find()) {
             String variable = variableMatcher.group(1);
-            String replacement = readProperty(variable);
-            logger.debug(String.format("Resolving %s to %s",variable, replacement));
+            String replacement = getValue(variable);
             value = value.replace("{{"+variable+"}}", replacement);
             variableMatcher = variablePattern.matcher(value);
         }
         return value;
-    }
-
-    /**
-     * @return File - A File object containing the property file loaded.
-     */
-    public File getPropertyFile()
-    {
-        return config.getFile();
     }
 
     @Deprecated
