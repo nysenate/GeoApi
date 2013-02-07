@@ -96,18 +96,17 @@ public class GeoCodeMethod extends ApiExecution
         if (result == null) {
           ret.add(new ErrorResponse("Internal Geocoding Error."));
         }
-        else if (!result.status_code.equals("0")) {
-          ret.add(new ErrorResponse(result.messages.get(0)));
+        else if (!result.getStatus().equals("0")) {
+          ret.add(new ErrorResponse(result.getFirstMessage()));
         }
         else {
-          Address bestMatch = result.addresses.get(0);
+          Address bestMatch = result.getFirstAddress();
           ret.add(new Point(bestMatch.latitude, bestMatch.longitude, bestMatch.as_raw()));
         }
       }
 
       if (type.equals("addr") || type.equals("extended")) {
         return ret.get(0);
-
       }
       else {
         return ret;
