@@ -57,8 +57,9 @@ public class GeoServer implements DistAssignInterface, Observer
     }
   }
 
+  private static final String DEFAULT_BASE_URL = "http://geoserver.nysenate.gov:8080/wfs";
   private final Logger logger;
-  private String API_BASE;
+  private String m_queryUrl;
 
   HashMap<Integer, Integer> COUNTY_CODES;
 
@@ -77,12 +78,6 @@ public class GeoServer implements DistAssignInterface, Observer
       COUNTY_CODES.put(Integer.parseInt(parts[2]), Integer.parseInt(parts[0]));
     }
   } // GeoServer()
-
-
-  private void configure()
-  {
-    API_BASE = Config.read("geoserver.url")+"/wfs?service=WFS&version=1.1.0&request=GetFeature";
-  } // configure()
 
 
   public void update(Observable o, Object arg)
@@ -125,10 +120,13 @@ public class GeoServer implements DistAssignInterface, Observer
   public Result assignDistricts(Address address, List<TYPE> distTypes)
                 throws DistException
   {
-    if (address == null) return null;
+    if (address == null) {
+      return null;
+    }
 
     Result result = new Result();
-    result.address = address.clone();
+    result.setAddress(address);
+    Address addrCopy = address.clone();
 
     Content page = null;
     try {
@@ -137,13 +135,13 @@ public class GeoServer implements DistAssignInterface, Observer
 
       // Should only match one feature per layer as a point intersection
       if (features.length() == 0) {
-        result.status_code = "1";
-        result.messages.add("No matching features found for ["+address.toString()+"]");
+        result.setStatus("1");
+        result.addMessage("No matching features found for ["+address.toString()+"]");
         return result;
       }
       else if (features.length() > distTypes.size()) {
-        result.status_code = "2";
-        result.messages.add("Multiple matching features found for some layers. aborting.");
+        result.setStatus("2");
+        result.addMessage("Multiple matching features found for some layers. aborting.");
         return result;
       }
 
@@ -152,46 +150,48 @@ public class GeoServer implements DistAssignInterface, Observer
         JSONObject properties = feature.getJSONObject("properties");
         String layer = feature.getString("id").split("\\.")[0];
         if (layer.equals("school")) {
-          result.address.school_name = properties.getString("NAME");
-          result.address.school_code = properties.getString("TFCODE");
+          addrCopy.school_name = properties.getString("NAME");
+          addrCopy.school_code = properties.getString("TFCODE");
         }
         else if (layer.equals("town")) {
-          result.address.town_name = properties.getString("NAME");
-          result.address.town_code = properties.getString("ABBREV");
+          addrCopy.town_name = properties.getString("NAME");
+          addrCopy.town_code = properties.getString("ABBREV");
         }
         else if (layer.equals("election")) {
-          result.address.election_code = properties.getInt("ED");
-          result.address.election_name = "ED "+address.school_code;
+          addrCopy.election_code = properties.getInt("ED");
+          addrCopy.election_name = "ED "+address.school_code;
         }
         else if (layer.equals("congressional")) {
           // Accommodate both old shape files and new 2012 shape files
-          result.address.congressional_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
-          result.address.congressional_code = properties.has("CD111FP") ? properties.getInt("CD111FP") : properties.getInt("DISTRICT");
+          addrCopy.congressional_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
+          addrCopy.congressional_code = properties.has("CD111FP") ? properties.getInt("CD111FP") : properties.getInt("DISTRICT");
         }
         else if (layer.equals("county")) {
-          result.address.county_name = properties.getString("NAMELSAD"); // or NAME
-          result.address.county_code = COUNTY_CODES.get(properties.getInt("COUNTYFP"));
+          addrCopy.county_name = properties.getString("NAMELSAD"); // or NAME
+          addrCopy.county_code = COUNTY_CODES.get(properties.getInt("COUNTYFP"));
         }
         else if (layer.equals("assembly")) {
           // Accommodate both old shape files and new 2012 shape files
-          result.address.assembly_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
-          result.address.assembly_code = properties.has("SLDLST") ? properties.getInt("SLDLST") : properties.getInt("DISTRICT");
+          addrCopy.assembly_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
+          addrCopy.assembly_code = properties.has("SLDLST") ? properties.getInt("SLDLST") : properties.getInt("DISTRICT");
         }
         else if (layer.equals("senate")) {
           // Accommodate both old shape files and new 2012 shape files
-          result.address.senate_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
-          result.address.senate_code = properties.has("SLDUST") ? properties.getInt("SLDUST") : properties.getInt("DISTRICT");
+          addrCopy.senate_name = properties.has("NAMELSAD") ? properties.getString("NAMELSAD") : properties.getString("NAME");
+          addrCopy.senate_code = properties.has("SLDUST") ? properties.getInt("SLDUST") : properties.getInt("DISTRICT");
         }
         else {
-          result.status_code = "3";
-          result.messages.add("Unidentified feature id "+feature.getString("id")+" found, aborting");
+          result.setStatus("3");
+          result.addMessage("Unidentified feature id "+feature.getString("id")+" found, aborting");
           return result;
         }
       }
+
+      result.setAddress(addrCopy);
       return result;
     }
     catch (JSONException e) {
-      String msg = "Malformed JSON response for '"+result.source+"'\n"+page.asString();
+      String msg = "Malformed JSON response from GeoServer\n"+page.asString();
       logger.error(msg, e);
       throw new DistException(msg, e);
     }
@@ -254,6 +254,18 @@ public class GeoServer implements DistAssignInterface, Observer
   } // getDistrictBoundary()
 
 
+  private void configure()
+  {
+    String baseUrl = Config.read("geoserver.url");
+
+    if (baseUrl.isEmpty()) {
+      baseUrl = DEFAULT_BASE_URL;
+    }
+
+    m_queryUrl = baseUrl+"?service=WFS&version=1.1.0&request=GetFeature";
+  } // configure()
+
+
   private JSONArray getFeatures(String filter, List<TYPE> distTypes)
   {
     ArrayList<String> geotypes = new ArrayList<String>();
@@ -263,7 +275,7 @@ public class GeoServer implements DistAssignInterface, Observer
     String geotypeAttr = "typename="+StringUtils.join(geotypes, ",");
 
     try {
-      String sourceUrl = String.format(API_BASE+"&%s&CQL_FILTER=%s&outputformat=JSON", geotypeAttr, URLEncoder.encode(filter, "UTF-8"));
+      String sourceUrl = String.format(m_queryUrl+"&%s&CQL_FILTER=%s&outputformat=JSON", geotypeAttr, URLEncoder.encode(filter, "UTF-8"));
       logger.info(sourceUrl);
 
       Content page = Request.Get(sourceUrl).execute().returnContent();
