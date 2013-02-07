@@ -16,13 +16,13 @@ import com.google.gson.Gson;
 
 import generated.geoserver.json.*;
 import gov.nysenate.sage.connectors.GeoServerConnect.WFS_POLY;
-import gov.nysenate.sage.model.*;
 import gov.nysenate.sage.model.districts.Assembly;
 import gov.nysenate.sage.model.districts.Congressional;
 import gov.nysenate.sage.model.districts.County;
 import gov.nysenate.sage.model.districts.DistrictResponse;
 import gov.nysenate.sage.model.districts.Election;
 import gov.nysenate.sage.model.districts.Senate;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.Connect;
 
 /**

@@ -4,7 +4,7 @@ import generated.google.GeocodeResponse;
 import generated.google.Location;
 import generated.google.Result;
 import gov.nysenate.sage.model.ParseStream;
-import gov.nysenate.sage.model.Point;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.abstracts.AbstractGeocoder;
 import gov.nysenate.sage.model.abstracts.AbstractReverseGeocoder;
 

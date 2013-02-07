@@ -1,6 +1,6 @@
 package gov.nysenate.sage.connectors;
 
-import gov.nysenate.sage.model.Point;
+import gov.nysenate.sage.model.geo.Point;
 import java.util.List;
 
 /**

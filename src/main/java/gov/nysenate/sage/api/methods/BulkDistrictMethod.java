@@ -37,26 +37,20 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
-public class BulkDistrictMethod extends ApiExecution
-{
+public class BulkDistrictMethod extends ApiExecution {
     private final Logger logger = Logger.getLogger(BulkDistrictMethod.class);
 
     private final GeoService geoService;
     private final DistrictLookup streetData;
     private final DistrictService districtService;
 
-
-    public BulkDistrictMethod() throws Exception
-    {
+    public BulkDistrictMethod() throws Exception {
         streetData = new DistrictLookup(DB.INSTANCE.getDataSource());
         geoService = new GeoService();
         districtService = new DistrictService();
     }
 
-
-    private BluebirdAddress jsonToAddress(String id, JSONObject json) throws JSONException
-    {
+    private BluebirdAddress jsonToAddress(String id, JSONObject json) throws JSONException {
         // Sample JSON:
         // {"street":"West 187th Street ","town":"New York","state":"NY","zip5":"10033","apt":null,"building":"650"}
 
@@ -266,20 +260,20 @@ public class BulkDistrictMethod extends ApiExecution
                 // Fill in missing coordinates for addresses.
                 try {
                     Result geoResult = geoService.geocode(sageAddress, geocoder);
-                    if (!geoResult.getStatus().equals("0")) {
-                        address.geo_method = geocoder.toUpperCase()+" - ERROR "+geoResult.getStatus();
-                        return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Error ["+geoResult.getStatus()+"] - "+geoResult.getFirstMessage(), address, new BOEAddressRange());
-                    } else if (geoResult.getAddresses().size() == 0) {
+                    if (!geoResult.status_code.equals("0")) {
+                        address.geo_method = geocoder.toUpperCase()+" - ERROR "+geoResult.status_code;
+                        return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Error ["+geoResult.status_code+"] - "+geoResult.messages.get(0), address, new BOEAddressRange());
+                    } else if (geoResult.addresses.size()==0) {
                         address.geo_method = geocoder.toUpperCase()+" - NOMATCH";
-                        return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.getAddresses().size()+" results found for: "+address.toString(), address, new BOEAddressRange());
-                    } else if (geoResult.getAddresses().size() > 1) {
+                        return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.size()+" results found for: "+address.toString(), address, new BOEAddressRange());
+                    } else if (geoResult.addresses.size() > 1) {
                         // Check to see of any of the results have exactly the same address
                         // Sometimes services will offer very similar alternatives.
-                        int numResults = geoResult.getAddresses().size();
+                        int numResults = geoResult.addresses.size();
                         double center_lat = 0;
                         double center_lon = 0;
                         logger.info(sageAddress);
-                        for (Address geoAddress : geoResult.getAddresses()) {
+                        for(Address geoAddress : geoResult.addresses) {
                             // I think I need to implement this equivalence
                             boolean street_match = sageAddress.addr2.toUpperCase().trim().equals(geoAddress.addr2.toUpperCase().trim());
                             boolean zip5_match = sageAddress.zip5.equals(geoAddress.zip5);
@@ -300,7 +294,7 @@ public class BulkDistrictMethod extends ApiExecution
                         if (!sageAddress.is_geocoded()) {
                             center_lat = center_lat/numResults;
                             center_lon = center_lon/numResults;
-                            for (Address geoAddress : geoResult.getAddresses()) {
+                            for (Address geoAddress : geoResult.addresses) {
                                 // Geocoding fails if any point is outside the given radius
                                 if (Math.pow(center_lat-geoAddress.latitude,2)+Math.pow(center_lon-geoAddress.longitude, 2) >= Math.pow(.001, 2)) {
                                     address.geo_method = geocoder.toUpperCase()+" - MULTIPLE DISTANT - "+numResults;
@@ -308,15 +302,15 @@ public class BulkDistrictMethod extends ApiExecution
                                 }
                             }
                             address.geo_method = geocoder.toUpperCase()+" - MULTIPLE DISTANT - "+numResults;
-                            sageAddress = geoResult.getFirstAddress();
+                            sageAddress = geoResult.addresses.get(0);
                         }
 
-                    } else if (geoResult.getFirstAddress().geocode_quality < 40){
-                        address.geo_method = geocoder.toUpperCase()+" - LOW QUALITY "+geoResult.getFirstAddress().geocode_quality;
-                        return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.getFirstAddress().geocode_quality+" must be atleast 40 (state level lookup) for "+address.toString(), address, new BOEAddressRange());
+                    } else if (geoResult.addresses.get(0).geocode_quality < 40){
+                        address.geo_method = geocoder.toUpperCase()+" - LOW QUALITY "+geoResult.addresses.get(0).geocode_quality;
+                        return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Failure - "+geoResult.addresses.get(0).geocode_quality+" must be atleast 40 (state level lookup) for "+address.toString(), address, new BOEAddressRange());
                     } else {
                         address.geo_method = geocoder.toUpperCase()+" - SINGLE RESULT";
-                        sageAddress = geoResult.getFirstAddress();
+                        sageAddress = geoResult.addresses.get(0);
                     }
 
                     // Push these values back into the Bluebird address as well
@@ -332,10 +326,10 @@ public class BulkDistrictMethod extends ApiExecution
 
             try {
                 Result distResult = districtService.assignDistricts(sageAddress, new ArrayList<DistrictService.TYPE>(Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.COUNTY,DistrictService.TYPE.SCHOOL,DistrictService.TYPE.TOWN)), "geoserver");
-                if (!distResult.getStatus().equals("0")) {
-                    return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Error ["+distResult.getStatus()+"] - "+distResult.getFirstMessage(), address, new BOEAddressRange());
+                if (!distResult.status_code.equals("0")) {
+                    return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Error ["+distResult.status_code+"] - "+distResult.messages.get(0), address, new BOEAddressRange());
                 } else {
-                    sageAddress = distResult.getAddress();
+                    sageAddress = distResult.address;
                 }
             } catch (DistException e) {
                  e.printStackTrace();
@@ -364,7 +358,7 @@ public class BulkDistrictMethod extends ApiExecution
             // Then try a street file lookup by street and consolidate
             if (address.street != null && !address.street.trim().equals("")) {
 	            matches = streetData.getRangesByStreet(address);
-	            BOEAddressRange consolidated = DistrictLookup.consolidateRanges(matches);
+	            BOEAddressRange consolidated = streetData.consolidateRanges(matches);
 	            if (consolidated != null) {
 	                return new BulkResult(BulkResult.STATUS.STREET, "STREET MATCH for "+address, address, consolidated);
 	            }
@@ -372,7 +366,7 @@ public class BulkDistrictMethod extends ApiExecution
 
             // Then try a street file lookup by zip5 and consolidate
             matches = streetData.getRangesByZip(address);
-            BOEAddressRange consolidated = DistrictLookup.consolidateRanges(matches);
+            BOEAddressRange consolidated = streetData.consolidateRanges(matches);
             if (consolidated != null) {
                 return new BulkResult(BulkResult.STATUS.ZIP5, "ZIP5 MATCH for "+address, address, consolidated);
             }

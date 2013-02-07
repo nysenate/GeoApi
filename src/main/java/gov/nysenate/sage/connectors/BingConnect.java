@@ -3,7 +3,7 @@ package gov.nysenate.sage.connectors;
 import generated.bing.Location;
 import generated.bing.Response;
 import gov.nysenate.sage.model.ParseStream;
-import gov.nysenate.sage.model.Point;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.abstracts.AbstractGeocoder;
 import gov.nysenate.sage.model.abstracts.AbstractReverseGeocoder;
 import gov.nysenate.sage.util.Config;

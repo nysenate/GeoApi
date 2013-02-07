@@ -2,7 +2,7 @@ package gov.nysenate.sage.adapter;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
-import gov.nysenate.sage.model.Point;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.service.DistrictService;
 import gov.nysenate.sage.service.DistrictService.DistAssignInterface;
 import gov.nysenate.sage.service.DistrictService.DistException;
@@ -11,7 +11,6 @@ import gov.nysenate.sage.util.Config;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;

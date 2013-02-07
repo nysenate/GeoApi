@@ -8,7 +8,7 @@ import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.ApiExecution;
 import gov.nysenate.sage.model.ErrorResponse;
-import gov.nysenate.sage.model.Point;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.service.GeoService;
 import gov.nysenate.sage.service.GeoService.GeoException;
 

@@ -2,7 +2,7 @@ package gov.nysenate.sage.connectors;
 
 import generated.yahoo.ResultSet;
 import gov.nysenate.sage.model.ParseStream;
-import gov.nysenate.sage.model.Point;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.abstracts.AbstractGeocoder;
 import gov.nysenate.sage.model.abstracts.AbstractReverseGeocoder;
 import gov.nysenate.sage.util.Config;

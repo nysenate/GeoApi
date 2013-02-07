@@ -10,5 +10,6 @@ public class BluebirdAddress extends BOEStreetAddress {
     public String parse_message;
     public String geo_method;
 
+    public BluebirdAddress() {}
     public BluebirdAddress(String id) { this.id = id; }
 }
