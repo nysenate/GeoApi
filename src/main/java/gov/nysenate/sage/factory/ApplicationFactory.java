@@ -2,45 +2,57 @@ package gov.nysenate.sage.factory;
 
 import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.DB;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
+import org.apache.tomcat.jdbc.pool.DataSource;
+import org.apache.tomcat.jdbc.pool.PoolProperties;
 
 /**
  * ApplicationFactory is responsible for instantiating all single-instance objects that are utilized
  * across the application and providing a single access point for them. By utilizing the ApplicationFactory
- * all classes that would typically be implemented as singletons can be created instantiated like
- * regular classes which allows for unit testing.
+ * all classes that would typically be implemented as singletons can be instantiated like regular classes
+ * which allows for unit testing.
  *
  * @author ash
  */
-public class ApplicationFactory {
-
-    private static Logger logger = Logger.getLogger(ApplicationFactory.class);
+public class ApplicationFactory
+{
+    private static final Logger logger = Logger.getLogger(ApplicationFactory.class);
 
     /** Static factory instance */
-    private static ApplicationFactory factoryInstance = new ApplicationFactory();
+    private static final ApplicationFactory factoryInstance = new ApplicationFactory();
 
     /** Dependency instances */
     private SageConfigurationListener configurationListener;
     private Config config;
+    private DB db;
 
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
 
     /**
+     * Public access call to build()
+     * @return boolean - If true then build succeeded
+     */
+    public static boolean buildInstances()
+    {
+        return factoryInstance.build();
+    }
+
+    /**
      * The build() method will construct all the objects and their necessary dependencies that are
-     * needed in the application scope. Classes that deal with configuration and other single instance
-     * classes that are typically implemented as singletons are instantiated here.
-     *
+     * needed in the application scope.
+     *      *
      * @return boolean  If true then build succeeded
      */
-    public static boolean build()
+    private boolean build()
     {
         try
         {
-            factoryInstance.configurationListener = new SageConfigurationListener();
-            factoryInstance.config = new Config(defaultPropertyFileName, factoryInstance.configurationListener);
-
+            this.configurationListener = new SageConfigurationListener();
+            this.config = new Config(defaultPropertyFileName, this.configurationListener);
+            this.db = new DB(this.config);
             return true;
         }
         catch (ConfigurationException ce)
@@ -64,6 +76,11 @@ public class ApplicationFactory {
     public static SageConfigurationListener getConfigurationListener()
     {
         return factoryInstance.configurationListener;
+    }
+
+    public static DataSource getDataSource()
+    {
+        return factoryInstance.db.getDataSource();
     }
 
 }
