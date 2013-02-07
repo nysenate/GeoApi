@@ -61,20 +61,20 @@ public class ProcessBulkUploads
       logger.info("GeocodeBatch: "+time);
 
       ArrayList<Address> geocodedAddresses = new ArrayList<Address>();
-      for (int i=0; i < results.size(); i++) {
+      for (int i = 0; i < results.size(); i++) {
         Result result = results.get(i);
         BulkInterface record = input.recordSet.get(i);
         if (result == null) {
           geocodedAddresses.add(null);
 
         }
-        else if (!result.status_code.equals("0")) {
-          logger.info(result.messages);
+        else if (!result.getStatus().equals("0")) {
+          logger.info(result.getMessages());
           geocodedAddresses.add(null);
 
         }
         else {
-          Address geocodedAddress = result.addresses.get(0);
+          Address geocodedAddress = result.getFirstAddress();
           geocodedAddresses.add(geocodedAddress);
           record.setLat(geocodedAddress.latitude+"");
           record.setLon(geocodedAddress.longitude+"");
@@ -107,13 +107,13 @@ public class ProcessBulkUploads
         BulkInterface record = batchResult.recordSet.get(i);
 
         if (result != null) {
-          Address distAssignAddr = result.address;
+          Address distAssignAddr = result.getAddress();
           record.setCounty(String.format("%02d", distAssignAddr.county_code));
           record.setED(String.format("%03d", distAssignAddr.election_code));
           record.setAD(String.format("%03d", distAssignAddr.assembly_code));
           record.setCD(String.format("%02d", distAssignAddr.congressional_code));
           record.setSD(String.format("%02d", distAssignAddr.senate_code));
-          record.setSchool(String.format("%03d", distAssignAddr.school_code));
+          record.setSchool(String.format("%03d", Integer.parseInt(distAssignAddr.school_code)));
           record.setTown(distAssignAddr.town_code);
           distAssignedAddresses.add(distAssignAddr);
         }
