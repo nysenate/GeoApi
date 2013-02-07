@@ -74,9 +74,9 @@ public class Tester {
                 Result result = results.get(i);
 
                 record.add(""); // Just a spacer
-                if (result.status_code.equals("0") && result.addresses.size() > 0) {
-                    Address address = result.addresses.get(0);
-                    record.add(String.valueOf(result.addresses.size()));
+                if (result.getStatus().equals("0") && result.getAddresses().size() > 0) {
+                    Address address = result.getFirstAddress();
+                    record.add(String.valueOf(result.getAddresses().size()));
                     record.add(address.as_raw());
                     record.add(String.valueOf(address.geocode_quality));
                     record.add(String.valueOf(address.latitude));
