@@ -30,23 +30,29 @@ public class ApplicationFactory
 
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
+    private static String defaultTestPropertyFileName = "test_app.properties";
 
     /**
-     * Public access call to build()
+     * Public access call to buildProduction()
      * @return boolean - If true then build succeeded
      */
     public static boolean buildInstances()
     {
-        return factoryInstance.build();
+        return factoryInstance.buildProduction();
+    }
+
+    public static boolean buildTestInstances()
+    {
+        return factoryInstance.buildTesting();
     }
 
     /**
-     * The build() method will construct all the objects and their necessary dependencies that are
-     * needed in the application scope.
-     *      *
+     * The buildProduction() method will construct all the objects and their necessary dependencies that are
+     * needed in the application scope..
+     *
      * @return boolean  If true then build succeeded
      */
-    private boolean build()
+    private boolean buildProduction()
     {
         try
         {
@@ -58,6 +64,28 @@ public class ApplicationFactory
         catch (ConfigurationException ce)
         {
             logger.fatal("Failed to load configuration file " + defaultPropertyFileName);
+            logger.fatal(ce.getMessage());
+        }
+        catch (Exception ex)
+        {
+            logger.fatal("An exception occurred while building dependencies");
+            logger.fatal(ex.getMessage());
+        }
+        return false;
+    }
+
+    private boolean buildTesting()
+    {
+        try
+        {
+            this.configurationListener = new SageConfigurationListener();
+            this.config = new Config(defaultTestPropertyFileName, this.configurationListener);
+            this.db = new DB(this.config);
+            return true;
+        }
+        catch (ConfigurationException ce)
+        {
+            logger.fatal("Failed to load configuration file " + defaultTestPropertyFileName);
             logger.fatal(ce.getMessage());
         }
         catch (Exception ex)

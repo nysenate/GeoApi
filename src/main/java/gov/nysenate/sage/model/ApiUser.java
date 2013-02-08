@@ -1,23 +1,25 @@
 package gov.nysenate.sage.model;
 
+/**
+ * Model class for representing a user and their assigned key.
+ */
+public class ApiUser
+{
+	private int id;
+	private String apiKey;
+	private String name;
+	private String description;
 
-public class ApiUser {
-	Integer id;
-	String apiKey;
-	String name;
-	String description;
+	public ApiUser() {}
 
-	public ApiUser() {
-
-	}
-
-	public ApiUser(String apiKey, String name, String description) {
+	public ApiUser(String apiKey, String name, String description)
+    {
 		this.apiKey = apiKey;
 		this.name = name;
 		this.description = description;
 	}
 
-	public Integer getId() {
+	public int getId() {
 		return id;
 	}
 
@@ -33,7 +35,7 @@ public class ApiUser {
 		return description;
 	}
 
-	public void setId(Integer id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 
@@ -48,5 +50,4 @@ public class ApiUser {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-
 }
