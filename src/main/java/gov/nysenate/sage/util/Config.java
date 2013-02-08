@@ -23,7 +23,8 @@ import org.apache.log4j.Logger;
  * In the event of property file modifications while the context is deployed
  * the SageConfigurationListener instance supplied will intercept file change events
  * and notify the observers. To observe Config for changes simply call notifyOnChange()
- * which delegates the Observer to SageConfigurationListener.
+ * which delegates the Observer to SageConfigurationListener. File change modifications
+ * are not checked continuously but rather any time the Config object is read from.
  *
  * @see gov.nysenate.sage.factory.ApplicationFactory
  * @see gov.nysenate.sage.listener.SageConfigurationListener

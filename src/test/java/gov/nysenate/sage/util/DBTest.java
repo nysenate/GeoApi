@@ -1,21 +1,15 @@
 package gov.nysenate.sage.util;
 
+import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.ArrayHandler;
 import org.apache.tomcat.jdbc.pool.DataSource;
-import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class DBTest
+public class DBTest extends TestBase
 {
-    @Before
-    public void setUp()
-    {
-        ApplicationFactory.buildInstances();
-    }
-
     /**
      * Quick test to see if the database connection is working.
      * @throws Exception
@@ -30,7 +24,4 @@ public class DBTest
 
         assertEquals(String.valueOf(1), String.valueOf(result[0]));
     }
-
-
-
 }
