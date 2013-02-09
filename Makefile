@@ -28,6 +28,7 @@ CLASSPATH=\
 	$(LOCAL_LIBDIR)/fluent-hc-4.2.2.jar:\
 	$(LOCAL_LIBDIR)/gson-2.2.2.jar:\
 	$(LOCAL_LIBDIR)/httpclient-4.2.2.jar:\
+	$(LOCAL_LIBDIR)/jackson-annotations-2.1.2.jar:\
 	$(LOCAL_LIBDIR)/jackson-core-2.1.3.jar:\
 	$(LOCAL_LIBDIR)/jackson-databind-2.1.3.jar:\
 	$(LOCAL_LIBDIR)/jasypt-1.9.0.jar:\
