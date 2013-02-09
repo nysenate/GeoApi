@@ -60,7 +60,7 @@ public class RubyGeocoder implements GeocodeInterface, Observer
             urlText = m_baseUrl+"?street="+address.addr2+"&city="+address.city+"&state="+address.state+"&zip="+address.zip5;
         }
         else {
-            urlText = m_baseUrl+"address="+address.raw;
+            urlText = m_baseUrl+"?address="+address.raw;
         }
         urlText = urlText.replaceAll(" ", "%20");
 
