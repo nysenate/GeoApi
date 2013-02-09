@@ -1,9 +1,11 @@
-package gov.nysenate.sage.model;
+package gov.nysenate.sage.model.auth;
+
+import java.io.Serializable;
 
 /**
  * Model class for representing a user and their assigned key.
  */
-public class ApiUser
+public class ApiUser implements Serializable
 {
 	private int id;
 	private String apiKey;
