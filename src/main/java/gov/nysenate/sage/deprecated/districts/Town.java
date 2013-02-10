@@ -1,17 +1,14 @@
-package gov.nysenate.sage.model.districts;
-
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+package gov.nysenate.sage.deprecated.districts;
 
 @Deprecated
-@XStreamAlias("school")
-public class School {
+public class Town {
     String district;
 
-    public School() {
+    public Town() {
 
     }
 
-    public School(String district) {
+    public Town(String district) {
         this.district = district;
     }
 

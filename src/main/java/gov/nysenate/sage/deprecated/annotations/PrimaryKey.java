@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.annotations;
+package gov.nysenate.sage.deprecated.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

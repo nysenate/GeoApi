@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.districts;
+package gov.nysenate.sage.deprecated.districts;
 
 import gov.nysenate.sage.Response;
 

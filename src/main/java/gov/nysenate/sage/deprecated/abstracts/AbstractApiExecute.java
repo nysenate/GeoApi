@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.abstracts;
+package gov.nysenate.sage.deprecated.abstracts;
 
 import gov.nysenate.sage.api.exceptions.ApiException;
 import gov.nysenate.sage.api.exceptions.ApiFormatException;

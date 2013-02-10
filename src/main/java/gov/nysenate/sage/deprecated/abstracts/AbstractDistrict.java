@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.abstracts;
+package gov.nysenate.sage.deprecated.abstracts;
 
 @Deprecated
 public abstract class AbstractDistrict {

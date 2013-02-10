@@ -16,9 +16,9 @@ import java.util.HashMap;
  * Utility class for performing JSON object serialization/de-serialization and mapping.
 */
 
-public class JsonUtil {
+public class FormatUtil {
 
-    protected static Logger logger = Logger.getLogger(JsonUtil.class);
+    protected static Logger logger = Logger.getLogger(FormatUtil.class);
     protected static ObjectMapper mapper = new ObjectMapper();
 
     public static String getString(JSONObject json, String key) {

@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.abstracts;
+package gov.nysenate.sage.deprecated.abstracts;
 
 import gov.nysenate.sage.model.geo.Point;
 

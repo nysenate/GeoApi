@@ -1,9 +1,9 @@
-package gov.nysenate.sage.model.districts;
+package gov.nysenate.sage.deprecated.districts;
 
-import gov.nysenate.sage.model.annotations.ForeignKey;
-import gov.nysenate.sage.model.annotations.ListType;
-import gov.nysenate.sage.model.annotations.PersistentObject;
-import gov.nysenate.sage.model.annotations.PrimaryKey;
+import gov.nysenate.sage.deprecated.abstracts.annotations.ForeignKey;
+import gov.nysenate.sage.deprecated.abstracts.annotations.ListType;
+import gov.nysenate.sage.deprecated.abstracts.annotations.PersistentObject;
+import gov.nysenate.sage.deprecated.abstracts.annotations.PrimaryKey;
 
 import java.util.ArrayList;
 

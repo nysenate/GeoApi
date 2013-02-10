@@ -1,50 +1,61 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.model.ApiUser;
-import gov.nysenate.sage.util.Connect;
+import gov.nysenate.sage.model.auth.ApiUser;
+import gov.nysenate.sage.dao.ApiUserDao;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.log4j.Logger;
 
-import org.jasypt.util.password.BasicPasswordEncryptor;
-
-
+/**
+ * Provides basic key-based api authentication.
+ */
 public class ApiUserAuth
 {
-    public String addUser(String apiKey, String name, String description,
-                        Connect dbconn)
+    private Logger logger = Logger.getLogger(ApiUserAuth.class);
+    private ApiUserDao apiUserDao;
+
+    public ApiUserAuth()
     {
-        BasicPasswordEncryptor pe = new BasicPasswordEncryptor();
-        String ep = pe.encryptPassword(apiKey).replaceAll("\\W", "");
-        dbconn.persist(new ApiUser(ep, name, description));
-        return ep;
+        apiUserDao = new ApiUserDao();
     }
 
-
-    public String addUser(String apiKey, String name, String description)
+    /**
+     * Retrieves the ApiUser that matches the given apiKey.
+     * @param apiKey
+     * @return  ApiUser if found, null otherwise
+     */
+    public ApiUser getApiUser(String apiKey)
     {
-        Connect dbconn = new Connect();
-        String ep = addUser(apiKey, name, description, dbconn);
-        dbconn.close();
-        return ep;
+        return apiUserDao.getApiUserByKey(apiKey);
     }
 
-
-    public ApiUser getUser(String apiKey, Connect dbconn)
+    /**
+     * Adds a new Api user to the database.
+     * @param name          Name of the user
+     * @param description   Description of the user
+     * @return ApiUser      If success returns a new ApiUser with id and apikey.
+     *                      Upon failure, null is returned.
+     */
+    public ApiUser addApiUser(String name, String description)
     {
-        ApiUser user = null;
-        try
+        ApiUser apiUser = new ApiUser();
+        apiUser.setName(name);
+        apiUser.setDescription(description);
+        apiUser.setApiKey(this.generateRandomKey());
+
+        if (apiUserDao.addApiUser(apiUser) == 1)
         {
-          user = (ApiUser)dbconn.getObject(ApiUser.class, "apikey", apiKey);
+            return apiUserDao.getApiUserByKey(apiUser.getApiKey());
         }
-        catch (Exception e) {
-          e.printStackTrace();
-        }
-        return user;
+
+        return null;
     }
 
-    public ApiUser getUser(String apiKey) throws Exception
+    /**
+     * Generates and returns a random 32 character key.
+     * @return String   key
+     */
+    private String generateRandomKey()
     {
-        Connect dbconn = new Connect();
-        ApiUser user = getUser(apiKey, dbconn);
-        dbconn.close();
-        return user;
+        return RandomStringUtils.randomAlphanumeric(32);
     }
 }
