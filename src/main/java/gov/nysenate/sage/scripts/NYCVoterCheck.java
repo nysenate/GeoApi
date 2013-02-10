@@ -6,7 +6,6 @@ import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.DB;
 
 import java.io.BufferedReader;
 import java.io.File;

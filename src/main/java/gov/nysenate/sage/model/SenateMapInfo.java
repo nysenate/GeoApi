@@ -1,6 +1,6 @@
 package gov.nysenate.sage.model;
 
-import gov.nysenate.sage.model.districts.Senate;
+import gov.nysenate.sage.deprecated.districts.Senate;
 
 public class SenateMapInfo {
 	double lat;

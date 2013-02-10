@@ -1,10 +1,9 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.model.districts.Office;
-import gov.nysenate.sage.model.districts.Senate;
-import gov.nysenate.sage.model.districts.Senator;
-import gov.nysenate.sage.model.districts.Social;
-import gov.nysenate.sage.util.Connect;
+import gov.nysenate.sage.deprecated.districts.Office;
+import gov.nysenate.sage.deprecated.districts.Senate;
+import gov.nysenate.sage.deprecated.districts.Senator;
+import gov.nysenate.sage.deprecated.districts.Social;
 
 import java.io.IOException;
 import java.util.ArrayList;

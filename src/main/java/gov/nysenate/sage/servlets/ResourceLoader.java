@@ -1,7 +1,5 @@
 package gov.nysenate.sage.servlets;
 
-import gov.nysenate.sage.util.Config;
-
 import java.io.File;
 import java.io.IOException;
 

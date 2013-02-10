@@ -4,7 +4,7 @@ package gov.nysenate.sage.connectors;
 import generated.geocoder.GeocoderResult;
 import generated.geocoder.GeocoderResults;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.abstracts.AbstractGeocoder;
+import gov.nysenate.sage.deprecated.abstracts.AbstractGeocoder;
 import gov.nysenate.sage.util.Config;
 
 import java.io.BufferedReader;

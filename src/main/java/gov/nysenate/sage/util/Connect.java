@@ -2,11 +2,11 @@ package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.MappedFields;
-import gov.nysenate.sage.model.annotations.ForeignKey;
-import gov.nysenate.sage.model.annotations.Ignore;
-import gov.nysenate.sage.model.annotations.ListType;
-import gov.nysenate.sage.model.annotations.PersistentObject;
-import gov.nysenate.sage.model.annotations.PrimaryKey;
+import gov.nysenate.sage.deprecated.annotations.ForeignKey;
+import gov.nysenate.sage.deprecated.annotations.Ignore;
+import gov.nysenate.sage.deprecated.annotations.ListType;
+import gov.nysenate.sage.deprecated.annotations.PersistentObject;
+import gov.nysenate.sage.deprecated.annotations.PrimaryKey;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

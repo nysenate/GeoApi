@@ -1,7 +1,7 @@
 package gov.nysenate.sage.servlets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nysenate.sage.model.districts.Senate;
+import gov.nysenate.sage.deprecated.districts.Senate;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.Connect;
 

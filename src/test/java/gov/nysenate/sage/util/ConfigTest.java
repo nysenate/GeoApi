@@ -7,8 +7,8 @@ import org.junit.Test;
 import java.util.Observable;
 import java.util.Observer;
 
-/** Test the Config implementation using the test_app.properties resource file. *
- * @see Config*/
+/** Test the Config implementation using the test.app.properties resource file. *
+ * @see Config */
 
 public class ConfigTest
 {
@@ -34,7 +34,7 @@ public class ConfigTest
     public void setUp() throws Exception
     {
         listener = new SageConfigurationListener();
-        config = new Config("test_app.properties", listener);
+        config = new Config("test.app.properties", listener);
     }
 
     @Test

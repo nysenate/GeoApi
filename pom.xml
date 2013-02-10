@@ -113,6 +113,11 @@
         <version>1.5</version>
     </dependency>
     <dependency>
+        <groupId>oauth.signpost</groupId>
+        <artifactId>signpost-commonshttp4</artifactId>
+        <version>1.2.1.2</version>
+    </dependency>
+    <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
         <version>4.2.3</version>
@@ -164,9 +169,10 @@
           <version>4.11</version>
     </dependency>
     <dependency>
-    	<groupId>oauth.signpost</groupId>
-    	<artifactId>signpost-core</artifactId>
-    	<version>1.2.1.2</version>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>1.9.5</version>
+        <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

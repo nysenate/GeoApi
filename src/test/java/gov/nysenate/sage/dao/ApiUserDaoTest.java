@@ -2,7 +2,7 @@ package gov.nysenate.sage.dao;
 
 import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.model.ApiUser;
+import gov.nysenate.sage.model.auth.ApiUser;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +20,7 @@ public class ApiUserDaoTest extends TestBase
     {
         super.setUp();
         this.apiUserDao = new ApiUserDao();
-        this.defaultKey = ApplicationFactory.getConfig().getValue("user.default.key");
+        this.defaultKey = ApplicationFactory.getConfig().getValue("user.default");
         this.defaultName = ApplicationFactory.getConfig().getValue("user.default.name");
     }
 

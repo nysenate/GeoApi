@@ -4,8 +4,8 @@ import generated.bing.Location;
 import generated.bing.Response;
 import gov.nysenate.sage.model.ParseStream;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.abstracts.AbstractGeocoder;
-import gov.nysenate.sage.model.abstracts.AbstractReverseGeocoder;
+import gov.nysenate.sage.deprecated.abstracts.AbstractGeocoder;
+import gov.nysenate.sage.deprecated.abstracts.AbstractReverseGeocoder;
 import gov.nysenate.sage.util.Config;
 
 import java.net.MalformedURLException;

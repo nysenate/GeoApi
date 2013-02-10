@@ -1,8 +1,7 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.model.districts.Congressional;
-import gov.nysenate.sage.model.districts.Member;
-import gov.nysenate.sage.util.Connect;
+import gov.nysenate.sage.deprecated.districts.Congressional;
+import gov.nysenate.sage.deprecated.districts.Member;
 
 import java.io.BufferedReader;
 import java.io.IOException;

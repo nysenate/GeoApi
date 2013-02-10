@@ -6,7 +6,6 @@ import gov.nysenate.sage.util.DB;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
-import org.apache.tomcat.jdbc.pool.PoolProperties;
 
 /**
  * ApplicationFactory is responsible for instantiating all single-instance objects that are utilized
@@ -30,7 +29,7 @@ public class ApplicationFactory
 
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
-    private static String defaultTestPropertyFileName = "test_app.properties";
+    private static String defaultTestPropertyFileName = "test.app.properties";
 
     /**
      * Public access call to buildProduction()

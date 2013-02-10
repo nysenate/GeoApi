@@ -6,7 +6,6 @@ import gov.nysenate.sage.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.boe.AddressUtils;
 import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.BluebirdAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
 import gov.nysenate.sage.factory.ApplicationFactory;
@@ -15,8 +14,7 @@ import gov.nysenate.sage.service.DistrictService;
 import gov.nysenate.sage.service.DistrictService.DistException;
 import gov.nysenate.sage.service.GeoService;
 import gov.nysenate.sage.service.GeoService.GeoException;
-import gov.nysenate.sage.util.JsonUtil;
-import gov.nysenate.sage.util.DB;
+import gov.nysenate.sage.util.FormatUtil;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -66,14 +64,14 @@ public class BulkDistrictMethod extends ApiExecution {
             address.parse_message = "";
         }
 
-        String street = JsonUtil.getString(json,"street");
-        String town = JsonUtil.getString(json,"town");
-        String state = JsonUtil.getString(json,"state");
-        Integer zip5 = JsonUtil.getInteger(json,"zip5");
-        Integer apt_num = JsonUtil.getInteger(json,"apt");
-        Integer bldg_num = JsonUtil.getInteger(json,"building");
-        Double latitude = JsonUtil.getDouble(json,"latitude");
-        Double longitude = JsonUtil.getDouble(json,"longitude");
+        String street = FormatUtil.getString(json, "street");
+        String town = FormatUtil.getString(json, "town");
+        String state = FormatUtil.getString(json, "state");
+        Integer zip5 = FormatUtil.getInteger(json, "zip5");
+        Integer apt_num = FormatUtil.getInteger(json, "apt");
+        Integer bldg_num = FormatUtil.getInteger(json, "building");
+        Double latitude = FormatUtil.getDouble(json, "latitude");
+        Double longitude = FormatUtil.getDouble(json, "longitude");
 
         if (street == null) {
             address.parse_failure = true;

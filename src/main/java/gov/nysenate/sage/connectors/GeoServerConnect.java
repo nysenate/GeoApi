@@ -4,7 +4,7 @@ import generated.geoserver.json.GeoFeatures;
 import generated.geoserver.json.GeoResult;
 import gov.nysenate.sage.connectors.DistrictServices.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.districts.Senate;
+import gov.nysenate.sage.deprecated.districts.Senate;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.Connect;
 

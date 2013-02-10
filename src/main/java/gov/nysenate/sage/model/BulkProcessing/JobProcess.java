@@ -1,7 +1,6 @@
 package gov.nysenate.sage.model.BulkProcessing;
 
-import gov.nysenate.sage.model.annotations.Ignore;
-import gov.nysenate.sage.model.annotations.PrimaryKey;
+import gov.nysenate.sage.deprecated.annotations.*;
 import gov.nysenate.sage.util.Connect;
 
 import java.io.IOException;

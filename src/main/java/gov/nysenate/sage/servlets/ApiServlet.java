@@ -17,13 +17,13 @@ import gov.nysenate.sage.api.methods.StreetLookupMethod;
 import gov.nysenate.sage.api.methods.ValidateMethod;
 import gov.nysenate.sage.api.methods.ZipCodeLookupMethod;
 import gov.nysenate.sage.model.ApiMethod;
-import gov.nysenate.sage.model.ApiUser;
+import gov.nysenate.sage.model.auth.ApiUser;
 import gov.nysenate.sage.model.ErrorResponse;
 import gov.nysenate.sage.model.Metric;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.ValidateResponse;
-import gov.nysenate.sage.model.districts.DistrictResponse;
-import gov.nysenate.sage.util.ApiAuth;
+import gov.nysenate.sage.deprecated.districts.DistrictResponse;
+import gov.nysenate.sage.util.ApiUserAuth;
 import gov.nysenate.sage.util.Connect;
 
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class ApiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     HashMap<String,ApiMethod> methods = null;
-    ApiAuth auth = null;
+    ApiUserAuth auth = null;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -59,7 +59,7 @@ public class ApiServlet extends HttpServlet {
         try {
             super.init(config);
             methods = getMethods();
-            auth = new ApiAuth();
+            auth = new ApiUserAuth();
         } catch (Exception e) {
             throw new ServletException(e);
         }
@@ -86,7 +86,7 @@ public class ApiServlet extends HttpServlet {
             if(key == null)
                 throw new ApiAuthenticationException();
 
-            ApiUser user = auth.getUser(key, db);
+            ApiUser user = auth.getApiUser(key);
             if (user == null)
                 throw new ApiAuthenticationException();
 

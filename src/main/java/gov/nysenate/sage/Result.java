@@ -3,9 +3,7 @@ package gov.nysenate.sage;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- *
  * @author Graylin Kim
  * @author Ken Zalewski
  *

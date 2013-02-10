@@ -1,8 +1,8 @@
 package gov.nysenate.sage.deprecated.districts;
 
 
-import gov.nysenate.sage.deprecated.abstracts.annotations.PersistentObject;
-import gov.nysenate.sage.deprecated.abstracts.annotations.PrimaryKey;
+import gov.nysenate.sage.deprecated.annotations.PersistentObject;
+import gov.nysenate.sage.deprecated.annotations.PrimaryKey;
 
 import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;

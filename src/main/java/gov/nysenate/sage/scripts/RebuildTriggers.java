@@ -1,7 +1,6 @@
 package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.util.DB;
 
 import java.sql.SQLException;
 

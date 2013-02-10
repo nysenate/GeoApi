@@ -1,6 +1,6 @@
 package gov.nysenate.sage.dao;
 
-import gov.nysenate.sage.model.ApiUser;
+import gov.nysenate.sage.model.auth.ApiUser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;

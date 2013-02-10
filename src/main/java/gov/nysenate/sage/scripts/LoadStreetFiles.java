@@ -14,7 +14,6 @@ import gov.nysenate.sage.boe.StreetFiles.Westchester;
 import gov.nysenate.sage.boe.StreetFiles.Wyoming;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.DB;
 
 import javax.sql.DataSource;
 import java.io.File;

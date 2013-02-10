@@ -52,7 +52,7 @@ public class FormatUtil {
      *
      * @return String   JSON string
      * */
-    public static String objectToString(Object o){
+    public static String toJsonString(Object o){
         ObjectMapper om = new ObjectMapper();
         try {
             return om.writeValueAsString(o);
@@ -78,7 +78,7 @@ public class FormatUtil {
 
     /** Prints out JSON representation of object to the given print stream */
     public static String printObject(Object o, PrintStream ps){
-        String s = objectToString(o);
+        String s = toJsonString(o);
         if (ps != null){
             ps.println(s);
         }

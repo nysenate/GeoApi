@@ -11,8 +11,6 @@ import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
 import gov.nysenate.sage.service.DistrictService.DistAssignInterface;
 import gov.nysenate.sage.service.DistrictService.DistException;
-import gov.nysenate.sage.util.DB;
-import gov.nysenate.sage.util.JsonUtil;
 import org.apache.log4j.Logger;
 import java.sql.SQLException;
 import java.util.ArrayList;

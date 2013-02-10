@@ -1,7 +1,7 @@
 package gov.nysenate.sage.deprecated.districts;
 
 import gov.nysenate.sage.deprecated.abstracts.AbstractDistrict;
-import gov.nysenate.sage.deprecated.abstracts.annotations.ForeignKey;
+import gov.nysenate.sage.deprecated.annotations.ForeignKey;
 
 import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
