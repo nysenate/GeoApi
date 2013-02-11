@@ -21,11 +21,20 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * In order to test filter operation a MockFilter implementation is supplied here to
+ * simulate any methods that are called in code. The mock objects are created using the
+ * Mockito library. The documentation will be useful for constructing mock method
+ * implementations for this class.
+ *
+ * (Documentation subject to change)
+ * http://docs.mockito.googlecode.com/hg/org/mockito/Mockito.html
+ */
 public class MockFilter extends TestBase
 {
     protected FilterConfig mockFilterConfig;
     protected FilterChain mockFilterChain;
-    protected ServletRequest mockServletRequest;
+    protected HttpServletRequest mockServletRequest;
     protected HttpServletResponse mockServletResponse;
 
     StringWriter sWriter = new StringWriter();
@@ -46,18 +55,18 @@ public class MockFilter extends TestBase
 
         try
         {
-
             when(mockServletResponse.getWriter()).thenReturn(this.pWriter);
 
+            /** Mock setAttribute() method for ServletRequest */
             doAnswer(new Answer() {
                 public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
                     Object[] args = invocationOnMock.getArguments();
                     attributes.put((String) args[0], args[1]);
                     return null;
                 }
-            }).
-            when(mockServletRequest).setAttribute(isA(String.class), isA(Object.class));
+            }).when(mockServletRequest).setAttribute(isA(String.class), isA(Object.class));
 
+            /** Mock getAttribute(String) method for ServletRequest */
             when(mockServletRequest.getAttribute(isA(String.class))).thenAnswer(new Answer(){
                 @Override
                 public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
@@ -84,11 +93,11 @@ public class MockFilter extends TestBase
         return mockFilterChain;
     }
 
-    public ServletRequest getMockServletRequest() {
+    public HttpServletRequest getMockServletRequest() {
         return mockServletRequest;
     }
 
-    public ServletResponse getMockServletResponse() {
+    public HttpServletResponse getMockServletResponse() {
         return mockServletResponse;
     }
 }
