@@ -14,6 +14,10 @@ import javax.servlet.ServletResponse;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
+/**
+ * Test of ApiFilter using a MockFilter to simulate a filter chain environment.
+ * @see MockFilter
+ */
 public class ApiFilterTest extends TestBase
 {
     MockFilter mf;
@@ -23,7 +27,6 @@ public class ApiFilterTest extends TestBase
     @Before
     public void setUp()
     {
-        super.setUp();
         config = ApplicationFactory.getConfig();
         mf = new MockFilter();
     }

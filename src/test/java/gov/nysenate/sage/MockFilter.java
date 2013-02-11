@@ -39,7 +39,6 @@ public class MockFilter extends TestBase
 
     public void setUp()
     {
-        super.setUp();
         mockFilterConfig = mock(FilterConfig.class);
         mockFilterChain = mock(FilterChain.class);
         mockServletRequest = mock(HttpServletRequest.class);

@@ -11,6 +11,9 @@ import org.junit.Test;
 
 import java.util.Date;
 
+/**
+ * Test to verify ApiUserDao performs basic operations correctly.
+ */
 public class ApiUserDaoTest extends TestBase
 {
     private ApiUserDao apiUserDao;
@@ -21,7 +24,6 @@ public class ApiUserDaoTest extends TestBase
     @Before
     public void setUp()
     {
-        super.setUp();
         config = ApplicationFactory.getConfig();
         this.apiUserDao = new ApiUserDao();
         this.defaultKey = config.getValue("user.default");

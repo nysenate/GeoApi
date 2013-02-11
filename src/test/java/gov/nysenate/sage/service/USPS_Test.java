@@ -28,7 +28,6 @@ public class USPS_Test extends TestBase
     @Before
     public void setUp()
     {
-        super.setUp();
         try {
             this.usps = new USPS();
         }
@@ -74,26 +73,26 @@ public class USPS_Test extends TestBase
         assertEquals(USPS.class.getSimpleName(), addressResults.get(0).getSource());
 
         Address expected = new Address("71 14TH ST", "", "TROY", "NY", "12180", "4209");
-        assertTrue(addressResults.get(0).getIsValidated());
+        assertTrue(addressResults.get(0).isValidated());
         assertAddressEquals(expected, addressResults.get(0).getAddress());
 
         expected = new Address("214 8TH ST", "", "TROY", "NY", "12180", "2931");
-        assertTrue(addressResults.get(1).getIsValidated());
+        assertTrue(addressResults.get(1).isValidated());
         assertAddressEquals(expected, addressResults.get(1).getAddress());
 
         expected = new Address("101 E STATE ST", "", "OLEAN", "NY", "14760", "2776");
-        assertTrue(addressResults.get(2).getIsValidated());
+        assertTrue(addressResults.get(2).isValidated());
         assertAddressEquals(expected, addressResults.get(2).getAddress());
 
-        assertFalse(addressResults.get(3).getIsValidated());
+        assertFalse(addressResults.get(3).isValidated());
         assertNull(addressResults.get(3).getAddress());
 
         expected = new Address("2012 E RIVER RD", "", "OLEAN", "NY", "14760", "9309");
-        assertTrue(addressResults.get(4).getIsValidated());
+        assertTrue(addressResults.get(4).isValidated());
         assertAddressEquals(expected, addressResults.get(4).getAddress());
 
         expected = new Address("44 FAIRLAWN AVE APT 2B", "", "ALBANY", "NY", "12203", "1914");
-        assertTrue(addressResults.get(5).getIsValidated());
+        assertTrue(addressResults.get(5).isValidated());
         assertAddressEquals(expected, addressResults.get(5).getAddress());
     }
 
@@ -101,12 +100,12 @@ public class USPS_Test extends TestBase
     public void USPS_CityStateLookup_ReturnsAddressResult()
     {
         ArrayList<Address> addresses = new ArrayList<>(Arrays.asList(
-                new Address("71 14th Street", "", "Troy", "NY", "12180", ""),
-                new Address("214 8th Street", "", "Troy", "NY", "12180", ""),
-                new Address("101 East State Street", "", "Olean", "NY", "14760", ""),
-                new Address("Oak Hill Park", "", "Olean", "NY", "14760", ""), /** This one will be invalid */
-                new Address("2012 E Rivr Road", "", "Olean", "NY", "14760", ""),
-                new Address("44 Fairlawn Ave", "Apt 2B", "Albany", "NY", "12203", "")
+                new Address("71 14th Street", "", "", "", "12180", ""),
+                new Address("214 8th Street", "", "", "", "12180", ""),
+                new Address("101 East State Street", "", "", "NY", "14760", ""),
+                new Address("", "", "", "", "99999", ""), /** This one will be invalid */
+                new Address("2012 E Rivr Road", "", "Olean", "", "14760", ""),
+                new Address("44 Fairlawn Ave", "Apt 2B", "", "NY", "12203", "")
         ));
 
         ArrayList<AddressResult> addressResults = usps.lookupCityState(addresses);
@@ -116,27 +115,25 @@ public class USPS_Test extends TestBase
         logger.debug(FormatUtil.toJsonString(addressResults));
 
         Address expected = new Address("71 14TH ST", "", "TROY", "NY", "12180", "4209");
-        assertTrue(addressResults.get(0).getIsValidated());
+        assertTrue(addressResults.get(0).isValidated());
         assertCityStateEquals(expected, addressResults.get(0).getAddress());
 
         expected = new Address("214 8TH ST", "", "TROY", "NY", "12180", "2931");
-        assertTrue(addressResults.get(1).getIsValidated());
+        assertTrue(addressResults.get(1).isValidated());
         assertCityStateEquals(expected, addressResults.get(1).getAddress());
 
         expected = new Address("101 E STATE ST", "", "OLEAN", "NY", "14760", "2776");
-        assertTrue(addressResults.get(2).getIsValidated());
+        assertTrue(addressResults.get(2).isValidated());
         assertCityStateEquals(expected, addressResults.get(2).getAddress());
 
-        expected = new Address("", "", "OLEAN", "NY", "14760", "");
-        assertTrue(addressResults.get(3).getIsValidated());
-        assertCityStateEquals(expected, addressResults.get(3).getAddress());
+        assertFalse(addressResults.get(3).isValidated());
 
         expected = new Address("2012 E RIVER RD", "", "OLEAN", "NY", "14760", "9309");
-        assertTrue(addressResults.get(4).getIsValidated());
+        assertTrue(addressResults.get(4).isValidated());
         assertCityStateEquals(expected, addressResults.get(4).getAddress());
 
         expected = new Address("44 FAIRLAWN AVE APT 2B", "", "ALBANY", "NY", "12203", "1914");
-        assertTrue(addressResults.get(5).getIsValidated());
+        assertTrue(addressResults.get(5).isValidated());
         assertCityStateEquals(expected, addressResults.get(5).getAddress());
     }
 
