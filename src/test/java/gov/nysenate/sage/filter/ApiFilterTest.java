@@ -8,6 +8,9 @@ import gov.nysenate.sage.util.Config;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
@@ -48,6 +51,9 @@ public class ApiFilterTest extends TestBase
         ApiUser apiUser = (ApiUser) mf.getMockServletRequest().getAttribute("apiUser");
         assertNotNull(apiUser);
         assertEquals(config.getValue("user.default"), apiUser.getApiKey());
+
+        /** Verify that filter proceeds */
+        verify(mf.getMockFilterChain(), only()).doFilter(isA(ServletRequest.class), isA(ServletResponse.class));
     }
 
     @Test
@@ -65,6 +71,10 @@ public class ApiFilterTest extends TestBase
         ApiUser apiUser = (ApiUser) mf.getMockServletRequest().getAttribute("apiUser");
         assertNotNull(apiUser);
         assertEquals(config.getValue("user.default"), apiUser.getApiKey());
+
+        /** Verify that filter proceeds */
+        verify(mf.getMockFilterChain(), only()).doFilter(isA(ServletRequest.class), isA(ServletResponse.class));
+
     }
 
     @Test

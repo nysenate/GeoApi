@@ -4,6 +4,8 @@ import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.auth.ApiUser;
 import static org.junit.Assert.*;
+
+import gov.nysenate.sage.util.Config;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,6 +14,7 @@ import java.util.Date;
 public class ApiUserDaoTest extends TestBase
 {
     private ApiUserDao apiUserDao;
+    private Config config;
     private String defaultKey;
     private String defaultName;
 
@@ -19,9 +22,10 @@ public class ApiUserDaoTest extends TestBase
     public void setUp()
     {
         super.setUp();
+        config = ApplicationFactory.getConfig();
         this.apiUserDao = new ApiUserDao();
-        this.defaultKey = ApplicationFactory.getConfig().getValue("user.default");
-        this.defaultName = ApplicationFactory.getConfig().getValue("user.default.name");
+        this.defaultKey = config.getValue("user.default");
+        this.defaultName = config.getValue("user.default.name");
     }
 
     @Test
