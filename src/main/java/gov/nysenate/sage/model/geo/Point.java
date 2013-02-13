@@ -16,6 +16,7 @@ public class Point
   @XStreamAlias("lon")
   @SerializedName("lon")
   private double m_longitude;
+  /** REMOVE address: it does not belong in a point class */
   @XStreamAlias("address")
   @SerializedName("address")
   private String m_address;
