@@ -8,7 +8,7 @@ import javax.servlet.annotation.WebListener;
 
 /**
  * SageContextListener is used to call initialization methods when the context is (re)deployed and
- * perform cleanup when the context is being shut down.  *
+ * perform cleanup when the context is being shut down.
  */
 @WebListener()
 public class SageContextListener implements ServletContextListener {
@@ -24,7 +24,10 @@ public class SageContextListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce)
     {
         logger.info("Servlet Context Listener started.");
-        ApplicationFactory.buildInstances();
+
+        /** Build instances and set the init attribute to true if succeeded */
+        boolean buildStatus = ApplicationFactory.buildInstances();
+        sce.getServletContext().setAttribute("init", buildStatus);
     }
 
     /**
