@@ -1,5 +1,8 @@
 package gov.nysenate.sage.filter;
 
+import static gov.nysenate.sage.controller.api.RequestAttribute.*;
+
+import gov.nysenate.sage.controller.api.RequestAttribute;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.ApiErrorResponse;
 import gov.nysenate.sage.model.auth.ApiUser;
@@ -33,6 +36,7 @@ public class ApiFilter implements Filter, Observer {
 
     public static String INVALID_KEY_MESSAGE = "Supplied key could not be validated.";
     public static String MISSING_KEY_MESSAGE = "Please provide a valid API key. ( Set parameter key=API_KEY )";
+    public static String INVALID_API_FORMAT = "Invalid request. Please check the documentation for proper API format";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
@@ -60,7 +64,7 @@ public class ApiFilter implements Filter, Observer {
         if (authenticateUser(key, remoteIp, uri, request, response)) {
 
             /** Check that the uri is formatted correctly */
-            if (parseUri(uri, request)){
+            if (parseUri(uri, request, response)){
 
                 /** Proceed to next filter or servlet */
                 chain.doFilter(request, response);
@@ -103,56 +107,78 @@ public class ApiFilter implements Filter, Observer {
             }
             else {
                 logger.debug(String.format("Failed to validate request to %s from %s using key: %s", uri, remoteIp, key));
-                returnApiAuthError(INVALID_KEY_MESSAGE, request, response);
+                sendApiAuthError(INVALID_KEY_MESSAGE, request, response);
             }
         }
         else {
             logger.debug(String.format("No key supplied to access %s from %s", uri, remoteIp));
-            returnApiAuthError(MISSING_KEY_MESSAGE, request, response);
+            sendApiAuthError(MISSING_KEY_MESSAGE, request, response);
         }
         return false;
     }
 
-    private boolean parseUri(String uri, ServletRequest request)
+    /**
+     * Parses the URI to obtain the API attributes. Sets them as request attributes so they
+     * can be accessed by the controllers.
+     * @param uri
+     * @param request
+     * @return  true if api parsed correctly
+     *          false otherwise
+     */
+    private boolean parseUri(String uri, ServletRequest request, ServletResponse response) throws IOException
     {
-        HashMap<String, String> uriTokens = new LinkedHashMap<>();
-        StringTokenizer tokenizer = new StringTokenizer(uri, "/");
-
+        HashMap<RequestAttribute, String> uriTokens = new LinkedHashMap<>();
         try {
+            StringTokenizer tokenizer = new StringTokenizer(uri, "/");
+
             /** Eat the string once or twice until we're past the /api/ portion.
              *  This is to accommodate if the context name is in the uri string. */
             if (!tokenizer.nextToken().equalsIgnoreCase("api")){
                 tokenizer.nextToken();
             }
 
-            uriTokens.put("requestType", tokenizer.nextToken());
-            uriTokens.put("format", tokenizer.nextToken());
+            uriTokens.put(REQUEST_TYPE, tokenizer.nextToken());
+            uriTokens.put(FORMAT, tokenizer.nextToken());
 
             /** Check for optional '/body/' in uri */
             String token = tokenizer.nextToken();
-            if (token.equalsIgnoreCase("body")){
-                uriTokens.put("inputSource", "body");
-                uriTokens.put("inputType", tokenizer.nextToken().replaceFirst("(\\?.*)", ""));
+            if (token != null && token.equalsIgnoreCase("body")){
+                uriTokens.put(PARAM_SOURCE, "body");
+                if (tokenizer.hasMoreTokens()){
+                    uriTokens.put(PARAM_TYPE, tokenizer.nextToken().replaceFirst("(\\?.*)", ""));
+                }
+                else {
+                    throw new NoSuchElementException("Missing " + PARAM_SOURCE.toString());
+                }
             }
             else {
-                uriTokens.put("inputSource", "url");
-                uriTokens.put("inputType", token.replaceFirst("(\\?.*)", ""));
+                uriTokens.put(PARAM_SOURCE, "url");
+                if (token != null){
+                    uriTokens.put(PARAM_TYPE, token.replaceFirst("(\\?.*)", ""));
+                }
+                else {
+                    throw new NoSuchElementException("Missing " + PARAM_TYPE.toString());
+                }
             }
 
-            /** Store all the tokens as request attributes */
-            for (String ut : uriTokens.keySet()){
-                request.setAttribute(ut, uriTokens.get(ut));
+            /** Store all the tokens as request attributes. */
+            for (RequestAttribute attr : uriTokens.keySet()){
+                request.setAttribute(attr.toString(), uriTokens.get(attr));
             }
 
             return true;
         }
-        catch (NoSuchElementException ex){
-            logger.debug(uri + " is not formatted as a valid api request.");
+        catch (NullPointerException ex){
+            logger.debug(uri + " is not formatted as a valid api request. " + ex.getMessage());
         }
+        catch (NoSuchElementException ex){
+            logger.debug(uri + " is not formatted as a valid api request. " + ex.getMessage());
+        }
+        sendApiAuthError(INVALID_API_FORMAT, request, response);
         return false;
     }
 
-    private void returnApiAuthError(String message, ServletRequest request, ServletResponse response) throws IOException
+    private void sendApiAuthError(String message, ServletRequest request, ServletResponse response) throws IOException
     {
          message = "Api Authentication Error: " + message;
          String format = request.getParameter("format");

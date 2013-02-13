@@ -55,6 +55,7 @@ public class MockFilter extends TestBase
 
         try
         {
+            /** Mock getWriter() method for ServletResponse */
             when(mockServletResponse.getWriter()).thenReturn(this.pWriter);
 
             /** Mock setAttribute() method for ServletRequest */
@@ -80,6 +81,7 @@ public class MockFilter extends TestBase
         }
     }
 
+    /** Mock output method for ServletResponse */
     public String getMockFilterResponseOutput()
     {
         return sWriter.getBuffer().toString();

@@ -2,6 +2,7 @@ package gov.nysenate.sage.filter;
 
 import gov.nysenate.sage.MockFilter;
 import gov.nysenate.sage.TestBase;
+import static gov.nysenate.sage.controller.api.RequestAttribute.*;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.auth.ApiUser;
 import gov.nysenate.sage.util.Config;
@@ -24,6 +25,10 @@ public class ApiFilterTest extends TestBase
     ApiFilter apiFilter = new ApiFilter();
     Config config;
 
+    public static String validUri = "/GeoApi/api/testMethod/json/param?addr1=";
+    public static String invalidUri = "/GeoApi/api/param?addr1=";
+    public static String validBodyUri = "/GeoApi/api/testMethod/json/body/param?somestuff";
+
     @Before
     public void setUp()
     {
@@ -32,10 +37,11 @@ public class ApiFilterTest extends TestBase
     }
 
     @Test
-    public void apiFilterAuthenticatesDefaultUser_SetsApiUserInResponse() throws Exception
+    public void apiFilterAuthenticatesDefaultUser_SetsApiUserInResponseIfValidUri() throws Exception
     {
         apiFilter.init(mf.getMockFilterConfig());
 
+        when(mf.getMockServletRequest().getRequestURI()).thenReturn(validUri);
         when(mf.getMockServletRequest().getRemoteAddr()).thenReturn("127.0.0.1");
         assertEquals("127.0.0.1", mf.getMockServletRequest().getRemoteAddr());
 
@@ -60,9 +66,11 @@ public class ApiFilterTest extends TestBase
     }
 
     @Test
-    public void apiFilterAuthenticatesValidKey_SetsApiUserInResponse() throws Exception
+    public void apiFilterAuthenticatesValidKey_SetsApiUserInResponseIfValidUri() throws Exception
     {
         apiFilter.init(mf.getMockFilterConfig());
+
+        when(mf.getMockServletRequest().getRequestURI()).thenReturn(validUri);
 
         /** Set remote ip to something that's not loopback.
          *  Set the key to the default key in the request */
@@ -75,9 +83,8 @@ public class ApiFilterTest extends TestBase
         assertNotNull(apiUser);
         assertEquals(config.getValue("user.default"), apiUser.getApiKey());
 
-        /** Verify that filter proceeds */
+        /** Verify that filter proceeds since uri is valid api format */
         verify(mf.getMockFilterChain(), only()).doFilter(isA(ServletRequest.class), isA(ServletResponse.class));
-
     }
 
     @Test
@@ -85,6 +92,7 @@ public class ApiFilterTest extends TestBase
     {
         apiFilter.init(mf.getMockFilterConfig());
 
+        when(mf.getMockServletRequest().getRequestURI()).thenReturn(validUri);
         /** Set remote ip to something that's not loopback.
          *  Set the key to an invalid key */
         when(mf.getMockServletRequest().getRemoteAddr()).thenReturn("X.X.X.X");
@@ -106,6 +114,7 @@ public class ApiFilterTest extends TestBase
     {
         apiFilter.init(mf.getMockFilterConfig());
 
+        when(mf.getMockServletRequest().getRequestURI()).thenReturn(validUri);
         /** Set remote ip to something that's not loopback.
          *  Set the key to an invalid key */
         when(mf.getMockServletRequest().getRemoteAddr()).thenReturn("X.X.X.X");
@@ -122,30 +131,29 @@ public class ApiFilterTest extends TestBase
     }
 
     @Test
-    public void apiFilterParsesURI_SetsRequestAttributes() throws Exception
+    public void apiFilterParsesValidURI_SetsRequestAttributes() throws Exception
     {
         apiFilter.init(mf.getMockFilterConfig());
+        when(mf.getMockServletRequest().getRequestURI()).thenReturn(validUri);
         when(mf.getMockServletRequest().getRemoteAddr()).thenReturn("127.0.0.1");
 
-        String uri = "/GeoApi/api/validate/json/address?addr1=Something&addr2=Something&city=Something&state=&zip5=";
-        when(mf.getMockServletRequest().getRequestURI()).thenReturn(uri);
+        when(mf.getMockServletRequest().getRequestURI()).thenReturn(validUri);
         apiFilter.doFilter(mf.getMockServletRequest(), mf.getMockServletResponse(), mf.getMockFilterChain());
-        assertEquals("validate", mf.getMockServletRequest().getAttribute("requestType"));
-        assertEquals("json", mf.getMockServletRequest().getAttribute("format"));
-        assertEquals("url", mf.getMockServletRequest().getAttribute("inputSource"));
-        assertEquals("address", mf.getMockServletRequest().getAttribute("inputType"));
+        assertEquals("testMethod", mf.getMockServletRequest().getAttribute(REQUEST_TYPE.toString()));
+        assertEquals("json", mf.getMockServletRequest().getAttribute(FORMAT.toString()));
+        assertEquals("url", mf.getMockServletRequest().getAttribute(PARAM_SOURCE.toString()));
+        assertEquals("param", mf.getMockServletRequest().getAttribute(PARAM_TYPE.toString()));
 
         /** Verify that filter does proceed */
         verify(mf.getMockFilterChain(), atLeastOnce()).doFilter(isA(ServletRequest.class), isA(ServletResponse.class));
 
         /** Now check that the body input uri works as well */
-        uri = "/GeoApi/api/validate/json/body/address?addr1=Something&addr2=Something&city=Something&state=&zip5=";
-        when(mf.getMockServletRequest().getRequestURI()).thenReturn(uri);
+        when(mf.getMockServletRequest().getRequestURI()).thenReturn(validBodyUri);
         apiFilter.doFilter(mf.getMockServletRequest(), mf.getMockServletResponse(), mf.getMockFilterChain());
-        assertEquals("validate", mf.getMockServletRequest().getAttribute("requestType"));
-        assertEquals("json", mf.getMockServletRequest().getAttribute("format"));
-        assertEquals("body", mf.getMockServletRequest().getAttribute("inputSource"));
-        assertEquals("address", mf.getMockServletRequest().getAttribute("inputType"));
+        assertEquals("testMethod", mf.getMockServletRequest().getAttribute(REQUEST_TYPE.toString()));
+        assertEquals("json", mf.getMockServletRequest().getAttribute(FORMAT.toString()));
+        assertEquals("body", mf.getMockServletRequest().getAttribute(PARAM_SOURCE.toString()));
+        assertEquals("param", mf.getMockServletRequest().getAttribute(PARAM_TYPE.toString()));
 
         /** Verify that filter does proceed */
         verify(mf.getMockFilterChain(), atLeastOnce()).doFilter(isA(ServletRequest.class), isA(ServletResponse.class));
@@ -158,9 +166,11 @@ public class ApiFilterTest extends TestBase
         when(mf.getMockServletRequest().getRemoteAddr()).thenReturn("127.0.0.1");
 
         /** Missing format */
-        String uri = "/FakeGeoApi/api/validate/address";
-        when(mf.getMockServletRequest().getRequestURI()).thenReturn(uri);
+        when(mf.getMockServletRequest().getRequestURI()).thenReturn(invalidUri);
         apiFilter.doFilter(mf.getMockServletRequest(), mf.getMockServletResponse(), mf.getMockFilterChain());
+
+        /** Check that the response has the invalid api format message */
+        assertTrue(mf.getMockFilterResponseOutput().contains(ApiFilter.INVALID_API_FORMAT));
 
         /** Verify that filter does NOT proceed */
         verify(mf.getMockFilterChain(), never()).doFilter(isA(ServletRequest.class), isA(ServletResponse.class));
