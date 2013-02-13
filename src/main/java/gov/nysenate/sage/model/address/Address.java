@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.addr;
+package gov.nysenate.sage.model.address;
 
 import java.io.Serializable;
 
