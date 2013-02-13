@@ -136,3 +136,15 @@ CREATE TABLE street_data_map (
   to_code varchar(255) NOT NULL,
   UNIQUE KEY map_col (map_col,county_code,from_code)
 ) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Map street data columns to senate preferred values.';
+
+CREATE TABLE IF NOT EXISTS `suffix_map` (
+  `from_code` varchar(45) NOT NULL,
+  `to_code` varchar(45) NOT NULL,
+  PRIMARY KEY (`from_code`)
+) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `abbrv_map` (
+  `from_code` varchar(45) NOT NULL,
+  `to_code` varchar(45) NOT NULL,
+  PRIMARY KEY (`from_code`)
+) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;
