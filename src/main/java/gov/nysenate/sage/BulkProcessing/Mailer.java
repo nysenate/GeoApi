@@ -16,8 +16,6 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-
-
 public class Mailer {
 	private static final String SMTP_HOST_NAME = Config.read("smtp.host");
 	private static final String SMTP_DEBUG = Config.read("smtp.debug");
