@@ -1,11 +1,12 @@
-package gov.nysenate.sage.model;
+package gov.nysenate.sage.model.addr;
 
 import java.io.Serializable;
 
 /**
  * A generic address structure for representing the basic address components.
  * Can be utilized for address validation or to serve as a base for more detailed
- * address component classes.
+ * address component classes. The fields in this class should never be null but
+ * rather an empty string if unassigned.
  *
  * @author Graylin Kim, Ash Islam
  */
@@ -31,12 +32,12 @@ public class Address implements Serializable, Cloneable
 
     public Address(String addr1, String addr2, String city, String state, String zip5, String zip4)
     {
-        this.addr1 = (addr1 == null) ? "" : addr1;
-        this.addr2 = (addr2 == null) ? "" : addr2;
-        this.city = (city == null) ? "" : city;
-        this.state = (state == null) ? "" : state;
-        this.zip5 = (zip5 == null) ? "" : zip5;
-        this.zip4 = (zip4 == null) ? "" : zip4;
+        this.setAddr1(addr1);
+        this.setAddr2(addr2);
+        this.setCity(city);
+        this.setState(state);
+        this.setZip5(zip5);
+        this.setZip4(zip4);
     }
 
     public String getRaw() {
@@ -52,7 +53,9 @@ public class Address implements Serializable, Cloneable
     }
 
     public void setAddr1(String addr1) {
-        this.addr1 = addr1;
+        if (addr1 != null ){
+            this.addr1 = addr1;
+        }
     }
 
     public String getAddr2() {
@@ -60,7 +63,9 @@ public class Address implements Serializable, Cloneable
     }
 
     public void setAddr2(String addr2) {
-        this.addr2 = addr2;
+        if (addr2 != null){
+            this.addr2 = addr2;
+        }
     }
 
     public String getCity() {
@@ -68,7 +73,9 @@ public class Address implements Serializable, Cloneable
     }
 
     public void setCity(String city) {
-        this.city = city;
+        if (city != null) {
+            this.city = city;
+        }
     }
 
     public String getState() {
@@ -76,7 +83,9 @@ public class Address implements Serializable, Cloneable
     }
 
     public void setState(String state) {
-        this.state = state;
+        if (state != null){
+            this.state = state;
+        }
     }
 
     public String getZip5() {
@@ -84,7 +93,9 @@ public class Address implements Serializable, Cloneable
     }
 
     public void setZip5(String zip5) {
-        this.zip5 = zip5;
+        if (zip5 != null){
+            this.zip5 = zip5;
+        }
     }
 
     public String getZip4() {
@@ -92,14 +103,15 @@ public class Address implements Serializable, Cloneable
     }
 
     public void setZip4(String zip4) {
-        this.zip4 = zip4;
+        if (zip4 != null){
+            this.zip4 = zip4;
+        }
     }
 
     @Override
     public Address clone()
     {
-        try
-        {
+        try {
             return (Address)super.clone();
         }
         catch (CloneNotSupportedException e)

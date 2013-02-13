@@ -1,9 +1,8 @@
 package gov.nysenate.sage.adapter;
 
-import gov.nysenate.sage.model.Address;
+import gov.nysenate.sage.model.addr.Address;
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.model.AddressResult;
-import gov.nysenate.sage.service.AddressService.AddressInterface;
+import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.Config;
 
@@ -170,7 +169,7 @@ public class USPS implements AddressService, Observer
                             result.setStatus(xpath.evaluate("Number", error));
                             result.addMessage(xpath.evaluate("Description", error));
                             result.addMessage("Source: "+xpath.evaluate("Source", error));
-                            result.setIsValidated(false);
+                            result.setValidated(false);
                             continue;
                         }
 
@@ -186,7 +185,7 @@ public class USPS implements AddressService, Observer
                          *  create a new Address object with addr1 initialized with addr2. */
                         Address addr = new Address( addr2, "", city, state, zip5, zip4);
                         batchResults.get(index % BATCH_SIZE).setAddress(addr);
-                        batchResults.get(index % BATCH_SIZE).setIsValidated(true);
+                        batchResults.get(index % BATCH_SIZE).setValidated(true);
                     }
                 }
             }
@@ -283,7 +282,7 @@ public class USPS implements AddressService, Observer
                             result.setStatus(xpath.evaluate("Number", error));
                             result.addMessage(xpath.evaluate("Description", error));
                             result.addMessage("Source: "+xpath.evaluate("Source", error));
-                            result.setIsValidated(false);
+                            result.setValidated(false);
                             continue;
                         }
 
@@ -294,7 +293,7 @@ public class USPS implements AddressService, Observer
                         resultAddress.setZip5(xpath.evaluate("Zip5", addressResponse));
 
                         batchResults.get(index % BATCH_SIZE).setAddress(resultAddress);
-                        batchResults.get(index % BATCH_SIZE).setIsValidated(true);
+                        batchResults.get(index % BATCH_SIZE).setValidated(true);
                     }
                 }
             } catch (MalformedURLException e) {

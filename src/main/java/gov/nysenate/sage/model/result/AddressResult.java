@@ -1,6 +1,6 @@
-package gov.nysenate.sage.model;
+package gov.nysenate.sage.model.result;
 
-import gov.nysenate.sage.model.Address;
+import gov.nysenate.sage.model.addr.Address;
 
 import java.util.ArrayList;
 
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class AddressResult
 {
     private Address address;
-    boolean isValidated;
+    private boolean validated;
     private ArrayList<String> messages = new ArrayList<>();
     private String status;
     private String source;
@@ -30,7 +30,7 @@ public class AddressResult
         this.address = address;
         this.status = status;
         this.source = source;
-        this.isValidated = false;
+        this.validated = false;
     }
 
     public void addMessage(String message)
@@ -48,14 +48,14 @@ public class AddressResult
         this.address = address;
     }
 
-    public boolean getIsValidated()
+    public boolean isValidated()
     {
-        return this.isValidated;
+        return this.validated;
     }
 
-    public void setIsValidated(boolean isValidated)
+    public void setValidated(boolean isValidated)
     {
-        this.isValidated = isValidated;
+        this.validated = isValidated;
     }
 
     public ArrayList<String> getMessages()
