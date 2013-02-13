@@ -1,45 +1,44 @@
-package gov.nysenate.sage.service.district;
+package gov.nysenate.sage.service.address;
 
 import gov.nysenate.sage.service.ServiceProviders;
-import gov.nysenate.sage.service.district.DistrictService;
 import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class DistrictServiceProviders implements ServiceProviders
+public class AddressServiceProviders implements ServiceProviders
 {
-    private static Logger logger = Logger.getLogger(DistrictServiceProviders.class);
-    private static Map<String,DistrictService> providers = new HashMap<>();
+    private static Logger logger = Logger.getLogger(AddressServiceProviders.class);
+    private static Map<String,AddressService> providers = new HashMap<>();
     private static final String DEFAULT_PROVIDER = "default";
 
-    private DistrictServiceProviders() {}
+    private AddressServiceProviders() {}
 
     /**
-     * Registers the default DistrictService as an instance of the given provider.
-     * @param provider  The DistrictService implementation that should be default.
+     * Registers the default AddressService as an instance of the given provider.
+     * @param provider  The AddressService implementation that should be default.
      */
-    public static void registerDefaultProvider(DistrictService provider)
+    public static void registerDefaultProvider(AddressService provider)
     {
         providers.put(DEFAULT_PROVIDER, provider);
     }
 
     /**
-     * Registers an instance of an DistrictService implementation.
+     * Registers an instance of an AddressService implementation.
      * @param providerName  Key that will be used to reference this provider.
      * @param provider      An instance of the provider.
      */
-    public static void registerProvider(String providerName, DistrictService provider)
+    public static void registerProvider(String providerName, AddressService provider)
     {
         providers.put(providerName.toLowerCase(), provider);
     }
 
     /**
-     * Returns a new instance of the default DistrictService implementation.
-     * @return   DistrictService if default provider is set.
+     * Returns a new instance of the default AddressService implementation.
+     * @return   AddressService if default provider is set.
      *           null if default provider not set.
      */
-    public static DistrictService newServiceInstance()
+    public static AddressService newServiceInstance()
     {
         if (providers.containsKey(DEFAULT_PROVIDER)){
             return providers.get(DEFAULT_PROVIDER).newInstance();
@@ -54,10 +53,10 @@ public class DistrictServiceProviders implements ServiceProviders
      * Returns a new instance of the AddressProvider that has been registered
      * with the given providerName.
      * @param providerName
-     * @return  DistrictService instance specified by providerName.
+     * @return  AddressService instance specified by providerName.
      *          null if provider is not registered.
      */
-    public static DistrictService newServiceInstance(String providerName)
+    public static AddressService newServiceInstance(String providerName)
     {
         if (providers.containsKey(providerName.toLowerCase())){
             return providers.get(providerName.toLowerCase()).newInstance();
