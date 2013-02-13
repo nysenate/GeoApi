@@ -2,8 +2,8 @@ package gov.nysenate.sage.service;
 
 import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.adapter.USPS;
-import gov.nysenate.sage.model.Address;
-import gov.nysenate.sage.model.AddressResult;
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.result.AddressResult;
 
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;

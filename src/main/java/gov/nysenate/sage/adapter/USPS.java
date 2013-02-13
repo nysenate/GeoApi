@@ -1,6 +1,6 @@
 package gov.nysenate.sage.adapter;
 
-import gov.nysenate.sage.model.addr.Address;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.service.address.AddressService;
@@ -89,10 +89,22 @@ public class USPS implements AddressService, Observer
         xpath = XPathFactory.newInstance().newXPath();
     }
 
+    @Override
+    public AddressService newInstance()
+    {
+        try {
+            return new USPS();
+        }
+        catch(Exception ex){
+            return null;
+        }
+    }
+
     public void update(Observable o, Object arg)
     {
         configure();
     }
+
 
     /**
      * Proxies to the overloaded validate method.
@@ -121,8 +133,7 @@ public class USPS implements AddressService, Observer
         StringBuilder xmlRequest = new StringBuilder(xmlStartTag);
 
         /** Start with a=1 to make the batch boundary condition work nicely */
-        for (int a = 1; a <= addresses.size(); a++)
-        {
+        for (int a = 1; a <= addresses.size(); a++){
             Address address = addresses.get(a - 1);
 
             batchResults.add(new AddressResult(this.getClass()));
@@ -159,12 +170,11 @@ public class USPS implements AddressService, Observer
                 else
                 {
                     NodeList responses = (NodeList)xpath.evaluate("AddressValidateResponse/Address", response, XPathConstants.NODESET);
-                    for (int i = 0; i < responses.getLength(); i++)
-                    {
+                    for (int i = 0; i < responses.getLength(); i++) {
                         Node addressResponse = responses.item(i);
                         error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
-                        if (error != null)
-                        {
+
+                        if (error != null) {
                             AddressResult result = batchResults.get(i);
                             result.setStatus(xpath.evaluate("Number", error));
                             result.addMessage(xpath.evaluate("Description", error));
@@ -233,21 +243,18 @@ public class USPS implements AddressService, Observer
         StringBuilder xmlRequest = new StringBuilder(xmlStartTag);
 
         /** Start with a=1 to make the batch boundary condition work nicely */
-        for (int a = 1; a <= addresses.size(); a++)
-        {
+        for (int a = 1; a <= addresses.size(); a++) {
             Address address = addresses.get(a-1);
 
             batchResults.add(new AddressResult(this.getClass()));
             xmlRequest.append(String.format("<ZipCode ID=\"%s\"><Zip5>%s</Zip5></ZipCode>", a-1, address.getZip5()));
 
             /** Stop here until we've filled this batch request */
-            if (a%BATCH_SIZE != 0 && a != addresses.size())
-            {
+            if (a%BATCH_SIZE != 0 && a != addresses.size()) {
                 continue;
             }
 
-            try
-            {
+            try {
                 xmlRequest.append("</CityStateLookupRequest>");
                 url = baseUrl +"?API=CityStateLookup&XML="+URLEncoder.encode(xmlRequest.toString(), "UTF-8");
                 logger.info(url);
@@ -257,14 +264,13 @@ public class USPS implements AddressService, Observer
 
                 /** If the request failed, mark them all as such */
                 Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
-                if (error != null)
-                {
+                if (error != null) {
                     ArrayList<String> messages = new ArrayList<String>();
                     messages.add(xpath.evaluate("Description", error));
                     messages.add("Source: "+xpath.evaluate("Source", error));
                     String status_code = xpath.evaluate("Number", error);
-                    for (AddressResult result : batchResults)
-                    {
+
+                    for (AddressResult result : batchResults) {
                         result.setStatus(status_code);
                         result.setMessages(messages);
                     }
@@ -272,12 +278,10 @@ public class USPS implements AddressService, Observer
                 else
                 {
                     NodeList responses = (NodeList)xpath.evaluate("CityStateLookupResponse/ZipCode", response, XPathConstants.NODESET);
-                    for (int i = 0; i<responses.getLength(); i++)
-                    {
+                    for (int i = 0; i<responses.getLength(); i++) {
                         Node addressResponse = responses.item(i);
                         error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
-                        if (error != null)
-                        {
+                        if (error != null) {
                             AddressResult result = batchResults.get(i);
                             result.setStatus(xpath.evaluate("Number", error));
                             result.addMessage(xpath.evaluate("Description", error));
@@ -296,19 +300,20 @@ public class USPS implements AddressService, Observer
                         batchResults.get(index % BATCH_SIZE).setValidated(true);
                     }
                 }
-            } catch (MalformedURLException e) {
+            }
+            catch (MalformedURLException e) {
                 logger.error("Malformed URL '"+url+"', check api key and address values.", e);
                 return null;
-
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 logger.error("Error opening API resource '"+url+"'", e);
                 return null;
-
-            } catch (SAXException e) {
+            }
+            catch (SAXException e) {
                 logger.error("Malformed XML response for '"+url+"'\n"+page.asString(), e);
                 return null;
-
-            } catch (XPathExpressionException e) {
+            }
+            catch (XPathExpressionException e) {
                 logger.error("Unexpected XML Schema\n\n"+response.toString(), e);
                 return null;
             }
