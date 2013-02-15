@@ -1,4 +1,4 @@
-package gov.nysenate.sage.controller.api;
+package gov.nysenate.sage.controller.api.district;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

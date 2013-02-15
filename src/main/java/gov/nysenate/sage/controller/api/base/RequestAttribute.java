@@ -1,4 +1,4 @@
-package gov.nysenate.sage.controller.api;
+package gov.nysenate.sage.controller.api.base;
 
 /**
  *

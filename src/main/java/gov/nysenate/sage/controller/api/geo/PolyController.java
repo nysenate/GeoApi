@@ -1,11 +1,11 @@
-package gov.nysenate.sage.controller.api;
+package gov.nysenate.sage.controller.api.geo;
 
 /**
  * Created with IntelliJ IDEA.
  * User: ash
  * Date: 2/1/13
- * Time: 2:01 PM
+ * Time: 1:48 PM
  * To change this template use File | Settings | File Templates.
  */
-public class StreetLookupController {
+public class PolyController {
 }

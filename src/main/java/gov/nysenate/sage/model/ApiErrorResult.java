@@ -3,11 +3,11 @@ package gov.nysenate.sage.model;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-public class ApiErrorResponse
+public class ApiErrorResult
 {
     private String message;
 
-    public ApiErrorResponse(String message)
+    public ApiErrorResult(String message)
     {
         this.message = message;
     }
