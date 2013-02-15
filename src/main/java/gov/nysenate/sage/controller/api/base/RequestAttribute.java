@@ -7,7 +7,7 @@ public enum RequestAttribute
 {
     REQUEST_TYPE("request_type"), FORMAT("format"), PARAM_SOURCE("param_source"), PARAM_TYPE("param_type");
 
-    String name;
+    private String name;
     RequestAttribute(String name){
         this.name = name;
     }

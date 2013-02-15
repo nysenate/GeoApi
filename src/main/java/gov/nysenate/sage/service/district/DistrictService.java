@@ -1,10 +1,20 @@
 package gov.nysenate.sage.service.district;
 
-public class DistrictService extends Exception {
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.result.DistrictResult;
 
-    public DistrictService() {}
-    public DistrictService(String msg) { super(msg); }
-    public DistrictService(String msg, Throwable t) { super(msg, t); }
-    public DistrictService(Throwable t) { super(t); }
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * Comment this later..
+ */
+public interface DistrictService
+{
+    public DistrictService newInstance();
+
+    public DistrictResult assignDistrict(Address address);
+    public ArrayList<DistrictResult> assignDistrict(ArrayList<Address> addresses);
+    public ArrayList<DistrictResult> assignDistricts(ArrayList<Address> addresses);
+    public DistrictResult assignDistricts(Address address);
 }

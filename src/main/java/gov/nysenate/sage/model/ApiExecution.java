@@ -13,6 +13,7 @@ import gov.nysenate.sage.api.exceptions.ApiException;
 import gov.nysenate.sage.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.deprecated.abstracts.AbstractApiExecute;
 
+@Deprecated
 public class ApiExecution implements AbstractApiExecute{
 
 	@Override

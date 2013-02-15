@@ -158,8 +158,7 @@ public class USPS implements AddressService, Observer
                 if (error != null)
                 {
                     ArrayList<String> messages = new ArrayList<String>();
-                    messages.add(xpath.evaluate("Description", error));
-                    messages.add("Source: "+xpath.evaluate("Source", error));
+                    messages.add(xpath.evaluate("Description", error).trim());
                     String status_code = xpath.evaluate("Number", error);
                     for (AddressResult result : batchResults)
                     {
@@ -177,8 +176,7 @@ public class USPS implements AddressService, Observer
                         if (error != null) {
                             AddressResult result = batchResults.get(i);
                             result.setStatus(xpath.evaluate("Number", error));
-                            result.addMessage(xpath.evaluate("Description", error));
-                            result.addMessage("Source: "+xpath.evaluate("Source", error));
+                            result.addMessage(xpath.evaluate("Description", error).trim());
                             result.setValidated(false);
                             continue;
                         }
@@ -266,8 +264,7 @@ public class USPS implements AddressService, Observer
                 Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
                 if (error != null) {
                     ArrayList<String> messages = new ArrayList<String>();
-                    messages.add(xpath.evaluate("Description", error));
-                    messages.add("Source: "+xpath.evaluate("Source", error));
+                    messages.add(xpath.evaluate("Description", error).trim());
                     String status_code = xpath.evaluate("Number", error);
 
                     for (AddressResult result : batchResults) {
@@ -284,7 +281,7 @@ public class USPS implements AddressService, Observer
                         if (error != null) {
                             AddressResult result = batchResults.get(i);
                             result.setStatus(xpath.evaluate("Number", error));
-                            result.addMessage(xpath.evaluate("Description", error));
+                            result.addMessage(xpath.evaluate("Description", error).trim());
                             result.addMessage("Source: "+xpath.evaluate("Source", error));
                             result.setValidated(false);
                             continue;

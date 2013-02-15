@@ -1,12 +1,12 @@
 package gov.nysenate.sage.service.address;
 
-import gov.nysenate.sage.model.addr.Address;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 
 import java.util.ArrayList;
 
 /**
- * Comment this...
+ * Comment this later..
  */
 public interface AddressService
 {

@@ -25,6 +25,4 @@ public class BaseDao
     {
         return new AsyncQueryRunner(executorService, this.getQueryRunner());
     }
-
-
 }

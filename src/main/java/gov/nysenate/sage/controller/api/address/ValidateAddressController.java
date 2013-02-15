@@ -2,7 +2,7 @@ package gov.nysenate.sage.controller.api.address;
 
 import gov.nysenate.sage.controller.api.base.BaseApiController;
 import gov.nysenate.sage.model.address.Address;
-import static gov.nysenate.sage.controller.api.RequestAttribute.*;
+import static gov.nysenate.sage.controller.api.base.RequestAttribute.*;
 
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.service.address.AddressService;
@@ -57,6 +57,7 @@ public final class ValidateAddressController extends BaseApiController
         /** Obtain an AddressService */
         AddressService addressService = AddressServiceProviders.newServiceInstance(service, useFallback);
 
+        /** Run validation */
         AddressResult addressResult;
         if (addressService != null){
             addressResult = addressService.validate(address);
@@ -67,6 +68,7 @@ public final class ValidateAddressController extends BaseApiController
             addressResult.addMessage("Error! There is no address validation service registered as " + service);
         }
 
-        response.getWriter().write(FormatUtil.toJsonString(addressResult));
+        /** Set response */
+        sendResultMap(request, addressResult.toMap());
     }
 }

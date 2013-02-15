@@ -66,4 +66,24 @@ public class AddressServiceProviders implements ServiceProviders
             return null;
         }
     }
+
+    /**
+     * Allows for fallback to a default service if the provider does not exist.
+     * @param providerName
+     * @param useFallback - Set true to use the default registered provider if
+     *                      providerName does not exist.
+     * @return  AddressService if providerName found or useFallback:true
+     *          null otherwise
+     */
+    public static AddressService newServiceInstance(String providerName, boolean useFallback)
+    {
+        AddressService a;
+        if (providerName != null){
+            a = newServiceInstance(providerName);
+            if (a != null){
+                return a;
+            }
+        }
+        return (useFallback) ? newServiceInstance() : null;
+    }
 }

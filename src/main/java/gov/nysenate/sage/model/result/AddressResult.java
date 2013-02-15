@@ -2,40 +2,33 @@ package gov.nysenate.sage.model.result;
 
 import gov.nysenate.sage.model.address.Address;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * AddressResult represents the response returned by an AddressService implementation.
  */
-public class AddressResult
+public class AddressResult extends BaseResult
 {
     private Address address;
-    private boolean validated;
-    private ArrayList<String> messages = new ArrayList<>();
-    private String status;
-    private String source;
+    private boolean validated = false;
 
     public AddressResult()
     {
-        this(null, "", "");
+        this(null, "", null);
     }
 
     public AddressResult(Class sourceClass)
     {
-        this(null, "", sourceClass.getSimpleName());
+        this(null, "", sourceClass);
     }
 
-    public AddressResult(Address address, String status, String source)
+    public AddressResult(Address address, String status, Class sourceClass)
     {
-        this.address = address;
-        this.status = status;
-        this.source = source;
-        this.validated = false;
-    }
-
-    public void addMessage(String message)
-    {
-        this.messages.add(message);
+        this.setAddress(address);
+        this.setStatus(status);
+        this.setSource(sourceClass);
+        this.setValidated(false);
     }
 
     public Address getAddress()
@@ -58,33 +51,15 @@ public class AddressResult
         this.validated = isValidated;
     }
 
-    public ArrayList<String> getMessages()
+    public Map<String, Object> toMap()
     {
-        return messages;
-    }
-
-    public void setMessages(ArrayList<String> messages)
-    {
-        this.messages = messages;
-    }
-
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus(String status)
-    {
-        this.status = status;
-    }
-
-    public String getSource()
-    {
-        return source;
-    }
-
-    public void setSource(Class sourceClass)
-    {
-        this.source = sourceClass.getSimpleName();
+        LinkedHashMap<String,Object> root = new LinkedHashMap<>();
+        LinkedHashMap<String,Object> data = new LinkedHashMap<>();
+        data.put("address", this.getAddress());
+        data.put("validated", this.isValidated());
+        data.put("source", this.getSource());
+        data.put("messages", this.getMessages());
+        root.put("addressResult", data);
+        return root;
     }
 }

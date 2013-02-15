@@ -1,6 +1,8 @@
 package gov.nysenate.sage.factory;
 
+import gov.nysenate.sage.adapter.USPS;
 import gov.nysenate.sage.listener.SageConfigurationListener;
+import gov.nysenate.sage.service.address.AddressServiceProviders;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
 import org.apache.commons.configuration.ConfigurationException;
@@ -13,7 +15,12 @@ import org.apache.tomcat.jdbc.pool.DataSource;
  * all classes that would typically be implemented as singletons can be instantiated like regular classes
  * which allows for unit testing.
  *
- * @author ash
+ * The buildInstances method must be called once when the application is starting up. However if only
+ * unit tests are to be run, the buildTestInstances method should be called instead. While these two
+ * methods may setup similar dependencies, it will allow for using different configurations and
+ * implementations for running unit tests.
+ *
+ * @author Ash
  */
 public class ApplicationFactory
 {
@@ -40,6 +47,10 @@ public class ApplicationFactory
         return factoryInstance.buildProduction();
     }
 
+    /**
+     * Public access call to buildTesting()
+     * @return boolean - If true then build succeeded
+     */
     public static boolean buildTestInstances()
     {
         return factoryInstance.buildTesting();
@@ -55,9 +66,15 @@ public class ApplicationFactory
     {
         try
         {
+            /** Setup application config */
             this.configurationListener = new SageConfigurationListener();
             this.config = new Config(defaultPropertyFileName, this.configurationListener);
             this.db = new DB(this.config);
+
+            /** Setup service providers */
+            AddressServiceProviders.registerDefaultProvider(new USPS());
+            AddressServiceProviders.registerProvider("usps", new USPS());
+
             return true;
         }
         catch (ConfigurationException ce)
@@ -73,13 +90,24 @@ public class ApplicationFactory
         return false;
     }
 
+    /**
+     * Similar to buildProduction() except this method should be called at the start of unit tests.     *
+     * @return boolean  If true then build succeeded
+     */
     private boolean buildTesting()
     {
         try
         {
+            /** Setup test application config */
             this.configurationListener = new SageConfigurationListener();
             this.config = new Config(defaultTestPropertyFileName, this.configurationListener);
             this.db = new DB(this.config);
+
+            /** Setup service providers */
+            AddressServiceProviders.registerDefaultProvider(new USPS());
+            AddressServiceProviders.registerProvider("usps", new USPS());
+
+
             return true;
         }
         catch (ConfigurationException ce)

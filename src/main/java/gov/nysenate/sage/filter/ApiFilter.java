@@ -1,10 +1,11 @@
 package gov.nysenate.sage.filter;
 
-import static gov.nysenate.sage.controller.api.RequestAttribute.*;
+import static gov.nysenate.sage.controller.api.base.RequestAttribute.*;
 
-import gov.nysenate.sage.controller.api.RequestAttribute;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import gov.nysenate.sage.controller.api.base.RequestAttribute;
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.model.ApiErrorResponse;
+import gov.nysenate.sage.model.ApiErrorResult;
 import gov.nysenate.sage.model.auth.ApiUser;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.ApiUserAuth;
@@ -22,21 +23,34 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 
 /**
- * Filters API requests based on IP address and API key.
- * Performs URI validation and output format processing.
+ * ApiFilter serves common functions that each api controller method requires.
+ * This includes:
+ *                Filter API requests based on IP address and API key
+ *                Perform URI validation
+ *                Output format processing and response writing
+ *                Gracefully setting error messages in the response
+ *
+ * This filter processes both the request propagating to the controllers as well
+ * as the response coming back from the controllers.
  *
  * @author Jared Williams, Ash Islam
  */
-public class ApiFilter implements Filter, Observer {
-
+public class ApiFilter implements Filter, Observer
+{
     private Logger logger = Logger.getLogger(ApiFilter.class);
     private Config config;
     private String ipFilter;
     private String defaultKey;
 
-    public static String INVALID_KEY_MESSAGE = "Supplied key could not be validated.";
-    public static String MISSING_KEY_MESSAGE = "Please provide a valid API key. ( Set parameter key=API_KEY )";
-    public static String INVALID_API_FORMAT = "Invalid request. Please check the documentation for proper API format";
+    public static String INVALID_KEY_MESSAGE = "Authentication Error - Supplied key could not be validated.";
+    public static String MISSING_KEY_MESSAGE = "Authentication Error - Please provide a valid API key. ( Set parameter key=API_KEY )";
+    public static String INVALID_API_FORMAT = "Format Error - Invalid request. Please check the documentation for proper API format";
+
+    /** Available format types */
+    public enum FormatTypes
+    {
+        JSON, XML;
+    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
@@ -59,18 +73,18 @@ public class ApiFilter implements Filter, Observer {
         String remoteIp = request.getRemoteAddr();
         String uri = ((HttpServletRequest)request).getRequestURI();
 
-        /** The filter will proceed to the next chain only if the user has a valid key or is the default user.
-         *  Otherwise an appropriate error message will be written in the format specified by the request. */
-        if (authenticateUser(key, remoteIp, uri, request, response)) {
+        /** Check that the uri is formatted correctly */
+        if (parseUri(uri, request, response)){
 
-            /** Check that the uri is formatted correctly */
-            if (parseUri(uri, request, response)){
+            /** The filter will proceed to the next chain only if the user has a valid key or is the default user.
+             *  Otherwise an appropriate error message will be written in the format specified by the request. */
+            if (authenticateUser(key, remoteIp, uri, request, response)) {
 
-                /** Proceed to next filter or servlet */
-                chain.doFilter(request, response);
+                    /** Proceed to next filter or servlet */
+                    chain.doFilter(request, response);
 
-                /** Response from chain percolates back through here to perform logging/formatting */
-                doPostFilter();
+                    /** Response from chain percolates back through here */
+                    this.doResponseFilter(request, response);
             }
         }
     }
@@ -107,12 +121,12 @@ public class ApiFilter implements Filter, Observer {
             }
             else {
                 logger.debug(String.format("Failed to validate request to %s from %s using key: %s", uri, remoteIp, key));
-                sendApiAuthError(INVALID_KEY_MESSAGE, request, response);
+                sendApiError(INVALID_KEY_MESSAGE, request, response);
             }
         }
         else {
             logger.debug(String.format("No key supplied to access %s from %s", uri, remoteIp));
-            sendApiAuthError(MISSING_KEY_MESSAGE, request, response);
+            sendApiError(MISSING_KEY_MESSAGE, request, response);
         }
         return false;
     }
@@ -174,29 +188,74 @@ public class ApiFilter implements Filter, Observer {
         catch (NoSuchElementException ex){
             logger.debug(uri + " is not formatted as a valid api request. " + ex.getMessage());
         }
-        sendApiAuthError(INVALID_API_FORMAT, request, response);
+
+        sendApiError(INVALID_API_FORMAT, request, response);
         return false;
     }
 
-    private void sendApiAuthError(String message, ServletRequest request, ServletResponse response) throws IOException
+    /**
+     * Creates an error result and writes it to the response.
+     * @throws IOException
+     */
+    private void sendApiError(String message, ServletRequest request, ServletResponse response) throws IOException
     {
-         message = "Api Authentication Error: " + message;
-         String format = request.getParameter("format");
-         if ( format != null ) {
-             if (format.equals("json")) {
-                 ApiErrorResponse errorResponse = new ApiErrorResponse(message);
-                 message = FormatUtil.toJsonString(errorResponse.toMap());
-             }
-         }
-         response.getWriter().write(message);
+        String format = (String) request.getAttribute("format");
+        ApiErrorResult errorResponse = new ApiErrorResult(message);
+        message = formatResultMap(errorResponse.toMap(), format, message);
+        writeResponse(message, response);
+    }
+
+    /**
+     * Writes a string to the response.
+     * @param message
+     * @param response
+     * @throws IOException
+     */
+    private void writeResponse(String message, ServletResponse response) throws IOException
+    {
+        if (response != null && message != null){
+            response.getWriter().write(message);
+        }
+    }
+
+    /**
+     * Transforms a map into either a JSON or XML string.
+     * @param messageMap     The Map containing the data to be serialized
+     * @param format         One of the FormatType formats
+     * @param defaultMessage Default message if formatting fails
+     * @return              Serialized string according to format, or defaultMessage
+     *                      if format was invalid or processing error.
+     */
+    private String formatResultMap(Map<String, Object> messageMap, String format, String defaultMessage)
+    {
+        if (messageMap != null){
+            if (format != null){
+                try {
+                    if (format.equalsIgnoreCase(FormatTypes.JSON.name())){
+                        return FormatUtil.mapToJson(messageMap);
+                    }
+                    else if (format.equalsIgnoreCase(FormatTypes.XML.name())){
+                        return FormatUtil.mapToXml(messageMap, "response", true);
+                    }
+                }
+                catch (JsonProcessingException ex){
+                    logger.error("Failed to format response into " + format);
+                    logger.error(ex.getMessage());
+                }
+            }
+        }
+        return defaultMessage;
     }
 
     /**
      * Perform final tasks as the servlet response percolates back up the filter chain.
      */
-    private void doPostFilter()
+    private void doResponseFilter(ServletRequest request, ServletResponse response) throws IOException
     {
-        logger.debug("Percolating back up!");
+        Map<String,Object> map = (Map<String,Object>) request.getAttribute("response");
+        String format = (String) request.getAttribute("format");
+        String resp = formatResultMap(map, format, "Unknown format");
+        writeResponse(resp, response);
     }
 
     @Override

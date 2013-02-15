@@ -13,7 +13,7 @@ public class TestBase
      * Loads configuration settings and global dependencies.
      */
     @BeforeClass
-    public static void init()
+    public static void initBase()
     {
         ApplicationFactory.buildTestInstances();
     }

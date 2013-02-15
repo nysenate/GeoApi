@@ -2,6 +2,7 @@ package gov.nysenate.sage.model;
 
 import java.util.ArrayList;
 
+@Deprecated
 public class ApiMethod {
 
 	public String methodName;

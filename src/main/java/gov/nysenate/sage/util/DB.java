@@ -43,8 +43,6 @@ public class DB implements Observer
 
         /** Basic connection parameters. */
         p.setUrl(String.format("jdbc:%s://%s/%s", config.getValue("db.type"), config.getValue("db.host"), config.getValue("db.name")));
-
-        p.setUrl("jdbc:" + config.getValue("db.type") + "://" + config.getValue("db.host") + "/" + config.getValue("db.name"));
         p.setDriverClassName(config.getValue("db.driver"));
         p.setUsername(config.getValue("db.user"));
         p.setPassword(config.getValue("db.pass"));

@@ -38,6 +38,23 @@ public class ResourceFilter implements Filter
     }
 
     /**
+     * Refresh the configurations if needed and relay the request to the next filter.
+     * @param request
+     * @param response
+     * @param chain
+     * @throws IOException
+     * @throws ServletException
+     */
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
+    {
+        /** Read a key to trigger the config listener mechanism. */
+        config.getValue("user.ip_filter");
+
+        log4jRefresh();
+        chain.doFilter(request, response);
+    }
+
+    /**
      * Reloads the log4j configuration if check interval has elapsed and the file has been modified.
      * This isn't necessarily 100% safe. Log messages from other threads could potentially be dropped
      * while reloading.
@@ -58,24 +75,6 @@ public class ResourceFilter implements Filter
                 timeLoaded = System.currentTimeMillis();
             }
         }
-    }
-
-    /**
-     * Refresh the configurations if needed and relay the request to the next filter.
-     * @param request
-     * @param response
-     * @param chain
-     * @throws IOException
-     * @throws ServletException
-     */
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
-    {
-        /** Read a key to trigger the config listener mechanism. */
-        config.getValue("user.ip_filter");
-
-        log4jRefresh();
-
-        chain.doFilter(request, response);
     }
 
     public void destroy()

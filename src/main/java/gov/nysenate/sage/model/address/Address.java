@@ -12,9 +12,6 @@ import java.io.Serializable;
  */
 public class Address implements Serializable, Cloneable
 {
-    /** Un-parsed street address */
-    protected String raw = "";
-
     /** Basic address components */
     protected String addr1 = "";
     protected String addr2 = "";
@@ -25,9 +22,9 @@ public class Address implements Serializable, Cloneable
 
     public Address() {}
 
-    public Address(String address)
+    public Address(String addr1)
     {
-        this.raw = address;
+        this(addr1, "","","","","");
     }
 
     public Address(String addr1, String addr2, String city, String state, String zip5, String zip4)
@@ -38,14 +35,6 @@ public class Address implements Serializable, Cloneable
         this.setState(state);
         this.setZip5(zip5);
         this.setZip4(zip4);
-    }
-
-    public String getRaw() {
-        return raw;
-    }
-
-    public void setRaw(String raw) {
-        this.raw = raw;
     }
 
     public String getAddr1() {
@@ -136,7 +125,7 @@ public class Address implements Serializable, Cloneable
         }
         else
         {
-            return raw;
+            return addr1;
         }
     }
 }

@@ -18,7 +18,7 @@ public class AddressService {
     }
 
     public AddressService() throws Exception {
-        adapters.put("usps", new USPS());
+        //adapters.put("usps", new USPS());
     }
 
     public Result validate(Address address, String adapter) {
