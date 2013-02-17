@@ -1,13 +1,13 @@
 package gov.nysenate.sage.controller.api.address;
 
 import gov.nysenate.sage.controller.api.base.BaseApiController;
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import static gov.nysenate.sage.controller.api.base.RequestAttribute.*;
 
 import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.service.ServiceProviders;
 import gov.nysenate.sage.service.address.AddressService;
-import gov.nysenate.sage.service.address.AddressServiceProviders;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -17,15 +17,24 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- *
+ * Address API controller handles the various AddressService requests including
+ *  - Address Validation
+ *  - City State Lookup
+ *  - ZipCode Lookup
  */
-public final class ValidateAddressController extends BaseApiController
+public final class AddressController extends BaseApiController
 {
-    private Logger logger = Logger.getLogger(ValidateAddressController.class);
+    private Logger logger = Logger.getLogger(AddressController.class);
+    private ServiceProviders<AddressService> addressProviders;
+
+    public static String validateRequest = "validate";
+    public static String cityStateRequest = "citystate";
+    public static String zipcodeRequest = "zipcode";
 
     @Override
     public void init(ServletConfig config) throws ServletException
     {
+        addressProviders = ApplicationFactory.getAddressServiceProviders();
         logger.debug("Initialized " + this.getClass().getSimpleName());
     }
 
@@ -39,28 +48,36 @@ public final class ValidateAddressController extends BaseApiController
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
+        AddressResult addressResult;
+
         /** Get the URI attributes */
         String source = (String) request.getAttribute(PARAM_SOURCE.toString());
+        String requestType = (String) request.getAttribute(REQUEST_TYPE.toString());
 
         /** Get the URI parameters */
         String service = request.getParameter("service");
         String fallBack = request.getParameter("fallback");
-
-        /** See if user does not want to use default if service lookup fails */
-        boolean useFallback = true;
-        if (fallBack != null && fallBack.equals("false")){
-            useFallback = false;
-        }
-
-        Address address = getAddressFromParams(request);
+        boolean useFallback = (fallBack != null && fallBack.equals("true")) ? true : false;
 
         /** Obtain an AddressService */
-        AddressService addressService = AddressServiceProviders.newServiceInstance(service, useFallback);
+        AddressService addressService = addressProviders.newServiceInstance(service, useFallback);
 
-        /** Run validation */
-        AddressResult addressResult;
         if (addressService != null){
-            addressResult = addressService.validate(address);
+
+            /** Retrieve address from query parameters */
+            Address address = getAddressFromParams(request);
+
+            if (requestType.equalsIgnoreCase(validateRequest) || requestType.equalsIgnoreCase(zipcodeRequest)){
+                addressResult = addressService.validate(address);
+            }
+            else if (requestType.equalsIgnoreCase(cityStateRequest)){
+                addressResult = addressService.lookupCityState(address);
+            }
+            else {
+                addressResult = new AddressResult(this.getClass());
+                addressResult.setValidated(false);
+                addressResult.addMessage("Error! " + requestType + " is not a valid request type.");
+            }
         }
         else {
             addressResult = new AddressResult(this.getClass());

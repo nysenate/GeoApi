@@ -1,247 +1,332 @@
 package gov.nysenate.sage.adapter;
 
-import gov.nysenate.sage.Address;
-import gov.nysenate.sage.Result;
-import gov.nysenate.sage.service.GeoService.GeoException;
-import gov.nysenate.sage.service.GeoService.GeocodeInterface;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
+import static gov.nysenate.sage.model.geo.GeocodeQuality.*;
+
+import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.service.address.AddressService;
+import gov.nysenate.sage.service.geo.GeoCodeService;
 import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Observable;
-import java.util.Observer;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+import java.util.*;
 
 import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
 import org.apache.log4j.Logger;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
- *
- * @author Graylin Kim
+ * Comment this...
+ * @author Graylin Kim, Ash Islam
  */
 
-public class MapQuest implements GeocodeInterface, Observer
+public class MapQuest implements AddressService, GeoCodeService, Observer
 {
-  private static final String DEFAULT_BASE_URL = "http://www.mapquestapi.com/geocoding/v1/batch";
-  private final Logger logger;
-  private final DocumentBuilder xmlBuilder;
-  private final XPath xpath;
-  private final int BATCH_SIZE = 95;
-  private final HashMap<String, Integer> qualityMap;
-  private String m_queryUrl;
+    private static final String DEFAULT_BATCH_URL = "http://www.mapquestapi.com/geocoding/v1/batch";
+    private static final String DEFAULT_REV_URL = "http://www.mapquestapi.com/geocoding/v1/reverse";
+    private final Logger logger = Logger.getLogger(MapQuest.class);
+    private Config config;
 
+    private final int BATCH_SIZE = 95;
+    private final HashMap<String, GeocodeQuality> qualityMap;
+    private String geoBaseUrl;
+    private String revBaseUrl;
 
-  public MapQuest() throws Exception
-  {
-    Config.notify(this);
-    configure();
+    public MapQuest()
+    {
+        this.config = ApplicationFactory.getConfig();
+        configure();
 
-    logger = Logger.getLogger(this.getClass());
-    xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-    xpath = XPathFactory.newInstance().newXPath();
+        /**
+         * Map the quality codes to GeocodeQuality values.
+         *
+         * Point Values Based on Yahoo's quality point scheme
+         * http://developer.yahoo.com/geo/placefinder/guide/responses.html#address-quality
+         *
+         * and the MapQuest geocode quality codes
+         * http://www.mapquestapi.com/geocoding/geocodequality.html
+        */
+        qualityMap = new HashMap<>();
+        qualityMap.put("POINT", POINT);
+        qualityMap.put("ADDRESS", HOUSE);
+        qualityMap.put("INTERSECTION", STREET);
+        qualityMap.put("STREET", STREET);
+        qualityMap.put("COUNTY", COUNTY);
+        qualityMap.put("CITY", CITY);
+        qualityMap.put("STATE", STATE);
+        qualityMap.put("COUNTRY", STATE);
+        qualityMap.put("ZIP", ZIP);
+        qualityMap.put("ZIP_EXTENDED", ZIP_EXT);
 
-    /* Point Values Based on Yahoo's quality point scheme
-     *  http://developer.yahoo.com/geo/placefinder/guide/responses.html#address-quality
+        logger.info("Initialized MapQuest Adapter");
+    }
+
+    public void update(Observable o, Object arg)
+    {
+        configure();
+    }
+
+    private void configure()
+    {
+        config.notifyOnChange(this);
+        String baseUrl = config.getValue("mapquest.geo.url");
+        String revBaseUrl = config.getValue("mapquest.rev.url");
+        String apiKey = config.getValue("mapquest.key");
+
+        if (baseUrl.isEmpty()) { baseUrl = DEFAULT_BATCH_URL; }
+        if (revBaseUrl.isEmpty()) { revBaseUrl = DEFAULT_BATCH_URL; }
+
+        /** Show only one result per location | Use JSON output | Don't bother with the map thumbnail images */
+        this.geoBaseUrl = baseUrl+"?key="+apiKey+"&outFormat=json&thumbMaps=false&maxResults=1";
+        this.revBaseUrl = revBaseUrl+"?key="+apiKey+"&outFormat=json&thumbMaps=false&maxResults=1";
+
+        return;
+    }
+
+    /**
      *
-     * and the MapQuest geocode quality codes
-     *  http://www.mapquestapi.com/geocoding/geocodequality.html
-
-      P1 POINT  A specific point location.
-      L1 ADDRESS A specific street address location.
-      I1 INTERSECTION  An intersection of two or more streets.
-      B1 STREET The center of a single street block. House number ranges are returned if available.
-      B2 STREET The center of a single street block, which is located closest to the geographic center of all matching street blocks. No house number range is returned.
-      B3 STREET The center of a single street block whose numbered range is nearest to the input number. House number range is returned.
-      A1 COUNTRY Admin area, largest. For USA, a country.
-      A3 STATE  Admin area. For USA, a state.
-      A4 COUNTY Admin area. For USA, a county.
-      A5 CITY  Admin area. For USA, a city.
-      Z1 ZIP Postal code, largest. For USA, a ZIP.
-      Z2 ZIP_EXTENDED  Postal code. For USA, a ZIP+2.
-      Z3 ZIP_EXTENDED  Postal code. For USA, a ZIP+4.
-      Z4 ZIP Postal code, smallest. Unused in USA.
+     * @param address
+     * @return
      */
-    qualityMap = new HashMap<String, Integer>();
-    qualityMap.put("P1", 99);
-    qualityMap.put("L1", 87);
-    qualityMap.put("I1", 82);
-    qualityMap.put("B1", 72);
-    qualityMap.put("B2", 72);
-    qualityMap.put("B3", 72);
-    qualityMap.put("A1", 10);
-    qualityMap.put("A3", 20);
-    qualityMap.put("A4", 30);
-    qualityMap.put("A5", 40);
-    qualityMap.put("Z1", 60);
-    qualityMap.put("Z2", 64);
-    qualityMap.put("Z3", 75);
-    logger.info("Initialized MapQuest Adapter");
-  }
-
-
-  public void update(Observable o, Object arg)
-  {
-    configure();
-  } // update()
-
-
-  @Override
-  public Result geocode(Address address) throws GeoException
-  {
-    // Always use bulk with mapquest
-    return geocode(new ArrayList<Address>(Arrays.asList(address)), Address.TYPE.MIXED).get(0);
-  }
-
-
-  @Override
-  public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint) throws GeoException
-  {
-    Content page = null;
-    Document response = null;
-    ArrayList<Result> results = new ArrayList<Result>();
-    ArrayList<Result> batchResults = new ArrayList<Result>();
-    String url = null;
-
-    try {
-      // Start with a=1 to make the batch boundary condition work nicely
-      for (int a = 1; a <= addresses.size(); a++) {
-        Address address = addresses.get(a-1);
-        if (address == null) {
-          batchResults.add(null);
+    @Override
+    public GeocodeResult geocode(Address address)
+    {
+        ArrayList<GeocodeResult> results = geocode(new ArrayList<>(Arrays.asList(address)));
+        if (results != null && results.size() > 0){
+            return results.get(0);
         }
-        else {
-          url = m_queryUrl+"&location="+URLEncoder.encode(address.as_raw(), "UTF-8");
-          batchResults.add(new Result());
-        }
+        return null;
+    }
 
-        // Stop here unless we've filled this batch request
-        if (a%BATCH_SIZE != 0 && a != addresses.size()) continue;
+    /**
+     *
+     * @param addresses
+     * @return
+     */
+    @Override
+    public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
+    {
+        ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
+        Address address;
+        String url = geoBaseUrl;
 
-        // Parse the API response
-        logger.info(url);
-        page = Request.Get(url).execute().returnContent();
-        response = xmlBuilder.parse(page.asStream());
+        try {
+            for (int a = 1; a <= addresses.size(); a++) {
+                address = addresses.get(a-1);
 
-        // Log the url and status code in all results
-        String status = xpath.evaluate("response/info/statusCode", response);
-        for (Result result : batchResults) {
-          if (result != null) {
-            result.setStatus(status);
-            result.setSource(url);
-          }
-        }
+                if (address == null) {
+                    url += "&location=null";
+                }
+                else {
+                    url += "&location=" + URLEncoder.encode(address.toString(), "UTF-8");
+                }
 
-        // Check for an error code
-        // TODO: 607 - You have exceeded your daily limit of transactions
-        if (!status.equals("0")) {
-          ArrayList<String> resultMessages = new ArrayList<String>();
-          NodeList messages = (NodeList)xpath.evaluate("response/info/messages/message", response, XPathConstants.NODESET);
-          for (int i=0; i < messages.getLength(); i++) {
-            resultMessages.add(messages.item(i).getTextContent());
-          }
+                /** Stop here unless we've filled this batch request */
+                if (a % BATCH_SIZE != 0 && a != addresses.size()) continue;
 
-          // Log the error messages in each of the results.
-          for (Result result : batchResults) {
-            if (result != null) {
-              result.setMessages(resultMessages);
+                Content content = Request.Get(url).execute().returnContent();
+                String json = content.asString();
+
+                logger.debug(json);
+
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode jsonNode = mapper.readTree(json);
+
+                /** Get the status and kill the method if the status indicates a problem */
+                String status = jsonNode.get("info").get("statuscode").asText();
+
+                if (status != "0"){
+                    logger.debug("MapQuest statuscode: " + status);
+                    logger.debug("MapQuest messages " + jsonNode.get("info").get("messages"));
+                    return null;
+                }
+
+                /** Fetch the results and translate them to GeocodeResult objects */
+                JsonNode jsonResults = jsonNode.get("results");
+                int numResults = jsonResults.size();
+
+                for (int i = 0; i < numResults; i++){
+                    GeocodedAddress geocodedAddress = new GeocodedAddress();
+                    JsonNode location = jsonResults.get(i).get("locations").get(0);
+
+                    Address addr = new Address();
+                    addr.setAddr1(location.get("street").asText());
+                    addr.setCity(location.get("adminArea5").asText());
+                    addr.setState(location.get("adminArea3").asText());
+
+                    /** Parse zip5-zip4 style postal code */
+                    String zip = location.get("postalCode").asText();
+                    ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(zip.split("-")));
+
+                    addr.setZip5((zipParts.size() > 0) ? zipParts.get(0) : "");
+                    addr.setZip4((zipParts.size() > 1) ? zipParts.get(1) : "");
+
+                    /** Build the Geocode */
+                    Geocode geocode = new Geocode();
+                    JsonNode latLon = location.get("latLng");
+
+                    if (latLon != null) {
+                        geocode.setLatlon(latLon.get("lat").asDouble(), latLon.get("lng").asDouble());
+                        geocode.setMethod(this.getClass().getSimpleName());
+                        String qualityCode = location.get("geocodeQuality").asText();
+                        geocode.setQuality((qualityMap.containsKey(qualityCode)) ? qualityMap.get(qualityCode) : GeocodeQuality.UNKNOWN);
+                    }
+
+                    /** Build the response */
+                    geocodedAddress.setAddress(addr);
+                    geocodedAddress.setGeocode(geocode);
+                    GeocodeResult geocodeResult = new GeocodeResult(geocodedAddress, status, this.getClass());
+                    geocodeResults.add(geocodeResult);
+                }
             }
-          }
+            return geocodeResults;
         }
-        else {
-          // Each address specified produces its own result node
-          // Because null addresses aren't sent to mapquest we need
-          // to track an offset to the corresponding result.
-          int resultOffset = 0;
-          NodeList responses = (NodeList)xpath.evaluate("response/results/result", response, XPathConstants.NODESET);
-          for (int i = 0; i < responses.getLength(); i++) {
-            Node responseItem = responses.item(i);
-            Result result;
-            while ((result = batchResults.get(i+resultOffset)) == null) {
-              resultOffset++;
-            }
-
-            // Store all the locations passed back by mapquest
-            NodeList locations = (NodeList)xpath.evaluate("locations/location", responseItem, XPathConstants.NODESET);
-            for (int l=0; l < locations.getLength(); l++) {
-              Node location = locations.item(l);
-              String street = xpath.evaluate("street", location);
-              String city = xpath.evaluate("adminArea5", location);
-              String state = xpath.evaluate("adminArea3", location);
-              String zip_code = xpath.evaluate("postalCode", location);
-              String qualityCode = xpath.evaluate("geocodeQualityCode", location);
-              int quality = qualityMap.get(qualityCode.substring(0, 2));
-              double lat = (Double)xpath.evaluate("latLng/lat", location, XPathConstants.NUMBER);
-              double lng = (Double)xpath.evaluate("latLng/lng", location, XPathConstants.NUMBER);
-
-              Address resultAddress = new Address(street, city, state, zip_code);
-              resultAddress.setGeocode(lat, lng, quality);
-              result.addAddress(resultAddress);
-            }
-            result.setAddress(result.getFirstAddress());
-          }
+        catch (UnsupportedEncodingException ex){
+            logger.error("UTF-8 not supported? " + ex.getMessage());
         }
-        results.addAll(batchResults);
-        batchResults.clear();
-      }
-      return results;
-    }
-    catch (UnsupportedEncodingException e) {
-      String msg = "UTF-8 encoding not supported!?";
-      logger.error(msg);
-      throw new GeoException(msg);
-    }
-    catch (MalformedURLException e) {
-      String msg = "Malformed URL '"+url+"', check api key and address values.";
-      logger.error(msg, e);
-      throw new GeoException(msg, e);
-    }
-    catch (IOException e) {
-      String msg = "Error opening API resource '"+url+"'";
-      logger.error(msg, e);
-      throw new GeoException(msg ,e);
-    }
-    catch (SAXException e) {
-      String msg = "Malformed XML response for '"+url+"'\n"+page.asString();
-      logger.error(msg, e);
-      throw new GeoException(msg, e);
-    }
-    catch (XPathExpressionException e) {
-      String msg = "Unexpected XML Schema\n\n"+response.toString();
-      logger.error(msg, e);
-      throw new GeoException(msg ,e);
-    }
-  }
-
-
-  private void configure()
-  {
-    String baseUrl = Config.read("mapquest.url");
-    String apiKey = Config.read("mapquest.key");
-
-    if (baseUrl.isEmpty()) {
-      baseUrl = DEFAULT_BASE_URL;
+        catch (IOException ex){
+            logger.error(ex.getMessage());
+        }
+        return null;
     }
 
-    // Show only one result per location
-    // Use XML output
-    // Don't bother with the map thumbnail images
-    m_queryUrl = baseUrl+"?key="+apiKey+"&outFormat=xml&thumbMaps=false&maxResults=1";
-    return;
-  } // configure()
+    /**
+     * Given a lat lng pair return the address that is closest to that point.
+     * Mapquest does not have a bulk option for this operation.
+     * @param point     Point to reverse geocode.
+     * @return          GeocodeResult with matched GeocodeAddress or null if error.
+     */
+    @Override
+    public GeocodeResult reverseGeocode(Point point)
+    {
+        if (point != null){
+            /** Perform boxing */
+            Double lat = point.getLatitude();
+            Double lon = point.getLongitude();
+
+            String url = revBaseUrl + "&lat=" + lat.toString() + "&lng=" + lon.toString();
+
+            try {
+                Content content = Request.Get(url).execute().returnContent();
+                String json = content.asString();
+
+                logger.debug(json);
+
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode jsonNode = mapper.readTree(json);
+
+                /** Get the status and kill the method if the status indicates a problem */
+                String status = jsonNode.get("info").get("statuscode").asText();
+                if (status != "0"){
+                    logger.error("MapQuest statuscode: " + status);
+                    logger.error("MapQuest messages " + jsonNode.get("info").get("messages"));
+                    return null;
+                }
+
+                JsonNode jsonResults = jsonNode.get("results");
+                if (jsonResults.size() > 0){
+
+                    JsonNode location = jsonResults.get(0).get("locations").get(0);
+                    GeocodedAddress geocodedAddress = new GeocodedAddress();
+
+                    /** Build the address */
+                    Address address = new Address();
+                    address.setAddr1(location.get("street").asText());
+                    address.setCity(location.get("adminArea5").asText());
+                    address.setState(location.get("adminArea3").asText());
+
+                    /** Parse zip5-zip4 style postal code */
+                    String zip = location.get("postalCode").asText();
+                    ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(zip.split("-")));
+
+                    address.setZip5((zipParts.size() > 0) ? zipParts.get(0) : "");
+                    address.setZip4((zipParts.size() > 1) ? zipParts.get(1) : "");
+
+                    geocodedAddress.setAddress(address);
+
+                    /** Build the geocode, in this case it's just the supplied point */
+                    Geocode geocode = new Geocode();
+                    geocode.setLatlon(point);
+                    String qualityCode = location.get("geocodeQuality").asText();
+                    geocode.setQuality((qualityMap.containsKey(qualityCode)) ? qualityMap.get(qualityCode) : GeocodeQuality.UNKNOWN);
+
+                    geocodedAddress.setAddress(address);
+                    geocodedAddress.setGeocode(geocode);
+
+                    return new GeocodeResult(geocodedAddress, "0", this.getClass());
+                }
+            }
+            catch(IOException ex){
+                logger.error(ex.getMessage());
+            }
+            catch(NullPointerException ex){
+                logger.error(ex.getMessage());
+            }
+        }
+        return null;
+    }
+
+    /** Proxy to validate(addresses) */
+    @Override
+    public AddressResult validate(Address address)
+    {
+        ArrayList<AddressResult> addressResults = validate(new ArrayList<Address>(Arrays.asList(address)));
+        return (addressResults != null) ? addressResults.get(0) : null;
+    }
+
+    /** MapQuest's geocoding service auto corrects addresses so that service can be extended here. */
+    @Override
+    public ArrayList<AddressResult> validate(ArrayList<Address> addresses)
+    {
+        ArrayList<GeocodeResult> geocodeResults = this.geocode(addresses);
+        ArrayList<AddressResult> addressResults = new ArrayList<>();
+
+        if (geocodeResults != null){
+            for (GeocodeResult geocodeResult : geocodeResults){
+
+                GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
+                addressResults.add(new AddressResult(geocodedAddress.getAddress(), "0", this.getClass(), true));
+            }
+            return addressResults;
+        }
+        return null;
+    }
+
+    /** No special functionality here. Just proxy to validate */
+    @Override
+    public AddressResult lookupCityState(Address address)
+    {
+        return validate(address);
+    }
+
+    /** No special functionality here. Just proxy to validate */
+    @Override
+    public ArrayList<AddressResult> lookupCityState(ArrayList<Address> addresses)
+    {
+        return validate(addresses);
+    }
+
+    /** No special functionality here. Just proxy to validate */
+    @Override
+    public AddressResult lookupZipCode(Address address)
+    {
+        return validate(address);
+    }
+
+    /** No special functionality here. Just proxy to validate */
+    @Override
+    public ArrayList<AddressResult> lookupZipCode(ArrayList<Address> addresses)
+    {
+        return validate(addresses);
+    }
 }

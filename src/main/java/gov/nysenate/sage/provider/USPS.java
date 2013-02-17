@@ -1,4 +1,4 @@
-package gov.nysenate.sage.adapter;
+package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.factory.ApplicationFactory;
@@ -89,22 +89,10 @@ public class USPS implements AddressService, Observer
         xpath = XPathFactory.newInstance().newXPath();
     }
 
-    @Override
-    public AddressService newInstance()
-    {
-        try {
-            return new USPS();
-        }
-        catch(Exception ex){
-            return null;
-        }
-    }
-
     public void update(Observable o, Object arg)
     {
         configure();
     }
-
 
     /**
      * Proxies to the overloaded validate method.
@@ -116,7 +104,7 @@ public class USPS implements AddressService, Observer
     }
 
     /**
-     *
+     * Performs address correction and populates missing address fields.
      * @param addresses
      * @return ArrayList of AddressResult objects
      */
@@ -219,14 +207,14 @@ public class USPS implements AddressService, Observer
             batchResults.clear();
         }
         return results;
-    } // validate()
+    }
 
 
     @Override
     public AddressResult lookupCityState(Address address)
     {
         return lookupCityState(new ArrayList<Address>(Arrays.asList(address))).get(0);
-    } // lookupCityState()
+    }
 
 
     @Override
@@ -320,8 +308,21 @@ public class USPS implements AddressService, Observer
             batchResults.clear();
         }
         return results;
-    } // lookupCityState()
+    }
 
+    @Override
+    public AddressResult lookupZipCode(Address address)
+    {
+        return lookupZipCode(new ArrayList<Address>(Arrays.asList(address))).get(0);
+    }
+
+    /** ZipCode lookup for USPS has no advantage over address validation so just use the
+     *  existing validation method to get the zipcode */
+    @Override
+    public ArrayList<AddressResult> lookupZipCode(ArrayList<Address> addresses)
+    {
+        return validate(addresses);
+    }
 
     private void configure()
     {

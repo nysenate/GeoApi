@@ -1,5 +1,7 @@
 package gov.nysenate.sage.controller.api.base;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.model.address.Address;
 import org.apache.commons.io.IOUtils;
 
@@ -46,16 +48,16 @@ public abstract class BaseApiController extends HttpServlet
         request.setAttribute("response", resultMap);
     }
 
-    /*public static ArrayList<Address> getAddressesFromJsonBody(HttpServletRequest r)
+    public static ArrayList<Address> getAddressesFromJsonBody(HttpServletRequest r)
     {
         try {
             InputStream inputStream = r.getInputStream();
             String json = IOUtils.toString(r.getInputStream(), "UTF-8");
-            System.out.println(json);
+            ObjectMapper mapper = new ObjectMapper();
         }
         catch(Exception ex){
 
         }
         return null;
-    }*/
+    }
 }

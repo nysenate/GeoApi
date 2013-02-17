@@ -11,6 +11,11 @@ public class Geocode
     protected GeocodeQuality quality;
     protected String method;
 
+    public Geocode()
+    {
+        this(null, GeocodeQuality.NOMATCH, "");
+    }
+
     public Geocode(Point latlon, GeocodeQuality quality, String method)
     {
         this.latlon = latlon;
