@@ -1,4 +1,4 @@
-package gov.nysenate.sage.adapter;
+package gov.nysenate.sage.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +13,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressService;
-import gov.nysenate.sage.service.geo.GeoCodeService;
+import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
@@ -29,8 +29,7 @@ import org.apache.log4j.Logger;
  * Comment this...
  * @author Graylin Kim, Ash Islam
  */
-
-public class MapQuest implements AddressService, GeoCodeService, Observer
+public class MapQuest implements AddressService, GeocodeService, Observer
 {
     private static final String DEFAULT_BATCH_URL = "http://www.mapquestapi.com/geocoding/v1/batch";
     private static final String DEFAULT_REV_URL = "http://www.mapquestapi.com/geocoding/v1/reverse";
@@ -84,7 +83,7 @@ public class MapQuest implements AddressService, GeoCodeService, Observer
         String apiKey = config.getValue("mapquest.key");
 
         if (baseUrl.isEmpty()) { baseUrl = DEFAULT_BATCH_URL; }
-        if (revBaseUrl.isEmpty()) { revBaseUrl = DEFAULT_BATCH_URL; }
+        if (revBaseUrl.isEmpty()) { revBaseUrl = DEFAULT_REV_URL; }
 
         /** Show only one result per location | Use JSON output | Don't bother with the map thumbnail images */
         this.geoBaseUrl = baseUrl+"?key="+apiKey+"&outFormat=json&thumbMaps=false&maxResults=1";
@@ -159,17 +158,8 @@ public class MapQuest implements AddressService, GeoCodeService, Observer
                     GeocodedAddress geocodedAddress = new GeocodedAddress();
                     JsonNode location = jsonResults.get(i).get("locations").get(0);
 
-                    Address addr = new Address();
-                    addr.setAddr1(location.get("street").asText());
-                    addr.setCity(location.get("adminArea5").asText());
-                    addr.setState(location.get("adminArea3").asText());
-
-                    /** Parse zip5-zip4 style postal code */
-                    String zip = location.get("postalCode").asText();
-                    ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(zip.split("-")));
-
-                    addr.setZip5((zipParts.size() > 0) ? zipParts.get(0) : "");
-                    addr.setZip4((zipParts.size() > 1) ? zipParts.get(1) : "");
+                    /** Build the address */
+                    Address addr = getAddressFromJson(location);
 
                     /** Build the Geocode */
                     Geocode geocode = new Geocode();
@@ -215,6 +205,7 @@ public class MapQuest implements AddressService, GeoCodeService, Observer
             Double lon = point.getLongitude();
 
             String url = revBaseUrl + "&lat=" + lat.toString() + "&lng=" + lon.toString();
+            logger.debug(url);
 
             try {
                 Content content = Request.Get(url).execute().returnContent();
@@ -240,18 +231,7 @@ public class MapQuest implements AddressService, GeoCodeService, Observer
                     GeocodedAddress geocodedAddress = new GeocodedAddress();
 
                     /** Build the address */
-                    Address address = new Address();
-                    address.setAddr1(location.get("street").asText());
-                    address.setCity(location.get("adminArea5").asText());
-                    address.setState(location.get("adminArea3").asText());
-
-                    /** Parse zip5-zip4 style postal code */
-                    String zip = location.get("postalCode").asText();
-                    ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(zip.split("-")));
-
-                    address.setZip5((zipParts.size() > 0) ? zipParts.get(0) : "");
-                    address.setZip4((zipParts.size() > 1) ? zipParts.get(1) : "");
-
+                    Address address = getAddressFromJson(location);
                     geocodedAddress.setAddress(address);
 
                     /** Build the geocode, in this case it's just the supplied point */
@@ -280,7 +260,7 @@ public class MapQuest implements AddressService, GeoCodeService, Observer
     @Override
     public AddressResult validate(Address address)
     {
-        ArrayList<AddressResult> addressResults = validate(new ArrayList<Address>(Arrays.asList(address)));
+        ArrayList<AddressResult> addressResults = validate(new ArrayList<>(Arrays.asList(address)));
         return (addressResults != null) ? addressResults.get(0) : null;
     }
 
@@ -295,7 +275,13 @@ public class MapQuest implements AddressService, GeoCodeService, Observer
             for (GeocodeResult geocodeResult : geocodeResults){
 
                 GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
-                addressResults.add(new AddressResult(geocodedAddress.getAddress(), "0", this.getClass(), true));
+
+                /** If the quality is less than zip, it isn't really validated */
+                boolean isValidated = true;
+                if (geocodedAddress.getGeocode().getQuality().compareTo(ZIP) < 0 ){
+                    isValidated = false;
+                }
+                addressResults.add(new AddressResult(geocodedAddress.getAddress(), "0", this.getClass(), isValidated));
             }
             return addressResults;
         }
@@ -328,5 +314,20 @@ public class MapQuest implements AddressService, GeoCodeService, Observer
     public ArrayList<AddressResult> lookupZipCode(ArrayList<Address> addresses)
     {
         return validate(addresses);
+    }
+
+    private Address getAddressFromJson(JsonNode location) {
+        Address address = new Address();
+        address.setAddr1(location.get("street").asText());
+        address.setCity(location.get("adminArea5").asText());
+        address.setState(location.get("adminArea3").asText());
+
+        /** Parse zip5-zip4 style postal code */
+        String zip = location.get("postalCode").asText();
+        ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(zip.split("-")));
+
+        address.setZip5((zipParts.size() > 0) ? zipParts.get(0) : "");
+        address.setZip4((zipParts.size() > 1) ? zipParts.get(1) : "");
+        return address;
     }
 }
