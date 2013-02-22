@@ -31,7 +31,7 @@ public class MapQuestTest extends TestBase
     }
 
     @Test
-    public void testReverseGeocode() throws Exception
+    public void MapQuestSingleReverseGeocode_ReturnsGeocodeResult() throws Exception
     {
         assertSingleReverseGeocode(mapQuest);
     }

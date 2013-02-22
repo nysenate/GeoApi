@@ -13,6 +13,7 @@ import javax.servlet.ServletResponse;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 
+@Deprecated
 public class ResourceLoader implements Filter {
     private final Logger logger = Logger.getLogger(ResourceLoader.class);
     private File log4jConfigFile;

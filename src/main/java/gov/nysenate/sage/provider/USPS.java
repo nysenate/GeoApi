@@ -328,6 +328,7 @@ public class USPS implements AddressService, Observer
     {
         baseUrl = config.getValue("usps.url");
         apiKey = config.getValue("usps.key");
+        config.notifyOnChange(this);
 
         if (baseUrl.isEmpty()) {
             baseUrl = DEFAULT_BASE_URL;

@@ -1,8 +1,14 @@
 package gov.nysenate.sage.factory;
 
-import gov.nysenate.sage.adapter.USPS;
+import gov.nysenate.sage.provider.MapQuest;
+import gov.nysenate.sage.adapter.StreetData;
+import gov.nysenate.sage.adapter.YahooBoss;
+import gov.nysenate.sage.provider.USPS;
 import gov.nysenate.sage.listener.SageConfigurationListener;
-import gov.nysenate.sage.service.address.AddressServiceProviders;
+import gov.nysenate.sage.service.ServiceProviders;
+import gov.nysenate.sage.service.address.AddressService;
+import gov.nysenate.sage.service.district.DistrictService;
+import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
 import org.apache.commons.configuration.ConfigurationException;
@@ -33,6 +39,11 @@ public class ApplicationFactory
     private SageConfigurationListener configurationListener;
     private Config config;
     private DB db;
+
+    /** Service Providers */
+    private ServiceProviders<AddressService> addressServiceProviders = new ServiceProviders<>();
+    private ServiceProviders<DistrictService> districtServiceProviders = new ServiceProviders<>();
+    private ServiceProviders<GeocodeService> geocodeServiceProviders = new ServiceProviders<>();
 
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
@@ -72,8 +83,13 @@ public class ApplicationFactory
             this.db = new DB(this.config);
 
             /** Setup service providers */
-            AddressServiceProviders.registerDefaultProvider(new USPS());
-            AddressServiceProviders.registerProvider("usps", new USPS());
+            addressServiceProviders.registerDefaultProvider("usps", new USPS());
+            addressServiceProviders.registerDefaultProvider("mapquest", new MapQuest());
+
+            geocodeServiceProviders.registerDefaultProvider("mapquest", new MapQuest());
+            geocodeServiceProviders.registerDefaultProvider("yahooboss", new YahooBoss());
+
+            districtServiceProviders.registerDefaultProvider("streetfile", new StreetData());
 
             return true;
         }
@@ -104,8 +120,6 @@ public class ApplicationFactory
             this.db = new DB(this.config);
 
             /** Setup service providers */
-            AddressServiceProviders.registerDefaultProvider(new USPS());
-            AddressServiceProviders.registerProvider("usps", new USPS());
 
 
             return true;
@@ -123,6 +137,8 @@ public class ApplicationFactory
         return false;
     }
 
+    /** Accessor Functions */
+
     public static Config getConfig()
     {
         return factoryInstance.config;
@@ -136,6 +152,21 @@ public class ApplicationFactory
     public static DataSource getDataSource()
     {
         return factoryInstance.db.getDataSource();
+    }
+
+    public static ServiceProviders<AddressService> getAddressServiceProviders()
+    {
+        return factoryInstance.addressServiceProviders;
+    }
+
+    public static ServiceProviders<DistrictService> getDistrictServiceProviders()
+    {
+        return factoryInstance.districtServiceProviders;
+    }
+
+    public static ServiceProviders<GeocodeService> getGeoCodeServiceProviders()
+    {
+        return factoryInstance.geocodeServiceProviders;
     }
 
 }

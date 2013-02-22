@@ -2,7 +2,6 @@ package gov.nysenate.sage.service;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
-import gov.nysenate.sage.adapter.USPS;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -11,8 +11,6 @@ import java.util.List;
  */
 public interface DistrictService
 {
-    public DistrictService newInstance();
-
     public DistrictResult assignDistrict(Address address);
     public ArrayList<DistrictResult> assignDistrict(ArrayList<Address> addresses);
     public ArrayList<DistrictResult> assignDistricts(ArrayList<Address> addresses);

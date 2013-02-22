@@ -139,10 +139,10 @@ public class ApiFilterTest extends TestBase
 
         when(mf.getMockServletRequest().getRequestURI()).thenReturn(validUri);
         apiFilter.doFilter(mf.getMockServletRequest(), mf.getMockServletResponse(), mf.getMockFilterChain());
-        assertEquals("testMethod", mf.getMockServletRequest().getAttribute(REQUEST_TYPE.toString()));
+        assertEquals("testMethod", mf.getMockServletRequest().getAttribute(API_TYPE.toString()));
         assertEquals("json", mf.getMockServletRequest().getAttribute(FORMAT.toString()));
         assertEquals("url", mf.getMockServletRequest().getAttribute(PARAM_SOURCE.toString()));
-        assertEquals("param", mf.getMockServletRequest().getAttribute(PARAM_TYPE.toString()));
+        assertEquals("param", mf.getMockServletRequest().getAttribute(REQUEST_TYPE.toString()));
 
         /** Verify that filter does proceed */
         verify(mf.getMockFilterChain(), atLeastOnce()).doFilter(isA(ServletRequest.class), isA(ServletResponse.class));
@@ -150,10 +150,10 @@ public class ApiFilterTest extends TestBase
         /** Now check that the body input uri works as well */
         when(mf.getMockServletRequest().getRequestURI()).thenReturn(validBodyUri);
         apiFilter.doFilter(mf.getMockServletRequest(), mf.getMockServletResponse(), mf.getMockFilterChain());
-        assertEquals("testMethod", mf.getMockServletRequest().getAttribute(REQUEST_TYPE.toString()));
+        assertEquals("testMethod", mf.getMockServletRequest().getAttribute(API_TYPE.toString()));
         assertEquals("json", mf.getMockServletRequest().getAttribute(FORMAT.toString()));
         assertEquals("body", mf.getMockServletRequest().getAttribute(PARAM_SOURCE.toString()));
-        assertEquals("param", mf.getMockServletRequest().getAttribute(PARAM_TYPE.toString()));
+        assertEquals("param", mf.getMockServletRequest().getAttribute(REQUEST_TYPE.toString()));
 
         /** Verify that filter does proceed */
         verify(mf.getMockFilterChain(), atLeastOnce()).doFilter(isA(ServletRequest.class), isA(ServletResponse.class));

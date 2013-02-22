@@ -2,7 +2,7 @@ package gov.nysenate.sage.model.geo;
 
 /**
  * The Geocode class represents the data obtained by an address geocoding
- * service. This includes the lat/lon pair represented by a Point and various
+ * service. This includes the lat/lng pair represented by a Point and various
  * metrics describing the accuracy of the geocoding.
  */
 public class Geocode
@@ -38,12 +38,12 @@ public class Geocode
         this.latlon = new Point(lat,lon);
     }
 
-    public Double getLatitude()
+    public Double getLat()
     {
         return (this.latlon != null) ? this.latlon.getLatitude() : 0;
     }
 
-    public Double getLongitude()
+    public Double getLon()
     {
         return (this.latlon != null) ? this.latlon.getLongitude() : 0;
     }

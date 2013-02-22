@@ -1,6 +1,7 @@
 package gov.nysenate.sage.model.result;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Serves as a base class to provide common fields to sub-classed results.
@@ -49,4 +50,6 @@ public abstract class BaseResult
             this.source = sourceClass.getSimpleName();
         }
     }
+
+    public abstract Map<String,Object> toMap();
 }

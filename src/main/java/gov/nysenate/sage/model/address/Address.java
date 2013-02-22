@@ -1,6 +1,8 @@
 package gov.nysenate.sage.model.address;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * A generic address structure for representing the basic address components.
@@ -25,6 +27,14 @@ public class Address implements Serializable, Cloneable
     public Address(String addr1)
     {
         this(addr1, "","","","","");
+    }
+
+    public Address(String addr1, String city, String state, String postal)
+    {
+        this.setAddr1(addr1);
+        this.setCity(city);
+        this.setState(state);
+        this.setPostal(postal);
     }
 
     public Address(String addr1, String addr2, String city, String state, String zip5, String zip4)
@@ -97,6 +107,17 @@ public class Address implements Serializable, Cloneable
         }
     }
 
+    /** Stores 12345-1234 style postal codes into zip5 and zip4 parts */
+    public void setPostal(String postal)
+    {
+        if (postal != null){
+            ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(postal.split("-")));
+            this.setZip5((zipParts.size() > 0) ? zipParts.get(0) : "");
+            this.setZip4((zipParts.size() > 1) ? zipParts.get(1) : "");
+        }
+    }
+
+
     @Override
     public Address clone()
     {
@@ -119,7 +140,7 @@ public class Address implements Serializable, Cloneable
     {
         if (isParsed())
         {
-            return ( addr1.equals("") ? addr1+" " : "") + ( !addr2.equals("") ? addr2+" " : "")
+            return ( !addr1.equals("") ? addr1+" " : "") + ( !addr2.equals("") ? addr2+" " : "")
                     + ( !city.equals("")  ? ", "+city+" "   : "") + ( !state.equals("") ? state+" " : "")
                     + ( !zip5.equals("")  ? zip5 : "") + ( !zip4.equals("")  ? "-"+zip4 : "").trim();
         }

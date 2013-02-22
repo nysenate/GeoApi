@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
  * filers application requests based on ip address and api requests based on ip
  * and api key
  */
+@Deprecated
 public class SenateFilter implements Filter, Observer {
     private Logger logger;
 

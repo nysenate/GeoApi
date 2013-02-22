@@ -151,7 +151,7 @@ public class ApiFilter implements Filter, Observer
                 tokenizer.nextToken();
             }
 
-            uriTokens.put(REQUEST_TYPE, tokenizer.nextToken());
+            uriTokens.put(API_TYPE, tokenizer.nextToken());
             uriTokens.put(FORMAT, tokenizer.nextToken());
 
             /** Check for optional '/body/' in uri */
@@ -159,7 +159,7 @@ public class ApiFilter implements Filter, Observer
             if (token != null && token.equalsIgnoreCase("body")){
                 uriTokens.put(PARAM_SOURCE, "body");
                 if (tokenizer.hasMoreTokens()){
-                    uriTokens.put(PARAM_TYPE, tokenizer.nextToken().replaceFirst("(\\?.*)", ""));
+                    uriTokens.put(REQUEST_TYPE, tokenizer.nextToken().replaceFirst("(\\?.*)", ""));
                 }
                 else {
                     throw new NoSuchElementException("Missing " + PARAM_SOURCE.toString());
@@ -168,10 +168,10 @@ public class ApiFilter implements Filter, Observer
             else {
                 uriTokens.put(PARAM_SOURCE, "url");
                 if (token != null){
-                    uriTokens.put(PARAM_TYPE, token.replaceFirst("(\\?.*)", ""));
+                    uriTokens.put(REQUEST_TYPE, token.replaceFirst("(\\?.*)", ""));
                 }
                 else {
-                    throw new NoSuchElementException("Missing " + PARAM_TYPE.toString());
+                    throw new NoSuchElementException("Missing " + REQUEST_TYPE.toString());
                 }
             }
 

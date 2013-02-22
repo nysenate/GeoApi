@@ -53,7 +53,6 @@ public class DistrictService {
     public DistrictService() throws Exception {
         adapters = new HashMap<String, DistAssignInterface>();
         adapters.put("geoserver", new GeoServer());
-        adapters.put("streetdata", new StreetData());
     }
 
     public Result assignDistrict(Address address, TYPE type, String adapterName) throws DistException {

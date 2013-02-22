@@ -35,6 +35,7 @@ public class MapQuest implements AddressService, GeocodeService, Observer
     private static final String DEFAULT_REV_URL = "http://www.mapquestapi.com/geocoding/v1/reverse";
     private final Logger logger = Logger.getLogger(MapQuest.class);
     private Config config;
+    ObjectMapper mapper;
 
     private final int BATCH_SIZE = 95;
     private final HashMap<String, GeocodeQuality> qualityMap;
@@ -44,6 +45,7 @@ public class MapQuest implements AddressService, GeocodeService, Observer
     public MapQuest()
     {
         this.config = ApplicationFactory.getConfig();
+        this.mapper = new ObjectMapper();
         configure();
 
         /**
@@ -135,10 +137,8 @@ public class MapQuest implements AddressService, GeocodeService, Observer
 
                 Content content = Request.Get(url).execute().returnContent();
                 String json = content.asString();
-
                 logger.debug(json);
 
-                ObjectMapper mapper = new ObjectMapper();
                 JsonNode jsonNode = mapper.readTree(json);
 
                 /** Get the status and kill the method if the status indicates a problem */
@@ -316,18 +316,13 @@ public class MapQuest implements AddressService, GeocodeService, Observer
         return validate(addresses);
     }
 
-    private Address getAddressFromJson(JsonNode location) {
+    private Address getAddressFromJson(JsonNode location)
+    {
         Address address = new Address();
         address.setAddr1(location.get("street").asText());
         address.setCity(location.get("adminArea5").asText());
         address.setState(location.get("adminArea3").asText());
-
-        /** Parse zip5-zip4 style postal code */
-        String zip = location.get("postalCode").asText();
-        ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(zip.split("-")));
-
-        address.setZip5((zipParts.size() > 0) ? zipParts.get(0) : "");
-        address.setZip4((zipParts.size() > 1) ? zipParts.get(1) : "");
+        address.setPostal(location.get("postalCode").asText());
         return address;
     }
 }

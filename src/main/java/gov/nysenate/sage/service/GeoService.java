@@ -2,10 +2,10 @@ package gov.nysenate.sage.service;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
-import gov.nysenate.sage.adapter.MapQuest;
+import gov.nysenate.sage.provider.MapQuest;
 import gov.nysenate.sage.adapter.OSM;
 import gov.nysenate.sage.adapter.RubyGeocoder;
-import gov.nysenate.sage.adapter.Yahoo;
+import gov.nysenate.sage.provider.Yahoo;
 import gov.nysenate.sage.adapter.YahooBoss;
 
 import java.util.ArrayList;
@@ -73,9 +73,9 @@ public class GeoService
     RubyGeocoder ruby = new RubyGeocoder();
     OSM osm = new OSM();
 
-    geoAdapters.put("yahoo", yahoo);
+    //geoAdapters.put("yahoo", yahoo);
     geoAdapters.put("yahooboss", yahooBoss);
-    geoAdapters.put("mapquest", mapquest);
+    //geoAdapters.put("mapquest", mapquest);
     geoAdapters.put("geocoder", ruby);
     geoAdapters.put("rubygeocoder", ruby);
     geoAdapters.put("osm", osm);
