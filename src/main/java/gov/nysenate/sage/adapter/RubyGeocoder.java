@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@Deprecated
 public class RubyGeocoder implements GeocodeInterface, Observer
 {
     private static final String DEFAULT_BASE_URL = "http://geocoder.nysenate.gov/GeoRubyAdapter/api";
