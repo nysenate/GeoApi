@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model;
+package gov.nysenate.sage.model.district;
 
 /**
  * DistrictInfo is used to represent the various district names
@@ -6,6 +6,7 @@ package gov.nysenate.sage.model;
  */
 public class DistrictInfo
 {
+    /** District Names */
     protected String congressionalName = "";
     protected String senateName = "";
     protected String assemblyName = "";
@@ -15,16 +16,15 @@ public class DistrictInfo
     protected String wardName = "";
     protected String electionName = "";
 
+    /** District Codes */
     protected int congressionalCode = 0;
     protected int countyCode = 0;
     protected int senateCode = 0;
     protected int assemblyCode = 0;
     protected int electionCode = 0;
-
     protected String townCode = "";
     protected int wardCode = 0;
     protected String schoolCode = "";
-
     protected int clegCode = 0;
     protected String cityCode = "";
     protected String fireCode = "";

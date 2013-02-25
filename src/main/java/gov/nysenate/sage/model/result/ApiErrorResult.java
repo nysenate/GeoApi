@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model;
+package gov.nysenate.sage.model.result;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;

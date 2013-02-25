@@ -11,14 +11,14 @@ import javax.sql.DataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.log4j.Logger;
 
-public abstract class StreetFile {
+public abstract class StreetFileHandler {
     public final File street_file;
     protected final Logger logger;
     public final int county_code;
     public final AddressService addressService;
     public final Pattern number_pattern = Pattern.compile("(\\d+|)(.*)");
 
-    public StreetFile(int countyCode, File street_file) throws Exception  {
+    public StreetFileHandler(int countyCode, File street_file) throws Exception  {
         if (!street_file.canRead()) {
             throw new RuntimeException("Cannot read: "+street_file.getAbsolutePath());
         }
