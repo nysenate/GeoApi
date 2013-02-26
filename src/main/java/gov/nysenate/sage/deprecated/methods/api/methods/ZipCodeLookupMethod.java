@@ -1,25 +1,11 @@
-package gov.nysenate.sage.api.methods;
+package gov.nysenate.sage.deprecated.methods.api.methods;
 
-import gov.nysenate.sage.Address;
-import gov.nysenate.sage.Response;
-import gov.nysenate.sage.Result;
-import gov.nysenate.sage.api.exceptions.ApiException;
-import gov.nysenate.sage.api.exceptions.ApiInternalException;
-import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.ApiExecution;
-import gov.nysenate.sage.model.ErrorResponse;
-import gov.nysenate.sage.model.ValidateResponse;
-import gov.nysenate.sage.service.AddressService;
-
-import java.util.ArrayList;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 
 public class ZipCodeLookupMethod extends ApiExecution
 {
-  AddressService addressService;
+ /* AddressService addressService;
 
   public ZipCodeLookupMethod() throws Exception
   {
@@ -57,5 +43,5 @@ public class ZipCodeLookupMethod extends ApiExecution
       }
       return new ErrorResponse(msg.toString());
     }
-  } // execute()
+  } // execute() */
 }

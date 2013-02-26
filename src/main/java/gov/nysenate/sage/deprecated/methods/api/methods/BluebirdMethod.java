@@ -1,35 +1,11 @@
-package gov.nysenate.sage.api.methods;
+package gov.nysenate.sage.deprecated.methods.api.methods;
 
-import gov.nysenate.sage.Address;
-import gov.nysenate.sage.Result;
-import gov.nysenate.sage.api.exceptions.ApiInternalException;
-import gov.nysenate.sage.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.ApiExecution;
-import gov.nysenate.sage.deprecated.districts.Assembly;
-import gov.nysenate.sage.deprecated.districts.Congressional;
-import gov.nysenate.sage.deprecated.districts.County;
-import gov.nysenate.sage.deprecated.districts.DistrictResponse;
-import gov.nysenate.sage.deprecated.districts.Election;
-import gov.nysenate.sage.deprecated.districts.School;
-import gov.nysenate.sage.deprecated.districts.Senate;
-import gov.nysenate.sage.deprecated.districts.Town;
-import gov.nysenate.sage.service.AddressService;
-import gov.nysenate.sage.service.DistrictService;
-import gov.nysenate.sage.service.DistrictService.DistException;
-import gov.nysenate.sage.service.GeoService;
-import gov.nysenate.sage.service.GeoService.GeoException;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 
 public class BluebirdMethod extends ApiExecution
 {
-    private final GeoService geoService;
+   /* private final GeoService geoService;
     private final DistrictService districtService;
     private final AddressService addressService;
 
@@ -164,4 +140,5 @@ public class BluebirdMethod extends ApiExecution
 
         return dr;
     } // getDistricts()
+    */
 }

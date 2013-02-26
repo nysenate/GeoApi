@@ -1,4 +1,4 @@
-package gov.nysenate.sage.api.methods;
+package gov.nysenate.sage.deprecated.methods.api.methods;
 
 import java.util.EnumSet;
 import java.util.HashMap;

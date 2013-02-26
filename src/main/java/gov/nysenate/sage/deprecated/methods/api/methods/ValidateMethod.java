@@ -1,12 +1,11 @@
-package gov.nysenate.sage.api.methods;
+package gov.nysenate.sage.deprecated.methods.api.methods;
 
-import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Response;
 import gov.nysenate.sage.Result;
-import gov.nysenate.sage.adapter.USPS;
-import gov.nysenate.sage.api.exceptions.ApiException;
-import gov.nysenate.sage.api.exceptions.ApiInternalException;
-import gov.nysenate.sage.api.exceptions.ApiTypeException;
+import gov.nysenate.sage.provider.USPS;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.ApiExecution;
 import gov.nysenate.sage.model.ErrorResponse;
 import gov.nysenate.sage.model.ValidateResponse;
@@ -29,7 +28,9 @@ public class ValidateMethod extends ApiExecution {
 		if(!type.equals("extended"))
 		    throw new ApiTypeException(type);
 
-	    Result result = usps.validate(new Address(
+        Result result = null;
+	    /*
+        Result result = usps.validate(new Address(
 	            request.getParameter("addr1"),
                 request.getParameter("addr2"),
                 request.getParameter("city"),
@@ -37,6 +38,7 @@ public class ValidateMethod extends ApiExecution {
                 request.getParameter("zip5"),
                 request.getParameter("zip4")
         ));
+        */
 
 	    if (result==null) {
 	        throw new ApiInternalException();

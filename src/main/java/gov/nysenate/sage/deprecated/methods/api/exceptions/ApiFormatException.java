@@ -1,4 +1,4 @@
-package gov.nysenate.sage.api.exceptions;
+package gov.nysenate.sage.deprecated.methods.api.exceptions;
 
 public class ApiFormatException extends ApiException {
 	private static final long serialVersionUID = 1L;

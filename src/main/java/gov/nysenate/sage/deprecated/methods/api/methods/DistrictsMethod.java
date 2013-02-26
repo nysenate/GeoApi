@@ -1,10 +1,10 @@
-package gov.nysenate.sage.api.methods;
+package gov.nysenate.sage.deprecated.methods.api.methods;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
-import gov.nysenate.sage.api.exceptions.ApiFormatException;
-import gov.nysenate.sage.api.exceptions.ApiInternalException;
-import gov.nysenate.sage.api.exceptions.ApiTypeException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiFormatException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.ApiExecution;
 import gov.nysenate.sage.deprecated.districts.Assembly;
 import gov.nysenate.sage.deprecated.districts.Congressional;

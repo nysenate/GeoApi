@@ -1,7 +1,7 @@
-package gov.nysenate.sage.api.methods;
+package gov.nysenate.sage.deprecated.methods.api.methods;
 
-import gov.nysenate.sage.api.exceptions.ApiInternalException;
-import gov.nysenate.sage.api.exceptions.ApiTypeException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.connectors.GeoCode;
 import gov.nysenate.sage.model.ApiExecution;
 
