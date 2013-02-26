@@ -8,7 +8,9 @@ import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Simple Dao to retrieve county information.
@@ -29,6 +31,21 @@ public class CountyDao extends BaseDao
         catch (SQLException ex){
             logger.error("Failed to get counties! " + ex.getMessage());
         }
+        return null;
+    }
+
+    public Map<Integer, County> getFipsCountyMap()
+    {
+        List<County> counties = this.getCounties();
+        if (counties != null) {
+            Map<Integer, County> fipsCountyMap = new HashMap<>();
+            for (County c : counties){
+                fipsCountyMap.put(c.getFipsCode(), c);
+            }
+            return fipsCountyMap;
+        }
+
+        logger.error("Failed to get <fipsCode,County> map");
         return null;
     }
 

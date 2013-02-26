@@ -7,6 +7,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import java.util.List;
+import java.util.Map;
 
 public class CountyDaoTest extends TestBase
 {
@@ -54,12 +55,11 @@ public class CountyDaoTest extends TestBase
         assertEquals("erie", county.getName().toLowerCase());
     }
 
-
-
-
-
-
-
-
-
+    @Test
+    public void getFipsCountyMapTest()
+    {
+        Map<Integer, County> fipsCountyMap = countyDao.getFipsCountyMap();
+        assertEquals(fipsCountyMap.get(1).getName().toLowerCase(), "albany");
+        assertEquals(fipsCountyMap.get(59).getName().toLowerCase(), "nassau");
+    }
 }
