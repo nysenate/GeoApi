@@ -32,6 +32,17 @@ public class DistrictInfo
 
     public DistrictInfo() {}
 
+    public DistrictInfo( int congressionalCode, int countyCode, int senateCode,
+                         int assemblyCode, String townCode, String schoolCode )
+    {
+        this.setCongressionalCode(congressionalCode);
+        this.setCountyCode(countyCode);
+        this.setSenateCode(senateCode);
+        this.setAssemblyCode(assemblyCode);
+        this.setTownCode(townCode);
+        this.setSchoolCode(schoolCode);
+    }
+
     public String getCongressionalName() {
         return congressionalName;
     }

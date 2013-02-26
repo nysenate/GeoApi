@@ -1,7 +1,6 @@
 package gov.nysenate.sage.model.result;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * Serves as a base class to provide common fields to sub-classed results.
@@ -9,6 +8,7 @@ import java.util.Map;
 public abstract class BaseResult
 {
     protected ArrayList<String> messages = new ArrayList<>();
+    protected ResultStatus statusCode = ResultStatus.NO_ERROR;
     protected String status = "";
     protected String source = "";
 
@@ -51,5 +51,13 @@ public abstract class BaseResult
         }
     }
 
-    public abstract Map<String,Object> toMap();
+    public ResultStatus getStatusCode()
+    {
+        return statusCode;
+    }
+
+    public void setStatusCode(ResultStatus statusCode)
+    {
+        this.statusCode = statusCode;
+    }
 }
