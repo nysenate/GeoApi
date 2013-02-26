@@ -4,7 +4,21 @@ import org.apache.log4j.Logger;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Marker interface */
+/**
+ * This class is used for registering and obtaining implementation instances for a
+ * particular service identified by the template parameter.
+ *
+ * For example, using ExampleService as the service and exampleImpl as an instance:
+ * <code>
+ * ServiceProviders<ExampleService> exampleServiceProvider = new ServiceProviders<>();
+ * exampleServiceProvider.registerDefaultProvider("impl", exampleImpl); // Register
+ * ExampleService impl = exampleServiceProvider.newServiceInstance();   // Get new instance
+ * </code>
+ *
+ * So essentially it's a simple way to keep track of which classes can serve as an
+ * implementation of a given service and instantiate them.
+ * @param <T>   T is the Service to provide implementations for.
+ */
 public class ServiceProviders<T>
 {
     private Logger logger = Logger.getLogger(this.getClass());
@@ -94,6 +108,4 @@ public class ServiceProviders<T>
         }
         return null;
     }
-
-
 }
