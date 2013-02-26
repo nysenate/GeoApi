@@ -1,10 +1,6 @@
 package gov.nysenate.sage;
 
-
 /**
- *
- * @author Graylin Kim
- *
  * A generic address structure supplied to all services.
  *
  * Encapsulates all aspects of an address to allow an address to be augmented
@@ -13,8 +9,11 @@ package gov.nysenate.sage;
  * Supports both raw and fully parsed address styles and supplies a helper
  * function for services to distinguish between the two.
  *
+ * @author Graylin Kim
  */
-public class Address implements Cloneable {
+@Deprecated
+public class Address implements Cloneable
+{
     public enum TYPE { RAW, MIXED, PARSED };
 
     // Geo-coordinates
