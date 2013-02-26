@@ -1,10 +1,12 @@
 package gov.nysenate.sage.factory;
 
+import gov.nysenate.sage.provider.Geoserver;
 import gov.nysenate.sage.provider.MapQuest;
 import gov.nysenate.sage.adapter.StreetData;
 import gov.nysenate.sage.adapter.YahooBoss;
 import gov.nysenate.sage.provider.USPS;
 import gov.nysenate.sage.listener.SageConfigurationListener;
+import gov.nysenate.sage.provider.Yahoo;
 import gov.nysenate.sage.service.ServiceProviders;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.district.DistrictService;
@@ -38,7 +40,8 @@ public class ApplicationFactory
     /** Dependency instances */
     private SageConfigurationListener configurationListener;
     private Config config;
-    private DB db;
+    private DB baseDB;
+    private DB tigerDB;
 
     /** Service Providers */
     private ServiceProviders<AddressService> addressServiceProviders = new ServiceProviders<>();
@@ -80,16 +83,17 @@ public class ApplicationFactory
             /** Setup application config */
             this.configurationListener = new SageConfigurationListener();
             this.config = new Config(defaultPropertyFileName, this.configurationListener);
-            this.db = new DB(this.config);
+            this.baseDB = new DB(this.config, "db");
+            this.tigerDB = new DB(this.config, "tiger.db");
 
             /** Setup service providers */
             addressServiceProviders.registerDefaultProvider("usps", new USPS());
-            addressServiceProviders.registerDefaultProvider("mapquest", new MapQuest());
+            addressServiceProviders.registerProvider("mapquest", new MapQuest());
 
             geocodeServiceProviders.registerDefaultProvider("mapquest", new MapQuest());
-            geocodeServiceProviders.registerDefaultProvider("yahooboss", new YahooBoss());
+            geocodeServiceProviders.registerProvider("yahoo", new Yahoo());
 
-            districtServiceProviders.registerDefaultProvider("streetfile", new StreetData());
+            districtServiceProviders.registerDefaultProvider("geoserver", new Geoserver());
 
             return true;
         }
@@ -107,7 +111,7 @@ public class ApplicationFactory
     }
 
     /**
-     * Similar to buildProduction() except this method should be called at the start of unit tests.     *
+     * Similar to buildProduction() except this method should be called at the start of unit tests.
      * @return boolean  If true then build succeeded
      */
     private boolean buildTesting()
@@ -117,7 +121,8 @@ public class ApplicationFactory
             /** Setup test application config */
             this.configurationListener = new SageConfigurationListener();
             this.config = new Config(defaultTestPropertyFileName, this.configurationListener);
-            this.db = new DB(this.config);
+            this.baseDB = new DB(this.config, "db");
+            this.tigerDB = new DB(this.config, "tiger.db");
 
             /** Setup service providers */
 
@@ -137,22 +142,24 @@ public class ApplicationFactory
         return false;
     }
 
-    /** Accessor Functions */
+    /** Config / Database Accessor */
 
     public static Config getConfig()
     {
         return factoryInstance.config;
     }
 
-    public static SageConfigurationListener getConfigurationListener()
-    {
-        return factoryInstance.configurationListener;
-    }
-
     public static DataSource getDataSource()
     {
-        return factoryInstance.db.getDataSource();
+        return factoryInstance.baseDB.getDataSource();
     }
+
+    public static DataSource getTigerDataSource()
+    {
+        return factoryInstance.tigerDB.getDataSource();
+    }
+
+    /** Service Providers Accessor */
 
     public static ServiceProviders<AddressService> getAddressServiceProviders()
     {

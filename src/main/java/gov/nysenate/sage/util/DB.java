@@ -14,12 +14,13 @@ public class DB implements Observer
 {
     private DataSource ds;
     private Config config;
+    private String prefix;
 
-    public DB(Config config)
+    public DB(Config config, String dbPrefix)
     {
         this.config = config;
         this.config.notifyOnChange(this);
-        this.buildDataSource();
+        this.buildDataSource(dbPrefix);
     }
 
     public DataSource getDataSource()
@@ -29,23 +30,32 @@ public class DB implements Observer
 
     public void update(Observable o, Object arg)
     {
-        buildDataSource();
+        if (this.prefix != null) {
+            buildDataSource(this.prefix);
+        }
     };
 
     /**
-     * Set up the data source. See the documentation for details:
+     * Set up the data source.
+     * The dbPrefix parameter specifies the prefix used in the properties file.
+     * Thus for creating a data source for configuration db.name, db.host,..
+     * set dbPrefix = "db". This is to allow for multiple databases.
+     *
+     * See the documentation for details:
      * http://people.apache.org/~fhanik/jdbc-pool/jdbc-pool.html
      */
-    private void buildDataSource()
+    private void buildDataSource(String dbPrefix)
     {
         this.ds = new DataSource();
+        this.prefix = dbPrefix;
+
         PoolProperties p = new PoolProperties();
 
         /** Basic connection parameters. */
-        p.setUrl(String.format("jdbc:%s://%s/%s", config.getValue("db.type"), config.getValue("db.host"), config.getValue("db.name")));
-        p.setDriverClassName(config.getValue("db.driver"));
-        p.setUsername(config.getValue("db.user"));
-        p.setPassword(config.getValue("db.pass"));
+        p.setUrl(String.format("jdbc:%s://%s/%s", config.getValue(dbPrefix + ".type"), config.getValue(dbPrefix + ".host"), config.getValue(dbPrefix + ".name")));
+        p.setDriverClassName(config.getValue(dbPrefix + ".driver"));
+        p.setUsername(config.getValue(dbPrefix + ".user"));
+        p.setPassword(config.getValue(dbPrefix + ".pass"));
 
         /** How big should the connection pool be? How big can it get? */
         p.setInitialSize(10);
