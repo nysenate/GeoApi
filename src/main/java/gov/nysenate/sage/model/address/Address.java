@@ -47,11 +47,37 @@ public class Address implements Serializable, Cloneable
         this.setZip4(zip4);
     }
 
-    public String getAddr1() {
+    public boolean isParsed()
+    {
+        return !(addr2.equals("") && city.equals("") && state.equals("") && zip5.equals(""));
+    }
+
+    public boolean isEmpty()
+    {
+        return (addr1.equals("") && !isParsed());
+    }
+
+    @Override
+    public String toString()
+    {
+        if (isParsed()) {
+            return ((!addr1.equals("") ? addr1 : "") + (!addr2.equals("") ? " " + addr2 + "" : "")
+                    + (!addr1.equals("") || !addr2.equals("") ? "," : "")
+                    + (!city.equals("") ? " " + city + "," : "") + ( !state.equals("") ? " " + state : "")
+                    + (!zip5.equals("") ? " " + zip5 : "") + ( !zip4.equals("")  ? "-"+zip4 : "")).trim();
+        }
+        else {
+            return addr1;
+        }
+    }
+
+    public String getAddr1()
+    {
         return addr1;
     }
 
-    public void setAddr1(String addr1) {
+    public void setAddr1(String addr1)
+    {
         if (addr1 != null ){
             this.addr1 = addr1;
         }
@@ -61,47 +87,56 @@ public class Address implements Serializable, Cloneable
         return addr2;
     }
 
-    public void setAddr2(String addr2) {
+    public void setAddr2(String addr2)
+    {
         if (addr2 != null){
             this.addr2 = addr2;
         }
     }
 
-    public String getCity() {
+    public String getCity()
+    {
         return city;
     }
 
-    public void setCity(String city) {
+    public void setCity(String city)
+    {
         if (city != null) {
             this.city = city;
         }
     }
 
-    public String getState() {
+    public String getState()
+    {
         return state;
     }
 
-    public void setState(String state) {
+    public void setState(String state)
+    {
         if (state != null){
             this.state = state;
         }
     }
 
-    public String getZip5() {
+    public String getZip5()
+    {
         return zip5;
     }
 
-    public void setZip5(String zip5) {
+    public void setZip5(String zip5)
+    {
         if (zip5 != null){
             this.zip5 = zip5;
         }
     }
 
-    public String getZip4() {
+    public String getZip4()
+    {
         return zip4;
     }
 
-    public void setZip4(String zip4) {
+    public void setZip4(String zip4)
+    {
         if (zip4 != null){
             this.zip4 = zip4;
         }
@@ -110,13 +145,12 @@ public class Address implements Serializable, Cloneable
     /** Stores 12345-1234 style postal codes into zip5 and zip4 parts */
     public void setPostal(String postal)
     {
-        if (postal != null){
+        if (postal != null) {
             ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(postal.split("-")));
-            this.setZip5((zipParts.size() > 0) ? zipParts.get(0) : "");
-            this.setZip4((zipParts.size() > 1) ? zipParts.get(1) : "");
+            this.setZip5((zipParts.size() > 0) ? zipParts.get(0).trim() : "");
+            this.setZip4((zipParts.size() > 1) ? zipParts.get(1).trim() : "");
         }
     }
-
 
     @Override
     public Address clone()
@@ -124,29 +158,8 @@ public class Address implements Serializable, Cloneable
         try {
             return (Address)super.clone();
         }
-        catch (CloneNotSupportedException e)
-        {
+        catch (CloneNotSupportedException e) {
             return null;
-        }
-    }
-
-    public boolean isParsed()
-    {
-        return !(addr2.equals("") && city.equals("") && state.equals("") && zip5.equals(""));
-    }
-
-    @Override
-    public String toString()
-    {
-        if (isParsed())
-        {
-            return ( !addr1.equals("") ? addr1+" " : "") + ( !addr2.equals("") ? addr2+" " : "")
-                    + ( !city.equals("")  ? ", "+city+" "   : "") + ( !state.equals("") ? state+" " : "")
-                    + ( !zip5.equals("")  ? zip5 : "") + ( !zip4.equals("")  ? "-"+zip4 : "").trim();
-        }
-        else
-        {
-            return addr1;
         }
     }
 }
