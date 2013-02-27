@@ -332,11 +332,11 @@ public class DistrictServices {
    * @throws IOException
    */
   public static StringBuffer getPolyFromAddress(String address, String format, String service, DistrictType districtType) throws IOException {
-    Point p = GeoCode.getGeoCodedResponse(address, service);
-    
+    //Point p = GeoCode.getGeoCodedResponse(address, service);
+    Point p = null;
     /* get flattened request from geoserver */
     WFS_POLY wfs = gsCon.new WFS_POLY(districtType);
-    String json = gsCon.flatten(wfs.construct(p.getLatitude(), p.getLongitude()));
+    String json = gsCon.flatten(wfs.construct(p.getLat(), p.getLon()));
     
     return polyPrep(json, format, districtType);
     
@@ -360,11 +360,11 @@ public class DistrictServices {
     String[] tuple = latlng.split(",");
     
     if (service != null && service.equals("none")) {
-      p = new Point(new Double(tuple[0]), new Double(tuple[1]), "");
+      //p = new Point(new Double(tuple[0]), new Double(tuple[1]), "");
     
     }
     else {
-      p = GeoCode.getReverseGeoCodedResponse(latlng, service).iterator().next();
+      //p = GeoCode.getReverseGeoCodedResponse(latlng, service).iterator().next();
     }
     
     if (p == null) {
@@ -375,7 +375,7 @@ public class DistrictServices {
     
     /* get flattened request from geoserver */
     WFS_POLY wfs = gsCon.new WFS_POLY(districtType);
-    String json = gsCon.flatten(wfs.construct(p.getLatitude(), p.getLongitude()));
+    String json = gsCon.flatten(wfs.construct(p.getLat(), p.getLon()));
     
     return polyPrep(json, format, districtType);
   }
@@ -597,9 +597,9 @@ public class DistrictServices {
   public static DistrictResponse getDistrictsFromAddress(String addr, String city,
       String state, String zip4, String zip5, String service) throws Exception {
 
-    Point p = GeoCode.getGeoCodedResponse(addr, city, state, zip4, zip5, service);
+    /*Point p = GeoCode.getGeoCodedResponse(addr, city, state, zip4, zip5, service);
 
-    return districts(p, true);
+    return districts(p, true); */ return null;
   }
   
   /**
@@ -607,7 +607,8 @@ public class DistrictServices {
    */
   public static DistrictResponse getDistrictsFromAddress(String address, String service)
                                   throws Exception {
-    return districts(GeoCode.getGeoCodedResponse(address, service), true);
+    //return districts(GeoCode.getGeoCodedResponse(address, service), true);
+      return null;
     
   }
   
@@ -620,11 +621,11 @@ public class DistrictServices {
     Point p = null;
     String[] tuple = latlng.split(",");
     if (service != null && service.equals("none")) {
-      p = new Point(new Double(tuple[0]), new Double(tuple[1]), "");
+      //p = new Point(new Double(tuple[0]), new Double(tuple[1]), "");
       
     }
     else {
-      p = GeoCode.getReverseGeoCodedResponse(latlng, service).iterator().next();
+      //p = GeoCode.getReverseGeoCodedResponse(latlng, service).iterator().next();
     }
     
     if(p == null) {
@@ -667,9 +668,10 @@ public class DistrictServices {
     
     connect.close();    
     
-    dr.setLat(point.getLatitude());
-    dr.setLon(point.getLongitude());
-    dr.setAddress((String)point.getAddress());
+    dr.setLat(point.getLat());
+    dr.setLon(point.getLon());
+    /** NOTE REMOVED DURING REFACTOR v */
+    //dr.setAddress((String)point.getAddress());
     return dr;
   }
   

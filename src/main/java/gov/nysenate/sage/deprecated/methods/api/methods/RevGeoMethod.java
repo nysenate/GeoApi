@@ -2,7 +2,6 @@ package gov.nysenate.sage.deprecated.methods.api.methods;
 
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.connectors.GeoCode;
 import gov.nysenate.sage.model.ApiExecution;
 
 import java.util.ArrayList;
@@ -23,7 +22,8 @@ public class RevGeoMethod extends ApiExecution
 
     try {
       String service = request.getParameter("service");
-      return GeoCode.getReverseGeoCodedResponse(more.get(RequestCodes.LATLON.code()), service);
+      //return GeoCode.getReverseGeoCodedResponse(more.get(RequestCodes.LATLON.code()), service);
+        return null;
     }
     catch (Exception e) {
       e.printStackTrace();

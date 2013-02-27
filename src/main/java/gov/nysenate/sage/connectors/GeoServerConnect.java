@@ -41,7 +41,7 @@ public class GeoServerConnect {
    * applicable information, returns result from GeoServer
    */
   public GeoResult fromGeoserver(WFS_ wfs, Point p) throws IOException {
-    String json = flatten(wfs.construct(p.getLatitude(), p.getLongitude()));
+    String json = flatten(wfs.construct(p.getLat(), p.getLon()));
 
     return handleGeoserverJson(json);
   }
@@ -116,8 +116,8 @@ public class GeoServerConnect {
                                   throws SQLException, Exception {
     HashSet<String> districts = new HashSet<String>();
     WFS_REQUEST req = new WFS_REQUEST(districtType);
-    double lat = p.getLatitude();
-    double lon = p.getLongitude();
+    double lat = p.getLat();
+    double lon = p.getLon();
 
     GeoResult gr2 = handleGeoserverJson(flatten(req.constructCross(lat, lon, true, distance)));
     districts.addAll(getDistrictsFromGeoResult(key, districtType, gr2));

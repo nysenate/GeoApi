@@ -10,7 +10,6 @@ import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.connectors.DistrictServices;
-import gov.nysenate.sage.connectors.GeoCode;
 import gov.nysenate.sage.connectors.DistrictServices.DistrictType;
 import gov.nysenate.sage.model.ApiExecution;
 
@@ -46,7 +45,7 @@ public class PolySearchMethod extends ApiExecution {
 			}
 		}
 		else if(type.equals("extended")) {
-			try {
+			/*try {
 				ret = DistrictServices.getPolyFromAddress(GeoCode.getExtendedAddress(
 						request.getParameter("addr2"), 
 						request.getParameter("city"), 
@@ -56,7 +55,7 @@ public class PolySearchMethod extends ApiExecution {
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new ApiInternalException();
-			}
+			} */
 		}
 		else {
 			throw new ApiTypeException(type);
