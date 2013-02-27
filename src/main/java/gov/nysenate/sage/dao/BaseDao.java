@@ -48,4 +48,25 @@ public class BaseDao
         return null;
     }
 
+    /**
+     * Some geocoder queries don't know when to call it quits. Call this method before a query
+     * to set the given timeout. If the query does time out a SQLException will be thrown.
+     * @param timeOutInMs
+     * @return
+     */
+    protected void setTimeOut(Connection conn, QueryRunner run, int timeOutInMs) throws SQLException
+    {
+        String setTimeout = "SET statement_timeout TO " + timeOutInMs + ";";
+        run.update(conn, setTimeout);
+    }
+
+    /**
+     * It's a good idea to reset the timeout after the query is done.
+     * @return
+     */
+    protected void resetTimeOut(Connection conn, QueryRunner run) throws SQLException
+    {
+        String setTimeout = "RESET statement_timeout;";
+        run.update(conn, setTimeout);
+    }
 }

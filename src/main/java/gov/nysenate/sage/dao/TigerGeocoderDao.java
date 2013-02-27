@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.BeanProcessor;
 import org.apache.commons.dbutils.QueryRunner;
@@ -20,21 +21,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.dbutils.DbUtils.close;
+
+/**
+ * Provides a query interface to the TigerGeocoder database. For documentation on the geocoder
+ * and it's available commands, refer to the following documentation (link subject to change):
+ *
+ * http://postgis.net/docs/Extras.html
+ */
 public class TigerGeocoderDao extends BaseDao
 {
     private static Logger logger = Logger.getLogger(TigerGeocoderDao.class);
     private QueryRunner run = getTigerQueryRunner();
+    private int GEOCODER_TIMEOUT = 3000;
 
-    private GeocodedStreetAddress getGeocodedStreetAddress(Connection conn, Address address)
+    public GeocodedStreetAddress getGeocodedStreetAddress(Connection conn, Address address)
     {
         String sql = "SELECT g.rating, ST_Y(geomout) As lat, ST_X(geomout) As lon, (addy).* \n" +
                      "FROM geocode(?, 1) AS g;";
         try {
-            GeocodedStreetAddress geocodedStreetAddress = run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
-            return geocodedStreetAddress;
+            setTimeOut(conn, run, GEOCODER_TIMEOUT);
+            return run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
         }
         catch (SQLException ex){
-            logger.error(ex.getMessage());
+            logger.warn(ex.getMessage());
         }
         return null;
     }
@@ -44,16 +54,12 @@ public class TigerGeocoderDao extends BaseDao
         return getGeocodedStreetAddress(this.getTigerConnection(), address);
     }
 
-    public List<GeocodedStreetAddress> getGeocodedStreetAddresses(List<Address> addresses)
-    {
-        Connection conn = getTigerConnection();
-        List<GeocodedStreetAddress> geocodedStreetAddresses = new ArrayList<>();
-        for (Address address : addresses){
-            geocodedStreetAddresses.add(getGeocodedStreetAddress(conn, address));
-        }
-        return geocodedStreetAddresses;
-    }
-
+    /**
+     * This method may be used to parse an Address into it's street address components using
+     * Tiger Geocoder's built in address parser.
+     * @param address   Address to parse
+     * @return          Street Address containing the parsed components
+     */
     public StreetAddress getStreetAddress(Address address)
     {
         String sql = "SELECT * FROM normalize_address(?)";
@@ -63,6 +69,29 @@ public class TigerGeocoderDao extends BaseDao
         }
         catch (SQLException ex){
             logger.error(ex.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Reverse geocodes a point and returns a StreetAddress that is close to that point. The
+     * reverse geocoder actually returns an intersection but to keep the model simple the first
+     * street address is returned.
+     * @param point Point to reverse geocode
+     * @return      StreetAddress or null if no matches
+     */
+    public StreetAddress getStreetAddress(Point point)
+    {
+        String sql = "SELECT (addy[1]).* " +
+                     "FROM reverse_geocode(ST_GeomFromText('POINT(" + point.getLon() + " " + point.getLat() + ")',4269),true) As r;";
+        try {
+            if (point != null){
+                StreetAddress streetAddress = run.query(sql, new StreetAddressHandler());
+                return streetAddress;
+            }
+        }
+        catch (SQLException ex){
+            logger.warn(ex.getMessage());
         }
         return null;
     }
@@ -90,7 +119,7 @@ public class TigerGeocoderDao extends BaseDao
         private static BeanProcessor rowProcessor;
         static
         {
-            saColumns.put("address", "streetNum");
+            saColumns.put("address", "bldgNum");
             saColumns.put("predirabbrev", "preDir");
             saColumns.put("streetname", "street");
             saColumns.put("streettypeabbrev", "streetType");
@@ -106,17 +135,6 @@ public class TigerGeocoderDao extends BaseDao
         public StreetAddress handle(ResultSet rs) throws SQLException
         {
             return new BeanHandler<>(StreetAddress.class, new BasicRowProcessor(rowProcessor)).handle(rs);
-        }
-    }
-
-    private void setQueryTimeOut(int timeOut)
-    {
-        String sql = "set statement_timeout ?";
-        try {
-            run.update(sql, timeOut);
-        }
-        catch (SQLException ex){
-            logger.error("Failed to set timeout! " + ex.getMessage());
         }
     }
 }
