@@ -2,8 +2,6 @@ package gov.nysenate.sage.factory;
 
 import gov.nysenate.sage.provider.Geoserver;
 import gov.nysenate.sage.provider.MapQuest;
-import gov.nysenate.sage.adapter.StreetData;
-import gov.nysenate.sage.adapter.YahooBoss;
 import gov.nysenate.sage.provider.USPS;
 import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.provider.Yahoo;
@@ -53,12 +51,12 @@ public class ApplicationFactory
     private static String defaultTestPropertyFileName = "test.app.properties";
 
     /**
-     * Public access call to buildProduction()
+     * Public access call to build()
      * @return boolean - If true then build succeeded
      */
     public static boolean buildInstances()
     {
-        return factoryInstance.buildProduction();
+        return factoryInstance.build(defaultPropertyFileName);
     }
 
     /**
@@ -67,32 +65,30 @@ public class ApplicationFactory
      */
     public static boolean buildTestInstances()
     {
-        return factoryInstance.buildTesting();
+        return factoryInstance.build(defaultTestPropertyFileName);
     }
 
     /**
-     * The buildProduction() method will construct all the objects and their necessary dependencies that are
+     * The build() method will construct all the objects and their necessary dependencies that are
      * needed in the application scope..
      *
      * @return boolean  If true then build succeeded
      */
-    private boolean buildProduction()
+    private boolean build(String propertyFileName)
     {
         try
         {
             /** Setup application config */
             this.configurationListener = new SageConfigurationListener();
-            this.config = new Config(defaultPropertyFileName, this.configurationListener);
+            this.config = new Config(propertyFileName, this.configurationListener);
             this.baseDB = new DB(this.config, "db");
             this.tigerDB = new DB(this.config, "tiger.db");
 
             /** Setup service providers */
             addressServiceProviders.registerDefaultProvider("usps", new USPS());
             addressServiceProviders.registerProvider("mapquest", new MapQuest());
-
             geocodeServiceProviders.registerDefaultProvider("mapquest", new MapQuest());
             geocodeServiceProviders.registerProvider("yahoo", new Yahoo());
-
             districtServiceProviders.registerDefaultProvider("geoserver", new Geoserver());
 
             return true;
@@ -100,38 +96,6 @@ public class ApplicationFactory
         catch (ConfigurationException ce)
         {
             logger.fatal("Failed to load configuration file " + defaultPropertyFileName);
-            logger.fatal(ce.getMessage());
-        }
-        catch (Exception ex)
-        {
-            logger.fatal("An exception occurred while building dependencies");
-            logger.fatal(ex.getMessage());
-        }
-        return false;
-    }
-
-    /**
-     * Similar to buildProduction() except this method should be called at the start of unit tests.
-     * @return boolean  If true then build succeeded
-     */
-    private boolean buildTesting()
-    {
-        try
-        {
-            /** Setup test application config */
-            this.configurationListener = new SageConfigurationListener();
-            this.config = new Config(defaultTestPropertyFileName, this.configurationListener);
-            this.baseDB = new DB(this.config, "db");
-            this.tigerDB = new DB(this.config, "tiger.db");
-
-            /** Setup service providers */
-
-
-            return true;
-        }
-        catch (ConfigurationException ce)
-        {
-            logger.fatal("Failed to load configuration file " + defaultTestPropertyFileName);
             logger.fatal(ce.getMessage());
         }
         catch (Exception ex)
@@ -175,5 +139,4 @@ public class ApplicationFactory
     {
         return factoryInstance.geocodeServiceProviders;
     }
-
 }
