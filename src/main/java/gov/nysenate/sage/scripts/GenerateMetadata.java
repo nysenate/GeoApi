@@ -1,7 +1,9 @@
 package gov.nysenate.sage.scripts;
 
+import gov.nysenate.sage.dao.AssemblyDao;
 import gov.nysenate.sage.dao.SenateDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.util.*;
 import gov.nysenate.services.MemoryCachedNYSenateClient;
 import gov.nysenate.services.model.Senator;
@@ -11,11 +13,9 @@ import org.apache.xmlrpc.XmlRpcException;
 import java.io.File;
 import java.util.List;
 
-
 /**
- * @author Ken Zalewski
+ * @author Ken Zalewski, Ash Islam
  */
-
 public class GenerateMetadata
 {
     private static final int MAX_DISTRICTS = 63;
@@ -74,8 +74,7 @@ public class GenerateMetadata
             }
         }
         if (processAssembly) {
-            System.out.println("Indexing NY Assembly by scraping its website...");
-            new AssemblyScraper().index();
+            generateMetadata.generateAssemblyData();
         }
 
         if (processCongress) {
@@ -84,16 +83,29 @@ public class GenerateMetadata
         }
 
         if (processSenate) {
-            System.out.println("Generating senate data from NY Senate client services");
-            generateMetadata.generateSenateData();;
+            generateMetadata.generateSenateData();
         }
 
         if (generateMaps) {
-            File writeDir = new File(Config.read("district_maps.dir"));
-            System.out.println("Generating map data for all NYSenate districts; output will be in "+writeDir.getCanonicalPath());
+            File writeDir = new File(generateMetadata.config.getValue("district_maps.dir"));
+            System.out.println("Generating map data for all NYSenate districts; output will be in " + writeDir.getCanonicalPath());
             generateDistrictMapData(writeDir);
         }
+    }
 
+    private void generateAssemblyData()
+    {
+        System.out.println("Indexing NY Assembly by scraping its website...");
+        AssemblyDao assemblyDao = new AssemblyDao();
+
+        /** Purge the existing assembly members */
+        assemblyDao.deleteAssemblies();
+
+        /** Retrieve the assemblies and insert into the database */
+        List<Assembly> assemblies = new AssemblyScraper().getAssemblies();
+        for (Assembly assembly : assemblies) {
+            assemblyDao.insertAssembly(assembly);
+        }
     }
 
     private void generateSenateData() throws XmlRpcException
@@ -104,6 +116,9 @@ public class GenerateMetadata
         String key = config.getValue("nysenate.key");
         String domain = config.getValue("nysenate.domain");
 
+        System.out.println("Generating senate data from NY Senate client services");
+
+        /** Obtain the senate client service */
         senateClient = new MemoryCachedNYSenateClient(domain, key);
 
         /** Purge the existing tables */
@@ -122,7 +137,6 @@ public class GenerateMetadata
         }
     }
 
-
     private static void generateDistrictMapData(File outDir)
     {
         outDir.mkdirs();
@@ -133,6 +147,6 @@ public class GenerateMetadata
             districtMap.loadCoordinates();
             districtMap.writeCoordinatesAsJson(outFile);
         }
-    } // generateDistrictMapData()
+    }
 }
 
