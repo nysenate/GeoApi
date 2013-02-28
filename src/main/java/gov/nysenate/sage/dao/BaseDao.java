@@ -22,22 +22,22 @@ public class BaseDao
         this.tigerDataSource = ApplicationFactory.getTigerDataSource();
     }
 
-    public QueryRunner getQueryRunner()
+    protected QueryRunner getQueryRunner()
     {
         return new QueryRunner(this.dataSource);
     }
 
-    public AsyncQueryRunner getAsyncQueryRunner(ExecutorService executorService)
+    protected AsyncQueryRunner getAsyncQueryRunner(ExecutorService executorService)
     {
         return new AsyncQueryRunner(executorService, this.getQueryRunner());
     }
 
-    public QueryRunner getTigerQueryRunner()
+    protected QueryRunner getTigerQueryRunner()
     {
         return new QueryRunner(this.tigerDataSource);
     }
 
-    public Connection getTigerConnection()
+    protected Connection getTigerConnection()
     {
         try {
             return this.tigerDataSource.getConnection();

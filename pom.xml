@@ -188,6 +188,15 @@
             <version>2.2.2</version>
         </dependency>
 
+        <!-- NY Senate Dependencies -->
+        <dependency>
+            <groupId>gov.nysenate.services</groupId>
+            <artifactId>nysenate-java-client</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- Testing Dependencies -->
         <dependency>
             <groupId>junit</groupId>
