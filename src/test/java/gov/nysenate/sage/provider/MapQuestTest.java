@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class MapQuestTest extends TestBase
 {
-    private Logger logger = Logger.getLogger(MapQuestTest.class);
+    private static Logger logger = Logger.getLogger(MapQuestTest.class);
     private MapQuest mapQuest;
 
     @Before
@@ -34,6 +34,12 @@ public class MapQuestTest extends TestBase
     public void MapQuestSingleReverseGeocode_ReturnsGeocodeResult() throws Exception
     {
         assertSingleReverseGeocode(mapQuest);
+    }
+
+    @Test
+    public void MapQuestGeocodeErrorCases_SetsResultStatus()
+    {
+        assertNoResultReturnsNoGeocodeResultStatus(mapQuest);
     }
 
     @Test

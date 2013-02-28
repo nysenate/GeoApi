@@ -12,6 +12,7 @@ import static gov.nysenate.sage.model.geo.GeocodeQuality.*;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.util.Config;
@@ -21,12 +22,15 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
 
+import gov.nysenate.sage.util.UrlRequest;
 import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
 import org.apache.log4j.Logger;
 
 /**
- * Comment this...
+ * MapQuest Geocoding provider implementation*
+ * Documentation: http://www.mapquestapi.com/geocoding/
+ *
  * @author Graylin Kim, Ash Islam
  */
 public class MapQuest implements AddressService, GeocodeService, Observer
@@ -90,14 +94,12 @@ public class MapQuest implements AddressService, GeocodeService, Observer
         /** Show only one result per location | Use JSON output | Don't bother with the map thumbnail images */
         this.geoBaseUrl = baseUrl+"?key="+apiKey+"&outFormat=json&thumbMaps=false&maxResults=1";
         this.revBaseUrl = revBaseUrl+"?key="+apiKey+"&outFormat=json&thumbMaps=false&maxResults=1";
-
-        return;
     }
 
     /**
-     *
-     * @param address
-     * @return
+     * Geocodes a single address
+     * @param address Address to geocode
+     * @return        GeocodeResult or null on fatal error
      */
     @Override
     public GeocodeResult geocode(Address address)
@@ -110,9 +112,10 @@ public class MapQuest implements AddressService, GeocodeService, Observer
     }
 
     /**
-     *
-     * @param addresses
-     * @return
+     * Geocodes multiple addresses in a batch. Mapquest provides a native batch
+     * geocoding api so this is used for all requests.
+     * @param addresses List of Addresses to geocode
+     * @return          List of GeocodeResults
      */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
@@ -135,8 +138,7 @@ public class MapQuest implements AddressService, GeocodeService, Observer
                 /** Stop here unless we've filled this batch request */
                 if (a % BATCH_SIZE != 0 && a != addresses.size()) continue;
 
-                Content content = Request.Get(url).execute().returnContent();
-                String json = content.asString();
+                String json = UrlRequest.getResponseFromUrl(url);
                 logger.debug(json);
 
                 JsonNode jsonNode = mapper.readTree(json);
@@ -146,7 +148,7 @@ public class MapQuest implements AddressService, GeocodeService, Observer
 
                 if (status != "0"){
                     logger.debug("MapQuest statuscode: " + status);
-                    logger.debug("MapQuest messages " + jsonNode.get("info").get("messages"));
+                    logger.error("MapQuest messages " + jsonNode.get("info").get("messages"));
                     return null;
                 }
 
@@ -154,8 +156,10 @@ public class MapQuest implements AddressService, GeocodeService, Observer
                 JsonNode jsonResults = jsonNode.get("results");
                 int numResults = jsonResults.size();
 
-                for (int i = 0; i < numResults; i++){
-                    GeocodedAddress geocodedAddress = new GeocodedAddress();
+                for (int i = 0; i < numResults; i++) {
+
+                    GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
+                    GeocodedAddress geocodedAddress;
                     JsonNode location = jsonResults.get(i).get("locations").get(0);
 
                     /** Build the address */
@@ -169,13 +173,21 @@ public class MapQuest implements AddressService, GeocodeService, Observer
                         geocode.setLatlon(latLon.get("lat").asDouble(), latLon.get("lng").asDouble());
                         geocode.setMethod(this.getClass().getSimpleName());
                         String qualityCode = location.get("geocodeQuality").asText();
-                        geocode.setQuality((qualityMap.containsKey(qualityCode)) ? qualityMap.get(qualityCode) : GeocodeQuality.UNKNOWN);
+                        GeocodeQuality geocodeQuality = (qualityMap.containsKey(qualityCode)) ? qualityMap.get(qualityCode) : GeocodeQuality.UNKNOWN;
+                        geocode.setQuality(geocodeQuality);
+
+                        /** Check the quality, if it's below zip then it's not considered a match */
+                        if (geocodeQuality.compareTo(GeocodeQuality.ZIP) < 0){
+                            geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
+                        }
+                    }
+                    else {
+                        geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
                     }
 
                     /** Build the response */
-                    geocodedAddress.setAddress(addr);
-                    geocodedAddress.setGeocode(geocode);
-                    GeocodeResult geocodeResult = new GeocodeResult(geocodedAddress, status, this.getClass());
+                    geocodedAddress = new GeocodedAddress(addr,geocode);
+                    geocodeResult.setGeocodedAddress(geocodedAddress);
                     geocodeResults.add(geocodeResult);
                 }
             }
@@ -199,40 +211,40 @@ public class MapQuest implements AddressService, GeocodeService, Observer
     @Override
     public GeocodeResult reverseGeocode(Point point)
     {
-        if (point != null){
+        if (point != null) {
+
+            GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
+
             /** Perform boxing */
-            Double lat = point.getLatitude();
-            Double lon = point.getLongitude();
+            Double lat = point.getLat();
+            Double lon = point.getLon();
 
             String url = revBaseUrl + "&lat=" + lat.toString() + "&lng=" + lon.toString();
             logger.debug(url);
 
             try {
-                Content content = Request.Get(url).execute().returnContent();
-                String json = content.asString();
+                String json = UrlRequest.getResponseFromUrl(url);
 
                 logger.debug(json);
 
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode jsonNode = mapper.readTree(json);
 
-                /** Get the status and kill the method if the status indicates a problem */
+                /** Get the status and indicate if there's an error */
                 String status = jsonNode.get("info").get("statuscode").asText();
                 if (status != "0"){
-                    logger.error("MapQuest statuscode: " + status);
-                    logger.error("MapQuest messages " + jsonNode.get("info").get("messages"));
-                    return null;
+                    logger.error("MapQuest Error: " + jsonNode.get("info").get("messages"));
+                    geocodeResult.setStatusCode(ResultStatus.NO_REVERSE_GEOCODE_RESULT);
+                    geocodeResult.addMessage("MapQuest status code: " + status);
                 }
 
                 JsonNode jsonResults = jsonNode.get("results");
                 if (jsonResults.size() > 0){
 
                     JsonNode location = jsonResults.get(0).get("locations").get(0);
-                    GeocodedAddress geocodedAddress = new GeocodedAddress();
 
                     /** Build the address */
                     Address address = getAddressFromJson(location);
-                    geocodedAddress.setAddress(address);
 
                     /** Build the geocode, in this case it's just the supplied point */
                     Geocode geocode = new Geocode();
@@ -240,10 +252,8 @@ public class MapQuest implements AddressService, GeocodeService, Observer
                     String qualityCode = location.get("geocodeQuality").asText();
                     geocode.setQuality((qualityMap.containsKey(qualityCode)) ? qualityMap.get(qualityCode) : GeocodeQuality.UNKNOWN);
 
-                    geocodedAddress.setAddress(address);
-                    geocodedAddress.setGeocode(geocode);
-
-                    return new GeocodeResult(geocodedAddress, "0", this.getClass());
+                    geocodeResult.setGeocodedAddress(new GeocodedAddress(address, geocode));
+                    return geocodeResult;
                 }
             }
             catch(IOException ex){
@@ -272,16 +282,24 @@ public class MapQuest implements AddressService, GeocodeService, Observer
         ArrayList<AddressResult> addressResults = new ArrayList<>();
 
         if (geocodeResults != null){
-            for (GeocodeResult geocodeResult : geocodeResults){
+            for (GeocodeResult geocodeResult : geocodeResults) {
 
+                AddressResult addressResult = new AddressResult(this.getClass());
                 GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
 
                 /** If the quality is less than zip, it isn't really validated */
-                boolean isValidated = true;
-                if (geocodedAddress.getGeocode().getQuality().compareTo(ZIP) < 0 ){
-                    isValidated = false;
+                boolean isValidated = false;
+                if (geocodedAddress.getGeocode() != null){
+                    if (geocodedAddress.getGeocode().getQuality().compareTo(ZIP) >= 0 ){
+                        isValidated = true;
+                    }
                 }
-                addressResults.add(new AddressResult(geocodedAddress.getAddress(), "0", this.getClass(), isValidated));
+
+                addressResult.setAddress(geocodedAddress.getAddress());
+                addressResult.setValidated(isValidated);
+
+                /** Append to address result list */
+                addressResults.add(addressResult);
             }
             return addressResults;
         }
@@ -316,6 +334,11 @@ public class MapQuest implements AddressService, GeocodeService, Observer
         return validate(addresses);
     }
 
+    /**
+     * Create an address object by parsing the locations element of the json response.
+     * @param location  A location node within the locations array the mapquest returns.
+     * @return          Address
+     */
     private Address getAddressFromJson(JsonNode location)
     {
         Address address = new Address();
