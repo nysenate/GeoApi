@@ -50,7 +50,4 @@ public class AssemblyDaoTest extends TestBase
         Assembly assembly = assemblyDao.getAssemblyByDistrict(0);
         assertNull(assembly);
     }
-
-
-
 }
