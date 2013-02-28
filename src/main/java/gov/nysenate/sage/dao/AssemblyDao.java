@@ -64,7 +64,7 @@ public class AssemblyDao extends BaseDao
             run.update(sql);
         }
         catch (SQLException ex) {
-            logger.error("Failed to delete senators " + ex.getMessage());
+            logger.error("Failed to delete assemblies " + ex.getMessage());
         }
     }
 }

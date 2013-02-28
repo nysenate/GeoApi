@@ -23,7 +23,7 @@ public class CongressionalDao extends BaseDao
             return congressionals;
         }
         catch (SQLException ex){
-            logger.error("Failed to retrieve assemblies", ex);
+            logger.error("Failed to retrieve congressionals", ex);
         }
         return null;
     }
@@ -55,7 +55,7 @@ public class CongressionalDao extends BaseDao
     }
 
     /**
-     * Clears the assembly table.
+     * Clears the congressional table.
      */
     public void deleteCongressionals()
     {
