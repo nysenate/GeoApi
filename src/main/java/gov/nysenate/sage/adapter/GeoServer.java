@@ -209,18 +209,20 @@ public class GeoServer implements DistAssignInterface, Observer
       futureResults.add(executor.submit(new ParallelRequest(this, address, types)));
     }
 
-    for (Future<Result> result : futureResults) {
-      try {
+    try {
+      for (Future<Result> result : futureResults) {
         results.add(result.get());
       }
-      catch (InterruptedException e) {
-        throw new DistException(e);
-      }
-      catch (ExecutionException e) {
-        throw new DistException(e.getCause());
-      }
     }
-    executor.shutdown();
+    catch (InterruptedException e) {
+      throw new DistException(e);
+    }
+    catch (ExecutionException e) {
+      throw new DistException(e.getCause());
+    }
+    finally {
+      executor.shutdownNow();
+    }
     return results;
   } // assignDistricts()
 
