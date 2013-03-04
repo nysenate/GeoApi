@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.BulkProcessing;
+package gov.nysenate.sage.model.job;
 
 import gov.nysenate.sage.deprecated.annotations.*;
 import gov.nysenate.sage.util.Connect;

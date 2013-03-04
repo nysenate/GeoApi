@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.BulkProcessing;
+package gov.nysenate.sage.model.job;
 
 public class BlueBirdTsv implements BulkInterface {
 	String id;

@@ -1,11 +1,17 @@
 package gov.nysenate.sage.model.district;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
  * DistrictInfo is used to represent the various district names
  * and codes at a particular location.
  */
 public class DistrictInfo
 {
+    /** A set of the DistrictType's that were actually district assigned */
+    protected Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
+
     /** District Names */
     protected String congressionalName = "";
     protected String senateName = "";
@@ -18,13 +24,24 @@ public class DistrictInfo
 
     /** District Codes */
     protected int congressionalCode = 0;
-    protected int countyCode = 0;
     protected int senateCode = 0;
     protected int assemblyCode = 0;
-    protected int electionCode = 0;
+    protected int countyCode = 0;
     protected String townCode = "";
-    protected int wardCode = 0;
     protected String schoolCode = "";
+    protected int wardCode = 0;
+    protected int electionCode = 0;
+
+    /** District Maps */
+    protected DistrictMap congressionalMap;
+    protected DistrictMap senateMap;
+    protected DistrictMap assemblyMap;
+    protected DistrictMap countyMap;
+    protected DistrictMap townMap;
+    protected DistrictMap schoolMap;
+    protected DistrictMap electionMap;
+
+    /** Additional District Codes */
     protected int clegCode = 0;
     protected String cityCode = "";
     protected String fireCode = "";
@@ -41,6 +58,14 @@ public class DistrictInfo
         this.setAssemblyCode(assemblyCode);
         this.setTownCode(townCode);
         this.setSchoolCode(schoolCode);
+    }
+
+    public Set<DistrictType> getAssignedDistricts() {
+        return assignedDistricts;
+    }
+
+    protected void addAssignedDistrict(DistrictType assignedDistrict) {
+        this.assignedDistricts.add(assignedDistrict);
     }
 
     public String getCongressionalName() {
@@ -112,7 +137,10 @@ public class DistrictInfo
     }
 
     public void setCongressionalCode(int congressionalCode) {
-        this.congressionalCode = congressionalCode;
+        if (congressionalCode > 0){
+            this.congressionalCode = congressionalCode;
+            this.addAssignedDistrict(DistrictType.CONGRESSIONAL);
+        }
     }
 
     public int getCountyCode() {
@@ -120,7 +148,10 @@ public class DistrictInfo
     }
 
     public void setCountyCode(int countyCode) {
-        this.countyCode = countyCode;
+        if (countyCode > 0){
+            this.countyCode = countyCode;
+            this.addAssignedDistrict(DistrictType.COUNTY);
+        }
     }
 
     public int getSenateCode() {
@@ -128,7 +159,10 @@ public class DistrictInfo
     }
 
     public void setSenateCode(int senateCode) {
-        this.senateCode = senateCode;
+        if (senateCode > 0){
+            this.senateCode = senateCode;
+            this.addAssignedDistrict(DistrictType.SENATE);
+        }
     }
 
     public int getAssemblyCode() {
@@ -136,7 +170,10 @@ public class DistrictInfo
     }
 
     public void setAssemblyCode(int assemblyCode) {
-        this.assemblyCode = assemblyCode;
+        if (assemblyCode > 0) {
+            this.assemblyCode = assemblyCode;
+            this.addAssignedDistrict(DistrictType.ASSEMBLY);
+        }
     }
 
     public int getElectionCode() {
@@ -144,7 +181,10 @@ public class DistrictInfo
     }
 
     public void setElectionCode(int electionCode) {
-        this.electionCode = electionCode;
+        if (electionCode > 0){
+            this.electionCode = electionCode;
+            this.addAssignedDistrict(DistrictType.ELECTION);
+        }
     }
 
     public String getTownCode() {
@@ -152,7 +192,10 @@ public class DistrictInfo
     }
 
     public void setTownCode(String townCode) {
-        this.townCode = townCode;
+        if (townCode != null && !townCode.isEmpty()){
+            this.townCode = townCode;
+            this.addAssignedDistrict(DistrictType.TOWN);
+        }
     }
 
     public int getWardCode() {
@@ -168,7 +211,10 @@ public class DistrictInfo
     }
 
     public void setSchoolCode(String schoolCode) {
-        this.schoolCode = schoolCode;
+        if (schoolCode != null && !schoolCode.isEmpty()){
+            this.schoolCode = schoolCode;
+            this.addAssignedDistrict(DistrictType.SCHOOL);
+        }
     }
 
     public int getClegCode() {
@@ -201,5 +247,61 @@ public class DistrictInfo
 
     public void setVillCode(String villCode) {
         this.villCode = villCode;
+    }
+
+    public DistrictMap getCongressionalMap() {
+        return congressionalMap;
+    }
+
+    public void setCongressionalMap(DistrictMap congressionalMap) {
+        this.congressionalMap = congressionalMap;
+    }
+
+    public DistrictMap getSenateMap() {
+        return senateMap;
+    }
+
+    public void setSenateMap(DistrictMap senateMap) {
+        this.senateMap = senateMap;
+    }
+
+    public DistrictMap getAssemblyMap() {
+        return assemblyMap;
+    }
+
+    public void setAssemblyMap(DistrictMap assemblyMap) {
+        this.assemblyMap = assemblyMap;
+    }
+
+    public DistrictMap getCountyMap() {
+        return countyMap;
+    }
+
+    public void setCountyMap(DistrictMap countyMap) {
+        this.countyMap = countyMap;
+    }
+
+    public DistrictMap getTownMap() {
+        return townMap;
+    }
+
+    public void setTownMap(DistrictMap townMap) {
+        this.townMap = townMap;
+    }
+
+    public DistrictMap getSchoolMap() {
+        return schoolMap;
+    }
+
+    public void setSchoolMap(DistrictMap schoolMap) {
+        this.schoolMap = schoolMap;
+    }
+
+    public DistrictMap getElectionMap() {
+        return electionMap;
+    }
+
+    public void setElectionMap(DistrictMap electionMap) {
+        this.electionMap = electionMap;
     }
 }
