@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public abstract class BaseResult
 {
     protected ArrayList<String> messages = new ArrayList<>();
-    protected ResultStatus statusCode = ResultStatus.NO_ERROR;
+    protected ResultStatus statusCode = ResultStatus.SUCCESS;
     protected String status = "";
     protected String source = "";
 

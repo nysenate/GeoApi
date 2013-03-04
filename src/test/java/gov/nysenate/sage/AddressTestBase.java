@@ -106,7 +106,7 @@ public abstract class AddressTestBase
         assertCityStateEquals(expected, addressResults.get(5).getAddress());
     }
 
-    public static void assertAddressEquals(gov.nysenate.sage.model.address.Address expected, gov.nysenate.sage.model.address.Address actual)
+    public static void assertAddressEquals(Address expected, Address actual)
     {
         assertEquals(expected.getAddr1().toUpperCase(), actual.getAddr1().toUpperCase());
         assertEquals(expected.getAddr2().toUpperCase(), actual.getAddr2().toUpperCase());
@@ -116,7 +116,7 @@ public abstract class AddressTestBase
         assertEquals(expected.getZip4().toUpperCase(), actual.getZip4().toUpperCase());
     }
 
-    public static void assertCityStateEquals(gov.nysenate.sage.model.address.Address expected, Address actual)
+    public static void assertCityStateEquals(Address expected, Address actual)
     {
         assertEquals(expected.getCity().toUpperCase(), actual.getCity().toUpperCase());
         assertEquals(expected.getState().toUpperCase(), actual.getState().toUpperCase());

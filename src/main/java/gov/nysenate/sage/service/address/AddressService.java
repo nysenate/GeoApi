@@ -2,7 +2,6 @@ package gov.nysenate.sage.service.address;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
-import gov.nysenate.sage.service.Service;
 
 import java.util.ArrayList;
 

@@ -1,22 +1,21 @@
 package gov.nysenate.sage.model.geo;
 
 /**
- * GeocodeQuality is a simplified measure of the accuracy of the
- * geocoding result provided by a service.
+ * GeocodeQuality is a simplified accuracy measure of the geocoding result.
  */
 public enum GeocodeQuality
 {
     NOMATCH(0), UNKNOWN(1), STATE(10), COUNTY(30), CITY(40), ZIP(64), STREET(72), ZIP_EXT(75), HOUSE(87), POINT(99);
 
-    private int quality;
+    private int value;
 
-    GeocodeQuality(int quality)
+    GeocodeQuality(int value)
     {
-        this.quality = quality;
+        this.value = value;
     }
 
-    public int getQuality()
+    public int getValue()
     {
-        return this.quality;
+        return this.value;
     }
 }

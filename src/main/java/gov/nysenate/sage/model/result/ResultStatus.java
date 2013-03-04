@@ -2,7 +2,7 @@ package gov.nysenate.sage.model.result;
 
 public enum ResultStatus
 {
-    NO_ERROR(0, "Success"),
+    SUCCESS(0, "Success"),
 
     SERVICE_NOT_SUPPORTED(1, "The requested service is unsupported"),
     PROVIDER_NOT_SUPPORTED(2, "The requested provider is unsupported"),
@@ -35,7 +35,10 @@ public enum ResultStatus
 
     NO_DISTRICT_RESULT(400, "District assignment returned no results"),
     MULTIPLE_DISTRICT_RESULT(401, "Multiple matches were found for certain districts"),
+    NO_GEOCODE_RESULT(410, "Geocode service returned no results"),
+    NO_REVERSE_GEOCODE_RESULT(411, "Reverse Geocode service returned no results"),
 
+    /** Unexpected errors */
     INTERNAL_ERROR(500, "Internal Server Error");
 
     private int code;

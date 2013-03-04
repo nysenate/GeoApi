@@ -333,7 +333,7 @@ public class USPS implements AddressService, Observer
         if (baseUrl.isEmpty()) {
             baseUrl = DEFAULT_BASE_URL;
         }
-    } // configure()
+    }
 
 
     /** The USPS API expects Address2 to contain the street address. For the request Address1 is set to
@@ -354,5 +354,5 @@ public class USPS implements AddressService, Observer
                            + "</Address>",
                            id, "", (addr.getAddr1() + " " + addr.getAddr2()).trim(), addr.getCity(),
                            addr.getState(), addr.getZip5(), addr.getZip4());
-    } // addressToXml()
+    }
 }

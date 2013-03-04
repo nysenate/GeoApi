@@ -1,6 +1,7 @@
 package gov.nysenate.sage.dao;
 
 import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.dao.model.ApiUserDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.auth.ApiUser;
 import static org.junit.Assert.*;

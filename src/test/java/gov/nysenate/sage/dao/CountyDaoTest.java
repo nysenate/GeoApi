@@ -1,6 +1,7 @@
 package gov.nysenate.sage.dao;
 
 import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.dao.model.CountyDao;
 import gov.nysenate.sage.model.district.County;
 import org.junit.Before;
 import org.junit.Test;

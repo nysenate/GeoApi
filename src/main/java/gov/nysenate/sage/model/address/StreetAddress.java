@@ -53,6 +53,16 @@ public class StreetAddress
         return new Address(addr1.trim(), addr2.trim(), city.trim(), state.trim(), zip5.trim(), null);
     }
 
+    public boolean isEmpty()
+    {
+        return (this.street == null || this.street.isEmpty());
+    }
+
+    public String toString()
+    {
+        return this.toAddress().toString();
+    }
+
     /** Getters / Setters */
 
     public int getBldgNum() {

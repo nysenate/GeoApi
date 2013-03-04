@@ -67,18 +67,12 @@ public class GeoService
 
   public GeoService() throws Exception
   {
-    Yahoo yahoo = new Yahoo();
     YahooBoss yahooBoss = new YahooBoss();
-    MapQuest mapquest = new MapQuest();
     RubyGeocoder ruby = new RubyGeocoder();
-    OSM osm = new OSM();
 
-    //geoAdapters.put("yahoo", yahoo);
     geoAdapters.put("yahooboss", yahooBoss);
-    //geoAdapters.put("mapquest", mapquest);
     geoAdapters.put("geocoder", ruby);
     geoAdapters.put("rubygeocoder", ruby);
-    geoAdapters.put("osm", osm);
   } // GeoService()
 
 

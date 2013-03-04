@@ -1,5 +1,6 @@
-package gov.nysenate.sage.dao;
+package gov.nysenate.sage.dao.model;
 
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.district.Congressional;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.BeanHandler;

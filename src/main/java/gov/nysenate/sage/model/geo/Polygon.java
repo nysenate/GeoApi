@@ -1,29 +1,24 @@
 package gov.nysenate.sage.model.geo;
 
-import gov.nysenate.sage.model.geo.Point;
-
 import java.lang.StringBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
+ * Simple polygon representation
  * @author Ken Zalewski
  */
-
 public class Polygon
 {
-    private List<Point> m_points;
-
+    private List<Point> points;
 
     /**
      * Construct an empty polygon object.
      */
     public Polygon()
     {
-        m_points = new ArrayList<Point>();
-    } // Polygon()
-
+        points = new ArrayList<Point>();
+    }
 
     /**
      * Construct a polygon object with the provided list of points.
@@ -32,9 +27,8 @@ public class Polygon
      */
     public Polygon(List<Point> points)
     {
-        m_points = points;
-    } // Polygon()
-
+        this.points = points;
+    }
 
     /**
      * Return the list of points that comprise this polygon.
@@ -43,9 +37,8 @@ public class Polygon
      */
     public List<Point> getPoints()
     {
-        return m_points;
-    } // getPoints()
-
+        return points;
+    }
 
     /**
      * Sets the polygon to the provided list of points.
@@ -54,9 +47,8 @@ public class Polygon
      */
     public void setPoints(List<Point> points)
     {
-        m_points = points;
-    } // setPoints()
-
+        this.points = points;
+    }
 
     /**
      * Append a Point to the end of the polygon.
@@ -65,8 +57,8 @@ public class Polygon
      */
     public void appendPoint(Point point)
     {
-        m_points.add(point);
-    } // appendPoint()
+        points.add(point);
+    }
 
 
     /**
@@ -74,9 +66,8 @@ public class Polygon
      */
     public void clearPoints()
     {
-        m_points.clear();
-    } // clearPoints()
-
+        points.clear();
+    }
 
     /**
      * Get the number of points that comprise this polygon.
@@ -85,9 +76,8 @@ public class Polygon
      */
     public int size()
     {
-        return m_points.size();
-    } // size()
-
+        return points.size();
+    }
 
     /**
      * Get the string representation of this polygon.  The string representation
@@ -99,13 +89,12 @@ public class Polygon
     public String toString()
     {
         StringBuilder s = new StringBuilder();
-        for (Point p : m_points) {
+        for (Point p : points) {
             s.append(p.toString());
             s.append("\n");
         }
         return s.toString();
-    } // toString()
-
+    }
 
     /**
      * Get the JSON representation of this polygon.  The JSON representation
@@ -118,7 +107,7 @@ public class Polygon
     {
         StringBuilder s = new StringBuilder("[");
         boolean gotFirst = false;
-        for (Point p : m_points) {
+        for (Point p : points) {
             if (gotFirst) {
                 s.append(",");
             }
@@ -129,5 +118,5 @@ public class Polygon
         }
         s.append("]");
         return s.toString();
-    } // toJson()
-} // Polygon
+    }
+}

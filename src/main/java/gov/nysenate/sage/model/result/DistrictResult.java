@@ -43,27 +43,17 @@ public class DistrictResult extends BaseResult
         return districtedAddress;
     }
 
+    /** Accessor method to the set of assigned districts stored in DistrictInfo */
+    public Set<DistrictType> getAssignedDistricts()
+    {
+        if (this.getDistrictInfo() != null){
+            return this.getDistrictInfo().getAssignedDistricts();
+        }
+        return null;
+    }
+
     public void setDistrictedAddress(DistrictedAddress districtedAddress)
     {
         this.districtedAddress = districtedAddress;
     }
-
-    public Set<DistrictType> getAssignedDistricts()
-    {
-        return this.assignedDistricts;
-    }
-
-    public void setAssignedDistricts(Set<DistrictType> assignedDistricts)
-    {
-        this.assignedDistricts = assignedDistricts;
-    }
-
-    public void addAssignedDistrict(DistrictType district)
-    {
-        this.assignedDistricts.add(district);
-    }
-
-
-
-
 }

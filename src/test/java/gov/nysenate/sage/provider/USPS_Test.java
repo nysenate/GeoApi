@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class USPS_Test extends TestBase
 {
-    private Logger logger = Logger.getLogger(USPS_Test.class);
+    private static Logger logger = Logger.getLogger(USPS_Test.class);
     private USPS usps;
 
     @Before

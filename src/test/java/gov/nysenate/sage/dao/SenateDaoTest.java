@@ -1,6 +1,7 @@
 package gov.nysenate.sage.dao;
 
 import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.services.model.Senator;
 import org.junit.Before;
 import org.junit.Test;

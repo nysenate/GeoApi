@@ -5,25 +5,36 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.util.FormatUtil;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import static gov.nysenate.sage.AddressTestBase.*;
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.TestCase.*;
 
 public abstract class GeocodeTestBase
 {
+    private static Logger logger = Logger.getLogger(GeocodeTestBase.class);
     /** Indicates how far apart two lat or lon values can be and yet considered similar. */
     private static double GEOCODE_EPSILON = 0.01;
 
     public static void assertSingleAddressGeocode(GeocodeService geocodeService)
     {
         Address address = new Address("44 Fairlawn Ave", "", "Albany", "NY", "12203", "");
-        Geocode expectedCode = new Geocode(new Point(42.671669, -73.798577), GeocodeQuality.POINT, "TEST");
+        Point latlon = new Point(42.671669, -73.798577);
+
+        assertSingleAddressGeocode(geocodeService, address, latlon);
+    }
+
+    public static void assertSingleAddressGeocode(GeocodeService geocodeService, Address address, Point latlon)
+    {
+        Geocode expectedCode = new Geocode(latlon, GeocodeQuality.POINT, "TEST");
         GeocodeResult geocodeResult = geocodeService.geocode(address);
 
         assertNotNull(geocodeResult);
@@ -37,6 +48,8 @@ public abstract class GeocodeTestBase
 
         /** Check that the latlon pairs are similar to the expected result */
         assertGeocodesAreSimilar(expectedCode, actualCode);
+
+        logger.debug(FormatUtil.toJsonString(geocodeResult));
     }
 
     public static void assertMultipleAddressGeocode(GeocodeService geocodeService)
@@ -58,6 +71,7 @@ public abstract class GeocodeTestBase
                 new Geocode(new Point(40.7056276, -73.3219653), null, null)));
 
         ArrayList<GeocodeResult> geocodeResults = geocodeService.geocode(addresses);
+        logger.debug(FormatUtil.toJsonString(geocodeResults));
 
         assertNotNull(geocodeResults);
         assertEquals(6, geocodeResults.size());
@@ -75,11 +89,33 @@ public abstract class GeocodeTestBase
         GeocodeResult geocodeResult = geocodeService.reverseGeocode(new Point(42.6716696, -73.7985770));
         assertNotNull(geocodeResult);
 
-        Address expected = new Address("44 Fairlawn", "", "Albany", "NY", "12203", "");
+        Address expected = new Address("44 Fairlawn Ave", "", "Albany", "NY", "12203", "");
         Address address = geocodeResult.getGeocodedAddress().getAddress();
         assertNotNull(address);
         assertCityStateEquals(expected, address);
         assertZipEquals(expected, address);
+    }
+
+    /** Test Error Cases */
+    public static void assertNoResultReturnsNoGeocodeResultStatus(GeocodeService geocodeService)
+    {
+        GeocodeResult geocodeResult = geocodeService.geocode(new Address("BLAH"));
+        FormatUtil.printObject(geocodeResult);
+        assertEquals(ResultStatus.NO_GEOCODE_RESULT, geocodeResult.getStatusCode());
+    }
+
+    public static void assertNullAddressReturnsMissingAddressStatus(GeocodeService geocodeService)
+    {
+        Address nullAddress = null;
+        GeocodeResult geocodeResult = geocodeService.geocode(nullAddress);
+        assertEquals(ResultStatus.MISSING_ADDRESS, geocodeResult.getStatusCode());
+    }
+
+    public static void assertEmptyAddressReturnsInsufficientAddressStatus(GeocodeService geocodeService)
+    {
+        Address emptyAddress = new Address();
+        GeocodeResult geocodeResult = geocodeService.geocode(emptyAddress);
+        assertEquals(ResultStatus.INSUFFICIENT_ADDRESS, geocodeResult.getStatusCode());
     }
 
     /** Test if geocodes are returning reasonable results but they do not necessarily have
@@ -89,7 +125,6 @@ public abstract class GeocodeTestBase
      */
     public static void assertGeocodesAreSimilar(Geocode expected, Geocode actual)
     {
-        FormatUtil.printObject(actual);
         assertTrue((expected.getLat() - actual.getLat()) < GEOCODE_EPSILON);
         assertTrue((expected.getLon() - actual.getLon()) < GEOCODE_EPSILON);
     }

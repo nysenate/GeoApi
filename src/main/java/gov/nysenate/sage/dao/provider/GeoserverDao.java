@@ -1,7 +1,9 @@
-package gov.nysenate.sage.dao;
+package gov.nysenate.sage.dao.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.dao.model.CountyDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;

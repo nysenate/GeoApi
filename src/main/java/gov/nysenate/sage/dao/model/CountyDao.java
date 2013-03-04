@@ -1,5 +1,6 @@
-package gov.nysenate.sage.dao;
+package gov.nysenate.sage.dao.model;
 
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.district.County;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -22,6 +23,8 @@ public class CountyDao extends BaseDao
     private ResultSetHandler<List<County>> listHandler = new BeanListHandler<>(County.class);
     private QueryRunner run = getQueryRunner();
 
+    private static Map<Integer, County> fipsCountyMap;
+
     public List<County> getCounties()
     {
         String sql = "SELECT id, name, fips_code AS fipsCode FROM county";
@@ -36,17 +39,16 @@ public class CountyDao extends BaseDao
 
     public Map<Integer, County> getFipsCountyMap()
     {
-        List<County> counties = this.getCounties();
-        if (counties != null) {
-            Map<Integer, County> fipsCountyMap = new HashMap<>();
-            for (County c : counties){
-                fipsCountyMap.put(c.getFipsCode(), c);
+        if (fipsCountyMap == null) {
+            List<County> counties = this.getCounties();
+            if (counties != null) {
+                fipsCountyMap = new HashMap<>();
+                for (County c : counties){
+                    fipsCountyMap.put(c.getFipsCode(), c);
+                }
             }
-            return fipsCountyMap;
         }
-
-        logger.error("Failed to get <fipsCode,County> map");
-        return null;
+        return fipsCountyMap;
     }
 
     public County getCountyById(int id)

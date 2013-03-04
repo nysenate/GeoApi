@@ -1,4 +1,4 @@
-package gov.nysenate.sage.dao;
+package gov.nysenate.sage.dao.base;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import org.apache.commons.dbutils.AsyncQueryRunner;

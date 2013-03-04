@@ -1,6 +1,7 @@
 package gov.nysenate.sage.model.address;
 
-import gov.nysenate.sage.model.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.geo.Geocode;
 
 import java.io.Serializable;
 
@@ -48,6 +49,21 @@ public class DistrictedAddress implements Serializable, Cloneable
         else {
             this.geocodedAddress = new GeocodedAddress(address);
         }
+    }
+
+    public void setGeocode(Geocode geocode)
+    {
+        if (this.getGeocodedAddress() != null){
+            this.getGeocodedAddress().setGeocode(geocode);
+        }
+        else {
+            this.setGeocodedAddress(new GeocodedAddress(null, geocode));
+        }
+    }
+
+    public Geocode getGeocode()
+    {
+        return (this.getGeocodedAddress() != null) ? this.getGeocodedAddress().getGeocode() : null;
     }
 
     public DistrictInfo getDistrictInfo()

@@ -9,7 +9,9 @@ import java.util.Set;
  */
 public class DistrictInfo
 {
-    /** A set of the DistrictType's that were actually district assigned */
+    /** A set of the DistrictType's that were actually district assigned.
+     *  Whenever a district is set using the constructor or setter methods,
+     *  the district type will be added to this assigned districts set */
     protected Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
 
     /** District Names */

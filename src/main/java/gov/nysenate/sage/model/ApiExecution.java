@@ -9,8 +9,8 @@ import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
-import gov.nysenate.sage.api.exceptions.ApiException;
-import gov.nysenate.sage.api.exceptions.ApiFormatException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.deprecated.abstracts.AbstractApiExecute;
 
 @Deprecated

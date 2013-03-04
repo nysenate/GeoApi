@@ -7,13 +7,26 @@ package gov.nysenate.sage.model.geo;
  */
 public class Geocode
 {
+    /** Contains the lat lon pair returned by the geocoder */
     protected Point latlon;
+
+    /** Geocoding quality metric */
     protected GeocodeQuality quality;
+
+    /** Specify the geocoder that produced the geocode */
     protected String method;
+
+    /** Unconverted geocoding quality metric returned by the geocoder */
+    protected int rawQuality;
 
     public Geocode()
     {
         this(null, GeocodeQuality.NOMATCH, "");
+    }
+
+    public Geocode(Point latlon)
+    {
+        this(latlon, GeocodeQuality.UNKNOWN, "");
     }
 
     public Geocode(Point latlon, GeocodeQuality quality, String method)
@@ -40,12 +53,12 @@ public class Geocode
 
     public Double getLat()
     {
-        return (this.latlon != null) ? this.latlon.getLatitude() : 0;
+        return (this.latlon != null) ? this.latlon.getLat() : 0;
     }
 
     public Double getLon()
     {
-        return (this.latlon != null) ? this.latlon.getLongitude() : 0;
+        return (this.latlon != null) ? this.latlon.getLon() : 0;
     }
 
     public GeocodeQuality getQuality()
@@ -66,5 +79,15 @@ public class Geocode
     public void setMethod(String method)
     {
         this.method = method;
+    }
+
+    public void setRawQuality(int rawQuality)
+    {
+        this.rawQuality = rawQuality;
+    }
+
+    public int getRawQuality()
+    {
+        return this.rawQuality;
     }
 }

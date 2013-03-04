@@ -9,8 +9,8 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.GeoService.GeoException;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.Config;
 import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
@@ -24,7 +24,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.*;
 
 public class Yahoo implements GeocodeService, Observer
 {
@@ -74,45 +73,7 @@ public class Yahoo implements GeocodeService, Observer
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
-        ExecutorService executor = Executors.newFixedThreadPool(5);
-        ArrayList<Future<GeocodeResult>> futureResults = new ArrayList<>();
-
-        for (Address address : addresses) {
-            futureResults.add(executor.submit(new ParallelRequest(this, address)));
-        }
-
-        for (Future<GeocodeResult> result : futureResults) {
-            try {
-                geocodeResults.add(result.get());
-            }
-            catch (InterruptedException ex) {
-                logger.error(ex.getMessage());
-            }
-            catch (ExecutionException ex) {
-                logger.error(ex.getMessage());
-            }
-        }
-        executor.shutdown();
-        return geocodeResults;
-    }
-
-    private class ParallelRequest implements Callable<GeocodeResult>
-    {
-        private final Yahoo yahoo;
-        private final Address address;
-
-        ParallelRequest(Yahoo yahoo, Address address)
-        {
-            this.yahoo = yahoo;
-            this.address = address;
-        }
-
-        @Override
-        public GeocodeResult call() throws GeoException
-        {
-            return yahoo.geocode(address);
-        }
+        return ParallelGeocodeService.geocode(this, addresses);
     }
 
     @Override
@@ -122,7 +83,7 @@ public class Yahoo implements GeocodeService, Observer
             return null;
         }
 
-        String yql = "select * from geo.placefinder where text=\"" + point.getLatitude() + "," + point.getLongitude() +
+        String yql = "select * from geo.placefinder where text=\"" + point.getLat() + "," + point.getLon() +
                      "\" and gflags=\"R\"";
 
         return getGeocodeResultFromYahoo(yql);
@@ -204,6 +165,12 @@ public class Yahoo implements GeocodeService, Observer
         return geocodedAddress;
     }
 
+    /**
+     * Yahoo has a detailed list of quality codes. Here we can condense the codes into
+     * our basic GeocodeQuality levels.
+     * @param quality   Int provided by Yahoo response
+     * @return          Corresponding GeocodeQuality
+     */
     private GeocodeQuality resolveGeocodeQuality(int quality)
     {
         if ( quality == 99 || quality == 90 ) return GeocodeQuality.POINT;

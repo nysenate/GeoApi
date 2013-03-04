@@ -1,11 +1,11 @@
-package gov.nysenate.sage.dao;
+package gov.nysenate.sage.dao.provider;
 
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.BeanProcessor;
 import org.apache.commons.dbutils.QueryRunner;
@@ -16,10 +16,7 @@ import org.apache.log4j.Logger;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.commons.dbutils.DbUtils.close;
 
@@ -96,6 +93,22 @@ public class TigerGeocoderDao extends BaseDao
         return null;
     }
 
+    public List<String> getStreetsInZip(String zip5)
+    {
+        String sql =
+                "SELECT DISTINCT featnames.fullname FROM addr \n" +
+                "JOIN featnames ON addr.tlid = featnames.tlid \n" +
+                "WHERE zip = ? \n" +
+                "ORDER BY featnames.fullname";
+        try {
+            return run.query(sql, new StreetListHandler(), zip5);
+        }
+        catch (SQLException ex){
+            logger.error(ex.getMessage());
+        }
+        return null;
+    }
+
     /** Converts the geocode result set into a GeocodedStreetAddress */
     public static class GeocodedStreetAddressHandler implements ResultSetHandler<GeocodedStreetAddress>
     {
@@ -109,6 +122,20 @@ public class TigerGeocoderDao extends BaseDao
                 return new GeocodedStreetAddress(streetAddress, geocode);
             }
             return null;
+        }
+    }
+
+    /** Converts result into a list of street names */
+    public static class StreetListHandler implements ResultSetHandler<ArrayList<String>>
+    {
+        @Override
+        public ArrayList<String> handle(ResultSet rs) throws SQLException
+        {
+            ArrayList<String> streets = new ArrayList<>();
+            while (rs.next()){
+                streets.add(rs.getString(1));
+            }
+            return streets;
         }
     }
 
