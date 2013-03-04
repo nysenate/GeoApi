@@ -1,0 +1,208 @@
+@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro);
+
+html {
+    height:100%;
+}
+
+body{
+    margin:0;
+    padding:0;
+    font-family:'Source Sans Pro', sans-serif;
+    height:100%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    
+}
+
+h1.logo {
+    color:#333;
+    line-height: 48px;
+    margin: 0px 15px 0px 10px;
+    float:left;
+}
+
+b{font-size: 110%;}
+em{color: red;}
+
+#topsection{
+    background: #f1f1f1;
+    height: 46px; /*Height of top section*/
+    border-bottom:4px solid #ddd;
+}
+
+ul.nav{
+    padding-top:14px;
+    list-style-type: none;
+    margin:0px 0px 0px 100px;
+}
+
+ul.nav li{
+    float:left;
+    margin-right:30px;
+    cursor:pointer;
+}
+
+ul.nav li a{
+    color:#555;
+    margin:0px;
+}
+
+ul.nav li:hover a{
+    color:teal;
+}
+
+#contentwrapper{
+    float: left;
+    width: 100%;    
+}
+
+#contentcolumn{
+    margin: 0 0px 0 300px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
+}
+
+#leftcolumn{
+    float: left;
+    width: 299px; /*Width of left column*/
+    margin-left: -100%;
+    background: #eee;
+    height:100%;    
+    border-right:1px solid #bbb;
+}
+
+#rightcolumn{
+    float: left;
+    width: 299px; /*Width of right column*/
+    margin-left: -300px; /*Set left margin to -(RightColumnWidth)*/
+    background: #eee;
+    height:100%;
+    border-left:1px solid #bbb;
+}
+
+#footer{
+    clear: left;
+    width: 100%;
+    background: #ababab;
+    color: #FFF;
+    text-align: center;
+    padding: 4px 0;
+    height:40px;
+}
+
+#footer a{
+    color: #FFFF80;
+}
+
+.innertube{
+    /*margin: 10px; /*Margins for inner DIV inside each column (to provide padding)*/
+    margin-top: 0;
+}
+
+#map_canvas{
+    width:100%; height:100%
+}
+
+p.method-header, p.result-header{
+    margin: 0px;
+    padding: 10px 15px;
+    font-size: 16px;
+    color:#777;
+    cursor:pointer;
+}
+
+p.method-header:hover{
+    color:#333;
+    background-color:#ddd;
+}
+
+p.method-header.active {
+    color: white;
+    font-weight: bold;
+}
+
+p.result-header.success {
+    color: white;
+    background-color:#477326;
+}
+
+p.result-header.error {
+    background-color: #8E2F2F;
+}
+
+p.method-header.active.teal{ background-color:teal;}
+p.method-header.active.maroon{ background-color:#632127;}
+p.method-header.active.green{background-color:#477326;}
+p.method-header.active.purple{background-color:#632150;}
+p.method-header.active.brown{background-color:#957732;}
+
+
+.form-container {
+    display:none;
+}
+
+.form-container.active {
+    display:block;
+}
+
+.info-container{
+    box-shadow:1px 1px 2px 0 #b0b0b0;
+    width: 93%;
+    margin: 10px auto;
+    background: white;
+    height: 125px;
+}
+
+input[type="text"] {
+    border:1px solid #ccc;
+    padding:5px;
+}
+
+form ol{
+    padding:0px 0px 0px 10px;
+    list-style-type: none;
+}
+
+ol.input-container li {
+    margin-bottom:3px;
+}
+
+ol.input-container li label {
+    float:left;
+    text-align: right;
+    margin-right:10px;
+    width:55px;
+    line-height:29px;
+    font-size:13px;
+}
+
+ol.input-container li input[type="text"] {
+    width:200px;
+    background:white;
+}
+
+input[type="submit"] {
+    text-align: center;
+    background: #799933;
+    color: white;
+    border: 0;
+    outline: 0;
+    font-size: 14px;
+    font-family: 'Source Sans Pro';
+    padding: 5px 20px;
+    width: 200px;
+    font-weight: bold;    
+}
+
+input[type="submit"]:hover{
+    background: #7BA838;
+}
+
+img.senator-pic {
+    margin-top: 10px;
+    margin-left: 10px;
+    float:left;
+}
+
+.senator-name {
+    color:#444;
+}

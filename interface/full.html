@@ -1,0 +1,149 @@
+<html>
+<head>
+    <title>SAGE - Senate Address Geocoding Engine</title>
+    <link rel='stylesheet' type='text/css' href='full.css' />
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="full.js"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false">
+    </script>
+</head>
+<body>
+<div id="maincontainer">
+
+    <div id="topsection">
+        <div class="innertube">
+            <h1 class="logo">SAGE</h1>
+            <ul class="nav">
+                <li><a>API Reference</a></li>
+                <li><a>Batch Request</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="contentwrapper">
+        <div id="contentcolumn">
+            <div id="map_canvas"></div>
+        </div>
+    </div>
+
+    <div id="leftcolumn">
+        <div class="innertube">
+            <p class="method-header active teal">District Information</p>
+            <div id="district-lookup-container" class="form-container active">
+                <form id="districtsForm" action="" method="post">
+                   <ol class="input-container">
+                    <li>
+                      <label>Address</label>
+                      <input type="text" placeholder="street address..." name="addr1">
+                    </li>
+                    <li>
+                      <label>City</label>
+                      <input type="text" name="city">
+                    </li>
+                    <li>
+                      <label>State</label>
+                      <input type="text" placeholder="e.g. NY" name="state" maxlength="2" value="NY">
+                    </li>
+                    <li>
+                      <label>Zip5</label>
+                      <input type="text" name="zip5" maxlength="5">
+                    </li>
+                    <li>
+                      <label>Zip4</label>
+                      <input type="text" name="zip4" maxlength="4">
+                    </li>
+                    <li>
+                      <label>Service</label>
+                      <select name="service">
+                        <option>Yahoo</option>
+                        <option value="YahooBoss">Yahoo BOSS</option>
+                        <option>Mapquest</option>
+                        <option>OSM</option>
+                        <option>GeoCoder</option>
+                      </select>
+                    </li>
+                    <li>
+                        <input type="submit" id="districts" name="submit" value="Find districts">
+                    </li>
+                  </ol>
+
+                </form>
+            </div>
+            <p class="method-header maroon">Reverse Geocode</p>
+            <div id="reverse-geocode-container" class="form-container">
+                <form id="revgeo-form" action="" method="post">
+                  <ol class="input-container">
+                    <li>
+                      <label>Latitude</label>
+                      <input type="text" name="lat">
+                    </li>
+                    <li>
+                      <label>Longitude</label>
+                      <input type="text" name="lon">
+                    </li>
+                    <li>
+                      <label>Service</label>
+                      <select name="service">
+                        <option>Yahoo</option>
+                        <option>YahooBoss</option>
+                        <option>Google</option>
+                        <option>Bing</option>
+                      </select>
+                    </li>
+                    <li id="send">
+                      <input type="submit" id="revgeo" name="submit" value="Find address">
+                    </li>
+                  </ol>
+                </form>
+            </div>
+            <p class="method-header green">Street Lookup</p>
+            <div id="street-lookup-container" class="form-container">
+                <form id="street-lookup-form" action="" method="post">
+                  <ol class="input-container">
+                    <li>
+                      <label>Zip5</label>
+                      <input type="text" name="zip">
+                    </li>
+                    <li>
+                      <input type="submit" id="streetlookup" name="submit">
+                    </li>
+                  </ol>
+                </form>
+            </div>
+            <p class="method-header purple">City/State Lookup</p>
+            <div id="citystate-lookup-container" class="form-container">
+                <form id="citystate-lookup-form" action="" method="post">
+                  <ol class="input-container">
+                    <li>
+                      <label>Zip5</label>
+                      <input type="text" name="zip">
+                    </li>
+                    <li id="send">
+                      <input type="submit" id="citystatelookup" name="submit">
+                    </li>
+                  </ol>
+                </form>
+            </div>
+            <p class="method-header brown">About</p>
+        </div>
+    </div>
+
+    <div id="rightcolumn">
+        <div class="innertube">
+            <p class="result-header success">Results</p>
+                <div class="info-container">
+                    <div style="float:left">
+                        <img src="http://www.nysenate.gov/files/profile-pictures/young%20headshot-ret.jpg" width="80px" height="100px" class="senator-pic">
+                    </div>
+                    <div>
+                        <span class="senator-name">Senator Catherine Young</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+</body>
+</html>
