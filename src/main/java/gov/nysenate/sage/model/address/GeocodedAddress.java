@@ -50,4 +50,9 @@ public class GeocodedAddress implements Serializable, Cloneable
     {
         return (this.geocode != null && this.geocode.getQuality() != GeocodeQuality.NOMATCH);
     }
+
+    public boolean isReverseGeocoded()
+    {
+        return (this.address != null && !this.address.isEmpty());
+    }
 }
