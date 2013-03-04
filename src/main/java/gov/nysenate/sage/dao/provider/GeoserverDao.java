@@ -62,11 +62,11 @@ public class GeoserverDao extends BaseDao
     }
 
     /**
-     * Submits a url request to GeoServer and retrieves a JsonNode containing the root 'features' element
+     * Submits a url request to GeoServer, parses response, and returns a DistrictInfo object
      *
      * @param point            The Point to find districts at
      * @param districtTypes    The types of districts to get features for
-     * @return JsonNode if successful, null otherwise
+     * @return DistrictInfo if successful, null otherwise
      */
     public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes)
     {
@@ -90,9 +90,9 @@ public class GeoserverDao extends BaseDao
     }
 
     /**
-     *
-     * @param response
-     * @return
+     * Parses JSON response and creates a DistrictInfo object.
+     * @param response  Root level JsonNode
+     * @return          DistrictInfo
      */
     private DistrictInfo getDistrictInfoFromResponse(JsonNode response)
     {
@@ -147,9 +147,9 @@ public class GeoserverDao extends BaseDao
     }
 
     /**
-     *
-     * @param feature
-     * @return
+     * Parses JSON response and creates a DistrictMap object containing the district geometry.
+     * @param feature   Feature level JsonNode
+     * @return          DistrictMap containing the geometry.
      */
     private DistrictMap getDistrictMapFromFeature(JsonNode feature)
     {
