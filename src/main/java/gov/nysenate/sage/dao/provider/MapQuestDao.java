@@ -8,7 +8,6 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.log4j.Logger;
 
@@ -19,7 +18,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static gov.nysenate.sage.model.geo.GeocodeQuality.*;
-import static gov.nysenate.sage.model.geo.GeocodeQuality.ZIP_EXT;
 
 public class MapQuestDao
 {

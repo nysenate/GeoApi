@@ -3,6 +3,7 @@ package gov.nysenate.sage.provider;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.Config;
 
@@ -124,7 +125,10 @@ public class USPS implements AddressService, Observer
         for (int a = 1; a <= addresses.size(); a++){
             Address address = addresses.get(a - 1);
 
-            batchResults.add(new AddressResult(this.getClass()));
+            AddressResult addressResult = new AddressResult(this.getClass());
+            addressResult.setAddress(address);
+            batchResults.add(addressResult);
+
             xmlRequest.append(addressToXml(a - 1, address));
 
             /** Stop here until we've filled this batch request */
@@ -145,12 +149,11 @@ public class USPS implements AddressService, Observer
                 Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
                 if (error != null)
                 {
-                    ArrayList<String> messages = new ArrayList<String>();
+                    ArrayList<String> messages = new ArrayList<>();
                     messages.add(xpath.evaluate("Description", error).trim());
-                    String status_code = xpath.evaluate("Number", error);
-                    for (AddressResult result : batchResults)
-                    {
-                        result.setStatus(status_code);
+                    for (AddressResult result : batchResults) {
+                        result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+                        result.setValidated(false);
                         result.setMessages(messages);
                     }
                 }
@@ -163,7 +166,7 @@ public class USPS implements AddressService, Observer
 
                         if (error != null) {
                             AddressResult result = batchResults.get(i);
-                            result.setStatus(xpath.evaluate("Number", error));
+                            result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
                             result.addMessage(xpath.evaluate("Description", error).trim());
                             result.setValidated(false);
                             continue;
@@ -223,6 +226,7 @@ public class USPS implements AddressService, Observer
         String url = "";
         Content page = null;
         Document response = null;
+
         ArrayList<AddressResult> results = new ArrayList<>();
         ArrayList<AddressResult> batchResults = new ArrayList<>();
         String xmlStartTag = "<CityStateLookupRequest USERID=\""+ apiKey +"\">";
@@ -232,7 +236,10 @@ public class USPS implements AddressService, Observer
         for (int a = 1; a <= addresses.size(); a++) {
             Address address = addresses.get(a-1);
 
-            batchResults.add(new AddressResult(this.getClass()));
+            AddressResult addressResult = new AddressResult(this.getClass());
+            addressResult.setAddress(address);
+            batchResults.add(addressResult);
+
             xmlRequest.append(String.format("<ZipCode ID=\"%s\"><Zip5>%s</Zip5></ZipCode>", a-1, address.getZip5()));
 
             /** Stop here until we've filled this batch request */
@@ -253,10 +260,9 @@ public class USPS implements AddressService, Observer
                 if (error != null) {
                     ArrayList<String> messages = new ArrayList<String>();
                     messages.add(xpath.evaluate("Description", error).trim());
-                    String status_code = xpath.evaluate("Number", error);
 
                     for (AddressResult result : batchResults) {
-                        result.setStatus(status_code);
+                        result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
                         result.setMessages(messages);
                     }
                 }
@@ -268,9 +274,8 @@ public class USPS implements AddressService, Observer
                         error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
                         if (error != null) {
                             AddressResult result = batchResults.get(i);
-                            result.setStatus(xpath.evaluate("Number", error));
+                            result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
                             result.addMessage(xpath.evaluate("Description", error).trim());
-                            result.addMessage("Source: "+xpath.evaluate("Source", error));
                             result.setValidated(false);
                             continue;
                         }
