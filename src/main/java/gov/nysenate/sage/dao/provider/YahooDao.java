@@ -107,10 +107,14 @@ public class YahooDao
             JsonNode resultsNode = rootNode.get("results");
             int resultCount = rootNode.get("count").asInt();
 
-            /** Retrieve the first result only. We can assume that results are ranked. */
-            if (resultCount == 1) {
+            /** Return an empty GeocodedAddress */
+            if (resultCount == 0){
+                return new GeocodedAddress();
+            }
+            else if (resultCount == 1) {
                 geocodedAddress = getGeocodedAddressFromResultNode(resultsNode.get("Result"));
             }
+            /** Retrieve the first result only. We can assume that results are ranked. */
             else if (resultCount > 1) {
                 geocodedAddress = getGeocodedAddressFromResultNode(resultsNode.get("Result").get(0));
             }
@@ -130,7 +134,7 @@ public class YahooDao
      * The resultNode is a reference to the "Result" node depicted by the following
      * response structure that is returned from yahoo:
      *
-     * {"query": { ... "results": { "Result": { ..result data.. }}}}
+     * {"query": { ... "results": [{ "Result": { ..result data.. }}]}
      *
      * @param resultNode    The "Result" node
      * @return              The GeocodedAddress created from the "Result" data

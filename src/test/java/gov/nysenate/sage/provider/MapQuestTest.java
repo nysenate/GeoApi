@@ -19,44 +19,50 @@ public class MapQuestTest extends TestBase
     }
 
     @Test
-    public void MapQuestSingleGeocode_ReturnsGeocodeResult() throws Exception
+    public void singleGeocode_ReturnsGeocodeResult() throws Exception
     {
         assertSingleAddressGeocode(mapQuest);
     }
 
     @Test
-    public void MapQuestMultipleGeocode_ReturnsGeocodeResults() throws Exception
+    public void multipleGeocode_ReturnsGeocodeResults() throws Exception
     {
         assertMultipleAddressGeocode(mapQuest);
     }
 
     @Test
-    public void MapQuestSingleReverseGeocode_ReturnsGeocodeResult() throws Exception
+    public void singleReverseGeocode_ReturnsGeocodeResult() throws Exception
     {
         assertSingleReverseGeocode(mapQuest);
     }
 
     @Test
-    public void MapQuestGeocodeErrorCases_SetsResultStatus()
+    public void invalidInputGeocode_ReturnsErrorStatus()
     {
         assertNoResultReturnsNoGeocodeResultStatus(mapQuest);
     }
 
     @Test
-    public void MapQuestSingleAddressValidate_ReturnsAddressResult() throws Exception
+    public void singleAddressValidate_ReturnsAddressResult() throws Exception
     {
         assertSingleAddressValidation(mapQuest);
     }
 
     @Test
-    public void MapQuestMultipleAddressValidate_ReturnsAddressResult() throws Exception
+    public void multipleAddressValidate_ReturnsAddressResult() throws Exception
+    {
+        assertMultiAddressValidation(mapQuest);
+    }
+
+    @Test
+    public void badAddressValidate_ReturnsAddressResultError() throws Exception
     {
         assertMultiAddressValidation(mapQuest);
     }
 
     /** Not sure if necessary, simply proxies to validate */
     @Test
-    public void MapQuestTestLookupCityState_ReturnsAddressResult() throws Exception
+    public void testLookupCityState_ReturnsAddressResult() throws Exception
     {
         assertCityStateLookup(mapQuest);
     }

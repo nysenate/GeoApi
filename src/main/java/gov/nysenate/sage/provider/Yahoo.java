@@ -59,12 +59,10 @@ public class Yahoo implements GeocodeService, Observer
 
         GeocodedAddress geocodedAddress = this.yahooDao.getGeocodedAddress(address);
 
-        /** Handle error cases or set GeocodedAddress if successful */
+        /** Handle error cases or set GeocodedAddress */
         if (geocodedAddress != null){
-            if (geocodedAddress.isGeocoded()){
-                geocodeResult.setGeocodedAddress(geocodedAddress);
-            }
-            else {
+            geocodeResult.setGeocodedAddress(geocodedAddress);
+            if (!geocodedAddress.isGeocoded()){
                 geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
             }
         }
@@ -96,12 +94,10 @@ public class Yahoo implements GeocodeService, Observer
 
         GeocodedAddress geocodedAddress = this.yahooDao.getGeocodedAddress(point);
 
-        /** Handle error cases or set GeocodedAddress if successful */
+        /** Handle error cases or set GeocodedAddress */
         if (geocodedAddress != null){
-            if (geocodedAddress.isReverseGeocoded()){
-                geocodeResult.setGeocodedAddress(geocodedAddress);
-            }
-            else {
+            geocodeResult.setGeocodedAddress(geocodedAddress);
+            if (!geocodedAddress.isReverseGeocoded()){
                 geocodeResult.setStatusCode(ResultStatus.NO_REVERSE_GEOCODE_RESULT);
             }
         }
