@@ -1,17 +1,24 @@
 package gov.nysenate.sage.dao.provider;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.dao.model.CountyDao;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictShapeCode;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.geo.Polygon;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,11 +43,11 @@ public class DistrictShapefileDao extends BaseDao
 
     }
 
-    public DistrictedAddress getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getMaps)
+    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getMaps)
     {
         /** Template SQL for looking up district given a point */
         String sqlTmpl =
-                "SELECT '%s' AS type, %s AS name, %s as code " + ((getMaps) ? ", ST_AsGeoJson(geom) AS map " : "") +
+                "SELECT '%s' AS type, %s AS name, %s as code " + ((getMaps) ? ", ST_AsGeoJson(geom) AS map " : ", null as map ") +
                 "FROM " + SCHEMA + ".%s " +
                 "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)' , " + SRID + "))";
 
@@ -51,7 +58,7 @@ public class DistrictShapefileDao extends BaseDao
             String nameColumn = DistrictShapeCode.getNameColumn(districtType);
             String codeColumn = DistrictShapeCode.getCodeColumn(districtType);
 
-            /** Election has a special case */
+            /** Election shapefile has an integer code so we should convert to string */
             if (districtType == DistrictType.ELECTION){
                 codeColumn = "to_char("+ codeColumn + ", '999')";
             }
@@ -64,7 +71,7 @@ public class DistrictShapefileDao extends BaseDao
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
 
         try {
-            List<Map<String,Object>> result = run.query(sqlQuery, new MapListHandler());
+            return run.query(sqlQuery, new DistrictInfoHandler());
         }
         catch (Exception ex){
             logger.error(ex);
@@ -76,16 +83,66 @@ public class DistrictShapefileDao extends BaseDao
     {
         @Override
         public DistrictInfo handle(ResultSet rs) throws SQLException {
-            if (rs.next()){
-                rs.getString("type");
-                rs.getString("name");
-                rs.getString("code");
-                DistrictInfo districtInfo = new DistrictInfo();
+            DistrictInfo districtInfo = new DistrictInfo();
+            while (rs.next()) {
+                DistrictType type = DistrictType.resolveType(rs.getString("type"));
+
+                if (type != null) {
+                    /** District name */
+                    districtInfo.setDistrictName(type, rs.getString("name"));
+
+                    /** District code edge cases */
+                    if (type == DistrictType.COUNTY){
+                        String code = Integer.toString(new CountyDao().getFipsCountyMap().get(rs.getInt("code")).getId());
+                        districtInfo.setDistrictCode(type, code);
+                    }
+                    /** Normal district code */
+                    else {
+                        String code = rs.getString("code");
+                        if (code != null) {
+                            districtInfo.setDistrictCode(type, code.trim());
+                        }
+                    }
+
+                    /** District Map */
+                    if (rs.getString("map") != null && !rs.getString("map").isEmpty()){
+                        districtInfo.setDistrictMap(type, getDistrictMapFromJson(rs.getString("map")));
+                    }
+                }
+                else {
+                    logger.error("Unsupported district type in results - " + rs.getString("type"));
+                }
             }
-            return null;
+            return districtInfo;
         }
     }
 
+    /**
+     * Parses JSON map response and creates a DistrictMap object containing the district geometry.
+     * @param jsonMap   GeoJson string containing the district geometry
+     * @return          DistrictMap containing the geometry.
+     *                  null if map string not present or error
+     */
+    private DistrictMap getDistrictMapFromJson(String jsonMap)
+    {
+        DistrictMap districtMap = new DistrictMap();
+        List<Point> points = new ArrayList<>();
 
+        /** The geometry response comes in as a quadruply nested array */
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode mapNode = objectMapper.readTree(jsonMap);
+            JsonNode coordinates = mapNode.get("coordinates").get(0).get(0);
+            for (int i = 0; i < coordinates.size(); i++){
+                points.add(new Point(coordinates.get(i).get(1).asDouble(), coordinates.get(i).get(0).asDouble()));
+            }
+            districtMap.setPolygon(new Polygon(points));
+            return districtMap;
+        }
+        catch (IOException ex) {
+            logger.error(ex);
+        }
 
+        return null;
+    }
 }

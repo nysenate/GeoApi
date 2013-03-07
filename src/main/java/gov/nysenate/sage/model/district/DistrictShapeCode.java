@@ -18,7 +18,7 @@ public enum DistrictShapeCode
         nameColumn.put(DistrictType.CONGRESSIONAL, "NAME");
         nameColumn.put(DistrictType.ASSEMBLY, "NAME");
         nameColumn.put(DistrictType.COUNTY, "NAMELSAD");
-        nameColumn.put(DistrictType.SCHOOL, "NAME");
+        nameColumn.put(DistrictType.SCHOOL, "EANAME1");
         nameColumn.put(DistrictType.TOWN, "NAME");
         nameColumn.put(DistrictType.ELECTION, "COUNTY");
 
