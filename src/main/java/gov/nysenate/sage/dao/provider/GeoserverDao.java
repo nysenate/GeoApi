@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.CountyDao;
-import gov.nysenate.sage.model.district.County;
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.*;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.UrlRequest;
@@ -104,40 +102,22 @@ public class GeoserverDao extends BaseDao
             JsonNode properties = feature.get("properties");
 
             String layer = feature.get("id").asText().split("\\.")[0];
-            if (layer.equals("school")) {
-                districtInfo.setSchoolName(properties.get("NAME").asText());
-                districtInfo.setSchoolCode(properties.get("TFCODE").asText());
-                districtInfo.setSchoolMap(getDistrictMapFromFeature(feature));
-            }
-            else if (layer.equals("town")) {
-                districtInfo.setTownName(properties.get("NAME").asText());
-                districtInfo.setTownCode(properties.get("ABBREV").asText());
-                districtInfo.setTownMap(getDistrictMapFromFeature(feature));
-            }
-            else if (layer.equals("election")) {
-                districtInfo.setElectionName(districtInfo.getSchoolCode());
-                districtInfo.setElectionCode(properties.get("ED").asInt());
-                districtInfo.setElectionMap(getDistrictMapFromFeature(feature));
-            }
-            else if (layer.equals("congressional")) {
-                districtInfo.setCongressionalName(properties.get("NAME").asText());
-                districtInfo.setCongressionalCode(properties.get("DISTRICT").asInt());
-                districtInfo.setCongressionalMap(getDistrictMapFromFeature(feature));
-            }
-            else if (layer.equals("county")) {
-                districtInfo.setCountyName(properties.get("NAMELSAD").asText()); // NAME can also work
-                districtInfo.setCountyCode(fipsCountyMap.get(properties.get("COUNTYFP").asInt()).getId());
-                districtInfo.setCountyMap(getDistrictMapFromFeature(feature));
-            }
-            else if (layer.equals("assembly")) {
-                districtInfo.setAssemblyName(properties.get("NAME").asText());
-                districtInfo.setAssemblyCode(properties.get("DISTRICT").asInt());
-                districtInfo.setAssemblyMap(getDistrictMapFromFeature(feature));
-            }
-            else if (layer.equals("senate")) {
-                districtInfo.setSenateName(properties.get("NAME").asText());
-                districtInfo.setSenateCode(properties.get("DISTRICT").asInt());
-                districtInfo.setSenateMap(getDistrictMapFromFeature(feature));
+            DistrictType districtType = DistrictType.resolveType(layer);
+            if (districtType != null){
+                /** Get the column names used in the shapefiles */
+                String nameColumn = DistrictShapeCode.getNameColumn(districtType);
+                String codeColumn = DistrictShapeCode.getCodeColumn(districtType);
+
+                /** Set the name, code, and map data for the district layer */
+                districtInfo.setDistrictName(districtType, properties.get(nameColumn).asText());
+                districtInfo.setDistrictCode(districtType, properties.get(codeColumn).asText());
+                districtInfo.setDistrictMap(districtType, getDistrictMapFromFeature(feature));
+
+                /** Handle county fips -> senate code conversion */
+                if (districtType == COUNTY){
+                    Integer countyCode = Integer.valueOf(districtInfo.getDistrictCode(COUNTY));
+                    districtInfo.setDistrictCode(COUNTY, Integer.toString(fipsCountyMap.get(countyCode).getId()));
+                }
             }
             else {
                 logger.warn("Unidentified feature id " + feature.get("id").asText() + " found in geoserver response");
