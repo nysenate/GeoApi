@@ -12,9 +12,7 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  */
 public class DistrictInfo
 {
-    /** A set of the DistrictType's that were actually district assigned.
-     *  Whenever a district is set using the constructor or setter methods,
-     *  the district type will be added to this assigned districts set */
+    /** A set of the DistrictType's that were actually district assigned. */
     protected Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
 
     protected Map<DistrictType, String> districtNames = new HashMap<>();
@@ -26,41 +24,46 @@ public class DistrictInfo
     public DistrictInfo(String congressionalCode, String countyCode, String senateCode,
                         String assemblyCode, String townCode, String schoolCode)
     {
-        this.setDistrictCode(CONGRESSIONAL, congressionalCode);
-        this.setDistrictCode(COUNTY, countyCode);
-        this.setDistrictCode(SENATE, senateCode);
-        this.setDistrictCode(ASSEMBLY, assemblyCode);
-        this.setDistrictCode(TOWN, townCode);
-        this.setDistrictCode(SCHOOL, schoolCode);
+        this.setDistCode(CONGRESSIONAL, congressionalCode);
+        this.setDistCode(COUNTY, countyCode);
+        this.setDistCode(SENATE, senateCode);
+        this.setDistCode(ASSEMBLY, assemblyCode);
+        this.setDistCode(TOWN, townCode);
+        this.setDistCode(SCHOOL, schoolCode);
     }
 
-    public String getDistrictName(DistrictType districtType)
+    public String getDistName(DistrictType districtType)
     {
         return this.districtNames.get(districtType);
     }
 
-    public void setDistrictName(DistrictType districtType, String name)
+    public void setDistName(DistrictType districtType, String name)
     {
         this.districtNames.put(districtType, name);
     }
 
-    public String getDistrictCode(DistrictType districtType)
+    public String getDistCode(DistrictType districtType)
     {
         return this.districtCodes.get(districtType);
     }
 
-    public void setDistrictCode(DistrictType districtType, String code)
+    public void setDistCode(DistrictType districtType, String code)
     {
         this.districtCodes.put(districtType, code);
-        this.addAssignedDistrict(districtType);
+        if (isValidDistCode(code)) {
+            this.assignedDistricts.add(districtType);
+        }
+        else {
+            this.assignedDistricts.remove(districtType);
+        }
     }
 
-    public DistrictMap getDistrictMap(DistrictType districtType)
+    public DistrictMap getDistMap(DistrictType districtType)
     {
         return this.districtMaps.get(districtType);
     }
 
-    public void setDistrictMap(DistrictType districtType, DistrictMap districtMap)
+    public void setDistMap(DistrictType districtType, DistrictMap districtMap)
     {
         this.districtMaps.put(districtType, districtMap);
     }
@@ -69,12 +72,32 @@ public class DistrictInfo
         return assignedDistricts;
     }
 
-    public Map<DistrictType, String> getDistrictNames()
-    {
-        return this.districtNames;
+    public Map<DistrictType, String> getDistrictCodes() {
+        return this.districtCodes;
     }
 
-    protected void addAssignedDistrict(DistrictType assignedDistrict) {
-        this.assignedDistricts.add(assignedDistrict);
+    public String toString()
+    {
+        String out = "";
+        for (DistrictType t : assignedDistricts){
+            out += t + ": name = " + getDistName(t)
+                     +  " code = " + getDistCode(t) + " map = " + getDistMap(t) + "\n";
+        }
+        return out;
+    }
+
+    public boolean hasValidDistCode(DistrictType districtType)
+    {
+        return isValidDistCode(this.districtCodes.get(districtType));
+    }
+
+    private boolean isValidDistCode(String code){
+        if (code != null) {
+            String c = code.trim().replaceFirst("^0+(?!$)", "");
+            if ( !c.isEmpty() && !c.equalsIgnoreCase("null") && !c.equals("0") && !c.equals("000")) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -5,18 +5,20 @@ package gov.nysenate.sage.model.address;
  */
 public class StreetAddress
 {
-    protected int bldgNum;
-    protected String bldgChar;
     protected String street;
     protected int aptNum;
+    protected int bldgNum;
+    protected String bldgChar;
     protected String aptChar;
+    protected String bldgParity;
+    protected String aptParity;
     protected String preDir;
     protected String postDir;
     protected String internal;
     protected String streetType;
     protected String location;
     protected String state;
-    protected String postal;
+    protected String zip5;
 
     public StreetAddress(){}
 
@@ -48,7 +50,7 @@ public class StreetAddress
 
         String city = (this.location != null) ? location : "";
         String state = (this.state != null) ? this.state : "";
-        String zip5 = (this.postal != null) ? postal : "";
+        String zip5 = (this.zip5 != null) ? this.zip5 : "";
 
         return new Address(addr1.trim(), addr2.trim(), city.trim(), state.trim(), zip5.trim(), null);
     }
@@ -105,6 +107,22 @@ public class StreetAddress
         this.aptChar = aptChar;
     }
 
+    public String getBldgParity() {
+        return bldgParity;
+    }
+
+    public void setBldgParity(String bldgParity) {
+        this.bldgParity = bldgParity;
+    }
+
+    public String getAptParity() {
+        return aptParity;
+    }
+
+    public void setAptParity(String aptParity) {
+        this.aptParity = aptParity;
+    }
+
     public String getPreDir() {
         return preDir;
     }
@@ -153,11 +171,11 @@ public class StreetAddress
         this.state = state;
     }
 
-    public void setPostal(String postal) {
-        this.postal = postal;
+    public void setZip5(String zip5) {
+        this.zip5 = zip5;
     }
 
-    public String getPostal() {
-        return this.postal;
+    public String getZip5() {
+        return this.zip5;
     }
 }

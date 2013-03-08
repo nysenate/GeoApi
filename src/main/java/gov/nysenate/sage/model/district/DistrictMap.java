@@ -24,4 +24,8 @@ public class DistrictMap
     public void setPolygon(Polygon polygon) {
         this.polygon = polygon;
     }
+
+    public String toString() {
+        return this.polygon.toString();
+    }
 }

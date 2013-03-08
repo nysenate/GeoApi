@@ -28,6 +28,21 @@ public enum DistrictType
         return Arrays.asList(WARD, CLEG, CITY, FIRE, VILLAGE);
     }
 
+    public static List<DistrictType> getStateBasedTypes()
+    {
+        return Arrays.asList(SENATE, CONGRESSIONAL, ASSEMBLY, COUNTY);
+    }
+
+    public static List<DistrictType> getCountyBasedTypes()
+    {
+        return Arrays.asList(SCHOOL, TOWN, CLEG);
+    }
+
+    public static List<DistrictType> getTownBasedTypes()
+    {
+        return Arrays.asList(WARD, ELECTION);
+    }
+
     public static List<DistrictType> getAllTypes()
     {
         return Arrays.asList(DistrictType.values());

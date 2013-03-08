@@ -22,6 +22,7 @@ public enum ResultStatus
     MISSING_GEOCODE(120, "A valid geocoded coordinate pair is required"),
     MISSING_ZIPCODE(130, "A zipcode is required"),
     MISSING_STATE(140, "A state is required"),
+    MISSING_POINT(150, "A coordinate pair is required"),
 
     INVALID_INPUT_PARAMS(200, "One or more parameters are invalid"),
     INVALID_ADDRESS(210, "The supplied address is invalid"),
@@ -37,9 +38,14 @@ public enum ResultStatus
     MULTIPLE_DISTRICT_RESULT(401, "Multiple matches were found for certain districts"),
     NO_GEOCODE_RESULT(410, "Geocode service returned no results"),
     NO_REVERSE_GEOCODE_RESULT(411, "Reverse Geocode service returned no results"),
+    NO_ADDRESS_VALIDATE_RESULT(420, "The address could not be validated"),
+
+    PARTIAL_DISTRICT_RESULT(430, "District assignment yielded some districts"),
 
     /** Unexpected errors */
-    INTERNAL_ERROR(500, "Internal Server Error");
+    INTERNAL_ERROR(500, "Internal Server Error"),
+    DATABASE_ERROR(501, "Database Error");
+
 
     private int code;
     private String text, desc;

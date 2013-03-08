@@ -1,104 +1,253 @@
 package gov.nysenate.sage.dao.provider;
 
-import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.model.address.*;
+import gov.nysenate.sage.model.district.DistrictInfo;
+import static gov.nysenate.sage.model.district.DistrictType.*;
+
+import gov.nysenate.sage.model.district.DistrictType;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class StreetFileDao extends BaseDao
 {
     private Logger logger = Logger.getLogger(StreetFileDao.class);
+    private QueryRunner run = getQueryRunner();
 
     public StreetFileDao() {}
 
+    public DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress) throws SQLException
+    {
+        return getDistAddressByHouse(streetAddress, false);
+    }
 
+    public DistrictedAddress getDistAddressByStreet(StreetAddress streetAddress) throws SQLException
+    {
+        return getDistAddressByStreet(streetAddress, false);
+    }
 
-    protected List<BOEAddressRange> getRanges(BOEStreetAddress address, boolean useStreet, boolean fuzzy, boolean useHouse) throws SQLException {
-        ArrayList<Object> params = new ArrayList<Object>();
+    private DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress, boolean useFuzzy) throws SQLException
+    {
+        Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, true, useFuzzy, true);
+        List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
+        DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
+
+        /** If the consolidated dist returned null, we can either recurse with fuzzy on or return null */
+        if (consolidatedDist == null ) {
+            if (!useFuzzy) {
+                return getDistAddressByHouse(streetAddress, true);
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist);
+        }
+    }
+
+    private DistrictedAddress getDistAddressByStreet(StreetAddress streetAddress, boolean useFuzzy) throws SQLException
+    {
+        Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, true, useFuzzy, false);
+        List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
+        DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
+
+        /** If the consolidated dist returned null, we can either recurse with fuzzy on or return null */
+        if (consolidatedDist == null ) {
+            if (!useFuzzy) {
+                return getDistAddressByStreet(streetAddress, true);
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist);
+        }
+    }
+
+    public DistrictedAddress getDistAddressByZip(StreetAddress streetAddress) throws SQLException
+    {
+        Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, false, false, false);
+        List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
+        DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
+        if (consolidatedDist != null){
+            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist);
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @param streetAddr     The StreetAddress to base the search on
+     * @param useStreet      Use the street name as a criteria for the search
+     * @param fuzzy          Use a wildcard on the street name to expand the search space
+     * @param useHouse       Use the house number as a criteria for the search
+     * @return               A LinkedHashMap containing StreetAddressRange and DistrictInfo
+     * @throws SQLException
+     */
+    public Map<StreetAddressRange, DistrictInfo> getDistrictStreetRangeMap(
+            StreetAddress streetAddr, boolean useStreet, boolean fuzzy, boolean useHouse) throws SQLException
+    {
+        ArrayList<Object> params = new ArrayList<>();
         String sql = "SELECT * FROM streetfile WHERE 1=1 \n";
 
-        boolean whereZip = (address.zip5 != 0);
-        boolean whereState = (address.state != null && !address.state.isEmpty());
-        boolean whereStreet = (useStreet && address.street != null && !address.street.isEmpty());
-        boolean whereBldg = (useHouse && address.bldg_num != 0);
-        boolean whereBldgChr = (useHouse && address.bldg_chr != null && !address.bldg_chr.isEmpty());
+        boolean whereZip = (streetAddr.getZip5() != null && !streetAddr.getZip5().isEmpty());
+        boolean whereState = (streetAddr.getState() != null && !streetAddr.getState().isEmpty());
+        boolean whereStreet = (useStreet && streetAddr.getStreet() != null && !streetAddr.getStreet().isEmpty());
+        boolean whereBldg = (useHouse && streetAddr.getBldgNum() != 0);
+        boolean whereBldgChr = (useHouse && streetAddr.getBldgChar() != null && !streetAddr.getBldgChar().isEmpty());
 
         if (whereZip) {
-            sql += "  AND zip5=? \n";
-            params.add(address.zip5);
+            sql += " AND zip5=? \n";
+            params.add(Integer.valueOf(streetAddr.getZip5()));
         }
 
         if (whereState) {
-            sql += "  AND state=? \n";
-            params.add(address.state);
+            sql += " AND state=? \n";
+            params.add(streetAddr.getState());
         }
 
         if (whereStreet) {
-
-            // Sometimes the bldg_chr is actually the tail end of the street name
+            /** Sometimes the bldg_chr is actually the tail end of the street name */
             if (whereBldgChr) {
-                // Handle dashed NYC buildings by collapsing on the dash
-                if (address.bldg_chr.startsWith("-"))  {
+                /** Handle dashed NYC buildings by collapsing on the dash */
+                if (streetAddr.getBldgChar().startsWith("-")) {
                     try {
-                        address.bldg_num = Integer.parseInt(String.valueOf(address.bldg_num)+address.bldg_chr.substring(1));
-                        address.bldg_chr = null;
-                    } catch (NumberFormatException e) {
-                        logger.warn("bldg_chr `"+address.bldg_chr+"` not as expected.");
+                        String bldgNum = String.valueOf(streetAddr.getBldgNum()) + streetAddr.getBldgChar().substring(1);
+                        streetAddr.setBldgNum(Integer.parseInt(bldgNum));
+                        streetAddr.setBldgChar(null);
+                    }
+                    catch (NumberFormatException e) {
+                        logger.warn("bldg_chr `" + streetAddr.getBldgChar() + "` not as expected.");
                     }
                 }
 
-                // Every one else gets a range check; sometimes the suffix is actually part of the street prefix.
-                if (address.bldg_chr != null) {
+                /** Every one else gets a range check; sometimes the suffix is actually part of the street prefix. */
+                if (streetAddr.getBldgChar() != null) {
                     if (fuzzy) {
-                        sql += "  AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
-                        params.add(address.bldg_chr+" "+address.street+"%");
-                        params.add(address.street+"%");
-                    } else {
-                        sql += "  AND (street = ? OR (street = ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
-                        params.add(address.bldg_chr+" "+address.street);
-                        params.add(address.street);
+                        sql += " AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
+                        params.add(streetAddr.getBldgChar() + " " + streetAddr.getStreet() + "%");
+                        params.add(streetAddr.getStreet() + "%");
                     }
-                    params.add(address.bldg_chr);
-                    params.add(address.bldg_chr);
+                    else {
+                        sql += " AND (street = ? OR (street = ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
+                        params.add(streetAddr.getBldgChar() + " " + streetAddr.getStreet());
+                        params.add(streetAddr.getStreet());
+                    }
+                    params.add(streetAddr.getBldgChar());
+                    params.add(streetAddr.getBldgChar());
                 }
-
-            } else {
+            }
+            else {
                 if (fuzzy) {
-                    sql += "  AND (street LIKE ?) \n";
-                    params.add(address.street+"%");
-                } else {
-                    sql += "  AND (street = ?) \n";
-                    params.add(address.street);
+                    sql += " AND (street LIKE ?) \n";
+                    params.add(streetAddr.getStreet() + "%");
+                }
+                else {
+                    sql += " AND (street = ?) \n";
+                    params.add(streetAddr.getStreet());
                 }
             }
 
             if (whereBldg) {
-                sql += "  AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity=? )) \n";
-                params.add(address.bldg_num);
-                params.add(address.bldg_num);
-                params.add((address.bldg_num % 2 == 0 ? "EVENS" : "ODDS"));
+                sql += " AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity= "
+                     + (streetAddr.getBldgNum() % 2 == 0 ? "'EVENS'" : "'ODDS'") + ")) \n";
+                params.add(streetAddr.getBldgNum());
+                params.add(streetAddr.getBldgNum());
+            }
+        }
+        /** Only do a lookup if we have meaningful filters on the query */
+        if (whereZip || whereStreet) {
+            return run.query(sql, new DistrictStreetRangeMapHandler(), params.toArray());
+        }
+        else {
+            logger.warn("Skipping address: no identifying information " + streetAddr);
+            return null;
+        }
+    }
+
+    public DistrictInfo consolidateDistrictInfo(List<DistrictInfo> districtInfoList)
+    {
+        if (districtInfoList.size() == 0) return null;
+        DistrictInfo baseDist = districtInfoList.get(0);
+
+        for (int i= 1; i < districtInfoList.size(); i++) {
+            DistrictInfo rangeDist = districtInfoList.get(i);
+
+            /** Iterate through all district types and ensure that the districts in the base range are consistent
+             *  with the current range. If a district has a mismatch, then the district code in the base range is nullified.
+             */
+            for (DistrictType distType : DistrictType.getAllTypes()) {
+
+                String baseCode = baseDist.getDistCode(distType);
+                String baseCounty = baseDist.getDistCode(COUNTY);
+                String baseTown = baseDist.getDistCode(TOWN);
+                String rangeCode = rangeDist.getDistCode(distType);
+                String rangeCounty = rangeDist.getDistCode(COUNTY);
+                String rangeTown = rangeDist.getDistCode(TOWN);
+                boolean baseCodeValid = baseDist.hasValidDistCode(distType);
+                boolean rangeCodeValid = rangeDist.hasValidDistCode(distType);
+                boolean isCountyBased = DistrictType.getCountyBasedTypes().contains(distType);
+                boolean isTownBased = DistrictType.getTownBasedTypes().contains(distType);
+
+                if ( !(baseCodeValid && rangeCodeValid && rangeCode.equals(baseCode))
+                                     || (isCountyBased && (rangeCounty == null || !rangeCounty.equals(baseCounty)))
+                                     || (isTownBased && (rangeTown == null || !rangeTown.equals(baseTown)))) {
+                    baseDist.setDistCode(distType, null);
+                }
             }
         }
 
-        // Only do a lookup if we have meaningful filters on the query
-        if (whereZip || whereStreet) {
-            if (true) {
-                System.out.println(sql);
-                for (Object o : params) {
-                    System.out.println(o);
-                }
-            }
+        if (baseDist.hasValidDistCode(SENATE)) {
+            return baseDist;
+        }
+        else {
             return null;
-            //return runner.query(sql, rangeHandler, params.toArray());
-        } else {
-            if (true) {
-                System.out.println("Skipping address: no identifying information");
+        }
+    }
+
+    public static class DistrictStreetRangeMapHandler implements ResultSetHandler<Map<StreetAddressRange,DistrictInfo>>
+    {
+        @Override
+        public Map<StreetAddressRange, DistrictInfo> handle(ResultSet rs) throws SQLException
+        {
+            Map<StreetAddressRange, DistrictInfo> streetRangeMap = new LinkedHashMap<>();
+            while (rs.next()) {
+                StreetAddressRange sar = new StreetAddressRange();
+                DistrictInfo dInfo = new DistrictInfo();
+
+                sar.setId(rs.getInt("id"));
+                sar.setBldgLoNum(rs.getInt("bldg_lo_num"));
+                sar.setBldgHiNum(rs.getInt("bldg_hi_num"));
+                sar.setStreet(rs.getString("street"));
+                sar.setLocation(rs.getString("town"));
+                sar.setZip5(rs.getString("zip5"));
+                sar.setBldgParity(rs.getString("bldg_parity"));
+
+                dInfo.setDistCode(ELECTION, rs.getString("election_code"));
+                dInfo.setDistCode(COUNTY, rs.getString("county_code"));
+                dInfo.setDistCode(ASSEMBLY, rs.getString("assembly_code"));
+                dInfo.setDistCode(SENATE, rs.getString("senate_code"));
+                dInfo.setDistCode(CONGRESSIONAL, rs.getString("congressional_code"));
+                dInfo.setDistCode(TOWN, rs.getString("town_code"));
+                dInfo.setDistCode(WARD, rs.getString("ward_code"));
+                dInfo.setDistCode(SCHOOL, rs.getString("school_code"));
+                dInfo.setDistCode(CLEG, rs.getString("cleg_code"));
+                dInfo.setDistCode(CITY, rs.getString("city_code"));
+                dInfo.setDistCode(VILLAGE, rs.getString("vill_code"));
+                dInfo.setDistCode(FIRE, rs.getString("fire_code"));
+
+                streetRangeMap.put(sar, dInfo);
             }
-            return new ArrayList<BOEAddressRange>();
+            return streetRangeMap;
         }
     }
 }
