@@ -1,11 +1,11 @@
-package gov.nysenate.sage.controller.api.base;
+package gov.nysenate.sage.controller.api;
 
 /**
  *
  */
 public enum RequestAttribute
 {
-    REQUEST_TYPE("request_type"), FORMAT("format"), PARAM_SOURCE("param_source"), PARAM_TYPE("param_type");
+    API_TYPE("apiType"), REQUEST_TYPE("requestType"), FORMAT("format"), PARAM_SOURCE("paramSource");
 
     private String name;
     RequestAttribute(String name){

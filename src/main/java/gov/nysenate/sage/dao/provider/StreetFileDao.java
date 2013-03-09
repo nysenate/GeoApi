@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
+import static gov.nysenate.sage.model.district.DistrictQuality.*;
 import gov.nysenate.sage.model.district.DistrictType;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -47,7 +48,7 @@ public class StreetFileDao extends BaseDao
             }
         }
         else {
-            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist);
+            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, HOUSE);
         }
     }
 
@@ -67,7 +68,7 @@ public class StreetFileDao extends BaseDao
             }
         }
         else {
-            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist);
+            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, STREET);
         }
     }
 
@@ -77,7 +78,7 @@ public class StreetFileDao extends BaseDao
         List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
         DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
         if (consolidatedDist != null){
-            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist);
+            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, ZIP5);
         }
         else {
             return null;

@@ -1,9 +1,10 @@
-package gov.nysenate.sage.controller.api.base;
+package gov.nysenate.sage.controller.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.geo.Point;
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -21,6 +22,7 @@ import java.util.Map;
  */
 public abstract class BaseApiController extends HttpServlet
 {
+    private static Logger logger = Logger.getLogger(BaseApiController.class);
     public abstract void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
     public abstract void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
     public abstract void init(ServletConfig config) throws ServletException;
@@ -41,6 +43,21 @@ public abstract class BaseApiController extends HttpServlet
                     r.getParameter("state"), r.getParameter("zip5"),  r.getParameter("zip4"));
         }
         return address;
+    }
+
+    public static Point getPointFromParams(HttpServletRequest r)
+    {
+        Point point = null;
+        if (r != null){
+            try {
+                point = new Point(Double.parseDouble(r.getParameter("lat")), Double.parseDouble(r.getParameter("lon")));
+                return point;
+            }
+            catch (Exception ex) {
+                logger.debug(ex.getMessage());
+            }
+        }
+        return null;
     }
 
     public static void sendResultMap(HttpServletRequest request, Map<String,Object> resultMap)
