@@ -101,7 +101,7 @@ public class GeoCodeMethod extends ApiExecution
         }
         else {
           Address bestMatch = result.getFirstAddress();
-          ret.add(new Point(bestMatch.latitude, bestMatch.longitude, bestMatch.as_raw()));
+          ret.add(new Point(bestMatch.latitude, bestMatch.longitude));
         }
       }
 

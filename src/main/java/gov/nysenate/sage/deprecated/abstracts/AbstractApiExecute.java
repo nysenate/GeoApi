@@ -1,7 +1,7 @@
 package gov.nysenate.sage.deprecated.abstracts;
 
-import gov.nysenate.sage.api.exceptions.ApiException;
-import gov.nysenate.sage.api.exceptions.ApiFormatException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiException;
+import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiFormatException;
 
 import java.util.ArrayList;
 

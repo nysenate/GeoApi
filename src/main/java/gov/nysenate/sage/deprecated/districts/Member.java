@@ -1,8 +1,5 @@
 package gov.nysenate.sage.deprecated.districts;
 
-import gov.nysenate.sage.deprecated.abstracts.AbstractDistrict;
-import gov.nysenate.sage.deprecated.annotations.ForeignKey;
-
 import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -26,7 +23,7 @@ public class Member {
 	@Expose String url;
 	@XStreamOmitField Integer type;
 	
-	@XStreamOmitField @ForeignKey(AbstractDistrict.class) String district;
+	String district;
 	
 	public Member() {
 		

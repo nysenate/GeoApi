@@ -9,8 +9,6 @@ import javax.servlet.http.HttpServletResponse;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.connectors.DistrictServices;
-import gov.nysenate.sage.connectors.DistrictServices.DistrictType;
 import gov.nysenate.sage.model.ApiExecution;
 
 public class PolySearchMethod extends ApiExecution {
@@ -18,7 +16,7 @@ public class PolySearchMethod extends ApiExecution {
 	public Object execute(HttpServletRequest request,
 			HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
 		
-		Object ret = null;
+		/*Object ret = null;
 		String format = more.get(RequestCodes.FORMAT.code());
 		String polyType = more.get(RequestCodes.POLY.code());
 		String type = more.get(RequestCodes.POLY_TYPE.code());
@@ -56,12 +54,7 @@ public class PolySearchMethod extends ApiExecution {
 				e.printStackTrace();
 				throw new ApiInternalException();
 			} */
-		}
-		else {
-			throw new ApiTypeException(type);
-		}
-				
-		return ret;
+		return null;
 	}
 	
 	@Override

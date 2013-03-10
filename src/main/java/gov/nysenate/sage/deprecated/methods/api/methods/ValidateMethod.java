@@ -8,7 +8,6 @@ import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.ApiExecution;
 import gov.nysenate.sage.model.ErrorResponse;
-import gov.nysenate.sage.model.ValidateResponse;
 
 import java.util.ArrayList;
 
@@ -43,7 +42,7 @@ public class ValidateMethod extends ApiExecution {
 	    if (result==null) {
 	        throw new ApiInternalException();
 	    } else if (result.getStatus().equals("0")) {
-	        return new ValidateResponse(result.getAddress());
+	        //return new ValidateResponse(result.getAddress());
 	    } else {
 	        String msg = "";
 	        for (String m : result.getMessages()) {
@@ -51,5 +50,6 @@ public class ValidateMethod extends ApiExecution {
 	        }
 	        return new ErrorResponse(msg.toString());
 	    }
+        return null;
 	}
 }

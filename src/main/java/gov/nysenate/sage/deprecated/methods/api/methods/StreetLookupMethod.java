@@ -2,7 +2,6 @@ package gov.nysenate.sage.deprecated.methods.api.methods;
 
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.ApiExecution;
-import gov.nysenate.sage.util.SqliteAdapter;
 
 import java.util.ArrayList;
 
@@ -20,6 +19,7 @@ public class StreetLookupMethod extends ApiExecution {
 		if(zip.length() != 5)
 		    throw new ApiTypeException(zip);
 
-		return SqliteAdapter.getInstance().getStreetsForZip(zip);
+		return null;
+		//return SqliteAdapter.getInstance().getStreetsForZip(zip);
 	}
 }

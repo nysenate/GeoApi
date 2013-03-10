@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import gov.nysenate.services.model.Social;
 
 @Deprecated
 public class Senator {
@@ -17,7 +18,8 @@ public class Senator {
 	@Expose String url;
 	@Expose String imageUrl;
 	
-	@Expose @PersistentObject Social social;
+	@Expose @PersistentObject
+    Social social;
 	@Expose @PersistentObject @ListType(Office.class) ArrayList<Office> offices;
 	
 	@XStreamOmitField @ForeignKey(Senate.class) String district;
