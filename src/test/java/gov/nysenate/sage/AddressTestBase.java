@@ -3,6 +3,8 @@ package gov.nysenate.sage;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.service.address.AddressService;
+import gov.nysenate.sage.util.FormatUtil;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -39,6 +41,7 @@ public abstract class AddressTestBase
                 new Address("", "", "", "", "18542", "")));
 
         ArrayList<AddressResult> addressResults = addressService.validate(addresses);
+        FormatUtil.printObject(addressResults);
 
         assertEquals(addressService.getClass().getSimpleName(), addressResults.get(0).getSource());
         Address expected = new Address("71 14TH ST", "", "TROY", "NY", "12180", "4209");
@@ -66,6 +69,13 @@ public abstract class AddressTestBase
         assertAddressEquals(expected, addressResults.get(5).getAddress());
 
         assertFalse(addressResults.get(6).isValidated());
+    }
+
+    public static void assertBadAddressValidate(AddressService addressService)
+    {
+        Address address = new Address("Some Fake Address", "No where", "NY", "12123");
+        AddressResult addressResult = addressService.validate(address);
+        assertFalse(addressResult.isValidated());
     }
 
     public static void assertCityStateLookup(AddressService addressService)

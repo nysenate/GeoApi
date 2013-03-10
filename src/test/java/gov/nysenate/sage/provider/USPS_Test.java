@@ -2,6 +2,9 @@ package gov.nysenate.sage.provider;
 
 import static gov.nysenate.sage.AddressTestBase.*;
 import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.service.address.AddressService;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,20 +32,33 @@ public class USPS_Test extends TestBase
     }
 
     @Test
-    public void USPS_SingleAddressValidate_ReturnsAddressResult()
+    public void singleAddressValidate_ReturnsAddressResult()
     {
         assertSingleAddressValidation(usps);
     }
 
     @Test
-    public void USPS_MultipleAddressValidate_ReturnsAddressResult()
+    public void multipleAddressValidate_ReturnsAddressResult()
     {
         assertMultiAddressValidation(usps);
     }
 
     @Test
-    public void USPS_CityStateLookup_ReturnsAddressResult()
+    public void cityStateLookup_ReturnsAddressResult()
     {
         assertCityStateLookup(usps);
     }
+
+    @Test
+    public void singleInvalidAddressValidate_SetsIsValidatedFalse()
+    {
+        assertBadAddressValidate(usps);
+    }
+
+    @Test
+    public void test()
+    {
+        FormatUtil.printObject(usps.validate(new Address("200 yellow place", "Rockledge", "FL", "")));
+    }
+
 }

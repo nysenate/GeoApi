@@ -63,4 +63,11 @@ public class TigerGeocoderTest extends TestBase
         GeocodeResult geocodeResult = tigerGeocoder.reverseGeocode(new Point(1,1));
         assertEquals(ResultStatus.NO_REVERSE_GEOCODE_RESULT, geocodeResult.getStatusCode());
     }
+
+    @Test
+    public void test()
+    {
+
+    }
+
 }

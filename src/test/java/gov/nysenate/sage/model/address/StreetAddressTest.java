@@ -17,7 +17,7 @@ public class StreetAddressTest extends TestBase
         sa.setInternal("Suite 20");
         sa.setLocation("New York");
         sa.setState("NY");
-        sa.setPostal("10075");
+        sa.setZip5("10075");
 
         Address a = sa.toAddress();
         assertEquals("185 E 79th St", a.getAddr1());

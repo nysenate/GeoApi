@@ -1,13 +1,16 @@
 package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
-import static gov.nysenate.sage.GeocodeTestBase.assertMultipleAddressGeocode;
-import static gov.nysenate.sage.GeocodeTestBase.assertSingleAddressGeocode;
-import static gov.nysenate.sage.GeocodeTestBase.assertSingleReverseGeocode;
+import static gov.nysenate.sage.GeocodeTestBase.*;
+import static org.junit.Assert.assertEquals;
 
 public class YahooTest extends TestBase
 {
@@ -21,20 +24,36 @@ public class YahooTest extends TestBase
     }
 
     @Test
-    public void YahooSingleGeocode_ReturnsGeocodeResult()
+    public void singleGeocode_ReturnsGeocodeResult()
     {
         assertSingleAddressGeocode(yahoo);
     }
 
     @Test
-    public void YahooMultipleGeocode_ReturnsGeocodeResults()
+    public void multipleGeocode_ReturnsGeocodeResults()
     {
         assertMultipleAddressGeocode(yahoo);
     }
 
     @Test
-    public void YahooSingleReverseGeocode_ReturnsGeocodeResult()
+    public void singleReverseGeocode_ReturnsGeocodeResult()
     {
         assertSingleReverseGeocode(yahoo);
+    }
+
+    @Test
+    public void geocodeErrorCases_SetsResultStatus()
+    {
+        assertNoResultReturnsNoGeocodeResultStatus(yahoo);
+        assertNullAddressReturnsMissingAddressStatus(yahoo);
+        assertEmptyAddressReturnsInsufficientAddressStatus(yahoo);
+    }
+
+    @Test
+    public void invalidPointReverseGeocode_ReturnsNoReverseGeocodeStatus()
+    {
+        GeocodeResult geocodeResult = yahoo.reverseGeocode(new Point(-230,430));
+        FormatUtil.printObject(geocodeResult);
+        assertEquals(ResultStatus.NO_REVERSE_GEOCODE_RESULT, geocodeResult.getStatusCode());
     }
 }

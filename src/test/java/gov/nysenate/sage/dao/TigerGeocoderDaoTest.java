@@ -54,7 +54,7 @@ public class TigerGeocoderDaoTest extends TestBase
         assertEquals(214, geocodedStreetAddress.getStreetAddress().getBldgNum());
         assertEquals("8th", geocodedStreetAddress.getStreetAddress().getStreet());
         assertEquals("troy", geocodedStreetAddress.getStreetAddress().getLocation().toLowerCase());
-        assertEquals("12180", geocodedStreetAddress.getStreetAddress().getPostal());
+        assertEquals("12180", geocodedStreetAddress.getStreetAddress().getZip5());
     }
 
     @Test
@@ -76,7 +76,7 @@ public class TigerGeocoderDaoTest extends TestBase
         assertEquals("st", streetAddress.getStreetType().toLowerCase());
         assertEquals("troy", streetAddress.getLocation().toLowerCase());
         assertEquals("NY", streetAddress.getState().toUpperCase());
-        assertEquals("12180", streetAddress.getPostal());
+        assertEquals("12180", streetAddress.getZip5());
     }
 
     @Test
@@ -85,12 +85,12 @@ public class TigerGeocoderDaoTest extends TestBase
         StreetAddress streetAddress = tigerGeocoderDao.getStreetAddress(new Point(42.7352408, -73.6828174));
         assertNotNull(streetAddress);
         assertEquals("troy", streetAddress.getLocation().toLowerCase());
-        assertEquals("12180", streetAddress.getPostal());
+        assertEquals("12180", streetAddress.getZip5());
     }
 
     @Test
     public void miscTest()
     {
-        FormatUtil.printObject(tigerGeocoderDao.getGeocodedStreetAddress(new Address("1256 BRANT NORTH COLLINS RD, NORTH COLLINS, NY 14111")));
+        FormatUtil.printObject(tigerGeocoderDao.getGeocodedStreetAddress(new Address("100 Nyroy Dr Troy NY 12180")));
     }
 }

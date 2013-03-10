@@ -2,7 +2,7 @@ package gov.nysenate.sage.filter;
 
 import gov.nysenate.sage.MockFilter;
 import gov.nysenate.sage.TestBase;
-import static gov.nysenate.sage.controller.api.base.RequestAttribute.*;
+import static gov.nysenate.sage.controller.api.RequestAttribute.*;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.auth.ApiUser;
 import gov.nysenate.sage.util.Config;

@@ -19,19 +19,19 @@ public class GeoserverTest extends TestBase
     }
 
     @Test
-    public void GeoServerSingleAddressDistrictAssign_ReturnsDistrictResult()
+    public void singleAddressDistrictAssign_ReturnsDistrictResult()
     {
         assertSingleAddressDistrictAssign(geoserver);
     }
 
     @Test
-    public void GeoServerMultipleAddressDistrictAssign_ReturnsDistrictResults()
+    public void multipleAddressDistrictAssign_ReturnsDistrictResults()
     {
         assertMultipleAddressDistrictAssign(geoserver);
     }
 
     @Test
-    public void GeoServerAssignWithTypesTest()
+    public void assignWithTypesTest()
     {
         assertSingleAddressDistrictAssignWithTypes(geoserver);
         assertMultipleAddressDistrictAssignWithTypes(geoserver);
@@ -39,7 +39,7 @@ public class GeoserverTest extends TestBase
 
     /** When the input is null make sure that the correct errors are propagated */
     @Test
-    public void GeoServerInvalidInputTest()
+    public void invalidInputTest()
     {
         assertDistrictAssign_MissingInput_SetsStatus(geoserver);
         assertDistrictAssign_MissingGeocode_SetsStatus(geoserver);
@@ -47,7 +47,7 @@ public class GeoserverTest extends TestBase
     }
 
     @Test
-    public void GeoServerAssignedDistrictsIsSetProperly()
+    public void assignedDistrictsIsSetProperly()
     {
         assertAssignedDistrictsSet_IsPopulated(geoserver);
     }
