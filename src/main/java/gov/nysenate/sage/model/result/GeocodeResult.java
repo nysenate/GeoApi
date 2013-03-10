@@ -23,7 +23,6 @@ public class GeocodeResult extends BaseResult
     public GeocodeResult(GeocodedAddress geocodedAddress, String status, Class sourceClass )
     {
         this.setGeocodedAddress(geocodedAddress);
-        this.setStatus(status);
         this.setSource(sourceClass);
     }
 

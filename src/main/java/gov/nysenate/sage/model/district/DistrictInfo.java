@@ -76,6 +76,10 @@ public class DistrictInfo
         return this.districtCodes;
     }
 
+    public Map<DistrictType, DistrictMap> getDistrictMaps() {
+        return this.districtMaps;
+    }
+
     public String toString()
     {
         String out = "";

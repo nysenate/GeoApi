@@ -31,7 +31,6 @@ public class AddressResult extends BaseResult
     public AddressResult(Address address, String status, Class sourceClass, boolean validated)
     {
         this.setAddress(address);
-        this.setStatus(status);
         this.setSource(sourceClass);
         this.setValidated(validated);
     }

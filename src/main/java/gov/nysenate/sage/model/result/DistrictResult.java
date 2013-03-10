@@ -14,23 +14,20 @@ public class DistrictResult extends BaseResult
     /** The districted address */
     protected DistrictedAddress districtedAddress;
 
-    /** A set of the DistrictType's that were actually district assigned */
-    protected Set<DistrictType> assignedDistricts;
-
     public DistrictResult()
     {
-        this(null, new HashSet<DistrictType>());
+        this(null, null);
     }
 
-    public DistrictResult(DistrictedAddress districtedAddress)
+    public DistrictResult(Class sourceClass)
     {
-        this(districtedAddress, new HashSet<DistrictType>());
+        this(sourceClass, null);
     }
 
-    public DistrictResult(DistrictedAddress districtedAddress, Set<DistrictType> assignedDistricts )
+    public DistrictResult(Class sourceClass, DistrictedAddress districtedAddress)
     {
-        this.districtedAddress = districtedAddress;
-        this.assignedDistricts = assignedDistricts;
+        this.setSource(sourceClass);
+        this.setDistrictedAddress(districtedAddress);
     }
 
     public DistrictInfo getDistrictInfo()

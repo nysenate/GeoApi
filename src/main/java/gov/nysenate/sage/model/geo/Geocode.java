@@ -29,6 +29,11 @@ public class Geocode
         this(latlon, GeocodeQuality.UNKNOWN, "");
     }
 
+    public Geocode(Point latlon, GeocodeQuality quality)
+    {
+        this(latlon, quality, "");
+    }
+
     public Geocode(Point latlon, GeocodeQuality quality, String method)
     {
         this.latlon = latlon;

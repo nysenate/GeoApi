@@ -1,7 +1,8 @@
 package gov.nysenate.sage.model.geo;
 
 /**
- * GeocodeQuality is a simplified accuracy measure of the geocoding result.
+ * GeocodeQuality is a simplified accuracy measure of the geocoding result. The values have
+ * been assigned based on similar quality codes among different geocoders.
  */
 public enum GeocodeQuality
 {

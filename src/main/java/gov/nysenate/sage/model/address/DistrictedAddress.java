@@ -1,6 +1,7 @@
 package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictQuality;
 import gov.nysenate.sage.model.geo.Geocode;
 
 import java.io.Serializable;
@@ -12,13 +13,20 @@ public class DistrictedAddress implements Serializable, Cloneable
 {
     protected GeocodedAddress geocodedAddress;
     protected DistrictInfo districtInfo;
+    protected DistrictQuality districtQuality = DistrictQuality.NOMATCH;
 
     public DistrictedAddress() {}
 
     public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo)
     {
+        this(geocodedAddress, districtInfo, DistrictQuality.NOMATCH);
+    }
+
+    public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo, DistrictQuality districtQuality)
+    {
         this.geocodedAddress = geocodedAddress;
         this.districtInfo = districtInfo;
+        this.districtQuality = districtQuality;
     }
 
     public GeocodedAddress getGeocodedAddress()
@@ -74,5 +82,13 @@ public class DistrictedAddress implements Serializable, Cloneable
     public void setDistrictInfo(DistrictInfo districtInfo)
     {
         this.districtInfo = districtInfo;
+    }
+
+    public DistrictQuality getDistrictQuality() {
+        return districtQuality;
+    }
+
+    public void setDistrictQuality(DistrictQuality districtQuality) {
+        this.districtQuality = districtQuality;
     }
 }

@@ -46,9 +46,17 @@ public class GeocodedAddress implements Serializable, Cloneable
         return this.geocode;
     }
 
+    /** Basic check on the address */
+    public boolean isAddressValid()
+    {
+        return isReverseGeocoded();
+    }
+
+    /** A valid geocode should have a quality code level of ZIP or greater */
     public boolean isGeocoded()
     {
-        return (this.geocode != null && this.geocode.getQuality() != GeocodeQuality.NOMATCH);
+        return (this.geocode != null && this.geocode.getQuality() != null
+                && this.geocode.getQuality().compareTo(GeocodeQuality.ZIP) >= 0);
     }
 
     public boolean isReverseGeocoded()
