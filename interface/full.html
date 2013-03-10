@@ -49,21 +49,30 @@
                       <input type="text" name="zip5" maxlength="5">
                     </li>
                     <li>
-                      <label>Zip4</label>
+                      <label style="color:#444;">Zip4</label>
                       <input type="text" name="zip4" maxlength="4">
                     </li>
                     <li>
-                      <label>Service</label>
-                      <select name="service">
-                        <option>Yahoo</option>
-                        <option value="YahooBoss">Yahoo BOSS</option>
-                        <option>Mapquest</option>
-                        <option>OSM</option>
-                        <option>GeoCoder</option>
-                      </select>
+                        <label style="color:#444">Method</label>
+                        <select style="width: 98px; color:#444;">
+                            <option>Default</option>
+                            <option>Tiger</option>
+                            <option>Yahoo</option>
+                            <option>MapQuest</option>
+                            <option>OSM</option>
+                        </select>
+                        <select style="width: 98px; color:#444;">
+                           <option>Default</option>
+                           <option>Streetfile</option>
+                           <option>Shapefile</option>
+                           <option>Geoserver</option>
+                        </select>
                     </li>
                     <li>
-                        <input type="submit" id="districts" name="submit" value="Find districts">
+                        <button class="submit">
+                            <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
+                            <span>Find Districts</span>
+                        </button>
                     </li>
                   </ol>
 
@@ -129,21 +138,39 @@
     </div>
 
     <div id="rightcolumn">
-        <div class="innertube">
+        <div class="innertube" style="display:none">
+            <div style="display:none">
+                The Senate Address Geocoding Engine is an open source web service that provides geocoding and district
+                mapping solutions for the NY State Senate. Geocoding services are provided by third party vendors as
+                well as from Census TIGER line sources.
+
+                https://github.com/nysenate/GeoApi
+            </div>
+
             <p class="result-header success">Results</p>
-                <div class="info-container">
+                <div class="info-container senator">
                     <div style="float:left">
                         <img src="http://www.nysenate.gov/files/profile-pictures/young%20headshot-ret.jpg" width="80px" height="100px" class="senator-pic">
                     </div>
-                    <div>
-                        <span class="senator-name">Senator Catherine Young</span>
+                    <div style="margin-left:90px; padding:10px;">
+                        <p class="senator-name">Catherine Young</p>
+                        <p class="senate-district">Senate District 57</p><br/>
+                        <p class="senator-email"><span aria-hidden="true" data-icon="&#9993;" style="color:teal;"></span>cyoung@senate.state.ny.us</p>
+                    </div>
+                    <hr/>
+                    <span style="margin-left:10px;font-size:13px;color:#444;"><span data-icon="&#59175;"></span>Show Map</span>
+
+                    <div class="senator-social">
+                        <span data-socialicon="&#62222;" class="social"></span>
                     </div>
                 </div>
+
+            <div class="info-container" style="padding:5px">
+                <p class="validated-address"><span data-icon="&#59171;"></span>100 Nyroy Dr, Troy, NY 12180</p>
+            </div>
             </div>
         </div>
     </div>
-
-
 </div>
 </body>
 </html>

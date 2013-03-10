@@ -1,5 +1,14 @@
 @import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro);
 
+@font-face {
+    font-family: 'entypo';
+    src: url('entypo/entypo.eot'); /* IE9 Compat Modes */
+    src: url('entypo/entypo?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('entypo/entypo.woff') format('woff'), /* Modern Browsers */
+    url('entypo/entypo.ttf')  format('truetype'), /* Safari, Android, iOS */
+    url('entypo/entypo.svg#svgFontName') format('svg'); /* Legacy iOS */
+}
+
 html {
     height:100%;
 }
@@ -11,8 +20,19 @@ body{
     height:100%;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    
+[data-icon]:before {
+    font-family: 'entypo'; /* BYO icon font, mapped smartly */
+    content: attr(data-icon);
+    speak: none;
+    font-size:30px;
+    line-height:0px;
+    position:relative;
+    top: 2px;
+    margin-right:5px;
+}
+
+[data-socialicon]:before {
+
 }
 
 h1.logo {
@@ -72,8 +92,8 @@ ul.nav li:hover a{
 
 #rightcolumn{
     float: left;
-    width: 299px; /*Width of right column*/
-    margin-left: -300px; /*Set left margin to -(RightColumnWidth)*/
+    width: 349px; /*Width of right column*/
+    margin-left: -350px; /*Set left margin to -(RightColumnWidth)*/
     background: #eee;
     height:100%;
     border-left:1px solid #bbb;
@@ -123,13 +143,15 @@ p.method-header.active {
 p.result-header.success {
     color: white;
     background-color:#477326;
+    font-weight: bold;
 }
 
 p.result-header.error {
     background-color: #8E2F2F;
+    font-weight: bold;
 }
 
-p.method-header.active.teal{ background-color:teal;}
+p.method-header.active.teal{ background-color:#0E4E5A;}
 p.method-header.active.maroon{ background-color:#632127;}
 p.method-header.active.green{background-color:#477326;}
 p.method-header.active.purple{background-color:#632150;}
@@ -152,11 +174,6 @@ p.method-header.active.brown{background-color:#957732;}
     height: 125px;
 }
 
-input[type="text"] {
-    border:1px solid #ccc;
-    padding:5px;
-}
-
 form ol{
     padding:0px 0px 0px 10px;
     list-style-type: none;
@@ -175,12 +192,24 @@ ol.input-container li label {
     font-size:13px;
 }
 
-ol.input-container li input[type="text"] {
+ol.input-container li input[type="text"]{
     width:200px;
     background:white;
+    border:1px solid #ccc;
+    padding:5px;
+    margin-bottom:2px;
 }
 
-input[type="submit"] {
+ol.input-container li select {
+    padding:4px 2px;
+    outline:none;
+    border:1px solid #ccc;
+    width:200px;
+    background:white;
+    margin-bottom:2px;
+}
+
+button.submit {
     text-align: center;
     background: #799933;
     color: white;
@@ -188,13 +217,26 @@ input[type="submit"] {
     outline: 0;
     font-size: 14px;
     font-family: 'Source Sans Pro';
-    padding: 5px 20px;
-    width: 200px;
+    padding: 7px 20px;
+    width: 264px;
     font-weight: bold;    
 }
 
-input[type="submit"]:hover{
+button.submit:hover{
     background: #7BA838;
+}
+
+.info-container.senator {
+    height:150px;
+}
+
+hr {
+    color: #333;
+    border-style: none none solid none;
+    outline: none;
+    border-width: 1px;
+    border-color: #BBB;
+    box-shadow: #999 0px 1px 4px;
 }
 
 img.senator-pic {
@@ -203,6 +245,31 @@ img.senator-pic {
     float:left;
 }
 
+/* Senator Info Card
+--------------------*/
+
+p {
+    margin:0px;
+}
+
 .senator-name {
     color:#444;
+    font-size:24px;
 }
+
+.senator-email {
+    color:#444;
+    font-size:14px;
+}
+
+.senate-district {
+    font-size:18px;
+    font-weight: bold;
+    color: teal;
+}
+
+.validated-address {
+    color: #333;
+    font-size:18px;
+}
+
