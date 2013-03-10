@@ -22,22 +22,33 @@ public class BaseDao
         this.tigerDataSource = ApplicationFactory.getTigerDataSource();
     }
 
-    protected QueryRunner getQueryRunner()
+    public QueryRunner getQueryRunner()
     {
         return new QueryRunner(this.dataSource);
     }
 
-    protected AsyncQueryRunner getAsyncQueryRunner(ExecutorService executorService)
+    public AsyncQueryRunner getAsyncQueryRunner(ExecutorService executorService)
     {
         return new AsyncQueryRunner(executorService, this.getQueryRunner());
     }
 
-    protected QueryRunner getTigerQueryRunner()
+    public QueryRunner getTigerQueryRunner()
     {
         return new QueryRunner(this.tigerDataSource);
     }
 
-    protected Connection getTigerConnection()
+    public Connection getConnection()
+    {
+        try {
+            return this.dataSource.getConnection();
+        }
+        catch (SQLException ex) {
+            logger.fatal(ex.getMessage());
+        }
+        return null;
+    }
+
+    public Connection getTigerConnection()
     {
         try {
             return this.tigerDataSource.getConnection();
@@ -46,6 +57,18 @@ public class BaseDao
             logger.fatal(ex.getMessage());
         }
         return null;
+    }
+
+    public void closeConnection(Connection connection)
+    {
+        try {
+            if (connection != null && !connection.isClosed()){
+                connection.close();
+            }
+        }
+        catch (SQLException ex){
+            logger.fatal("Failed to close connection!", ex);
+        }
     }
 
     /**

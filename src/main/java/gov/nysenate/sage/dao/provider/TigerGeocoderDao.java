@@ -154,7 +154,7 @@ public class TigerGeocoderDao extends BaseDao
             saColumns.put("internal", "internal");
             saColumns.put("location", "location");
             saColumns.put("stateabbrev", "state");
-            saColumns.put("zip", "postal");
+            saColumns.put("zip", "zip5");
             rowProcessor = new BeanProcessor(saColumns);
         }
 

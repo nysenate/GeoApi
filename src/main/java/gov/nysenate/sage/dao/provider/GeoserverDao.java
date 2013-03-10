@@ -109,14 +109,14 @@ public class GeoserverDao extends BaseDao
                 String codeColumn = DistrictShapeCode.getCodeColumn(districtType);
 
                 /** Set the name, code, and map data for the district layer */
-                districtInfo.setDistrictName(districtType, properties.get(nameColumn).asText());
-                districtInfo.setDistrictCode(districtType, properties.get(codeColumn).asText());
-                districtInfo.setDistrictMap(districtType, getDistrictMapFromFeature(feature));
+                districtInfo.setDistName(districtType, properties.get(nameColumn).asText());
+                districtInfo.setDistCode(districtType, properties.get(codeColumn).asText());
+                districtInfo.setDistMap(districtType, getDistrictMapFromFeature(feature));
 
                 /** Handle county fips -> senate code conversion */
                 if (districtType == COUNTY){
-                    Integer countyCode = Integer.valueOf(districtInfo.getDistrictCode(COUNTY));
-                    districtInfo.setDistrictCode(COUNTY, Integer.toString(fipsCountyMap.get(countyCode).getId()));
+                    Integer countyCode = Integer.valueOf(districtInfo.getDistCode(COUNTY));
+                    districtInfo.setDistCode(COUNTY, Integer.toString(fipsCountyMap.get(countyCode).getId()));
                 }
             }
             else {
