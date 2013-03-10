@@ -5,6 +5,7 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictQuality;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
@@ -55,22 +56,21 @@ public class Geoserver implements DistrictService, Observer
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
     {
-        return assignDistricts(geocodedAddress, Arrays.asList(DistrictType.values()));
+        return assignDistricts(geocodedAddress, DistrictType.getStandardTypes());
     }
 
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses)
     {
-        return assignDistricts(geocodedAddresses, Arrays.asList(DistrictType.values()));
+        return assignDistricts(geocodedAddresses, DistrictType.getStandardTypes());
     }
 
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> types)
     {
-        DistrictResult districtResult = new DistrictResult();
-        districtResult.setSource(this.getClass());
+        DistrictResult districtResult = new DistrictResult(this.getClass());
 
-        /** Proceed if the input is valid. Otherwise return the result with status code set. */
+        /** Proceed if the input is valid. Otherwise return the result. */
         if (!validateRequest(geocodedAddress, districtResult)) {
             logger.warn("Geocoded address could not be validated.");
             return districtResult;
@@ -79,6 +79,7 @@ public class Geoserver implements DistrictService, Observer
         try {
             DistrictInfo districtInfo;
             Geocode geocode = geocodedAddress.getGeocode();
+
             districtInfo = this.geoserverDao.getDistrictInfo(geocode.getLatLon(), types);
 
             /** Check to see if districts were assigned */
@@ -88,7 +89,7 @@ public class Geoserver implements DistrictService, Observer
                 return districtResult;
             }
 
-            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo));
+            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictQuality.POINT));
         }
         catch (Exception ex) {
             districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);

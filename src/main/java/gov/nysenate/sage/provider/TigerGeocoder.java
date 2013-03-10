@@ -134,7 +134,7 @@ public class TigerGeocoder implements GeocodeService
 
         /** If the zip code matches, we can check to see if the streets match. If they don't match, we
          * can't be sure if it's the correct street or not so it becomes a zip level geocode. */
-        if (!inputAddress.getZip5().isEmpty() && inputAddress.getZip5() == sa.getPostal()) {
+        if (!inputAddress.getZip5().isEmpty() && inputAddress.getZip5() == sa.getZip5()) {
             if (inputAddress.getAddr1().contains(sa.getStreet()) && rawQuality <= 60 ) { return GeocodeQuality.STREET; }
             return GeocodeQuality.ZIP;
         }

@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
@@ -137,35 +138,10 @@ public class OSM implements GeocodeService, Observer
         return null;
     }
 
-    public class ParallelRequest implements Callable<GeocodeResult>
-    {
-        public final OSM osm;
-        public final Address address;
-
-        ParallelRequest(OSM osm, Address address) {
-            this.osm = osm;
-            this.address = address;
-        }
-
-        @Override
-        public GeocodeResult call() {
-            return osm.geocode(address);
-        }
-    }
-
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        ArrayList<GeocodeResult> results = new ArrayList<>();
-        ExecutorService executor = Executors.newFixedThreadPool(5);
-        ArrayList<Future<GeocodeResult>> futureResults = new ArrayList<>();
-
-        for (Address address : addresses) {
-            futureResults.add(executor.submit(new ParallelRequest(this, address)));
-        }
-
-        executor.shutdown();
-        return results;
+        return ParallelGeocodeService.geocode(this, addresses);
     }
 
     @Override

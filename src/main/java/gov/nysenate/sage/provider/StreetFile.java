@@ -15,6 +15,13 @@ import org.apache.log4j.Logger;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * A street file provider implementation to resolve district codes.
+   Street files are distributed by the Board of Elections on a county basis.
+   These files contain address ranges with corresponding district code information.
+   District information can be obtained quickly by matching a given address to an
+   address range stored in the street file database.
+ */
 public class StreetFile implements DistrictService
 {
     private Logger logger = Logger.getLogger(StreetFile.class);
@@ -59,7 +66,7 @@ public class StreetFile implements DistrictService
 
             /** Try a Zip5 level match */
             if (match == null) {
-                match = streetFileDao.getDistAddressByStreet(streetAddr);
+                match = streetFileDao.getDistAddressByZip(streetAddr);
             }
 
             if (match != null) {
