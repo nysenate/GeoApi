@@ -6,6 +6,7 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.MethodDescriptor;
 
+@Deprecated
 public class BOEAddressRange extends BOEAddress implements java.io.Serializable {
 
     public int id;

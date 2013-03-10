@@ -2,7 +2,7 @@ package gov.nysenate.sage.boe.StreetFiles;
 
 import gov.nysenate.sage.boe.AddressUtils;
 import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.StreetFile;
+import gov.nysenate.sage.boe.StreetFileHandler;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,7 +16,7 @@ import javax.sql.DataSource;
 import org.apache.commons.dbutils.QueryRunner;
 
 
-public abstract class NTSAlt extends StreetFile {
+public abstract class NTSAlt extends StreetFileHandler {
     public final Pattern street_pattern = Pattern.compile("^(.*?)\\s+([0-9]+)\\s+(\\d+)\\s*-\\s*(\\d+)\\s+(ODDS|EVENS|)\\s*(INCLUSIVE|EXCLUSIVE|)\\s+(\\w{1,3}|  )(?:\\s{1,6}(\\w{1,3}|  ))(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,6}(\\w{1,3}|  ))?(?:\\s{1,9}(\\w{1,3}|  ))?$");
 
     public NTSAlt(int countyCode,File street_file) throws Exception {

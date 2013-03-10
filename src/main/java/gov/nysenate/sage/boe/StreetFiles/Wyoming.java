@@ -1,7 +1,7 @@
 package gov.nysenate.sage.boe.StreetFiles;
 
 import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.StreetFile;
+import gov.nysenate.sage.boe.StreetFileHandler;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,7 +14,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.QueryRunner;
 
-public class Wyoming extends StreetFile {
+public class Wyoming extends StreetFileHandler {
     private final File street_index;
     private final HashMap<String, String> townMap;
 

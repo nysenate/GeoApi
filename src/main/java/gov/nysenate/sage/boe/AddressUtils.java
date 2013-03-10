@@ -5,6 +5,7 @@ import gov.nysenate.sage.boe.BOEAddress;
 import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.BOEStreetAddress;
 import gov.nysenate.sage.boe.BluebirdAddress;
+import gov.nysenate.sage.util.FormatUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Deprecated
 public class AddressUtils {
     public static boolean DEBUG = false;
     public static HashMap<String,String> suffixMap = null;
@@ -19,6 +21,15 @@ public class AddressUtils {
     public static HashMap<String,String> commonAbbreviations = null;
 
     public static Pattern addrPattern = null;
+
+    public static void main(String[] args)
+    {
+        loadConstants();
+        System.out.println(System.nanoTime());
+        FormatUtil.printObject(parseAddress("8515 167 st, Jamaica, NY 11432"));
+        System.out.println(System.nanoTime());
+    }
+
 
     public static BOEStreetAddress parseAddress(String address) {
         loadConstants();

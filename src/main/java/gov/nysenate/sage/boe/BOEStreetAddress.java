@@ -1,5 +1,6 @@
 package gov.nysenate.sage.boe;
 
+@Deprecated
 public class BOEStreetAddress extends BOEAddress {
 
     public int bldg_num;

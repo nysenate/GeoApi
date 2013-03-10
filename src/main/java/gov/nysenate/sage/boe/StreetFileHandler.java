@@ -1,6 +1,5 @@
 package gov.nysenate.sage.boe;
 
-import gov.nysenate.sage.service.AddressService;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -8,9 +7,11 @@ import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
+import gov.nysenate.sage.service.address.AddressService;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.log4j.Logger;
 
+@Deprecated
 public abstract class StreetFileHandler {
     public final File street_file;
     protected final Logger logger;
@@ -25,7 +26,7 @@ public abstract class StreetFileHandler {
         this.street_file = street_file;
         this.county_code = countyCode;
         logger = Logger.getLogger(this.getClass());
-        this.addressService = new AddressService();
+        this.addressService = null;
     }
 
     public abstract void save(DataSource db) throws Exception;

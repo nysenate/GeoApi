@@ -17,7 +17,8 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.log4j.Logger;
 
-public class DistrictLookup {
+@Deprecated
+public class  DistrictLookup {
     public QueryRunner runner;
     public ResultSetHandler<List<BOEAddressRange>> rangeHandler;
     public final Logger logger = Logger.getLogger(DistrictLookup.class);

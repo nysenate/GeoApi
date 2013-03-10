@@ -1,5 +1,6 @@
 package gov.nysenate.sage.boe;
 
+@Deprecated
 public class BluebirdAddress extends BOEStreetAddress {
 
     public String id;
