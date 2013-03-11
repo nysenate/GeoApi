@@ -1,9 +1,6 @@
 package gov.nysenate.sage.deprecated.methods.api.methods;
 
-import gov.nysenate.sage.model.ApiExecution;
-
-
-public class BluebirdMethod extends ApiExecution
+public class BluebirdMethod
 {
    /* private final GeoService geoService;
     private final DistrictService districtService;

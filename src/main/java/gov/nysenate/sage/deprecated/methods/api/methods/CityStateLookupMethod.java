@@ -1,9 +1,6 @@
 package gov.nysenate.sage.deprecated.methods.api.methods;
 
-import gov.nysenate.sage.model.ApiExecution;
-
-
-public class CityStateLookupMethod extends ApiExecution
+public class CityStateLookupMethod
 {
     /*AddressService addressService;
 

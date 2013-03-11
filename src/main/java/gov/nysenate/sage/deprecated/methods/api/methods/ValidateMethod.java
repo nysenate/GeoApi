@@ -6,22 +6,20 @@ import gov.nysenate.sage.provider.USPS;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.model.ApiExecution;
-import gov.nysenate.sage.model.ErrorResponse;
 
 import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class ValidateMethod extends ApiExecution {
+public class ValidateMethod {
 	USPS usps;
 
     public ValidateMethod() throws Exception {
         usps = new USPS();
     }
 
-	@Override
+
 	public Response execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiException {
 	    String type = more.get(RequestCodes.TYPE.code());
 		if(!type.equals("extended"))
@@ -48,7 +46,7 @@ public class ValidateMethod extends ApiExecution {
 	        for (String m : result.getMessages()) {
 	            msg += "\n"+m;
 	        }
-	        return new ErrorResponse(msg.toString());
+	        //return new ErrorResponse(msg.toString());
 	    }
         return null;
 	}

@@ -6,8 +6,6 @@ import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.model.ApiExecution;
-import gov.nysenate.sage.model.ErrorResponse;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.service.GeoService;
 import gov.nysenate.sage.service.GeoService.GeoException;
@@ -23,7 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class GeoCodeMethod extends ApiExecution
+public class GeoCodeMethod
 {
   private final GeoService geoservice;
 
@@ -32,7 +30,7 @@ public class GeoCodeMethod extends ApiExecution
     geoservice = new GeoService();
   }
 
-  @Override
+
   public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiException
   {
     String service = request.getParameter("service");
@@ -94,10 +92,10 @@ public class GeoCodeMethod extends ApiExecution
       ArrayList<Result> results = geoservice.geocode(addresses, service);
       for (Result result : results) {
         if (result == null) {
-          ret.add(new ErrorResponse("Internal Geocoding Error."));
+          //ret.add(new ErrorResponse("Internal Geocoding Error."));
         }
         else if (!result.getStatus().equals("0")) {
-          ret.add(new ErrorResponse(result.getFirstMessage()));
+          //ret.add(new ErrorResponse(result.getFirstMessage()));
         }
         else {
           Address bestMatch = result.getFirstAddress();
@@ -119,7 +117,7 @@ public class GeoCodeMethod extends ApiExecution
   }
 
 
-  @Override
+
   public String toOther(Object obj, String format) throws ApiFormatException
   {
     if (format.equals("csv")) {

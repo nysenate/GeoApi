@@ -1,9 +1,7 @@
 package gov.nysenate.sage.deprecated.methods.api.methods;
 
-import gov.nysenate.sage.model.ApiExecution;
 
-
-public class ZipCodeLookupMethod extends ApiExecution
+public class ZipCodeLookupMethod
 {
  /* AddressService addressService;
 

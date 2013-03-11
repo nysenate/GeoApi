@@ -9,10 +9,9 @@ import javax.servlet.http.HttpServletResponse;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.model.ApiExecution;
 
-public class PolyMethod extends ApiExecution {
-	@Override
+public class PolyMethod  {
+
 	public Object execute(HttpServletRequest request,
 			HttpServletResponse response, ArrayList<String> more) throws ApiTypeException, ApiInternalException {
 		
@@ -35,7 +34,7 @@ public class PolyMethod extends ApiExecution {
 		return null;
 	}
 	
-	@Override
+
 	public String toXml(Object obj, ArrayList<Class<?>> xstreamClasses) {
 		try {
 			return toOther(obj, null);
@@ -45,7 +44,7 @@ public class PolyMethod extends ApiExecution {
 		}
 	}
 
-	@Override
+
 	public String toJson(Object obj) {
 		try {
 			return toOther(obj, null);
@@ -55,7 +54,7 @@ public class PolyMethod extends ApiExecution {
 		}
 	}
 	
-	@Override
+
 	public String toOther(Object obj, String format) throws ApiFormatException {
 		if(obj instanceof StringBuffer) {
 			return ((StringBuffer)obj).toString();

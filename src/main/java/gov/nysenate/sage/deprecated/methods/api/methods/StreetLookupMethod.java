@@ -1,15 +1,14 @@
 package gov.nysenate.sage.deprecated.methods.api.methods;
 
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.model.ApiExecution;
 
 import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class StreetLookupMethod extends ApiExecution {
-	@Override
+public class StreetLookupMethod {
+
 	public Object execute(HttpServletRequest request, HttpServletResponse response, ArrayList<String> more) throws ApiTypeException {
 	    String type = more.get(RequestCodes.TYPE.code());
 	    if(!type.equals("zip"))
