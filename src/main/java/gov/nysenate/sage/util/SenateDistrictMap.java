@@ -6,6 +6,7 @@ import gov.nysenate.sage.service.DistrictService;
 /**
  * @author Ken Zalewski
  */
+@Deprecated
 public class SenateDistrictMap extends DistrictMap
 {
   /**

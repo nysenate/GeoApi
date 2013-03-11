@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
  * @author Ken Zalewski
  *
  */
+@Deprecated
 public class DistrictMap
 {
   private DistrictService.TYPE m_distType = null;
