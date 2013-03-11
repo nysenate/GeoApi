@@ -1,6 +1,5 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.adapter.GeoServer;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.service.DistrictService;
@@ -72,16 +71,12 @@ public class DistrictMap
       return false;
     }
 
-    try {
-      GeoServer geosrv = new GeoServer();
-      ArrayList<Point> points = geosrv.getDistrictBoundary(m_district, m_distType);
-      m_polygon = new Polygon(points);
+
+      //GeoServer geosrv = new GeoServer();
+      //ArrayList<Point> points = geosrv.getDistrictBoundary(m_district, m_distType);
+      //m_polygon = new Polygon(points);
       return true;
-    }
-    catch (IOException ioEx) {
-      logger.error("Unable to instantiate GeoServer: "+ioEx.getMessage());
-      return false;
-    }
+
   } // loadCoordinates()
 
 

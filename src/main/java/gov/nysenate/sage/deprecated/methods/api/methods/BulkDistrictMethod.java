@@ -9,16 +9,11 @@ import gov.nysenate.sage.boe.BOEAddressRange;
 import gov.nysenate.sage.boe.BluebirdAddress;
 import gov.nysenate.sage.boe.DistrictLookup;
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.service.DistrictService;
-import gov.nysenate.sage.service.DistrictService.DistException;
-import gov.nysenate.sage.service.GeoService;
-import gov.nysenate.sage.service.GeoService.GeoException;
 import gov.nysenate.sage.util.FormatUtil;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -40,14 +35,14 @@ public class    BulkDistrictMethod
 {
     private final Logger logger = Logger.getLogger(BulkDistrictMethod.class);
 
-    private final GeoService geoService;
+    //private final GeoService geoService;
     private final DistrictLookup streetData;
-    private final DistrictService districtService;
+    //private final DistrictService districtService;
 
     public BulkDistrictMethod() throws Exception {
         streetData = new DistrictLookup(ApplicationFactory.getDataSource());
-        geoService = new GeoService();
-        districtService = new DistrictService();
+        //geoService = new GeoService();
+        //districtService = new DistrictService();
     }
 
     private BluebirdAddress jsonToAddress(String id, JSONObject json) throws JSONException
@@ -260,7 +255,7 @@ public class    BulkDistrictMethod
 
                 // Fill in missing coordinates for addresses.
                 try {
-                    Result geoResult = geoService.geocode(sageAddress, geocoder);
+                    Result geoResult = null;//geoService.geocode(sageAddress, geocoder);
                     if (!geoResult.getStatus().equals("0")) {
                         address.geo_method = geocoder.toUpperCase()+" - ERROR "+geoResult.getStatus();
                         return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Error ["+geoResult.getStatus()+"] - "+geoResult.getFirstMessage(), address, new BOEAddressRange());
@@ -318,13 +313,13 @@ public class    BulkDistrictMethod
                     address.latitude = sageAddress.latitude;
                     address.longitude = sageAddress.longitude;
                     address.geo_accuracy = sageAddress.geocode_quality;
-                } catch (GeoException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     address.geo_method = geocoder.toUpperCase()+" - Exception Thrown";
                     return new BulkResult(BulkResult.STATUS.NOMATCH, "Geocode Exception for: "+address.toString(), address, new BOEAddressRange() );
                 }
             }
-
+              /*
             try {
                 Result distResult = districtService.assignDistricts(sageAddress, new ArrayList<DistrictService.TYPE>(Arrays.asList(DistrictService.TYPE.ASSEMBLY,DistrictService.TYPE.CONGRESSIONAL,DistrictService.TYPE.SENATE,DistrictService.TYPE.COUNTY,DistrictService.TYPE.SCHOOL,DistrictService.TYPE.TOWN)), "geoserver");
                 if (!distResult.getStatus().equals("0")) {
@@ -336,7 +331,7 @@ public class    BulkDistrictMethod
                  e.printStackTrace();
                  return new BulkResult(BulkResult.STATUS.NOMATCH, "DistAssign Exception for: "+sageAddress, address, new BOEAddressRange() );
             }
-
+               */
             BOEAddressRange addressRange = AddressUtils.convertSageToRange(sageAddress);
             return new BulkResult(BulkResult.STATUS.SHAPEFILE, "SHAPEFILE MATCH for "+sageAddress, address, addressRange );
         }

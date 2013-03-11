@@ -2,8 +2,6 @@ package gov.nysenate.sage.service;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
-import gov.nysenate.sage.adapter.GeoServer;
-import gov.nysenate.sage.adapter.StreetData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +50,7 @@ public class DistrictService {
 
     public DistrictService() throws Exception {
         adapters = new HashMap<String, DistAssignInterface>();
-        adapters.put("geoserver", new GeoServer());
+
     }
 
     public Result assignDistrict(Address address, TYPE type, String adapterName) throws DistException {
