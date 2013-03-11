@@ -129,8 +129,10 @@ public class TigerGeocoder implements GeocodeService
         int rawQuality = gsa.getGeocode().getRawQuality();
         StreetAddress sa = gsa.getStreetAddress();
 
-        /** A building number usually means its a house quality match. */
-        if (sa.getBldgNum() != 0 && rawQuality <= 40) { return GeocodeQuality.HOUSE; }
+        /** A matching building number usually means its a house quality match. */
+        if (sa.getBldgNum() != 0 && inputAddress.getAddr1().contains(Integer.toString(sa.getBldgNum()))) {
+            return GeocodeQuality.HOUSE;
+        }
 
         /** If the zip code matches, we can check to see if the streets match. If they don't match, we
          * can't be sure if it's the correct street or not so it becomes a zip level geocode. */

@@ -1,4 +1,4 @@
-package gov.nysenate.sage.adapter;
+package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
