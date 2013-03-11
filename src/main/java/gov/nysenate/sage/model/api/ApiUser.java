@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.auth;
+package gov.nysenate.sage.model.api;
 
 import java.io.Serializable;
 

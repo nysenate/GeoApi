@@ -1,6 +1,6 @@
 package gov.nysenate.sage.controller.api.geo;
 
-import gov.nysenate.sage.controller.api.base.BaseApiController;
+import gov.nysenate.sage.controller.api.BaseApiController;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
@@ -15,8 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static gov.nysenate.sage.controller.api.base.RequestAttribute.PARAM_SOURCE;
-import static gov.nysenate.sage.controller.api.base.RequestAttribute.REQUEST_TYPE;
+import static gov.nysenate.sage.controller.api.RequestAttribute.PARAM_SOURCE;
+import static gov.nysenate.sage.controller.api.RequestAttribute.REQUEST_TYPE;
 
 /**
  *
@@ -24,7 +24,7 @@ import static gov.nysenate.sage.controller.api.base.RequestAttribute.REQUEST_TYP
 public class GeocodeController extends BaseApiController
 {
     private Logger logger = Logger.getLogger(GeocodeController.class);
-    private ServiceProviders<GeocodeService> geoCodeServiceProviders;
+    private ServiceProviders<GeocodeService> geocodeServiceProviders;
 
     public static String geoCodeRequest = "geocode";
     public static String revGeoCodeRequest = "revgeo";
@@ -32,7 +32,7 @@ public class GeocodeController extends BaseApiController
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        geoCodeServiceProviders = ApplicationFactory.getGeoCodeServiceProviders();
+        geocodeServiceProviders = ApplicationFactory.getGeoCodeServiceProviders();
         logger.debug("Initialized " + this.getClass().getSimpleName());
     }
 
@@ -45,7 +45,7 @@ public class GeocodeController extends BaseApiController
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        GeocodeResult geocodeResult;
+        GeocodeResult geocodeResult = new GeocodeResult();
 
         /** Get the URI attributes */
         String source = (String) request.getAttribute(PARAM_SOURCE.toString());
@@ -57,25 +57,26 @@ public class GeocodeController extends BaseApiController
         boolean useFallback = (fallBack != null && fallBack.equals("true")) ? true : false;
 
         /** Obtain an GeoCodeService */
-        GeocodeService geocodeService = geoCodeServiceProviders.newServiceInstance(service, useFallback);
+        GeocodeService geocodeService = geocodeServiceProviders.newServiceInstance(service, useFallback);
 
         if (geocodeService != null){
 
             if (requestType.equalsIgnoreCase(geoCodeRequest)){
                 Address address = getAddressFromParams(request);
-                geocodeResult = geocodeService.geocode(address);
+                if (address != null){
+                    geocodeResult = geocodeService.geocode(address);
+                }
             }
             else if (requestType.equalsIgnoreCase(revGeoCodeRequest)){
                 Point point = getPointFromParams(request);
+                logger.debug(point);
                 if (point != null){
                     geocodeResult = geocodeService.reverseGeocode(point);
                 }
             }
         }
 
-        sendResultMap(geocodeR);
-
-
+        setResponse(geocodeResult.toMap(), request);
     }
 
 
