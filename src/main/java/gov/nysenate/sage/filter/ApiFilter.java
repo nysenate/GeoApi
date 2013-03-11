@@ -93,7 +93,7 @@ public class ApiFilter implements Filter, Observer
         }
 
         /** Response from chain percolates to here */
-        formatResponse(request);
+        formatResponse(request, response);
         sendResponse(request, response);
     }
 
@@ -217,7 +217,7 @@ public class ApiFilter implements Filter, Observer
      *  - Invalid format specified in the parameters.
      * @param request   ServletRequest
      */
-    private void formatResponse(ServletRequest request)
+    private void formatResponse(ServletRequest request, ServletResponse response)
     {
         String format = request.getParameter("format");
         if (format == null) {
@@ -240,16 +240,22 @@ public class ApiFilter implements Filter, Observer
                 xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
                 String xml = xmlMapper.writeValueAsString(responseObj);
                 request.setAttribute(formattedResponseKey, xml);
+                response.setContentType("application/xml");
+                response.setContentLength(xml.length());
             }
             else if (format.equalsIgnoreCase(FormatType.JSONP.name())) {
                 String callback = request.getParameter("callback");
                 String json = jsonMapper.writeValueAsString(responseObj);
                 String jsonp = String.format("%s(%s);", callback, json);
                 request.setAttribute(formattedResponseKey, jsonp);
+                response.setContentType("application/javascript");
+                response.setContentLength(jsonp.length());
             }
             else {
                 String json = jsonMapper.writeValueAsString(responseObj);
                 request.setAttribute(formattedResponseKey, json);
+                response.setContentType("application/json");
+                response.setContentLength(json.length());
             }
         }
         catch (JsonProcessingException ex) {
