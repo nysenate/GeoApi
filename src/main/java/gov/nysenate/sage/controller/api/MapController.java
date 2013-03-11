@@ -1,4 +1,4 @@
-package gov.nysenate.sage.controller.api.geo;
+package gov.nysenate.sage.controller.api;
 
 /**
  * Created with IntelliJ IDEA.
@@ -7,5 +7,5 @@ package gov.nysenate.sage.controller.api.geo;
  * Time: 1:48 PM
  * To change this template use File | Settings | File Templates.
  */
-public class PolyController {
+public class MapController {
 }

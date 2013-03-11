@@ -14,6 +14,7 @@ public enum ResultStatus
     API_REQUEST_INVALID(20, "The request is not in a valid format. Check the documentation for proper usage."),
     API_INPUT_FORMAT_UNSUPPORTED(21, "The requested input format is currently not supported."),
     API_OUTPUT_FORMAT_UNSUPPORTED(22, "The requested output format is currently not supported."),
+    JSONP_CALLBACK_NOT_SPECIFIED(23, "A callback signature must be specified as a parameter e.g &callback=method"),
 
     RESPONSE_MISSING_ERROR(90, "No response from service provider."),
     RESPONSE_PARSE_ERROR(91, "Error parsing response from service provider."),
@@ -55,6 +56,11 @@ public enum ResultStatus
     ResultStatus(int code, String desc){
         this.code = code;
         this.desc = desc;
+    }
+
+    public int getCode()
+    {
+        return this.code;
     }
 
     public String getDesc()

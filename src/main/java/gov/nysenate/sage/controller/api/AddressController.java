@@ -1,9 +1,8 @@
-package gov.nysenate.sage.controller.api.address;
+package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.controller.api.base.BaseApiController;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
-import static gov.nysenate.sage.controller.api.base.RequestAttribute.*;
+import static gov.nysenate.sage.controller.api.RequestAttribute.*;
 
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.service.ServiceProviders;
@@ -25,7 +24,7 @@ import java.io.IOException;
 public final class AddressController extends BaseApiController
 {
     private Logger logger = Logger.getLogger(AddressController.class);
-    private ServiceProviders<AddressService> addressProviders;
+    private ServiceProviders<AddressService> addressServiceProviders;
 
     public static String validateRequest = "validate";
     public static String cityStateRequest = "citystate";
@@ -34,7 +33,7 @@ public final class AddressController extends BaseApiController
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        addressProviders = ApplicationFactory.getAddressServiceProviders();
+        addressServiceProviders = ApplicationFactory.getAddressServiceProviders();
         logger.debug("Initialized " + this.getClass().getSimpleName());
     }
 
@@ -60,18 +59,21 @@ public final class AddressController extends BaseApiController
         boolean useFallback = (fallBack != null && fallBack.equals("true")) ? true : false;
 
         /** Obtain an AddressService */
-        AddressService addressService = addressProviders.newServiceInstance(service, useFallback);
+        AddressService addressService = addressServiceProviders.newServiceInstance(service, useFallback);
 
         if (addressService != null){
 
             /** Retrieve address from query parameters */
             Address address = getAddressFromParams(request);
 
-            if (requestType.equalsIgnoreCase(validateRequest) || requestType.equalsIgnoreCase(zipcodeRequest)){
+            if (requestType.equalsIgnoreCase(validateRequest)){
                 addressResult = addressService.validate(address);
             }
             else if (requestType.equalsIgnoreCase(cityStateRequest)){
                 addressResult = addressService.lookupCityState(address);
+            }
+            else if (requestType.equalsIgnoreCase(zipcodeRequest)){
+                addressResult = addressService.lookupZipCode(address);
             }
             else {
                 addressResult = new AddressResult(this.getClass());
@@ -86,6 +88,6 @@ public final class AddressController extends BaseApiController
         }
 
         /** Set response */
-        sendResultMap(request, addressResult.toMap());
+
     }
 }

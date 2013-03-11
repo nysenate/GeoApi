@@ -1,6 +1,5 @@
-package gov.nysenate.sage.controller.api.geo;
+package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.controller.api.BaseApiController;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
