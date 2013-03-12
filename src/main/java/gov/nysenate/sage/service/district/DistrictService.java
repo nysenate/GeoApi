@@ -7,12 +7,11 @@ import org.apache.log4j.Logger;
 import java.util.List;
 
 /**
- * DistrictService is used to assign district information to geocoded addresses.
+ * DistrictService is used to assign district information to addresses and may or may not require
+ * geo-coordinate information.
  */
 public interface DistrictService
 {
-    Logger logger = Logger.getLogger(DistrictService.class);
-
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress);
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> types);
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses);
