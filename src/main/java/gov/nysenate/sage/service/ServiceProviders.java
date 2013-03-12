@@ -3,6 +3,7 @@ package gov.nysenate.sage.service;
 import org.apache.log4j.Logger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class is used for registering and obtaining implementation instances for a
@@ -12,7 +13,7 @@ import java.util.Map;
  * <code>
  * ServiceProviders<ExampleService> exampleServiceProvider = new ServiceProviders<>();
  * exampleServiceProvider.registerDefaultProvider("impl", exampleImpl); // Register
- * ExampleService impl = exampleServiceProvider.newServiceInstance();   // Get new instance
+ * ExampleService impl = exampleServiceProvider.newInstance();   // Get new instance
  * </code>
  *
  * So essentially it's a simple way to keep track of which classes can serve as an
@@ -46,14 +47,33 @@ public class ServiceProviders<T>
     }
 
     /**
+     * Returns the set of mapped keys.
+     * @return
+     */
+    public Set<String> getProviderNames()
+    {
+        return providers.keySet();
+    }
+
+    /**
+     * Determines if given providerName is registered
+     * @param providerName
+     * @return
+     */
+    public boolean isRegistered(String providerName)
+    {
+        return (providerName != null && !providerName.isEmpty() && this.providers.containsKey(providerName.toLowerCase()));
+    }
+
+    /**
      * Returns a new instance of the default T implementation.
      * @return   T if default provider is set.
      *           null if default provider not set.
      */
-    public T newServiceInstance()
+    public T newInstance()
     {
         if (providers.containsKey(defaultProvider)){
-            return newServiceInstance(defaultProvider);
+            return newInstance(defaultProvider);
         }
         else {
             logger.debug("Default address provider not registered!");
@@ -66,23 +86,25 @@ public class ServiceProviders<T>
      * with the given providerName.
      * @param providerName
      * @return  T instance specified by providerName.
-     *          null if provider is not registered.
+     *          null if provider is not specified/registered.
      */
-    public T newServiceInstance(String providerName)
+    public T newInstance(String providerName)
     {
-        if (providers.containsKey(providerName.toLowerCase())){
-            try {
-                return (T) providers.get(providerName.toLowerCase()).getClass().newInstance();
+        if (providerName != null && !providerName.isEmpty()) {
+            if (providers.containsKey(providerName.toLowerCase())){
+                try {
+                    return (T) providers.get(providerName.toLowerCase()).getClass().newInstance();
+                }
+                catch (InstantiationException ie){
+                    logger.error(ie.getMessage());
+                }
+                catch (IllegalAccessException iea){
+                    logger.error(iea.getMessage());
+                }
             }
-            catch (InstantiationException ie){
-                logger.error(ie.getMessage());
+            else {
+                logger.debug(providerName + " is not a registered provider!");
             }
-            catch (IllegalAccessException iea){
-                logger.error(iea.getMessage());
-            }
-        }
-        else {
-            logger.debug(providerName + " is not a registered address provider!");
         }
         return null;
     }
@@ -95,17 +117,30 @@ public class ServiceProviders<T>
      * @return  T if providerName found or useFallback:true
      *          null otherwise
      */
-    public T newServiceInstance(String providerName, boolean useFallback)
+    public T newInstance(String providerName, boolean useFallback)
     {
         if (providerName != null){
-            T a = newServiceInstance(providerName);
+            T a = newInstance(providerName);
             if (a != null){
                 return a;
             }
         }
-        else if (providerName == null || useFallback){
-            return newServiceInstance();
+        else if (useFallback){
+            return newInstance();
         }
         return null;
+    }
+
+    /**
+     * Allows for a specified fallback service if the provider does not exist.
+     * @param providerName
+     * @param fallbackProviderName
+     * @return T if providerName or fallbackProviderName valid
+     *         null otherwise
+     */
+    public T newInstance(String providerName, String fallbackProviderName)
+    {
+        T a = newInstance(providerName);
+        return (a != null) ? a : newInstance(fallbackProviderName);
     }
 }
