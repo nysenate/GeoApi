@@ -2,7 +2,13 @@ package gov.nysenate.sage.client.api;
 
 import gov.nysenate.sage.model.result.ResultStatus;
 
-import java.util.ArrayList;
-import java.util.List;
+public class ApiError extends BaseResponse
+{
+    public ApiError(ResultStatus resultStatus) {
+        super(resultStatus);
+    }
 
-public class ApiError extends ApiResponse {}
+    public ApiError(Class sourceClass, ResultStatus resultStatus) {
+        super(sourceClass, resultStatus);
+    }
+}
