@@ -12,85 +12,104 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-public class Config extends Observable{
-    private static Logger logger = Logger.getLogger(Config.class);
 
-    private static Config INSTANCE = new Config();
-    private Properties properties;
-    private File propertyFile;
-    private long checkTime;
-    private long readTime;
+public class Config extends Observable
+{
+  private static final Pattern variablePattern = Pattern.compile("\\{\\{(.*)\\}\\}");
+  private static Logger logger = Logger.getLogger(Config.class);
+  private static Config INSTANCE = new Config();
+  private final long checkInterval = 1000;    //milliseconds
 
-    private final long checkInterval=1000; //Milliseconds
-    private static final Pattern variablePattern = Pattern.compile("\\{\\{(.*)\\}\\}");
+  private Properties properties;
+  private File propertyFile;
+  private long checkTime;
+  private long readTime;
 
-    public static String read(String key) {
-        if (INSTANCE.properties.containsKey(key)) {
-            String value = (String)INSTANCE.properties.get(key);
-            logger.debug(String.format("Fetching config[%s]=%s",key, value));
-            value = resolveVariables(value);
-            INSTANCE.properties.setProperty(key, value);
-            return value;
-        } else {
-            logger.warn("Missing config property: "+key);
-            return "";
+
+  public static String read(String key, String defaultValue)
+  {
+    if (INSTANCE.properties.containsKey(key)) {
+      String value = (String)INSTANCE.properties.get(key);
+      logger.debug(String.format("Fetching config[%s]=%s", key, value));
+      value = resolveVariables(value);
+      INSTANCE.properties.setProperty(key, value);
+      return value;
+    }
+    else {
+      logger.warn("Missing config property ["+key+"]; using default ["+defaultValue+"]");
+      return defaultValue;
+    }
+  } // read()
+
+
+  public static String read(String key)
+  {
+    return read(key, "");
+  } // read()
+
+
+  public static void notify(Observer o)
+  {
+    INSTANCE.addObserver(o);
+  } // notify()
+
+
+  public static void refresh()
+  {
+    INSTANCE.loadProperties();
+  } // refresh()
+
+
+  private static String resolveVariables(String value)
+  {
+    Matcher variableMatcher = variablePattern.matcher(value);
+    while (variableMatcher.find()) {
+      String variable = variableMatcher.group(1);
+      String replacement = read(variable);
+      logger.debug(String.format("Resolving %s to %s",variable, replacement));
+      value = value.replace("{{"+variable+"}}", replacement);
+    }
+    return value;
+  } // resolveVariables()
+
+
+  private Config() {
+    loadProperties();
+  } // Config()
+
+
+  private String getPropertiesPath() {
+    Map<String,String> env = System.getenv();
+    if (env.containsKey("GEOAPI_CONFIG_FILE")) {
+      return env.get("GEOAPI_CONFIG_FILE");
+    }
+    else {
+      return Config.class.getClassLoader().getResource("app.properties").getPath();
+    }
+  } // getPropertiesPath()
+
+
+  private synchronized Properties loadProperties() {
+    // Check lastModified every X milliseconds for changes
+    if (properties == null || System.currentTimeMillis()-checkTime > checkInterval) {
+      checkTime = System.currentTimeMillis();
+      if (propertyFile == null || propertyFile.lastModified() > readTime) {
+        // Read new properties file...
+        properties = new Properties();
+        propertyFile = new File(getPropertiesPath());
+        readTime = System.currentTimeMillis();
+        logger.debug(String.format("(Re)Loading '%s' at: %d",propertyFile.getAbsolutePath(),readTime));
+        try {
+          properties.load(new FileReader(propertyFile));
+          setChanged();
+          notifyObservers();
         }
-    }
-
-    public static void notify(Observer o) {
-        INSTANCE.addObserver(o);
-    }
-
-    public static void refresh() {
-        INSTANCE.loadProperties();
-    }
-
-    private static String resolveVariables(String value) {
-        Matcher variableMatcher = variablePattern.matcher(value);
-        while(variableMatcher.find()) {
-            String variable = variableMatcher.group(1);
-            String replacement = read(variable);
-            logger.debug(String.format("Resolving %s to %s",variable, replacement));
-            value = value.replace("{{"+variable+"}}", replacement);
+        catch (IOException e) {
+          // TODO Auto-generated catch block
+          logger.error("Could not load propertyFile: "+propertyFile.getAbsolutePath(),e);
         }
-        return value;
+      }
     }
-
-
-    private Config() {
-        loadProperties();
-    }
-
-    private String getPropertiesPath() {
-        Map<String,String> env = System.getenv();
-        if (env.containsKey("GEOAPI_CONFIG_FILE")) {
-            return env.get("GEOAPI_CONFIG_FILE");
-        } else {
-            return Config.class.getClassLoader().getResource("app.properties").getPath();
-        }
-    }
-
-    private synchronized Properties loadProperties() {
-        // Check lastModified every X milliseconds for changes
-        if (properties == null || System.currentTimeMillis()-checkTime > checkInterval) {
-            checkTime = System.currentTimeMillis();
-            if (propertyFile == null || propertyFile.lastModified() > readTime) {
-                // Read new properties file...
-                properties = new Properties();
-                propertyFile = new File(getPropertiesPath());
-                readTime = System.currentTimeMillis();
-                logger.debug(String.format("(Re)Loading '%s' at: %d",propertyFile.getAbsolutePath(),readTime));
-                try {
-                    properties.load(new FileReader(propertyFile));
-                    setChanged();
-                    notifyObservers();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    logger.error("Could not load propertyFile: "+propertyFile.getAbsolutePath(),e);
-                }
-            }
-        }
-        return properties;
-    }
-
+    return properties;
+  } // loadProperties()
 }
