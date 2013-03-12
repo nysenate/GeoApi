@@ -56,7 +56,7 @@ public class ProcessBulkUploads
     public BatchResult call() throws GeoException
     {
       long start = System.currentTimeMillis();
-      ArrayList<Result> results = geoService.geocode(input.addressSet, "yahoo", Address.TYPE.PARSED);
+      ArrayList<Result> results = geoService.geocode(input.addressSet, GEOCODE_ADAPTER, Address.TYPE.PARSED);
       long time = (System.currentTimeMillis()-start);
       logger.info("GeocodeBatch: "+time);
 
@@ -127,9 +127,10 @@ public class ProcessBulkUploads
   }
 
 
-  final int BATCH_SIZE;
-  final int GEOCODE_THREADS;
-  final int DISTASSIGN_THREADS;
+  private final int BATCH_SIZE;
+  private final int GEOCODE_THREADS;
+  private final int DISTASSIGN_THREADS;
+  private final String GEOCODE_ADAPTER;
 
   private static final String TEMP_FILENAME = "bulk_process.lock";
   private final Logger logger;
@@ -153,9 +154,10 @@ public class ProcessBulkUploads
     geoService = new GeoService();
     districtService = new DistrictService();
 
-    BATCH_SIZE = Integer.parseInt(Config.read("bulk.batch_size"));
-    GEOCODE_THREADS = Integer.parseInt(Config.read("bulk.threads.geocode"));
-    DISTASSIGN_THREADS = Integer.parseInt(Config.read("bulk.threads.distassign"));
+    BATCH_SIZE = Integer.parseInt(Config.read("bulk.batch_size", "100"));
+    GEOCODE_THREADS = Integer.parseInt(Config.read("bulk.geocode.threads", "3"));
+    DISTASSIGN_THREADS = Integer.parseInt(Config.read("bulk.distassign.threads", "3"));
+    GEOCODE_ADAPTER = Config.read("bulk.geocode.adapter", "yahoo");
     UPLOAD_DIR = new File(Config.read("bulk.upload.dir"));
     FileUtils.forceMkdir(UPLOAD_DIR);
     DOWNLOAD_DIR = new File(Config.read("bulk.download.dir"));
