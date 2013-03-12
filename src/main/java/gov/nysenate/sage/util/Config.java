@@ -73,6 +73,12 @@ public class Config
         return value;
     }
 
+    public String getValue(String key, String defaultValue)
+    {
+        String value = this.getValue(key);
+        return (!value.isEmpty()) ? value : defaultValue;
+    }
+
     /**
      * Proxies to the Observable interface implemented on the listener.
      * @param o - Observer to subscribe to change updates.
