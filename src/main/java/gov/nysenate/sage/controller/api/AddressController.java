@@ -50,19 +50,19 @@ public final class AddressController extends BaseApiController
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        Object addressResponse = new ApiError(AddressController.class, RESPONSE_ERROR);
+        Object addressResponse = new ApiError(this.getClass(), RESPONSE_ERROR);
 
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
-        FormatUtil.printObject(apiRequest);
+        String provider = apiRequest.getProvider();
 
         /**
          * If provider is specified then make sure it matches the available providers. Send an
          * api error and return if the provider is not supported.
          */
-        if (apiRequest.getProvider() != null && !apiRequest.getProvider().isEmpty()) {
-            if (!addressProviders.getProviderNames().contains(apiRequest.getProvider())) {
-                addressResponse = new ApiError(AddressController.class, PROVIDER_NOT_SUPPORTED);
+        if (provider != null && !provider.isEmpty()) {
+            if (!addressProviders.isRegistered(provider)) {
+                addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
                 setApiResponse(addressResponse, request);
                 return;
             }
@@ -76,19 +76,19 @@ public final class AddressController extends BaseApiController
                 switch (apiRequest.getRequest())
                 {
                     case "validate": {
-                        addressResponse = new ValidateResponse(validate(address, apiRequest.getProvider()));
+                        addressResponse = new ValidateResponse(validate(address, provider));
                         break;
                     }
                     case "citystate" : {
-                        addressResponse = new CityStateResponse(lookupCityState(address, apiRequest.getProvider()));
+                        addressResponse = new CityStateResponse(lookupCityState(address, provider));
                         break;
                     }
                     case "zipcode" : {
-                        addressResponse = new ZipcodeResponse(lookupZipcode(address, apiRequest.getProvider()));
+                        addressResponse = new ZipcodeResponse(lookupZipcode(address, provider));
                         break;
                     }
                     default: {
-                        addressResponse = new ApiError(AddressController.class, SERVICE_NOT_SUPPORTED);
+                        addressResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
                     }
                 }
             }

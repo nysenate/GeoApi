@@ -45,7 +45,7 @@ public class GeocodeController extends BaseApiController
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        Object geocodeResponse = new ApiError(GeocodeController.class, RESPONSE_ERROR);
+        Object geocodeResponse;
 
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
@@ -57,7 +57,7 @@ public class GeocodeController extends BaseApiController
          */
         if (provider != null && !provider.isEmpty()) {
             if (!geocodeProviders.isRegistered(provider)) {
-                geocodeResponse = new ApiError(AddressController.class, PROVIDER_NOT_SUPPORTED);
+                geocodeResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
                 setApiResponse(geocodeResponse, request);
                 return;
             }
@@ -72,7 +72,7 @@ public class GeocodeController extends BaseApiController
                         geocodeResponse = new GeocodeResponse(geocode(address, provider));
                     }
                     else {
-                        geocodeResponse = new ApiError(GeocodeController.class, MISSING_ADDRESS);
+                        geocodeResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
                     }
                     break;
                 }
@@ -82,17 +82,17 @@ public class GeocodeController extends BaseApiController
                         geocodeResponse = new RevGeocodeResponse(reverseGeocode(point, provider));
                     }
                     else {
-                        geocodeResponse = new ApiError(GeocodeController.class, MISSING_POINT);
+                        geocodeResponse = new ApiError(this.getClass(), MISSING_POINT);
                     }
                     break;
                 }
                 default: {
-                    geocodeResponse = new ApiError(GeocodeController.class, SERVICE_NOT_SUPPORTED);
+                    geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
                 }
             }
         }
         else {
-            geocodeResponse = new ApiError(GeocodeController.class, FEATURE_NOT_SUPPORTED);
+            geocodeResponse = new ApiError(this.getClass(), FEATURE_NOT_SUPPORTED);
         }
 
         /** Set response */
