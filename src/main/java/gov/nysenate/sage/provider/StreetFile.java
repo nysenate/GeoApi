@@ -6,14 +6,16 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
-import static gov.nysenate.sage.model.result.ResultStatus.*;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
+import gov.nysenate.sage.service.district.DistrictServiceValidator;
 import gov.nysenate.sage.util.AddressParser;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
 import java.util.List;
+
+import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 /**
  * A street file provider implementation to resolve district codes.
@@ -43,12 +45,7 @@ public class StreetFile implements DistrictService
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
-        if (geocodedAddress == null || geocodedAddress.getAddress() == null) {
-            districtResult.setStatusCode(MISSING_INPUT_PARAMS);
-            return districtResult;
-        }
-        else if (geocodedAddress.getAddress().isEmpty()) {
-            districtResult.setStatusCode(INSUFFICIENT_ADDRESS);
+        if (!DistrictServiceValidator.validate(geocodedAddress, districtResult, false)) {
             return districtResult;
         }
 

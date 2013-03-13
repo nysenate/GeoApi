@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
+import gov.nysenate.sage.service.district.DistrictServiceValidator;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
@@ -70,9 +71,8 @@ public class Geoserver implements DistrictService, Observer
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
-        /** Proceed if the input is valid. Otherwise return the result. */
-        if (!validateRequest(geocodedAddress, districtResult)) {
-            logger.warn("Geocoded address could not be validated.");
+        /** Validate input */
+        if (!DistrictServiceValidator.validate(geocodedAddress, districtResult, true)) {
             return districtResult;
         }
 
@@ -102,33 +102,5 @@ public class Geoserver implements DistrictService, Observer
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> types)
     {
         return ParallelDistrictService.assignDistricts(this, geocodedAddresses, types);
-    }
-
-    /**
-     * Perform basic null checks on the input parameters.
-     * @return true if all required objects are set, false otherwise
-     */
-    private boolean validateRequest(GeocodedAddress geoAddress, DistrictResult districtResult)
-    {
-        if (geoAddress == null) {
-            districtResult.setStatusCode(ResultStatus.MISSING_INPUT_PARAMS);
-        }
-        else
-        {
-            if (geoAddress.getAddress() == null) {
-                districtResult.setStatusCode(ResultStatus.MISSING_ADDRESS);
-            }
-            else if (geoAddress.getGeocode() == null) {
-                districtResult.setStatusCode(ResultStatus.MISSING_GEOCODE);
-            }
-            else if (geoAddress.getGeocode().getLatLon() == null)
-            {
-                districtResult.setStatusCode(ResultStatus.INVALID_GEOCODE);
-            }
-            else {
-                return true;
-            }
-        }
-        return false;
     }
 }
