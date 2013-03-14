@@ -8,7 +8,6 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
-import gov.nysenate.sage.service.district.DistrictServiceValidator;
 import gov.nysenate.sage.util.AddressParser;
 import org.apache.log4j.Logger;
 
@@ -16,6 +15,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
+import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
+import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
 
 /**
  * A street file provider implementation to resolve district codes.
@@ -45,10 +46,9 @@ public class StreetFile implements DistrictService
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
-        if (!DistrictServiceValidator.validateInput(geocodedAddress, districtResult, false)) {
+        if (!validateInput(geocodedAddress, districtResult, false)) {
             return districtResult;
         }
-
         /** Parse the address */
         StreetAddress streetAddr = AddressParser.parseAddress(geocodedAddress.getAddress().toString());
 
@@ -66,25 +66,22 @@ public class StreetFile implements DistrictService
                 match = streetFileDao.getDistAddressByZip(streetAddr);
             }
 
-            if (match != null) {
-                if (DistrictServiceValidator.validateDistrictInfo(match.getDistrictInfo(), reqTypes, districtResult)) {
-                    districtResult.setDistrictedAddress(match);
-                }
-                else {
-                    districtResult.setStatusCode(NO_DISTRICT_RESULT);
-                }
-            }
-            else {
+            /** Validate result and return error status */
+            if (match == null || validateDistrictInfo(match.getDistrictInfo(), reqTypes, districtResult)) {
                 districtResult.setStatusCode(NO_DISTRICT_RESULT);
+            }
+            else { /** Valid */
+                districtResult.setDistrictedAddress(match);
             }
         }
         catch (SQLException ex) {
             districtResult.setStatusCode(DATABASE_ERROR);
+            logger.error(ex);
         }
         catch (Exception ex) {
             districtResult.setStatusCode(INTERNAL_ERROR);
+            logger.error(ex);
         }
-
         return districtResult;
     }
 

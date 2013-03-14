@@ -16,6 +16,9 @@ import org.apache.log4j.Logger;
 
 import java.util.List;
 
+import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
+import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
+
 public class DistrictShapefile implements DistrictService
 {
     private static Logger logger = Logger.getLogger(Geoserver.class);
@@ -38,7 +41,7 @@ public class DistrictShapefile implements DistrictService
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
-        if (!DistrictServiceValidator.validateInput(geocodedAddress, districtResult, true)) {
+        if (!validateInput(geocodedAddress, districtResult, true)) {
             return districtResult;
         }
         try {
@@ -46,7 +49,7 @@ public class DistrictShapefile implements DistrictService
             DistrictInfo districtInfo = this.districtShapefileDao.getDistrictInfo(geocode.getLatLon(), reqTypes, true);
 
             /** Validate response */
-            if (!DistrictServiceValidator.validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
+            if (!validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
                 return districtResult;
             }
             /** Set the result. The quality here is always point since it's based of a geocode */

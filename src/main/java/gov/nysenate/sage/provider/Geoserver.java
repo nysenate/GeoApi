@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
+import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
+import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
+
 /**
  * This class is an implementation of DistrictService to perform district assignment given a
  * geocoded address. GeoServer is a WMS/WFS server that provides an API to retrieve geo-spatial
@@ -72,14 +75,15 @@ public class    Geoserver implements DistrictService, Observer
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
-        if (!DistrictServiceValidator.validateInput(geocodedAddress, districtResult, true)) {
+        if (!validateInput(geocodedAddress, districtResult, true)) {
             return districtResult;
         }
         try {
             Geocode geocode = geocodedAddress.getGeocode();
             DistrictInfo districtInfo = this.geoserverDao.getDistrictInfo(geocode.getLatLon(), reqTypes);
+
             /** Validate response */
-            if (!DistrictServiceValidator.validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
+            if (!validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
                 return districtResult;
             }
             /** Set the result. The quality here is always point since it's based of a geocode */
