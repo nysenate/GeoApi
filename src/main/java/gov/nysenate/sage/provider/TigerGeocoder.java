@@ -51,8 +51,8 @@ public class TigerGeocoder implements GeocodeService
 
         if (gsa != null) {
             Geocode geocode = gsa.getGeocode();
-            StreetAddress streetAddress = gsa.getStreetAddress();
 
+            StreetAddress streetAddress = gsa.getStreetAddress();
             Address convertedAddress = streetAddress.toAddress();
             geocode.setQuality(resolveGeocodeQuality(address, gsa));
 

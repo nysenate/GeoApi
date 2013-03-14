@@ -67,10 +67,11 @@ public class StreetFile implements DistrictService
             }
 
             /** Validate result and return error status */
-            if (match == null || validateDistrictInfo(match.getDistrictInfo(), reqTypes, districtResult)) {
+            if (match == null) {
                 districtResult.setStatusCode(NO_DISTRICT_RESULT);
             }
-            else { /** Valid */
+            else {
+                validateDistrictInfo(match.getDistrictInfo(), reqTypes, districtResult);
                 districtResult.setDistrictedAddress(match);
             }
         }
@@ -95,5 +96,11 @@ public class StreetFile implements DistrictService
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> types)
     {
         return ParallelDistrictService.assignDistricts(this, geocodedAddresses, types);
+    }
+
+    @Override
+    public boolean requiresGeocode()
+    {
+        return false;
     }
 }

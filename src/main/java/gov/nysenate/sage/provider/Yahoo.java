@@ -6,7 +6,6 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.Config;
@@ -15,6 +14,8 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
+
+import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 public class Yahoo implements GeocodeService, Observer
 {
@@ -49,11 +50,11 @@ public class Yahoo implements GeocodeService, Observer
 
         /** Proceed only on valid input */
         if (address == null) {
-            geocodeResult.setStatusCode(ResultStatus.MISSING_ADDRESS);
+            geocodeResult.setStatusCode(MISSING_ADDRESS);
             return geocodeResult;
         }
         else if (address.isEmpty()){
-            geocodeResult.setStatusCode(ResultStatus.INSUFFICIENT_ADDRESS);
+            geocodeResult.setStatusCode(INSUFFICIENT_ADDRESS);
             return geocodeResult;
         }
 
@@ -63,11 +64,14 @@ public class Yahoo implements GeocodeService, Observer
         if (geocodedAddress != null){
             geocodeResult.setGeocodedAddress(geocodedAddress);
             if (!geocodedAddress.isGeocoded()){
-                geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
+                geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
+            }
+            else {
+                geocodeResult.setStatusCode(SUCCESS);
             }
         }
         else {
-            geocodeResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
+            geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
         }
         return geocodeResult;
     }
@@ -89,7 +93,7 @@ public class Yahoo implements GeocodeService, Observer
 
         /** Validate the input */
         if (point == null) {
-            geocodeResult.setStatusCode(ResultStatus.MISSING_POINT);
+            geocodeResult.setStatusCode(MISSING_POINT);
         }
 
         GeocodedAddress geocodedAddress = this.yahooDao.getGeocodedAddress(point);
@@ -98,11 +102,14 @@ public class Yahoo implements GeocodeService, Observer
         if (geocodedAddress != null){
             geocodeResult.setGeocodedAddress(geocodedAddress);
             if (!geocodedAddress.isReverseGeocoded()){
-                geocodeResult.setStatusCode(ResultStatus.NO_REVERSE_GEOCODE_RESULT);
+                geocodeResult.setStatusCode(NO_REVERSE_GEOCODE_RESULT);
+            }
+            else {
+                geocodeResult.setStatusCode(SUCCESS);
             }
         }
         else {
-            geocodeResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
+            geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
         }
         return geocodeResult;
     }

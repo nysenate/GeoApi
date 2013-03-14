@@ -8,7 +8,6 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.util.Config;
@@ -18,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Observable;
 import java.util.Observer;
+
+import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 /**
  * MapQuest Geocoding provider implementation
@@ -68,7 +69,7 @@ public class MapQuest implements AddressService, GeocodeService, Observer
         }
         else {
             geocodeResult = new GeocodeResult(this.getClass());
-            geocodeResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
+            geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
         }
         return geocodeResult;
     }
@@ -87,11 +88,11 @@ public class MapQuest implements AddressService, GeocodeService, Observer
             GeocodedAddress revGeocodedAddress = this.mapQuestDao.getGeocodedAddress(point);
             geocodeResult.setGeocodedAddress(revGeocodedAddress);
             if (revGeocodedAddress != null && revGeocodedAddress.isReverseGeocoded()){
-                geocodeResult.setStatusCode(ResultStatus.NO_REVERSE_GEOCODE_RESULT);
+                geocodeResult.setStatusCode(NO_REVERSE_GEOCODE_RESULT);
             }
         }
         else {
-            geocodeResult.setStatusCode(ResultStatus.MISSING_POINT);
+            geocodeResult.setStatusCode(MISSING_POINT);
         }
         return geocodeResult;
     }
@@ -113,20 +114,23 @@ public class MapQuest implements AddressService, GeocodeService, Observer
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
         ArrayList<GeocodedAddress> geocodedAddresses = this.mapQuestDao.getGeocodedAddresses(addresses);
 
-        if (geocodedAddresses != null){
+        if (geocodedAddresses != null) {
             for (GeocodedAddress geocodedAddress : geocodedAddresses) {
                 GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
-                geocodeResult.setGeocodedAddress(geocodedAddress);
                 if (!geocodedAddress.isGeocoded()) {
-                    geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
+                    geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
                 }
+                else {
+                    geocodeResult.setStatusCode(SUCCESS);
+                }
+                geocodeResult.setGeocodedAddress(geocodedAddress);
                 geocodeResults.add(geocodeResult);
             }
         }
         else {
             /** Return a GeocodeResult with an error status */
             GeocodeResult errorResult = new GeocodeResult();
-            errorResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
+            errorResult.setStatusCode(RESPONSE_PARSE_ERROR);
             geocodeResults.add(errorResult);
         }
         return geocodeResults;
@@ -152,7 +156,7 @@ public class MapQuest implements AddressService, GeocodeService, Observer
         for (GeocodeResult geocodeResult : geocodeResults) {
             AddressResult addressResult = new AddressResult(this.getClass());
             boolean valid = false;
-            if (geocodeResult.getStatusCode() == ResultStatus.SUCCESS){
+            if (geocodeResult.getStatusCode().equals(SUCCESS)){
                 GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
                 if (geocodedAddress.isAddressValid() && geocodedAddress.isGeocoded()) {
                     valid = true;
@@ -162,7 +166,7 @@ public class MapQuest implements AddressService, GeocodeService, Observer
             }
             else {
                 addressResult.setValidated(false);
-                addressResult.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+                addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
             }
             addressResults.add(addressResult);
         }

@@ -46,7 +46,7 @@ public class DistrictShapefile implements DistrictService
         }
         try {
             Geocode geocode = geocodedAddress.getGeocode();
-            DistrictInfo districtInfo = this.districtShapefileDao.getDistrictInfo(geocode.getLatLon(), reqTypes, true);
+            DistrictInfo districtInfo = this.districtShapefileDao.getDistrictInfo(geocode.getLatLon(), reqTypes, false);
 
             /** Validate response */
             if (!validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
@@ -73,5 +73,11 @@ public class DistrictShapefile implements DistrictService
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes)
     {
         return ParallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
+    }
+
+    @Override
+    public boolean requiresGeocode()
+    {
+        return true;
     }
 }

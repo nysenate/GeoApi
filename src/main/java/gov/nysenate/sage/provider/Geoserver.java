@@ -30,7 +30,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
  * and feature information from source data such as Census Shapefiles. Note that a coordinate pair
  * is required to perform district assignment using this implementation.
  */
-public class    Geoserver implements DistrictService, Observer
+public class Geoserver implements DistrictService, Observer
 {
     private static Logger logger = Logger.getLogger(Geoserver.class);
     private GeoserverDao geoserverDao;
@@ -100,5 +100,11 @@ public class    Geoserver implements DistrictService, Observer
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes)
     {
         return ParallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
+    }
+
+    @Override
+    public boolean requiresGeocode()
+    {
+        return true;
     }
 }
