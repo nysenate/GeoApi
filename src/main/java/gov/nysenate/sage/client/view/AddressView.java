@@ -3,6 +3,9 @@ package gov.nysenate.sage.client.view;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import gov.nysenate.sage.model.address.Address;
 
+/**
+ * AddressView represents the structure of an address representation on the response end of the API.
+ */
 @JsonRootName("address")
 public class AddressView
 {
