@@ -1,33 +1,74 @@
 package gov.nysenate.sage.provider;
 
+import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
+import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictQuality;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
+import gov.nysenate.sage.service.district.DistrictServiceValidator;
+import gov.nysenate.sage.service.district.ParallelDistrictService;
+import org.apache.log4j.Logger;
 
 import java.util.List;
 
 public class DistrictShapefile implements DistrictService
 {
+    private static Logger logger = Logger.getLogger(Geoserver.class);
+    private DistrictShapefileDao districtShapefileDao;
 
-    @Override
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> types)
+    public DistrictShapefile()
     {
-        return null;
+        this.districtShapefileDao = new DistrictShapefileDao();
     }
 
     @Override
-    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
+    {
+        return assignDistricts(geocodedAddress, DistrictType.getStateBasedTypes());
     }
 
     @Override
-    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> types) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
+    {
+        DistrictResult districtResult = new DistrictResult(this.getClass());
+
+        /** Validate input */
+        if (!DistrictServiceValidator.validateInput(geocodedAddress, districtResult, true)) {
+            return districtResult;
+        }
+        try {
+            Geocode geocode = geocodedAddress.getGeocode();
+            DistrictInfo districtInfo = this.districtShapefileDao.getDistrictInfo(geocode.getLatLon(), reqTypes, true);
+
+            /** Validate response */
+            if (!DistrictServiceValidator.validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
+                return districtResult;
+            }
+            /** Set the result. The quality here is always point since it's based of a geocode */
+            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictQuality.POINT));
+        }
+        catch (Exception ex) {
+            districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
+            logger.error(ex);
+        }
+
+        return districtResult;
+    }
+
+    @Override
+    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses)
+    {
+        return assignDistricts(geocodedAddresses, DistrictType.getStandardTypes());
+    }
+
+    @Override
+    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes)
+    {
+        return ParallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
     }
 }

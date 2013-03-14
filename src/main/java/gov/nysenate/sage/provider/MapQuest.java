@@ -39,7 +39,6 @@ public class MapQuest implements AddressService, GeocodeService, Observer
         this.mapper = new ObjectMapper();
         configure();
         config.notifyOnChange(this);
-        logger.info("Initialized MapQuest Adapter");
     }
 
     public void update(Observable o, Object arg)

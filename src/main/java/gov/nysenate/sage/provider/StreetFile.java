@@ -45,7 +45,7 @@ public class StreetFile implements DistrictService
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
-        if (!DistrictServiceValidator.validate(geocodedAddress, districtResult, false)) {
+        if (!DistrictServiceValidator.validateInput(geocodedAddress, districtResult, false)) {
             return districtResult;
         }
 
@@ -67,14 +67,14 @@ public class StreetFile implements DistrictService
             }
 
             if (match != null) {
-                districtResult.setDistrictedAddress(match);
-                /** Set partial district assignment if not all were found */
-                if (reqTypes != null && !districtResult.getAssignedDistricts().containsAll(reqTypes)) {
-                    districtResult.setStatusCode(PARTIAL_DISTRICT_RESULT);
+                if (DistrictServiceValidator.validateDistrictInfo(match.getDistrictInfo(), reqTypes, districtResult)) {
+                    districtResult.setDistrictedAddress(match);
+                }
+                else {
+                    districtResult.setStatusCode(NO_DISTRICT_RESULT);
                 }
             }
             else {
-                /** No Match */
                 districtResult.setStatusCode(NO_DISTRICT_RESULT);
             }
         }

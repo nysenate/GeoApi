@@ -27,7 +27,7 @@ import java.util.Observer;
  * and feature information from source data such as Census Shapefiles. Note that a coordinate pair
  * is required to perform district assignment using this implementation.
  */
-public class Geoserver implements DistrictService, Observer
+public class    Geoserver implements DistrictService, Observer
 {
     private static Logger logger = Logger.getLogger(Geoserver.class);
     private GeoserverDao geoserverDao;
@@ -67,28 +67,22 @@ public class Geoserver implements DistrictService, Observer
     }
 
     @Override
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> types)
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
-        if (!DistrictServiceValidator.validate(geocodedAddress, districtResult, true)) {
+        if (!DistrictServiceValidator.validateInput(geocodedAddress, districtResult, true)) {
             return districtResult;
         }
-
         try {
-            DistrictInfo districtInfo;
             Geocode geocode = geocodedAddress.getGeocode();
-
-            districtInfo = this.geoserverDao.getDistrictInfo(geocode.getLatLon(), types);
-
-            /** Check to see if districts were assigned */
-            if (districtInfo == null || districtInfo.getAssignedDistricts().size() == 0) {
-                districtResult.setStatusCode(ResultStatus.NO_DISTRICT_RESULT);
-                districtResult.addMessage("No matching districts found at " + geocode.getLatLon().toString());
+            DistrictInfo districtInfo = this.geoserverDao.getDistrictInfo(geocode.getLatLon(), reqTypes);
+            /** Validate response */
+            if (!DistrictServiceValidator.validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
                 return districtResult;
             }
-
+            /** Set the result. The quality here is always point since it's based of a geocode */
             districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictQuality.POINT));
         }
         catch (Exception ex) {
@@ -99,8 +93,8 @@ public class Geoserver implements DistrictService, Observer
     }
 
     @Override
-    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> types)
+    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes)
     {
-        return ParallelDistrictService.assignDistricts(this, geocodedAddresses, types);
+        return ParallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
     }
 }
