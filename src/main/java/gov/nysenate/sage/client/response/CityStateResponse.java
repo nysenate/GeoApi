@@ -1,6 +1,6 @@
-package gov.nysenate.sage.client.api.address;
+package gov.nysenate.sage.client.response;
 
-import gov.nysenate.sage.client.api.BaseResponse;
+import gov.nysenate.sage.client.response.BaseResponse;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 
