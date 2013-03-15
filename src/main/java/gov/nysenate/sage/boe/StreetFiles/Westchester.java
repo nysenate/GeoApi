@@ -41,7 +41,7 @@ public class Westchester extends StreetFile {
         townCodeMap.put(16, "RYE");
         townCodeMap.put(17, "SCARSD");
         townCodeMap.put(18, "SOMERS");
-        townCodeMap.put(19, "SOMERS");
+        townCodeMap.put(19, "YORKTO");
         townCodeMap.put(20, "-MT VE");
         townCodeMap.put(21, "-NEW R");
         townCodeMap.put(22, "-PEEKS");
