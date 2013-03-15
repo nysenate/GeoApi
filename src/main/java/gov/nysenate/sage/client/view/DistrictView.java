@@ -7,12 +7,14 @@ public class DistrictView
 {
     protected String name;
     protected String district;
+    protected MapView map;
 
     public DistrictView(DistrictType district, DistrictInfo districtInfo)
     {
         if (districtInfo != null) {
             this.name = districtInfo.getDistName(district);
             this.district = districtInfo.getDistCode(district);
+            this.map = new MapView(districtInfo.getDistMap(district));
         }
     }
 
@@ -22,5 +24,9 @@ public class DistrictView
 
     public String getDistrict() {
         return district;
+    }
+
+    public MapView getMap() {
+        return map;
     }
 }

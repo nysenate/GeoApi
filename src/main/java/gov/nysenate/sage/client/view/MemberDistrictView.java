@@ -13,4 +13,8 @@ public class MemberDistrictView extends DistrictView
         super(districtType, districtInfo);
         this.member = new MemberView(districtMember);
     }
+
+    public MemberView getMember() {
+        return member;
+    }
 }

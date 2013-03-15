@@ -19,10 +19,10 @@ public class DistrictsView
     protected DistrictView school;
     protected DistrictView town;
 
-    public DistrictsView(DistrictInfo dInfo, Senator senator)
+    public DistrictsView(DistrictInfo dInfo)
     {
         if (dInfo != null) {
-            this.senate = new SenateDistrictView(dInfo, senator);
+            this.senate = new SenateDistrictView(dInfo, dInfo.getSenator());
             this.congressional = new MemberDistrictView(CONGRESSIONAL, dInfo, dInfo.getDistrictMember(CONGRESSIONAL));
             this.assembly = new MemberDistrictView(ASSEMBLY, dInfo, dInfo.getDistrictMember(ASSEMBLY));
             this.county = new DistrictView(COUNTY, dInfo);
