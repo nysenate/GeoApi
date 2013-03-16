@@ -33,7 +33,7 @@ public class Erie extends StreetFile
     townMap.put("CLDN", "Colden");
     townMap.put("COLL", "Collins");
     townMap.put("CONC", "Concord");
-    townMap.put("CTON", "City of Tonowanda");
+    townMap.put("CTON", "City of Tonawanda");
     townMap.put("EDEN", "Eden");
     townMap.put("ELMA", "Elma");
     townMap.put("EVNS", "Evans");
@@ -47,7 +47,7 @@ public class Erie extends StreetFile
     townMap.put("NEWS", "Newstead");
     townMap.put("ORPK", "Orchard Park");
     townMap.put("SARD", "Sardinia");
-    townMap.put("TTON", "Town of Tonowanda");
+    townMap.put("TTON", "Town of Tonawanda");
     townMap.put("WALS", "Wales");
     townMap.put("WSEN", "West Seneca");
 
