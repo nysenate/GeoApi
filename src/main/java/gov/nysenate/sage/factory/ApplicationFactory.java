@@ -1,10 +1,7 @@
 package gov.nysenate.sage.factory;
 
-import gov.nysenate.sage.provider.Geoserver;
-import gov.nysenate.sage.provider.MapQuest;
-import gov.nysenate.sage.provider.USPS;
+import gov.nysenate.sage.provider.*;
 import gov.nysenate.sage.listener.SageConfigurationListener;
-import gov.nysenate.sage.provider.Yahoo;
 import gov.nysenate.sage.service.ServiceProviders;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.district.DistrictService;
@@ -87,9 +84,16 @@ public class ApplicationFactory
             /** Setup service providers */
             addressServiceProviders.registerDefaultProvider("usps", new USPS());
             addressServiceProviders.registerProvider("mapquest", new MapQuest());
-            geocodeServiceProviders.registerDefaultProvider("mapquest", new MapQuest());
-            geocodeServiceProviders.registerProvider("yahoo", new Yahoo());
+
+            geocodeServiceProviders.registerDefaultProvider("yahoo", new Yahoo());
+            geocodeServiceProviders.registerProvider("tiger", new TigerGeocoder());
+            geocodeServiceProviders.registerProvider("mapquest", new MapQuest());
+            geocodeServiceProviders.registerProvider("yahooboss", new YahooBoss());
+            geocodeServiceProviders.registerProvider("osm", new OSM());
+
             districtServiceProviders.registerDefaultProvider("geoserver", new Geoserver());
+            districtServiceProviders.registerProvider("streetfile", new StreetFile());
+            districtServiceProviders.registerProvider("shapefile", new DistrictShapefile());
 
             return true;
         }

@@ -1,6 +1,7 @@
 package gov.nysenate.sage.BulkProcessing;
 
-import gov.nysenate.sage.model.BulkProcessing.JobProcess;
+import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.util.Config;
 
 import java.io.PrintWriter;
@@ -16,16 +17,20 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-public class Mailer {
-	private static final String SMTP_HOST_NAME = Config.read("smtp.host");
-	private static final String SMTP_DEBUG = Config.read("smtp.debug");
-	private static final String SMTP_ACTIVE = Config.read("smtp.active");
-	private static final String SMTP_PORT = Config.read("smtp.port");
-	private static final String SMTP_ACCOUNT_USER = Config.read("smtp.user");
-	private static final String SMTP_ACCOUNT_PASS = Config.read("smtp.pass");
-	private static final String STMP_USER = Config.read("smtp.admin");
+public class Mailer
+{
+    private static Config config = ApplicationFactory.getConfig();
 
-	public static void sendMail(String to, String subject, String message, String from, String fromDisplay) throws Exception {
+    private static final String SMTP_HOST_NAME = config.getValue("smtp.host");
+	private static final String SMTP_DEBUG = config.getValue("smtp.debug");
+	private static final String SMTP_ACTIVE = config.getValue("smtp.active");
+	private static final String SMTP_PORT = config.getValue("smtp.port");
+	private static final String SMTP_ACCOUNT_USER = config.getValue("smtp.user");
+	private static final String SMTP_ACCOUNT_PASS = config.getValue("smtp.pass");
+	private static final String STMP_USER = config.getValue("smtp.admin");
+
+	public static void sendMail(String to, String subject, String message, String from, String fromDisplay) throws Exception
+    {
 	    if (!SMTP_ACTIVE.equals("true")) return;
 
 		Properties props = new Properties();
@@ -39,15 +44,16 @@ public class Mailer {
 		props.put("mail.smtp.ssl.enable","false");
 
 		Session session = Session.getDefaultInstance(props,	new javax.mail.Authenticator() {
-										@Override
-										protected PasswordAuthentication getPasswordAuthentication() {
-											return new PasswordAuthentication(SMTP_ACCOUNT_USER, SMTP_ACCOUNT_PASS);}});
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(SMTP_ACCOUNT_USER, SMTP_ACCOUNT_PASS);
+            }
+        });
 
 		Message msg = new MimeMessage(session);
 		InternetAddress addressFrom = new InternetAddress(from);
 		addressFrom.setPersonal(fromDisplay);
 		msg.setFrom(addressFrom);
-
 
 		StringTokenizer st = new StringTokenizer (to,",");
 
@@ -58,8 +64,7 @@ public class Mailer {
 		{
 			InternetAddress addressTo = new InternetAddress(st.nextToken());
 			rcps[idx++] = addressTo;
-
-		}
+        }
 
 		msg.setRecipients(Message.RecipientType.TO,rcps);
 
@@ -69,7 +74,8 @@ public class Mailer {
 		Transport.send(msg);
 	}
 
-	public static void mailError(Exception e) {
+	public static void mailError(Exception e)
+    {
 		try {
 		    StringWriter msg = new StringWriter();
 		    PrintWriter out = new PrintWriter(msg);
@@ -81,12 +87,14 @@ public class Mailer {
 					msg.getBuffer().toString(),
 					STMP_USER,
 					"SAGE Bulk error");
-		} catch (Exception e1) {
+		}
+        catch (Exception e1) {
 			e1.printStackTrace();
 		}
 	}
 
-	public static void mailError(Exception e, JobProcess jp) {
+	public static void mailError(Exception e, JobProcess jp)
+    {
 		try {
 		    StringWriter msg = new StringWriter();
             PrintWriter out = new PrintWriter(msg);
@@ -97,24 +105,28 @@ public class Mailer {
 					jp.getContact() + " - " + jp.getClassName() + " - " + jp.getFileName() + "<br/><br/>" + e.getMessage(),
 					STMP_USER,
 					"SAGE Bulk front-end error");
-		} catch (Exception e1) {
+		}
+        catch (Exception e1) {
 			e1.printStackTrace();
 		}
 	}
 
-	public static void mailAdminComplete(JobProcess jp) {
+	public static void mailAdminComplete(JobProcess jp)
+    {
 		try {
 			sendMail(STMP_USER,
 					"bulk processing complete",
 					jp.getContact() + " - " + jp.getClassName() + " - " + jp.getFileName() + "<br/><br/>",
 					STMP_USER,
 					"SAGE Bulk processing complete");
-		} catch (Exception e1) {
+		}
+        catch (Exception e1) {
 			e1.printStackTrace();
 		}
 	}
 
-	public static void mailUserComplete(JobProcess jp) {
+	public static void mailUserComplete(JobProcess jp)
+    {
 		try {
 			sendMail(jp.getContact(),
 					"SAGE Districting Completed",
@@ -122,7 +134,8 @@ public class Mailer {
 					"<br/><br/>This is an automated message.",
 					STMP_USER,
 					"SAGE");
-		} catch (Exception e1) {
+		}
+        catch (Exception e1) {
 			e1.printStackTrace();
 		}
 	}

@@ -7,8 +7,6 @@ import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.service.GeoService;
-import gov.nysenate.sage.service.GeoService.GeoException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,11 +21,11 @@ import org.json.JSONObject;
 
 public class GeoCodeMethod
 {
-  private final GeoService geoservice;
+  //private final GeoService geoservice;
 
   public GeoCodeMethod() throws Exception
   {
-    geoservice = new GeoService();
+    //geoservice = new GeoService();
   }
 
 
@@ -89,7 +87,7 @@ public class GeoCodeMethod
 
     try {
       ArrayList<Object> ret = new ArrayList<Object>();
-      ArrayList<Result> results = geoservice.geocode(addresses, service);
+      ArrayList<Result> results = null;//geoservice.geocode(addresses, service);
       for (Result result : results) {
         if (result == null) {
           //ret.add(new ErrorResponse("Internal Geocoding Error."));
@@ -111,7 +109,7 @@ public class GeoCodeMethod
       }
 
     }
-    catch (GeoException e) {
+    catch (Exception e) {
       throw new ApiInternalException("Fatal geocoding Error.", e);
     }
   }

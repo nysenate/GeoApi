@@ -1,8 +1,8 @@
 package gov.nysenate.sage.scripts;
 
-import gov.nysenate.sage.dao.AssemblyDao;
-import gov.nysenate.sage.dao.CongressionalDao;
-import gov.nysenate.sage.dao.SenateDao;
+import gov.nysenate.sage.dao.model.AssemblyDao;
+import gov.nysenate.sage.dao.model.CongressionalDao;
+import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;

@@ -60,13 +60,11 @@ public class TigerGeocoder implements GeocodeService
             geocodeResult.setGeocodedAddress(geocodedAddress);
 
             /** Return success result only if the GeocodeQuality indicates a match */
-            if (!geocode.getQuality().equals(GeocodeQuality.NOMATCH)) {
-                return geocodeResult;
+            if (geocode.getQuality().equals(GeocodeQuality.NOMATCH)) {
+                geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
             }
         }
 
-        /** No Geocode result obtained */
-        geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
         return geocodeResult;
     }
 

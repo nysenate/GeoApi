@@ -12,7 +12,7 @@ import java.util.concurrent.*;
  * Parallel geocoding for use when a GeocodeService implementation does not provide
  * native batch methods.
  */
-public class ParallelGeocodeService
+public abstract class ParallelGeocodeService
 {
     private static Logger logger = Logger.getLogger(ParallelGeocodeService.class);
     private static int THREAD_COUNT = 5;

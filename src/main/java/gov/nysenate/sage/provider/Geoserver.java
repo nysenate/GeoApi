@@ -35,6 +35,7 @@ public class Geoserver implements DistrictService, Observer
     private static Logger logger = Logger.getLogger(Geoserver.class);
     private GeoserverDao geoserverDao;
     private Config config;
+    private boolean fetchMaps = false;
 
     public Geoserver()
     {
@@ -106,5 +107,17 @@ public class Geoserver implements DistrictService, Observer
     public boolean requiresGeocode()
     {
         return true;
+    }
+
+    @Override
+    public boolean providesMaps()
+    {
+        return true;
+    }
+
+    @Override
+    public void fetchMaps(boolean fetch)
+    {
+        this.fetchMaps = fetch;
     }
 }

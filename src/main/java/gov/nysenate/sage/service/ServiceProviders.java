@@ -19,6 +19,8 @@ import java.util.Set;
  * So essentially it's a simple way to keep track of which classes can serve as an
  * implementation of a given service and instantiate them.
  * @param <T>   T is the Service to provide implementations for.
+ *
+ * @author Ash Islam
  */
 public class ServiceProviders<T>
 {

@@ -23,6 +23,7 @@ public class DistrictShapefile implements DistrictService
 {
     private static Logger logger = Logger.getLogger(Geoserver.class);
     private DistrictShapefileDao districtShapefileDao;
+    private boolean fetchMaps = false;
 
     public DistrictShapefile()
     {
@@ -46,7 +47,7 @@ public class DistrictShapefile implements DistrictService
         }
         try {
             Geocode geocode = geocodedAddress.getGeocode();
-            DistrictInfo districtInfo = this.districtShapefileDao.getDistrictInfo(geocode.getLatLon(), reqTypes, false);
+            DistrictInfo districtInfo = this.districtShapefileDao.getDistrictInfo(geocode.getLatLon(), reqTypes, this.fetchMaps);
 
             /** Validate response */
             if (!validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
@@ -79,5 +80,17 @@ public class DistrictShapefile implements DistrictService
     public boolean requiresGeocode()
     {
         return true;
+    }
+
+    @Override
+    public boolean providesMaps()
+    {
+        return true;
+    }
+
+    @Override
+    public void fetchMaps(boolean fetch)
+    {
+        this.fetchMaps = fetch;
     }
 }

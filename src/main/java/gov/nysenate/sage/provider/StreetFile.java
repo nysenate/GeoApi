@@ -103,4 +103,13 @@ public class StreetFile implements DistrictService
     {
         return false;
     }
+
+    @Override
+    public boolean providesMaps() {
+        return false;
+    }
+
+    /** No map functionality */
+    @Override
+    public void fetchMaps(boolean fetch) {}
 }

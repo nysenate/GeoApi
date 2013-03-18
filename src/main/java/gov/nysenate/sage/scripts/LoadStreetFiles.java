@@ -1,7 +1,7 @@
 package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.StreetFile;
+import gov.nysenate.sage.boe.StreetFileHandler;
 import gov.nysenate.sage.boe.StreetFiles.Erie;
 import gov.nysenate.sage.boe.StreetFiles.Essex;
 import gov.nysenate.sage.boe.StreetFiles.NTS;
@@ -26,7 +26,7 @@ public class LoadStreetFiles {
 
         DataSource db = ApplicationFactory.getDataSource();
 
-        ArrayList<StreetFile> street_files = new ArrayList<StreetFile>();
+        ArrayList<StreetFileHandler> street_files = new ArrayList<StreetFileHandler>();
 
         File base_dir = new File(Config.read("street_file.data"));
 
@@ -525,7 +525,7 @@ public class LoadStreetFiles {
         street_files.add(new NYC(63, "Queens", new File(base_dir, "Queens_County_Street_Finder.txt")));
         street_files.add(new NYC(64, "Staten Island", new File(base_dir, "Staten_Island_Street_Finder.txt")));
 
-        for (StreetFile file : street_files) {
+        for (StreetFileHandler file : street_files) {
             file.save(db);
             System.out.println("");
         }

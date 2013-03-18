@@ -24,7 +24,7 @@ public abstract class DistrictServiceMetadata
      * @return true if all were assigned
      *         false otherwise
      */
-    public static void assignDistrictMetadata(DistrictResult districtResult)
+    public static void assignDistrictMembers(DistrictResult districtResult)
     {
         /** Proceed on either a success or partial result */
         if (districtResult.isSuccess() || districtResult.isPartialSuccess()) {
