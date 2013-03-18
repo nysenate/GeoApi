@@ -1,10 +1,9 @@
 package gov.nysenate.sage.servlets;
 
-import gov.nysenate.sage.model.BulkProcessing.BulkFileType;
-import gov.nysenate.sage.model.BulkProcessing.JobProcess;
+import gov.nysenate.sage.model.job.BulkFileType;
+import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.scripts.ProcessBulkUploads;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.Connect;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -98,9 +97,9 @@ public class BulkServlet extends HttpServlet implements Observer {
                 throw new SubmitException("Form and session parameters do not match.");
 
             // Save the job and return success
-            Connect connect = new Connect();
-            connect.persist(new JobProcess(email, fileName, bulkFileType.clazz().getName()));
-            connect.close();
+            //Connect connect = new Connect();
+            //connect.persist(new JobProcess(email, fileName, bulkFileType.clazz().getName()));
+            //connect.close();
             request.getRequestDispatcher("/message.jsp").forward(request, response);
 
         } catch (SubmitException e) {

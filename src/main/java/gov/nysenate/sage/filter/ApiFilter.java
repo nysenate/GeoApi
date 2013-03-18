@@ -3,16 +3,16 @@ package gov.nysenate.sage.filter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import gov.nysenate.sage.client.api.ApiError;
+import gov.nysenate.sage.client.response.ApiError;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.ApiUserAuth;
 import gov.nysenate.sage.util.Config;
 import java.io.IOException;
-import java.util.*;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.Filter;
@@ -29,10 +29,10 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 /**
  * ApiFilter serves common functions that each api controller method requires.
  * This includes:
- *                Filter API requests based on IP address and API key
- *                Perform URI validation
- *                Output format processing and response writing
- *                Gracefully setting error messages in the response
+ *                Authentication
+ *                URI validation
+ *                Request pre-processing
+ *                Response processing
  *
  * This filter processes both the request propagating to the controllers as well
  * as the response coming back from the controllers.
@@ -49,13 +49,13 @@ public class ApiFilter implements Filter, Observer
     /** The valid format of an api request */
     private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
 
-    /** String keys used for setting attributes */
+    /** String keys used for setting key value attributes in the request object */
     private static final String responseObjectKey = "responseObject";
     private static final String formattedResponseKey = "formattedResponse";
     private static final String apiRequestKey = "apiRequest";
 
     /** Available format types */
-    public enum FormatType { JSON, XML, JSONP; }
+    public enum FormatType { JSON, XML, JSONP }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
@@ -84,10 +84,10 @@ public class ApiFilter implements Filter, Observer
         String uri = ((HttpServletRequest)request).getRequestURI();
 
         /** Check that the url is formatted correctly */
-        if (validateRequest(uri, request, response)){
+        if (validateRequest(uri, request)){
             /** The filter will proceed to the next chain only if the user has a valid key or is the default user.
              *  Otherwise an error message will be sent. */
-            if (authenticateUser(key, remoteIp, uri, request, response)) {
+            if (authenticateUser(key, remoteIp, uri, request)) {
                 chain.doFilter(request, response);
             }
         }
@@ -105,13 +105,12 @@ public class ApiFilter implements Filter, Observer
      * @param key       Supplied API key
      * @param remoteIp  IP address of requester
      * @param uri       Request URI
-     * @param request
-     * @param response
+     * @param request   ServletRequest
      * @return          true if authenticated, false otherwise
      * @throws IOException
      */
     private boolean authenticateUser(String key, String remoteIp, String uri,
-                                     ServletRequest request, ServletResponse response ) throws IOException
+                                     ServletRequest request) throws IOException
     {
         if (key == null && remoteIp.matches(ipFilter)) {
             key = defaultKey;
@@ -128,12 +127,12 @@ public class ApiFilter implements Filter, Observer
                 return true;
             }
             else {
-                setResponse(new ApiError(API_KEY_INVALID), request);
+                setApiResponse(new ApiError(API_KEY_INVALID), request);
                 logger.debug(String.format("Failed to validate request to %s from %s using key: %s", uri, remoteIp, key));
             }
         }
         else {
-            setResponse(new ApiError(API_KEY_MISSING), request);
+            setApiResponse(new ApiError(API_KEY_MISSING), request);
             logger.debug(String.format("No key supplied to access %s from %s", uri, remoteIp));
         }
         return false;
@@ -147,7 +146,7 @@ public class ApiFilter implements Filter, Observer
      * @return  true if api parsed correctly
      *          false otherwise
      */
-    private boolean validateRequest(String uri, ServletRequest request, ServletResponse response) throws IOException
+    private boolean validateRequest(String uri, ServletRequest request) throws IOException
     {
         Pattern validFormatPattern = Pattern.compile(validFormat);
         Matcher matcher = validFormatPattern.matcher(uri);
@@ -162,11 +161,12 @@ public class ApiFilter implements Filter, Observer
                 }
             }
             if (!validOutputFormat) {
-                setResponse(new ApiError(API_OUTPUT_FORMAT_UNSUPPORTED), request);
+                setApiResponse(new ApiError(API_OUTPUT_FORMAT_UNSUPPORTED), request);
                 return false;
             }
+            /** Check for callback signature if format is JSONP */
             if (outputFormat.equalsIgnoreCase(FormatType.JSONP.name()) && request.getParameter("callback") == null) {
-                setResponse(new ApiError(JSONP_CALLBACK_NOT_SPECIFIED), request);
+                setApiResponse(new ApiError(JSONP_CALLBACK_NOT_SPECIFIED), request);
                 return false;
             }
         }
@@ -179,12 +179,16 @@ public class ApiFilter implements Filter, Observer
             String service = matcher.group("service");
             String req = matcher.group("request");
             boolean batch = (matcher.group("batch") != null);
-            setApiRequest(new ApiRequest(version, service, req, batch), request);
 
+            /** Construct an ApiRequest object */
+            ApiRequest apiRequest = new ApiRequest(version, service, req, batch);
+            apiRequest.setProvider(request.getParameter("provider"));
+
+            setApiRequest(apiRequest, request);
             return true;
         }
         else {
-            setResponse(new ApiError(API_REQUEST_INVALID), request);
+            setApiResponse(new ApiError(API_REQUEST_INVALID), request);
             return false;
         }
     }
@@ -206,7 +210,7 @@ public class ApiFilter implements Filter, Observer
      * @param response  Object containing response data
      * @param request   ServletRequest
      */
-    public static void setResponse(Object response, ServletRequest request)
+    public static void setApiResponse(Object response, ServletRequest request)
     {
         request.setAttribute(responseObjectKey, response);
     }

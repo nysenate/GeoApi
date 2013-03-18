@@ -223,6 +223,6 @@ public class MapQuestDao
         Point point = new Point(latLon.get("lat").asDouble(), latLon.get("lng").asDouble());
         String qualityCode = location.get("geocodeQuality").asText();
         GeocodeQuality geocodeQuality = (qualityMap.containsKey(qualityCode)) ? qualityMap.get(qualityCode) : GeocodeQuality.UNKNOWN;
-        return new Geocode(point, geocodeQuality, this.getClass().getSimpleName());
+        return new Geocode(point, geocodeQuality, MapQuestDao.class.getSimpleName());
     }
 }

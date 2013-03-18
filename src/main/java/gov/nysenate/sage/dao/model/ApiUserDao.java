@@ -1,7 +1,7 @@
 package gov.nysenate.sage.dao.model;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.model.auth.ApiUser;
+import gov.nysenate.sage.model.api.ApiUser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;

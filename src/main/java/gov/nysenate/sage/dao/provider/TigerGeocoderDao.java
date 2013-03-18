@@ -38,7 +38,9 @@ public class TigerGeocoderDao extends BaseDao
                      "FROM geocode(?, 1) AS g;";
         try {
             setTimeOut(conn, run, GEOCODER_TIMEOUT);
-            return run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
+            GeocodedStreetAddress gsa = run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
+            conn.close();
+            return gsa;
         }
         catch (SQLException ex){
             logger.warn(ex.getMessage());
@@ -117,7 +119,7 @@ public class TigerGeocoderDao extends BaseDao
         {
             StreetAddress streetAddress = new StreetAddressHandler().handle(rs);
             if (streetAddress != null) {
-                Geocode geocode = new Geocode(new Point(rs.getDouble("lat"), rs.getDouble("lon")));
+                Geocode geocode = new Geocode(new Point(rs.getDouble("lat"), rs.getDouble("lon")), null, TigerGeocoderDao.class.getSimpleName());
                 geocode.setRawQuality(rs.getInt("rating"));
                 return new GeocodedStreetAddress(streetAddress, geocode);
             }

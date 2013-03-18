@@ -1,9 +1,9 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.api.ApiError;
-import gov.nysenate.sage.client.api.address.CityStateResponse;
-import gov.nysenate.sage.client.api.address.ValidateResponse;
-import gov.nysenate.sage.client.api.address.ZipcodeResponse;
+import gov.nysenate.sage.client.response.ApiError;
+import gov.nysenate.sage.client.response.CityStateResponse;
+import gov.nysenate.sage.client.response.ValidateResponse;
+import gov.nysenate.sage.client.response.ZipcodeResponse;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 

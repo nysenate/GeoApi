@@ -1,51 +1,11 @@
 package gov.nysenate.sage.servlets;
 
-import gov.nysenate.sage.api.exceptions.ApiAuthenticationException;
-import gov.nysenate.sage.api.exceptions.ApiCommandException;
-import gov.nysenate.sage.api.exceptions.ApiFormatException;
-import gov.nysenate.sage.api.exceptions.ApiInternalException;
-import gov.nysenate.sage.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.api.methods.BluebirdMethod;
-import gov.nysenate.sage.api.methods.BulkDistrictMethod;
-import gov.nysenate.sage.api.methods.CityStateLookupMethod;
-import gov.nysenate.sage.api.methods.DistrictsMethod;
-import gov.nysenate.sage.api.methods.GeoCodeMethod;
-import gov.nysenate.sage.api.methods.PolyMethod;
-import gov.nysenate.sage.api.methods.PolySearchMethod;
-import gov.nysenate.sage.api.methods.RevGeoMethod;
-import gov.nysenate.sage.api.methods.StreetLookupMethod;
-import gov.nysenate.sage.api.methods.ValidateMethod;
-import gov.nysenate.sage.api.methods.ZipCodeLookupMethod;
-import gov.nysenate.sage.model.ApiMethod;
-import gov.nysenate.sage.model.auth.ApiUser;
-import gov.nysenate.sage.model.ErrorResponse;
-import gov.nysenate.sage.model.Metric;
-import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.ValidateResponse;
-import gov.nysenate.sage.deprecated.districts.DistrictResponse;
-import gov.nysenate.sage.util.ApiUserAuth;
-import gov.nysenate.sage.util.Connect;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.StringTokenizer;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
-
-import com.google.gson.Gson;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-
+@Deprecated
 public class ApiServlet extends HttpServlet {
+
+    /*
     private final Logger logger = Logger.getLogger(ApiServlet.class);
     private static final long serialVersionUID = 1L;
 
@@ -277,5 +237,5 @@ public class ApiServlet extends HttpServlet {
                 new ArrayList<String>(Arrays.asList("json","xml")),
                 new ArrayList<Class<? extends Object>>(Arrays.asList(DistrictResponse.class, Point.class, ValidateResponse.class))));
         }};
-    }
+    }    */
 }

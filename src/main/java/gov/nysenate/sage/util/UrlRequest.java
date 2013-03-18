@@ -8,7 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class UrlRequest
+public abstract class UrlRequest
 {
     public static Logger logger = Logger.getLogger(UrlRequest.class);
 
@@ -26,7 +26,7 @@ public class UrlRequest
      * @throws MalformedURLException
      * @throws IOException
      */
-    public static String getResponseFromUrl(String url) throws MalformedURLException, IOException
+    public static String getResponseFromUrl(String url) throws IOException
     {
         URL u = new URL(url);
         logger.debug("Requesting connection to " + url.toString());

@@ -1,14 +1,13 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.api.ApiError;
-import gov.nysenate.sage.client.api.geo.GeocodeResponse;
-import gov.nysenate.sage.client.api.geo.RevGeocodeResponse;
+import gov.nysenate.sage.client.response.ApiError;
+import gov.nysenate.sage.client.response.GeocodeResponse;
+import gov.nysenate.sage.client.response.RevGeocodeResponse;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.ServiceProviders;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import org.apache.log4j.Logger;
@@ -27,12 +26,11 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public class GeocodeController extends BaseApiController
 {
     private Logger logger = Logger.getLogger(GeocodeController.class);
-    private static ServiceProviders<GeocodeService> geocodeProviders;
+    private static ServiceProviders<GeocodeService> geocodeProviders = ApplicationFactory.getGeoCodeServiceProviders();
 
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        geocodeProviders = ApplicationFactory.getGeoCodeServiceProviders();
         logger.debug("Initialized " + this.getClass().getSimpleName());
     }
 

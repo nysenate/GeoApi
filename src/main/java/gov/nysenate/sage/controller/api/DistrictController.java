@@ -1,16 +1,18 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.api.ApiError;
-import gov.nysenate.sage.client.api.district.DistrictResponse;
+import gov.nysenate.sage.client.response.ApiError;
+import gov.nysenate.sage.client.response.DistrictResponse;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.ServiceProviders;
 import gov.nysenate.sage.service.district.DistrictService;
+import gov.nysenate.sage.service.district.DistrictServiceMetadata;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
@@ -26,15 +28,13 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 public class DistrictController extends BaseApiController
 {
-    private Logger logger = Logger.getLogger(DistrictController.class);
-    private ServiceProviders<DistrictService> districtProviders;
-    private ServiceProviders<GeocodeService> geocodeProviders;
+    private static Logger logger = Logger.getLogger(DistrictController.class);
+    private static ServiceProviders<DistrictService> districtProviders = ApplicationFactory.getDistrictServiceProviders();
+    private static ServiceProviders<GeocodeService> geocodeProviders = ApplicationFactory.getGeoCodeServiceProviders();
 
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        districtProviders = ApplicationFactory.getDistrictServiceProviders();
-        geocodeProviders = ApplicationFactory.getGeoCodeServiceProviders();
         logger.debug("Initialized " + this.getClass().getSimpleName());
     }
 
@@ -52,7 +52,15 @@ public class DistrictController extends BaseApiController
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
         String provider = apiRequest.getProvider();
-        String geoProvider = request.getParameter("geoProvider"); // Allow for specifying which geocoder to use
+
+        /** Allow for specifying which geocoder to use */
+        String geoProvider = request.getParameter("geoProvider");
+
+        /** Fetch senator and other member info if true */
+        Boolean showMembers = Boolean.parseBoolean(request.getParameter("showMembers"));
+
+        /** Specify whether or not to return map data */
+        Boolean showMaps = Boolean.parseBoolean(request.getParameter("showMaps"));
 
         /**
          * If providers are specified then make sure they match the available providers. Send an
@@ -73,7 +81,7 @@ public class DistrictController extends BaseApiController
             switch (apiRequest.getRequest()) {
                 case "assign": {
                     if (address != null && !address.isEmpty()) {
-                        districtResponse = new DistrictResponse(assignDistricts(address, geoProvider, provider));
+                        districtResponse = new DistrictResponse(assignDistricts(address, geoProvider, provider, showMembers, showMaps));
                     }
                     else {
                         districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
@@ -85,6 +93,7 @@ public class DistrictController extends BaseApiController
                 }
             }
         }
+        /** Handle batch request */
         else {
             districtResponse = new ApiError(this.getClass(), FEATURE_NOT_SUPPORTED);
         }
@@ -100,47 +109,86 @@ public class DistrictController extends BaseApiController
      * return results and the senate districts are different then throw an api error. Otherwise give preference
      * to the shape file lookup for other district mismatches.
      *
+     * Note: the arguments are declared as final to allow them to be used in anonymous callable routines.*
      * @param address
      * @param geoProvider
      * @param distProvider
+     * @param showMembers
+     * @param showMaps
      * @return
      */
-    public DistrictResult assignDistricts(final Address address, String geoProvider, String distProvider)
+    public static DistrictResult assignDistricts(final Address address, final String geoProvider, final String distProvider,
+                                                 final boolean showMembers, final boolean showMaps)
     {
-        Callable<DistrictResult> streetfileCallable = getAssignDistrictsCallable(address, "streetfile", false, null);
-        Callable<DistrictResult> shapefileCallable = getAssignDistrictsCallable(address, "shapefile", true, geoProvider);
+        logger.info(address);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-        Future<DistrictResult> streetfileFuture = executorService.submit (streetfileCallable);
-        Future<DistrictResult> shapefileFuture = executorService.submit(shapefileCallable);
+        DistrictResult districtResult = null;
+        ExecutorService executorService = null;
 
         try {
-            DistrictResult districtResult = new DistrictResult();
-            DistrictResult streetfileResult = streetfileFuture.get(3, TimeUnit.SECONDS);
-            DistrictResult shapefileResult = shapefileFuture.get(3, TimeUnit.SECONDS);
+            /** Use the provider if specified */
+            if (distProvider != null && !distProvider.isEmpty()) {
+                executorService = Executors.newSingleThreadExecutor();
+                Future<DistrictResult> future = executorService.submit(getDistrictsCallable(address, distProvider, geoProvider, showMaps));
+                districtResult = future.get();
+            }
+            else {
+                Callable<DistrictResult> streetfileCallable = getDistrictsCallable(address, "streetfile", null, false);
+                Callable<DistrictResult> shapefileCallable = getDistrictsCallable(address, "shapefile", geoProvider, showMaps);
 
-            FormatUtil.printObject(streetfileResult);
-            FormatUtil.printObject(shapefileResult);
+                executorService = Executors.newFixedThreadPool(2);
+                Future<DistrictResult> streetfileFuture = executorService.submit(streetfileCallable);
+                Future<DistrictResult> shapefileFuture = executorService.submit(shapefileCallable);
+
+                DistrictResult streetfileResult = streetfileFuture.get();
+                DistrictResult shapefileResult = shapefileFuture.get();
+
+                districtResult = shapefileResult;
+            }
         }
-        catch (Exception ex){
+        catch (InterruptedException ex) {
+            logger.error("Failed to get district results from future!", ex);
+        }
+        catch (ExecutionException ex) {
             logger.error("Failed to get district results from future!", ex);
         }
         finally {
             executorService.shutdownNow();
         }
-        return null;
+
+        if (showMembers) {
+            DistrictServiceMetadata.assignDistrictMembers(districtResult);
+        }
+
+        logger.debug(districtResult);
+
+        return districtResult;
     }
 
-    private Callable<DistrictResult> getAssignDistrictsCallable(final Address address, final String distProvider,
-                                                                final boolean geocodeRequired, final String geoProvider)
+    private static Callable<DistrictResult> getDistrictsCallable(final Address address, final String distProvider,
+                                                                 final String geoProvider, final boolean showMaps)
     {
         return new Callable<DistrictResult>() {
             @Override
             public DistrictResult call() throws Exception {
+                DistrictResult districtResult = new DistrictResult(DistrictController.class);
                 DistrictService districtService = districtProviders.newInstance(distProvider);
-                GeocodeResult geocodeResult = (geocodeRequired) ?  GeocodeController.geocode(address, geoProvider) : null;
+
+                /** Use GeocodeController to geocode if necessary */
+                GeocodeResult geocodeResult = (districtService.requiresGeocode()) ? GeocodeController.geocode(address, geoProvider) : null;
                 Geocode geocode = (geocodeResult != null && geocodeResult.isSuccess()) ? geocodeResult.getGeocode() : null;
-                return districtService.assignDistricts(new GeocodedAddress(address, geocode));
+
+                /** Proceed with district assignment only if geocode was successful */
+                if (districtService.requiresGeocode() && geocode == null) {
+                    districtResult.setStatusCode(NO_GEOCODE_RESULT);
+                    return districtResult;
+                }
+
+                /** Tell the service if it should get map data or not */
+                districtService.fetchMaps(showMaps);
+
+                /** Retrieve all standard district types */
+                return districtService.assignDistricts(new GeocodedAddress(address, geocode), DistrictType.getStandardTypes());
             }
         };
     }

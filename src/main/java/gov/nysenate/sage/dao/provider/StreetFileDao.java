@@ -35,6 +35,11 @@ public class StreetFileDao extends BaseDao
     private DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress, boolean useFuzzy) throws SQLException
     {
         Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, true, useFuzzy, true);
+
+        if (rangeMap == null ) {
+            return null;
+        }
+
         List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
         DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
 
@@ -55,6 +60,11 @@ public class StreetFileDao extends BaseDao
     private DistrictedAddress getDistAddressByStreet(StreetAddress streetAddress, boolean useFuzzy) throws SQLException
     {
         Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, true, useFuzzy, false);
+
+        if (rangeMap == null ) {
+            return null;
+        }
+
         List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
         DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
 
@@ -75,6 +85,11 @@ public class StreetFileDao extends BaseDao
     public DistrictedAddress getDistAddressByZip(StreetAddress streetAddress) throws SQLException
     {
         Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, false, false, false);
+
+        if (rangeMap == null ) {
+            return null;
+        }
+
         List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
         DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
         if (consolidatedDist != null){
@@ -194,8 +209,8 @@ public class StreetFileDao extends BaseDao
                 String rangeCode = rangeDist.getDistCode(distType);
                 String rangeCounty = rangeDist.getDistCode(COUNTY);
                 String rangeTown = rangeDist.getDistCode(TOWN);
-                boolean baseCodeValid = baseDist.hasValidDistCode(distType);
-                boolean rangeCodeValid = rangeDist.hasValidDistCode(distType);
+                boolean baseCodeValid = baseDist.hasDistrictCode(distType);
+                boolean rangeCodeValid = rangeDist.hasDistrictCode(distType);
                 boolean isCountyBased = DistrictType.getCountyBasedTypes().contains(distType);
                 boolean isTownBased = DistrictType.getTownBasedTypes().contains(distType);
 
@@ -207,7 +222,7 @@ public class StreetFileDao extends BaseDao
             }
         }
 
-        if (baseDist.hasValidDistCode(SENATE)) {
+        if (baseDist.hasDistrictCode(SENATE)) {
             return baseDist;
         }
         else {

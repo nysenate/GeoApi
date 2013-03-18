@@ -150,7 +150,7 @@ public class YahooDao
         double lng = resultNode.get("longitude").asDouble(0.0);
 
         Address resultAddress = new Address(street, city, state, postal);
-        Geocode resultGeocode = new Geocode(new Point(lat, lng), quality, this.getClass().getSimpleName());
+        Geocode resultGeocode = new Geocode(new Point(lat, lng), quality, YahooDao.class.getSimpleName());
         GeocodedAddress geocodedAddress = new GeocodedAddress(resultAddress, resultGeocode);
         return geocodedAddress;
     }

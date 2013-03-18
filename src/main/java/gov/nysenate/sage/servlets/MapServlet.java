@@ -3,7 +3,6 @@ package gov.nysenate.sage.servlets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.deprecated.districts.Senate;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.Connect;
 
 import java.io.File;
 import java.io.IOException;
@@ -122,7 +121,7 @@ public class MapServlet extends HttpServlet
   {
     final Pattern distNamePattern = Pattern.compile("State Senate District ([0-9]{1,2})");
     HashMap<Integer, Senate> distData = new HashMap<Integer, Senate>();
-    Connect db = new Connect();
+    /*Connect db = new Connect();
 
     try {
       for (Senate senate : (List<Senate>)db.getObjects(Senate.class)) {
@@ -144,6 +143,7 @@ public class MapServlet extends HttpServlet
     finally {
       db.close();
       return distData;
-    }
+    }             */
+      return null;
   } // loadDistrictData()
 }
