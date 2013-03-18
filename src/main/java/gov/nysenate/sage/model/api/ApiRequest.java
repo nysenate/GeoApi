@@ -6,16 +6,20 @@ package gov.nysenate.sage.model.api;
  */
 public class ApiRequest
 {
+    /** Uri attributes */
     protected int version;
     protected String service;
     protected String request;
     protected boolean isBatch;
 
+    /** Query string attributes */
+    protected String provider;
+
     public ApiRequest(int version, String service, String request, boolean batch) {
         this.version = version;
         this.service = service;
-        this.request = request;
         this.isBatch = batch;
+        if (request != null) { this.request = request.toLowerCase().trim(); }
     }
 
     public int getVersion() {
@@ -32,5 +36,13 @@ public class ApiRequest
 
     public boolean isBatch() {
         return isBatch;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 }

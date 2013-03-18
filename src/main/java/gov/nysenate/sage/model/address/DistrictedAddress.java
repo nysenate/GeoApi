@@ -59,6 +59,7 @@ public class DistrictedAddress implements Serializable, Cloneable
         }
     }
 
+    /** Convenience method to set the underlying Geocode object */
     public void setGeocode(Geocode geocode)
     {
         if (this.getGeocodedAddress() != null){
@@ -69,6 +70,7 @@ public class DistrictedAddress implements Serializable, Cloneable
         }
     }
 
+    /** Convenience method to get the underlying Geocode object */
     public Geocode getGeocode()
     {
         return (this.getGeocodedAddress() != null) ? this.getGeocodedAddress().getGeocode() : null;

@@ -1,16 +1,12 @@
 package gov.nysenate.sage.model.job;
 
 import gov.nysenate.sage.deprecated.annotations.*;
-import gov.nysenate.sage.util.Connect;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.TreeSet;
-
-
 
 public class JobProcess {
 	String contact;
@@ -89,7 +85,7 @@ public class JobProcess {
 
 	@SuppressWarnings("unchecked")
 	public static TreeSet<JobProcess> getJobProcesses() throws IOException {
-		Connect connect = new Connect();
+		/*Connect connect = new Connect();
 		ArrayList<JobProcess> list = new ArrayList<JobProcess>();
 		TreeSet<JobProcess> set = new TreeSet<JobProcess>(new JobProcess.ByRequestTime());
 
@@ -106,6 +102,7 @@ public class JobProcess {
 		}
 
 		connect.close();
-		return set;
+		return set;   */
+        return null;
 	}
 }

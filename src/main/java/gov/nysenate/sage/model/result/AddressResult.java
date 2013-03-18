@@ -23,6 +23,12 @@ public class AddressResult extends BaseResult
         this(null, "", sourceClass);
     }
 
+    public AddressResult(Class sourceClass, ResultStatus status)
+    {
+        this.source = sourceClass.getSimpleName();
+        this.statusCode = status;
+    }
+
     public AddressResult(Address address, String status, Class sourceClass)
     {
         this(address,status,sourceClass,false);

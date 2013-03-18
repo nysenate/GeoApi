@@ -5,8 +5,11 @@ public enum ResultStatus
     SUCCESS(0, "Success."),
 
     SERVICE_NOT_SUPPORTED(1, "The requested service is unsupported."),
-    PROVIDER_NOT_SUPPORTED(2, "The requested provider is unsupported."),
-    FEATURE_NOT_SUPPORTED(3, "The requested features is unsupported."),
+    FEATURE_NOT_SUPPORTED(2, "The requested feature is unsupported."),
+    PROVIDER_NOT_SUPPORTED(3, "The requested provider is unsupported."),
+    ADDRESS_PROVIDER_NOT_SUPPORTED(4, "The requested address provider is unsupported."),
+    GEOCODE_PROVIDER_NOT_SUPPORTED(5, "The requested geocoding provider is unsupported."),
+    DISTRICT_PROVIDER_NOT_SUPPORTED(6, "The requested district assignment provider is unsupported."),
 
     API_KEY_INVALID(10, "The supplied API key could not be authenticated."),
     API_KEY_MISSING(11, "An API key is required."),
@@ -42,7 +45,7 @@ public enum ResultStatus
     NO_REVERSE_GEOCODE_RESULT(411, "Reverse Geocode service returned no results."),
     NO_ADDRESS_VALIDATE_RESULT(420, "The address could not be validated."),
 
-    PARTIAL_DISTRICT_RESULT(430, "District assignment yielded some districts."),
+    PARTIAL_DISTRICT_RESULT(430, "District assignment only yielded some of the districts requested."),
 
     /** Unexpected errors */
     INTERNAL_ERROR(500, "Internal Server Error."),

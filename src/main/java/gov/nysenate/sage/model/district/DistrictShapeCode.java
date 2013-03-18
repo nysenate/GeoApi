@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 /**
  * The district shapefiles each have their own table structure with different
- * column names that represent the district name and code. This class provides
+ * column names that represent the district name and code. This class serves
  * as a reference lookup to obtain the column names on a DistrictType basis.
  */
 public enum DistrictShapeCode

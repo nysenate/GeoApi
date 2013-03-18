@@ -1,8 +1,11 @@
 package gov.nysenate.sage.model.result;
 
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.services.model.Senator;
 
 import java.util.*;
 
@@ -11,7 +14,6 @@ import java.util.*;
  */
 public class DistrictResult extends BaseResult
 {
-    /** The districted address */
     protected DistrictedAddress districtedAddress;
 
     public DistrictResult()
@@ -35,9 +37,34 @@ public class DistrictResult extends BaseResult
         return (districtedAddress != null) ? districtedAddress.getDistrictInfo() : null;
     }
 
+    public void setDistrictInfo(DistrictInfo districtInfo)
+    {
+        if (this.districtedAddress == null) {
+            this.districtedAddress = new DistrictedAddress(null, districtInfo);
+        }
+        else {
+            this.districtedAddress.setDistrictInfo(districtInfo);
+        }
+    }
+
+    public Geocode getGeocode()
+    {
+        return (districtedAddress != null) ? districtedAddress.getGeocode() : null;
+    }
+
+    public Address getAddress()
+    {
+        return (districtedAddress != null) ? districtedAddress.getAddress() : null;
+    }
+
     public DistrictedAddress getDistrictedAddress()
     {
         return districtedAddress;
+    }
+
+    public void setDistrictedAddress(DistrictedAddress districtedAddress)
+    {
+        this.districtedAddress = districtedAddress;
     }
 
     /** Accessor method to the set of assigned districts stored in DistrictInfo */
@@ -47,10 +74,5 @@ public class DistrictResult extends BaseResult
             return this.getDistrictInfo().getAssignedDistricts();
         }
         return null;
-    }
-
-    public void setDistrictedAddress(DistrictedAddress districtedAddress)
-    {
-        this.districtedAddress = districtedAddress;
     }
 }

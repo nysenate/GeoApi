@@ -49,4 +49,12 @@ public abstract class BaseResult
     {
         this.statusCode = statusCode;
     }
+
+    public boolean isSuccess() {
+        return (this.statusCode != null && this.statusCode.equals(ResultStatus.SUCCESS));
+    }
+
+    public boolean isPartialSuccess() {
+        return (this.statusCode != null && this.statusCode.equals(ResultStatus.PARTIAL_DISTRICT_RESULT));
+    }
 }

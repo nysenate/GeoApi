@@ -1,5 +1,7 @@
 package gov.nysenate.sage.model.district;
 
+import gov.nysenate.services.model.Senator;
+
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -17,7 +19,11 @@ public class DistrictInfo
 
     protected Map<DistrictType, String> districtNames = new HashMap<>();
     protected Map<DistrictType, String> districtCodes = new HashMap<>();
+    protected Map<DistrictType, DistrictMember> districtMembers = new HashMap<>();
     protected Map<DistrictType, DistrictMap> districtMaps = new HashMap<>();
+
+    /** The assigned Senator */
+    protected Senator senator;
 
     public DistrictInfo() {}
 
@@ -68,6 +74,24 @@ public class DistrictInfo
         this.districtMaps.put(districtType, districtMap);
     }
 
+    public DistrictMember getDistrictMember(DistrictType districtType)
+    {
+        return this.districtMembers.get(districtType);
+    }
+
+    public void setDistrictMember(DistrictType districtType, DistrictMember districtMember)
+    {
+        this.districtMembers.put(districtType, districtMember);
+    }
+
+    public Senator getSenator() {
+        return senator;
+    }
+
+    public void setSenator(Senator senator) {
+        this.senator = senator;
+    }
+
     public Set<DistrictType> getAssignedDistricts() {
         return assignedDistricts;
     }
@@ -90,7 +114,7 @@ public class DistrictInfo
         return out;
     }
 
-    public boolean hasValidDistCode(DistrictType districtType)
+    public boolean hasDistrictCode(DistrictType districtType)
     {
         return isValidDistCode(this.districtCodes.get(districtType));
     }

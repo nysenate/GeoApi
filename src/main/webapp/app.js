@@ -1,4 +1,61 @@
-var baseUrl = "/api";
+console.log(contextPath);
+
+var baseUrl = "http://localhost:8080/GeoApi/api/v2";
+
+var sage = angular.module('sage', []);
+
+/**--------------------------------
+ * Controllers                    |
+ ---------------------------------*/
+sage.controller('DistrictInfoController', ['$scope', '$http', function($scope, $http){
+    $scope.addr1 = "";
+    $scope.addr2 = "";
+    $scope.city = "";
+    $scope.state = "NY";
+    $scope.zip5 = "";
+    $scope.geoProvider = "default";
+    $scope.provider = "default";
+
+    $scope.doSomething = function() {
+        $http.jsonp("http://localhost:8080/GeoApi/api/v2/district/assign?&format=jsonp&callback=JSON_CALLBACK&provider=shapefile&geoProvider=yahoo&showMembers=false&showMaps=false&addr=100%20Nyroy%20Dr,%20Troy%2012180"
+        ).success(function(data, status, headers, config) {
+                console.log(data);
+                $scope.data = data;
+        }).error(function(data, status, headers, config) {
+                console.log(data);
+                $scope.status = status;
+        });
+    }
+}]);
+
+sage.controller('DistrictsViewController', ['$scope', function($scope){
+
+}])
+function DistrictCtrl($scope, $http) {
+
+
+    $scope.method = "GET";
+    $scope.url = baseUrl + "/district/assign?provider=shapefile&addr=100 Nyroy Dr Troy NY 12180&format=jsonp&callback=JSON_CALLBACK";
+
+    $http.jsonp($scope.url).success(function(data) {
+        console.log(data);
+    });
+
+}
+
+function RevGeoCtrl($scope) {
+    $scope.lat = "";
+    $scope.lon = "";
+    $scope.geoProvider = "default";
+}
+
+function StreetLookupCtrl($scope) {
+    $scope.zip5 = "";
+}
+
+function CityStateCtrl($scope) {
+    $scope.zip5 = "";
+}
 
 function initialize() {
         var mapOptions = {
@@ -29,11 +86,11 @@ function initialize() {
 
           bermudaTriangle = new google.maps.Polygon({
             paths: senateCoords,
-            strokeColor: "teal",
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            fillColor: "#799933",
-            fillOpacity: 0.35
+            strokeColor: "orangered",
+            strokeOpacity: 1,
+            strokeWeight: 1,
+            fillColor: "orangered",
+            fillOpacity: 0.5
           });
 
           bermudaTriangle.setMap(map);
