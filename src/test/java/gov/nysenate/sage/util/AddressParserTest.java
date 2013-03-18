@@ -26,8 +26,14 @@ public class AddressParserTest
         assertEquals("14561", sa.getZip5());
 
         sa = AddressParser.parseAddress("479 Deer Park Ave, Babylon NY 11702");
+        FormatUtil.printObject(sa);
         assertEquals(479, sa.getBldgNum());
         assertEquals("DEER", sa.getStreet());  // Doesn't get Park Ave
         assertEquals("11702", sa.getZip5());
+    }
+
+    @Test
+    public void test() {
+        FormatUtil.printObject(AddressParser.parseAddress("100 Nyroy Drive, Troy NY 12108"));
     }
 }

@@ -67,7 +67,7 @@ public class TigerGeocoderTest extends TestBase
     @Test
     public void test()
     {
-
+        FormatUtil.printObject(tigerGeocoder.geocode(new Address("66 Becker Ave","Roxbury", "NY", "12434")));
     }
 
 }

@@ -1,6 +1,7 @@
 package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -55,5 +56,11 @@ public class YahooTest extends TestBase
         GeocodeResult geocodeResult = yahoo.reverseGeocode(new Point(-230,430));
         FormatUtil.printObject(geocodeResult);
         assertEquals(ResultStatus.NO_REVERSE_GEOCODE_RESULT, geocodeResult.getStatusCode());
+    }
+
+    @Test
+    public void test()
+    {
+        FormatUtil.printObject(yahoo.geocode(new Address("72-61 113th Street", "Forest Hills", "NY", "11375")));
     }
 }

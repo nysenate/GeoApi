@@ -1,10 +1,13 @@
 package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
+import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,6 +47,12 @@ public class StreetFileTest extends TestBase
         DistrictedAddress distAddrExpected = expected.get(0);
         DistrictResult districtResult = this.streetFile.assignDistricts(distAddrExpected.getGeocodedAddress(), DistrictType.getAllTypes());
         assertEquals(ResultStatus.PARTIAL_DISTRICT_RESULT, districtResult.getStatusCode());
+    }
+
+    @Test
+    public void test()
+    {
+        FormatUtil.printObject(this.streetFile.assignDistricts(new GeocodedAddress(new Address("66 Becker St" ,"Roxbury", "NY", "12474"))));
     }
 
 }

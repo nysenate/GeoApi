@@ -36,8 +36,7 @@ public class DistrictShapefileDaoTest extends TestBase
     @Test
     public void getDistrictInfoFromPoint()
     {
-        DistrictInfo dinfo = (dsDao.getDistrictInfo(new Point(42.74117729798573, -73.66938646729645), Arrays.asList(DistrictType.ELECTION), true));
-        DistrictMap districtMap = dinfo.getDistMap(DistrictType.ELECTION);
-        System.out.println(districtMap.getPolygon().toJson());
+        DistrictInfo dinfo = (dsDao.getDistrictInfo(new Point(42.74117729798573, -73.66938646729645), DistrictType.getStandardTypes(), false));
+        System.out.println(dinfo);
     }
 }
