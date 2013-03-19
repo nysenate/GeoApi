@@ -111,6 +111,7 @@ public class MapQuest implements AddressService, GeocodeService, Observer
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
+        logger.debug("Performing geocoding using MapQuest");
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
         ArrayList<GeocodedAddress> geocodedAddresses = this.mapQuestDao.getGeocodedAddresses(addresses);
 

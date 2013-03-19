@@ -46,6 +46,7 @@ public class Yahoo implements GeocodeService, Observer
     @Override
     public GeocodeResult geocode(Address address)
     {
+        logger.debug("Performing geocoding using Yahoo Free");
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Proceed only on valid input */

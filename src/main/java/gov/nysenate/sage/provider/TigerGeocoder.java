@@ -40,6 +40,7 @@ public class TigerGeocoder implements GeocodeService
     @Override
     public GeocodeResult geocode(Address address)
     {
+        logger.debug("Performing geocoding using TigerGeocoder");
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Proceed if valid address */
@@ -63,6 +64,9 @@ public class TigerGeocoder implements GeocodeService
             if (geocode.getQuality().equals(GeocodeQuality.NOMATCH)) {
                 geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
             }
+        }
+        else {
+            geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
         }
 
         return geocodeResult;
