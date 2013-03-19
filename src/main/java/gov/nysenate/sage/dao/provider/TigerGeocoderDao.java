@@ -30,22 +30,23 @@ public class TigerGeocoderDao extends BaseDao
 {
     private static Logger logger = Logger.getLogger(TigerGeocoderDao.class);
     private QueryRunner run = getTigerQueryRunner();
-    private int GEOCODER_TIMEOUT = 3000;
+    private int GEOCODER_TIMEOUT = 1000; //ms
 
     public GeocodedStreetAddress getGeocodedStreetAddress(Connection conn, Address address)
     {
         String sql = "SELECT g.rating, ST_Y(geomout) As lat, ST_X(geomout) As lon, (addy).* \n" +
                      "FROM geocode(?, 1) AS g;";
+        GeocodedStreetAddress geoStreetAddress = null;
         try {
             setTimeOut(conn, run, GEOCODER_TIMEOUT);
-            GeocodedStreetAddress gsa = run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
-            conn.close();
-            return gsa;
+            geoStreetAddress = run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
         }
         catch (SQLException ex){
             logger.warn(ex.getMessage());
         }
-        return null;
+        closeConnection(conn);
+
+        return geoStreetAddress;
     }
 
     public GeocodedStreetAddress getGeocodedStreetAddress(Address address)
