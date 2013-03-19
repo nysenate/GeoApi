@@ -9,7 +9,7 @@ contextPath = "<%=request.getContextPath()%>";
 <script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery.min.js"></script>
 <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery.color.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/js/app.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/js/old.js"></script>
 
 <link href="<%=request.getContextPath()%>/style.css" rel="stylesheet" type="text/css">
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -23,8 +23,8 @@ contextPath = "<%=request.getContextPath()%>";
   </div>
 
 <div class="message_list"> 
-    <p class="message_head"><cite>District Information</cite></p> 
-    <div class="message_body"> 
+    <p class="message_head"><cite>District Information</cite></p>
+    <div class="message_body">
         <form id="districtsForm" action="" method="post">
           <ol>
             <li>

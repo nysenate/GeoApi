@@ -1,0 +1,296 @@
+@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro);
+
+@font-face {
+    font-family: 'entypo';
+    src: url('fonts/entypo/entypo.eot'); /* IE9 Compat Modes */
+    src: url('fonts/entypo/entypo?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('fonts/entypo/entypo.woff') format('woff'), /* Modern Browsers */
+    url('fonts/entypo/entypo.ttf')  format('truetype'), /* Safari, Android, iOS */
+    url('fonts/entypo/entypo.svg#svgFontName') format('svg'); /* Legacy iOS */
+}
+
+@font-face {
+    font-family: 'entypo-social';
+    src: url('fonts/entypo/entypo-social.eot'); /* IE9 Compat Modes */
+    src: url('fonts/entypo/entypo-social?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('fonts/entypo/entypo-social.woff') format('woff'), /* Modern Browsers */
+    url('fonts/entypo/entypo-social.ttf')  format('truetype'), /* Safari, Android, iOS */
+    url('fonts/entypo/entypo-social.svg#svgFontName') format('svg'); /* Legacy iOS */
+}
+
+html {
+    height:100%;
+}
+
+body{
+    margin:0;
+    padding:0;
+    font-family:'Source Sans Pro', sans-serif;
+    height:100%;
+}
+
+a {
+    color:#333;
+    text-decoration: none;
+}
+
+input {
+    color:#333;
+}
+
+[data-icon]:before {
+    font-family: 'entypo'; /* BYO icon font, mapped smartly */
+    content: attr(data-icon);
+    speak: none;
+    font-size:32px;
+    line-height:0px;
+    position:relative;
+    top: 4px;
+    margin-right:5px;
+}
+
+[data-socialicon]:before {
+    font-family: 'entypo-social'; /* BYO icon font, mapped smartly */
+    content: attr(data-socialicon);
+    speak: none;
+    font-size:32px;
+    line-height:0px;
+    position:relative;
+    top: 3px;
+    margin-right:5px;
+}
+
+h1.logo {
+    color:#333;
+    line-height: 48px;
+    margin: 0px 15px 0px 10px;
+    float:left;
+}
+
+b{font-size: 110%;}
+em{color: red;}
+
+#topsection{
+    background: #f1f1f1;
+    height: 46px; /*Height of top section*/
+    border-bottom:4px solid #ddd;
+}
+
+ul.nav{
+    padding-top:14px;
+    list-style-type: none;
+    margin:0px 0px 0px 100px;
+}
+
+ul.nav li{
+    float:left;
+    margin-right:30px;
+    cursor:pointer;
+}
+
+ul.nav li a{
+    color:#555;
+    margin:0px;
+}
+
+ul.nav li:hover a{
+    color:teal;
+}
+
+#contentwrapper{
+    float: left;
+    width: 100%;
+}
+
+#contentcolumn{
+    margin: 0 360px 0 300px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
+}
+
+#leftcolumn{
+    float: left;
+    width: 300px; /*Width of left column*/
+    margin-left: -100%;
+    background: #eee;
+    height:100%;
+}
+
+#rightcolumn{
+    float: left;
+    width: 360px; /*Width of right column*/
+    margin-left: -360px; /*Set left margin to -(RightColumnWidth)*/
+    background: #eee;
+    height:100%;
+}
+
+#footer{
+    clear: left;
+    width: 100%;
+    background: #ababab;
+    color: #FFF;
+    text-align: center;
+    padding: 4px 0;
+    height:40px;
+}
+
+#footer a{
+    color: #FFFF80;
+}
+
+.innertube{
+    /*margin: 10px; /*Margins for inner DIV inside each column (to provide padding)*/
+    margin-top: 0;
+}
+
+#map_canvas{
+    width:100%; height:100%
+}
+
+.method-header, .result-header{
+    margin: 0px;
+    padding: 10px 15px;
+    font-size: 16px;
+    color:#777;
+    cursor:pointer;
+}
+
+.method-header:hover{
+    color:#333;
+    background-color:#ddd;
+}
+
+.method-header.active {
+    color: white;
+    font-weight: bold;
+}
+
+.result-header.success {
+    color: white;
+    background-color:#477326;
+    font-weight: bold;
+}
+
+.result-header.error {
+    background-color: #8E2F2F;
+    font-weight: bold;
+}
+
+.method-header.active.teal{ background-color:#0E4E5A;}
+.method-header.active.maroon{ background-color:#632127;}
+.method-header.active.green{background-color:#477326;}
+.method-header.active.purple{background-color:#632150;}
+.method-header.active.brown{background-color:#957732;}
+
+
+.form-container {
+    display:none;
+}
+
+.form-container.active {
+    display:block;
+}
+
+.info-container{
+    box-shadow:1px 1px 2px 0 #b0b0b0;
+    width: 95%;
+    margin: 10px auto;
+    background: white;
+    height: auto;
+}
+
+form ol{
+    padding:0px 0px 0px 10px;
+    list-style-type: none;
+}
+
+ol.input-container li {
+    margin-bottom:3px;
+}
+
+ol.input-container li label {
+    float:left;
+    text-align: right;
+    margin-right:10px;
+    width:55px;
+    line-height:29px;
+    font-size:13px;
+}
+
+ol.input-container li input[type="text"]{
+    width:200px;
+    background:white;
+    border:1px solid #ccc;
+    padding:5px;
+    margin-bottom:2px;
+}
+
+ol.input-container li select {
+    padding:4px 2px;
+    outline:none;
+    border:1px solid #ccc;
+    width:200px;
+    background:white;
+    margin-bottom:2px;
+}
+
+button.submit {
+    text-align: center;
+    background: #799933;
+    color: white;
+    border: 0;
+    outline: 0;
+    font-size: 14px;
+    font-family: 'Source Sans Pro';
+    padding: 7px 20px;
+    width: 264px;
+    font-weight: bold;
+}
+
+button.submit:hover{
+    background: #7BA838;
+}
+
+.info-container.senator {
+    height:150px;
+}
+
+hr {
+    color: #333;
+    border-style: none none solid none;
+    outline: none;
+    border-width: 1px;
+    border-color: #BBB;
+    box-shadow: #999 0px 1px 4px;
+}
+
+img.senator-pic {
+    margin-top: 10px;
+    margin-left: 10px;
+    float:left;
+}
+
+/* Senator Info Card
+--------------------*/
+
+p {
+    margin:0px;
+}
+
+.senator-name {
+    color:#444;
+    font-size:20px;
+}
+
+.senator-email {
+    color:#444;
+    font-size:14px;
+}
+
+.senate-district {
+    font-size:18px;
+    color: teal;
+}
+
+.validated-address {
+    color: #333;
+    font-size:18px;
+}

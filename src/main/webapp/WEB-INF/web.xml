@@ -30,15 +30,25 @@
         <url-pattern>/api/*</url-pattern>
     </filter-mapping>
 
-    <!-- API Controller mappings -->
+    <!-- API v2 Controller mappings -->
     <servlet>
-        <display-name>ValidateAddressController</display-name>
-        <servlet-name>ValidateAddressController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.api.ValidateAddressController</servlet-class>
+        <display-name>AddressController</display-name>
+        <servlet-name>AddressController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.api.AddressController</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>ValidateAddressController</servlet-name>
-        <url-pattern>/api/validate/*</url-pattern>
+        <servlet-name>AddressController</servlet-name>
+        <url-pattern>/api/v2/address/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>GeocodeController</display-name>
+        <servlet-name>GeocodeController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.api.GeocodeController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>GeocodeController</servlet-name>
+        <url-pattern>/api/v2/geo/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -48,43 +58,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>DistrictController</servlet-name>
-        <url-pattern>/api/district/*</url-pattern>
+        <url-pattern>/api/v2/district/*</url-pattern>
     </servlet-mapping>
 
-
-
-
-
-
-    <!--
-    <servlet>
-        <servlet-name>MapServlet</servlet-name>
-        <servlet-class>gov.nysenate.sage.servlets.MapServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <description></description>
-        <display-name>ApiServlet</display-name>
-        <servlet-name>ApiServlet</servlet-name>
-        <servlet-class>gov.nysenate.sage.servlets.ApiServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ApiServlet</servlet-name>
-        <url-pattern>/api/*</url-pattern>
-    </servlet-mapping>
-    <servlet>
-        <description></description>
-        <display-name>BulkServlet</display-name>
-        <servlet-name>BulkServlet</servlet-name>
-        <servlet-class>gov.nysenate.sage.servlets.BulkServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>BulkServlet</servlet-name>
-        <url-pattern>/bulk/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>MapServlet</servlet-name>
-        <url-pattern>/maps/</url-pattern>
-    </servlet-mapping>
-    -->
 </web-app>
