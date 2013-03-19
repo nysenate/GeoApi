@@ -120,17 +120,19 @@ sage.controller('MapViewController', function($scope, responseService) {
     $scope.map = new google.maps.Map(document.getElementById("map_canvas"), $scope.mapOptions);
     $scope.polygon = null;
     $scope.poiMarker = null;
+    $scope.polygonName = "";
 
     $scope.$on('districts', function() {
-        if (responseService.response.districtAssigned) {
-            $scope.setMapBoundary(responseService.response.districts.senate.map.geom);
+        var data = responseService.response;
+        if (data.districtAssigned) {
+            $scope.setMapBoundary(data.districts.senate.map.geom);
         }
-        if (responseService.response.geocoded) {
-            $scope.setMarker(responseService.response.geocode.lat, responseService.response.geocode.lon);
+        if (data.geocoded) {
+            $scope.setMarker(data.geocode.lat, data.geocode.lon, data.address.addr1);
         }
     });
 
-    $scope.setMarker = function(lat, lon) {
+    $scope.setMarker = function(lat, lon, markerTitle) {
         if (this.poiMarker != null) {
             this.poiMarker.setMap(null);
             this.poiMarker = null;
@@ -138,15 +140,16 @@ sage.controller('MapViewController', function($scope, responseService) {
 
         this.poiMarker = new google.maps.Marker({
             map: $scope.map,
-            draggable:true,
+            draggable:false,
             animation: google.maps.Animation.DROP,
-            position: new google.maps.LatLng(lat, lon)
+            position: new google.maps.LatLng(lat, lon),
+            title: markerTitle
         });
 
         this.map.setCenter(this.poiMarker.position);
     }
 
-    $scope.setMapBoundary = function(points) {
+    $scope.setMapBoundary = function(points, name) {
         var coords = [];
         for (var i in points) {
             coords.push(new google.maps.LatLng(points[i][0], points[i][1]));
@@ -167,6 +170,7 @@ sage.controller('MapViewController', function($scope, responseService) {
         });
 
         this.polygon.setMap(this.map);
+        this.polygonName = name;
     }
 });
 

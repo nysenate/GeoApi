@@ -16,6 +16,7 @@
         <div class="innertube">
             <h1 class="logo">SAGE</h1>
             <ul class="nav">
+                <li><a>About</a></li>
                 <li><a>API Reference</a></li>
                 <li><a>Batch Request</a></li>
             </ul>
@@ -24,7 +25,8 @@
 
     <div id="contentwrapper">
         <div id="contentcolumn">
-            <div style="display:none" class="result-header success">District Maps </div>
+            <div class="result-header" style="background-color: #333;color:white;">
+                <span aria-hidden="true" data-icon="&#59175;"></span>Senate District 11 Map</div>
             <div id="map_canvas" ng-controller="MapViewController"></div>
         </div>
     </div>
@@ -143,7 +145,6 @@
                     </ol>
                 </form>
             </div>
-            <p class="method-header brown">About</p>
         </div>
     </div>
 
@@ -180,8 +181,8 @@
                     <hr style="clear:left;"/>
                 </div>
                 <div class="info-container">
-                    <p>{{geocode.lat}}, {{geocode.lon}}</p>
-                    <p>{{address.addr1}}, {{address.city}}, {{address.state}} {{address.zip5}}</p>
+                    <p><span aria-hidden="true" data-icon="&#59172;" ></span>{{geocode.lat}}, {{geocode.lon}}</p>
+                    <p>{{address.addr1}}, {{address.city}}, {{address.state}} {{address.zip5}}-{{address.zip4}}</p>
                 </div>
                 <div class="info-container congressional">
                     <p>Congressional District {{districts.congressional.district}}</p>

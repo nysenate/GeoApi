@@ -34,11 +34,12 @@ a {
     text-decoration: none;
 }
 
-input {
-    color:#333;
+.input-container input, .input-container select {
+    color:#111;
+    font-size:14px;
 }
 
-[data-icon]:before {
+[data-icon]:after {
     font-family: 'entypo'; /* BYO icon font, mapped smartly */
     content: attr(data-icon);
     speak: none;
@@ -60,24 +61,24 @@ input {
     margin-right:5px;
 }
 
-h1.logo {
-    color:#333;
-    line-height: 48px;
-    margin: 0px 15px 0px 10px;
-    float:left;
-}
-
 b{font-size: 110%;}
 em{color: red;}
 
 #topsection{
-    background: #f1f1f1;
-    height: 46px; /*Height of top section*/
-    border-bottom:4px solid #ddd;
+    background: #1a1a1a;
+    height: 39px; /*Height of top section*/
+    border-bottom:1px solid #333;
+}
+
+h1.logo {
+    color:#ddd;
+    margin: 0px 15px 0px 10px;
+    float:left;
+    font-size:30px;
 }
 
 ul.nav{
-    padding-top:14px;
+    padding-top:10px;
     list-style-type: none;
     margin:0px 0px 0px 100px;
 }
@@ -89,8 +90,9 @@ ul.nav li{
 }
 
 ul.nav li a{
-    color:#555;
+    color:#bbb;
     margin:0px;
+    font-size:14px;
 }
 
 ul.nav li:hover a{
