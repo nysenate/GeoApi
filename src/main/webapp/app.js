@@ -170,12 +170,17 @@ sage.controller('MapViewController', function($scope, responseService) {
         });
 
         this.polygon.setMap(this.map);
+
+        /** Set the zoom level to the district bounds and move a step closer */
+        this.map.fitBounds(this.polygon.getBounds());
+        this.map.setZoom(this.map.getZoom() + 1);
+
+        /** Text to display on the map header */
         this.polygonName = name;
     }
 });
 
 $(document).ready(function(){
-
   $("#districtsForm button").click(); // TEST HELPER
 
   $("p.method-header").click(function(event) {
@@ -188,3 +193,19 @@ $(document).ready(function(){
   });
 });
 
+/**
+ * Google maps doesn't have a native get bounds method for polygons.
+ * @return {google.maps.LatLngBounds}
+ */
+google.maps.Polygon.prototype.getBounds = function() {
+    var bounds = new google.maps.LatLngBounds();
+    var paths = this.getPaths();
+    var path;
+    for (var i = 0; i < paths.getLength(); i++) {
+        path = paths.getAt(i);
+        for (var ii = 0; ii < path.getLength(); ii++) {
+            bounds.extend(path.getAt(ii));
+        }
+    }
+    return bounds;
+}
