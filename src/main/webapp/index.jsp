@@ -161,17 +161,17 @@
             <p class="result-header success">Results</p>
             <div id="district-results" ng-controller="DistrictsViewController" ng-show="districtAssigned">
                 <div class="info-container senator">
-                    <div style="float:left;margin-right:10px;margin-bottom:5px;">
-                        <img ng-src={{districts.senate.senator.imageUrl}} width="90px" height="120px" class="senator-pic">
+                    <div class="senator-pic-holder">
+                        <img ng-src={{districts.senate.senator.imageUrl}} class="senator-pic">
                     </div>
-                    <div style="padding:10px;">
-                        <p class="senator-name">
+                    <div>
+                        <p class="senator member-name">
                             <a target="_blank" ng-href="{{districts.senate.senator.url}}">{{districts.senate.senator.name}}</a>
                         </p>
-                        <p class="senate-district">Senate District {{districts.senate.district}}</p><br/>
-                        <p class="senator-email"><span aria-hidden="true" data-icon="&#9993;" style="color:teal;"></span>{{districts.senate.senator.email}}</p>
+                        <p class="senate district">Senate District {{districts.senate.district}}</p><br/>
+                        <p class="member-email"><span aria-hidden="true" data-icon="&#9993;" style="color:teal;"></span>{{districts.senate.senator.email}}</p>
                         <div class="senator-social">
-                            <p class="senator-email" >
+                            <p class="member-email" >
                                 <a target="_blank" ng-href="{{districts.senate.senator.social.facebook}}">
                                     <span aria-hidden="true" data-socialicon="&#62222;" class="social" style="color:teal;"></span>Facebook Page
                                 </a>
@@ -181,31 +181,34 @@
                     <hr style="clear:left;"/>
                 </div>
                 <div class="info-container">
-                    <p><span aria-hidden="true" data-icon="&#59172;" ></span>{{geocode.lat}}, {{geocode.lon}}</p>
-                    <p>{{address.addr1}}, {{address.city}}, {{address.state}} {{address.zip5}}-{{address.zip4}}</p>
+                    <table>
+                        <tr>
+                            <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
+                            <td><p style="font-size: 16px;color:#111;">{{address.addr1}}, {{address.city}}, {{address.state}} {{address.zip5}}-{{address.zip4}}</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span aria-hidden="true" data-icon="&#127919;" style="color:teal;"></span></td>
+                            <td><p style="font-size: 16px;color:#111;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}})</p></td>
+                        </tr>
+                    </table>
                 </div>
                 <div class="info-container congressional">
-                    <p>Congressional District {{districts.congressional.district}}</p>
-                    <p>
-                        <a target="_blank" ng-href="{{districts.congressional.member.url}}">{{districts.congressional.member.name}}</a>
-                    </p>
+                    <p class="member-name"><a target="_blank" ng-href="{{districts.congressional.member.url}}">{{districts.congressional.member.name}}</a></p>
+                    <p class="district">Congressional District {{districts.congressional.district}}</p>
                 </div>
                 <div class="info-container assembly">
-                    <p>Assembly District {{districts.assembly.district}}</p>
-                    <p>
-                        <a target="_blank" ng-href="{{districts.assembly.member.url}}">{{districts.assembly.member.name}}</a>
-                    </p>
+                    <p class="member-name"><a target="_blank" ng-href="{{districts.assembly.member.url}}">{{districts.assembly.member.name}}</a></p>
+                    <p class="district">Assembly District {{districts.assembly.district}}</p>
                 </div>
                 <div class="info-container">
-                    <p>{{districts.county.name}}</p>
-                    <p>County Code: {{districts.county.district}}</p>
+                    <p class="member-name">{{districts.county.name}}</p>
+                    <p class="district">County Code: {{districts.county.district}}</p>
+                    <p class="district">Town Code: {{districts.town.district}}</p>
                 </div>
                 <div class="info-container">
-                    <p>{{districts.school.name}}</p>
-                    <p>School District Code: {{districts.school.district}}</p>
-                </div>
-                <div class="info-container">
-                    <p>Election District Code: {{districts.election.district}}</p>
+                    <p class="member-name">{{districts.school.name}}</p>
+                    <p class="district">School District Code: {{districts.school.district}}</p>
                 </div>
             </div>
         </div>

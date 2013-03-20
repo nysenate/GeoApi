@@ -193,10 +193,11 @@ ul.nav li:hover a{
 
 .info-container{
     box-shadow:1px 1px 2px 0 #b0b0b0;
-    width: 95%;
+    width: 325px;
     margin: 10px auto;
     background: white;
     height: auto;
+    padding:10px;
 }
 
 form ol{
@@ -255,7 +256,7 @@ button.submit:hover{
     height:150px;
 }
 
-hr {
+hr.shadow {
     color: #333;
     border-style: none none solid none;
     outline: none;
@@ -264,10 +265,18 @@ hr {
     box-shadow: #999 0px 1px 4px;
 }
 
-img.senator-pic {
-    margin-top: 10px;
-    margin-left: 10px;
+div.senator-pic-holder {
+    height:120px;
+    max-width:100px;
+    overflow:hidden;
     float:left;
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+
+div.senator-pic-holder img.senator-pic {
+    height:100%;
+    width:auto;
 }
 
 /* Senator Info Card
@@ -277,18 +286,28 @@ p {
     margin:0px;
 }
 
-.senator-name {
+.member-name.senator {
     color:#444;
     font-size:20px;
 }
 
-.senator-email {
+.member-name {
+    color:#444;
+    font-size:18px;
+}
+
+.member-email {
     color:#444;
     font-size:14px;
 }
 
-.senate-district {
+.district.senate {
     font-size:18px;
+    color: teal;
+}
+
+.district {
+    font-size:16px;
     color: teal;
 }
 
