@@ -21,10 +21,7 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * DistrictShapefileDao utilizes a PostGIS database loaded with Census shapefiles to
@@ -112,16 +109,40 @@ public class DistrictShapefileDao extends BaseDao
         return null;
     }
 
-    /** Some code columns have special cases */
+    /**
+     * Obtain a list of districts that are closest to the given point. This list does not include the
+     * district that the point actually resides within.
+     * @param districtType
+     * @param point
+     * @return
+     */
+    public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, int count)
+    {
+        String tmpl =
+            "SELECT '%s' AS type, %s AS code, ST_AsGeoJson(geom) AS map \n" +
+            "FROM " + SCHEMA +".%s \n" +
+            "WHERE ST_Contains(geom, ST_PointFromText('POINT(%f %f)'," + SRID +")) = false \n" +
+            "ORDER BY geom <-> ST_PointFromText('POINT(%f %f)'," + SRID + ") \n" +
+            "LIMIT %d;";
+        String sqlQuery = String.format(tmpl, districtType.name(), resolveCodeColumn(districtType), districtType.name(),
+                                              point.getLon(), point.getLat(), point.getLon(), point.getLat(), count);
+        try {
+            return run.query(sqlQuery, new NearbyDistrictMapsHandler());
+        }
+        catch (SQLException ex) {
+            logger.error(ex);
+        }
+        return null;
+    }
+
+    /** Some district code columns have special column names */
     private String resolveCodeColumn(DistrictType districtType)
     {
         String codeColumn = DistrictShapeCode.getCodeColumn(districtType);
-
         /** Election shapefile has an integer code so we should convert to string */
         if (districtType == DistrictType.ELECTION){
             codeColumn = "to_char("+ codeColumn + ", '999')";
         }
-
         return codeColumn;
     }
 
@@ -139,22 +160,11 @@ public class DistrictShapefileDao extends BaseDao
                     /** District name */
                     districtInfo.setDistName(type, rs.getString("name"));
 
-                    /** County codes need to be mapped from FIPS code */
-                    if (type == DistrictType.COUNTY){
-                        String code = Integer.toString(new CountyDao().getFipsCountyMap().get(rs.getInt("code")).getId());
-                        districtInfo.setDistCode(type, code);
-                    }
-                    /** Normal district code */
-                    else {
-                        String code = rs.getString("code");
-                        if (code != null) {
-                            districtInfo.setDistCode(type, code.trim());
-                        }
-                    }
-                    /** District Map */
-                    if (rs.getString("map") != null && !rs.getString("map").isEmpty()){
-                        districtInfo.setDistMap(type, getDistrictMapFromJson(rs.getString("map")));
-                    }
+                    /** District code */
+                    districtInfo.setDistCode(type, getDistrictCode(rs));
+
+                    /** District map */
+                    districtInfo.setDistMap(type, getDistrictMapFromJson(rs.getString("map")));
                 }
                 else {
                     logger.error("Unsupported district type in results - " + rs.getString("type"));
@@ -183,21 +193,9 @@ public class DistrictShapefileDao extends BaseDao
                         districtMaps.put(type, new HashMap<String, DistrictMap>());
                     }
 
-                    String code = null;
-                    DistrictMap map = null;
+                    String code = getDistrictCode(rs);
+                    DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
 
-                    /** County codes need to be mapped from FIPS code */
-                    if (type == DistrictType.COUNTY){
-                        code = Integer.toString(new CountyDao().getFipsCountyMap().get(rs.getInt("code")).getId());
-                    }
-                    /** Normal district code */
-                    else {
-                        code = rs.getString("code");
-                    }
-                    /** District Map */
-                    if (rs.getString("map") != null && !rs.getString("map").isEmpty()){
-                        map = getDistrictMapFromJson(rs.getString("map"));
-                    }
                     /** Set values in the lookup HashMap */
                     if (code != null && map != null) {
                         districtMaps.get(type).put(code, map);
@@ -208,6 +206,47 @@ public class DistrictShapefileDao extends BaseDao
         }
     }
 
+    private class NearbyDistrictMapsHandler implements ResultSetHandler<LinkedHashMap<String, DistrictMap>>
+    {
+        @Override
+        public LinkedHashMap<String, DistrictMap> handle(ResultSet rs) throws SQLException
+        {
+            LinkedHashMap<String, DistrictMap> nearbyDistrictMaps = new LinkedHashMap<>();
+            while (rs.next()) {
+                String code = getDistrictCode(rs);
+                DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
+                nearbyDistrictMaps.put(code, map);
+            }
+            return nearbyDistrictMaps;
+        }
+    }
+
+    /**
+     * Retrieves the district code from the result set and performs any necessary corrections.
+     * @param rs
+     * @return
+     * @throws SQLException
+     */
+    private String getDistrictCode(ResultSet rs) throws SQLException
+    {
+        if (rs != null) {
+            DistrictType type = DistrictType.resolveType(rs.getString("type"));
+            String code;
+
+            /** County codes need to be mapped from FIPS code */
+            if (type == DistrictType.COUNTY){
+                code = Integer.toString(new CountyDao().getFipsCountyMap().get(rs.getInt("code")).getId());
+            }
+            /** Normal district code */
+            else {
+                code = rs.getString("code");
+                if (code != null) { code = code.trim(); }
+            }
+            return code;
+        }
+        return null;
+    }
+
     /**
      * Parses JSON map response and creates a DistrictMap object containing the district geometry.
      * @param jsonMap   GeoJson string containing the district geometry
@@ -216,24 +255,25 @@ public class DistrictShapefileDao extends BaseDao
      */
     private DistrictMap getDistrictMapFromJson(String jsonMap)
     {
+        /** The geometry response comes in as a quadruply nested array */
         DistrictMap districtMap = new DistrictMap();
         List<Point> points = new ArrayList<>();
 
-        /** The geometry response comes in as a quadruply nested array */
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            JsonNode mapNode = objectMapper.readTree(jsonMap);
-            JsonNode coordinates = mapNode.get("coordinates").get(0).get(0);
-            for (int i = 0; i < coordinates.size(); i++){
-                points.add(new Point(coordinates.get(i).get(1).asDouble(), coordinates.get(i).get(0).asDouble()));
+        if (jsonMap != null && !jsonMap.isEmpty()) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                JsonNode mapNode = objectMapper.readTree(jsonMap);
+                JsonNode coordinates = mapNode.get("coordinates").get(0).get(0);
+                for (int i = 0; i < coordinates.size(); i++){
+                    points.add(new Point(coordinates.get(i).get(1).asDouble(), coordinates.get(i).get(0).asDouble()));
+                }
+                districtMap.setPolygon(new Polygon(points));
+                return districtMap;
             }
-            districtMap.setPolygon(new Polygon(points));
-            return districtMap;
+            catch (IOException ex) {
+                logger.error(ex);
+            }
         }
-        catch (IOException ex) {
-            logger.error(ex);
-        }
-
         return null;
     }
 }
