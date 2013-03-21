@@ -2,20 +2,20 @@
 
 @font-face {
     font-family: 'entypo';
-    src: url('fonts/entypo/entypo.eot'); /* IE9 Compat Modes */
+    src: url('../fonts/entypo/entypo.eot'); /* IE9 Compat Modes */
     src: url('fonts/entypo/entypo?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-    url('fonts/entypo/entypo.woff') format('woff'), /* Modern Browsers */
-    url('fonts/entypo/entypo.ttf')  format('truetype'), /* Safari, Android, iOS */
-    url('fonts/entypo/entypo.svg#svgFontName') format('svg'); /* Legacy iOS */
+    url('../fonts/entypo/entypo.woff') format('woff'), /* Modern Browsers */
+    url('../fonts/entypo/entypo.ttf')  format('truetype'), /* Safari, Android, iOS */
+    url('../fonts/entypo/entypo.svg#svgFontName') format('svg'); /* Legacy iOS */
 }
 
 @font-face {
     font-family: 'entypo-social';
-    src: url('fonts/entypo/entypo-social.eot'); /* IE9 Compat Modes */
+    src: url('../fonts/entypo/entypo-social.eot'); /* IE9 Compat Modes */
     src: url('fonts/entypo/entypo-social?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-    url('fonts/entypo/entypo-social.woff') format('woff'), /* Modern Browsers */
-    url('fonts/entypo/entypo-social.ttf')  format('truetype'), /* Safari, Android, iOS */
-    url('fonts/entypo/entypo-social.svg#svgFontName') format('svg'); /* Legacy iOS */
+    url('../fonts/entypo/entypo-social.woff') format('woff'), /* Modern Browsers */
+    url('../fonts/entypo/entypo-social.ttf')  format('truetype'), /* Safari, Android, iOS */
+    url('../fonts/entypo/entypo-social.svg#svgFontName') format('svg'); /* Legacy iOS */
 }
 
 html {

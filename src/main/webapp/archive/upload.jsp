@@ -22,18 +22,18 @@ $(document).ready(function() {
 	if ($.trim($("#error").html())=="") {
 		$("#error").hide();
 	}
-	
+
 	$('#fileuploaded').hide();
-	
+
 	var uploader = new qq.FileUploader({
 		action: '<%=context%>/bulk/upload',
 		element: document.getElementById('fileuploader'),
 		allowedExtensions:['tsv','csv', 'txt'],
 		multiple:false,
-		template: '<div class="qq-uploader">' + 
+		template: '<div class="qq-uploader">' +
 	        '<div class="qq-upload-drop-area"><span>Drop file here to upload</span></div>' +
 	        '<div class="custom-button qq-upload-button"><span>Select a file</span></div>' +
-	        '<ul class="qq-upload-list"></ul>' + 
+	        '<ul class="qq-upload-list"></ul>' +
      		'</div>',
      	onSubmit: doSubmit,
    		onComplete: doComplete
@@ -43,7 +43,7 @@ $(document).ready(function() {
 		return true;
 	}
 
-	function doComplete(id, fileName, responseJson) {		
+	function doComplete(id, fileName, responseJson) {
 		$('.qq-upload-drop-area').hide();
 		$('.qq-upload-button').hide();
 		$('#fileuploader').slideUp(function() {
@@ -53,14 +53,14 @@ $(document).ready(function() {
 		var html="";
 		if(responseJson.success == true && responseJson.type != "null") {
 			html = "<div id=\"uploaded-response\"><span class=\"hl-text\">";
-			html    += 		responseJson.file 
-								+ "</span> has been successfully uploaded.  It is a <span class=\"hl-text\">" 
-								+ responseJson.type 
+			html    += 		responseJson.file
+								+ "</span> has been successfully uploaded.  It is a <span class=\"hl-text\">"
+								+ responseJson.type
 								+ "</span> file.<br/><br/>";
-			html    += 		"The file contains <span class=\"hl-text\">" 
-								+ responseJson.count 
-								+ "</span> records and will take approximately <span class=\"hl-text\">" 
-								+ Math.round((responseJson.count/20000)*100)/100 
+			html    += 		"The file contains <span class=\"hl-text\">"
+								+ responseJson.count
+								+ "</span> records and will take approximately <span class=\"hl-text\">"
+								+ Math.round((responseJson.count/20000)*100)/100
 								+ "</span> hours to complete.<br/><br/>";
 			html 	+=		"Click <span class=\"hl-text\">Submit</span> to finalize this request.<br/><br/>";
 			html 	+=		"<div id=\"select-new-file\">Select a different file</div>";
@@ -77,21 +77,21 @@ $(document).ready(function() {
 			html = "<div id=\"uploaded-response\">";
 
 			if(responseJson.type == "null") {
-				html += "The file uploaded (<span class=\"hl-text\">" 
-					+ fileName 
+				html += "The file uploaded (<span class=\"hl-text\">"
+					+ fileName
 					+ "</span>) isn't handled by SAGE yet, please send an email for support.<br/><br/>";
 			}
 			else if(responseJson.count == 0) {
-				html += "The file uploaded (<span class=\"hl-text\">" 
-					+ fileName 
+				html += "The file uploaded (<span class=\"hl-text\">"
+					+ fileName
 					+ "</span>) did not have any readable text.<br/><br/>";
 			}
 			else {
-				html +=		"There was an issue uploading the file (<span class=\"hl-text\">" 
-					+ fileName 
+				html +=		"There was an issue uploading the file (<span class=\"hl-text\">"
+					+ fileName
 					+ "</span>), please try again.<br/><br/>";
 			}
-			
+
 			html 	+=		"<div id=\"select-new-file\">Select a different file</div>";
 			html    += 	"</div>";
 
@@ -119,7 +119,7 @@ $(document).ready(function() {
 			$('#form_submit').html("Saving...");
 
 			canSubmit = false;
-			
+
 			$('#uploadForm').submit();
 			return true;
 		}
@@ -130,15 +130,15 @@ $(document).ready(function() {
 			$("#error").html(message);
 			if(!$("#error").is(":visible")) {
 				$("#error").slideToggle(500);
-			}			
+			}
 			return false;
 		}
 	});
-	
+
 	function validate() {
 		message = "";
 		email = $('#email').val();//document.forms.form1.email.value;
-		
+
 		if(!email.match(/.*?@nysenate\.gov/)) {
 			message += "<br>Enter a valid email address (@nysenate.gov)";
 		}

@@ -5,8 +5,9 @@
 
 <html ng-app="sage">
     <head>
+        <base href="<%= request.getContextPath()%>/" />
         <title><jsp:invoke fragment="title"/></title>
-        <link rel="stylesheet" type="text/css" href="main.css" />
+        <link rel="stylesheet" type="text/css" href="css/main.css" />
         <link rel="stylesheet" type="text/css" href="css/normalize.css" />
         <jsp:invoke fragment="cssIncludes"/>
         <script>contextPath = "<%=request.getContextPath()%>";</script>
