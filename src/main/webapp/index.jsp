@@ -1,32 +1,16 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html ng-app="sage">
-<head>
-    <title>SAGE - Senate Address Geocoding Engine</title>
-    <link rel="stylesheet" type="text/css" href="main.css" />
-    <link rel="stylesheet" type="text/css" href="css/normalize.css" />
-    <script type="text/javascript"> contextPath = "<%=request.getContextPath()%>"; </script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
-    <script type="text/javascript" src="app.js"></script>
-</head>
-<body>
-<div id="maincontainer">
-    <div id="topsection">
-        <div class="innertube">
-            <h1 class="logo">SAGE</h1>
-            <ul class="nav">
-                <li><a>About</a></li>
-                <li><a>API Reference</a></li>
-                <li><a>Batch Request</a></li>
-            </ul>
-        </div>
-    </div>
+<%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 
+<sage:wrapper>
+    <jsp:attribute name="title">SAGE</jsp:attribute>
+    <jsp:attribute name="jsIncludes">
+        <script type="text/javascript" src="app.js"></script>
+    </jsp:attribute>
+    <jsp:body>
     <div id="contentwrapper">
         <div id="contentcolumn">
             <div class="result-header" style="background-color: #333;color:white;">
-                <span aria-hidden="true" data-icon="&#59175;"></span>Senate District 11 Map</div>
+                <span aria-hidden="true" data-icon="&#59175;"></span>Map of Senate District 11 </div>
             <div id="map_canvas" ng-controller="MapViewController"></div>
         </div>
     </div>
@@ -184,12 +168,12 @@
                     <table>
                         <tr>
                             <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
-                            <td><p style="font-size: 16px;color:#111;">{{address.addr1}}, {{address.city}}, {{address.state}} {{address.zip5}}-{{address.zip4}}</p>
+                            <td><p style="font-size: 16px;color:#111;">{{address.addr1}}<br/>{{address.city}}, {{address.state}} {{address.zip5}}-{{address.zip4}}</p>
                             </td>
                         </tr>
                         <tr>
                             <td><span aria-hidden="true" data-icon="&#127919;" style="color:teal;"></span></td>
-                            <td><p style="font-size: 16px;color:#111;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}})</p></td>
+                            <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}})</p></td>
                         </tr>
                     </table>
                 </div>
@@ -204,16 +188,29 @@
                 <div class="info-container">
                     <p class="member-name">{{districts.county.name}}</p>
                     <p class="district">County Code: {{districts.county.district}}</p>
-                    <p class="district">Town Code: {{districts.town.district}}</p>
                 </div>
                 <div class="info-container">
-                    <p class="member-name">{{districts.school.name}}</p>
-                    <p class="district">School District Code: {{districts.school.district}}</p>
+                    <table style="width:100%">
+                        <tr>
+                            <td><p class="member-name">Town of {{districts.town.name}}</p>
+                                <p class="district">Town Code: {{districts.town.district}}</p></td>
+                            <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('town');">View Map</a></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="info-container">
+                    <table style="width:100%">
+                        <tr>
+                            <td>
+                                <p class="member-name">{{districts.school.name}}</p>
+                                <p class="district">School District Code: {{districts.school.district}}</p>
+                            </td>
+                            <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('school');">View Map</a></td>
+                        </tr>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-</div>
-</div>
-</body>
-</html>
+    </jsp:body>
+</sage:wrapper>

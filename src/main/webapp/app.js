@@ -68,6 +68,7 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
         url += "&showMembers=true&showMaps=true";
+        url = url.replace(/#/g, "");
         return url;
     }
 
@@ -97,6 +98,12 @@ sage.controller('DistrictsViewController', function($scope, responseService) {
             $scope = angular.extend($scope, responseService.response);
         }
     });
+
+    $scope.showDistrict = function(district) {
+        if ($scope.districts[district] != null && typeof $scope.districts[district] != "undefined"){
+            responseService.setResponse("showDistrict", $scope.districts[district]);
+        }
+    }
 });
 
 sage.controller('CityStateController', function($scope, responseService) {
@@ -121,15 +128,25 @@ sage.controller('MapViewController', function($scope, responseService) {
     $scope.polygon = null;
     $scope.poiMarker = null;
     $scope.polygonName = "";
+    $scope.districtData = null;
 
     $scope.$on('districts', function() {
         var data = responseService.response;
+        /** If the districts were assigned, initially set the map to display the senate boundary */
         if (data.districtAssigned) {
             $scope.setMapBoundary(data.districts.senate.map.geom);
+            /** Keep a reference to the district data in local scope */
+            $scope.districtData = data;
         }
+        /** Update the marker location to point to the geocode */
         if (data.geocoded) {
             $scope.setMarker(data.geocode.lat, data.geocode.lon, data.address.addr1);
         }
+    });
+
+    $scope.$on('showDistrict', function() {
+        var district = responseService.response;
+        $scope.setMapBoundary(district.map.geom);
     });
 
     $scope.setMarker = function(lat, lon, markerTitle) {
@@ -181,7 +198,7 @@ sage.controller('MapViewController', function($scope, responseService) {
 });
 
 $(document).ready(function(){
-  $("#districtsForm button").click(); // TEST HELPER
+  //$("#districtsForm button").click(); // TEST HELPER
 
   $("p.method-header").click(function(event) {
     if (!$(this).hasClass("active")){

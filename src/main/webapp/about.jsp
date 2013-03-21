@@ -1,9 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html>
-<head>
-    <title></title>
-</head>
-<body>
+<%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 
-</body>
-</html>
+<sage:wrapper>
+    Geocoding for this service is provided primarily by Yahoo! PlaceFinder, but geocoding services from Google and Bing are also available for testing purposes.
+</sage:wrapper>
