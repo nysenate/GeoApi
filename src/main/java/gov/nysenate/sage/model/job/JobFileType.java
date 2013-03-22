@@ -1,7 +1,7 @@
 package gov.nysenate.sage.model.job;
 
-
-public enum BulkFileType {
+public enum JobFileType
+{
 	BLUEBIRDTSV(BlueBirdTsv.class, "BlueBird TSV", "id	first_name	middle_name	last_name	" +
 			"prefix_id	suffix_id	full_name	street_number	street_name	street_unit	street_address	supplemental_address_1	" +
 			"supplemental_address_2	city	state_province_id	postal_code	postal_code_suffix	" +
@@ -16,7 +16,7 @@ public enum BulkFileType {
 	private String header;
 	private String delimiter;
 	
-	private BulkFileType(Class<? extends BulkInterface> clazz, String type, String header, String delimiter) {
+	private JobFileType(Class<? extends BulkInterface> clazz, String type, String header, String delimiter) {
 		this.type = type;
 		this.clazz = clazz;
 		this.header = header;
@@ -39,5 +39,3 @@ public enum BulkFileType {
 		return delimiter;
 	}
 }
-
-

@@ -1,4 +1,4 @@
-package gov.nysenate.sage.service;
+package gov.nysenate.sage.service.base;
 
 import org.apache.log4j.Logger;
 import java.util.HashMap;
