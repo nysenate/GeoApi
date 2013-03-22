@@ -1,7 +1,5 @@
 package gov.nysenate.sage.model.job;
 
-import java.sql.Timestamp;
-
 public class JobUser
 {
     protected int id;
@@ -9,8 +7,18 @@ public class JobUser
     protected String password;
     protected String firstname;
     protected String lastname;
-    protected Timestamp joined;
     protected boolean active;
+
+    public JobUser() {}
+
+    public JobUser(String email, String password, String firstname, String lastname)
+    {
+        this.email = email;
+        this.password = password;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.active = false;
+    }
 
     public int getId() {
         return id;
@@ -50,14 +58,6 @@ public class JobUser
 
     public void setLastname(String lastname) {
         this.lastname = lastname;
-    }
-
-    public Timestamp getJoined() {
-        return joined;
-    }
-
-    public void setJoined(Timestamp timestamp) {
-        this.joined= timestamp;
     }
 
     public boolean isActive() {

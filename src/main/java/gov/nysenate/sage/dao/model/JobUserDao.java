@@ -47,17 +47,17 @@ public class JobUserDao extends BaseDao
     public int addJobUser(JobUser jobUser)
     {
         try {
-            return run.update("INSERT INTO " + getTableName() + "(id,email,password,firstname,lastname,joined,active) " +
-                              "VALUES (?,?,?,?,?,?,?)",
+            return run.update("INSERT INTO " + getTableName() + "(id,email,password,firstname,lastname,active) " +
+                              "VALUES (?,?,?,?,?,?)",
                                jobUser.getId(), jobUser.getEmail(), jobUser.getPassword(), jobUser.getFirstname(),
-                               jobUser.getLastname(), jobUser.getJoined(), jobUser.isActive());
+                               jobUser.getLastname(), jobUser.isActive());
         }
         catch (SQLException sqlEx)
         {
             logger.error("Failed to add JobUser in JobUserDAO!");
             logger.error(sqlEx.getMessage());
+            return -1;
         }
-        return 0;
     }
 
     private String getTableName()

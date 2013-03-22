@@ -16,7 +16,7 @@
 }
 
 .custom-button {
-	background: transparent url('img/bg_button_a.gif') no-repeat scroll top right;
+	background: transparent url('../img/bg_button_a.gif') no-repeat scroll top right;
 	color: #444;
 	display: block;
 	/*float: left;*/
@@ -29,7 +29,7 @@
 }
 
 .custom-button span {
-	background: transparent url('img/bg_button_span.gif') no-repeat;
+	background: transparent url('../img/bg_button_span.gif') no-repeat;
 	display: block;
 	line-height: 14px;
 	padding: 5px 0 5px 18px;	
@@ -107,7 +107,7 @@
 }
 
 .qq-upload-file {}
-.qq-upload-spinner {display:inline-block; background: url("loading.gif"); width:15px; height:15px; vertical-align:text-bottom;}
+.qq-upload-spinner {display:inline-block; background: url("../loading.gif"); width:15px; height:15px; vertical-align:text-bottom;}
 .qq-upload-size,.qq-upload-cancel {font-size:11px;}
 
 .qq-upload-failed-text {display:none;}
