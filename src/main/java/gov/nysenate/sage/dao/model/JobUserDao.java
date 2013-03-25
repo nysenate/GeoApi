@@ -20,6 +20,18 @@ public class JobUserDao extends BaseDao
     private ResultSetHandler<JobUser> handler = new BeanHandler<>(JobUser.class);
     private QueryRunner run = getQueryRunner();
 
+    public JobUser getJobUserById(int id)
+    {
+        try {
+            return run.query("SELECT * FROM " + getTableName() + " WHERE id = ?", handler, id);
+        }
+        catch (SQLException sqlEx) {
+            logger.error("Failed to get JobUser by email in JobUserDao!");
+            logger.error(sqlEx.getMessage());
+        }
+        return null;
+    }
+
     /**
      * Retrieves an JobUser from the database by email.
      * @param email
@@ -28,11 +40,9 @@ public class JobUserDao extends BaseDao
     public JobUser getJobUserByEmail(String email)
     {
         try {
-            return run.query("SELECT * FROM " + getTableName() +
-                             " WHERE email = ?", handler, email);
+            return run.query("SELECT * FROM " + getTableName() + " WHERE email = ?", handler, email);
         }
-        catch (SQLException sqlEx)
-        {
+        catch (SQLException sqlEx) {
             logger.error("Failed to get JobUser by email in JobUserDao!");
             logger.error(sqlEx.getMessage());
         }
@@ -54,7 +64,7 @@ public class JobUserDao extends BaseDao
         }
         catch (SQLException sqlEx)
         {
-            logger.error("Failed to add JobUser in JobUserDAO!");
+            logger.error("Failed to add JobUser in JobUserDao!");
             logger.error(sqlEx.getMessage());
             return -1;
         }

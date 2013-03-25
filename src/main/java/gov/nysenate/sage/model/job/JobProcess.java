@@ -1,78 +1,81 @@
 package gov.nysenate.sage.model.job;
 
-import gov.nysenate.sage.deprecated.annotations.*;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
+import java.sql.Timestamp;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.TreeSet;
 
-public class JobProcess {
-	String contact;
-	String fileName;
-	String className;
+public class JobProcess
+{
+    protected int id = -1;
+    protected JobUser requestor;
+    protected String sourcefileName = "";
+    protected String systemFilename = "";
+    protected String fileType = "";
+    protected Timestamp requestTime;
+    protected int recordCount = 0;
 
-	Long requestTime;
-
-	@Ignore @PrimaryKey Integer id;
-
-	public JobProcess() {
-		contact = "";
-		fileName = "";
-		className = "";
-
-		requestTime = new Date().getTime();
+	public JobProcess()
+    {
+        this.requestTime = new Timestamp(new Date().getTime());
 	}
 
-	public JobProcess(String contact, String fileName, String className) {
-		this.contact = contact;
-		this.fileName = fileName;
-		this.className = className;
-		requestTime = new Date().getTime();
+    public void setSourceFileName(String fileName) {
+        this.sourcefileName = fileName;
+    }
+
+    public String getSourceFileName() {
+		return sourcefileName;
 	}
 
-	public String getContact() {
-		return contact;
+	public String getFileType() {
+		return fileType;
 	}
 
-	public String getFileName() {
-		return fileName;
-	}
-
-	public String getClassName() {
-		return className;
-	}
-
-	public Long getRequestTime() {
+	public Timestamp getRequestTime() {
 		return requestTime;
 	}
 
-	public Integer getId() {
+	public int getId() {
 		return id;
 	}
 
-	public void setContact(String contact) {
-		this.contact = contact;
-	}
-
 	public void setFileName(String fileName) {
-		this.fileName = fileName;
+		this.systemFilename = fileName;
 	}
 
-	public void setClassName(String className) {
-		this.className = className;
+    public String getFileName() {
+        return this.systemFilename;
+    }
+
+	public void setFileType(String fileType) {
+		this.fileType = fileType;
 	}
 
-	public void setRequestTime(Long timeStamp) {
+	public void setRequestTime(Timestamp timeStamp) {
 		this.requestTime = timeStamp;
 	}
 
-	public void setId(Integer id) {
+    public void setId(int id) {
 		this.id = id;
 	}
 
-	public static class ByRequestTime implements Comparator<JobProcess> {
+    public JobUser getRequestor() {
+        return requestor;
+    }
+
+    public void setRequestor(JobUser requestor) {
+        this.requestor = requestor;
+    }
+
+    public int getRecordCount() {
+        return recordCount;
+    }
+
+    public void setRecordCount(int recordCount) {
+        this.recordCount = recordCount;
+    }
+
+    public static class ByRequestTime implements Comparator<JobProcess> {
 		@Override
         public int compare(JobProcess o1, JobProcess o2) {
 			int ret = o1.getRequestTime().compareTo(o2.getRequestTime());
@@ -81,28 +84,5 @@ public class JobProcess {
 			}
 			return ret;
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public static TreeSet<JobProcess> getJobProcesses() throws IOException {
-		/*Connect connect = new Connect();
-		ArrayList<JobProcess> list = new ArrayList<JobProcess>();
-		TreeSet<JobProcess> set = new TreeSet<JobProcess>(new JobProcess.ByRequestTime());
-
-		try {
-			list = (ArrayList<JobProcess>)connect.getObjects(JobProcess.class);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if(list != null && !list.isEmpty()) {
-			set.addAll(list);
-		}
-
-		connect.close();
-		return set;   */
-        return null;
 	}
 }

@@ -1,6 +1,7 @@
 package gov.nysenate.sage.model.job;
 
 public interface BulkInterface {
+
 	public void setSD(String sd);
 	public void setCD(String cd);
 	public void setAD(String ad);
@@ -15,4 +16,5 @@ public interface BulkInterface {
 	public String getCity();
 	public String getState();
 	public String getZip5();
+
 }
