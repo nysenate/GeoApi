@@ -3,7 +3,7 @@
 @font-face {
     font-family: 'entypo';
     src: url('../fonts/entypo/entypo.eot'); /* IE9 Compat Modes */
-    src: url('fonts/entypo/entypo?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    src: url('../fonts/entypo/entypo?#iefix') format('embedded-opentype'), /* IE6-IE8 */
     url('../fonts/entypo/entypo.woff') format('woff'), /* Modern Browsers */
     url('../fonts/entypo/entypo.ttf')  format('truetype'), /* Safari, Android, iOS */
     url('../fonts/entypo/entypo.svg#svgFontName') format('svg'); /* Legacy iOS */
@@ -12,7 +12,7 @@
 @font-face {
     font-family: 'entypo-social';
     src: url('../fonts/entypo/entypo-social.eot'); /* IE9 Compat Modes */
-    src: url('fonts/entypo/entypo-social?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    src: url('../fonts/entypo/entypo-social?#iefix') format('embedded-opentype'), /* IE6-IE8 */
     url('../fonts/entypo/entypo-social.woff') format('woff'), /* Modern Browsers */
     url('../fonts/entypo/entypo-social.ttf')  format('truetype'), /* Safari, Android, iOS */
     url('../fonts/entypo/entypo-social.svg#svgFontName') format('svg'); /* Legacy iOS */
@@ -27,6 +27,7 @@ body{
     padding:0;
     font-family:'Source Sans Pro', sans-serif;
     height:100%;
+    background-color:#eee;
 }
 
 a {
@@ -218,7 +219,7 @@ ol.input-container li label {
     font-size:13px;
 }
 
-ol.input-container li input[type="text"]{
+ol.input-container li input {
     width:200px;
     background:white;
     border:1px solid #ccc;
@@ -252,8 +253,12 @@ button.submit:hover{
     background: #7BA838;
 }
 
+button.submit[disabled] {
+    background: #aaa;
+}
+
 .info-container.senator {
-    height:150px;
+    height:120px;
 }
 
 hr.shadow {
@@ -314,4 +319,14 @@ p {
 .validated-address {
     color: #333;
     font-size:18px;
+}
+
+.error-container {
+    width: 400px;
+    text-align: center;
+    margin: auto;
+    color: red;
+    padding: 10px;
+    box-shadow: 0px 2px 2px #BBB;
+    background-color: white;
 }
