@@ -1,5 +1,6 @@
 package gov.nysenate.sage.controller.job;
 
+import gov.nysenate.sage.dao.model.JobProcessDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.JobErrorResult;
@@ -32,17 +33,14 @@ public class JobController extends BaseJobController
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        String method = request.getPathInfo();
-        if (method != null) {
-            switch (method) {
-                case "/main": {
-                    request.getRequestDispatcher("/jobmain.jsp").forward(request, response);
-                    break;
-                }
-                default: {
-                    request.getRequestDispatcher("/joblogin.jsp").forward(request, response);
-                }
-            }
+        logger.debug("Accessing job service");
+        if (isAuthenticated(request)) {
+            logger.debug("Authenticated! Sending to main job page");
+            request.getRequestDispatcher("/jobmain.jsp").forward(request, response);
+        }
+        else {
+            logger.info("Authentication failed! Sending to login page");
+            request.getRequestDispatcher("/joblogin.jsp").forward(request, response);
         }
     }
 
@@ -131,18 +129,19 @@ public class JobController extends BaseJobController
                         count++;
                     }
 
+                    /** Create a new job process for every uploaded file */
                     JobProcess process = new JobProcess();
-                    process.setFileName(sourceFilename);
-                    process.setSystemFilename(targetFile.getName());
+                    process.setSourceFileName(sourceFilename);
+                    process.setFileName(targetFile.getName());
                     process.setFileType(jobFileType.type());
                     process.setRecordCount(count);
                     process.setRequestor(getJobUser(request));
                     getJobRequest(request).addProcess(process);
 
+                    /** Send a success status back to the ajax uploader */
                     JobUploadStatus uploadStatus = new JobUploadStatus();
                     uploadStatus.setSuccess(true);
                     uploadStatus.setProcess(process);
-
                     uploadResponse = uploadStatus;
                 }
             }
@@ -163,17 +162,22 @@ public class JobController extends BaseJobController
     public void doSubmit(HttpServletRequest request, HttpServletResponse response)
     {
         logger.info("Processing Job Request Submission.");
-        HttpSession session = request.getSession();
-
-        String email = request.getParameter("email");
-        String fileName = request.getParameter("fileName");
-
-
-
-        String header = request.getParameter("header");
-        String uploadedFilename = (String)session.getAttribute("uploadedFilename");
-        JobFileType jobFileType = (JobFileType) session.getAttribute("bulkFileType");
-
+        JobProcessDao jobProcessDao = new JobProcessDao();
+        JobRequest jobRequest = getJobRequest(request);
+        for (JobProcess jobProcess : jobRequest.getProcesses()) {
+            /** Store the job process and status */
+            int processId = jobProcessDao.addJobProcess(jobProcess);
+            if (processId > -1) {
+                JobProcessStatus status = new JobProcessStatus(processId);
+                jobProcessDao.setJobProcessStatus(status);
+                logger.info("Added job process and status for file " + jobProcess.getFileName());
+            }
+            else {
+                logger.error("Failed to add job process for file " + jobProcess.getFileName());
+            }
+        }
+        /** After submission the request should be cleared out */
+        getJobRequest(request).clear();
     }
 
     public JobFileType getBulkFileType(String header)
