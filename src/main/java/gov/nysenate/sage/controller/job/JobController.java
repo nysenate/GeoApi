@@ -33,6 +33,8 @@ public class JobController extends BaseJobController
         logger.debug("Accessing job service");
         if (isAuthenticated(request)) {
             logger.debug("Authenticated! Sending to main job page");
+            /** Clear out previous info */
+            getJobRequest(request).clear();
             request.getRequestDispatcher("/jobmain.jsp").forward(request, response);
         }
         else {
