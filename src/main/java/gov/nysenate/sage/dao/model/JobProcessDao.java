@@ -32,12 +32,20 @@ public class JobProcessDao extends BaseDao
 
     public JobProcessDao() {}
 
+    /**
+     * Adds a new job process to the database queue.
+     * @param p JobProcess to insert
+     * @return The id of the inserted job process, or -1 on failure
+     */
     public int addJobProcess(JobProcess p)
     {
         String sql = "INSERT INTO " + getTableName() + " (userId, fileName, fileType, sourceFileName, requestTime, recordCount) " +
-                     "VALUES (?,?,?,?,?,?) ";
+                     "VALUES (?,?,?,?,?,?) RETURNING id";
         try {
-            return run.update(sql, p.getRequestor().getId(), p.getFileName(), p.getFileType(), p.getSourceFileName(), p.getRequestTime(), p.getRecordCount());
+            return run.query(sql, new ResultSetHandler<Integer>() {
+                @Override public Integer handle(ResultSet rs)
+                          throws SQLException { return (rs.next()) ? rs.getInt("id") : -1; }
+            }, p.getRequestor().getId(), p.getFileName(), p.getFileType(), p.getSourceFileName(), p.getRequestTime(), p.getRecordCount());
         }
         catch (SQLException ex) {
             logger.error("Failed to add job process!", ex);
