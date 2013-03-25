@@ -25,10 +25,7 @@ public class JobController extends BaseJobController
     private Config config = ApplicationFactory.getConfig();
 
     @Override
-    public void init(ServletConfig config) throws ServletException
-    {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+    public void init(ServletConfig config) throws ServletException {}
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -92,8 +89,8 @@ public class JobController extends BaseJobController
 
         Object uploadResponse = null;
 
-        BufferedReader source=null;
-        BufferedWriter target=null;
+        BufferedReader source = null;
+        BufferedWriter target = null;
         try {
             String sourceFilename = request.getHeader("X-File-Name");
             if (sourceFilename == null) {
@@ -159,7 +156,7 @@ public class JobController extends BaseJobController
         setJobResponse(uploadResponse, response);
     }
 
-    public void doSubmit(HttpServletRequest request, HttpServletResponse response)
+    public void doSubmit(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
         logger.info("Processing Job Request Submission.");
         JobProcessDao jobProcessDao = new JobProcessDao();
@@ -178,6 +175,9 @@ public class JobController extends BaseJobController
         }
         /** After submission the request should be cleared out */
         getJobRequest(request).clear();
+
+        /** Redirect to main page */
+        response.sendRedirect(request.getContextPath() + "/job");
     }
 
     public JobFileType getBulkFileType(String header)
