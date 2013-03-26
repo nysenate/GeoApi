@@ -1,6 +1,5 @@
 package gov.nysenate.sage.dao.model;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.job.JobProcess;
@@ -113,6 +112,20 @@ public class JobProcessDao extends BaseDao
         }
         catch(SQLException ex) {
             logger.error("Failed to retrieve job process status for process " + processId);
+        }
+        return null;
+    }
+
+    public List<JobProcess> getJobProcessesByStatus(JobProcessStatus.Condition condition)
+    {
+        String sql = "SELECT * FROM " + getTableName() + " AS process LEFT JOIN " + getStatusTableName() + " status " +
+                     "ON process.id = status.processId " +
+                     "WHERE status.condition = ?";
+        try {
+            return run.query(sql, processListHandler, condition.name());
+        }
+        catch(SQLException ex) {
+            logger.error("Failed to retrieve processes with condition " + condition.name(), ex);
         }
         return null;
     }
