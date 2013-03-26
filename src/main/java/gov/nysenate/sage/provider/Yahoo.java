@@ -12,6 +12,7 @@ import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -77,14 +78,31 @@ public class Yahoo implements GeocodeService, Observer
         return geocodeResult;
     }
 
-    /**
-     * Yahoo doesn't implement batch geocoding so we use the single address
-     * geocoding method in parallel for performance improvements on our end.
-    */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        return ParallelGeocodeService.geocode(this, addresses);
+        logger.debug("Performing batch geocoding using Yahoo Free");
+        ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
+
+        List<GeocodedAddress> geocodedAddresses = this.yahooDao.getGeocodedAddresses(addresses);
+        for (GeocodedAddress geocodedAddress : geocodedAddresses) {
+            GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
+            if (geocodedAddress != null){
+                geocodeResult.setGeocodedAddress(geocodedAddress);
+                if (!geocodedAddress.isGeocoded()){
+                    geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
+                }
+                else {
+                    geocodeResult.setStatusCode(SUCCESS);
+                }
+            }
+            else {
+                geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
+            }
+            geocodeResults.add(geocodeResult);
+        }
+
+        return geocodeResults;
     }
 
     @Override
