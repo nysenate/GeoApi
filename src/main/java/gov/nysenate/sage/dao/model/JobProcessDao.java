@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.model.job.JobProcessStatus;
+import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;
@@ -27,6 +29,7 @@ public class JobProcessDao extends BaseDao
     private ResultSetHandler<JobProcess> processHandler = new JobProcessHandler();
     private ResultSetHandler<JobProcessStatus> statusHandler = new JobStatusHandler();
     private ResultSetHandler<List<JobProcess>> processListHandler = new JobProcessListHandler();
+    private ResultSetHandler<List<JobProcessStatus>> statusListHandler = new JobProcessStatusListHandler();
     private QueryRunner run = getQueryRunner();
 
     public JobProcessDao() {}
@@ -106,28 +109,56 @@ public class JobProcessDao extends BaseDao
 
     public JobProcessStatus getJobProcessStatus(int processId)
     {
-        String sql = "SELECT * FROM " + getStatusTableName() + " WHERE processId = ?";
+        String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status ON id = processId " +
+                     "WHERE processId = ?";
         try {
             return run.query(sql, statusHandler, processId);
         }
         catch(SQLException ex) {
-            logger.error("Failed to retrieve job process status for process " + processId);
+            logger.error("Failed to retrieve job process status for process " + processId, ex);
         }
         return null;
     }
 
-    public List<JobProcess> getJobProcessesByStatus(JobProcessStatus.Condition condition)
+    public List<JobProcessStatus> getJobStatusesByCondition(Condition condition)
     {
-        String sql = "SELECT * FROM " + getTableName() + " AS process LEFT JOIN " + getStatusTableName() + " status " +
-                     "ON process.id = status.processId " +
-                     "WHERE status.condition = ?";
+        String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status " +
+                     "ON id = processId WHERE status.condition = ?";
         try {
-            return run.query(sql, processListHandler, condition.name());
+            return run.query(sql, statusListHandler, condition.name());
         }
         catch(SQLException ex) {
             logger.error("Failed to retrieve processes with condition " + condition.name(), ex);
         }
         return null;
+    }
+
+    public List<JobProcessStatus> getJobStatusesByConditions(List<Condition> conditions)
+    {
+        String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status " +
+                     "ON id = processId WHERE ";
+        List<String> where = new ArrayList<>();
+        for (Condition c : conditions) {
+            where.add("status.condition = '" + c.name() + "'");
+        }
+        sql += StringUtils.join(where, " OR ");
+        try {
+            return run.query(sql, statusListHandler);
+        }
+        catch (SQLException ex){
+            logger.error("Failed to retrieve statuses by conditions!", ex);
+        }
+        return null;
+    }
+
+    public List<JobProcessStatus> getActiveJobStatuses()
+    {
+        return getJobStatusesByConditions(Condition.getActiveConditions());
+    }
+
+    public List<JobProcessStatus> getInactiveJobStatuses()
+    {
+        return  getJobStatusesByConditions(Condition.getInactiveConditions());
     }
 
     protected static class JobProcessHandler implements ResultSetHandler<JobProcess>
@@ -146,26 +177,14 @@ public class JobProcessDao extends BaseDao
 
     protected static class JobStatusHandler implements ResultSetHandler<JobProcessStatus>
     {
-        protected static ObjectMapper jsonMapper = new ObjectMapper();
         protected static Logger logger = Logger.getLogger(JobStatusHandler.class);
+        protected JobUserDao jobUserDao = new JobUserDao();
 
         @Override
         public JobProcessStatus handle(ResultSet rs) throws SQLException {
             JobProcessStatus jps = null;
             if (rs.next()) {
-                jps = new JobProcessStatus();
-                jps.setProcessId(rs.getInt("processId"));
-                jps.setStartTime(rs.getTimestamp("startTime"));
-                jps.setCompleteTime(rs.getTimestamp("completeTime"));
-                jps.setCondition(JobProcessStatus.Condition.valueOf(rs.getString("condition")));
-                jps.setCompleted(rs.getBoolean("completed"));
-                jps.setCompletedRecords(rs.getInt("completedRecords"));
-                try {
-                    jps.setMessages(Arrays.asList(jsonMapper.readValue(rs.getString("messages"), String[].class)));
-                }
-                catch (Exception ex) {
-                    logger.error("Failed to retrieve job status messages list!", ex);
-                }
+                jps = getJobProcessStatusFromResultSet(rs, jobUserDao, logger);
             }
             return jps;
         }
@@ -185,6 +204,22 @@ public class JobProcessDao extends BaseDao
         }
     }
 
+    protected static class JobProcessStatusListHandler implements ResultSetHandler<List<JobProcessStatus>>
+    {
+        protected static Logger logger = Logger.getLogger(JobStatusHandler.class);
+        protected JobUserDao jobUserDao = new JobUserDao();
+
+        @Override
+        public List<JobProcessStatus> handle(ResultSet rs) throws SQLException
+        {
+            List<JobProcessStatus> jobProcessStatuses = new ArrayList<>();
+            while (rs.next()) {
+                jobProcessStatuses.add(getJobProcessStatusFromResultSet(rs, jobUserDao, logger));
+            }
+            return jobProcessStatuses;
+        }
+    }
+
     protected static JobProcess getJobProcessFromResultSet(ResultSet rs, JobUserDao juDao) throws SQLException
     {
         JobProcess jobProcess = new JobProcess();
@@ -196,6 +231,27 @@ public class JobProcessDao extends BaseDao
         jobProcess.setRequestTime(rs.getTimestamp("requestTime"));
         jobProcess.setRecordCount(rs.getInt("recordCount"));
         return jobProcess;
+    }
+
+    protected static JobProcessStatus getJobProcessStatusFromResultSet(ResultSet rs, JobUserDao jud, Logger logger) throws SQLException
+    {
+        ObjectMapper jsonMapper = new ObjectMapper();
+        JobProcessStatus jps;
+        jps = new JobProcessStatus();
+        jps.setProcessId(rs.getInt("processId"));
+        jps.setJobProcess(getJobProcessFromResultSet(rs, jud));
+        jps.setStartTime(rs.getTimestamp("startTime"));
+        jps.setCompleteTime(rs.getTimestamp("completeTime"));
+        jps.setCondition(Condition.valueOf(rs.getString("condition")));
+        jps.setCompleted(rs.getBoolean("completed"));
+        jps.setCompletedRecords(rs.getInt("completedRecords"));
+        try {
+            jps.setMessages(Arrays.asList(jsonMapper.readValue(rs.getString("messages"), String[].class)));
+        }
+        catch (Exception ex) {
+            logger.error("Failed to retrieve job status messages list!", ex);
+        }
+        return jps;
     }
 
     private String getTableName()
