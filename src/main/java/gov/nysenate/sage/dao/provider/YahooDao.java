@@ -8,12 +8,15 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.UrlRequest;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *  Provides a data abstraction layer for performing Yahoo Placefinder requests.
@@ -27,7 +30,10 @@ public class YahooDao
     private static final String DEFAULT_BASE_URL = "http://query.yahooapis.com/v1/public/yql";
     private static final String SET_QUERY_AS = "?format=json&q=";
     private static final String GEOCODE_QUERY = "select * from geo.placefinder where text=\"%s\"";
+    private static final String BATCH_GEOCODE_QUERY = "select * from geo.placefinder where %s";
     private static final String REVERSE_GEO_QUERY = "select * from geo.placefinder where text=\"%f,%f\" and gflags=\"R\"";
+    private static final int BATCH_SIZE = 20;
+    private static final int THREAD_COUNT = 5;
 
     private Logger logger = Logger.getLogger(YahooDao.class);
     private String baseUrl;
@@ -68,6 +74,30 @@ public class YahooDao
             logger.error("UTF-8 encoding not supported!?", ex);
         }
         return geocodedAddress;
+    }
+
+    public List<GeocodedAddress> getGeocodedAddresses(List<Address> addresses)
+    {
+        List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
+        try {
+            List<String> where = new ArrayList<>();
+            for (int i = 1; i <= addresses.size(); i++) {
+                where.add(String.format("text=\"%s\"", addresses.get(i - 1).toString()));
+
+                /** Stop here unless we've filled this batch request */
+                if (i % BATCH_SIZE != 0 && i != addresses.size()) continue;
+
+                String whereClause = StringUtils.join(where, " or ");
+                String url = getBaseUrl() + SET_QUERY_AS + URLEncoder.encode(String.format(BATCH_GEOCODE_QUERY, whereClause), "UTF-8");
+                geocodedAddresses.addAll(getGeocodedAddresses(url));
+
+                where.clear();
+            }
+        }
+        catch (UnsupportedEncodingException ex) {
+            logger.error("UTF-8 encoding not supported!?", ex);
+        }
+        return geocodedAddresses;
     }
 
     /**
@@ -127,6 +157,30 @@ public class YahooDao
         }
         return geocodedAddress;
     }
+
+    private List<GeocodedAddress> getGeocodedAddresses(String url)
+    {
+        List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
+        try {
+            String json = UrlRequest.getResponseFromUrl(url);
+            JsonNode rootNode = objectMapper.readTree(json).get("query");
+            JsonNode resultsNode = rootNode.get("results");
+            int resultCount = rootNode.get("count").asInt();
+
+            for (int i = 0; i < resultCount; i++) {
+                geocodedAddresses.add(getGeocodedAddressFromResultNode(resultsNode.get("Result").get(i)));
+            }
+        }
+        catch (MalformedURLException ex) {
+            logger.error("Malformed URL! ", ex);
+        }
+        catch (IOException ex) {
+            logger.error("Error opening API resource!", ex);
+        }
+        return geocodedAddresses;
+    }
+
+
 
     /**
      * Parses and returns GeocodedAddress from result JSON node.
