@@ -2,10 +2,11 @@ package gov.nysenate.sage.factory;
 
 import gov.nysenate.sage.provider.*;
 import gov.nysenate.sage.listener.SageConfigurationListener;
-import gov.nysenate.sage.service.ServiceProviders;
+import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
 import org.apache.commons.configuration.ConfigurationException;
@@ -42,6 +43,7 @@ public class ApplicationFactory
     private ServiceProviders<AddressService> addressServiceProviders = new ServiceProviders<>();
     private ServiceProviders<DistrictService> districtServiceProviders = new ServiceProviders<>();
     private ServiceProviders<GeocodeService> geocodeServiceProviders = new ServiceProviders<>();
+    private GeocodeServiceProvider geocodeServProvider = new GeocodeServiceProvider();
 
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
@@ -90,6 +92,12 @@ public class ApplicationFactory
             geocodeServiceProviders.registerProvider("mapquest", new MapQuest());
             geocodeServiceProviders.registerProvider("yahooboss", new YahooBoss());
             geocodeServiceProviders.registerProvider("osm", new OSM());
+
+            geocodeServProvider.registerDefaultProvider("yahoo", new Yahoo());
+            geocodeServProvider.registerProvider("tiger", new TigerGeocoder());
+            geocodeServProvider.registerProvider("mapquest", new MapQuest());
+            geocodeServProvider.registerProvider("yahooboss", new YahooBoss());
+            geocodeServProvider.registerProvider("osm", new OSM());
 
             districtServiceProviders.registerDefaultProvider("geoserver", new Geoserver());
             districtServiceProviders.registerProvider("streetfile", new StreetFile());
@@ -142,5 +150,10 @@ public class ApplicationFactory
     public static ServiceProviders<GeocodeService> getGeoCodeServiceProviders()
     {
         return factoryInstance.geocodeServiceProviders;
+    }
+
+    public static GeocodeServiceProvider getGeocodeServiceProvider()
+    {
+        return factoryInstance.geocodeServProvider;
     }
 }
