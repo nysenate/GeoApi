@@ -8,6 +8,7 @@ import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import gov.nysenate.sage.util.UrlRequest;
 import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
 import org.apache.log4j.Logger;
@@ -142,8 +144,7 @@ public class USPS implements AddressService, Observer
             {
                 url = baseUrl +"?API=Verify&XML="+URLEncoder.encode(xmlRequest.toString(), "UTF-8");
                 logger.info(url);
-                page = Request.Get(url).execute().returnContent();
-                response = xmlBuilder.parse(page.asStream());
+                response = xmlBuilder.parse(UrlRequest.getInputStreamFromUrl(url));
 
                 /** If the request failed, mark them all as such */
                 Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
@@ -251,9 +252,7 @@ public class USPS implements AddressService, Observer
                 xmlRequest.append("</CityStateLookupRequest>");
                 url = baseUrl +"?API=CityStateLookup&XML="+URLEncoder.encode(xmlRequest.toString(), "UTF-8");
                 logger.info(url);
-                logger.debug(xmlRequest.toString());
-                page = Request.Get(url).execute().returnContent();
-                response = xmlBuilder.parse(page.asStream());
+                response = xmlBuilder.parse(UrlRequest.getInputStreamFromUrl(url));
 
                 /** If the request failed, mark them all as such */
                 Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
@@ -318,7 +317,7 @@ public class USPS implements AddressService, Observer
     @Override
     public AddressResult lookupZipCode(Address address)
     {
-        return lookupZipCode(new ArrayList<Address>(Arrays.asList(address))).get(0);
+        return lookupZipCode(new ArrayList<>(Arrays.asList(address))).get(0);
     }
 
     /** ZipCode lookup for USPS has no advantage over address validation so just use the
