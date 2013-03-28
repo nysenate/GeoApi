@@ -2,21 +2,37 @@ package gov.nysenate.sage.model.job;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class JobProcessStatus
 {
-    public enum Condition {
+    public enum Condition
+    {
         WAITING_FOR_CRON,
         RUNNING,
         COMPLETED,
         COMPLETED_WITH_ERRORS,
         FAILED,
         CANCELLED,
-        INACTIVE
+        INACTIVE;
+
+        Condition() {}
+
+        public static List<Condition> getActiveConditions()
+        {
+            return Arrays.asList(Condition.WAITING_FOR_CRON, Condition.RUNNING);
+        }
+
+        public static List<Condition> getInactiveConditions()
+        {
+            return Arrays.asList(Condition.COMPLETED, Condition.COMPLETED_WITH_ERRORS, Condition.FAILED,
+                    Condition.CANCELLED, Condition.INACTIVE);
+        }
     }
 
     protected int processId;
+    protected JobProcess jobProcess;
     protected Condition condition;
     protected int completedRecords = 0;
     protected Timestamp startTime = null;
@@ -24,12 +40,27 @@ public class JobProcessStatus
     protected boolean completed = false;
     protected List<String> messages = new ArrayList<>();
 
+    public JobProcessStatus() {}
+
+    public JobProcessStatus(int processId) {
+        this.processId = processId;
+        this.condition = Condition.WAITING_FOR_CRON;
+    }
+
     public int getProcessId() {
         return processId;
     }
 
     public void setProcessId(int processId) {
         this.processId = processId;
+    }
+
+    public JobProcess getJobProcess() {
+        return jobProcess;
+    }
+
+    public void setJobProcess(JobProcess jobProcess) {
+        this.jobProcess = jobProcess;
     }
 
     public Condition getCondition() {

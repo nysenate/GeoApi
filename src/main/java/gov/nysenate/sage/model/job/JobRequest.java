@@ -9,11 +9,14 @@ public class JobRequest
 {
     protected JobUser requestor;
     protected List<JobProcess> processes;
-    protected Timestamp requestTime;
 
-    public JobRequest()
+    public JobRequest() {}
+
+    public void clear()
     {
-        this.requestTime = new Timestamp(new Date().getTime());
+        if (this.processes != null) {
+            processes.clear();
+        }
     }
 
     public JobUser getRequestor() {
@@ -37,13 +40,5 @@ public class JobRequest
             this.processes = new ArrayList<>();
         }
         this.processes.add(process);
-    }
-
-    public Timestamp getRequestTime() {
-        return requestTime;
-    }
-
-    public void setRequestTime(Timestamp requestTime) {
-        this.requestTime = requestTime;
     }
 }
