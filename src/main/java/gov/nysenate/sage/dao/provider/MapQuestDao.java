@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static gov.nysenate.sage.model.geo.GeocodeQuality.*;
 
@@ -91,32 +92,41 @@ public class MapQuestDao
      * @param addresses Addresses to geocode
      * @return          ArrayList of GeocodedAddress containing best matched Geocodes.
      */
-    public ArrayList<GeocodedAddress> getGeocodedAddresses(ArrayList<Address> addresses)
+    public List<GeocodedAddress> getGeocodedAddresses(ArrayList<Address> addresses)
     {
-        ArrayList<GeocodedAddress> geocodedAddresses = new ArrayList<>();
-        String url = getGeoUrl() + "?key=" + getKey() + DEFAULT_FORMAT;
+        /** Pre-populate the batch result with addresses */
+        List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
+        for (Address address : addresses) {
+            geocodedAddresses.add(new GeocodedAddress(address));
+        }
+
+        String baseUrl = getGeoUrl() + "?key=" + getKey() + DEFAULT_FORMAT;
+        String locations = "";
+        int batchCount = 0;
+        int batchOffset = 0;
         for (int i = 1; i <= addresses.size(); i++)
         {
             try {
                 Address address = addresses.get(i-1);
-                if (address == null) {
-                    url += String.format("&location=%s", "null");
-                }
-                else {
-                    url += String.format("&location=%s", URLEncoder.encode(address.toString(), "UTF-8"));
-                }
-                /** Stop here unless we've filled this batch request */
+                locations += (address == null) ? String.format("&location=%s", "null")
+                                               : String.format("&location=%s", URLEncoder.encode(address.toString(), "UTF-8"));
+                batchCount++;
                 if (i % BATCH_SIZE != 0 && i != addresses.size()) continue;
 
-                /** Get GeocodedAddress objects from the request url and append them.
-                  * If the batch result failed then return null, we don't want incomplete data */
-                ArrayList<GeocodedAddress> batchResults = getGeocodedAddresses(url);
-                if (batchResults != null){
-                    geocodedAddresses.addAll(batchResults);
+                /** A successful response will have the same size */
+                ArrayList<GeocodedAddress> batchResults = getGeocodedAddresses(baseUrl + locations);
+                if (batchResults.size() == batchCount) {
+                    for (int j = 0; j < batchCount; j++) {
+                        if (batchResults.get(j) != null && batchResults.get(j).isGeocoded()) {
+                            geocodedAddresses.set(j + batchOffset, batchResults.get(j));
+                        }
+                    }
                 }
-                else {
-                    return null;
-                }
+
+                /** Reset batch counters */
+                batchOffset += batchCount;
+                batchCount = 0;
+                locations = "";
             }
             catch (UnsupportedEncodingException ex){
                 logger.fatal(ex);
@@ -150,36 +160,37 @@ public class MapQuestDao
 
             /** Format and send request */
             String json = UrlRequest.getResponseFromUrl(url);
-            JsonNode jsonNode = objectMapper.readTree(json);
+            if (json != null) {
+                JsonNode jsonNode = objectMapper.readTree(json);
 
-            /** Log any response errors and return null if so */
-            String status = jsonNode.get("info").get("statuscode").asText();
-            if (status != "0"){
-                logger.debug("MapQuest statuscode: " + status);
-                logger.error("MapQuest messages " + jsonNode.get("info").get("messages"));
-                return null;
+                /** Error checking */
+                String status = jsonNode.get("info").get("statuscode").asText();
+                if (status != "0"){
+                    logger.debug("MapQuest statuscode: " + status);
+                    logger.error("MapQuest messages " + jsonNode.get("info").get("messages"));
+                    return geocodedAddresses;
+                }
+
+                /** Fetch the results and translate them to GeocodedAddresses */
+                JsonNode jsonResults = jsonNode.get("results");
+                int numResults = jsonResults.size();
+
+                /** Iterate over each result */
+                for (int j = 0; j < numResults; j++) {
+
+                    /** Get location node from locations array */
+                    JsonNode location = jsonResults.get(j).get("locations").get(0);
+
+                    /** Build the Address from the location node */
+                    Address addr = getAddressFromLocationNode(location);
+
+                    /** Build the Geocode */
+                    Geocode geocode = getGeocodeFromLocationNode(location);
+
+                    /** Add the GeocodedAddress to the batch list */
+                    geocodedAddresses.add(new GeocodedAddress(addr, geocode));
+                }
             }
-
-            /** Fetch the results and translate them to GeocodedAddresses */
-            JsonNode jsonResults = jsonNode.get("results");
-            int numResults = jsonResults.size();
-
-            /** Iterate over each result */
-            for (int j = 0; j < numResults; j++) {
-
-                /** Get location node from locations array */
-                JsonNode location = jsonResults.get(j).get("locations").get(0);
-
-                /** Build the Address from the location node */
-                Address addr = getAddressFromLocationNode(location);
-
-                /** Build the Geocode */
-                Geocode geocode = getGeocodeFromLocationNode(location);
-
-                /** Add the GeocodedAddress to the batch list */
-                geocodedAddresses.add(new GeocodedAddress(addr, geocode));
-            }
-
             return geocodedAddresses;
         }
         catch (MalformedURLException ex){

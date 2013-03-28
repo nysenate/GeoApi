@@ -13,12 +13,10 @@ import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
+import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateBatchGeocodeResult;
 
 /**
  * MapQuest Geocoding provider implementation
@@ -26,24 +24,16 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
  *
  * @author Graylin Kim, Ash Islam
  */
-public class MapQuest implements AddressService, GeocodeService, Observer
+public class MapQuest implements AddressService, GeocodeService
 {
     private final Logger logger = Logger.getLogger(MapQuest.class);
     private MapQuestDao mapQuestDao;
     private Config config;
-    ObjectMapper mapper;
 
     public MapQuest()
     {
         this.config = ApplicationFactory.getConfig();
         this.mapQuestDao = new MapQuestDao();
-        this.mapper = new ObjectMapper();
-        configure();
-        config.notifyOnChange(this);
-    }
-
-    public void update(Observable o, Object arg)
-    {
         configure();
     }
 
@@ -68,8 +58,7 @@ public class MapQuest implements AddressService, GeocodeService, Observer
             geocodeResult = results.get(0);
         }
         else {
-            geocodeResult = new GeocodeResult(this.getClass());
-            geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
+            geocodeResult = new GeocodeResult(this.getClass(), RESPONSE_PARSE_ERROR);
         }
         return geocodeResult;
     }
@@ -99,11 +88,7 @@ public class MapQuest implements AddressService, GeocodeService, Observer
 
     /**
      * Geocodes multiple addresses in a batch. Mapquest provides a native batch
-     * geocoding api so this is used for all requests. In order to keep error
-     * handling as local as possible the error conditions are set on the result
-     * objects as status codes. Thus if the batch geocoding failed, there will be
-     * a single result with a ParseError status. If a given address could not be
-     * geocoded it will have a NoGeocodeResult status.
+     * geocoding api so this is used for all requests.
      *
      * @param addresses List of Addresses to geocode
      * @return          List of GeocodeResults
@@ -113,26 +98,13 @@ public class MapQuest implements AddressService, GeocodeService, Observer
     {
         logger.debug("Performing geocoding using MapQuest");
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
-        ArrayList<GeocodedAddress> geocodedAddresses = this.mapQuestDao.getGeocodedAddresses(addresses);
 
-        if (geocodedAddresses != null) {
-            for (GeocodedAddress geocodedAddress : geocodedAddresses) {
-                GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
-                if (!geocodedAddress.isGeocoded()) {
-                    geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
-                }
-                else {
-                    geocodeResult.setStatusCode(SUCCESS);
-                }
-                geocodeResult.setGeocodedAddress(geocodedAddress);
-                geocodeResults.add(geocodeResult);
-            }
-        }
-        else {
-            /** Return a GeocodeResult with an error status */
-            GeocodeResult errorResult = new GeocodeResult();
-            errorResult.setStatusCode(RESPONSE_PARSE_ERROR);
-            geocodeResults.add(errorResult);
+        /** Retrieve geocoded addresses from dao */
+        List<GeocodedAddress> geocodedAddresses = this.mapQuestDao.getGeocodedAddresses(addresses);
+
+        /** Validate and return */
+        if (!validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults, geocodedAddresses)){
+            logger.warn("Failed to batch geocode using Yahoo!");
         }
         return geocodeResults;
     }

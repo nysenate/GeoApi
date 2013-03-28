@@ -7,7 +7,8 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeService;
-import gov.nysenate.sage.service.geo.ParallelGeocodeService;
+import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.*;
+
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
@@ -51,29 +52,14 @@ public class Yahoo implements GeocodeService, Observer
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Proceed only on valid input */
-        if (address == null) {
-            geocodeResult.setStatusCode(MISSING_ADDRESS);
-            return geocodeResult;
-        }
-        else if (address.isEmpty()){
-            geocodeResult.setStatusCode(INSUFFICIENT_ADDRESS);
-            return geocodeResult;
-        }
+        if (!validateGeocodeInput(address, geocodeResult)) return geocodeResult;
 
+        /** Retrieve geocoded address from dao */
         GeocodedAddress geocodedAddress = this.yahooDao.getGeocodedAddress(address);
 
-        /** Handle error cases or set GeocodedAddress */
-        if (geocodedAddress != null){
-            geocodeResult.setGeocodedAddress(geocodedAddress);
-            if (!geocodedAddress.isGeocoded()){
-                geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
-            }
-            else {
-                geocodeResult.setStatusCode(SUCCESS);
-            }
-        }
-        else {
-            geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
+        /** Validate and return */
+        if (!validateGeocodeResult(geocodedAddress, geocodeResult)) {
+            logger.warn("Failed to geocode " + address.toString() + " using Yahoo!");
         }
         return geocodeResult;
     }
@@ -84,24 +70,13 @@ public class Yahoo implements GeocodeService, Observer
         logger.debug("Performing batch geocoding using Yahoo Free");
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
 
+        /** Retrieve geocoded addresses from dao */
         List<GeocodedAddress> geocodedAddresses = this.yahooDao.getGeocodedAddresses(addresses);
-        for (GeocodedAddress geocodedAddress : geocodedAddresses) {
-            GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
-            if (geocodedAddress != null){
-                geocodeResult.setGeocodedAddress(geocodedAddress);
-                if (!geocodedAddress.isGeocoded()){
-                    geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
-                }
-                else {
-                    geocodeResult.setStatusCode(SUCCESS);
-                }
-            }
-            else {
-                geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
-            }
-            geocodeResults.add(geocodeResult);
-        }
 
+        /** Validate and return */
+        if (!validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults, geocodedAddresses)){
+            logger.warn("Failed to batch geocode using Yahoo!");
+        }
         return geocodeResults;
     }
 

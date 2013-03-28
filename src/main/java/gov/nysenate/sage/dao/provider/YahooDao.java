@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -32,7 +33,7 @@ public class YahooDao
     private static final String GEOCODE_QUERY = "select * from geo.placefinder where text=\"%s\"";
     private static final String BATCH_GEOCODE_QUERY = "select * from geo.placefinder where %s";
     private static final String REVERSE_GEO_QUERY = "select * from geo.placefinder where text=\"%f,%f\" and gflags=\"R\"";
-    private static final int BATCH_SIZE = 20;
+    private static final int BATCH_SIZE = 95;
     private static final int THREAD_COUNT = 5;
 
     private Logger logger = Logger.getLogger(YahooDao.class);
@@ -60,6 +61,7 @@ public class YahooDao
      *
      * @param address   Address to geocode
      * @return          GeocodedAddress containing best matched Geocode.
+     *                  null if there was a fatal error
      */
     public GeocodedAddress getGeocodedAddress(Address address)
     {
@@ -73,29 +75,53 @@ public class YahooDao
         catch (UnsupportedEncodingException ex) {
             logger.error("UTF-8 encoding not supported!?", ex);
         }
+        catch (NullPointerException ex) {
+            logger.error(ex);
+        }
         return geocodedAddress;
     }
 
     public List<GeocodedAddress> getGeocodedAddresses(List<Address> addresses)
     {
+        /** Pre-populate the batch result with addresses */
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
+        for (Address address : addresses) {
+            geocodedAddresses.add(new GeocodedAddress(address));
+        }
+
         try {
-            List<String> where = new ArrayList<>();
+            int batchOffset = 0;
+            List<String> locations = new ArrayList<>();
             for (int i = 1; i <= addresses.size(); i++) {
-                where.add(String.format("text=\"%s\"", addresses.get(i - 1).toString()));
+                locations.add(String.format("text=\"%s\"", addresses.get(i - 1).toString()));
 
                 /** Stop here unless we've filled this batch request */
                 if (i % BATCH_SIZE != 0 && i != addresses.size()) continue;
 
-                String whereClause = StringUtils.join(where, " or ");
+                String whereClause = StringUtils.join(locations, " or ");
                 String url = getBaseUrl() + SET_QUERY_AS + URLEncoder.encode(String.format(BATCH_GEOCODE_QUERY, whereClause), "UTF-8");
-                geocodedAddresses.addAll(getGeocodedAddresses(url));
+                List<GeocodedAddress> batchResults = getGeocodedAddresses(url);
 
-                where.clear();
+                /** A successful response will have the same size */
+                if (batchResults.size() == locations.size()) {
+                    for (int j = 0; j < locations.size(); j++) {
+                        if (batchResults.get(j) != null && batchResults.get(j).isGeocoded()) {
+                            geocodedAddresses.set(j + batchOffset, batchResults.get(j));
+                        }
+                    }
+                }
+                else {
+                    logger.warn("Skipping failed Yahoo batch (" + batchOffset + " - " + (batchOffset + locations.size()) + ")");
+                }
+                batchOffset += locations.size();
+                locations.clear();
             }
         }
         catch (UnsupportedEncodingException ex) {
             logger.error("UTF-8 encoding not supported!?", ex);
+        }
+        catch (NullPointerException ex) {
+            logger.error(ex);
         }
         return geocodedAddresses;
     }
@@ -123,7 +149,8 @@ public class YahooDao
 
     /**
      * Abstraction method that makes a request to the given Yahoo url, parses
-     * the response, and returns a GeocodedAddress.
+     * the response, and returns a GeocodedAddress. If an error occurs, the
+     * method will return null.
      * @param url   The query url
      *              e.g. http://query.yahooapis.com/v1/public/yql?format=json&q=blah..
      * @return      GeocodedAddress, or null on parse failure
@@ -131,44 +158,63 @@ public class YahooDao
     private GeocodedAddress getGeocodedAddress(String url)
     {
         GeocodedAddress geocodedAddress = null;
+        String json = "";
         try {
-            String json = UrlRequest.getResponseFromUrl(url);
-            JsonNode rootNode = objectMapper.readTree(json).get("query");
-            JsonNode resultsNode = rootNode.get("results");
-            int resultCount = rootNode.get("count").asInt();
+            json = UrlRequest.getResponseFromUrl(url);
+            if (json != null) {
+                JsonNode rootNode = objectMapper.readTree(json).get("query");
+                JsonNode resultsNode = rootNode.get("results");
+                int resultCount = rootNode.get("count").asInt();
 
-            /** Return an empty GeocodedAddress */
-            if (resultCount == 0){
-                return new GeocodedAddress();
+                if (resultCount == 1) {
+                    geocodedAddress = getGeocodedAddressFromResultNode(resultsNode.get("Result"));
+                }
+                else if (resultCount > 1) {
+                    geocodedAddress = getGeocodedAddressFromResultNode(resultsNode.get("Result").get(0));
+                }
             }
-            else if (resultCount == 1) {
-                geocodedAddress = getGeocodedAddressFromResultNode(resultsNode.get("Result"));
-            }
-            /** Retrieve the first result only. We can assume that results are ranked. */
-            else if (resultCount > 1) {
-                geocodedAddress = getGeocodedAddressFromResultNode(resultsNode.get("Result").get(0));
+            else {
+                logger.warn("No response from Yahoo's geocode service!");
             }
         }
         catch (MalformedURLException ex) {
             logger.error("Malformed URL! ", ex);
         }
         catch (IOException ex) {
-            logger.error("Error opening API resource!", ex);
+            logger.error("Error opening API resource! Response: " + json, ex);
+        }
+        catch (NullPointerException ex) {
+            logger.error("Yahoo response was not formatted correctly! Response: " + json, ex);
         }
         return geocodedAddress;
     }
 
+    /** Retrieve the GeocodedAddress objects from the response of the given query url.
+     *  If an exception occurs while retrieving the response an empty array is returned.
+     *  If an exception occurs while parsing a GeocodedAddress, an empty GeocodedAddress is appended. */
     private List<GeocodedAddress> getGeocodedAddresses(String url)
     {
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
+        String json = "";
         try {
-            String json = UrlRequest.getResponseFromUrl(url);
-            JsonNode rootNode = objectMapper.readTree(json).get("query");
-            JsonNode resultsNode = rootNode.get("results");
-            int resultCount = rootNode.get("count").asInt();
+            json = UrlRequest.getResponseFromUrl(url);
+            if (json != null) {
+                JsonNode rootNode = objectMapper.readTree(json).get("query");
+                JsonNode resultsNode = rootNode.get("results");
+                int resultCount = rootNode.get("count").asInt();
 
-            for (int i = 0; i < resultCount; i++) {
-                geocodedAddresses.add(getGeocodedAddressFromResultNode(resultsNode.get("Result").get(i)));
+                for (int i = 0; i < resultCount; i++) {
+                    try {
+                        geocodedAddresses.add(getGeocodedAddressFromResultNode(resultsNode.get("Result").get(i)));
+                    }
+                    catch (Exception ex) {
+                        logger.warn("Error retrieving GeocodedAddress from Yahoo response " + json, ex);
+                        geocodedAddresses.add(new GeocodedAddress());
+                    }
+                }
+            }
+            else {
+                logger.warn("No response from Yahoo's batch geocode service!");
             }
         }
         catch (MalformedURLException ex) {
@@ -176,6 +222,9 @@ public class YahooDao
         }
         catch (IOException ex) {
             logger.error("Error opening API resource!", ex);
+        }
+        catch (NullPointerException ex) {
+            logger.error("Yahoo response was not formatted correctly. Response: " + json, ex);
         }
         return geocodedAddresses;
     }
