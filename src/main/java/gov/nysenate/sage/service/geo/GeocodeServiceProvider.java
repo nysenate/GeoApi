@@ -4,6 +4,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.base.ServiceProviders;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -81,7 +82,6 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
         return this.geocode(addresses, provider, DEFAULT_GEO_FALLBACK, useFallback);
     }
 
-
     /**
      * Perform batch geocoding with all specified parameters.
      * @param addresses         List of addresses to geocode
@@ -90,9 +90,12 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      * @param useFallback       Set true to use fallback
      * @return                  List<GeocodeResult> corresponding to the addresses list.
      */
-    List<GeocodeResult> geocode(ArrayList<Address> addresses, String provider,
+    public List<GeocodeResult> geocode(ArrayList<Address> addresses, String provider,
                                        LinkedList<String> fallbackProviders, boolean useFallback)
     {
+        logger.info("Performing batch geocode using provider: " + provider + " with fallback to: " +
+                    fallbackProviders + " with fallback set to " + useFallback);
+
         /** Clone the list of fall back providers */
         LinkedList<String> fallback = (fallbackProviders != null) ? (LinkedList<String>) fallbackProviders.clone()
                                                                   : (LinkedList<String>) DEFAULT_GEO_FALLBACK.clone();
@@ -109,23 +112,27 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
             logger.error("Supplied an empty geocoding provider!");
         }
 
-        /** Get the indices of results that were not successful */
-        failedIndices = getFailedResultIndices(geocodeResults);
-
         if (useFallback) {
+
+            /** Get the indices of results that were not successful */
+            failedIndices = getFailedResultIndices(geocodeResults);
 
             /** Create new batches containing just the failed results and run them through
              *  the fallback providers. Recompute the failed results and repeat until all
              *  fallback providers specified have been used. */
             while (!failedIndices.isEmpty() && fallbackIterator.hasNext()) {
+                String fallbackProvider = fallbackIterator.next();
+                logger.debug("Some missing geocodes exist. Falling back to " + fallbackProvider);
+
                 ArrayList<Address> fallbackBatch = new ArrayList<>();
                 for (int failedIndex : failedIndices) {
                     fallbackBatch.add(addresses.get(failedIndex));
                 }
-                geocodeResults = this.newInstance(fallbackIterator.next()).geocode(fallbackBatch);
-                Iterator<GeocodeResult> batchResultIterator = geocodeResults.iterator();
+
+                List<GeocodeResult> fallbackResults = this.newInstance(fallbackProvider).geocode(fallbackBatch);
+                Iterator<GeocodeResult> fallbackResultIterator = fallbackResults.iterator();
                 for (int failedIndex : failedIndices) {
-                    geocodeResults.set(failedIndex, batchResultIterator.next());
+                    geocodeResults.set(failedIndex, fallbackResultIterator.next());
                 }
                 failedIndices = getFailedResultIndices(geocodeResults);
             }
