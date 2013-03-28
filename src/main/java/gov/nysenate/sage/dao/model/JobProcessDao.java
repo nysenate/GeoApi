@@ -123,7 +123,7 @@ public class JobProcessDao extends BaseDao
     public List<JobProcessStatus> getJobStatusesByCondition(Condition condition)
     {
         String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status " +
-                     "ON id = processId WHERE status.condition = ?";
+                     "ON id = processId WHERE status.condition = ? ORDER BY processId";
         try {
             return run.query(sql, statusListHandler, condition.name());
         }
@@ -141,7 +141,7 @@ public class JobProcessDao extends BaseDao
         for (Condition c : conditions) {
             where.add("status.condition = '" + c.name() + "'");
         }
-        sql += StringUtils.join(where, " OR ");
+        sql += StringUtils.join(where, " OR ") + " ORDER BY processId ";
         try {
             return run.query(sql, statusListHandler);
         }
