@@ -25,6 +25,15 @@ public class FormatUtil {
     protected static Logger logger = Logger.getLogger(FormatUtil.class);
     protected static ObjectMapper mapper = new ObjectMapper();
 
+    /** Removes leading zeroes in a string */
+    public static String trimLeadingZeroes(String s)
+    {
+        if (s != null){
+            return s.replaceFirst("^0+(?!$)", "");
+        }
+        return "";
+    }
+
     /**
      * Custom serializer to deal with element names when outputting collections.
      * Uses the object's simple class name as the element to represent the content of the collection.
@@ -43,42 +52,7 @@ public class FormatUtil {
         }
     }
 
-    /**
-     * Returns an Xml string representation of the supplied map.
-     * @param map               Map to format into Xml
-     * @param rootElementName   Top most element name
-     * @return
-     * @throws JsonProcessingException
-     */
-    public static String mapToXml(Map<String,Object> map, String rootElementName, boolean indent) throws JsonProcessingException
-    {
-        JacksonXmlModule module = new JacksonXmlModule();
-        module.addSerializer(Collection.class, new CollectionSerializer());
-        XmlMapper xmlMapper = new XmlMapper(module);
-        xmlMapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
-
-        if (indent){
-            xmlMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        }
-
-        /** The top most element is always a Map so we remove it */
-        String xml = xmlMapper.writer().withRootName(rootElementName).writeValueAsString(map);
-        xml = xml.replaceAll("^(<[^>]*?>\n*)", "").replaceAll("(</[^>]*?>\n*)$", "");
-        return xml;
-    }
-
-    /**
-     * Returns a JSON string representation of the supplied map.
-     * @param map
-     * @return
-     * @throws JsonProcessingException
-     */
-    public static String mapToJson(Map<String, Object> map) throws JsonProcessingException
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(map);
-    }
-
+    @Deprecated
     public static String getString(JSONObject json, String key) {
         try {
             return json.has(key) && !json.isNull(key) ? json.getString(key) : "";
@@ -87,6 +61,7 @@ public class FormatUtil {
         }
     }
 
+    @Deprecated
     public static Double getDouble(JSONObject json, String key) {
         try {
             return json.has(key) && !json.isNull(key) && !json.getString(key).equals("") ? json.getDouble(key) : 0;
@@ -95,6 +70,7 @@ public class FormatUtil {
         }
     }
 
+    @Deprecated
     public static Integer getInteger(JSONObject json, String key) {
 
         try {
