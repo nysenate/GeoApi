@@ -54,7 +54,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
         GeocodeResult geocodeResult = null;
 
         /** Geocode using the supplied provider if valid */
-        if (provider != null && !provider.isEmpty()) {
+        if (this.isRegistered(provider)) {
             geocodeResult = this.newInstance(provider).geocode(address);
         }
         /** If attempt failed, use the fallback providers if allowed */
@@ -105,7 +105,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
         List<Integer> failedIndices;
 
         /** Geocode using the supplied provider if valid */
-        if (provider != null && !provider.isEmpty()) {
+        if (this.isRegistered(provider)) {
             geocodeResults = this.newInstance(provider).geocode(addresses);
         }
         else {
