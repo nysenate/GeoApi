@@ -105,11 +105,6 @@
             <version>1.9.0</version>
         </dependency>
         <dependency>
-            <groupId>oauth.signpost</groupId>
-            <artifactId>signpost-commonshttp4</artifactId>
-            <version>1.2.1.2</version>
-        </dependency>
-        <dependency>
             <groupId>org.jdom</groupId>
             <artifactId>jdom</artifactId>
             <version>1.1</version>
@@ -208,7 +203,6 @@
             <artifactId>jstl</artifactId>
             <version>1.2</version>
         </dependency>
-
         <dependency>
             <groupId>commons-el</groupId>
             <artifactId>commons-el</artifactId>
@@ -220,6 +214,11 @@
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
             <version>0.3m</version>
+        </dependency>
+        <dependency>
+            <groupId>oauth.signpost</groupId>
+            <artifactId>signpost-core</artifactId>
+            <version>1.2.1.2</version>
         </dependency>
 
         <!-- Testing Dependencies -->
