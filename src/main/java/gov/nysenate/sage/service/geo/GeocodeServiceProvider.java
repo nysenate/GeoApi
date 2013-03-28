@@ -71,6 +71,16 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
     }
 
     /**
+     * Perform batch geocoding using application defaults
+     * @param addresses         List of addresses to geocode
+     * @return                  List<GeocodeResult> corresponding to the addresses list.
+     */
+    public List<GeocodeResult> geocode(ArrayList<Address> addresses)
+    {
+        return this.geocode(addresses, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true);
+    }
+
+    /**
      * Perform batch geocoding with default fallback option
      * @param addresses         List of addresses to geocode
      * @param provider          Provider to perform geocoding
@@ -113,7 +123,6 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
         }
 
         if (useFallback) {
-
             /** Get the indices of results that were not successful */
             failedIndices = getFailedResultIndices(geocodeResults);
 
