@@ -13,18 +13,26 @@ public class GeocodeResult extends BaseResult
 
     public GeocodeResult()
     {
-        this(null, "", null);
+        this(null, null, null);
     }
 
     public GeocodeResult(Class sourceClass)
     {
-        this(null, "", sourceClass);
+        this(sourceClass, null, null);
     }
 
-    public GeocodeResult(GeocodedAddress geocodedAddress, String status, Class sourceClass )
+    public GeocodeResult(Class sourceClass, ResultStatus resultStatus)
     {
-        this.setGeocodedAddress(geocodedAddress);
+        this(sourceClass, resultStatus, null);
+    }
+
+    public GeocodeResult(Class sourceClass, ResultStatus resultStatus, GeocodedAddress geocodedAddress)
+    {
         this.setSource(sourceClass);
+        this.setGeocodedAddress(geocodedAddress);
+        if (resultStatus != null ) {
+            this.setStatusCode(resultStatus);
+        }
     }
 
     /** Convenience accessor */

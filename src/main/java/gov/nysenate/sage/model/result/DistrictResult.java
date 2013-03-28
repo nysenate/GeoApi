@@ -75,4 +75,8 @@ public class DistrictResult extends BaseResult
         }
         return null;
     }
+
+    public boolean isPartialSuccess() {
+        return (this.statusCode != null && this.statusCode.equals(ResultStatus.PARTIAL_DISTRICT_RESULT));
+    }
 }

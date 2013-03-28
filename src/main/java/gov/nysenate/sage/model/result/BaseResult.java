@@ -9,6 +9,7 @@ import java.util.ArrayList;
  */
 public abstract class BaseResult
 {
+    protected int serialId; // Can be used for maintaining order in a list
     protected ArrayList<String> messages = new ArrayList<>();
     protected ResultStatus statusCode = ResultStatus.SUCCESS;
     protected String source = "";
@@ -16,6 +17,14 @@ public abstract class BaseResult
     public ArrayList<String> getMessages()
     {
         return messages;
+    }
+
+    public int getSerialId() {
+        return serialId;
+    }
+
+    public void setSerialId(int serialId) {
+        this.serialId = serialId;
     }
 
     public void addMessage(String message)
@@ -52,9 +61,5 @@ public abstract class BaseResult
 
     public boolean isSuccess() {
         return (this.statusCode != null && this.statusCode.equals(ResultStatus.SUCCESS));
-    }
-
-    public boolean isPartialSuccess() {
-        return (this.statusCode != null && this.statusCode.equals(ResultStatus.PARTIAL_DISTRICT_RESULT));
     }
 }
