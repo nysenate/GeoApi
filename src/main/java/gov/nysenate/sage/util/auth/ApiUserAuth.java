@@ -1,4 +1,4 @@
-package gov.nysenate.sage.util;
+package gov.nysenate.sage.util.auth;
 
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.dao.model.ApiUserDao;

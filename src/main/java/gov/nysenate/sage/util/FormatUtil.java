@@ -7,6 +7,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.apache.log4j.Logger;
 
 import org.json.JSONException;
@@ -24,6 +26,13 @@ public class FormatUtil {
 
     protected static Logger logger = Logger.getLogger(FormatUtil.class);
     protected static ObjectMapper mapper = new ObjectMapper();
+
+    public static String toCamelCase(String s) {
+        if (s != null && s.contains("_")) {
+            return StringUtils.uncapitalize(WordUtils.capitalizeFully(s, '_').replaceAll("_", ""));
+        }
+        return s;
+    }
 
     /** Removes leading zeroes in a string */
     public static String trimLeadingZeroes(String s)
