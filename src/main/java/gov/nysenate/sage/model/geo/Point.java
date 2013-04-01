@@ -11,8 +11,7 @@ public class Point
     private double lon;
 
     /**
-     * Construct a Point using the provided latitude and longitude.
-     *
+     * Construct a Point using the provided latitude and longitude.     *
      * @param lat the latitude as a Double number
      * @param lon the longitude as a Double number
      */
@@ -23,8 +22,7 @@ public class Point
     }
 
     /**
-     * Retrieve the latitude associated with this Point.
-     *
+     * Retrieve the latitude associated with this Point.*
      * @return the latitude as a double-precision number
      */
     public double getLat()
@@ -33,13 +31,22 @@ public class Point
     }
 
     /**
-     * Retrieve the longitude associated with this Point.
-     *
+     * Retrieve the longitude associated with this Point.*
      * @return the longitude as a double-precision number
      */
     public double getLon()
     {
         return lon;
+    }
+
+    public void setLat(double lat)
+    {
+        this.lat = lat;
+    }
+
+    public void setLon(double lon)
+    {
+        this.lon = lon;
     }
 
     /**

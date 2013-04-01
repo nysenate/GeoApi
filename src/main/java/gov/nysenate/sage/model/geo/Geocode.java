@@ -61,6 +61,16 @@ public class Geocode
         return (this.latlon != null) ? this.latlon.getLat() : 0;
     }
 
+    public void setLat(Double lat)
+    {
+        this.latlon.setLat(lat);
+    }
+
+    public void setLon(Double lon)
+    {
+        this.latlon.setLon(lon);
+    }
+
     public Double getLon()
     {
         return (this.latlon != null) ? this.latlon.getLon() : 0;
