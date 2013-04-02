@@ -13,9 +13,6 @@ import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.dbutils.handlers.ArrayHandler;
-import org.apache.commons.dbutils.handlers.ArrayListHandler;
-import org.apache.commons.dbutils.handlers.ScalarHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -48,7 +45,8 @@ public class DistrictShapefileDao extends BaseDao
     {
         /** Template SQL for looking up district given a point */
         String sqlTmpl =
-                "SELECT '%s' AS type, %s AS name, %s as code " + ((getMaps) ? ", ST_AsGeoJson(geom) AS map " : ", null as map ") +
+                "SELECT '%s' AS type, %s AS name, %s as code " + ((getMaps) ? ", ST_AsGeoJson(geom) AS map, " : ", null as map, ") +
+                "       ST_Distance(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + SRID + ")) As proximity " +
                 "FROM " + SCHEMA + ".%s " +
                 "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)' , " + SRID + "))";
 
@@ -59,8 +57,8 @@ public class DistrictShapefileDao extends BaseDao
             String nameColumn = DistrictShapeCode.getNameColumn(districtType);
             String codeColumn = resolveCodeColumn(districtType);
 
-            queryList.add(String.format(sqlTmpl, districtType, nameColumn, codeColumn, districtType,
-                                        point.getLon(), point.getLat())); // lat/lon is reversed here
+            queryList.add(String.format(sqlTmpl, districtType, nameColumn, codeColumn, point.getLon(), point.getLat(),
+                                        districtType, point.getLon(), point.getLat())); // lat/lon is reversed here
         }
 
         /** Combine the queries using UNION ALL */
@@ -166,6 +164,9 @@ public class DistrictShapefileDao extends BaseDao
 
                     /** District map */
                     districtInfo.setDistMap(type, getDistrictMapFromJson(rs.getString("map")));
+
+                    /** District proximity */
+                    districtInfo.setDistProximity(type, rs.getDouble("proximity"));
                 }
                 else {
                     logger.error("Unsupported district type in results - " + rs.getString("type"));
