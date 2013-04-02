@@ -256,19 +256,20 @@ public class DistrictShapefileDao extends BaseDao
      */
     private DistrictMap getDistrictMapFromJson(String jsonMap)
     {
-        /** The geometry response comes in as a quadruply nested array */
         DistrictMap districtMap = new DistrictMap();
-        List<Point> points = new ArrayList<>();
-
         if (jsonMap != null && !jsonMap.isEmpty()) {
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 JsonNode mapNode = objectMapper.readTree(jsonMap);
-                JsonNode coordinates = mapNode.get("coordinates").get(0).get(0);
-                for (int i = 0; i < coordinates.size(); i++){
-                    points.add(new Point(coordinates.get(i).get(1).asDouble(), coordinates.get(i).get(0).asDouble()));
+                JsonNode coordinates = mapNode.get("coordinates");
+                for (int i = 0; i < coordinates.size(); i++) {
+                    List<Point> points = new ArrayList<>();
+                    JsonNode polygon = coordinates.get(i).get(0);
+                    for (int j = 0; j < polygon.size(); j++){
+                        points.add(new Point(polygon.get(j).get(1).asDouble(), polygon.get(j).get(0).asDouble()));
+                    }
+                    districtMap.addPolygon(new Polygon(points));
                 }
-                districtMap.setPolygon(new Polygon(points));
                 return districtMap;
             }
             catch (IOException ex) {

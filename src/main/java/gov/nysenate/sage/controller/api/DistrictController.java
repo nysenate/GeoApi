@@ -14,6 +14,7 @@ import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.DistrictServiceMetadata;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -159,7 +160,7 @@ public class DistrictController extends BaseApiController
             DistrictServiceMetadata.assignDistrictMembers(districtResult);
         }
 
-        logger.debug(districtResult);
+        // logger.debug(FormatUtil.toJsonString(districtResult));
 
         return districtResult;
     }

@@ -41,7 +41,9 @@ sage.filter('remove', function(){
 
 sage.filter('capitalize', function() {
     return function(input) {
-        return input.substring(0,1).toUpperCase()+input.substring(1);
+        if (input !== null && typeof input !== 'undefined') {
+            return input.substring(0,1).toUpperCase() + input.substring(1);
+        }
     }
 });
 
@@ -68,10 +70,10 @@ sage.filter('addressFormat', function(){
  * underlying model. Creates and sends requests.   |
  *------------------------------------------------*/
 sage.controller('DistrictInfoController', function($scope, $http, responseService) {
-    $scope.addr1 = "100 Nyroy Dr";
-    $scope.city = "Troy";
+    $scope.addr1 = "8450 169st";
+    $scope.city = "Jamaica";
     $scope.state = "NY";
-    $scope.zip5 = "12180";
+    $scope.zip5 = "11432";
     $scope.geoProvider = "default";
     $scope.provider = "default";
 
@@ -164,6 +166,7 @@ sage.controller('MapViewController', function($scope, responseService) {
         }
     };
     $scope.map = new google.maps.Map(document.getElementById("map_canvas"), $scope.mapOptions);
+    $scope.polygons = [];
     $scope.polygon = null;
     $scope.poiMarker = null;
     $scope.polygonName = "";
@@ -205,27 +208,32 @@ sage.controller('MapViewController', function($scope, responseService) {
         this.map.setCenter(this.poiMarker.position);
     }
 
-    $scope.setMapBoundary = function(points, name) {
+    $scope.setMapBoundary = function(geom, name) {
+        if (geom != null) {
+            for (var i in this.polygons) {
+                this.polygons[i].setMap(null);
+            }
+            this.polygons = [];
+        }
+
         var coords = [];
-        for (var i in points) {
-            coords.push(new google.maps.LatLng(points[i][0], points[i][1]));
+        for (var i in geom) {
+            for (var j in geom[i]) {
+                coords.push(new google.maps.LatLng(geom[i][j][0], geom[i][j][1]));
+            }
+            var polygon = new google.maps.Polygon({
+                paths: coords,
+                strokeColor: "teal",
+                strokeOpacity: 1,
+                strokeWeight: 2,
+                fillColor: "teal",
+                fillOpacity: 0.2
+            });
+            polygon.setMap(this.map);
+            this.polygons.push(polygon);
+            this.polygon = polygon;
+            coords = [];
         }
-
-        if (this.polygon != null) {
-            this.polygon.setMap(null);
-            this.polygon = null;
-        }
-
-        this.polygon = new google.maps.Polygon({
-            paths: coords,
-            strokeColor: "teal",
-            strokeOpacity: 1,
-            strokeWeight: 2,
-            fillColor: "teal",
-            fillOpacity: 0.2
-        });
-
-        this.polygon.setMap(this.map);
 
         /** Set the zoom level to the district bounds and move a step closer */
         this.map.fitBounds(this.polygon.getBounds());
