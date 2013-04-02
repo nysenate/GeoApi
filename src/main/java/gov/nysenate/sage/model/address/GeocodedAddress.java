@@ -52,11 +52,11 @@ public class GeocodedAddress implements Serializable, Cloneable
         return isReverseGeocoded();
     }
 
-    /** A valid geocode should have a quality code level of ZIP or greater */
+    /** A valid geocode should have a quality code level of CITY or greater */
     public boolean isGeocoded()
     {
         return (this.geocode != null && this.geocode.getQuality() != null
-                && this.geocode.getQuality().compareTo(GeocodeQuality.ZIP) >= 0);
+                && this.geocode.getQuality().compareTo(GeocodeQuality.CITY) >= 0);
     }
 
     public boolean isReverseGeocoded()
