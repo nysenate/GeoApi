@@ -9,7 +9,7 @@ import gov.nysenate.sage.model.address.Address;
 
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.AddressResult;
-import gov.nysenate.sage.service.ServiceProviders;
+import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
@@ -98,7 +98,6 @@ public final class AddressController extends BaseApiController
         }
 
         /** Set response */
-        FormatUtil.printObject(addressResponse);
         setApiResponse(addressResponse, request);
     }
 

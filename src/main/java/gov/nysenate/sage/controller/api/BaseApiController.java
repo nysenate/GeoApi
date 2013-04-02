@@ -32,6 +32,16 @@ public abstract class BaseApiController extends HttpServlet
     {
         return ApiFilter.getApiRequest(r);
     }
+
+    /** Convenience method to see if request parameter equals a certain value */
+    public boolean requestParameterEquals(HttpServletRequest request, String key, String value)
+    {
+        if (request.getParameter(key) != null && request.getParameter(key).equals(value)) {
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Constructs a new Address object using the query parameters of the supplied HttpServletRequest.
      * This method exists to provide consistency among the different controllers when retrieving an

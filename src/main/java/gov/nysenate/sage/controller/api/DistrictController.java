@@ -10,11 +10,10 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.ServiceProviders;
+import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.DistrictServiceMetadata;
-import gov.nysenate.sage.service.geo.GeocodeService;
-import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -30,7 +29,7 @@ public class DistrictController extends BaseApiController
 {
     private static Logger logger = Logger.getLogger(DistrictController.class);
     private static ServiceProviders<DistrictService> districtProviders = ApplicationFactory.getDistrictServiceProviders();
-    private static ServiceProviders<GeocodeService> geocodeProviders = ApplicationFactory.getGeoCodeServiceProviders();
+    private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
 
     @Override
     public void init(ServletConfig config) throws ServletException
@@ -70,7 +69,7 @@ public class DistrictController extends BaseApiController
             setApiResponse(new ApiError(this.getClass(), DISTRICT_PROVIDER_NOT_SUPPORTED), request);
             return;
         }
-        if (geoProvider != null && !geoProvider.isEmpty() && !geocodeProviders.isRegistered(geoProvider)) {
+        if (geoProvider != null && !geoProvider.isEmpty() && !geocodeServiceProvider.isRegistered(geoProvider)) {
             setApiResponse(new ApiError(this.getClass(), GEOCODE_PROVIDER_NOT_SUPPORTED), request);
             return;
         }
@@ -109,7 +108,7 @@ public class DistrictController extends BaseApiController
      * return results and the senate districts are different then throw an api error. Otherwise give preference
      * to the shape file lookup for other district mismatches.
      *
-     * Note: the arguments are declared as final to allow them to be used in anonymous callable routines.*
+     * Note: the arguments are declared as final to allow them to be used in anonymous callable routines.
      * @param address
      * @param geoProvider
      * @param distProvider
@@ -173,15 +172,18 @@ public class DistrictController extends BaseApiController
             public DistrictResult call() throws Exception {
                 DistrictResult districtResult = new DistrictResult(DistrictController.class);
                 DistrictService districtService = districtProviders.newInstance(distProvider);
+                Geocode geocode = null;
 
                 /** Use GeocodeController to geocode if necessary */
-                GeocodeResult geocodeResult = (districtService.requiresGeocode()) ? GeocodeController.geocode(address, geoProvider) : null;
-                Geocode geocode = (geocodeResult != null && geocodeResult.isSuccess()) ? geocodeResult.getGeocode() : null;
+                if (districtService.requiresGeocode()) {
+                    GeocodeResult geocodeResult = (geoProvider != null) ? geocodeServiceProvider.geocode(address, geoProvider, false) : geocodeServiceProvider.geocode(address);
+                    geocode = (geocodeResult != null && geocodeResult.isSuccess()) ? geocodeResult.getGeocode() : null;
 
-                /** Proceed with district assignment only if geocode was successful */
-                if (districtService.requiresGeocode() && geocode == null) {
-                    districtResult.setStatusCode(NO_GEOCODE_RESULT);
-                    return districtResult;
+                    /** Proceed with district assignment only if geocode was successful */
+                    if (geocode == null) {
+                        districtResult.setStatusCode(NO_GEOCODE_RESULT);
+                        return districtResult;
+                    }
                 }
 
                 /** Tell the service if it should get map data or not */

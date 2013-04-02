@@ -8,8 +8,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.ServiceProviders;
-import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -26,7 +25,8 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public class GeocodeController extends BaseApiController
 {
     private Logger logger = Logger.getLogger(GeocodeController.class);
-    private static ServiceProviders<GeocodeService> geocodeProviders = ApplicationFactory.getGeoCodeServiceProviders();
+    private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
+
 
     @Override
     public void init(ServletConfig config) throws ServletException
@@ -49,25 +49,27 @@ public class GeocodeController extends BaseApiController
         ApiRequest apiRequest = getApiRequest(request);
         String provider = apiRequest.getProvider();
 
+        /** Check whether or not to fallback */
+        boolean useFallback = requestParameterEquals(request, "useFallback", "false") ? false : true;
+
         /**
          * If provider is specified then make sure it matches the available providers. Send an
          * api error and return if the provider is not supported.
          */
-        if (provider != null && !provider.isEmpty()) {
-            if (!geocodeProviders.isRegistered(provider)) {
-                geocodeResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
-                setApiResponse(geocodeResponse, request);
-                return;
-            }
+        if (provider != null && !provider.isEmpty() && !geocodeServiceProvider.isRegistered(provider)) {
+            geocodeResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
+            setApiResponse(geocodeResponse, request);
+            return;
         }
 
-        /** Handle single request */
+        /** Handle single geocoding requests */
         if (!apiRequest.isBatch()) {
             switch (apiRequest.getRequest()) {
                 case "geocode": {
                     Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
-                        geocodeResponse = new GeocodeResponse(geocode(address, provider));
+                        geocodeResponse = new GeocodeResponse(
+                                geocodeServiceProvider.geocode(address, provider, useFallback));
                     }
                     else {
                         geocodeResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
@@ -98,44 +100,19 @@ public class GeocodeController extends BaseApiController
     }
 
     /**
-     * The default strategy for geocoding is as follows:
-     *
-     * If provider is specified - use that, no questions asked.
-     * Otherwise start with TigerGeocoder. If that doesn't return a house level match
-     * then try Yahoo. If Yahoo gets rate limited or does not return a match then
-     * try with MapQuest.
-     */
-    public static GeocodeResult geocode(Address address, String provider)
-    {
-        if (provider != null && !provider.isEmpty()) {
-            return geocodeProviders.newInstance(provider).geocode(address);
-        }
-        else {
-            GeocodeResult result = geocodeProviders.newInstance("tiger").geocode(address);
-            if (!result.isSuccess()) {
-                result = geocodeProviders.newInstance("yahoo").geocode(address);
-                if (!result.isSuccess()) {
-                    result = geocodeProviders.newInstance("mapquest").geocode(address);
-                }
-            }
-            return result;
-        }
-    }
-
-    /**
      * Reverse geocoding uses the same strategy as <code>geocode</code>
      */
     public static GeocodeResult reverseGeocode(Point point, String provider)
     {
         if (provider != null && !provider.isEmpty()) {
-            return geocodeProviders.newInstance(provider).reverseGeocode(point);
+            return geocodeServiceProvider.newInstance(provider).reverseGeocode(point);
         }
         else {
-            GeocodeResult result = geocodeProviders.newInstance("tiger").reverseGeocode(point);
+            GeocodeResult result = geocodeServiceProvider.newInstance("tiger").reverseGeocode(point);
             if (!result.isSuccess()) {
-                result = geocodeProviders.newInstance("yahoo").reverseGeocode(point);
+                result = geocodeServiceProvider.newInstance("yahoo").reverseGeocode(point);
                 if (!result.isSuccess()) {
-                    result = geocodeProviders.newInstance("mapquest").reverseGeocode(point);
+                    result = geocodeServiceProvider.newInstance("mapquest").reverseGeocode(point);
                 }
             }
             return result;

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.model.job.JobRequest;
 import gov.nysenate.sage.model.job.JobUser;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -14,15 +13,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public abstract class BaseJobController extends HttpServlet
 {
     private static Logger logger = Logger.getLogger(BaseJobController.class);
     private static ObjectMapper jsonMapper = new ObjectMapper();
     protected static String AUTH_ATTR = "authenticated";
-    protected static String JOBUSER_ATTR = "jobuser";
+    protected static String JOB_USER_ATTR = "jobuser";
     protected static String JOB_REQUEST_ATTR = "jobrequest";
 
     public abstract void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
@@ -41,7 +38,7 @@ public abstract class BaseJobController extends HttpServlet
     public static JobUser getJobUser(HttpServletRequest request)
     {
         if (isAuthenticated(request)) {
-            Object jobUser = request.getSession().getAttribute(JOBUSER_ATTR);
+            Object jobUser = request.getSession().getAttribute(JOB_USER_ATTR);
             if (jobUser != null) {
                 return (JobUser) jobUser;
             }
@@ -63,7 +60,7 @@ public abstract class BaseJobController extends HttpServlet
 
     public static void setJobUser(HttpServletRequest request, JobUser user)
     {
-        request.getSession().setAttribute(JOBUSER_ATTR, user);
+        request.getSession().setAttribute(JOB_USER_ATTR, user);
         setAuthenticated(request, (user != null));
     }
 
