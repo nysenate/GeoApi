@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Status information for a job process.
+ */
 public class JobProcessStatus
 {
     public enum Condition
@@ -16,8 +19,6 @@ public class JobProcessStatus
         FAILED,
         CANCELLED,
         INACTIVE;
-
-        Condition() {}
 
         public static List<Condition> getActiveConditions()
         {

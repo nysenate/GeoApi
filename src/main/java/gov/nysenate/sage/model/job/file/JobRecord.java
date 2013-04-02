@@ -1,11 +1,14 @@
 package gov.nysenate.sage.model.job.file;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.GeocodeResult;
 
 import java.util.HashMap;
 
@@ -24,6 +27,66 @@ public class JobRecord
         this.streetAddress = new StreetAddress();
         this.geocode = new Geocode();
         this.districtInfo = new DistrictInfo();
+    }
+
+    public void applyGeocodeResult(GeocodeResult geocodeResult)
+    {
+        if (geocodeResult != null && geocodeResult.isSuccess()) {
+            this.geocode = geocodeResult.getGeocode();
+        }
+    }
+
+    public void applyDistrictResult(DistrictResult districtResult)
+    {
+        if (districtResult != null && (districtResult.isSuccess() || districtResult.isPartialSuccess())) {
+            this.districtInfo = districtResult.getDistrictInfo();
+        }
+    }
+
+    /** Explicit getters/setters */
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Address getCorrectedAddress() {
+        return correctedAddress;
+    }
+
+    public void setCorrectedAddress(Address correctedAddress) {
+        this.correctedAddress = correctedAddress;
+    }
+
+    public StreetAddress getStreetAddress() {
+        return streetAddress;
+    }
+
+    public void setStreetAddress(StreetAddress streetAddress) {
+        this.streetAddress = streetAddress;
+    }
+
+    public Geocode getGeocode() {
+        return geocode;
+    }
+
+    public void setGeocode(Geocode geocode) {
+        this.geocode = geocode;
+    }
+
+    public DistrictInfo getDistrictInfo() {
+        return districtInfo;
+    }
+
+    public void setDistrictInfo(DistrictInfo districtInfo) {
+        this.districtInfo = districtInfo;
+    }
+
+    /** Implicit getters/setters */
+    public GeocodedAddress getGeocodedAddress() {
+        return new GeocodedAddress(address, geocode);
     }
 
     public String getStreet() {

@@ -330,3 +330,9 @@ p {
     box-shadow: 0px 2px 2px #BBB;
     background-color: white;
 }
+
+/*-----------------------
+ Job page */
+#upload-container {
+    width:650px;margin:auto;text-align: center;
+}

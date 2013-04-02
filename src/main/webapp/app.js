@@ -2,8 +2,6 @@
  * Base Configuration                               |
  * ------------------------------------------------*/
 var baseApi = "/api/v2";
-
-var sage = angular.module('sage', []);
 var map;
 
 /**-------------------------------------------------\
@@ -26,6 +24,41 @@ sage.factory("responseService", function($rootScope) {
         $rootScope.$broadcast(this.view);
     }
     return responseService;
+});
+
+/**------------------------------------------------\
+ * Filters                                         |
+ *------------------------------------------------*/
+
+/** Removes a sequence from an input string */
+sage.filter('remove', function(){
+    return function(input, string) {
+        if (input !== null && typeof input !== 'undefined') {
+            return input.replace(string, "");
+        }
+    }
+});
+
+sage.filter('capitalize', function() {
+    return function(input) {
+        return input.substring(0,1).toUpperCase()+input.substring(1);
+    }
+});
+
+/** Formats an address properly */
+sage.filter('addressFormat', function(){
+    return function(address, line) {
+        if (typeof address !== 'undefined') {
+            var line1 = (address.addr1 != '' ? address.addr1 : "") +
+                        (address.addr2 != '' ? " " + address.addr2 + "" : "");
+
+            var line2 = (address.city != '' ? " " + address.city + "," : "") +
+                        (address.state != '' ? " " + address.state : "") +
+                        (address.zip5 != '' ? " " + address.zip5 : "") +
+                        (address.zip4 != '' ? "-" + address.zip4 : "");
+            return (((line1) ? line1 + "<br>" : "") + line2).trim();
+        }
+    }
 });
 
 /**------------------------------------------------\
@@ -82,6 +115,12 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
 /**------------------------------------------------\
  * Views                                           |
  *------------------------------------------------*/
+sage.controller('ResultsViewController', function($scope, responseService) {
+    $scope.paneVisible = false;
+
+    // Expand the pane when the first result comes in
+});
+
 sage.controller('DistrictsViewController', function($scope, responseService) {
     $scope.addressValidated = false;
     $scope.hasFacebook = false;
@@ -198,16 +237,7 @@ sage.controller('MapViewController', function($scope, responseService) {
 });
 
 $(document).ready(function(){
-  //$("#districtsForm button").click(); // TEST HELPER
-
-  $("p.method-header").click(function(event) {
-    if (!$(this).hasClass("active")){
-      $(".form-container.active").removeClass("active").slideUp(250);
-      $("p.method-header.active").removeClass("active");
-      $(this).addClass("active");
-      $(this).next(".form-container").slideDown(250).addClass("active");
-    }
-  });
+    initVerticalMenu();
 });
 
 /**

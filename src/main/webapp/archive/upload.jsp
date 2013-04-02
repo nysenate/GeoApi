@@ -14,7 +14,7 @@
 <script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery.min.js"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/js/fileuploader.js"></script>
 <link href="<%=request.getContextPath()%>/style.css" rel="stylesheet" type="text/css">
-<link href="<%=request.getContextPath()%>/fileuploader.css" rel="stylesheet" type="text/css">
+<link href="<%=request.getContextPath()%>/css/fileuploader.css" rel="stylesheet" type="text/css">
 <script type="text/javascript">
 $(document).ready(function() {
 	var canSubmit = false;

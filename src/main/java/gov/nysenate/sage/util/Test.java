@@ -4,8 +4,17 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.*;
 import gov.nysenate.sage.client.response.DistrictResponse;
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.util.auth.JobUserAuth;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
+import org.mindrot.jbcrypt.BCrypt;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -15,22 +24,7 @@ public class Test
 
     public static void main(String args[]) throws Exception
     {
-        /*ObjectMapper om = new ObjectMapper();
-        om.configure(SerializationFeature.WRAP_ROOT_VALUE, true);
-        ApiFormatError error = new ApiFormatError();
-
-        System.out.println(om.writeValueAsString(error));
-        XmlMapper xmlMapper = new XmlMapper();
-        SimpleModule simpleModule = new SimpleModule("Collection", new Version(1,1,0,"","",""));
-        simpleModule.addSerializer(new CollectionSerializer());
-        xmlMapper.registerModule(simpleModule);
-
-        xmlMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        System.out.println(xmlMapper.writeValueAsString(error));
-        */
-        DistrictResponse districtResponse = new DistrictResponse(new DistrictResult());
-        FormatUtil.printObject(districtResponse);
-
+        FormatUtil.printObject((808+94-1)/95);
     }
 
 

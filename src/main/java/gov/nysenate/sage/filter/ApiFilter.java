@@ -8,7 +8,7 @@ import gov.nysenate.sage.client.response.ApiError;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
-import gov.nysenate.sage.util.ApiUserAuth;
+import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.Config;
 import java.io.IOException;
 import java.util.Observable;

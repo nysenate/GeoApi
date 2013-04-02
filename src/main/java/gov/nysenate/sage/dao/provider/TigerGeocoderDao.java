@@ -11,6 +11,7 @@ import org.apache.commons.dbutils.BeanProcessor;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;
@@ -34,9 +35,9 @@ public class TigerGeocoderDao extends BaseDao
 
     public GeocodedStreetAddress getGeocodedStreetAddress(Connection conn, Address address)
     {
+        GeocodedStreetAddress geoStreetAddress = null;
         String sql = "SELECT g.rating, ST_Y(geomout) As lat, ST_X(geomout) As lon, (addy).* \n" +
                      "FROM geocode(?, 1) AS g;";
-        GeocodedStreetAddress geoStreetAddress = null;
         try {
             setTimeOut(conn, run, GEOCODER_TIMEOUT);
             geoStreetAddress = run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
@@ -44,7 +45,9 @@ public class TigerGeocoderDao extends BaseDao
         catch (SQLException ex){
             logger.warn(ex.getMessage());
         }
-        closeConnection(conn);
+        finally {
+            closeConnection(conn);
+        }
 
         return geoStreetAddress;
     }

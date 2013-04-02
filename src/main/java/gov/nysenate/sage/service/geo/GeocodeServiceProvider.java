@@ -1,6 +1,7 @@
 package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.base.ServiceProviders;
@@ -9,6 +10,11 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 
+/**
+ * Point of access for all geocoding requests. This class maintains a collection of available
+ * geocoding providers and contains logic for distributing requests and collecting responses
+ * from the providers.
+ */
 public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
 {
     private final Logger logger = Logger.getLogger(GeocodeServiceProvider.class);
@@ -57,6 +63,10 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
         if (this.isRegistered(provider)) {
             geocodeResult = this.newInstance(provider).geocode(address);
         }
+        else {
+            logger.error("Supplied an invalid geocoding provider!");
+        }
+
         /** If attempt failed, use the fallback providers if allowed */
         if (geocodeResult == null || (!geocodeResult.isSuccess() && useFallback)) {
             while ((geocodeResult == null || !geocodeResult.isSuccess()) && fallbackIterator.hasNext()) {
@@ -75,9 +85,9 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      * @param addresses         List of addresses to geocode
      * @return                  List<GeocodeResult> corresponding to the addresses list.
      */
-    public List<GeocodeResult> geocode(ArrayList<Address> addresses)
+    public List<GeocodeResult> geocode(List<Address> addresses)
     {
-        return this.geocode(addresses, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true);
+        return this.geocode((ArrayList<Address>) addresses, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true);
     }
 
     /**
@@ -87,9 +97,9 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      * @param useFallback       Set true to use default fallback
      * @return                  List<GeocodeResult> corresponding to the addresses list.
      */
-    public List<GeocodeResult> geocode(ArrayList<Address> addresses, String provider, boolean useFallback)
+    public List<GeocodeResult> geocode(List<Address> addresses, String provider, boolean useFallback)
     {
-        return this.geocode(addresses, provider, DEFAULT_GEO_FALLBACK, useFallback);
+        return this.geocode((ArrayList<Address>) addresses, provider, DEFAULT_GEO_FALLBACK, useFallback);
     }
 
     /**
@@ -100,7 +110,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      * @param useFallback       Set true to use fallback
      * @return                  List<GeocodeResult> corresponding to the addresses list.
      */
-    public List<GeocodeResult> geocode(ArrayList<Address> addresses, String provider,
+    public List<GeocodeResult> geocode(List<Address> addresses, String provider,
                                        LinkedList<String> fallbackProviders, boolean useFallback)
     {
         logger.info("Performing batch geocode using provider: " + provider + " with fallback to: " +
@@ -116,10 +126,10 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
 
         /** Geocode using the supplied provider if valid */
         if (this.isRegistered(provider)) {
-            geocodeResults = this.newInstance(provider).geocode(addresses);
+            geocodeResults = this.newInstance(provider).geocode((ArrayList<Address>) addresses);
         }
         else {
-            logger.error("Supplied an empty geocoding provider!");
+            logger.error("Supplied an invalid geocoding provider!");
         }
 
         if (useFallback) {
@@ -131,7 +141,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
              *  fallback providers specified have been used. */
             while (!failedIndices.isEmpty() && fallbackIterator.hasNext()) {
                 String fallbackProvider = fallbackIterator.next();
-                logger.debug("Some missing geocodes exist. Falling back to " + fallbackProvider);
+                logger.debug(failedIndices.size() + " geocodes are missing. Falling back to " + fallbackProvider);
 
                 ArrayList<Address> fallbackBatch = new ArrayList<>();
                 for (int failedIndex : failedIndices) {
@@ -163,5 +173,30 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
             }
         }
         return failedIndices;
+    }
+
+    /**
+     * Reverse geocoding uses the same strategy as <code>geocode</code>
+     */
+    public static GeocodeResult reverseGeocode(Point point)
+    {
+        return null;
+    }
+
+    /**
+     * Reverse geocoding uses the same strategy as <code>geocode</code>
+     */
+    public static GeocodeResult reverseGeocode(Point point, String provider, boolean useFalback)
+    {
+        return null;
+    }
+
+    /**
+     * Reverse geocoding uses the same strategy as <code>geocode</code>
+     */
+    public static GeocodeResult reverseGeocode(Point point, String provider, LinkedList<String> fallbackProviders,
+                                               boolean useFallback)
+    {
+        return null;
     }
 }

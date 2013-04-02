@@ -12,7 +12,7 @@ import static gov.nysenate.sage.model.district.DistrictType.SENATE;
 
 /**
  * Typically when the district service providers return a DistrictInfo, only the district codes
- * and maps are relevant. This class provides methods to populate the remaining data which includes
+ * and maps are provided. This class provides methods to populate the remaining data which includes
  * the district members and the senator information. Since this information is not always required, this
  * functionality should be invoked through a controller as opposed to the provider implementations.
  */

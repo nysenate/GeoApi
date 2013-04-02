@@ -161,38 +161,61 @@
                                 </a>
                             </p>
                         </div>
+                        <span style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('senate');">View Map</a></span>
                     </div>
                     <hr style="clear:left;"/>
                 </div>
                 <div class="info-container">
-                    <table>
+                    <table style="width:100%">
                         <tr>
                             <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
-                            <td><p style="font-size: 16px;color:#111;">{{address.addr1}}<br/>{{address.city}}, {{address.state}} {{address.zip5}}-{{address.zip4}}</p>
+                            <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat | capitalize"></p>
                             </td>
                         </tr>
                         <tr>
                             <td><span aria-hidden="true" data-icon="&#127919;" style="color:teal;"></span></td>
-                            <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}})</p></td>
+                            <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}}) <small style="float:right;">{{geocode.method | remove:'Dao'}}</small></p></td>
                         </tr>
                     </table>
                 </div>
                 <div class="info-container congressional">
-                    <p class="member-name"><a target="_blank" ng-href="{{districts.congressional.member.url}}">{{districts.congressional.member.name}}</a></p>
-                    <p class="district">Congressional District {{districts.congressional.district}}</p>
+                    <table style="width:100%">
+                        <tr>
+                            <td>
+                                <p class="member-name"><a target="_blank" ng-href="{{districts.congressional.member.url}}">{{districts.congressional.member.name}}</a></p>
+                                <p class="district">Congressional District {{districts.congressional.district}}</p>
+                            </td>
+                            <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('congressional');">View Map</a></td>
+                        </tr>
+                    </table>
                 </div>
                 <div class="info-container assembly">
-                    <p class="member-name"><a target="_blank" ng-href="{{districts.assembly.member.url}}">{{districts.assembly.member.name}}</a></p>
-                    <p class="district">Assembly District {{districts.assembly.district}}</p>
-                </div>
-                <div class="info-container">
-                    <p class="member-name">{{districts.county.name}}</p>
-                    <p class="district">County Code: {{districts.county.district}}</p>
+                    <table style="width:100%">
+                        <tr>
+                            <td>
+                                <p class="member-name"><a target="_blank" ng-href="{{districts.assembly.member.url}}">{{districts.assembly.member.name}}</a></p>
+                                <p class="district">Assembly District {{districts.assembly.district}}</p>
+                            </td>
+                            <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('assembly');">View Map</a></td>
+                        </tr>
+                    </table>
                 </div>
                 <div class="info-container">
                     <table style="width:100%">
                         <tr>
-                            <td><p class="member-name">Town of {{districts.town.name}}</p>
+                            <td>
+                                <p class="member-name">{{districts.county.name}}</p>
+                                <p class="district">County Code: {{districts.county.district}}</p>
+                            </td>
+                            <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('county');">View Map</a></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="info-container">
+                    <table style="width:100%">
+                        <tr>
+                            <td>
+                                <p class="member-name">Town of {{districts.town.name}}</p>
                                 <p class="district">Town Code: {{districts.town.district}}</p></td>
                             <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('town');">View Map</a></td>
                         </tr>

@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.job.file;
 
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.Optional;
@@ -80,6 +81,19 @@ public class JobFile extends BaseJobFile<JobRecord>
         return checkColumnsForGroup(Group.district);
     }
 
+    /**
+     * Returns a list of Address objects that are stored as records
+     * @return List<Address>
+     */
+    public List<Address> getAddresses()
+    {
+        List<Address> addresses = new ArrayList<>();
+        for (JobRecord record : getRecords()) {
+            addresses.add(record.address);
+        }
+        return addresses;
+    }
+
     /** Returns true if the Column list contains an element belonging to the given Group */
     private boolean checkColumnsForGroup(Group group)
     {
@@ -114,17 +128,22 @@ public class JobFile extends BaseJobFile<JobRecord>
         for (int i = 0; i < header.length; i++ ) {
             /** Try to match column name to a Column */
             try {
-                Column headerColumn = Column.valueOf(FormatUtil.toCamelCase(header[i]));
-                columns.add(headerColumn);
+                if (header[i] != null) {
+                    Column headerColumn = Column.valueOf(FormatUtil.toCamelCase(header[i]));
+                    columns.add(headerColumn);
 
-                if (headerColumn.type.equals(Type.doubleType)) {
-                    this.processors.add(new Optional(new ParseDouble()));
-                }
-                else if (headerColumn.type.equals(Type.intType)) {
-                    this.processors.add(new Optional(new ParseInt()));
+                    if (headerColumn.type.equals(Type.doubleType)) {
+                        this.processors.add(new Optional(new ParseDouble()));
+                    }
+                    else if (headerColumn.type.equals(Type.intType)) {
+                        this.processors.add(new Optional(new ParseInt()));
+                    }
+                    else {
+                        this.processors.add(new Optional());
+                    }
                 }
                 else {
-                    this.processors.add(new Optional());
+                    throw new IllegalArgumentException();
                 }
             }
             /** Unmatched column headers are ignored */

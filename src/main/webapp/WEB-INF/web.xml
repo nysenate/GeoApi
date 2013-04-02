@@ -72,6 +72,15 @@
         <url-pattern>/job/*</url-pattern>
     </servlet-mapping>
 
-    <!-- Misc mappings -->
+    <servlet>
+        <display-name>JobStatusController</display-name>
+        <servlet-name>JobStatusController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.job.JobStatusController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>JobStatusController</servlet-name>
+        <url-pattern>/job/status/*</url-pattern>
+    </servlet-mapping>
+
 
 </web-app>

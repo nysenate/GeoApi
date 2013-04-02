@@ -2,7 +2,6 @@ package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.job.JobProcess;
-import gov.nysenate.sage.util.Config;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -95,39 +94,42 @@ public class Mailer
 
 	public static void mailError(Exception e, JobProcess jp)
     {
-		try {
+		/*
+        try {
 		    StringWriter msg = new StringWriter();
             PrintWriter out = new PrintWriter(msg);
             out.println(e.getMessage());
             e.printStackTrace(out);
 			sendMail(STMP_USER,
 					"bulk processing error",
-					jp.getUser().getEmail() + " - " + jp.getClassName() + " - " + jp.getFileName() + "<br/><br/>" + e.getMessage(),
+					jp.getUser().getEmail() + " - " + jp.getFileType() + " - " + jp.getFileName() + "<br/><br/>" + e.getMessage(),
 					STMP_USER,
 					"SAGE Bulk front-end error");
 		}
         catch (Exception e1) {
 			e1.printStackTrace();
-		}
+		} */
 	}
 
 	public static void mailAdminComplete(JobProcess jp)
     {
-		try {
+		/*
+        try {
 			sendMail(STMP_USER,
 					"bulk processing complete",
-					jp.getUser().getEmail() + " - " + jp.getClassName() + " - " + jp.getFileName() + "<br/><br/>",
+					jp.getUser().getEmail() + " - " + jp.getFileType() + " - " + jp.getFileName() + "<br/><br/>",
 					STMP_USER,
 					"SAGE Bulk processing complete");
 		}
         catch (Exception e1) {
 			e1.printStackTrace();
-		}
+		} */
 	}
 
 	public static void mailUserComplete(JobProcess jp)
     {
-		try {
+		/*
+        try {
 			sendMail(jp.getUser().getEmail(),
 					"SAGE Districting Completed",
 					"Your request from " + new Date(jp.getRequestTime()) + " has been completed and can be downloaded at "+Config.read("smtp.context")+"/downloads/" + jp.getFileName() +
@@ -137,6 +139,6 @@ public class Mailer
 		}
         catch (Exception e1) {
 			e1.printStackTrace();
-		}
+		} */
 	}
 }

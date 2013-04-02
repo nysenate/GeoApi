@@ -7,8 +7,7 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import java.util.ArrayList;
 
 /**
- * GeocodeService is used to geocode addresses to obtain their coordinates or to obtain an address
- * from a coordinate pair.
+ * Base interface for providers of geocoding services.
  */
 public interface GeocodeService
 {

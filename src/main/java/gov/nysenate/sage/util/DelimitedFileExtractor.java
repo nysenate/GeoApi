@@ -1,17 +1,21 @@
 package gov.nysenate.sage.util;
 
+import org.apache.log4j.Logger;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
 public class DelimitedFileExtractor {	
-	private String  delim;
+	private Logger logger = Logger.getLogger(DelimitedFileExtractor.class);
+    private String delim;
 	private String header;
 	private Class<?> clazz;
 	private String[] format;
 	HashMap<String, Method> methodMap;
 	
-	public DelimitedFileExtractor(String delim, String header, Class<?> clazz) {
+	public DelimitedFileExtractor(String delim, String header, Class<?> clazz)
+    {
 		this.delim = delim;
 		this.header = header;
 		this.clazz = clazz;
@@ -19,29 +23,22 @@ public class DelimitedFileExtractor {
 		this.methodMap = processHeader();
 	}
 	
-	
-	public Object processTuple(String input){
+	public Object processTuple(String input)
+    {
 		Object o = null;
 		try {
 			o = clazz.newInstance();
-			
-			input = input.replaceAll(delim + delim, delim + " " + delim);
+	        input = input.replaceAll(delim + delim, delim + " " + delim);
 			String[] tuple = input.split(delim);
 			for (int i = 0; i < tuple.length; i++) {
 				Method fieldMethod = methodMap.get(format[i]);
 				fieldMethod.invoke(o, tuple[i].replaceAll("(^\"|\"$)", ""));
 			}
-
-			return o;
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
+            return o;
 		}
+        catch (Exception ex) {
+            logger.error(ex);
+        }
 			
 		return o;
 	}

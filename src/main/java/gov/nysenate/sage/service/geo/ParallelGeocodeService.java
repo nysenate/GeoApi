@@ -15,7 +15,7 @@ import java.util.concurrent.*;
 public abstract class ParallelGeocodeService
 {
     private static Logger logger = Logger.getLogger(ParallelGeocodeService.class);
-    private static int THREAD_COUNT = 5;
+    private static int THREAD_COUNT = 10;
 
     private static class ParallelGeocode implements Callable<GeocodeResult>
     {

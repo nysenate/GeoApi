@@ -83,7 +83,8 @@ public class Address implements Serializable, Cloneable
         }
     }
 
-    public String getAddr2() {
+    public String getAddr2()
+    {
         return addr2;
     }
 

@@ -42,8 +42,7 @@ public class ApplicationFactory
     /** Service Providers */
     private ServiceProviders<AddressService> addressServiceProviders = new ServiceProviders<>();
     private ServiceProviders<DistrictService> districtServiceProviders = new ServiceProviders<>();
-    private ServiceProviders<GeocodeService> geocodeServiceProviders = new ServiceProviders<>();
-    private GeocodeServiceProvider geocodeServProvider = new GeocodeServiceProvider();
+    private GeocodeServiceProvider geocodeServiceProvider = new GeocodeServiceProvider();
 
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
@@ -83,21 +82,16 @@ public class ApplicationFactory
             this.baseDB = new DB(this.config, "db");
             this.tigerDB = new DB(this.config, "tiger.db");
 
-            /** Setup service providers */
+            /** Setup service providers ( MOVE INTO CONFIG ) */
             addressServiceProviders.registerDefaultProvider("usps", new USPS());
             addressServiceProviders.registerProvider("mapquest", new MapQuest());
 
-            geocodeServiceProviders.registerDefaultProvider("yahoo", new Yahoo());
-            geocodeServiceProviders.registerProvider("tiger", new TigerGeocoder());
-            geocodeServiceProviders.registerProvider("mapquest", new MapQuest());
-            geocodeServiceProviders.registerProvider("yahooboss", new YahooBoss());
-            geocodeServiceProviders.registerProvider("osm", new OSM());
-
-            geocodeServProvider.registerDefaultProvider("yahoo", new Yahoo());
-            geocodeServProvider.registerProvider("tiger", new TigerGeocoder());
-            geocodeServProvider.registerProvider("mapquest", new MapQuest());
-            geocodeServProvider.registerProvider("yahooboss", new YahooBoss());
-            geocodeServProvider.registerProvider("osm", new OSM());
+            geocodeServiceProvider.registerDefaultProvider("yahoo", new Yahoo());
+            geocodeServiceProvider.registerProvider("tiger", new TigerGeocoder());
+            geocodeServiceProvider.registerProvider("mapquest", new MapQuest());
+            geocodeServiceProvider.registerProvider("yahooboss", new YahooBoss());
+            geocodeServiceProvider.registerProvider("osm", new OSM());
+            geocodeServiceProvider.registerProvider("ruby", new RubyGeocoder());
 
             districtServiceProviders.registerDefaultProvider("geoserver", new Geoserver());
             districtServiceProviders.registerProvider("streetfile", new StreetFile());
@@ -147,13 +141,8 @@ public class ApplicationFactory
         return factoryInstance.districtServiceProviders;
     }
 
-    public static ServiceProviders<GeocodeService> getGeoCodeServiceProviders()
-    {
-        return factoryInstance.geocodeServiceProviders;
-    }
-
     public static GeocodeServiceProvider getGeocodeServiceProvider()
     {
-        return factoryInstance.geocodeServProvider;
+        return factoryInstance.geocodeServiceProvider;
     }
 }

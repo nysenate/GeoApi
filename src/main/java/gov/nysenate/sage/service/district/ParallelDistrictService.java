@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * Parallel district assignment for use when a DistrictService implementation does not provide
- * native batch methods.
+ * Parallel district assignment for use in a provider's batch district implementation.
  */
 public abstract class ParallelDistrictService
 {

@@ -27,7 +27,8 @@ public class FormatUtil {
     protected static Logger logger = Logger.getLogger(FormatUtil.class);
     protected static ObjectMapper mapper = new ObjectMapper();
 
-    public static String toCamelCase(String s) {
+    public static String toCamelCase(String s)
+    {
         if (s != null && s.contains("_")) {
             return StringUtils.uncapitalize(WordUtils.capitalizeFully(s, '_').replaceAll("_", ""));
         }

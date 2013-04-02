@@ -188,9 +188,9 @@ public class RubyGeocoder implements GeocodeService
                 quality = 99; // No geocode is perfect
             }
             Address resultAddress = new Address(street, city, state, zip);
-            GeocodedAddress geocodedAddress = new GeocodedAddress(
-                    resultAddress, new Geocode(new Point(lat, lon),
-                    GeocodeQuality.UNKNOWN, this.getClass().getName()));
+            Geocode geocode = new Geocode(new Point(lat, lon), GeocodeQuality.UNKNOWN, this.getClass().getSimpleName());
+            geocode.setRawQuality(quality);
+            GeocodedAddress geocodedAddress = new GeocodedAddress(resultAddress, geocode);
             geocodeResult.setGeocodedAddress(geocodedAddress);
         }
         else {

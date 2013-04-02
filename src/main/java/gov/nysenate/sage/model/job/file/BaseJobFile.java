@@ -22,4 +22,8 @@ public abstract class BaseJobFile<T>
     public void setRecords(List<T> records) {
         this.records = records;
     }
+
+    public int recordCount() {
+        return records.size();
+    }
 }
