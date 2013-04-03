@@ -10,11 +10,10 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.DistrictServiceMetadata;
+import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -29,8 +28,8 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public class DistrictController extends BaseApiController
 {
     private static Logger logger = Logger.getLogger(DistrictController.class);
-    private static ServiceProviders<DistrictService> districtProviders = ApplicationFactory.getDistrictServiceProviders();
-    private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
+    private static DistrictServiceProvider districtProvider = ApplicationFactory.getDistrictServiceProvider();
+    private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
 
     @Override
     public void init(ServletConfig config) throws ServletException
@@ -66,11 +65,11 @@ public class DistrictController extends BaseApiController
          * If providers are specified then make sure they match the available providers. Send an
          * api error and return if the provider is not supported.
          */
-        if (provider != null && !provider.isEmpty() && !districtProviders.isRegistered(provider)) {
+        if (provider != null && !provider.isEmpty() && !districtProvider.isRegistered(provider)) {
             setApiResponse(new ApiError(this.getClass(), DISTRICT_PROVIDER_NOT_SUPPORTED), request);
             return;
         }
-        if (geoProvider != null && !geoProvider.isEmpty() && !geocodeServiceProvider.isRegistered(geoProvider)) {
+        if (geoProvider != null && !geoProvider.isEmpty() && !geocodeProvider.isRegistered(geoProvider)) {
             setApiResponse(new ApiError(this.getClass(), GEOCODE_PROVIDER_NOT_SUPPORTED), request);
             return;
         }
@@ -81,7 +80,13 @@ public class DistrictController extends BaseApiController
             switch (apiRequest.getRequest()) {
                 case "assign": {
                     if (address != null && !address.isEmpty()) {
-                        districtResponse = new DistrictResponse(assignDistricts(address, geoProvider, provider, showMembers, showMaps));
+                        GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false)
+                                                                            : geocodeProvider.geocode(address);
+                        GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
+
+                        DistrictResult districtResult = districtProvider.assignDistricts( geocodedAddress, provider,
+                                                                              DistrictType.getStandardTypes(), showMembers, showMaps);
+                        districtResponse = new DistrictResponse(districtResult);
                     }
                     else {
                         districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
@@ -99,100 +104,5 @@ public class DistrictController extends BaseApiController
         }
 
         setApiResponse(districtResponse, request);
-    }
-
-    /**
-     * If a district provider is specified use that for district assignment.
-     * Otherwise the default strategy for district assignment is to run both street file and district shape file
-     * lookups in parallel. The geocoding routine declared in GeocodeController is used for retrieving the geocode.
-     * Once results from both lookup methods are retrieved they are compared and consolidated. If both services
-     * return results and the senate districts are different then throw an api error. Otherwise give preference
-     * to the shape file lookup for other district mismatches.
-     *
-     * Note: the arguments are declared as final to allow them to be used in anonymous callable routines.
-     * @param address
-     * @param geoProvider
-     * @param distProvider
-     * @param showMembers
-     * @param showMaps
-     * @return
-     */
-    public static DistrictResult assignDistricts(final Address address, final String geoProvider, final String distProvider,
-                                                 final boolean showMembers, final boolean showMaps)
-    {
-        logger.info(address);
-
-        DistrictResult districtResult = null;
-        ExecutorService executorService = null;
-
-        try {
-            /** Use the provider if specified */
-            if (distProvider != null && !distProvider.isEmpty()) {
-                executorService = Executors.newSingleThreadExecutor();
-                Future<DistrictResult> future = executorService.submit(getDistrictsCallable(address, distProvider, geoProvider, showMaps));
-                districtResult = future.get();
-            }
-            else {
-                Callable<DistrictResult> streetfileCallable = getDistrictsCallable(address, "streetfile", null, false);
-                Callable<DistrictResult> shapefileCallable = getDistrictsCallable(address, "shapefile", geoProvider, showMaps);
-
-                executorService = Executors.newFixedThreadPool(2);
-                Future<DistrictResult> streetfileFuture = executorService.submit(streetfileCallable);
-                Future<DistrictResult> shapefileFuture = executorService.submit(shapefileCallable);
-
-                DistrictResult streetfileResult = streetfileFuture.get();
-                DistrictResult shapefileResult = shapefileFuture.get();
-
-                districtResult = shapefileResult;
-            }
-        }
-        catch (InterruptedException ex) {
-            logger.error("Failed to get district results from future!", ex);
-        }
-        catch (ExecutionException ex) {
-            logger.error("Failed to get district results from future!", ex);
-        }
-        finally {
-            executorService.shutdownNow();
-        }
-
-        if (showMembers) {
-            DistrictServiceMetadata.assignDistrictMembers(districtResult);
-        }
-
-        // logger.debug(FormatUtil.toJsonString(districtResult));
-
-        return districtResult;
-    }
-
-    private static Callable<DistrictResult> getDistrictsCallable(final Address address, final String distProvider,
-                                                                 final String geoProvider, final boolean showMaps)
-    {
-        return new Callable<DistrictResult>() {
-            @Override
-            public DistrictResult call() throws Exception {
-                DistrictResult districtResult = new DistrictResult(DistrictController.class);
-                DistrictService districtService = districtProviders.newInstance(distProvider);
-                Geocode geocode = null;
-
-                /** Use GeocodeController to geocode if necessary */
-                if (districtService.requiresGeocode()) {
-                    GeocodeResult geocodeResult = (geoProvider != null) ? geocodeServiceProvider.geocode(address, geoProvider, false) : geocodeServiceProvider.geocode(address);
-                    geocode = (geocodeResult != null && geocodeResult.isSuccess()) ? geocodeResult.getGeocode() : null;
-
-                    /** Proceed with district assignment only if geocode was successful */
-                    if (geocode == null) {
-                        districtResult.setStatusCode(NO_GEOCODE_RESULT);
-                        return districtResult;
-                    }
-                }
-
-                /** Tell the service if it should get map data or not */
-                districtService.fetchMaps(showMaps);
-
-                /** Retrieve all standard district types */
-                return districtService.assignDistricts(new GeocodedAddress(address, geocode), DistrictType.getStandardTypes());
-            }
-        };
     }
 }
