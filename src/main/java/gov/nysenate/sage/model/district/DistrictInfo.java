@@ -14,15 +14,18 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  */
 public class DistrictInfo
 {
-    /** A set of the DistrictType's that were actually district assigned. */
+    /** A set of DistrictTypes that were actually district assigned. */
     protected Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
+
+    /** A set of the DistrictTypes that might be incorrectly assigned. */
+    protected Set<DistrictType> uncertainDistricts = new LinkedHashSet<>();
 
     protected Map<DistrictType, String> districtNames = new HashMap<>();
     protected Map<DistrictType, String> districtCodes = new HashMap<>();
     protected Map<DistrictType, DistrictMember> districtMembers = new HashMap<>();
     protected Map<DistrictType, DistrictMap> districtMaps = new HashMap<>();
+    protected Map<DistrictType, Double> districtProximities = new HashMap<>();
 
-    /** The assigned Senator */
     protected Senator senator;
 
     public DistrictInfo() {}
@@ -82,6 +85,28 @@ public class DistrictInfo
     public void setDistrictMember(DistrictType districtType, DistrictMember districtMember)
     {
         this.districtMembers.put(districtType, districtMember);
+    }
+
+    public Double getDistProximity(DistrictType districtType)
+    {
+        return districtProximities.get(districtType);
+    }
+
+    public void setDistProximity(DistrictType districtType, Double districtProximity)
+    {
+        this.districtProximities.put(districtType, districtProximity);
+    }
+
+    public Set<DistrictType> getUncertainDistricts() {
+        return uncertainDistricts;
+    }
+
+    public void setUncertainDistricts(Set<DistrictType> uncertainDistricts) {
+        this.uncertainDistricts = uncertainDistricts;
+    }
+
+    public void addUncertainDistrict(DistrictType districtType) {
+        this.uncertainDistricts.add(districtType);
     }
 
     public Senator getSenator() {
