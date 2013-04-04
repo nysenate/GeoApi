@@ -8,6 +8,7 @@ public class DistrictView
     protected String name;
     protected String district;
     protected MapView map;
+    protected boolean nearBorder;
 
     public DistrictView(DistrictType district, DistrictInfo districtInfo)
     {
@@ -15,6 +16,7 @@ public class DistrictView
             this.name = districtInfo.getDistName(district);
             this.district = districtInfo.getDistCode(district);
             this.map = new MapView(districtInfo.getDistMap(district));
+            this.nearBorder = districtInfo.getUncertainDistricts().contains(district);
         }
     }
 
@@ -28,5 +30,9 @@ public class DistrictView
 
     public MapView getMap() {
         return map;
+    }
+
+    public boolean isNearBorder() {
+        return nearBorder;
     }
 }

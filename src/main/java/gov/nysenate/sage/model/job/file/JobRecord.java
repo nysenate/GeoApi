@@ -86,7 +86,7 @@ public class JobRecord
 
     /** Implicit getters/setters */
     public GeocodedAddress getGeocodedAddress() {
-        return new GeocodedAddress(address, geocode);
+        return (geocode != null) ?  new GeocodedAddress(address, geocode) : new GeocodedAddress();
     }
 
     public String getStreet() {

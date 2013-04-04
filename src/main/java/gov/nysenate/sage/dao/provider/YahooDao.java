@@ -221,7 +221,7 @@ public class YahooDao
             logger.error("Malformed URL! ", ex);
         }
         catch (IOException ex) {
-            logger.error("Error opening API resource!", ex);
+            logger.error("Error opening API resource! " + ex.toString());
         }
         catch (NullPointerException ex) {
             logger.error("Yahoo response was not formatted correctly. Response: " + json, ex);

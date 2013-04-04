@@ -40,7 +40,7 @@ public class TigerGeocoder implements GeocodeService
     @Override
     public GeocodeResult geocode(Address address)
     {
-        logger.debug("Performing geocoding using TigerGeocoder");
+        logger.debug("Performing geocoding using TigerGeocoder for address " + address.toString());
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Proceed if valid address */

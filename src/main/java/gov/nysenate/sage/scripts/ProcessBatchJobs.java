@@ -12,6 +12,7 @@ import gov.nysenate.sage.model.job.file.*;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.district.DistrictService;
+import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
@@ -50,6 +51,7 @@ public class ProcessBatchJobs
 
     public static Logger logger = Logger.getLogger(ProcessBatchJobs.class);
     public static GeocodeServiceProvider geocodeProvider;
+    public static DistrictServiceProvider districtProvider;
     public static JobProcessDao jobProcessDao;
 
     /**
@@ -75,8 +77,20 @@ public class ProcessBatchJobs
             return addresses;
         }
 
+        public List<GeocodedAddress> getGeocodedAddresses() {
+            List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
+            for (JobRecord jobRecord : jobRecords) {
+                geocodedAddresses.add(jobRecord.getGeocodedAddress());
+            }
+            return geocodedAddresses;
+        }
+
         public void setGeocodeResult(int index, GeocodeResult geocodeResult) {
             this.jobRecords.get(index).applyGeocodeResult(geocodeResult);
+        }
+
+        public void setDistrictResult(int index, DistrictResult districtResult) {
+            this.jobRecords.get(index).applyDistrictResult(districtResult);
         }
 
         public List<JobRecord> getJobRecords() {
@@ -94,6 +108,7 @@ public class ProcessBatchJobs
         JOB_BATCH_SIZE = Integer.parseInt(config.getValue("job.batch.size", "95"));
 
         geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
+        districtProvider = ApplicationFactory.getDistrictServiceProvider();
         jobProcessDao = new JobProcessDao();
     }
 
@@ -142,10 +157,15 @@ public class ProcessBatchJobs
 
             JobFile jobFile = new JobFile();
             JobRecord jobRecord;
-            jobFile.processHeader(header);
+            header = jobFile.processHeader(header);
+
+            logger.info("--------------------------------------------------------------------");
+            logger.info("Starting Batch Job");
+            logger.info("Job Header: " + FormatUtil.toJsonString(header));
 
             /** Only proceed if there are fields that need populating */
             if (!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
+                logger.warn("Warning: Skipping job file - No geocode or dist assign columns!");
                 return;
             }
 
@@ -154,7 +174,8 @@ public class ProcessBatchJobs
             while( (jobRecord = jobReader.read(JobRecord.class, header, processors)) != null ) {
                 jobFile.addRecord(jobRecord);
             }
-            logger.info("Stored " + jobFile.getRecords().size() + " records into memory.");
+            logger.info(jobFile.getRecords().size() + " records");
+            logger.info("--------------------------------------------------------------------");
 
             /** Set the job status to running and record the start time */
             //jobStatus.setCondition(RUNNING);
@@ -175,7 +196,7 @@ public class ProcessBatchJobs
 
                 Future<JobBatch> futureGeocodedJobBatch = geocodeExecutor.submit(new GeocodeJobBatch(jobBatch));
                 if (jobFile.requiresDistrictAssign()) {
-                    Future<JobBatch> futureDistrictedJobBatch = districtExecutor.submit(new DistrictJobBatch(futureGeocodedJobBatch.get()));
+                    Future<JobBatch> futureDistrictedJobBatch = districtExecutor.submit(new DistrictJobBatch(futureGeocodedJobBatch));
                     jobResults.add(futureDistrictedJobBatch);
                 }
                 else {
@@ -186,14 +207,19 @@ public class ProcessBatchJobs
             for (int i = 0; i < batchCount; i++) {
                 JobBatch batch;
                 try {
-                    logger.info("got to batch # " + i);
+                    logger.info("Waiting on batch # " + i);
                     batch = jobResults.get(i).get();
+                    logger.info("Finished with batch # " + i);
                 }
                 catch (Exception e) {
                     logger.error(e);
                     e.getCause().printStackTrace();
                 }
             }
+
+            logger.info("--------------------------------------------------------------------");
+            logger.info("Completed batch processing for job file!                           |");
+            logger.info("--------------------------------------------------------------------");
             //    FileWriter fileWriter = new FileWriter(new File(DOWNLOAD_DIR, "geocodeBatch1.csv"));
             //jobWriter = new CsvBeanWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
             /*
@@ -257,16 +283,20 @@ public class ProcessBatchJobs
     public static class DistrictJobBatch implements Callable<JobBatch>
     {
         private JobBatch jobBatch;
-        public DistrictJobBatch(JobBatch jobBatch) {
-            this.jobBatch = jobBatch;
+        public DistrictJobBatch(Future<JobBatch> futureJobBatch) throws InterruptedException, ExecutionException
+        {
+            this.jobBatch = futureJobBatch.get();
         }
 
         @Override
         public JobBatch call() throws Exception
         {
-            //List<GeocodeResult> geocodeResults = geocodeProvider.geocode(jobBatch.getAddresses());
-            System.out.print("From district callable");
-            FormatUtil.printObject(jobBatch);
+            System.out.print("District assignment for records " + jobBatch.fromRecord + "-" + jobBatch.toRecord);
+            List<DistrictResult> districtResults = districtProvider.assignDistricts(jobBatch.getGeocodedAddresses(),
+                                                                                    DistrictType.getStandardTypes());
+            for (int i = 0; i < districtResults.size(); i++) {
+                jobBatch.setDistrictResult(i, districtResults.get(i));
+            }
             return this.jobBatch;
         }
     }

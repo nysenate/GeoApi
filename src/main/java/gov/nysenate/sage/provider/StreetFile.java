@@ -70,7 +70,6 @@ public class StreetFile implements DistrictService
         StreetAddress streetAddr = AddressParser.parseAddress(geocodedAddress.getAddress().toString());
         //StreetAddress streetAddr = tigerGeocoderDao.getStreetAddress(geocodedAddress.getAddress());
         //streetAddr = AddressParser.normalizeStreetAddress(streetAddr);
-        FormatUtil.printObject(streetAddr);
 
         try {
             /** Try a House level match */

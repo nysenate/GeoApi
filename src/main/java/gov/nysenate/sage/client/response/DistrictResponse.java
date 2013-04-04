@@ -6,6 +6,8 @@ import gov.nysenate.sage.client.view.DistrictsView;
 import gov.nysenate.sage.client.view.GeocodeView;
 import gov.nysenate.sage.model.result.DistrictResult;
 
+import java.util.List;
+
 public class DistrictResponse extends BaseResponse
 {
     protected AddressView address;
