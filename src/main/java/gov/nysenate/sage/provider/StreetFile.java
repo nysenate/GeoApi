@@ -67,9 +67,9 @@ public class StreetFile implements DistrictService
         }
         /** Parse the address */
 
-        StreetAddress streetAddr = AddressParser.parseAddress(geocodedAddress.getAddress().toString());
-        //StreetAddress streetAddr = tigerGeocoderDao.getStreetAddress(geocodedAddress.getAddress());
-        //streetAddr = AddressParser.normalizeStreetAddress(streetAddr);
+        //StreetAddress streetAddr = AddressParser.parseAddress(geocodedAddress.getAddress().toString());
+        StreetAddress streetAddr = tigerGeocoderDao.getStreetAddress(geocodedAddress.getAddress());
+        streetAddr = AddressParser.normalizeStreetAddress(streetAddr);
 
         try {
             /** Try a House level match */

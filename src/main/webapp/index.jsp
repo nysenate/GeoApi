@@ -10,7 +10,7 @@
     <div id="contentwrapper">
         <div id="contentcolumn">
             <div class="result-header" style="background-color: #333;color:white;">
-                <span aria-hidden="true" data-icon="&#59175;"></span>Map of Senate District 11 </div>
+                <span aria-hidden="true" data-icon="&#59175;"></span>Map of Senate District 27 </div>
             <div id="map_canvas" ng-controller="MapViewController"></div>
         </div>
     </div>

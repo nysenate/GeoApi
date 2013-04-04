@@ -51,15 +51,17 @@ sage.filter('capitalize', function() {
 sage.filter('addressFormat', function(){
     return function(address, line) {
         if (typeof address !== 'undefined') {
-            var line1 = (address.addr1 != '' ? address.addr1 : "") +
-                        (address.addr2 != '' ? " " + address.addr2 + "" : "");
+            var line1 = (notNullOrEmpty(address.addr1) ? address.addr1 : "") +
+                        (notNullOrEmpty(address.addr2) ? " " + address.addr2 + "" : "");
 
-            var line2 = (address.city != '' ? " " + address.city + "," : "") +
-                        (address.state != '' ? " " + address.state : "") +
-                        (address.zip5 != '' ? " " + address.zip5 : "") +
-                        (address.zip4 != '' ? "-" + address.zip4 : "");
+            var line2 = (notNullOrEmpty(address.city) ? " " + address.city + "," : "") +
+                        (notNullOrEmpty(address.state) ? " " + address.state : "") +
+                        (notNullOrEmpty(address.zip5) ? " " + address.zip5 : "") +
+                        (notNullOrEmpty(address.zip4) ? "-" + address.zip4 : "");
             return (((line1) ? line1 + "<br>" : "") + line2).trim();
         }
+
+        function notNullOrEmpty(input) { return input != null && input != '' && input != 'null'; }
     }
 });
 
