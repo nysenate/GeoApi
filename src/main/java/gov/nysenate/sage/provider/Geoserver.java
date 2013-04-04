@@ -5,6 +5,7 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictQuality;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -16,10 +17,7 @@ import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
@@ -57,6 +55,15 @@ public class Geoserver implements DistrictService, Observer
         this.geoserverDao.setBaseUrl(this.config.getValue("geoserver.url"));
         this.geoserverDao.setWorkspace(this.config.getValue("geoserver.workspace"));
     }
+
+    @Override
+    public boolean requiresGeocode() { return true; }
+
+    @Override
+    public boolean providesMaps() { return true; }
+
+    @Override
+    public void fetchMaps(boolean fetch) { this.fetchMaps = fetch; }
 
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
@@ -104,20 +111,8 @@ public class Geoserver implements DistrictService, Observer
     }
 
     @Override
-    public boolean requiresGeocode()
-    {
-        return true;
-    }
-
-    @Override
-    public boolean providesMaps()
-    {
-        return true;
-    }
-
-    @Override
-    public void fetchMaps(boolean fetch)
-    {
-        this.fetchMaps = fetch;
+    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType) {
+        logger.warn("Nearby districts is not implemented in Geoserver");
+        return null;
     }
 }

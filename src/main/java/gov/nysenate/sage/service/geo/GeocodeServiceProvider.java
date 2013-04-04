@@ -87,7 +87,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      */
     public List<GeocodeResult> geocode(List<Address> addresses)
     {
-        return this.geocode((ArrayList<Address>) addresses, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true);
+        return this.geocode(addresses, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true);
     }
 
     /**
@@ -99,7 +99,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      */
     public List<GeocodeResult> geocode(List<Address> addresses, String provider, boolean useFallback)
     {
-        return this.geocode((ArrayList<Address>) addresses, provider, DEFAULT_GEO_FALLBACK, useFallback);
+        return this.geocode(addresses, provider, DEFAULT_GEO_FALLBACK, useFallback);
     }
 
     /**

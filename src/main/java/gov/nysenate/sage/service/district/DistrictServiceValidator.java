@@ -23,7 +23,7 @@ public abstract class DistrictServiceValidator
                                         boolean requireGeocode)
     {
         if (geoAddress == null) {
-            districtResult.setStatusCode(MISSING_INPUT_PARAMS);
+            districtResult.setStatusCode(MISSING_GEOCODED_ADDRESS);
         }
         else
         {
@@ -33,11 +33,8 @@ public abstract class DistrictServiceValidator
             else if (geoAddress.getAddress().isEmpty()) {
                 districtResult.setStatusCode(INSUFFICIENT_ADDRESS);
             }
-            else if (requireGeocode && geoAddress.getGeocode() == null) {
+            else if (requireGeocode && !geoAddress.isGeocoded()) {
                 districtResult.setStatusCode(MISSING_GEOCODE);
-            }
-            else if (requireGeocode && geoAddress.getGeocode().getLatLon() == null) {
-                districtResult.setStatusCode(INVALID_GEOCODE);
             }
             else {
                 return true;

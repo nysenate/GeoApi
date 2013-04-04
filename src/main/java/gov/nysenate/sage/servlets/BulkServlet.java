@@ -1,7 +1,6 @@
 package gov.nysenate.sage.servlets;
 
-import gov.nysenate.sage.model.job.BulkFileType;
-import gov.nysenate.sage.model.job.JobProcess;
+import gov.nysenate.sage.model.job.JobFileType;
 import gov.nysenate.sage.scripts.ProcessBulkUploads;
 import gov.nysenate.sage.util.Config;
 
@@ -80,20 +79,20 @@ public class BulkServlet extends HttpServlet implements Observer {
         String fileName = request.getParameter("fileName");
         String header = request.getParameter("header");
         String uploadedFilename = (String)session.getAttribute("uploadedFilename");
-        BulkFileType bulkFileType = (BulkFileType) session.getAttribute("bulkFileType");
+        JobFileType jobFileType = (JobFileType) session.getAttribute("bulkFileType");
 
         try {
             if (email == null || fileName == null || header == null)
                 throw new SubmitException("Missing form parameters.");
 
-            if(uploadedFilename == null || bulkFileType == null)
+            if(uploadedFilename == null || jobFileType == null)
                 throw new SubmitException("Missing session parameters");
 
             File oldFile = new File(uploadDir, uploadedFilename);
             if (!oldFile.exists())
                 throw new SubmitException("Uploaded file not found.");
 
-            if (!bulkFileType.header().equals(header) || !uploadedFilename.matches(".*" + fileName + "$"))
+            if (!jobFileType.header().equals(header) || !uploadedFilename.matches(".*" + fileName + "$"))
                 throw new SubmitException("Form and session parameters do not match.");
 
             // Save the job and return success
@@ -131,11 +130,11 @@ public class BulkServlet extends HttpServlet implements Observer {
 
             //Check BulkFileType enum to see if header is ok for processing
             String header = source.readLine();
-            BulkFileType bulkFileType = this.getBulkFileType(header);
-            if(bulkFileType == null)
+            JobFileType jobFileType = this.getBulkFileType(header);
+            if(jobFileType == null)
                 throw new UploadException("Unrecognized Bulk file type");
 
-            logger.info("Request type: " + bulkFileType.clazz().getSimpleName());
+            logger.info("Request type: " + jobFileType.clazz().getSimpleName());
             logger.info("Creating file: " + targetFile.getAbsolutePath());
 
             // Transfer the file contents,
@@ -157,11 +156,11 @@ public class BulkServlet extends HttpServlet implements Observer {
                 .put("count", count)
                 .put("systemFile", targetFile.getName())
                 .put("header", header)
-                .put("type", bulkFileType.type())
+                .put("type", jobFileType.type())
             );
 
             HttpSession session = request.getSession();
-            session.setAttribute("bulkFileType", bulkFileType);
+            session.setAttribute("bulkFileType", jobFileType);
             session.setAttribute("uploadedFilename", targetFile.getName());
 
         } catch (UploadException e) {
@@ -176,10 +175,10 @@ public class BulkServlet extends HttpServlet implements Observer {
         }
     }
 
-    public BulkFileType getBulkFileType(String header) {
-        for(BulkFileType bulkFileType:BulkFileType.values()) {
-            if(bulkFileType.header().equals(header)) {
-                return bulkFileType;
+    public JobFileType getBulkFileType(String header) {
+        for(JobFileType jobFileType : JobFileType.values()) {
+            if(jobFileType.header().equals(header)) {
+                return jobFileType;
             }
         }
         return null;

@@ -65,8 +65,6 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
     {
         DistrictResult districtResult = null;
         ExecutorService districtExecutor = null;
-        DistrictService streetFileService = this.newInstance("streetfile");
-        DistrictService shapeFileService = this.newInstance("shapefile");
 
         if (this.isRegistered(distProvider)) {
             DistrictService districtService = this.newInstance(distProvider);
@@ -76,8 +74,12 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
         else {
             try {
                 districtExecutor = Executors.newFixedThreadPool(2);
-                Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
+
+                DistrictService shapeFileService = this.newInstance("shapefile");
+                DistrictService streetFileService = this.newInstance("streetfile");
+
                 Callable<DistrictResult> shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
+                Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
 
                 Future<DistrictResult> shapeFileFuture = districtExecutor.submit(shapeFileCall);
                 Future<DistrictResult> streetFileFuture = districtExecutor.submit(streetFileCall);
@@ -85,7 +87,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                 DistrictResult shapefileResult = shapeFileFuture.get();
                 DistrictResult streetfileResult = streetFileFuture.get();
 
-                return consolidateDistrictResults(shapeFileService, shapefileResult, streetfileResult);
+                districtResult = consolidateDistrictResults(shapeFileService, shapefileResult, streetfileResult);
+
+                if (getMembers) {
+                    DistrictServiceMetadata.assignDistrictMembers(districtResult);
+                }
             }
             catch (InterruptedException ex) {
                 logger.error("Failed to get district results from future!", ex);
@@ -109,26 +115,54 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
     public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final String distProvider,
                                                 final List<DistrictType> districtTypes, final boolean getMembers, final boolean getMaps)
     {
-        List<DistrictResult> districtResult = new ArrayList<>();
         ExecutorService districtExecutor = null;
-        Future<List<DistrictResult>> futureShapeResults;
-        Future<List<DistrictResult>> futureStreetResults;
-        final DistrictService streetFileService = this.newInstance("streetfile");
-        final DistrictService shapeFileService = this.newInstance("shapefile");
-           /*
-        try {
+        List<DistrictResult> districtResults = new ArrayList<>();
+
+        if (this.isRegistered(distProvider)) {
+            DistrictService districtService = this.newInstance(distProvider);
+            districtService.fetchMaps(getMaps);
+            districtResults = districtService.assignDistricts(geocodedAddresses, districtTypes);
+        }
+        else {
+            try {
+                DistrictService streetFileService = this.newInstance("streetfile");
+                DistrictService shapeFileService = this.newInstance("shapefile");
+
+                Callable<List<DistrictResult>> streetFileCall = getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes, false);
+                Callable<List<DistrictResult>> shapeFileCall = getDistrictsCallable(geocodedAddresses, shapeFileService, districtTypes, getMaps);
+
+                Future<DistrictResult> shapeFileFuture = districtExecutor.submit(shapeFileCall);
+                Future<DistrictResult> streetFileFuture = districtExecutor.submit(streetFileCall);
+
+                DistrictResult shapefileResult = shapeFileFuture.get();
+                DistrictResult streetfileResult = streetFileFuture.get();
+
+
+
+
+                shapeFileService.fetchMaps(getMaps);
+            }
+            catch (InterruptedException ex) {
+                logger.error("Failed to get district results from future!", ex);
+            }
+            catch (ExecutionException ex) {
+                logger.error("Failed to get district results from future!", ex);
+            }
+            return null;
+
+        }
+
+
+        List<Future<DistrictResult>> shapeFileFutures = shapeFileService.assignDistricts(geocodedAddresses, districtTypes);
+        List<Future<DistrictResult>> streetFileFutures = streetFileService.assignDistricts(geocodedAddresses, districtTypes);
+
+
             districtExecutor = Executors.newFixedThreadPool(2);
             futureShapeResults = districtExecutor.submit(getDistrictsCallable(geocodedAddresses, shapeFileService, districtTypes, getMaps));
             futureStreetResults = districtExecutor.submit(getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes, getMaps));
 
         }
-        catch (InterruptedException ex) {
-            logger.error("Failed to get district results from future!", ex);
-        }
-        catch (ExecutionException ex) {
-            logger.error("Failed to get district results from future!", ex);
-        }    */
-        return null;
+
 
     }
 

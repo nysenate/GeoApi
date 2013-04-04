@@ -26,7 +26,7 @@ public class Geocode
 
     public Geocode(Point latlon)
     {
-        this(latlon, GeocodeQuality.UNKNOWN, "");
+        this(latlon, GeocodeQuality.POINT, "");
     }
 
     public Geocode(Point latlon, GeocodeQuality quality)

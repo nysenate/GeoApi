@@ -141,7 +141,7 @@ public class GeoserverDao extends BaseDao
         for (int i = 0; i < coordinates.size(); i++){
             points.add(new Point(coordinates.get(i).get(0).asDouble(), coordinates.get(i).get(1).asDouble()));
         }
-        districtMap.setPolygon(new Polygon(points));
+        districtMap.addPolygon(new Polygon(points));
         return districtMap;
     }
 }

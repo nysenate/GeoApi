@@ -2,6 +2,7 @@ package gov.nysenate.sage.model.result;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
+import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -57,6 +58,11 @@ public class DistrictResult extends BaseResult
         return (districtedAddress != null) ? districtedAddress.getAddress() : null;
     }
 
+    public GeocodedAddress getGeocodedAddress()
+    {
+        return (districtedAddress != null) ? districtedAddress.getGeocodedAddress() : null;
+    }
+
     public DistrictedAddress getDistrictedAddress()
     {
         return districtedAddress;
@@ -73,7 +79,7 @@ public class DistrictResult extends BaseResult
         if (this.getDistrictInfo() != null){
             return this.getDistrictInfo().getAssignedDistricts();
         }
-        return null;
+        return new HashSet<>();
     }
 
     public boolean isPartialSuccess() {

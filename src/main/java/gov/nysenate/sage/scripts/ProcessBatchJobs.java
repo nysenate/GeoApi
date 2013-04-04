@@ -17,6 +17,7 @@ import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.concurrent.ConcurrentException;
 import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.Optional;
 import org.supercsv.cellprocessor.ParseDouble;
@@ -57,9 +58,13 @@ public class ProcessBatchJobs
     public static class JobBatch
     {
         private List<JobRecord> jobRecords;
+        private int fromRecord;
+        private int toRecord;
 
-        public JobBatch(List<JobRecord> jobRecords) {
+        public JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord) {
             this.jobRecords = jobRecords;
+            this.fromRecord = fromRecord;
+            this.toRecord = toRecord;
         }
 
         public List<Address> getAddresses() {
@@ -70,12 +75,12 @@ public class ProcessBatchJobs
             return addresses;
         }
 
-        public List<JobRecord> getJobRecords() {
-            return jobRecords;
+        public void setGeocodeResult(int index, GeocodeResult geocodeResult) {
+            this.jobRecords.get(index).applyGeocodeResult(geocodeResult);
         }
 
-        public void setJobRecords(List<JobRecord> jobRecords) {
-            this.jobRecords = jobRecords;
+        public List<JobRecord> getJobRecords() {
+            return jobRecords;
         }
     }
 
@@ -166,15 +171,16 @@ public class ProcessBatchJobs
                 int from = (i * JOB_BATCH_SIZE);
                 int to = (from + JOB_BATCH_SIZE < recordCount) ? (from + JOB_BATCH_SIZE - 1) : recordCount - 1;
                 ArrayList<JobRecord> batchRecords = new ArrayList<>(jobFile.getRecords().subList(from, to));
-                jobBatch = new JobBatch(batchRecords);
+                jobBatch = new JobBatch(batchRecords, from, to);
 
                 Future<JobBatch> futureGeocodedJobBatch = geocodeExecutor.submit(new GeocodeJobBatch(jobBatch));
-                //if (jobFile.requiresDistrictAssign()) {
-                    //Future<JobBatch> futureDistrictedJobBatch = districtExecutor.submit(null);
-               // }
-                //else {
+                if (jobFile.requiresDistrictAssign()) {
+                    Future<JobBatch> futureDistrictedJobBatch = districtExecutor.submit(new DistrictJobBatch(futureGeocodedJobBatch.get()));
+                    jobResults.add(futureDistrictedJobBatch);
+                }
+                else {
                     jobResults.add(futureGeocodedJobBatch);
-                //}
+                }
             }
 
             for (int i = 0; i < batchCount; i++) {
@@ -214,6 +220,12 @@ public class ProcessBatchJobs
         catch (IOException ex){
             logger.error(ex);
         }
+        catch (InterruptedException ex) {
+            logger.error(ex);
+        }
+        catch (ExecutionException ex) {
+            logger.error(ex);
+        }
         finally {
             IOUtils.closeQuietly(jobReader);
             IOUtils.closeQuietly(jobWriter);
@@ -232,7 +244,28 @@ public class ProcessBatchJobs
         @Override
         public JobBatch call() throws Exception
         {
+            List<GeocodeResult> geocodeResults = geocodeProvider.geocode(jobBatch.getAddresses());
+            if (geocodeResults.size() == jobBatch.jobRecords.size()) {
+                for (int i = 0; i < geocodeResults.size(); i++) {
+                    jobBatch.setGeocodeResult(i, geocodeResults.get(i));
+                }
+            }
+            return this.jobBatch;
+        }
+    }
+
+    public static class DistrictJobBatch implements Callable<JobBatch>
+    {
+        private JobBatch jobBatch;
+        public DistrictJobBatch(JobBatch jobBatch) {
+            this.jobBatch = jobBatch;
+        }
+
+        @Override
+        public JobBatch call() throws Exception
+        {
             //List<GeocodeResult> geocodeResults = geocodeProvider.geocode(jobBatch.getAddresses());
+            System.out.print("From district callable");
             FormatUtil.printObject(jobBatch);
             return this.jobBatch;
         }

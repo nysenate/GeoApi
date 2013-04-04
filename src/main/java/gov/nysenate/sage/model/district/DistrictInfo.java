@@ -14,6 +14,8 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  */
 public class DistrictInfo
 {
+    protected Senator senator;
+
     /** A set of DistrictTypes that were actually district assigned. */
     protected Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
 
@@ -25,8 +27,6 @@ public class DistrictInfo
     protected Map<DistrictType, DistrictMember> districtMembers = new HashMap<>();
     protected Map<DistrictType, DistrictMap> districtMaps = new HashMap<>();
     protected Map<DistrictType, Double> districtProximities = new HashMap<>();
-
-    protected Senator senator;
 
     public DistrictInfo() {}
 
@@ -119,6 +119,10 @@ public class DistrictInfo
 
     public Set<DistrictType> getAssignedDistricts() {
         return assignedDistricts;
+    }
+
+    public void setAssignedDistricts(Set<DistrictType> assignedDistricts) {
+        this.assignedDistricts = assignedDistricts;
     }
 
     public Map<DistrictType, String> getDistrictCodes() {

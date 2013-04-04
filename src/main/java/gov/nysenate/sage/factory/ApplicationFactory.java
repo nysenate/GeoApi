@@ -5,6 +5,7 @@ import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.district.DistrictService;
+import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
@@ -41,7 +42,7 @@ public class ApplicationFactory
 
     /** Service Providers */
     private ServiceProviders<AddressService> addressServiceProviders = new ServiceProviders<>();
-    private ServiceProviders<DistrictService> districtServiceProviders = new ServiceProviders<>();
+    private DistrictServiceProvider districtServiceProvider = new DistrictServiceProvider();
     private GeocodeServiceProvider geocodeServiceProvider = new GeocodeServiceProvider();
 
     /** Default values */
@@ -93,9 +94,9 @@ public class ApplicationFactory
             geocodeServiceProvider.registerProvider("osm", new OSM());
             geocodeServiceProvider.registerProvider("ruby", new RubyGeocoder());
 
-            districtServiceProviders.registerDefaultProvider("geoserver", new Geoserver());
-            districtServiceProviders.registerProvider("streetfile", new StreetFile());
-            districtServiceProviders.registerProvider("shapefile", new DistrictShapefile());
+            districtServiceProvider.registerDefaultProvider("shapefile", new DistrictShapefile());
+            districtServiceProvider.registerProvider("streetfile", new StreetFile());
+            districtServiceProvider.registerProvider("geoserver", new Geoserver());
 
             return true;
         }
@@ -112,37 +113,27 @@ public class ApplicationFactory
         return false;
     }
 
-    /** Config / Database Accessor */
-
-    public static Config getConfig()
-    {
+    public static Config getConfig() {
         return factoryInstance.config;
     }
 
-    public static DataSource getDataSource()
-    {
+    public static DataSource getDataSource() {
         return factoryInstance.baseDB.getDataSource();
     }
 
-    public static DataSource getTigerDataSource()
-    {
+    public static DataSource getTigerDataSource() {
         return factoryInstance.tigerDB.getDataSource();
     }
 
-    /** Service Providers Accessor */
-
-    public static ServiceProviders<AddressService> getAddressServiceProviders()
-    {
+    public static ServiceProviders<AddressService> getAddressServiceProviders() {
         return factoryInstance.addressServiceProviders;
     }
 
-    public static ServiceProviders<DistrictService> getDistrictServiceProviders()
-    {
-        return factoryInstance.districtServiceProviders;
+    public static DistrictServiceProvider getDistrictServiceProvider() {
+        return factoryInstance.districtServiceProvider;
     }
 
-    public static GeocodeServiceProvider getGeocodeServiceProvider()
-    {
+    public static GeocodeServiceProvider getGeocodeServiceProvider()  {
         return factoryInstance.geocodeServiceProvider;
     }
 }

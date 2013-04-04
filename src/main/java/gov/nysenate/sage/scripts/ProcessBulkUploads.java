@@ -2,10 +2,8 @@ package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.Address;
 import gov.nysenate.sage.Result;
-import gov.nysenate.sage.BulkProcessing.Mailer;
-import gov.nysenate.sage.model.job.BulkFileType;
+import gov.nysenate.sage.model.job.JobFileType;
 import gov.nysenate.sage.model.job.BulkInterface;
-import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.service.DistrictService.DistException;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DelimitedFileExtractor;
@@ -13,8 +11,6 @@ import gov.nysenate.sage.util.DelimitedFileExtractor;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
@@ -41,7 +37,6 @@ public class ProcessBulkUploads
             this.recordSet = recordSet;
         }
     }
-
 
     public class GeocodeBatch implements Callable<BatchResult>
     {
@@ -137,12 +132,10 @@ public class ProcessBulkUploads
     //private final GeoService geoService;
     //private final DistrictService districtService;
 
-
     public static void main(String[] args) throws Exception
     {
         new ProcessBulkUploads().process_files();
     }
-
 
     public ProcessBulkUploads() throws Exception
     {
@@ -173,11 +166,11 @@ public class ProcessBulkUploads
     }
 
 
-    public BulkFileType getBulkFileType(Class<? extends BulkInterface> clazz)
+    public JobFileType getBulkFileType(Class<? extends BulkInterface> clazz)
     {
-        for (BulkFileType bulkFileType : BulkFileType.values()) {
-            if (bulkFileType.clazz().equals(clazz)) {
-                return bulkFileType;
+        for (JobFileType jobFileType : JobFileType.values()) {
+            if (jobFileType.clazz().equals(clazz)) {
+                return jobFileType;
             }
         }
         return null;

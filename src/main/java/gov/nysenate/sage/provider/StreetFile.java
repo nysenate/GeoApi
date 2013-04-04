@@ -1,18 +1,22 @@
 package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.dao.provider.StreetFileDao;
+import gov.nysenate.sage.dao.provider.TigerGeocoderDao;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
+import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.AddressParser;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
@@ -28,11 +32,23 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 public class StreetFile implements DistrictService
 {
     private Logger logger = Logger.getLogger(StreetFile.class);
+    private TigerGeocoderDao tigerGeocoderDao;
     private StreetFileDao streetFileDao;
 
     public StreetFile() {
         this.streetFileDao = new StreetFileDao();
+        this.tigerGeocoderDao = new TigerGeocoderDao();
     }
+
+    @Override
+    public boolean requiresGeocode() { return false; }
+
+    @Override
+    public boolean providesMaps() { return false; }
+
+    /** No map functionality */
+    @Override
+    public void fetchMaps(boolean fetch) {}
 
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
@@ -50,7 +66,11 @@ public class StreetFile implements DistrictService
             return districtResult;
         }
         /** Parse the address */
+
         StreetAddress streetAddr = AddressParser.parseAddress(geocodedAddress.getAddress().toString());
+        //StreetAddress streetAddr = tigerGeocoderDao.getStreetAddress(geocodedAddress.getAddress());
+        //streetAddr = AddressParser.normalizeStreetAddress(streetAddr);
+        FormatUtil.printObject(streetAddr);
 
         try {
             /** Try a House level match */
@@ -99,17 +119,9 @@ public class StreetFile implements DistrictService
     }
 
     @Override
-    public boolean requiresGeocode()
+    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType)
     {
-        return false;
+        logger.warn("Nearby district search is not implemented using streetfiles!");
+        return null;
     }
-
-    @Override
-    public boolean providesMaps() {
-        return false;
-    }
-
-    /** No map functionality */
-    @Override
-    public void fetchMaps(boolean fetch) {}
 }

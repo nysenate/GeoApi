@@ -28,6 +28,7 @@ public enum ResultStatus
     MISSING_ZIPCODE(130, "A zipcode is required."),
     MISSING_STATE(140, "A state is required."),
     MISSING_POINT(150, "A coordinate pair is required."),
+    MISSING_GEOCODED_ADDRESS(160, "A geocoded address is required."),
 
     INVALID_INPUT_PARAMS(200, "One or more parameters are invalid."),
     INVALID_ADDRESS(210, "The supplied address is invalid."),

@@ -83,9 +83,8 @@ public class DistrictController extends BaseApiController
                         GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false)
                                                                             : geocodeProvider.geocode(address);
                         GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
-
-                        DistrictResult districtResult = districtProvider.assignDistricts( geocodedAddress, provider,
-                                                                              DistrictType.getStandardTypes(), showMembers, showMaps);
+                        DistrictResult districtResult = districtProvider.assignDistricts(
+                                geocodedAddress, provider, DistrictType.getStandardTypes(), showMembers, showMaps);
                         districtResponse = new DistrictResponse(districtResult);
                     }
                     else {
