@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
@@ -122,6 +123,9 @@ public class MapQuestDao
                         }
                     }
                 }
+                else {
+                    logger.warn("Skipping failed MapQuest batch (" + batchOffset + " - " + (batchOffset + batchCount) + ")");
+                }
 
                 /** Reset batch counters */
                 batchOffset += batchCount;
@@ -155,11 +159,11 @@ public class MapQuestDao
      */
     private ArrayList<GeocodedAddress> getGeocodedAddresses(String url)
     {
+        ArrayList<GeocodedAddress> geocodedAddresses = new ArrayList<>();
+        String json = "";
         try {
-            ArrayList<GeocodedAddress> geocodedAddresses = new ArrayList<>();
-
             /** Format and send request */
-            String json = UrlRequest.getResponseFromUrl(url);
+            json = UrlRequest.getResponseFromUrl(url);
             if (json != null) {
                 JsonNode jsonNode = objectMapper.readTree(json);
 
@@ -177,18 +181,14 @@ public class MapQuestDao
 
                 /** Iterate over each result */
                 for (int j = 0; j < numResults; j++) {
-
-                    /** Get location node from locations array */
-                    JsonNode location = jsonResults.get(j).get("locations").get(0);
-
-                    /** Build the Address from the location node */
-                    Address addr = getAddressFromLocationNode(location);
-
-                    /** Build the Geocode */
-                    Geocode geocode = getGeocodeFromLocationNode(location);
-
-                    /** Add the GeocodedAddress to the batch list */
-                    geocodedAddresses.add(new GeocodedAddress(addr, geocode));
+                    try {
+                        JsonNode location = jsonResults.get(j).get("locations").get(0);
+                        geocodedAddresses.add(getGeocodedAddressFromLocationNode(location));
+                    }
+                    catch (Exception ex) {
+                        logger.warn("Error retrieving GeocodedAddress from MapQuest response " + json, ex);
+                        geocodedAddresses.add(new GeocodedAddress());
+                    }
                 }
             }
             return geocodedAddresses;
@@ -199,13 +199,16 @@ public class MapQuestDao
         catch (UnsupportedEncodingException ex){
             logger.error("UTF-8 Unsupported?!", ex);
         }
-        catch (JsonProcessingException ex){
-            logger.error("MapQuest JSON Parse error!", ex);
+        catch (IOException ex) {
+            logger.error("Error opening API resource! " + ex.toString());
+        }
+        catch (NullPointerException ex) {
+            logger.error("MapQuest response was not formatted correctly. Response: " + json, ex);
         }
         catch (Exception ex){
             logger.error(ex);
         }
-        return null;
+        return geocodedAddresses;
     }
 
     /**
@@ -235,5 +238,17 @@ public class MapQuestDao
         String qualityCode = location.get("geocodeQuality").asText();
         GeocodeQuality geocodeQuality = (qualityMap.containsKey(qualityCode)) ? qualityMap.get(qualityCode) : GeocodeQuality.UNKNOWN;
         return new Geocode(point, geocodeQuality, MapQuestDao.class.getSimpleName());
+    }
+
+    /**
+     * Helper method to return GeocodedAddress from location element of the json response.
+     * @param location A location node within the locations array that MapQuest returns.
+     * @return         GeocodedAddress
+     */
+    private GeocodedAddress getGeocodedAddressFromLocationNode(JsonNode location)
+    {
+        Address addr = getAddressFromLocationNode(location);
+        Geocode geocode = getGeocodeFromLocationNode(location);
+        return new GeocodedAddress(addr, geocode);
     }
 }
