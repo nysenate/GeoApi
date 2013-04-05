@@ -21,7 +21,7 @@ public class Geocode
 
     public Geocode()
     {
-        this(null, GeocodeQuality.NOMATCH, "");
+        this(new Point(0,0), GeocodeQuality.NOMATCH, "");
     }
 
     public Geocode(Point latlon)
