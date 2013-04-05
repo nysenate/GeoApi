@@ -1,4 +1,5 @@
 var sage = angular.module('sage', []);
+var baseStatusApi = "/job/status";
 var uploader;
 
 /**-------------------------------------------------\
@@ -23,6 +24,12 @@ sage.factory("dataBus", function($rootScope) {
     return dataBus;
 });
 
+sage.filter('yesno', function(){
+    return function(input) {
+        return (input) ? 'Yes' : 'No';
+    }
+});
+
 /**
  * The menu controller broadcasts a toggleView event containing
  * an index. The receiving controllers are preset with an id that
@@ -30,10 +37,12 @@ sage.factory("dataBus", function($rootScope) {
  * container for that controller will be visible.
  */
 sage.controller('MenuController', function($scope, dataBus){
-    $scope.active = 1;
+    $scope.active = 2;
     $scope.toggleView = function(index) {
         dataBus.setBroadcast("toggleView", index);
     }
+
+    $scope.toggleView(2);
 });
 
 sage.controller('JobAuthController', function($scope, $http) {
@@ -62,13 +71,31 @@ sage.controller('JobUploadController', function($scope, $http, dataBus) {
 
 sage.controller('JobStatusController', function($scope, $http, dataBus) {
     $scope.id = 2;
-    $scope.visible = true;
+    $scope.visible = false;
+
+    $scope.activeProcesses = [];
 
     $scope.$on("toggleView", function(){
         $scope.visible = ($scope.id == dataBus.data);
+        if ($scope.visible) {
+            $scope.getActiveProcesses();
+        }
     });
 
-})
+    $scope.getActiveProcesses = function() {
+        $http.get(contextPath + baseStatusApi + "/active")
+            .success(function(data, status, headers, config) {
+                if (data && data.success) {
+                    $scope.activeProcesses = data.statuses;
+                }
+                else {
+                    console.log("Active processes: " + data);
+                }
+            }).error(function(data, status, headers, config) {
+                console.log("Error retrieving active processes. " + data);
+            });
+    }
+});
 
 $(document).ready(function() {
 

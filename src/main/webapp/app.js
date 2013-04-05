@@ -49,8 +49,8 @@ sage.filter('capitalize', function() {
 
 /** Formats an address properly */
 sage.filter('addressFormat', function(){
-    return function(address, line) {
-        if (typeof address !== 'undefined') {
+    return function(address) {
+        if (address != null && typeof address !== 'undefined') {
             var line1 = (notNullOrEmpty(address.addr1) ? address.addr1 : "") +
                         (notNullOrEmpty(address.addr2) ? " " + address.addr2 + "" : "");
 
