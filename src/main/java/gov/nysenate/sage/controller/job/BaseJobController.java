@@ -30,7 +30,7 @@ public abstract class BaseJobController extends HttpServlet
     public static boolean isAuthenticated(HttpServletRequest request)
     {
         HttpSession session = request.getSession();
-        if (session.getAttribute(AUTH_ATTR) != null && session.getAttribute(AUTH_ATTR).equals(true)) {
+        if (session.getAttribute(JOB_USER_ATTR) != null) {
             return true;
         }
         return false;
@@ -50,7 +50,7 @@ public abstract class BaseJobController extends HttpServlet
     public static JobRequest getJobRequest(HttpServletRequest request)
     {
         JobRequest jobRequest = (JobRequest) request.getSession().getAttribute(JOB_REQUEST_ATTR);
-        if (jobRequest != null) {
+        if (jobRequest != null && jobRequest.getRequestor() != null) {
             logger.debug("Getting old job request");
             return jobRequest;
         }
@@ -64,13 +64,9 @@ public abstract class BaseJobController extends HttpServlet
 
     public static void setJobUser(HttpServletRequest request, JobUser user)
     {
+        HttpSession session = request.getSession();
+        session.setMaxInactiveInterval(3600);
         request.getSession().setAttribute(JOB_USER_ATTR, user);
-        setAuthenticated(request, (user != null));
-    }
-
-    public static void setAuthenticated(HttpServletRequest request, boolean authenticated)
-    {
-        request.getSession().setAttribute(AUTH_ATTR, authenticated);
     }
 
     public static void setJobResponse(Object responseObj, HttpServletResponse response)

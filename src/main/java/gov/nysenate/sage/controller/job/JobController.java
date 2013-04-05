@@ -3,13 +3,18 @@ package gov.nysenate.sage.controller.job;
 import gov.nysenate.sage.dao.model.JobProcessDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.job.*;
+import gov.nysenate.sage.model.job.file.JobFile;
+import gov.nysenate.sage.model.job.file.JobRecord;
 import gov.nysenate.sage.model.result.JobErrorResult;
-import gov.nysenate.sage.scripts.ProcessBulkUploads;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.auth.JobUserAuth;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.supercsv.cellprocessor.ift.CellProcessor;
+import org.supercsv.io.CsvBeanReader;
+import org.supercsv.io.CsvBeanWriter;
+import org.supercsv.prefs.CsvPreference;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -80,7 +85,6 @@ public class JobController extends BaseJobController
         }
         else {
             logger.info("Denied job service access to " + email);
-            setAuthenticated(request, false);
             request.getRequestDispatcher("/joblogin.jsp").forward(request, response);
         }
     }
@@ -91,8 +95,8 @@ public class JobController extends BaseJobController
 
         Object uploadResponse = null;
 
-        BufferedReader source = null;
-        BufferedWriter target = null;
+        BufferedReader source;
+
         try {
             String sourceFilename = request.getHeader("X-File-Name");
             if (sourceFilename == null) {
@@ -100,31 +104,32 @@ public class JobController extends BaseJobController
                 uploadResponse = new JobErrorResult("Failed to retrieve file from payload");
             }
             else {
-                /** Open the uploaded file and a writer to its new destination */
-                File targetFile = new File(uploadDir, + (new Date().getTime()) + "-" + sourceFilename.replaceAll("( |%20)","_"));
+                JobFile jobFile = new JobFile();
 
+                /** Open the uploaded file and a writer to its new destination */
                 source = new BufferedReader(new InputStreamReader(request.getInputStream()));
-                target = new BufferedWriter(new FileWriter(targetFile));
+                File targetFile = new File(uploadDir, + (new Date().getTime()) + "-" + sourceFilename.replaceAll("( |%20)","_"));
+                FileWriter fileWriter = new FileWriter(targetFile);
+
+                CsvBeanReader jobReader = new CsvBeanReader(source, CsvPreference.TAB_PREFERENCE);
+                CsvBeanWriter jobWriter = new CsvBeanWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
+                String[] header = jobFile.processHeader(jobReader.getHeader(true));
 
                 /** Check JobFileType enum to see if header is ok for processing */
-                String header = source.readLine();
-                JobFileType jobFileType = this.getBulkFileType(header);
-
-                if(jobFileType == null) {
-                    logger.error("Unrecognized Bulk file type");
-                    uploadResponse = new JobErrorResult("Unrecognized Bulk file type");
+                if(!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
+                    logger.error("Uploaded job file does not have any address validation, geocode, or district assignment columns.");
+                    uploadResponse = new JobErrorResult("Uploaded job file does not have any address validation, geocode, " +
+                                                        "or district assignment columns.");
                 }
                 else {
-                    logger.info("Request type: " + jobFileType.clazz().getSimpleName());
                     logger.info("Creating file: " + targetFile.getAbsolutePath());
 
                     /** Transfer file contents and count the records. Use the same line delimiter as the source file. */
-                    String newLine = ProcessBulkUploads.getNewLineDelim(source);
                     int count = 0;
-                    String in;
-                    target.write(header + newLine);
-                    while((in = source.readLine()) != null) {
-                        target.write(in + newLine);
+                    JobRecord jobRecord;
+                    final CellProcessor[] processors = jobFile.getProcessors().toArray(new CellProcessor[0]);
+                    while((jobRecord = jobReader.read(JobRecord.class, header, processors)) != null) {
+                        jobWriter.write(jobRecord, header, processors);
                         count++;
                     }
 
@@ -132,9 +137,10 @@ public class JobController extends BaseJobController
                     JobProcess process = new JobProcess();
                     process.setSourceFileName(sourceFilename);
                     process.setFileName(targetFile.getName());
-                    process.setFileType(jobFileType.type());
                     process.setRecordCount(count);
                     process.setRequestor(getJobUser(request));
+                    process.setGeocodeRequired(jobFile.requiresGeocode());
+                    process.setDistrictRequired(jobFile.requiresDistrictAssign());
                     getJobRequest(request).addProcess(process);
 
                     /** Send a success status back to the ajax uploader */
@@ -142,16 +148,16 @@ public class JobController extends BaseJobController
                     uploadStatus.setSuccess(true);
                     uploadStatus.setProcess(process);
                     uploadResponse = uploadStatus;
+
+                    IOUtils.closeQuietly(jobReader);
+                    IOUtils.closeQuietly(fileWriter);
+                    IOUtils.closeQuietly(jobWriter);
                 }
             }
         }
         catch(IOException ex) {
             logger.error("Failed to read file", ex);
-            uploadResponse = new JobErrorResult("Failed to read file");
-        }
-        finally {
-            IOUtils.closeQuietly(source);
-            IOUtils.closeQuietly(target);
+            uploadResponse = new JobErrorResult("Failed to read file!");
         }
 
         FormatUtil.printObject(uploadResponse);
@@ -163,6 +169,12 @@ public class JobController extends BaseJobController
         logger.info("Processing Job Request Submission.");
         JobProcessDao jobProcessDao = new JobProcessDao();
         JobRequest jobRequest = getJobRequest(request);
+
+        FormatUtil.printObject(jobRequest);
+        FormatUtil.printObject(request.getSession().getAttribute("authenticated"));
+        FormatUtil.printObject(request.getSession().getAttribute("jobuser"));
+        FormatUtil.printObject(request.getSession().getAttribute("jobrequest"));
+
         for (JobProcess jobProcess : jobRequest.getProcesses()) {
             /** Store the job process and status */
             int processId = jobProcessDao.addJobProcess(jobProcess);
@@ -180,15 +192,5 @@ public class JobController extends BaseJobController
 
         /** Redirect to main page */
         response.sendRedirect(request.getContextPath() + "/job");
-    }
-
-    public JobFileType getBulkFileType(String header)
-    {
-        for(JobFileType jobFileType : JobFileType.values()) {
-            if(jobFileType.header().equals(header)) {
-                return jobFileType;
-            }
-        }
-        return null;
     }
 }
