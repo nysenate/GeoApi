@@ -25,7 +25,7 @@
                     <h1 class="logo"><a style="color:white" href="${contextPath}">SAGE</a></h1>
                     <ul class="nav">
                         <li><a>About</a></li>
-                        <li><a>API Reference</a></li>
+                        <li><a href="${contextPath}/docs">API Reference</a></li>
                         <li><a href="${contextPath}/job">Batch Services</a></li>
                     </ul>
                 </div>

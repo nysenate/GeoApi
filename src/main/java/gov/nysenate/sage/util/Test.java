@@ -24,7 +24,7 @@ public class Test
 
     public static void main(String args[]) throws Exception
     {
-        FormatUtil.printObject((808+94-1)/95);
+        FormatUtil.printObject("/".replaceFirst("^/", "").split("/"));
     }
 
 

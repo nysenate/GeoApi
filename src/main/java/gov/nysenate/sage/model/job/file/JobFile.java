@@ -1,6 +1,7 @@
 package gov.nysenate.sage.model.job.file;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.Optional;
@@ -33,9 +34,9 @@ public class JobFile extends BaseJobFile<JobRecord>
         zip5(Group.address),
         zip4(Group.address),
 
-        streetNumber(Type.intType, Group.address),
-        streetName(Group.address),
-        streetUnit(Group.address),
+        //streetNumber(Type.intType, Group.address),
+        //streetName(Group.address),
+        //streetUnit(Group.address),
 
         geocode1(Type.doubleType, Group.geocode),
         geocode2(Type.doubleType, Group.geocode),
@@ -79,6 +80,27 @@ public class JobFile extends BaseJobFile<JobRecord>
     public boolean requiresDistrictAssign()
     {
         return checkColumnsForGroup(Group.district);
+    }
+
+    /**
+     * Returns a lost of district types that match the columns in the header.
+     * @return List<DistrictType>
+     */
+    public List<DistrictType> getRequiredDistrictTypes()
+    {
+        List<DistrictType> reqTypes = new ArrayList<>();
+        for (Column column : columns) {
+            if (column.group.equals(Group.district)) {
+                try {
+                    DistrictType districtType = DistrictType.valueOf(column.name().toUpperCase());
+                    if (districtType != null) {
+                        reqTypes.add(districtType);
+                    }
+                }
+                catch (IllegalArgumentException ex) {/*ignore*/}
+            }
+        }
+        return reqTypes;
     }
 
     /**

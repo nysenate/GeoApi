@@ -67,6 +67,9 @@
 
                 </form>
             </div>
+            <p class="method-header teal">District Maps</p>
+            <div id="district-mapview-container" class="form-container">
+            </div>
             <p class="method-header maroon">Reverse Geocode</p>
             <div id="reverse-geocode-container" class="form-container">
                 <form id="revgeo-form" action="" method="post">
@@ -132,7 +135,7 @@
         </div>
     </div>
 
-    <div id="rightcolumn" >
+    <div id="rightcolumn" ng-controller="ResultsViewController">
         <div class="innertube">
             <div style="display:none">
                 The Senate Address Geocoding Engine is an open source web service that provides geocoding and district
@@ -142,7 +145,7 @@
                 https://github.com/nysenate/GeoApi
             </div>
 
-            <p class="result-header success">Results</p>
+            <p class="result-header success" style="cursor:auto">Results <a ng-click="toggleResultPane(false);" class="result-close">&#10006;</a></p>
             <div id="district-results" ng-controller="DistrictsViewController" ng-show="districtAssigned">
                 <div class="info-container senator">
                     <div class="senator-pic-holder">

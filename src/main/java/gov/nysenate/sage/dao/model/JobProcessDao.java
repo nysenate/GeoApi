@@ -5,6 +5,8 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
+
+import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -41,13 +43,14 @@ public class JobProcessDao extends BaseDao
      */
     public int addJobProcess(JobProcess p)
     {
-        String sql = "INSERT INTO " + getTableName() + " (userId, fileName, fileType, sourceFileName, requestTime, recordCount) " +
-                     "VALUES (?,?,?,?,?,?) RETURNING id";
+        String sql = "INSERT INTO " + getTableName() + " (userId, fileName, fileType, sourceFileName, requestTime, recordCount, validationReq, geocodeReq, districtReq) " +
+                     "VALUES (?,?,?,?,?,?,?,?,?) RETURNING id";
         try {
             return run.query(sql, new ResultSetHandler<Integer>() {
                 @Override public Integer handle(ResultSet rs)
                           throws SQLException { return (rs.next()) ? rs.getInt("id") : -1; }
-            }, p.getRequestor().getId(), p.getFileName(), p.getFileType(), p.getSourceFileName(), p.getRequestTime(), p.getRecordCount());
+            }, p.getRequestor().getId(), p.getFileName(), p.getFileType(), p.getSourceFileName(), p.getRequestTime(), p.getRecordCount(),
+               p.isValidationRequired(), p.isGeocodeRequired(), p.isDistrictRequired());
         }
         catch (SQLException ex) {
             logger.error("Failed to add job process!", ex);
@@ -120,10 +123,13 @@ public class JobProcessDao extends BaseDao
         return null;
     }
 
-    public List<JobProcessStatus> getJobStatusesByCondition(Condition condition)
+    public List<JobProcessStatus> getJobStatusesByCondition(Condition condition, JobUser jobUser)
     {
         String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status " +
-                     "ON id = processId WHERE status.condition = ? ORDER BY processId";
+                     "ON id = processId WHERE status.condition = ? ";
+        sql += (jobUser != null) ? " AND userId = " + jobUser.getId() + " " : "";
+        sql += " ORDER BY processId";
+
         try {
             return run.query(sql, statusListHandler, condition.name());
         }
@@ -230,6 +236,9 @@ public class JobProcessDao extends BaseDao
         jobProcess.setSourceFileName(rs.getString("sourceFileName"));
         jobProcess.setRequestTime(rs.getTimestamp("requestTime"));
         jobProcess.setRecordCount(rs.getInt("recordCount"));
+        jobProcess.setValidationRequired(rs.getBoolean("validationReq"));
+        jobProcess.setGeocodeRequired(rs.getBoolean("geocodeReq"));
+        jobProcess.setDistrictRequired(rs.getBoolean("districtReq"));
         return jobProcess;
     }
 

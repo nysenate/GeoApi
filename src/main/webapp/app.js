@@ -9,19 +9,25 @@ var map;
  *--------------------------------------------------|
  * Allows controllers and views to communicate.     |
  * The ajax response is propagated to the specified |
- * 'view' by emitting an event from the $rootScope. |
+ * 'handle'.                                        |
  * ------------------------------------------------*/
 sage.factory("responseService", function($rootScope) {
     var responseService = {};
-    responseService.setResponse = function(view, response) {
+    responseService.setResponse = function(handle, response, expandResults) {
         console.log(response);
-        this.view = view;
+        this.handle = handle;
         this.response = response;
+        this.expandResults = expandResults;
+        this.expandResultsBroadcast();
         this.broadcastItem();
     }
 
     responseService.broadcastItem = function() {
-        $rootScope.$broadcast(this.view);
+        $rootScope.$broadcast(this.handle);
+    }
+
+    responseService.expandResultsBroadcast = function() {
+        $rootScope.$broadcast('expandResults');
     }
     return responseService;
 });
@@ -86,14 +92,14 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
     $scope.lookup = function() {
         $http.get(this.getDistUrl())
         .success(function(data, status, headers, config) {
-            responseService.setResponse("districts", data);
+            responseService.setResponse("districts", data, true);
         }).error(function(data, status, headers, config) {
                 console.log(data);
         });
 
         $http.get(this.getValidateUrl())
         .success(function(data, status, headers, config) {
-                responseService.setResponse("validate", data);
+                responseService.setResponse("validate", data, true);
         }).error(function(data, status, headers, config) {
                 console.log(data);
         });
@@ -119,10 +125,27 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
 /**------------------------------------------------\
  * Views                                           |
  *------------------------------------------------*/
-sage.controller('ResultsViewController', function($scope, responseService) {
+sage.controller('ResultsViewController', function($scope, responseService, $rootScope) {
     $scope.paneVisible = false;
+    $scope.centercolumn = $('#contentcolumn');
+    $scope.rightcolumn = $("#rightcolumn");
+    $scope.width = '360px';
 
-    // Expand the pane when the first result comes in
+    $scope.$on('expandResults', function() {
+        $scope.toggleResultPane(responseService.expandResults);
+    });
+
+    $scope.toggleResultPane = function(expand) {
+        console.log(expand);
+        if (expand != null) {
+            if (expand) {
+                $scope.centercolumn.css("marginRight", $scope.width); $scope.rightcolumn.show();
+            } else {
+                $scope.centercolumn.css("marginRight", 0); $scope.rightcolumn.hide();
+                responseService.setResponse("resizeMap", null, null);
+            }
+        }
+    }
 });
 
 sage.controller('DistrictsViewController', function($scope, responseService) {
@@ -144,7 +167,7 @@ sage.controller('DistrictsViewController', function($scope, responseService) {
 
     $scope.showDistrict = function(district) {
         if ($scope.districts[district] != null && typeof $scope.districts[district] != "undefined"){
-            responseService.setResponse("showDistrict", $scope.districts[district]);
+            responseService.setResponse("showDistrict", $scope.districts[district], true);
         }
     }
 });
@@ -174,6 +197,10 @@ sage.controller('MapViewController', function($scope, responseService) {
     $scope.polygonName = "";
     $scope.districtData = null;
 
+    $scope.resizeMap = function() {
+        google.maps.event.trigger($scope.map, 'resize');
+    }
+
     $scope.$on('districts', function() {
         var data = responseService.response;
         /** If the districts were assigned, initially set the map to display the senate boundary */
@@ -190,6 +217,7 @@ sage.controller('MapViewController', function($scope, responseService) {
 
     $scope.$on('showDistrict', function() {
         var district = responseService.response;
+        $scope.resizeMap();
         $scope.setMapBoundary(district.map.geom);
     });
 
@@ -244,6 +272,10 @@ sage.controller('MapViewController', function($scope, responseService) {
         /** Text to display on the map header */
         this.polygonName = name;
     }
+
+    $scope.$on("resizeMap", function(){
+        $scope.resizeMap();
+    });
 });
 
 $(document).ready(function(){

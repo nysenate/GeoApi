@@ -185,7 +185,7 @@ public class JobRecord
         this.geocode.setMethod(geoMethod);
     }
 
-    public String getQuality() {
+    public String getGeoQuality() {
         return geocode.getQuality().name();
     }
 

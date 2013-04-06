@@ -16,6 +16,7 @@ public class JobProcessStatus
         RUNNING,
         COMPLETED,
         COMPLETED_WITH_ERRORS,
+        SKIPPED,
         FAILED,
         CANCELLED,
         INACTIVE;

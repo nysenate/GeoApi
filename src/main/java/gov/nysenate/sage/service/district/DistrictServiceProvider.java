@@ -237,7 +237,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                             }
                         }
                         else {
-                            logger.debug(distType + " district could not be verified for " + address);
+                            logger.trace(distType + " district could not be verified for " + address);
                             shapeInfo.addUncertainDistrict(distType);
                         }
                     }

@@ -72,15 +72,46 @@ sage.controller('JobUploadController', function($scope, $http, dataBus) {
 sage.controller('JobStatusController', function($scope, $http, dataBus) {
     $scope.id = 2;
     $scope.visible = false;
+    $scope.interval = 3000;
+    $scope.intervalId = 0;
 
+    $scope.runningProcesses = [];
     $scope.activeProcesses = [];
 
     $scope.$on("toggleView", function(){
         $scope.visible = ($scope.id == dataBus.data);
         if ($scope.visible) {
             $scope.getActiveProcesses();
+            $scope.getRunningProcesses();
+            clearInterval($scope.intervalId);
+            $scope.intervalId = setInterval(function() {$scope.getRunningProcesses()}, 3000);
+        }
+        else {
+            clearInterval($scope.intervalId);
         }
     });
+
+    $scope.getRunningProcesses = function() {
+        $http.get(contextPath + baseStatusApi + "/running")
+            .success(function(data, status, headers, config) {
+                if (data && data.success) {
+                    $scope.runningProcesses = data.statuses;
+                    $scope.computeProgress();
+                }
+            }).error(function(data, status, headers, config) {
+
+            });
+    }
+
+    $scope.computeProgress = function() {
+        $.each(this.runningProcesses, function(){
+            var total = this.process.recordCount;
+            var current = this.completedRecords;
+            if (total > 0) {
+                this.progressStyle = {'width' : ((current/total) * 100) + "%"};
+            }
+        });
+    }
 
     $scope.getActiveProcesses = function() {
         $http.get(contextPath + baseStatusApi + "/active")

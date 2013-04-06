@@ -8,11 +8,14 @@ public class JobProcess
 {
     protected int id = -1;
     protected JobUser requestor;
-    protected String sourcefileName = "";
+    protected String sourceFileName = "";
     protected String systemFilename = "";
     protected String fileType = "";
     protected Timestamp requestTime;
     protected int recordCount = 0;
+    protected boolean validationRequired = false;
+    protected boolean geocodeRequired = false;
+    protected boolean districtRequired = false;
 
 	public JobProcess()
     {
@@ -20,11 +23,11 @@ public class JobProcess
 	}
 
     public void setSourceFileName(String fileName) {
-        this.sourcefileName = fileName;
+        this.sourceFileName = fileName;
     }
 
     public String getSourceFileName() {
-		return sourcefileName;
+		return sourceFileName;
 	}
 
 	public String getFileType() {
@@ -73,6 +76,38 @@ public class JobProcess
 
     public void setRecordCount(int recordCount) {
         this.recordCount = recordCount;
+    }
+
+    public String getSystemFilename() {
+        return systemFilename;
+    }
+
+    public void setSystemFilename(String systemFilename) {
+        this.systemFilename = systemFilename;
+    }
+
+    public boolean isValidationRequired() {
+        return validationRequired;
+    }
+
+    public void setValidationRequired(boolean validationRequired) {
+        this.validationRequired = validationRequired;
+    }
+
+    public boolean isGeocodeRequired() {
+        return geocodeRequired;
+    }
+
+    public void setGeocodeRequired(boolean geocodeRequired) {
+        this.geocodeRequired = geocodeRequired;
+    }
+
+    public boolean isDistrictRequired() {
+        return districtRequired;
+    }
+
+    public void setDistrictRequired(boolean districtRequired) {
+        this.districtRequired = districtRequired;
     }
 
     public static class ByRequestTime implements Comparator<JobProcess> {

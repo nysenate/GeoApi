@@ -58,6 +58,12 @@ public class ApplicationFactory
         return factoryInstance.build(defaultPropertyFileName);
     }
 
+    public static void close()
+    {
+        factoryInstance.baseDB.getDataSource().close();
+        factoryInstance.tigerDB.getDataSource().close();
+    }
+
     /**
      * Public access call to buildTesting()
      * @return boolean - If true then build succeeded

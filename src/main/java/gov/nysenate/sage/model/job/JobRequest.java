@@ -10,7 +10,9 @@ public class JobRequest
     protected JobUser requestor;
     protected List<JobProcess> processes;
 
-    public JobRequest() {}
+    public JobRequest(JobUser requestor) {
+        this.requestor = requestor;
+    }
 
     public void clear()
     {

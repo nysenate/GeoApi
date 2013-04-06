@@ -53,12 +53,13 @@ public class DistrictShapefileDao extends BaseDao
         /** Iterate through all the requested types and format the template sql */
         ArrayList<String> queryList = new ArrayList<>();
         for (DistrictType districtType : districtTypes){
+            if (DistrictShapeCode.contains(districtType)) {
+                String nameColumn = DistrictShapeCode.getNameColumn(districtType);
+                String codeColumn = resolveCodeColumn(districtType);
 
-            String nameColumn = DistrictShapeCode.getNameColumn(districtType);
-            String codeColumn = resolveCodeColumn(districtType);
-
-            queryList.add(String.format(sqlTmpl, districtType, nameColumn, codeColumn, point.getLon(), point.getLat(),
-                                        districtType, point.getLon(), point.getLat())); // lat/lon is reversed here
+                queryList.add(String.format(sqlTmpl, districtType, nameColumn, codeColumn, point.getLon(), point.getLat(),
+                        districtType, point.getLon(), point.getLat())); // lon,lat is correct order
+            }
         }
 
         /** Combine the queries using UNION ALL */
@@ -92,8 +93,10 @@ public class DistrictShapefileDao extends BaseDao
         /** Iterate through all the requested types and format the template sql */
         ArrayList<String> queryList = new ArrayList<>();
         for (DistrictType districtType : districtTypes){
-            String codeColumn = resolveCodeColumn(districtType);
-            queryList.add(String.format(sql, districtType, codeColumn, districtType));
+            if (DistrictShapeCode.contains(districtType)) {
+                String codeColumn = resolveCodeColumn(districtType);
+                queryList.add(String.format(sql, districtType, codeColumn, districtType));
+            }
         }
 
         /** Combine the queries using UNION ALL */
@@ -123,26 +126,24 @@ public class DistrictShapefileDao extends BaseDao
             "WHERE ST_Contains(geom, ST_PointFromText('POINT(%f %f)'," + SRID +")) = false \n" +
             "ORDER BY geom <-> ST_PointFromText('POINT(%f %f)'," + SRID + ") \n" +
             "LIMIT %d;";
-        String sqlQuery = String.format(tmpl, districtType.name(), resolveCodeColumn(districtType), districtType.name(),
-                                              point.getLon(), point.getLat(), point.getLon(), point.getLat(), count);
-        try {
-            return run.query(sqlQuery, new NearbyDistrictMapsHandler());
-        }
-        catch (SQLException ex) {
-            logger.error(ex);
+
+        if (DistrictShapeCode.contains(districtType)) {
+            String sqlQuery = String.format(tmpl, districtType.name(), resolveCodeColumn(districtType), districtType.name(),
+                    point.getLon(), point.getLat(), point.getLon(), point.getLat(), count);
+            try {
+                return run.query(sqlQuery, new NearbyDistrictMapsHandler());
+            }
+            catch (SQLException ex) {
+                logger.error(ex);
+            }
         }
         return null;
     }
 
-    /** Some district code columns have special column names */
+    /** Convenience method to access DistrictShapeCode */
     private String resolveCodeColumn(DistrictType districtType)
     {
-        String codeColumn = DistrictShapeCode.getCodeColumn(districtType);
-        /** Election shapefile has an integer code so we should convert to string */
-        if (districtType == DistrictType.ELECTION){
-            codeColumn = "to_char("+ codeColumn + ", '999')";
-        }
-        return codeColumn;
+        return DistrictShapeCode.getCodeColumn(districtType);
     }
 
     /**

@@ -106,7 +106,7 @@ ul.nav li:hover a{
 }
 
 #contentcolumn{
-    margin: 0 360px 0 300px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
+    margin: 0 0px 0 300px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
 }
 
 #leftcolumn{
@@ -123,6 +123,7 @@ ul.nav li:hover a{
     margin-left: -360px; /*Set left margin to -(RightColumnWidth)*/
     background: #eee;
     height:100%;
+    display:none;
 }
 
 #footer{
@@ -331,8 +332,31 @@ p {
     background-color: white;
 }
 
+.result-close {
+    font-family: entypo;
+    opacity:0.6;
+    color:white;
+    font-size: 34px;
+    font-weight: normal;
+    float: right;
+    cursor:pointer;
+    line-height: 22px;
+}
+
+a.result-close:hover {
+    opacity:1;
+}
+
 /*-----------------------
  Job page */
 #upload-container {
     width:650px;margin:auto;text-align: center;
+}
+
+.running-process-view {
+    background: #fbfbfb;
+    box-shadow: 0px 2px 3px #DDD;
+    width: 780px;
+    margin: auto;
+    padding: 10px;
 }

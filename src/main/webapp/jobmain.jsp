@@ -13,7 +13,7 @@
     </jsp:attribute>
     <jsp:body>
         <div id="contentwrapper">
-            <div id="contentcolumn" style="margin:0px 50px 0px 300px;padding-top:20px;">
+            <div id="contentcolumn" style="margin:0px 10px 0px 300px;padding-top:20px;">
                 <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController" style="width:100%;height:100%;">
                     <form id="uploadForm" method="post" action="${contextPath}/job/submit" style="width:95%;margin:auto;">
                         <ol>
@@ -40,8 +40,10 @@
                                                 <td>{{process.districtRequired | yesno}}</td>
                                                 <td>{{process.recordCount}}</td>
                                             </tr>
+                                            <tr ng-show="empty">
+                                                <td><p style="color:#444;">Upload queue is empty</p></td>
+                                            </tr>
                                         </table>
-                                        <p ng-show="empty" style="color:#444;">Upload queue is empty</p>
                                     </div>
                                 </div>
                                 <div id="fileuploader">
@@ -56,12 +58,37 @@
                     </form>
                 </div>
                 <div id="status-container" ng-show="visible" ng-controller="JobStatusController" style="width:100%;height:100%;">
-                    <div style="text-align: center;">
-                        <h3>Current batch jobs</h3>
-                        <div id="current-job" style="width:700px;margin:auto;padding:10px;">
-                            <div id="progress-bar" style="margin:auto;height:30px;border:1px solid #aaa;">
-                                <div style="height:100%;width:5%;background: #7BA838;">&nbsp;</div>
-                            </div>
+                    <div style="text-align: center;margin-left:20px;">
+                        <h3 ng-show="runningProcesses.length">Running jobs</h3>
+                        <div class="running-process-view" ng-repeat="runningProcess in runningProcesses">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td><span style="color:teal;font-weight:bold;">Job {{runningProcess.processId}} - {{runningProcess.process.sourceFileName}}</span></td>
+                                    <td><span></span></td>
+                                    <td style="text-align: right;"><span>Started - {{runningProcess.startTime | date:'medium'}}</span></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <div id="current-job" style="width:100%;margin:auto;">
+                                            <div id="progress-bar" style="margin:auto;height:30px;border:1px solid #aaa;">
+                                                <div ng-style="runningProcess.progressStyle" style="height:100%;background: #7BA838;">&nbsp;</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <span>Records Completed: {{runningProcess.completedRecords}} / {{runningProcess.process.recordCount}}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <span>ETA - 3 days</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+
                         </div>
 
                         <h3>Queued jobs</h3>
@@ -81,7 +108,7 @@
                                 <td>{{activeProcess.process.sourceFileName}}</td>
                                 <td>{{activeProcess.process.requestorEmail}}</td>
                                 <td>{{activeProcess.process.recordCount}}</td>
-                                <td>{{activeProcess.process.requestTime}}</td>
+                                <td>{{activeProcess.process.requestTime | date:'medium'}}</td>
                                 <td>{{activeProcess.condition}}</td>
                             </tr>
                         </table>
@@ -91,7 +118,7 @@
             </div>
         </div>
 
-        <div id="leftcolumn" ng-controller="MenuController">
+        <div id="leftcolumn" style="border-right:1px solid #ddd;" ng-controller="MenuController">
             <div class="innertube">
                 <p ng-click="toggleView(1)" class="method-header  teal">Start new batch jobs</p>
                 <p ng-click="toggleView(2)" class="method-header active maroon">View active batch jobs</p>

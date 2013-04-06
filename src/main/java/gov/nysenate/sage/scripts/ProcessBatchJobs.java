@@ -5,24 +5,18 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.job.BulkInterface;
 import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.model.job.JobProcessStatus;
-import gov.nysenate.sage.model.job.file.*;
+import gov.nysenate.sage.model.job.file.JobFile;
+import gov.nysenate.sage.model.job.file.JobRecord;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
-import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.concurrent.ConcurrentException;
 import org.apache.log4j.Logger;
-import org.supercsv.cellprocessor.Optional;
-import org.supercsv.cellprocessor.ParseDouble;
-import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvBeanReader;
 import org.supercsv.io.CsvBeanWriter;
@@ -30,10 +24,10 @@ import org.supercsv.io.ICsvBeanReader;
 import org.supercsv.io.ICsvBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 
-import javax.print.attribute.standard.DateTimeAtCompleted;
 import java.io.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
@@ -55,7 +49,7 @@ public class ProcessBatchJobs
     public static JobProcessDao jobProcessDao;
 
     /**
-     * Represents a collection of
+     * Represents a subset of job records that belong to a job file.
      */
     public static class JobBatch
     {
@@ -119,12 +113,30 @@ public class ProcessBatchJobs
         ApplicationFactory.buildInstances();
         ProcessBatchJobs processBatchJobs = new ProcessBatchJobs();
 
-        List<JobProcessStatus> jobs = processBatchJobs.getWaitingJobProcesses();
-        logger.info(jobs.size() + " batch jobs have been queued for processing.");
-        for (JobProcessStatus job : jobs){
-            logger.info("Processing job process id " + job.getProcessId());
+        if (args.length > 0) {
+            switch (args[0]) {
+                case "clean" : {
+                    processBatchJobs.cancelRunningJobs();
+                    break;
+                }
+                case "process" : {
+                    List<JobProcessStatus> jobs = processBatchJobs.getWaitingJobProcesses();
+                    logger.info(jobs.size() + " batch jobs have been queued for processing.");
+                    for (JobProcessStatus job : jobs){
+                        logger.info("Processing job process id " + job.getProcessId());
+                        processBatchJobs.processJob(job);
+                    }
+                    break;
+                }
+                default : {
+                    logger.error("Unsupported argument. Exiting..");
+                }
+            }
         }
-        processBatchJobs.processJob(null);
+
+        logger.info("Wrapping things up..");
+        ApplicationFactory.close();
+        System.exit(0);
     }
 
     /**
@@ -134,16 +146,14 @@ public class ProcessBatchJobs
     public List<JobProcessStatus> getWaitingJobProcesses()
     {
         JobProcessDao jobProcessDao = new JobProcessDao();
-        List<JobProcessStatus> jobs = jobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON);
+        List<JobProcessStatus> jobs = jobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
         return jobs;
     }
 
     public void processJob(JobProcessStatus jobStatus)
     {
-        if (jobStatus != null) {
-            JobProcess jobProcess = jobStatus.getJobProcess();
-            String fileName = jobProcess.getFileName();
-        }
+        JobProcess jobProcess = jobStatus.getJobProcess();
+        String fileName = jobProcess.getFileName();
 
         ExecutorService geocodeExecutor = Executors.newFixedThreadPool(GEOCODE_THREAD_COUNT);
         ExecutorService districtExecutor = Executors.newFixedThreadPool(DISTRICT_THREAD_COUNT);
@@ -151,97 +161,103 @@ public class ProcessBatchJobs
         ICsvBeanWriter jobWriter = null;
 
         try {
-            FileReader fileReader = new FileReader(new File(UPLOAD_DIR + "geocodeBatch1.csv"));
+            /** Initialize file readers and writers */
+            FileReader fileReader = new FileReader(new File(UPLOAD_DIR + fileName));
             jobReader = new CsvBeanReader(fileReader, CsvPreference.TAB_PREFERENCE);
-            String[] header = jobReader.getHeader(true);
 
+            FileWriter fileWriter = new FileWriter(new File(DOWNLOAD_DIR, fileName));
+            jobWriter = new CsvBeanWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
+
+            String[] header = jobReader.getHeader(true);
+            jobWriter.writeHeader(header);
+
+            /** Create the job file and analyze the header columns */
             JobFile jobFile = new JobFile();
-            JobRecord jobRecord;
             header = jobFile.processHeader(header);
+            JobRecord jobRecord;
 
             logger.info("--------------------------------------------------------------------");
             logger.info("Starting Batch Job");
             logger.info("Job Header: " + FormatUtil.toJsonString(header));
 
-            /** Only proceed if there are fields that need populating */
+            /** Set the job status to running and record the start time */
+            jobStatus.setCondition(RUNNING);
+            jobStatus.setStartTime(new Timestamp(new Date().getTime()));
+            jobProcessDao.setJobProcessStatus(jobStatus);
+
+            /** Check if file can be skipped */
             if (!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
                 logger.warn("Warning: Skipping job file - No geocode or dist assign columns!");
-                return;
+                jobStatus.setCondition(SKIPPED);
+                jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
+                jobProcessDao.setJobProcessStatus(jobStatus);
             }
+            else {
+                /** Read records into a JobFile */
+                final CellProcessor[] processors = jobFile.getProcessors().toArray(new CellProcessor[0]);
+                while( (jobRecord = jobReader.read(JobRecord.class, header, processors)) != null ) {
+                    jobFile.addRecord(jobRecord);
+                }
+                logger.info(jobFile.getRecords().size() + " records");
+                logger.info("--------------------------------------------------------------------");
 
-            /** Read records into a JobFile */
-            final CellProcessor[] processors = jobFile.getProcessors().toArray(new CellProcessor[0]);
-            while( (jobRecord = jobReader.read(JobRecord.class, header, processors)) != null ) {
-                jobFile.addRecord(jobRecord);
+                JobBatch jobBatch;
+                ArrayList<Future<JobBatch>> jobResults = new ArrayList<>();
+                List<DistrictType> districtTypes = jobFile.getRequiredDistrictTypes();
+
+                int recordCount = jobFile.recordCount();
+                int batchCount =  (recordCount + JOB_BATCH_SIZE - 1) / JOB_BATCH_SIZE; // Allows us to round up
+                logger.info("Dividing job into " + batchCount + " batches");
+
+                for (int i = 0; i < batchCount; i++) {
+                    int from = (i * JOB_BATCH_SIZE);
+                    int to = (from + JOB_BATCH_SIZE < recordCount) ? (from + JOB_BATCH_SIZE) : recordCount;
+                    ArrayList<JobRecord> batchRecords = new ArrayList<>(jobFile.getRecords().subList(from, to));
+                    jobBatch = new JobBatch(batchRecords, from, to);
+
+                    Future<JobBatch> futureGeocodedJobBatch = geocodeExecutor.submit(new GeocodeJobBatch(jobBatch));
+                    if (jobFile.requiresDistrictAssign()) {
+                         Future<JobBatch> futureDistrictedJobBatch = districtExecutor.submit(new DistrictJobBatch(futureGeocodedJobBatch, districtTypes));
+                         jobResults.add(futureDistrictedJobBatch);
+                    }
+                    else {
+                        jobResults.add(futureGeocodedJobBatch);
+                    }
+                }
+                for (int i = 0; i < batchCount; i++) {
+                    try {
+                        logger.info("Waiting on batch # " + i);
+                        JobBatch batch = jobResults.get(i).get();
+                        for (JobRecord record : batch.getJobRecords()) {
+                            jobWriter.write(record, header, processors);
+                        }
+                        jobStatus.setCompletedRecords(jobStatus.getCompletedRecords() + batch.getJobRecords().size());
+                        jobProcessDao.setJobProcessStatus(jobStatus);
+                        logger.info("Wrote results of batch # " + i);
+                    }
+                    catch (Exception e) {
+                        logger.error(e);
+                        e.getCause().printStackTrace();
+                    }
+                }
+
+                logger.info("--------------------------------------------------------------------");
+                logger.info("Completed batch processing for job file!                           |");
+                logger.info("--------------------------------------------------------------------");
+
+                jobStatus.setCompleted(true);
+                jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
+                jobStatus.setCondition(COMPLETED);
+                jobProcessDao.setJobProcessStatus(jobStatus);
+
+                logger.info("Got here");
             }
-            logger.info(jobFile.getRecords().size() + " records");
-            logger.info("--------------------------------------------------------------------");
-
-            /** Set the job status to running and record the start time */
-            //jobStatus.setCondition(RUNNING);
-            //jobStatus.setStartTime(new Timestamp(new Date().getTime()));
-            //jobProcessDao.setJobProcessStatus(jobStatus);
-
-            JobBatch jobBatch;
-            ArrayList<Future<JobBatch>> jobResults = new ArrayList<>();
-
-            int recordCount = jobFile.recordCount();
-            int batchCount =  (recordCount + JOB_BATCH_SIZE - 1) / JOB_BATCH_SIZE; // Allows us to round up
-
-            for (int i = 0; i < batchCount; i++) {
-                int from = (i * JOB_BATCH_SIZE);
-                int to = (from + JOB_BATCH_SIZE < recordCount) ? (from + JOB_BATCH_SIZE - 1) : recordCount - 1;
-                ArrayList<JobRecord> batchRecords = new ArrayList<>(jobFile.getRecords().subList(from, to));
-                jobBatch = new JobBatch(batchRecords, from, to);
-
-                Future<JobBatch> futureGeocodedJobBatch = geocodeExecutor.submit(new GeocodeJobBatch(jobBatch));
-                if (jobFile.requiresDistrictAssign()) {
-                    Future<JobBatch> futureDistrictedJobBatch = districtExecutor.submit(new DistrictJobBatch(futureGeocodedJobBatch));
-                    jobResults.add(futureDistrictedJobBatch);
-                }
-                else {
-                    jobResults.add(futureGeocodedJobBatch);
-                }
-            }
-
-            for (int i = 0; i < batchCount; i++) {
-                JobBatch batch;
-                try {
-                    logger.info("Waiting on batch # " + i);
-                    batch = jobResults.get(i).get();
-                    logger.info("Finished with batch # " + i);
-                }
-                catch (Exception e) {
-                    logger.error(e);
-                    e.getCause().printStackTrace();
-                }
-            }
-
-            logger.info("--------------------------------------------------------------------");
-            logger.info("Completed batch processing for job file!                           |");
-            logger.info("--------------------------------------------------------------------");
-            //    FileWriter fileWriter = new FileWriter(new File(DOWNLOAD_DIR, "geocodeBatch1.csv"));
-            //jobWriter = new CsvBeanWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
-            /*
-            List<GeocodeResult> results = geoServiceProvider.geocode((ArrayList) geocodeBatchFile.getAddresses());
-
-            for (int i = 0; i < results.size(); i++) {
-                if (results.get(i) != null && results.get(i).isSuccess()) {
-                    geocodeBatchFile.getRecord(i).setGeocode(results.get(i).getGeocode());
-                    //accuracyBatchFile.getRecord(i).setReferenceGeocode(yahooResults.get(i).getGeocode());
-                    //accuracyBatchFile.getRecord(i).setDistance(GeocodeUtil.getDistanceInFeet(tigerResults.get(i).getGeocode(), yahooResults.get(i).getGeocode()));
-                }
-            }
-
-            logger.info("Got here");
-
-            jobWriter.writeHeader(header);
-            for ( final GeocodeBatchRecord r : geocodeBatchFile.getRecords()) {
-                jobWriter.write(r, header, processors);
-            } */
         }
         catch (FileNotFoundException ex) {
-            //logger.error("Job process " + jobProcess.getId() + "'s file could not be found!", ex);
+            logger.error("Job process " + jobProcess.getId() + "'s file could not be found!");
+            jobStatus.setCondition(SKIPPED);
+            jobStatus.setMessages(Arrays.asList("Could not open file!"));
+            jobProcessDao.setJobProcessStatus(jobStatus);
         }
         catch (IOException ex){
             logger.error(ex);
@@ -257,7 +273,9 @@ public class ProcessBatchJobs
             IOUtils.closeQuietly(jobWriter);
             geocodeExecutor.shutdownNow();
             districtExecutor.shutdownNow();
+            logger.info("Closed resources.");
         }
+        return;
     }
 
     public static class GeocodeJobBatch implements Callable<JobBatch>
@@ -283,9 +301,12 @@ public class ProcessBatchJobs
     public static class DistrictJobBatch implements Callable<JobBatch>
     {
         private JobBatch jobBatch;
-        public DistrictJobBatch(Future<JobBatch> futureJobBatch) throws InterruptedException, ExecutionException
+        private List<DistrictType> districtTypes;
+        public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types) throws InterruptedException,
+                                                                                                  ExecutionException
         {
             this.jobBatch = futureJobBatch.get();
+            this.districtTypes = types;
         }
 
         @Override
@@ -293,11 +314,26 @@ public class ProcessBatchJobs
         {
             System.out.print("District assignment for records " + jobBatch.fromRecord + "-" + jobBatch.toRecord);
             List<DistrictResult> districtResults = districtProvider.assignDistricts(jobBatch.getGeocodedAddresses(),
-                                                                                    DistrictType.getStandardTypes());
+                                                                                    this.districtTypes);
             for (int i = 0; i < districtResults.size(); i++) {
                 jobBatch.setDistrictResult(i, districtResults.get(i));
             }
             return this.jobBatch;
+        }
+    }
+
+    /**
+     *
+     */
+    public void cancelRunningJobs()
+    {
+        logger.info("Cancelling all running jobs!");
+        List<JobProcessStatus> jobStatuses = jobProcessDao.getJobStatusesByCondition(RUNNING, null);
+        for (JobProcessStatus jobStatus : jobStatuses) {
+            jobStatus.setCondition(CANCELLED);
+            jobStatus.setMessages(Arrays.asList("Cancelled during cleanup."));
+            jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
+            jobProcessDao.setJobProcessStatus(jobStatus);
         }
     }
 }

@@ -20,7 +20,6 @@ public enum DistrictShapeCode
         nameColumn.put(DistrictType.COUNTY, "NAMELSAD");
         nameColumn.put(DistrictType.SCHOOL, "EANAME1");
         nameColumn.put(DistrictType.TOWN, "NAME");
-        nameColumn.put(DistrictType.ELECTION, "COUNTY");
 
         codeColumn.put(DistrictType.SENATE, "DISTRICT");
         codeColumn.put(DistrictType.CONGRESSIONAL, "DISTRICT");
@@ -28,7 +27,11 @@ public enum DistrictShapeCode
         codeColumn.put(DistrictType.COUNTY, "COUNTYFP");
         codeColumn.put(DistrictType.SCHOOL, "TFCODE");
         codeColumn.put(DistrictType.TOWN, "ABBREV");
-        codeColumn.put(DistrictType.ELECTION, "ED");
+    }
+
+    public static boolean contains(DistrictType districtType)
+    {
+        return codeColumn.containsKey(districtType);
     }
 
     public static String getNameColumn(DistrictType districtType)

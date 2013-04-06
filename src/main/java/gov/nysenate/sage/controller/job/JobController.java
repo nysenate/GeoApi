@@ -94,9 +94,11 @@ public class JobController extends BaseJobController
         String uploadDir = config.getValue("job.upload.dir");
 
         Object uploadResponse = null;
+        BufferedReader source = null;
+        CsvBeanReader jobReader = null;
+        CsvBeanWriter jobWriter = null;
 
-        BufferedReader source;
-
+        logger.debug("Performing file upload...");
         try {
             String sourceFilename = request.getHeader("X-File-Name");
             if (sourceFilename == null) {
@@ -111,9 +113,15 @@ public class JobController extends BaseJobController
                 File targetFile = new File(uploadDir, + (new Date().getTime()) + "-" + sourceFilename.replaceAll("( |%20)","_"));
                 FileWriter fileWriter = new FileWriter(targetFile);
 
-                CsvBeanReader jobReader = new CsvBeanReader(source, CsvPreference.TAB_PREFERENCE);
-                CsvBeanWriter jobWriter = new CsvBeanWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
-                String[] header = jobFile.processHeader(jobReader.getHeader(true));
+                logger.debug("Setting target upload file as " + targetFile.getAbsolutePath());
+
+                jobReader = new CsvBeanReader(source, CsvPreference.TAB_PREFERENCE);
+                jobWriter = new CsvBeanWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
+                String[] header = jobReader.getHeader(true);
+                jobWriter.writeHeader(header);
+                header = jobFile.processHeader(header);
+
+                logger.debug("Processed file header: " + header.toString());
 
                 /** Check JobFileType enum to see if header is ok for processing */
                 if(!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
@@ -133,6 +141,8 @@ public class JobController extends BaseJobController
                         count++;
                     }
 
+                    logger.debug("Wrote " + count + " records into target file.");
+
                     /** Create a new job process for every uploaded file */
                     JobProcess process = new JobProcess();
                     process.setSourceFileName(sourceFilename);
@@ -143,15 +153,15 @@ public class JobController extends BaseJobController
                     process.setDistrictRequired(jobFile.requiresDistrictAssign());
                     getJobRequest(request).addProcess(process);
 
+                    logger.debug(getJobRequest(request).getProcesses().size() + " queued for this request.");
+
                     /** Send a success status back to the ajax uploader */
                     JobUploadStatus uploadStatus = new JobUploadStatus();
                     uploadStatus.setSuccess(true);
                     uploadStatus.setProcess(process);
                     uploadResponse = uploadStatus;
 
-                    IOUtils.closeQuietly(jobReader);
-                    IOUtils.closeQuietly(fileWriter);
-                    IOUtils.closeQuietly(jobWriter);
+                    logger.debug("Replying to upload request with " + FormatUtil.toJsonString(uploadResponse));
                 }
             }
         }
@@ -159,8 +169,12 @@ public class JobController extends BaseJobController
             logger.error("Failed to read file", ex);
             uploadResponse = new JobErrorResult("Failed to read file!");
         }
-
-        FormatUtil.printObject(uploadResponse);
+        finally {
+            IOUtils.closeQuietly(source);
+            IOUtils.closeQuietly(jobReader);
+            IOUtils.closeQuietly(jobWriter);
+            logger.debug("Closed resources.");
+        }
         setJobResponse(uploadResponse, response);
     }
 

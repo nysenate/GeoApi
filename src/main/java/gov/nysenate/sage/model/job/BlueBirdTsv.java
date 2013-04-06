@@ -1,6 +1,6 @@
 package gov.nysenate.sage.model.job;
 
-public class BlueBirdTsv implements BulkInterface
+public class BlueBirdTsv
 {
 	String id = "";
 	String first_name = "";
@@ -100,11 +100,6 @@ public class BlueBirdTsv implements BulkInterface
 
 	public String getSupplemental_address_2() {
 		return supplemental_address_2;
-	}
-
-	@Override
-	public String getCity() {
-		return city;
 	}
 
 	public String getState_province_id() {
@@ -429,77 +424,5 @@ public class BlueBirdTsv implements BulkInterface
 				+ "\t" + address_id + "\t" + email_id + "\t" + phone_id + "\t" 
 				+ districtinfo_id + "\t" + constinfo_id + "\t" + location_type_id + "\t" 
 				+ address_is_primary).replaceAll("\t \t", "\t\t");
-	}
-	
-	@Override
-	public String getAddress() {
-		return this.getStreet() + ", " + this.getCity() + ", " + this.getState() + " " + this.getZip5();
-	}
-
-	@Override
-	public String getState() {
-		return this.getState_province_id();
-	}
-
-	//TODO
-	@Override
-	public String getStreet() {
-		if(!this.getStreet_name().matches("\\s*")) {
-			if(!this.getStreet_number().matches("\\s*")) {
-				return this.getStreet_number() + " " + this.getStreet_name();
-			}
-			return this.getStreet_name();
-		}
-		return this.getStreet_address();
-	}
-
-	@Override
-	public String getZip5() {
-		return this.getPostal_code();
-	}
-
-	@Override
-	public void setAD(String ad) {
-		this.setNy_assembly_district_48(ad);
-	}
-
-	@Override
-	public void setCD(String cd) {
-		this.setCongressional_district_46(cd);
-	}
-
-	@Override
-	public void setCounty(String county) {
-		this.setCounty_50(county);
-	}
-
-	@Override
-	public void setED(String ed) {
-		this.setElection_district_49(ed);
-	}
-
-	@Override
-    public void setTown(String town) {
-	    this.setTown_52(town);
-	}
-
-	@Override
-    public void setSchool(String school) {
-	    this.setSchool_district_54(school);
-	}
-
-	@Override
-	public void setLat(String lat) {
-		this.setGeo_code_1(lat);
-	}
-
-	@Override
-	public void setLon(String lon) {
-		this.setGeo_code_2(lon);
-	}
-
-	@Override
-	public void setSD(String sd) {
-		this.setNy_senate_district_47(sd);
-	}
+    }
 }
