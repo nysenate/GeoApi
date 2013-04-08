@@ -71,6 +71,16 @@ public class Address implements Serializable, Cloneable
         }
     }
 
+    /**
+     * Normalization applied:
+     * - Remove the dash within the building number
+     * @return String
+     */
+    public String toNormalizedString()
+    {
+        return toString().replace("^\\d+(-)\\d+","");
+    }
+
     public String getAddr1()
     {
         return addr1;
