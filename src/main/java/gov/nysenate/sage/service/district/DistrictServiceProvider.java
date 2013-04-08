@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.district;
 
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
@@ -9,6 +10,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
@@ -25,9 +27,17 @@ import static gov.nysenate.sage.model.result.ResultStatus.NO_GEOCODE_RESULT;
 public class DistrictServiceProvider extends ServiceProviders<DistrictService>
 {
     private final Logger logger = Logger.getLogger(DistrictServiceProvider.class);
+    private Config config = ApplicationFactory.getConfig();
     private final static String DEFAULT_DISTRICT_PROVIDER = "shapefile";
     private final static LinkedList<String> DEFAULT_DISTRICT_FALLBACK = new LinkedList<>(Arrays.asList("streetfile", "geoserver"));
-    private final static Double PROXIMITY_THRESHOLD = 0.001;
+
+    /** Specifies the distance to a district boundary in which the accuracy of shapefiles is uncertain */
+    private static Double PROXIMITY_THRESHOLD = 0.001;
+
+    public DistrictServiceProvider()
+    {
+        PROXIMITY_THRESHOLD = Double.parseDouble(this.config.getValue("proximity.threshold", "0.001"));
+    }
 
     /**
      * Assign standard districts using default method.

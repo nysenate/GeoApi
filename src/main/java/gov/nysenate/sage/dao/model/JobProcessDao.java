@@ -147,7 +147,7 @@ public class JobProcessDao extends BaseDao
         for (Condition c : conditions) {
             where.add("status.condition = '" + c.name() + "'");
         }
-        sql += StringUtils.join(where, " OR ") + " ORDER BY processId ";
+        sql += StringUtils.join(where, " OR ") + " ORDER BY processId DESC";
         try {
             return run.query(sql, statusListHandler);
         }

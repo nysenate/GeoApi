@@ -37,6 +37,11 @@ public class BaseDao
         return new QueryRunner(this.tigerDataSource);
     }
 
+    public AsyncQueryRunner getAsyncTigerQueryRunner(ExecutorService executorService)
+    {
+        return new AsyncQueryRunner(executorService, this.getTigerQueryRunner());
+    }
+
     public Connection getConnection()
     {
         try {

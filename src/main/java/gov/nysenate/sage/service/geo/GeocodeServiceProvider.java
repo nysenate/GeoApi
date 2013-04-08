@@ -4,6 +4,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.GeoCache;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
@@ -20,6 +21,18 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
     private final Logger logger = Logger.getLogger(GeocodeServiceProvider.class);
     private final static String DEFAULT_GEO_PROVIDER = "yahoo";
     private final static LinkedList<String> DEFAULT_GEO_FALLBACK = new LinkedList<>(Arrays.asList("mapquest", "tiger"));
+    private GeocodeCacheService geocodeCache;
+
+    public GeocodeServiceProvider() {}
+
+    /**
+     * Returns a new instance of the geocode caching service.
+     * @return GeocodeCacheService
+     */
+    public GeocodeCacheService newCacheInstance()
+    {
+        return new GeoCache();
+    }
 
     /**
      * Perform a single geocode using the application defaults.
@@ -28,11 +41,11 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      */
     public GeocodeResult geocode(Address address)
     {
-        return this.geocode(address, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true);
+        return this.geocode(address, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true, true);
     }
 
     /**
-     * Perform a single geocode with an optional default fallback mode.
+     * Perform a single geocode with caching and an optional default fallback mode.
      * @param address       Address to geocode
      * @param provider      Provider to perform geocoding
      * @param useFallback   Set true to use default fallback
@@ -40,7 +53,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      */
     public GeocodeResult geocode(Address address, String provider, boolean useFallback)
     {
-        return this.geocode(address, provider, DEFAULT_GEO_FALLBACK, useFallback);
+        return this.geocode(address, provider, DEFAULT_GEO_FALLBACK, useFallback, true);
     }
 
     /**
@@ -51,31 +64,40 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      * @param useFallback       Set true to use default fallback
      * @return                  GeocodeResult
      */
-    GeocodeResult geocode(Address address, String provider, LinkedList<String> fallbackProviders, boolean useFallback)
+    GeocodeResult geocode(Address address, String provider, LinkedList<String> fallbackProviders, boolean useFallback,
+                          boolean useCache)
     {
+        this.geocodeCache = this.newCacheInstance();
+
         /** Clone the list of fall back providers */
-        LinkedList<String> fallback = (fallbackProviders != null) ? (LinkedList<String>) fallbackProviders.clone() :
-                                                                    (LinkedList<String>) DEFAULT_GEO_FALLBACK.clone();
+        LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
+                                                                  : new LinkedList<>(DEFAULT_GEO_FALLBACK);
         Iterator<String> fallbackIterator = fallback.iterator();
-        GeocodeResult geocodeResult = null;
+        GeocodeResult geocodeResult = (useCache) ? this.geocodeCache.geocode(address)
+                                                 : new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
+        boolean cacheHit = useCache && geocodeResult.isSuccess();
+        logger.debug("Cache hit: " + cacheHit);
 
         /** Geocode using the supplied provider if valid */
-        if (this.isRegistered(provider)) {
+        if (this.isRegistered(provider) && !cacheHit) {
             geocodeResult = this.newInstance(provider).geocode(address);
         }
         else {
             logger.error("Supplied an invalid geocoding provider!");
         }
-
         /** If attempt failed, use the fallback providers if allowed */
-        if (geocodeResult == null || (!geocodeResult.isSuccess() && useFallback)) {
-            while ((geocodeResult == null || !geocodeResult.isSuccess()) && fallbackIterator.hasNext()) {
+        if (!geocodeResult.isSuccess() && useFallback) {
+            while (!geocodeResult.isSuccess() && fallbackIterator.hasNext()) {
                 geocodeResult = this.newInstance(fallbackIterator.next()).geocode(address);
             }
         }
         /** Ensure we don't return a null response */
         if (geocodeResult == null) {
             geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
+        }
+        /** Cache result */
+        if (useCache && !cacheHit) {
+            geocodeCache.saveToCache(geocodeResult);
         }
         return geocodeResult;
     }
@@ -87,7 +109,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      */
     public List<GeocodeResult> geocode(List<Address> addresses)
     {
-        return this.geocode(addresses, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true);
+        return this.geocode(addresses, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true, true);
     }
 
     /**
@@ -99,7 +121,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      */
     public List<GeocodeResult> geocode(List<Address> addresses, String provider, boolean useFallback)
     {
-        return this.geocode(addresses, provider, DEFAULT_GEO_FALLBACK, useFallback);
+        return this.geocode(addresses, provider, DEFAULT_GEO_FALLBACK, useFallback, true);
     }
 
     /**
@@ -111,51 +133,65 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
      * @return                  List<GeocodeResult> corresponding to the addresses list.
      */
     public List<GeocodeResult> geocode(List<Address> addresses, String provider,
-                                       LinkedList<String> fallbackProviders, boolean useFallback)
+                                       List<String> fallbackProviders, boolean useFallback, boolean useCache)
     {
         logger.info("Performing batch geocode using provider: " + provider + " with fallback to: " +
-                    fallbackProviders + " with fallback set to " + useFallback);
+                    fallbackProviders + " with useFallback:" + useFallback + " and useCache:" + useCache);
+
+        this.geocodeCache = this.newCacheInstance();
 
         /** Clone the list of fall back providers */
-        LinkedList<String> fallback = (fallbackProviders != null) ? (LinkedList<String>) fallbackProviders.clone()
-                                                                  : (LinkedList<String>) DEFAULT_GEO_FALLBACK.clone();
-
-        Iterator<String> fallbackIterator = fallback.iterator();
+        LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
+                                                                  : new LinkedList<>(DEFAULT_GEO_FALLBACK);
         List<GeocodeResult> geocodeResults = null;
         List<Integer> failedIndices;
 
-        /** Geocode using the supplied provider if valid */
-        if (this.isRegistered(provider)) {
+        /** Clear out the fallback list if fallback is disabled */
+        if (!useFallback) {
+            fallback.clear();
+        }
+        /** If cache enabled, attempt to geocode batch and add the provider as the first fallback */
+        if (useCache) {
+            geocodeResults = geocodeCache.geocode((ArrayList<Address>) addresses);
+            fallback.add(0, provider);
+        }
+        /** Use the specified provider without cache */
+        else if (this.isRegistered(provider)) {
             geocodeResults = this.newInstance(provider).geocode((ArrayList<Address>) addresses);
         }
-        else {
-            logger.error("Supplied an invalid geocoding provider!");
+        /** Throw an exception if provider is invalid with no fallbacks */
+        else if (!useFallback || fallback.size() == 0) {
+            throw new IllegalArgumentException("Supplied an invalid geocoding provider!");
         }
 
-        if (useFallback) {
-            /** Get the indices of results that were not successful */
-            failedIndices = getFailedResultIndices(geocodeResults);
+        /** Get the indices of results that were not successful */
+        failedIndices = getFailedResultIndices(geocodeResults);
+        Iterator<String> fallbackIterator = fallback.iterator();
 
-            /** Create new batches containing just the failed results and run them through
-             *  the fallback providers. Recompute the failed results and repeat until all
-             *  fallback providers specified have been used. */
-            while (!failedIndices.isEmpty() && fallbackIterator.hasNext()) {
-                String fallbackProvider = fallbackIterator.next();
-                logger.debug(failedIndices.size() + " geocodes are missing. Falling back to " + fallbackProvider);
+        /** Create new batches containing just the failed results and run them through the fallback providers.
+         *  Recompute the failed results and repeat until all fallback providers specified have been used. */
+        while (!failedIndices.isEmpty() && fallbackIterator.hasNext()) {
+            String fallbackProvider = fallbackIterator.next();
+            logger.debug(failedIndices.size() + " geocodes are missing. Falling back to " + fallbackProvider);
 
-                ArrayList<Address> fallbackBatch = new ArrayList<>();
-                for (int failedIndex : failedIndices) {
-                    fallbackBatch.add(addresses.get(failedIndex));
-                }
-
-                List<GeocodeResult> fallbackResults = this.newInstance(fallbackProvider).geocode(fallbackBatch);
-                Iterator<GeocodeResult> fallbackResultIterator = fallbackResults.iterator();
-                for (int failedIndex : failedIndices) {
-                    geocodeResults.set(failedIndex, fallbackResultIterator.next());
-                }
-                failedIndices = getFailedResultIndices(geocodeResults);
+            ArrayList<Address> fallbackBatch = new ArrayList<>();
+            for (int failedIndex : failedIndices) {
+                fallbackBatch.add(addresses.get(failedIndex));
             }
+
+            List<GeocodeResult> fallbackResults = this.newInstance(fallbackProvider).geocode(fallbackBatch);
+            Iterator<GeocodeResult> fallbackResultIterator = fallbackResults.iterator();
+            for (int failedIndex : failedIndices) {
+                geocodeResults.set(failedIndex, fallbackResultIterator.next());
+            }
+            failedIndices = getFailedResultIndices(geocodeResults);
         }
+
+        /** Cache results */
+        if (useCache) {
+            geocodeCache.saveToCache(geocodeResults);
+        }
+
         return geocodeResults;
     }
 

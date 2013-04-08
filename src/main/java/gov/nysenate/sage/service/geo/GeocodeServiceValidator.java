@@ -2,6 +2,8 @@ package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.address.GeocodedStreetAddress;
+import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import org.apache.log4j.Logger;
 
@@ -52,6 +54,15 @@ public abstract class GeocodeServiceValidator
             return true;
         }
         geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
+        return false;
+    }
+
+    public static boolean validateGeocodeResult(GeocodedStreetAddress geoStreetAddress, GeocodeResult geocodeResult)
+    {
+        if (geoStreetAddress != null) {
+            return validateGeocodeResult(geoStreetAddress.toGeocodedAddress(), geocodeResult);
+        }
+        geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
         return false;
     }
 
