@@ -5,20 +5,20 @@ package gov.nysenate.sage.model.address;
  */
 public class StreetAddress
 {
-    protected String street;
-    protected int aptNum;
     protected int bldgNum;
-    protected String bldgChar;
-    protected String aptChar;
-    protected String bldgParity;
-    protected String aptParity;
-    protected String preDir;
-    protected String postDir;
-    protected String internal;
-    protected String streetType;
-    protected String location;
-    protected String state;
-    protected String zip5;
+    protected String preDir = "";
+    protected String street = "";
+    protected String streetType = "";
+    protected String postDir = "";
+    protected String bldgChar = "";
+    protected int aptNum;
+    protected String aptChar = "";
+    protected String internal = "";
+    protected String location = "";
+    protected String state = "";
+    protected String zip5 = "";
+    protected String bldgParity = "";
+    protected String aptParity = "";
 
     public StreetAddress(){}
 
@@ -30,29 +30,29 @@ public class StreetAddress
     public Address toAddress()
     {
         String addr1 = "";
-        if (this.bldgNum != 0) addr1 += Integer.toString(this.bldgNum) + " ";
-        if (this.preDir != null) addr1 += this.preDir + " ";
-        if (this.street != null) addr1 += this.street + " ";
-        if (this.streetType != null) addr1 += this.streetType + " ";
-        if (this.postDir != null) addr1 += this.postDir + " ";
+        if (getBldgNum() != 0) addr1 += Integer.toString(getBldgNum()) + " ";
+        if (!getPreDir().isEmpty()) addr1 += getPreDir() + " ";
+        if (!getStreet().isEmpty()) addr1 += getStreet() + " ";
+        if (!getStreetType().isEmpty()) addr1 += getStreetType() + " ";
+        if (!getPostDir().isEmpty()) addr1 += getPostDir() + " ";
 
         String addr2 = "";
-        if (this.internal != null && !this.internal.isEmpty()){
-            addr2 = this.internal;
+        if (!getInternal().isEmpty()){
+            addr2 = getInternal();
         }
-        else if (this.bldgChar != null && !this.bldgChar.isEmpty()){
-            addr2 = this.bldgChar;
+        else if (!getBldgChar().isEmpty()){
+            addr2 = getBldgChar();
         }
-        else if (this.aptNum != 0) {
-            addr2 += Integer.toString(this.aptNum);
-            addr2 += (this.aptChar != null) ? this.aptChar : "";
+        else if (getAptNum() != 0) {
+            addr2 += Integer.toString(getAptNum());
+            addr2 += getAptChar();
         }
 
-        String city = (this.location != null) ? location : "";
-        String state = (this.state != null) ? this.state : "";
-        String zip5 = (this.zip5 != null) ? this.zip5 : "";
+        String city = getLocation();
+        String state = getState();
+        String zip5 = getZip5();
 
-        return new Address(addr1.trim(), addr2.trim(), city.trim(), state.trim(), zip5.trim(), null);
+        return new Address(addr1.trim(), addr2.trim(), city.trim(), state.trim(), zip5.trim(), "");
     }
 
     public boolean isEmpty()
@@ -76,7 +76,7 @@ public class StreetAddress
     }
 
     public String getStreet() {
-        return street;
+        return (street != null) ? street : "";
     }
 
     public void setStreet(String street) {
@@ -84,7 +84,7 @@ public class StreetAddress
     }
 
     public String getBldgChar() {
-        return bldgChar;
+        return (bldgChar != null) ? bldgChar : "";
     }
 
     public void setBldgChar(String bldgChar) {
@@ -100,7 +100,7 @@ public class StreetAddress
     }
 
     public String getAptChar() {
-        return aptChar;
+        return (aptChar != null) ? aptChar : "";
     }
 
     public void setAptChar(String aptChar) {
@@ -108,7 +108,7 @@ public class StreetAddress
     }
 
     public String getBldgParity() {
-        return bldgParity;
+        return (bldgParity != null) ? bldgParity : "";
     }
 
     public void setBldgParity(String bldgParity) {
@@ -116,7 +116,7 @@ public class StreetAddress
     }
 
     public String getAptParity() {
-        return aptParity;
+        return (aptParity != null) ? aptParity : "";
     }
 
     public void setAptParity(String aptParity) {
@@ -124,7 +124,7 @@ public class StreetAddress
     }
 
     public String getPreDir() {
-        return preDir;
+        return (preDir != null) ? preDir : "";
     }
 
     public void setPreDir(String preDir) {
@@ -132,7 +132,7 @@ public class StreetAddress
     }
 
     public String getPostDir() {
-        return postDir;
+        return (postDir != null) ? postDir : "";
     }
 
     public void setPostDir(String postDir) {
@@ -140,7 +140,7 @@ public class StreetAddress
     }
 
     public String getInternal() {
-        return internal;
+        return (internal != null) ? internal : "";
     }
 
     public void setInternal(String internal) {
@@ -148,7 +148,7 @@ public class StreetAddress
     }
 
     public String getStreetType() {
-        return streetType;
+        return (streetType != null) ? streetType : "";
     }
 
     public void setStreetType(String streetType) {
@@ -156,7 +156,7 @@ public class StreetAddress
     }
 
     public String getLocation() {
-        return location;
+        return (location != null) ? location : "";
     }
 
     public void setLocation(String location) {
@@ -164,7 +164,7 @@ public class StreetAddress
     }
 
     public String getState() {
-        return state;
+        return (state != null) ? state : "";
     }
 
     public void setState(String state) {
@@ -176,6 +176,6 @@ public class StreetAddress
     }
 
     public String getZip5() {
-        return this.zip5;
+        return (zip5 != null) ? zip5 : "";
     }
 }
