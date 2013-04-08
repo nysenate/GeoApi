@@ -44,6 +44,11 @@ public class GeocodedStreetAddress
         return this.geocode;
     }
 
+    public GeocodedAddress toGeocodedAddress()
+    {
+        return new GeocodedAddress((streetAddress != null) ? streetAddress.toAddress() : null, geocode);
+    }
+
     public boolean isGeocoded()
     {
         return (this.geocode != null && this.geocode.getQuality() != GeocodeQuality.NOMATCH);
