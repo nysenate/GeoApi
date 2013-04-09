@@ -24,6 +24,8 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import gov.nysenate.sage.util.UrlRequest;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
 import org.apache.log4j.Logger;
@@ -180,6 +182,9 @@ public class USPS implements AddressService, Observer
                         String state = xpath.evaluate("State", addressResponse);
                         String zip5 = xpath.evaluate("Zip5", addressResponse);
                         String zip4 = xpath.evaluate("Zip4", addressResponse);
+
+                        addr2 = (addr2 != null) ? WordUtils.capitalizeFully(addr2.toLowerCase()) : addr2;
+                        city = (city != null) ? WordUtils.capitalizeFully(city.toLowerCase()) : addr2;
 
                         /** USPS usually sets the addr2 which is not intuitive. Here we can
                          *  create a new Address object with addr1 initialized with addr2. */
