@@ -103,7 +103,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
     }
 
     /**
-     * Perform batch geocoding using application defaults
+     * Perform batch geocoding using recommended application defaults
      * @param addresses         List of addresses to geocode
      * @return                  List<GeocodeResult> corresponding to the addresses list.
      */
@@ -152,7 +152,8 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
         }
         /** If cache enabled, attempt to geocode batch and add the provider as the first fallback */
         if (useCache) {
-            geocodeResults = geocodeCache.geocode((ArrayList<Address>) addresses);
+            logger.debug("Running batch through geo cache..");
+            geocodeResults = this.geocodeCache.geocode((ArrayList<Address>) addresses);
             fallback.add(0, provider);
         }
         /** Use the specified provider without cache */
@@ -166,6 +167,8 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
 
         /** Get the indices of results that were not successful */
         failedIndices = getFailedResultIndices(geocodeResults);
+        logger.debug("There were " + failedIndices.size() + " cache misses.");
+
         Iterator<String> fallbackIterator = fallback.iterator();
 
         /** Create new batches containing just the failed results and run them through the fallback providers.

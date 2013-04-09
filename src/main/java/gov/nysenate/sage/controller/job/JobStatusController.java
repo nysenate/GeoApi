@@ -75,6 +75,7 @@ public class JobStatusController extends BaseJobController
                         break;
                     }
                     case "all" : {
+                        statusResponse = new JobStatusResponse(getAllJobProcesses());
                         break;
                     }
                 }
@@ -108,5 +109,10 @@ public class JobStatusController extends BaseJobController
     private List<JobProcessStatus> getInactiveJobProcesses()
     {
         return jobProcessDao.getInactiveJobStatuses();
+    }
+
+    private List<JobProcessStatus> getAllJobProcesses()
+    {
+        return jobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()));
     }
 }

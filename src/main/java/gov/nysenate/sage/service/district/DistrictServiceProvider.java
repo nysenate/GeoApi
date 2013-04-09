@@ -74,7 +74,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
     public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final String distProvider,
                                           final List<DistrictType> districtTypes, final boolean getMembers, final boolean getMaps)
     {
-        logger.info("Assigning districts for address " + geocodedAddress.getAddress());
+        logger.info("Assigning districts " + ((geocodedAddress != null) ? geocodedAddress.getAddress() : ""));
         DistrictResult districtResult = null;
         ExecutorService districtExecutor = null;
 
