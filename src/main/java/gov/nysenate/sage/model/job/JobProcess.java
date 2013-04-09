@@ -109,15 +109,4 @@ public class JobProcess
     public void setDistrictRequired(boolean districtRequired) {
         this.districtRequired = districtRequired;
     }
-
-    public static class ByRequestTime implements Comparator<JobProcess> {
-		@Override
-        public int compare(JobProcess o1, JobProcess o2) {
-			int ret = o1.getRequestTime().compareTo(o2.getRequestTime());
-			if(ret == 0) {
-				ret = -1;
-			}
-			return ret;
-		}
-	}
 }

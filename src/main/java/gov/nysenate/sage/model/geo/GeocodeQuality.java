@@ -6,7 +6,7 @@ package gov.nysenate.sage.model.geo;
  */
 public enum GeocodeQuality
 {
-    NOMATCH(0), UNKNOWN(1), STATE(10), COUNTY(30), CITY(40), ZIP(64), STREET(72), ZIP_EXT(75), HOUSE(87), POINT(99);
+    NOMATCH(0), STATE(10), COUNTY(30), CITY(40), UNKNOWN(64), ZIP(64), STREET(72), ZIP_EXT(75), HOUSE(87), POINT(99);
 
     private int value;
 

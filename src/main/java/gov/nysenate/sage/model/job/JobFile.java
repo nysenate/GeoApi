@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.job.file;
+package gov.nysenate.sage.model.job;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.DistrictType;

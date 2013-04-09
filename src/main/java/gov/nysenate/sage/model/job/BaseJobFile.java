@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.job.file;
+package gov.nysenate.sage.model.job;
 
 import java.util.ArrayList;
 import java.util.List;

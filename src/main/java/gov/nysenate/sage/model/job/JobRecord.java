@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.job.file;
+package gov.nysenate.sage.model.job;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -9,7 +9,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 
-import static gov.nysenate.sage.model.job.file.JobFile.*;
+import static gov.nysenate.sage.model.job.JobFile.*;
 
 import java.util.HashMap;
 import java.util.List;
