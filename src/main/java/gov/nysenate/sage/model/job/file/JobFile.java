@@ -9,8 +9,7 @@ import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class JobFile extends BaseJobFile<JobRecord>
 {
@@ -28,47 +27,59 @@ public class JobFile extends BaseJobFile<JobRecord>
 
     /** All recognized column names are represented here */
     public enum Column {
-        street(Group.address),
-        city(Group.address),
-        state(Group.address),
-        zip5(Group.address),
-        zip4(Group.address),
+        street(Arrays.asList("streetAddress", "street"), Group.address),
+        city(Arrays.asList("city"), Group.address),
+        state(Arrays.asList("stateProvinceId", "state"), Group.address),
+        zip5(Arrays.asList("postalCode", "postal", "zip", "zip5"), Group.address),
+        zip4(Arrays.asList("postalCodeSuffix", "postalSuffix", "zip4"), Group.address),
 
-        //streetNumber(Type.intType, Group.address),
-        //streetName(Group.address),
-        //streetUnit(Group.address),
+        lat(Arrays.asList("lat", "geoCode1", "latitude"), Group.geocode, Type.doubleType),
+        lon(Arrays.asList("lon", "lng", "geoCode2", "longitude"), Group.geocode, Type.doubleType),
+        geoMethod(Arrays.asList("geoMethod", "geoSource"), Group.geocode),
+        geoQuality(Arrays.asList("geoQuality", "accuracy"), Group.geocode),
 
-        geocode1(Type.doubleType, Group.geocode),
-        geocode2(Type.doubleType, Group.geocode),
-        lat(Type.doubleType, Group.geocode),
-        lon(Type.doubleType, Group.geocode),
-        geoMethod(Group.geocode),
-        geoQuality(Group.geocode),
-
-        town(Group.district),
-        ward(Group.district),
-        election(Group.district),
-        congressional(Group.district),
-        senate(Group.district),
-        assembly(Group.district),
-        county(Group.district),
-        school(Group.district);
+        town(Arrays.asList("town52", "townCode", "town"), Group.district),
+        ward(Arrays.asList("ward53", "wardCode", "ward"), Group.district),
+        election(Arrays.asList("electionDistrict49", "electionDistrict", "ed", "election"), Group.district),
+        congressional(Arrays.asList("congressionalDistrict46", "cd", "congressionalDistrict", "congressional"), Group.district),
+        senate(Arrays.asList("nySenateDistrict47", "sd", "senateDistrict", "senate"), Group.district),
+        assembly(Arrays.asList("nyAssemblyDistrict48", "ad", "assemblyDistrict", "assembly"), Group.district),
+        county(Arrays.asList("county50", "countyCode", "county"), Group.district),
+        school(Arrays.asList("schoolDistrict54", "schoolDistrict", "school"), Group.district);
 
         Type type;
         Group group;
-        Column(Group group) {
-            this.type = Type.stringType;
-            this.group = group;
+        List<String> aliases;
+        Column(List<String> aliases, Group group) {
+            this(aliases, group, Type.stringType);
         }
-        Column(Type type, Group group) {
-            this.type = type;
+        Column(List<String> aliases, Group group, Type type) {
+            this.aliases = aliases;
             this.group = group;
+            this.type = type;
+        }
+        public static Column resolveColumn(String alias)
+        {
+            for (Column column : Column.values()) {
+                if (column.aliases.contains(alias)) {
+                    return column;
+                }
+            }
+            return null;
         }
     }
 
     protected String[] header;
     protected List<Column> columns = new ArrayList<>();
+
+    protected Map<Column, Integer> columnIndexMap = new HashMap<>();
+
     protected List<CellProcessor> processors = new ArrayList<>();
+
+    public boolean hasAddress()
+    {
+        return checkColumnsForGroup(Group.address);
+    }
 
     /** Indicates whether the job has geocoding columns to be filled in */
     public boolean requiresGeocode()
@@ -139,21 +150,34 @@ public class JobFile extends BaseJobFile<JobRecord>
         return processors;
     }
 
+    /**
+     * Returns a map of resolved columns to indices
+     * @return Map<Column, Integer>
+     */
+    public Map<Column, Integer> getColumnIndexMap() {
+        return columnIndexMap;
+    }
 
     /**
-     * Given a header (array of column names) create a custom cell processor and header
+     * Given a header (array of column names) create a custom cell processor to parse values properly
      * @param header
      */
     public String[] processHeader(String[] header)
     {
         this.header = header.clone();
         for (int i = 0; i < header.length; i++ ) {
-            /** Try to match column name to a Column */
-            try {
-                if (header[i] != null) {
-                    Column headerColumn = Column.valueOf(FormatUtil.toCamelCase(header[i]));
-                    columns.add(headerColumn);
 
+            /** Try to match column name to a Column */
+            if (header[i] != null && !header[i].isEmpty()) {
+                String columnAlias = FormatUtil.toCamelCase(header[i]);
+                Column headerColumn = Column.resolveColumn(columnAlias);
+                if (headerColumn != null) {
+
+                    /** Record the index for the column */
+                    columns.add(headerColumn);
+                    columnIndexMap.put(headerColumn, i);
+
+                    /** Tell the processors to use the correct types */
                     if (headerColumn.type.equals(Type.doubleType)) {
                         this.processors.add(new Optional(new ParseDouble()));
                     }
@@ -165,13 +189,11 @@ public class JobFile extends BaseJobFile<JobRecord>
                     }
                 }
                 else {
-                    throw new IllegalArgumentException();
+                    this.processors.add(new Optional());
                 }
             }
-            /** Unmatched column headers are ignored */
-            catch (IllegalArgumentException ex) {
-                this.header[i] = null;
-                this.processors.add(null);
+            else {
+                this.processors.add(new Optional());
             }
         }
         return this.header;

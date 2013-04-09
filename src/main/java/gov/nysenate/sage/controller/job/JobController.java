@@ -12,8 +12,7 @@ import gov.nysenate.sage.util.auth.JobUserAuth;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.ift.CellProcessor;
-import org.supercsv.io.CsvBeanReader;
-import org.supercsv.io.CsvBeanWriter;
+import org.supercsv.io.*;
 import org.supercsv.prefs.CsvPreference;
 
 import javax.servlet.ServletConfig;
@@ -23,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.util.Date;
+import java.util.List;
 
 public class JobController extends BaseJobController
 {
@@ -72,7 +72,6 @@ public class JobController extends BaseJobController
 
     public void doLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        HttpSession session = request.getSession();
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
@@ -95,8 +94,8 @@ public class JobController extends BaseJobController
 
         Object uploadResponse = null;
         BufferedReader source = null;
-        CsvBeanReader jobReader = null;
-        CsvBeanWriter jobWriter = null;
+        ICsvListReader jobReader = null;
+        ICsvListWriter jobWriter = null;
 
         logger.debug("Performing file upload...");
         try {
@@ -115,29 +114,34 @@ public class JobController extends BaseJobController
 
                 logger.debug("Setting target upload file as " + targetFile.getAbsolutePath());
 
-                jobReader = new CsvBeanReader(source, CsvPreference.TAB_PREFERENCE);
-                jobWriter = new CsvBeanWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
+                jobReader = new CsvListReader(source, CsvPreference.TAB_PREFERENCE);
+                jobWriter = new CsvListWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
+
                 String[] header = jobReader.getHeader(true);
                 jobWriter.writeHeader(header);
                 header = jobFile.processHeader(header);
 
-                logger.debug("Processed file header: " + header.toString());
+                logger.debug("Processed file header: " + FormatUtil.printObject(header));
 
                 /** Check JobFileType enum to see if header is ok for processing */
-                if(!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
-                    logger.error("Uploaded job file does not have any address validation, geocode, or district assignment columns.");
-                    uploadResponse = new JobErrorResult("Uploaded job file does not have any address validation, geocode, " +
-                                                        "or district assignment columns.");
+                if (!jobFile.hasAddress()) {
+                    logger.error("Uploaded job file does not have any address fields!");
+                    uploadResponse = new JobErrorResult("Uploaded job file does not have required address columns!");
+                }
+                else if(!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
+                    logger.error("Uploaded job file does not have any geocode or district assignment columns.");
+                    uploadResponse = new JobErrorResult("Uploaded job file does not have any geocode " +
+                                                        "or district assignment columns!");
                 }
                 else {
                     logger.info("Creating file: " + targetFile.getAbsolutePath());
 
                     /** Transfer file contents and count the records. Use the same line delimiter as the source file. */
                     int count = 0;
-                    JobRecord jobRecord;
                     final CellProcessor[] processors = jobFile.getProcessors().toArray(new CellProcessor[0]);
-                    while((jobRecord = jobReader.read(JobRecord.class, header, processors)) != null) {
-                        jobWriter.write(jobRecord, header, processors);
+                    List<Object> row;
+                    while ((row = jobReader.read(processors)) != null) {
+                        jobWriter.write(row, processors);
                         count++;
                     }
 

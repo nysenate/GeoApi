@@ -18,10 +18,7 @@ import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.ift.CellProcessor;
-import org.supercsv.io.CsvBeanReader;
-import org.supercsv.io.CsvBeanWriter;
-import org.supercsv.io.ICsvBeanReader;
-import org.supercsv.io.ICsvBeanWriter;
+import org.supercsv.io.*;
 import org.supercsv.prefs.CsvPreference;
 
 import java.io.*;
@@ -157,16 +154,16 @@ public class ProcessBatchJobs
 
         ExecutorService geocodeExecutor = Executors.newFixedThreadPool(GEOCODE_THREAD_COUNT);
         ExecutorService districtExecutor = Executors.newFixedThreadPool(DISTRICT_THREAD_COUNT);
-        ICsvBeanReader jobReader = null;
-        ICsvBeanWriter jobWriter = null;
+        ICsvListReader jobReader = null;
+        ICsvListWriter jobWriter = null;
 
         try {
             /** Initialize file readers and writers */
             FileReader fileReader = new FileReader(new File(UPLOAD_DIR + fileName));
-            jobReader = new CsvBeanReader(fileReader, CsvPreference.TAB_PREFERENCE);
+            jobReader = new CsvListReader(fileReader, CsvPreference.TAB_PREFERENCE);
 
             FileWriter fileWriter = new FileWriter(new File(DOWNLOAD_DIR, fileName));
-            jobWriter = new CsvBeanWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
+            jobWriter = new CsvListWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
 
             String[] header = jobReader.getHeader(true);
             jobWriter.writeHeader(header);
@@ -174,7 +171,6 @@ public class ProcessBatchJobs
             /** Create the job file and analyze the header columns */
             JobFile jobFile = new JobFile();
             header = jobFile.processHeader(header);
-            JobRecord jobRecord;
 
             logger.info("--------------------------------------------------------------------");
             logger.info("Starting Batch Job");
@@ -195,8 +191,9 @@ public class ProcessBatchJobs
             else {
                 /** Read records into a JobFile */
                 final CellProcessor[] processors = jobFile.getProcessors().toArray(new CellProcessor[0]);
-                while( (jobRecord = jobReader.read(JobRecord.class, header, processors)) != null ) {
-                    jobFile.addRecord(jobRecord);
+                List<Object> row;
+                while( (row = jobReader.read(processors)) != null ) {
+                    jobFile.addRecord(new JobRecord(jobFile, row));
                 }
                 logger.info(jobFile.getRecords().size() + " records");
                 logger.info("--------------------------------------------------------------------");
@@ -229,7 +226,7 @@ public class ProcessBatchJobs
                         logger.info("Waiting on batch # " + i);
                         JobBatch batch = jobResults.get(i).get();
                         for (JobRecord record : batch.getJobRecords()) {
-                            jobWriter.write(record, header, processors);
+                            jobWriter.write(record.getRow(), processors);
                         }
                         jobStatus.setCompletedRecords(jobStatus.getCompletedRecords() + batch.getJobRecords().size());
                         jobProcessDao.setJobProcessStatus(jobStatus);
@@ -300,25 +297,26 @@ public class ProcessBatchJobs
 
     public static class DistrictJobBatch implements Callable<JobBatch>
     {
-        private JobBatch jobBatch;
+        private Future<JobBatch> futureJobBatch;
         private List<DistrictType> districtTypes;
         public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types) throws InterruptedException,
                                                                                                   ExecutionException
         {
-            this.jobBatch = futureJobBatch.get();
+            this.futureJobBatch = futureJobBatch;
             this.districtTypes = types;
         }
 
         @Override
         public JobBatch call() throws Exception
         {
+            JobBatch jobBatch = futureJobBatch.get();
             System.out.print("District assignment for records " + jobBatch.fromRecord + "-" + jobBatch.toRecord);
             List<DistrictResult> districtResults = districtProvider.assignDistricts(jobBatch.getGeocodedAddresses(),
                                                                                     this.districtTypes);
             for (int i = 0; i < districtResults.size(); i++) {
                 jobBatch.setDistrictResult(i, districtResults.get(i));
             }
-            return this.jobBatch;
+            return jobBatch;
         }
     }
 

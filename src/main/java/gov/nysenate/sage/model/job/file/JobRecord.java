@@ -6,14 +6,21 @@ import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 
+import static gov.nysenate.sage.model.job.file.JobFile.*;
+
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class JobRecord
 {
+    protected List<Object> row;
+    protected Map<Column, Integer> indexMap;
+    protected Map<Column, Object> dataMap = new HashMap<>();
+
     protected Address address;
     protected Address correctedAddress;
     protected StreetAddress streetAddress;
@@ -29,10 +36,49 @@ public class JobRecord
         this.districtInfo = new DistrictInfo();
     }
 
+    public JobRecord(JobFile parentJobFile, List<Object> row)
+    {
+        this.row = row;
+        this.indexMap = parentJobFile.getColumnIndexMap();
+        for (Column column : this.indexMap.keySet()) {
+            Object value = this.row.get(this.indexMap.get(column));
+            dataMap.put(column, value);
+        }
+
+        /** Construct address */
+        String street = (String) dataMap.get(Column.street);
+        String city = (String) dataMap.get(Column.city);
+        String state = (String) dataMap.get(Column.state);
+        String zip5 = (String) dataMap.get(Column.zip5);
+        String zip4 = (String) dataMap.get(Column.zip4);
+        this.address = new Address(street, "", city, state, zip5, zip4);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public List<Object> getRow()
+    {
+        for (Column column : this.indexMap.keySet()) {
+            this.row.set(this.indexMap.get(column), this.dataMap.get(column));
+        }
+        return this.row;
+    }
+
+    public Map<Column, Object> getDataMap()
+    {
+        return dataMap;
+    }
+
     public void applyGeocodeResult(GeocodeResult geocodeResult)
     {
         if (geocodeResult != null && geocodeResult.isSuccess()) {
             this.geocode = geocodeResult.getGeocode();
+            this.dataMap.put(Column.lat, this.geocode.getLat());
+            this.dataMap.put(Column.lon, this.geocode.getLon());
+            this.dataMap.put(Column.geoMethod, this.geocode.getMethod());
+            this.dataMap.put(Column.geoQuality, this.geocode.getQuality());
         }
     }
 
@@ -40,11 +86,20 @@ public class JobRecord
     {
         if (districtResult != null && (districtResult.isSuccess() || districtResult.isPartialSuccess())) {
             this.districtInfo = districtResult.getDistrictInfo();
+            this.dataMap.put(Column.senate, districtInfo.getDistCode(DistrictType.SENATE));
+            this.dataMap.put(Column.assembly, districtInfo.getDistCode(DistrictType.ASSEMBLY));
+            this.dataMap.put(Column.congressional, districtInfo.getDistCode(DistrictType.CONGRESSIONAL));
+            this.dataMap.put(Column.county, districtInfo.getDistCode(DistrictType.COUNTY));
+            this.dataMap.put(Column.school, districtInfo.getDistCode(DistrictType.SCHOOL));
+            this.dataMap.put(Column.town, districtInfo.getDistCode(DistrictType.TOWN));
+            this.dataMap.put(Column.election, districtInfo.getDistCode(DistrictType.ELECTION));
+            this.dataMap.put(Column.ward, districtInfo.getDistCode(DistrictType.WARD));
         }
     }
 
     /** Explicit getters/setters */
-    public Address getAddress() {
+    public Address getAddress()
+    {
         return address;
     }
 
@@ -84,172 +139,8 @@ public class JobRecord
         this.districtInfo = districtInfo;
     }
 
-    /** Implicit getters/setters */
+    /** Implicit getters */
     public GeocodedAddress getGeocodedAddress() {
         return (geocode != null) ?  new GeocodedAddress(address, geocode) : new GeocodedAddress();
-    }
-
-    public String getStreet() {
-        return address.getAddr1();
-    }
-
-    public void setStreet(String street) {
-        this.address.setAddr1(street);
-    }
-
-    public String getCity() {
-        return address.getCity();
-    }
-
-    public void setCity(String city) {
-        this.address.setCity(city);
-    }
-
-    public String getState() {
-        return address.getState();
-    }
-
-    public void setState(String state) {
-        this.address.setState(state);
-    }
-
-    public String getZip5() {
-        return address.getZip5();
-    }
-
-    public void setZip5(String zip5) {
-        this.address.setZip5(zip5);
-    }
-
-    public String getZip4() {
-        return address.getZip4();
-    }
-
-    public void setZip4(String zip4) {
-        this.address.setZip4(zip4);
-    }
-
-    public Integer getStreetNumber() {
-        return streetAddress.getBldgNum();
-    }
-
-    public void setStreetNumber(Integer streetNumber) {
-        this.streetAddress.setBldgNum(streetNumber);
-    }
-
-    public String getStreetName() {
-        return streetAddress.getStreet();
-    }
-
-    public void setStreetName(String streetName) {
-        this.streetAddress.setStreet(streetName);
-    }
-
-    public Double getGeocode1() {
-        return geocode.getLat();
-    }
-
-    public void setGeocode1(Double geocode1) {
-        this.geocode.setLat(geocode1);
-    }
-
-    public Double getGeocode2() {
-        return geocode.getLon();
-    }
-
-    public void setGeocode2(Double geocode2) {
-        this.geocode.setLon(geocode2);
-    }
-
-    public Double getLat() {
-        return geocode.getLat();
-    }
-
-    public void setLat(Double lat) {
-        geocode.setLat(lat);
-    }
-
-    public Double getLon() {
-        return geocode.getLon();
-    }
-
-    public void setLon(Double lon) {
-        this.geocode.setLon(lon);
-    }
-
-    public String getGeoMethod() {
-        return geocode.getMethod();
-    }
-
-    public void setGeoMethod(String geoMethod) {
-        this.geocode.setMethod(geoMethod);
-    }
-
-    public String getGeoQuality() {
-        return geocode.getQuality().name();
-    }
-
-    public String getTown() {
-        return districtInfo.getDistCode(DistrictType.TOWN);
-    }
-
-    public void setTown(String town) {
-        this.districtInfo.setDistCode(DistrictType.TOWN, town);
-    }
-
-    public String getWard() {
-        return districtInfo.getDistCode(DistrictType.WARD);
-    }
-
-    public void setWard(String ward) {
-        this.districtInfo.setDistCode(DistrictType.WARD, ward);
-    }
-
-    public String getElection() {
-        return districtInfo.getDistCode(DistrictType.ELECTION);
-    }
-
-    public void setElection(String election) {
-        this.districtInfo.setDistCode(DistrictType.ELECTION, election);
-    }
-
-    public String getCongressional() {
-        return districtInfo.getDistCode(DistrictType.CONGRESSIONAL);
-    }
-
-    public void setCongressional(String congressional) {
-        this.districtInfo.setDistCode(DistrictType.CONGRESSIONAL, congressional);
-    }
-
-    public String getSenate() {
-        return districtInfo.getDistCode(DistrictType.SENATE);
-    }
-
-    public void setSenate(String senate) {
-        this.districtInfo.setDistCode(DistrictType.SENATE, senate);
-    }
-
-    public String getAssembly() {
-        return districtInfo.getDistCode(DistrictType.ASSEMBLY);
-    }
-
-    public void setAssembly(String assembly) {
-        this.districtInfo.setDistCode(DistrictType.ASSEMBLY, assembly);
-    }
-
-    public String getCounty() {
-        return districtInfo.getDistCode(DistrictType.COUNTY);
-    }
-
-    public void setCounty(String county) {
-        this.districtInfo.setDistCode(DistrictType.COUNTY, county);
-    }
-
-    public String getSchool() {
-        return districtInfo.getDistCode(DistrictType.SCHOOL);
-    }
-
-    public void setSchool(String school) {
-        this.districtInfo.setDistCode(DistrictType.SCHOOL, school);
     }
 }
