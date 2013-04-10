@@ -166,7 +166,7 @@ public class ProcessBatchJobs
                 List<DistrictType> districtTypes = jobFile.getRequiredDistrictTypes();
 
                 int recordCount = jobFile.recordCount();
-                int batchCount =  (recordCount + JOB_BATCH_SIZE - 1) / 0; // Allows us to round up
+                int batchCount =  (recordCount + JOB_BATCH_SIZE - 1) / JOB_BATCH_SIZE; // Allows us to round up
                 logger.info("Dividing job into " + batchCount + " batches");
 
                 for (int i = 0; i < batchCount; i++) {
