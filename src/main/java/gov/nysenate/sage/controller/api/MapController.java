@@ -8,19 +8,16 @@ import java.io.IOException;
 
 public class MapController extends BaseApiController
 {
+    @Override
+    public void init(ServletConfig config) throws ServletException {}
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        doGet(request, response);
     }
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 }

@@ -12,8 +12,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -22,9 +24,9 @@ import java.util.List;
  *
  *    /job/status/process/{Process Id}  - Get process information for a given process
  *    /job/status/active                - Get all active processes
+ *    /job/status/completed             - Get processes that completed successfully within the past day
  *    /job/status/inactive              - Get all inactive processes
  *    /job/status/all                   - Get all processes (basically a job history)
- *
  */
 public class JobStatusController extends BaseJobController
 {
@@ -74,6 +76,10 @@ public class JobStatusController extends BaseJobController
                         statusResponse = new JobStatusResponse(getInactiveJobProcesses());
                         break;
                     }
+                    case "completed" : {
+                        statusResponse = new JobStatusResponse(getRecentlyCompletedJobProcesses());
+                        break;
+                    }
                     case "all" : {
                         statusResponse = new JobStatusResponse(getAllJobProcesses());
                         break;
@@ -114,5 +120,14 @@ public class JobStatusController extends BaseJobController
     private List<JobProcessStatus> getAllJobProcesses()
     {
         return jobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()));
+    }
+
+    private List<JobProcessStatus> getRecentlyCompletedJobProcesses()
+    {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, -1);
+        Timestamp yesterday = new Timestamp(calendar.getTimeInMillis());
+
+        return jobProcessDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, null, yesterday);
     }
 }

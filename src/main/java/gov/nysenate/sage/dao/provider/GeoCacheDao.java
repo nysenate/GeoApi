@@ -26,7 +26,7 @@ public class GeoCacheDao extends BaseDao
     protected static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
     protected Config config;
     protected static int BUFFER_SIZE = 100;
-    protected QueryRunner tigerQuery = getTigerQueryRunner();
+    protected QueryRunner tigerRun = getTigerQueryRunner();
     //protected static ExecutorService executorService = Executors.newSingleThreadExecutor();
     //protected AsyncQueryRunner tigerAsyncQuery = getAsyncTigerQueryRunner(executorService);
 
@@ -52,7 +52,7 @@ public class GeoCacheDao extends BaseDao
                 "AND gc.streetType ILIKE sa.streettypeabbrev\n" +
                 "AND gc.zip5 ILIKE sa.zip";
         try {
-            return tigerQuery.query(sql, new GeocodedStreetAddressHandler(), address.toNormalizedString());
+            return tigerRun.query(sql, new GeocodedStreetAddressHandler(), address.toNormalizedString());
         }
         catch (SQLException ex) {
             logger.error("Error retrieving geo cache hit!", ex);
@@ -71,7 +71,7 @@ public class GeoCacheDao extends BaseDao
                 "AND gc.streetType ILIKE sa.streettypeabbrev\n" +
                 "AND gc.zip5 ILIKE sa.zip";
         try {
-            return tigerQuery.query(sql, new ResultSetHandler<Boolean>() {
+            return tigerRun.query(sql, new ResultSetHandler<Boolean>() {
                 @Override
                 public Boolean handle(ResultSet rs) throws SQLException {
                     if (rs.next()) {
@@ -126,10 +126,10 @@ public class GeoCacheDao extends BaseDao
             if (geocodedAddress != null && geocodedAddress.isAddressValid() && geocodedAddress.isGeocoded()) {
                 Address address = geocodedAddress.getAddress();
                 Geocode gc = geocodedAddress.getGeocode();
-                if (!isCached(address)) {
+                if (getCacheHit(address) == null) {
                     StreetAddress sa = tigerGeocoderDao.getStreetAddress(geocodedAddress.getAddress());
                     try {
-                        tigerQuery.update(sql, Integer.valueOf(sa.getBldgNum()),
+                        tigerRun.update(sql, Integer.valueOf(sa.getBldgNum()),
                                 sa.getPreDir(),
                                 sa.getStreet(),
                                 sa.getStreetType(),

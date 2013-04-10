@@ -2,16 +2,17 @@ package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.dao.provider.StreetFileDao;
 import gov.nysenate.sage.dao.provider.TigerGeocoderDao;
+import gov.nysenate.sage.model.address.DistrictStreetRange;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.service.district.StreetLookupService;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.AddressParser;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
@@ -29,7 +30,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
    District information can be obtained quickly by matching a given address to an
    address range stored in the street file database.
  */
-public class StreetFile implements DistrictService
+public class StreetFile implements DistrictService, StreetLookupService
 {
     private Logger logger = Logger.getLogger(StreetFile.class);
     private TigerGeocoderDao tigerGeocoderDao;
@@ -48,7 +49,22 @@ public class StreetFile implements DistrictService
 
     /** No map functionality */
     @Override
-    public void fetchMaps(boolean fetch) {}
+    public void fetchMaps(boolean fetch) {
+        logger.warn("Street files do not support district maps!");
+    }
+
+    @Override
+    public List<DistrictStreetRange> streetLookup(String zip5)
+    {
+        try {
+            int intZip5 = Integer.parseInt(zip5);
+            return streetFileDao.getDistrictStreetRangesByZip(intZip5);
+        }
+        catch (NumberFormatException ex) {
+            logger.error("Zip5 must be parseable as an int!", ex);
+        }
+        return null;
+    }
 
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)

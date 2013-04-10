@@ -42,8 +42,8 @@ public class ApplicationFactory
 
     /** Service Providers */
     private ServiceProviders<AddressService> addressServiceProviders = new ServiceProviders<>();
-    private DistrictServiceProvider districtServiceProvider = new DistrictServiceProvider();
-    private GeocodeServiceProvider geocodeServiceProvider = new GeocodeServiceProvider();
+    private DistrictServiceProvider districtServiceProvider;
+    private GeocodeServiceProvider geocodeServiceProvider;
 
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
@@ -93,6 +93,7 @@ public class ApplicationFactory
             addressServiceProviders.registerDefaultProvider("usps", new USPS());
             addressServiceProviders.registerProvider("mapquest", new MapQuest());
 
+            geocodeServiceProvider = new GeocodeServiceProvider();
             geocodeServiceProvider.registerDefaultProvider("yahoo", new Yahoo());
             geocodeServiceProvider.registerProvider("tiger", new TigerGeocoder());
             geocodeServiceProvider.registerProvider("mapquest", new MapQuest());
@@ -100,6 +101,7 @@ public class ApplicationFactory
             geocodeServiceProvider.registerProvider("osm", new OSM());
             geocodeServiceProvider.registerProvider("ruby", new RubyGeocoder());
 
+            districtServiceProvider = new DistrictServiceProvider();
             districtServiceProvider.registerDefaultProvider("shapefile", new DistrictShapefile());
             districtServiceProvider.registerProvider("streetfile", new StreetFile());
             districtServiceProvider.registerProvider("geoserver", new Geoserver());

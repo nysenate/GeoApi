@@ -22,6 +22,115 @@ public class StreetFileDao extends BaseDao
 
     public StreetFileDao() {}
 
+    /**
+     * Performs a street file lookup
+     * @param streetAddr     The StreetAddress to base the search on
+     * @param useStreet      Use the street name as a criteria for the search
+     * @param fuzzy          Use a wildcard on the street name to expand the search space
+     * @param useHouse       Use the house number as a criteria for the search
+     * @return               A LinkedHashMap containing StreetAddressRange and DistrictInfo
+     * @throws SQLException
+     */
+    public Map<StreetAddressRange, DistrictInfo> getDistrictStreetRangeMap(
+            StreetAddress streetAddr, boolean useStreet, boolean fuzzy, boolean useHouse) throws SQLException
+    {
+        ArrayList<Object> params = new ArrayList<>();
+        String sql = "SELECT * FROM streetfile WHERE 1=1 \n";
+
+        boolean whereZip = (streetAddr.getZip5() != null && !streetAddr.getZip5().isEmpty());
+        boolean whereState = (streetAddr.getState() != null && !streetAddr.getState().isEmpty());
+        boolean whereStreet = (useStreet && streetAddr.getStreet() != null && !streetAddr.getStreet().isEmpty());
+        boolean whereBldg = (useHouse && streetAddr.getBldgNum() != 0);
+        boolean whereBldgChr = (useHouse && streetAddr.getBldgChar() != null && !streetAddr.getBldgChar().isEmpty());
+
+        if (whereZip) {
+            sql += " AND zip5=? \n";
+            params.add(Integer.valueOf(streetAddr.getZip5()));
+        }
+
+        if (whereState) {
+            sql += " AND state=? \n";
+            params.add(streetAddr.getState());
+        }
+
+        if (whereStreet) {
+            /** Sometimes the bldg_chr is actually the tail end of the street name */
+            if (whereBldgChr) {
+                /** Handle dashed NYC buildings by collapsing on the dash */
+                if (streetAddr.getBldgChar().startsWith("-")) {
+                    try {
+                        String bldgNum = String.valueOf(streetAddr.getBldgNum()) + streetAddr.getBldgChar().substring(1);
+                        streetAddr.setBldgNum(Integer.parseInt(bldgNum));
+                        streetAddr.setBldgChar(null);
+                    }
+                    catch (NumberFormatException e) {
+                        logger.warn("bldg_chr `" + streetAddr.getBldgChar() + "` not as expected.");
+                    }
+                }
+
+                /** Every one else gets a range check; sometimes the suffix is actually part of the street prefix. */
+                if (streetAddr.getBldgChar() != null) {
+                    if (fuzzy) {
+                        sql += " AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
+                        params.add(streetAddr.getBldgChar() + " " + streetAddr.getStreet() + "%");
+                        params.add(streetAddr.getStreet() + "%");
+                    }
+                    else {
+                        sql += " AND (street = ? OR (street = ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
+                        params.add(streetAddr.getBldgChar() + " " + streetAddr.getStreet());
+                        params.add(streetAddr.getStreet());
+                    }
+                    params.add(streetAddr.getBldgChar());
+                    params.add(streetAddr.getBldgChar());
+                }
+            }
+            else {
+                if (fuzzy) {
+                    sql += " AND (street LIKE ?) \n";
+                    params.add(streetAddr.getStreet() + "%");
+                }
+                else {
+                    sql += " AND (street = ?) \n";
+                    params.add(streetAddr.getStreet());
+                }
+            }
+
+            if (whereBldg) {
+                sql += " AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity= "
+                        + (streetAddr.getBldgNum() % 2 == 0 ? "'EVENS'" : "'ODDS'") + ")) \n";
+                params.add(streetAddr.getBldgNum());
+                params.add(streetAddr.getBldgNum());
+            }
+        }
+        /** Only do a lookup if we have meaningful filters on the query */
+        if (whereZip || whereStreet) {
+            return run.query(sql, new DistrictStreetRangeMapHandler(), params.toArray());
+        }
+        else {
+            logger.warn("Skipping address: no identifying information " + streetAddr);
+            return null;
+        }
+    }
+
+    public List<DistrictStreetRange> getDistrictStreetRangesByZip(int zip5)
+    {
+        String sql = "SELECT * FROM streetfile WHERE zip5 = ?";
+        try {
+            Map<StreetAddressRange, DistrictInfo> resultMap = run.query(sql, new DistrictStreetRangeMapHandler(), zip5);
+            if (resultMap != null && resultMap.size() > 0) {
+                List<DistrictStreetRange> districtStreetRanges = new ArrayList<>();
+                for (StreetAddressRange sar : resultMap.keySet()) {
+                    districtStreetRanges.add(new DistrictStreetRange(sar, resultMap.get(sar)));
+                }
+                return districtStreetRanges;
+            }
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to get district street range lookup!", ex);
+        }
+        return null;
+    }
+
     public DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress) throws SQLException
     {
         return getDistAddressByHouse(streetAddress, false);
@@ -96,96 +205,6 @@ public class StreetFileDao extends BaseDao
             return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, ZIP5);
         }
         else {
-            return null;
-        }
-    }
-
-    /**
-     *
-     * @param streetAddr     The StreetAddress to base the search on
-     * @param useStreet      Use the street name as a criteria for the search
-     * @param fuzzy          Use a wildcard on the street name to expand the search space
-     * @param useHouse       Use the house number as a criteria for the search
-     * @return               A LinkedHashMap containing StreetAddressRange and DistrictInfo
-     * @throws SQLException
-     */
-    public Map<StreetAddressRange, DistrictInfo> getDistrictStreetRangeMap(
-            StreetAddress streetAddr, boolean useStreet, boolean fuzzy, boolean useHouse) throws SQLException
-    {
-        ArrayList<Object> params = new ArrayList<>();
-        String sql = "SELECT * FROM streetfile WHERE 1=1 \n";
-
-        boolean whereZip = (streetAddr.getZip5() != null && !streetAddr.getZip5().isEmpty());
-        boolean whereState = (streetAddr.getState() != null && !streetAddr.getState().isEmpty());
-        boolean whereStreet = (useStreet && streetAddr.getStreet() != null && !streetAddr.getStreet().isEmpty());
-        boolean whereBldg = (useHouse && streetAddr.getBldgNum() != 0);
-        boolean whereBldgChr = (useHouse && streetAddr.getBldgChar() != null && !streetAddr.getBldgChar().isEmpty());
-
-        if (whereZip) {
-            sql += " AND zip5=? \n";
-            params.add(Integer.valueOf(streetAddr.getZip5()));
-        }
-
-        if (whereState) {
-            sql += " AND state=? \n";
-            params.add(streetAddr.getState());
-        }
-
-        if (whereStreet) {
-            /** Sometimes the bldg_chr is actually the tail end of the street name */
-            if (whereBldgChr) {
-                /** Handle dashed NYC buildings by collapsing on the dash */
-                if (streetAddr.getBldgChar().startsWith("-")) {
-                    try {
-                        String bldgNum = String.valueOf(streetAddr.getBldgNum()) + streetAddr.getBldgChar().substring(1);
-                        streetAddr.setBldgNum(Integer.parseInt(bldgNum));
-                        streetAddr.setBldgChar(null);
-                    }
-                    catch (NumberFormatException e) {
-                        logger.warn("bldg_chr `" + streetAddr.getBldgChar() + "` not as expected.");
-                    }
-                }
-
-                /** Every one else gets a range check; sometimes the suffix is actually part of the street prefix. */
-                if (streetAddr.getBldgChar() != null) {
-                    if (fuzzy) {
-                        sql += " AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
-                        params.add(streetAddr.getBldgChar() + " " + streetAddr.getStreet() + "%");
-                        params.add(streetAddr.getStreet() + "%");
-                    }
-                    else {
-                        sql += " AND (street = ? OR (street = ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
-                        params.add(streetAddr.getBldgChar() + " " + streetAddr.getStreet());
-                        params.add(streetAddr.getStreet());
-                    }
-                    params.add(streetAddr.getBldgChar());
-                    params.add(streetAddr.getBldgChar());
-                }
-            }
-            else {
-                if (fuzzy) {
-                    sql += " AND (street LIKE ?) \n";
-                    params.add(streetAddr.getStreet() + "%");
-                }
-                else {
-                    sql += " AND (street = ?) \n";
-                    params.add(streetAddr.getStreet());
-                }
-            }
-
-            if (whereBldg) {
-                sql += " AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity= "
-                     + (streetAddr.getBldgNum() % 2 == 0 ? "'EVENS'" : "'ODDS'") + ")) \n";
-                params.add(streetAddr.getBldgNum());
-                params.add(streetAddr.getBldgNum());
-            }
-        }
-        /** Only do a lookup if we have meaningful filters on the query */
-        if (whereZip || whereStreet) {
-            return run.query(sql, new DistrictStreetRangeMapHandler(), params.toArray());
-        }
-        else {
-            logger.warn("Skipping address: no identifying information " + streetAddr);
             return null;
         }
     }

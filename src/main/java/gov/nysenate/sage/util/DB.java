@@ -63,6 +63,8 @@ public class DB implements Observer
         p.setMinIdle(10);
         p.setMaxIdle(100);
 
+        p.setDefaultAutoCommit(true);
+
         /** Allow for 30 seconds between validating idle connections and cleaning abandoned connections. */
         p.setValidationInterval(30000);
         p.setTimeBetweenEvictionRunsMillis(30000);

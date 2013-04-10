@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -153,6 +154,22 @@ public class JobProcessDao extends BaseDao
         }
         catch (SQLException ex){
             logger.error("Failed to retrieve statuses by conditions!", ex);
+        }
+        return null;
+    }
+
+    public List<JobProcessStatus> getRecentlyCompletedJobStatuses(Condition condition, JobUser jobUser, Timestamp afterThis)
+    {
+        String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status " +
+                "ON id = processId WHERE ";
+        sql += "status.condition = ? AND status.completeTime >= ? ";
+        sql += (jobUser != null) ? " AND userId = " + jobUser.getId() + " " : "";
+        sql += "ORDER BY status.completeTime DESC";
+        try {
+            return run.query(sql, statusListHandler, condition.name(), afterThis);
+        }
+        catch (SQLException ex){
+            logger.error("Failed to retrieve recent job statuses!", ex);
         }
         return null;
     }

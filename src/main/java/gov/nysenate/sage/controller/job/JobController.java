@@ -38,6 +38,7 @@ public class JobController extends BaseJobController
             logger.debug("Authenticated! Sending to main job page");
             /** Clear out previous info */
             getJobRequest(request).clear();
+            request.setAttribute("downloadDir", "/home/ash/mooo");
             request.getRequestDispatcher("/jobmain.jsp").forward(request, response);
         }
         else {
