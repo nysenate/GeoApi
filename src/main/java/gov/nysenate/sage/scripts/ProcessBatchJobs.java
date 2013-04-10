@@ -2,8 +2,6 @@ package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.dao.model.JobProcessDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.DistrictResult;
@@ -14,10 +12,12 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.Mailer;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.ift.CellProcessor;
-import org.supercsv.io.*;
+import org.supercsv.io.CsvListReader;
+import org.supercsv.io.CsvListWriter;
+import org.supercsv.io.ICsvListReader;
+import org.supercsv.io.ICsvListWriter;
 import org.supercsv.prefs.CsvPreference;
 
 import java.io.*;
@@ -35,12 +35,13 @@ import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
  */
 public class ProcessBatchJobs
 {
-    public static Config config;
-    public static String UPLOAD_DIR;
-    public static String DOWNLOAD_DIR;
-    public static Integer GEOCODE_THREAD_COUNT;
-    public static Integer DISTRICT_THREAD_COUNT;
-    public static Integer JOB_BATCH_SIZE;
+    private static Config config;
+    private static String UPLOAD_DIR;
+    private static String DOWNLOAD_DIR;
+    private static Integer GEOCODE_THREAD_COUNT;
+    private static Integer DISTRICT_THREAD_COUNT;
+    private static Integer JOB_BATCH_SIZE;
+    private static String LOCK_FILENAME = "batchJobProcess.lock";
 
     public static Logger logger = Logger.getLogger(ProcessBatchJobs.class);
     public static Mailer mailer;
@@ -64,8 +65,11 @@ public class ProcessBatchJobs
     }
 
     /** Entry point for cron job */
-    public static void main(String[] args)
+    public static void main(String[] args) throws Exception
     {
+        /** Ensure another job process is not running */
+        checkLockFile();
+
         /** Bootstrap the application */
         ApplicationFactory.buildInstances();
         ProcessBatchJobs processBatchJobs = new ProcessBatchJobs();
@@ -91,9 +95,28 @@ public class ProcessBatchJobs
             }
         }
 
+        /** Clean up and exit */
         logger.info("Wrapping things up..");
         ApplicationFactory.close();
         System.exit(0);
+    }
+
+    /**
+     * If the lock file already exists, then fail. Otherwise, create it and arrange for it to be automatically
+     * deleted on exit.
+    */
+    public static void checkLockFile() throws IOException
+    {
+        String tempDir = System.getProperty("java.io.tmpdir", "/tmp");
+        File lockFile = new File(tempDir, LOCK_FILENAME);
+        boolean rc = lockFile.createNewFile();
+        if (rc == true) {
+            lockFile.deleteOnExit();
+        }
+        else {
+            logger.error("Lock file [" + lockFile.getAbsolutePath() + "] already exists; exiting immediately");
+            System.exit(1);
+        }
     }
 
     /**
