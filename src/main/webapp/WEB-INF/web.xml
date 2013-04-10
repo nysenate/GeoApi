@@ -82,5 +82,4 @@
         <url-pattern>/job/status/*</url-pattern>
     </servlet-mapping>
 
-
 </web-app>

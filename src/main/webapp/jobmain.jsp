@@ -23,7 +23,7 @@
                             <li>
                                 <div id="fileuploaded" style="padding:20px;">
                                     <div>
-                                        <table style="width:100%">
+                                        <table class="job-table">
                                             <thead style="text-align:left;border-bottom: 1px solid #999">
                                             <tr>
                                                 <th width="450px">File name</th>
@@ -61,7 +61,7 @@
                     <div style="text-align: center;margin-left:20px;">
                         <h3 ng-show="runningProcesses.length">Running jobs</h3>
                         <div class="running-process-view" ng-repeat="runningProcess in runningProcesses">
-                            <table style="width:100%;">
+                            <table class="job-table">
                                 <tr>
                                     <td><span style="color:teal;font-weight:bold;">Job {{runningProcess.processId}} - {{runningProcess.process.sourceFileName}}</span></td>
                                     <td><span></span></td>
@@ -81,18 +81,28 @@
                                         <span>Records Completed: {{runningProcess.completedRecords}} / {{runningProcess.process.recordCount}}</span>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td colspan="3">
-                                        <span>ETA - 3 days</span>
-                                    </td>
-                                </tr>
                             </table>
-
-
                         </div>
 
+                        <h3>Recently Completed Jobs</h3>
+                        ${downloadDir}
+                        <table class="job-table">
+                            <thead style="text-align:left;border-bottom: 1px solid #999">
+                            <tr>
+                                <th>Job Id</th>
+                                <th>File name</th>
+                                <th>Submitter</th>
+                            </tr>
+                            </thead>
+                            <tr ng-repeat="completedProcess in completedProcesses">
+                                <td>{{completedProcess.processId}}</td>
+                                <td>{{completedProcess.process.sourceFileName}}</td>
+                                <td>{{activeProcess.condition}}</td>
+                            </tr>
+                        </table>
+
                         <h3>Queued jobs</h3>
-                        <table style="width:100%">
+                        <table class="job-table">
                             <thead style="text-align:left;border-bottom: 1px solid #999">
                             <tr>
                                 <th>Job Id</th>
@@ -114,6 +124,31 @@
                         </table>
                     </div>
 
+                </div>
+                <div id="history-container" ng-show="visible" ng-controller="JobHistoryController" style="width:100%;height:100%;">
+                    <div style="text-align: center;margin-left:20px;">
+                        <h3>Batch Job History</h3>
+                        <table class="job-table">
+                            <thead style="text-align:left;border-bottom: 1px solid #999">
+                            <tr>
+                                <th>Job Id</th>
+                                <th>File name</th>
+                                <th>Records</th>
+                                <th>Started</th>
+                                <th>Completed</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tr ng-repeat="allProcess in allProcesses">
+                                <td>{{allProcess.processId}}</td>
+                                <td>{{allProcess.process.sourceFileName}}</td>
+                                <td>{{allProcess.process.recordCount}}</td>
+                                <td>{{allProcess.startTime | date:'medium'}}</td>
+                                <td>{{allProcess.completeTime | date:'medium'}}</td>
+                                <td>{{allProcess.condition}}</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

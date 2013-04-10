@@ -78,6 +78,8 @@ sage.controller('JobStatusController', function($scope, $http, dataBus) {
     $scope.runningProcesses = [];
     $scope.activeProcesses = [];
 
+    $scope.lastCompletedRecords = 0;
+
     $scope.$on("toggleView", function(){
         $scope.visible = ($scope.id == dataBus.data);
         if ($scope.visible) {
@@ -89,6 +91,10 @@ sage.controller('JobStatusController', function($scope, $http, dataBus) {
         else {
             clearInterval($scope.intervalId);
         }
+    });
+
+    $scope.$on("jobDone", function(){
+        $scope.getActiveProcesses();
     });
 
     $scope.getRunningProcesses = function() {
@@ -126,6 +132,29 @@ sage.controller('JobStatusController', function($scope, $http, dataBus) {
                 console.log("Error retrieving active processes. " + data);
             });
     }
+});
+
+sage.controller('JobHistoryController', function($scope, $http, dataBus) {
+    $scope.id = 3;
+    $scope.visible = false;
+    $scope.allProcesses = [];
+
+    $scope.$on("toggleView", function(){
+        $scope.visible = ($scope.id == dataBus.data);
+        if ($scope.visible) {
+            $scope.getAllProcesses();
+        }
+    });
+
+    $scope.getAllProcesses = function() {
+        $http.get(contextPath + baseStatusApi + "/all")
+             .success(function(data, status, headers, config){
+                 if (data && data.success) {
+                     $scope.allProcesses = data.statuses;
+                 }
+             });
+    }
+
 });
 
 $(document).ready(function() {

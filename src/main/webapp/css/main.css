@@ -360,3 +360,12 @@ a.result-close:hover {
     margin: auto;
     padding: 10px;
 }
+
+table.job-table {
+    font-size:14px;
+    width:100%;
+}
+
+table.job-table td {
+
+}

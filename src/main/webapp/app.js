@@ -13,12 +13,12 @@ var map;
  * ------------------------------------------------*/
 sage.factory("responseService", function($rootScope) {
     var responseService = {};
-    responseService.setResponse = function(handle, response, expandResults) {
+    responseService.setResponse = function(handle, response, view) {
         console.log(response);
         this.handle = handle;
         this.response = response;
-        this.expandResults = expandResults;
-        this.expandResultsBroadcast();
+        this.view = view;
+        this.broadcastToViews();
         this.broadcastItem();
     }
 
@@ -26,8 +26,10 @@ sage.factory("responseService", function($rootScope) {
         $rootScope.$broadcast(this.handle);
     }
 
-    responseService.expandResultsBroadcast = function() {
-        $rootScope.$broadcast('expandResults');
+    responseService.broadcastToViews = function() {
+        if (this.view != null && typeof this.view != "undefined") {
+            $rootScope.$broadcast('view');
+        }
     }
     return responseService;
 });
@@ -85,21 +87,17 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
     $scope.geoProvider = "default";
     $scope.provider = "default";
 
-    $scope.changed = function() {
-        console.log(this.addr1);
-    }
-
     $scope.lookup = function() {
         $http.get(this.getDistUrl())
         .success(function(data, status, headers, config) {
-            responseService.setResponse("districts", data, true);
+            responseService.setResponse("districts", data, "districts");
         }).error(function(data, status, headers, config) {
                 console.log(data);
         });
 
         $http.get(this.getValidateUrl())
         .success(function(data, status, headers, config) {
-                responseService.setResponse("validate", data, true);
+                responseService.setResponse("validate", data);
         }).error(function(data, status, headers, config) {
                 console.log(data);
         });
@@ -107,7 +105,7 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
 
     $scope.getDistUrl = function () {
         var url = contextPath + baseApi + "/district/assign?addr1=" + this.addr1 + "&city=" + this.city
-                              + "&state=" + this.state + "&zip5=" + this.zip5;
+                              + "&state=" + ((this.state) ? this.state : "NY") + "&zip5=" + this.zip5;
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
         url += "&showMembers=true&showMaps=true";
@@ -122,6 +120,21 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
     }
 });
 
+sage.controller('CityStateController', function($scope, $http, responseService) {
+    $scope.zip5 = "";
+
+    $scope.lookup = function() {
+        $http.get(this.getCityStateUrl())
+             .success(function(data, status, headers, config) {
+                responseService.setResponse("citystate", data, "citystate");
+            });
+    }
+
+    $scope.getCityStateUrl = function() {
+        return contextPath + baseApi + "/address/citystate?provider=mapquest&zip5=" + this.zip5;
+    }
+});
+
 /**------------------------------------------------\
  * Views                                           |
  *------------------------------------------------*/
@@ -132,23 +145,26 @@ sage.controller('ResultsViewController', function($scope, responseService, $root
     $scope.width = '360px';
 
     $scope.$on('expandResults', function() {
-        $scope.toggleResultPane(responseService.expandResults);
+        $scope.paneVisible = $scope.toggleResultPane(responseService.response);
     });
 
     $scope.toggleResultPane = function(expand) {
-        console.log(expand);
         if (expand != null) {
             if (expand) {
                 $scope.centercolumn.css("marginRight", $scope.width); $scope.rightcolumn.show();
+                return true;
             } else {
                 $scope.centercolumn.css("marginRight", 0); $scope.rightcolumn.hide();
                 responseService.setResponse("resizeMap", null, null);
             }
         }
+        return false;
     }
 });
 
 sage.controller('DistrictsViewController', function($scope, responseService) {
+    $scope.visible = false;
+    $scope.viewId = "districts";
     $scope.addressValidated = false;
     $scope.hasFacebook = false;
 
@@ -157,6 +173,7 @@ sage.controller('DistrictsViewController', function($scope, responseService) {
             delete responseService.response.address;
         }
         $scope = angular.extend($scope, responseService.response);
+        responseService.setResponse("expandResults", true);
     });
     $scope.$on('validate', function() {
         $scope.addressValidated = responseService.response.validated;
@@ -165,16 +182,29 @@ sage.controller('DistrictsViewController', function($scope, responseService) {
         }
     });
 
+    $scope.$on("view", function(){
+        console.log(responseService.view);
+        $scope.visible = ($scope.viewId == responseService.view);
+    });
+
     $scope.showDistrict = function(district) {
         if ($scope.districts[district] != null && typeof $scope.districts[district] != "undefined"){
-            responseService.setResponse("showDistrict", $scope.districts[district], true);
+            responseService.setResponse("showDistrict", $scope.districts[district]);
         }
     }
 });
 
-sage.controller('CityStateController', function($scope, responseService) {
-    $scope.$on('citystate', function() {
+sage.controller("CityStateView", function($scope, responseService) {
+    $scope.visible = false;
+    $scope.viewId = "citystate";
+
+    $scope.$on("view", function(){
+        $scope.visible = ($scope.viewId == responseService.view);
+    });
+
+    $scope.$on("citystate", function() {
         $scope = angular.extend($scope, responseService.response);
+        responseService.setResponse("expandResults", true);
     });
 });
 
