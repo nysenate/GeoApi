@@ -14,6 +14,7 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.Mailer;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.*;
@@ -113,7 +114,6 @@ public class ProcessBatchJobs
     public void processJob(JobProcessStatus jobStatus)
     {
         JobProcess jobProcess = jobStatus.getJobProcess();
-        JobUser jobUser = jobProcess.getRequestor();
         String fileName = jobProcess.getFileName();
 
         ExecutorService geocodeExecutor = Executors.newFixedThreadPool(GEOCODE_THREAD_COUNT);
@@ -166,7 +166,7 @@ public class ProcessBatchJobs
                 List<DistrictType> districtTypes = jobFile.getRequiredDistrictTypes();
 
                 int recordCount = jobFile.recordCount();
-                int batchCount =  (recordCount + JOB_BATCH_SIZE - 1) / JOB_BATCH_SIZE; // Allows us to round up
+                int batchCount =  (recordCount + JOB_BATCH_SIZE - 1) / 0; // Allows us to round up
                 logger.info("Dividing job into " + batchCount + " batches");
 
                 for (int i = 0; i < batchCount; i++) {
@@ -220,22 +220,27 @@ public class ProcessBatchJobs
         catch (FileNotFoundException ex) {
             logger.error("Job process " + jobProcess.getId() + "'s file could not be found!");
             setJobStatusError(jobStatus, SKIPPED, "Could not open file!");
+            sendErrorMail(jobStatus, ex);
         }
         catch (IOException ex){
             logger.error(ex);
             setJobStatusError(jobStatus, SKIPPED, "IO Error! " + ex.getMessage());
+            sendErrorMail(jobStatus, ex);
         }
         catch (InterruptedException ex) {
             logger.error(ex);
             setJobStatusError(jobStatus, SKIPPED, "Job Interrupted! " + ex.getMessage());
+            sendErrorMail(jobStatus, ex);
         }
         catch (ExecutionException ex) {
             logger.error(ex);
             setJobStatusError(jobStatus, SKIPPED, "Execution Error! " + ex.getMessage());
+            sendErrorMail(jobStatus, ex);
         }
         catch (Exception ex) {
             logger.fatal("Unknown exception occurred!", ex);
             setJobStatusError(jobStatus, SKIPPED, "Fatal Error! " + ex.getMessage());
+            sendErrorMail(jobStatus, ex);
         }
         finally {
             IOUtils.closeQuietly(jobReader);
@@ -291,7 +296,7 @@ public class ProcessBatchJobs
         public JobBatch call() throws Exception
         {
             JobBatch jobBatch = futureJobBatch.get();
-            System.out.print("District assignment for records " + jobBatch.getFromRecord() + "-" + jobBatch.getToRecord());
+            logger.info("District assignment for records " + jobBatch.getFromRecord() + "-" + jobBatch.getToRecord());
             List<DistrictResult> districtResults = districtProvider.assignDistricts(jobBatch.getGeocodedAddresses(),
                                                                                     this.districtTypes);
             for (int i = 0; i < districtResults.size(); i++) {
@@ -320,10 +325,42 @@ public class ProcessBatchJobs
                                         "<br/>This is an automated message.", jobUser.getEmail(),
                                         jobProcess.getRequestTime().toString(), mailer.getContext() + "/downloads/" + jobProcess.getFileName());
 
+
         logger.info("Sending email to " + jobUser.getEmail());
         mailer.sendMail(jobUser.getEmail(), subject, message);
         logger.info("Sending email to " + mailer.getAdminEmail());
         mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
+    }
+
+    /**
+     *
+     * @param jobStatus
+     * @throws Exception
+     */
+    public void sendErrorMail(JobProcessStatus jobStatus, Exception ex)
+    {
+        JobProcess jobProcess = jobStatus.getJobProcess();
+        JobUser jobUser = jobProcess.getRequestor();
+        String subject = "SAGE Batch Job #" + jobProcess.getId() + " Failed";
+
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+
+        String message = String.format("Your request on %s has encountered a fatal error and has been been skipped. The administrator has been notified." +
+                "<br/>This is an automated message.", jobProcess.getRequestTime().toString());
+
+        String adminMessage = String.format("Request by %s on %s has encountered a fatal error during processing:" +
+                "<br/><br/>Exception:<br/><pre>%s</pre><br/>Request:<br/><pre>%s</pre><br/>This is an automated message.",
+                jobUser.getEmail(), jobProcess.getRequestTime().toString(), sw.toString(), FormatUtil.toJsonString(jobStatus));
+
+        try {
+            logger.info("Sending email to " + jobUser.getEmail());
+            mailer.sendMail(jobUser.getEmail(), subject, message);
+            logger.info("Sending email to " + mailer.getAdminEmail());
+            mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
+        }
+        catch (Exception ex2) { logger.fatal("Failed to send error email.. sheesh", ex2); }
     }
 
     /**
