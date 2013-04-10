@@ -5,16 +5,14 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.job.JobProcess;
-import gov.nysenate.sage.model.job.JobProcessStatus;
-import gov.nysenate.sage.model.job.file.JobFile;
-import gov.nysenate.sage.model.job.file.JobRecord;
+import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.Mailer;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -31,6 +29,9 @@ import java.util.concurrent.*;
 
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
 
+/**
+ *
+ */
 public class ProcessBatchJobs
 {
     public static Config config;
@@ -41,53 +42,10 @@ public class ProcessBatchJobs
     public static Integer JOB_BATCH_SIZE;
 
     public static Logger logger = Logger.getLogger(ProcessBatchJobs.class);
+    public static Mailer mailer;
     public static GeocodeServiceProvider geocodeProvider;
     public static DistrictServiceProvider districtProvider;
     public static JobProcessDao jobProcessDao;
-
-    /**
-     * Represents a subset of job records that belong to a job file.
-     */
-    public static class JobBatch
-    {
-        private List<JobRecord> jobRecords;
-        private int fromRecord;
-        private int toRecord;
-
-        public JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord) {
-            this.jobRecords = jobRecords;
-            this.fromRecord = fromRecord;
-            this.toRecord = toRecord;
-        }
-
-        public List<Address> getAddresses() {
-            List<Address> addresses = new ArrayList<>();
-            for (JobRecord jobRecord : jobRecords) {
-                addresses.add(jobRecord.getAddress());
-            }
-            return addresses;
-        }
-
-        public List<GeocodedAddress> getGeocodedAddresses() {
-            List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
-            for (JobRecord jobRecord : jobRecords) {
-                geocodedAddresses.add(jobRecord.getGeocodedAddress());
-            }
-            return geocodedAddresses;
-        }
-
-        public void setGeocodeResult(int index, GeocodeResult geocodeResult) {
-            this.jobRecords.get(index).applyGeocodeResult(geocodeResult);
-        }
-
-        public void setDistrictResult(int index, DistrictResult districtResult) {
-            this.jobRecords.get(index).applyDistrictResult(districtResult);
-        }
-
-        public List<JobRecord> getJobRecords() {
-            return jobRecords;
-        }
-    }
 
     public ProcessBatchJobs()
     {
@@ -98,6 +56,7 @@ public class ProcessBatchJobs
         DISTRICT_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.distassign"));
         JOB_BATCH_SIZE = Integer.parseInt(config.getValue("job.batch.size", "95"));
 
+        mailer = new Mailer();
         geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
         districtProvider = ApplicationFactory.getDistrictServiceProvider();
         jobProcessDao = new JobProcessDao();
@@ -138,7 +97,7 @@ public class ProcessBatchJobs
 
     /**
      * Retrieves all job processes that are waiting to be picked up.
-     * @return
+     * @return List<JobProcessStatus>
      */
     public List<JobProcessStatus> getWaitingJobProcesses()
     {
@@ -147,9 +106,14 @@ public class ProcessBatchJobs
         return jobs;
     }
 
+    /**
+     *
+     * @param jobStatus
+     */
     public void processJob(JobProcessStatus jobStatus)
     {
         JobProcess jobProcess = jobStatus.getJobProcess();
+        JobUser jobUser = jobProcess.getRequestor();
         String fileName = jobProcess.getFileName();
 
         ExecutorService geocodeExecutor = Executors.newFixedThreadPool(GEOCODE_THREAD_COUNT);
@@ -198,7 +162,6 @@ public class ProcessBatchJobs
                 logger.info(jobFile.getRecords().size() + " records");
                 logger.info("--------------------------------------------------------------------");
 
-                JobBatch jobBatch;
                 ArrayList<Future<JobBatch>> jobResults = new ArrayList<>();
                 List<DistrictType> districtTypes = jobFile.getRequiredDistrictTypes();
 
@@ -210,7 +173,7 @@ public class ProcessBatchJobs
                     int from = (i * JOB_BATCH_SIZE);
                     int to = (from + JOB_BATCH_SIZE < recordCount) ? (from + JOB_BATCH_SIZE) : recordCount;
                     ArrayList<JobRecord> batchRecords = new ArrayList<>(jobFile.getRecords().subList(from, to));
-                    jobBatch = new JobBatch(batchRecords, from, to);
+                    JobBatch jobBatch = new JobBatch(batchRecords, from, to);
 
                     Future<JobBatch> futureGeocodedJobBatch = geocodeExecutor.submit(new GeocodeJobBatch(jobBatch));
                     if (jobFile.requiresDistrictAssign()) {
@@ -238,32 +201,41 @@ public class ProcessBatchJobs
                     }
                 }
 
-                logger.info("--------------------------------------------------------------------");
-                logger.info("Completed batch processing for job file!                           |");
-                logger.info("--------------------------------------------------------------------");
-
                 jobStatus.setCompleted(true);
                 jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
                 jobStatus.setCondition(COMPLETED);
                 jobProcessDao.setJobProcessStatus(jobStatus);
 
-                logger.info("Got here");
+                logger.info("--------------------------------------------------------------------");
+                logger.info("Sending email confirmation                                         |");
+                logger.info("--------------------------------------------------------------------");
+
+                sendSuccessMail(jobStatus);
+
+                logger.info("--------------------------------------------------------------------");
+                logger.info("Completed batch processing for job file!                           |");
+                logger.info("--------------------------------------------------------------------");
             }
         }
         catch (FileNotFoundException ex) {
             logger.error("Job process " + jobProcess.getId() + "'s file could not be found!");
-            jobStatus.setCondition(SKIPPED);
-            jobStatus.setMessages(Arrays.asList("Could not open file!"));
-            jobProcessDao.setJobProcessStatus(jobStatus);
+            setJobStatusError(jobStatus, SKIPPED, "Could not open file!");
         }
         catch (IOException ex){
             logger.error(ex);
+            setJobStatusError(jobStatus, SKIPPED, "IO Error! " + ex.getMessage());
         }
         catch (InterruptedException ex) {
             logger.error(ex);
+            setJobStatusError(jobStatus, SKIPPED, "Job Interrupted! " + ex.getMessage());
         }
         catch (ExecutionException ex) {
             logger.error(ex);
+            setJobStatusError(jobStatus, SKIPPED, "Execution Error! " + ex.getMessage());
+        }
+        catch (Exception ex) {
+            logger.fatal("Unknown exception occurred!", ex);
+            setJobStatusError(jobStatus, SKIPPED, "Fatal Error! " + ex.getMessage());
         }
         finally {
             IOUtils.closeQuietly(jobReader);
@@ -273,6 +245,15 @@ public class ProcessBatchJobs
             logger.info("Closed resources.");
         }
         return;
+    }
+
+    private void setJobStatusError(JobProcessStatus jobStatus, JobProcessStatus.Condition condition, String message)
+    {
+        if (jobStatus != null) {
+            jobStatus.setCondition(condition);
+            jobStatus.setMessages(Arrays.asList(message));
+            jobProcessDao.setJobProcessStatus(jobStatus);
+        }
     }
 
     public static class GeocodeJobBatch implements Callable<JobBatch>
@@ -286,7 +267,7 @@ public class ProcessBatchJobs
         public JobBatch call() throws Exception
         {
             List<GeocodeResult> geocodeResults = geocodeProvider.geocode(jobBatch.getAddresses());
-            if (geocodeResults.size() == jobBatch.jobRecords.size()) {
+            if (geocodeResults.size() == jobBatch.getJobRecords().size()) {
                 for (int i = 0; i < geocodeResults.size(); i++) {
                     jobBatch.setGeocodeResult(i, geocodeResults.get(i));
                 }
@@ -310,7 +291,7 @@ public class ProcessBatchJobs
         public JobBatch call() throws Exception
         {
             JobBatch jobBatch = futureJobBatch.get();
-            System.out.print("District assignment for records " + jobBatch.fromRecord + "-" + jobBatch.toRecord);
+            System.out.print("District assignment for records " + jobBatch.getFromRecord() + "-" + jobBatch.getToRecord());
             List<DistrictResult> districtResults = districtProvider.assignDistricts(jobBatch.getGeocodedAddresses(),
                                                                                     this.districtTypes);
             for (int i = 0; i < districtResults.size(); i++) {
@@ -318,6 +299,31 @@ public class ProcessBatchJobs
             }
             return jobBatch;
         }
+    }
+
+    /**
+     *
+     * @param jobStatus
+     * @throws Exception
+     */
+    public void sendSuccessMail(JobProcessStatus jobStatus) throws Exception
+    {
+        JobProcess jobProcess = jobStatus.getJobProcess();
+        JobUser jobUser = jobProcess.getRequestor();
+        String subject = "SAGE Batch Job #" + jobProcess.getId() + " Completed";
+
+        String message = String.format("Your request on %s has been completed and can be downloaded <a href='%s'>here</a>." +
+                                       "<br/>This is an automated message.", jobProcess.getRequestTime().toString(),
+                                        mailer.getContext() + "/downloads/" + jobProcess.getFileName());
+
+        String adminMessage = String.format("Request by %s on %s has been completed and can be downloaded <a href='%s'>here</a>." +
+                                        "<br/>This is an automated message.", jobUser.getEmail(),
+                                        jobProcess.getRequestTime().toString(), mailer.getContext() + "/downloads/" + jobProcess.getFileName());
+
+        logger.info("Sending email to " + jobUser.getEmail());
+        mailer.sendMail(jobUser.getEmail(), subject, message);
+        logger.info("Sending email to " + mailer.getAdminEmail());
+        mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
     }
 
     /**
