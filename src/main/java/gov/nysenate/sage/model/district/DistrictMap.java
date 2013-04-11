@@ -11,9 +11,27 @@ import java.util.List;
  */
 public class DistrictMap
 {
+    protected DistrictType districtType;
+    protected String districtCode;
     private List<Polygon> polygons = new ArrayList<>();
 
     public DistrictMap() {}
+
+    public DistrictType getDistrictType() {
+        return districtType;
+    }
+
+    public void setDistrictType(DistrictType districtType) {
+        this.districtType = districtType;
+    }
+
+    public String getDistrictCode() {
+        return districtCode;
+    }
+
+    public void setDistrictCode(String districtCode) {
+        this.districtCode = districtCode;
+    }
 
     public DistrictMap(List<Polygon> polygons) {
         this.polygons = polygons;

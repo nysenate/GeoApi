@@ -10,19 +10,22 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
-import gov.nysenate.sage.service.district.DistrictServiceValidator;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
+import gov.nysenate.sage.service.map.MapService;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
 
-public class DistrictShapefile implements DistrictService
+public class DistrictShapefile implements DistrictService, MapService
 {
     private static Logger logger = Logger.getLogger(Geoserver.class);
     private DistrictShapefileDao districtShapefileDao;
@@ -96,5 +99,53 @@ public class DistrictShapefile implements DistrictService
             return this.districtShapefileDao.getNearbyDistricts(districtType, point, 3);
         }
         return null;
+    }
+
+
+    @Override
+    public MapResult getDistrictMap(DistrictType districtType, String code)
+    {
+        MapResult mapResult = new MapResult(this.getClass());
+        if (code != null && !code.isEmpty()) {
+            code = FormatUtil.trimLeadingZeroes(code);
+            if (this.getDistrictMaps().get(districtType) != null) {
+                DistrictMap map = this.getDistrictMaps().get(districtType).get(code);
+                if (map != null) {
+                    mapResult.setDistrictMap(map);
+                    mapResult.setStatusCode(ResultStatus.SUCCESS);
+                }
+                else {
+                    mapResult.setStatusCode(ResultStatus.NO_MAP_RESULT);
+                }
+            }
+            else {
+                mapResult.setStatusCode(ResultStatus.UNSUPPORTED_DISTRICT_MAP);
+            }
+        }
+        else {
+            mapResult.setStatusCode(ResultStatus.MISSING_DISTRICT_CODE);
+        }
+        return mapResult;
+    }
+
+    @Override
+    public MapResult getDistrictMaps(DistrictType districtType)
+    {
+        MapResult mapResult = new MapResult(this.getClass());
+        Map<String, DistrictMap> map = this.getDistrictMaps().get(districtType);
+        if (map != null) {
+            mapResult.setDistrictMaps(new ArrayList<>(map.values()));
+            mapResult.setStatusCode(ResultStatus.SUCCESS);
+        }
+        else {
+            mapResult.setStatusCode(ResultStatus.NO_MAP_RESULT);
+        }
+        return mapResult;
+    }
+
+    @Override
+    public Map<DistrictType, Map<String, DistrictMap>> getDistrictMaps()
+    {
+        return districtShapefileDao.getStateDistrictMaps();
     }
 }

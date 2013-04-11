@@ -48,6 +48,10 @@ public enum ResultStatus
 
     PARTIAL_DISTRICT_RESULT(430, "District assignment only yielded some of the districts requested."),
 
+    NO_MAP_RESULT(450, "Map request returned no results"),
+    UNSUPPORTED_DISTRICT_MAP(460, "Maps for the requested district type are not available"),
+    MISSING_DISTRICT_CODE(470, "A district code is required"),
+
     /** Unexpected errors */
     INTERNAL_ERROR(500, "Internal Server Error."),
     DATABASE_ERROR(501, "Database Error."),

@@ -30,7 +30,10 @@ public class DistrictShapefileDao extends BaseDao
     private static final String SCHEMA = "districts";   // Move to app.properties
     private static final String SRID = "4326";
     private final Logger logger = Logger.getLogger(DistrictShapefileDao.class);
-    QueryRunner run = getQueryRunner();
+    private QueryRunner run = getQueryRunner();
+
+    /** Cached State District Maps */
+    private static Map<DistrictType, Map<String, DistrictMap>> stateDistrictMaps;
 
     public DistrictShapefileDao() {}
 
@@ -76,39 +79,36 @@ public class DistrictShapefileDao extends BaseDao
 
     /**
      * Retrieves a mapped collection of district code to DistrictMap that's grouped by DistrictType.
-     * This method is useful for constructing a static map cache for quick retrieval of a DistrictMap
-     * given the DistrictType and code.
      *
-     * NOTE: This method will succeed if the district types specified are state level districts. Lower
-     * level districts do not have unique codes on a state wide basis and therefore will be inaccurate.
-     *
-     * @param districtTypes  Collection of district types to get maps for
-     * @return               @see method signature
+     * @return Map<DistrictType, Map<String, DistrictMap>>
      */
-    public Map<DistrictType, Map<String, DistrictMap>> getDistrictMaps(List<DistrictType> districtTypes)
+    public Map<DistrictType, Map<String, DistrictMap>> getStateDistrictMaps()
     {
-        String sql = "SELECT '%s' AS type, %s as code, ST_AsGeoJson(geom) AS map " +
-                     "FROM " + SCHEMA + ".%s";
+        if (stateDistrictMaps == null) {
+            String sql = "SELECT '%s' AS type, %s as code, ST_AsGeoJson(geom) AS map " +
+                    "FROM " + SCHEMA + ".%s";
 
-        /** Iterate through all the requested types and format the template sql */
-        ArrayList<String> queryList = new ArrayList<>();
-        for (DistrictType districtType : districtTypes){
-            if (DistrictShapeCode.contains(districtType)) {
-                String codeColumn = resolveCodeColumn(districtType);
-                queryList.add(String.format(sql, districtType, codeColumn, districtType));
+            /** Iterate through all the requested types and format the template sql */
+            ArrayList<String> queryList = new ArrayList<>();
+            for (DistrictType districtType : DistrictType.getStateBasedTypes()) {
+                if (DistrictShapeCode.contains(districtType)) {
+                    String codeColumn = resolveCodeColumn(districtType);
+                    queryList.add(String.format(sql, districtType, codeColumn, districtType));
+                }
+            }
+
+            /** Combine the queries using UNION ALL */
+            String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
+
+            try {
+                stateDistrictMaps = run.query(sqlQuery, new DistrictMapsHandler());
+                logger.info("Cached state based maps");
+            }
+            catch (SQLException ex) {
+                logger.error(ex);
             }
         }
-
-        /** Combine the queries using UNION ALL */
-        String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
-
-        try {
-            return run.query(sqlQuery, new DistrictMapsHandler());
-        }
-        catch (SQLException ex) {
-            logger.error(ex);
-        }
-        return null;
+        return stateDistrictMaps;
     }
 
     /**
@@ -198,6 +198,8 @@ public class DistrictShapefileDao extends BaseDao
 
                     String code = getDistrictCode(rs);
                     DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
+                    map.setDistrictType(type);
+                    map.setDistrictCode(code);
 
                     /** Set values in the lookup HashMap */
                     if (code != null && map != null) {
