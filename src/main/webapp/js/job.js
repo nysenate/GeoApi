@@ -72,11 +72,17 @@ sage.controller('JobUploadController', function($scope, $http, dataBus) {
 sage.controller('JobStatusController', function($scope, $http, dataBus) {
     $scope.id = 2;
     $scope.visible = false;
-    $scope.interval = 3000;
-    $scope.intervalId = 0;
+    $scope.rpInterval = 0;  // Running processes interval id
+    $scope.cpInterval = 0;  // Completed processes interval id
+    $scope.apInterval = 0;  // Active/Queued processes interval id
 
     $scope.runningProcesses = [];
     $scope.activeProcesses = [];
+    $scope.completedProcesses = [];
+
+    $scope.showProcessQueue = function() {
+        return (this.activeProcesses.length > 0);
+    }
 
     $scope.lastCompletedRecords = 0;
 
@@ -85,8 +91,16 @@ sage.controller('JobStatusController', function($scope, $http, dataBus) {
         if ($scope.visible) {
             $scope.getActiveProcesses();
             $scope.getRunningProcesses();
-            clearInterval($scope.intervalId);
-            $scope.intervalId = setInterval(function() {$scope.getRunningProcesses()}, 3000);
+            $scope.getCompletedProcesses();
+
+            clearInterval($scope.rpInterval);
+            clearInterval($scope.cpInterval);
+            clearInterval($scope.apInterval);
+
+            $scope.cpInterval = setInterval(function() {$scope.getActiveProcesses()}, 6000);
+            $scope.cpInterval = setInterval(function() {$scope.getCompletedProcesses()}, 6000);
+            $scope.rpInterval = setInterval(function() {$scope.getRunningProcesses()}, 3000);
+
         }
         else {
             clearInterval($scope.intervalId);
@@ -130,6 +144,17 @@ sage.controller('JobStatusController', function($scope, $http, dataBus) {
                 }
             }).error(function(data, status, headers, config) {
                 console.log("Error retrieving active processes. " + data);
+            });
+    }
+
+    $scope.getCompletedProcesses = function() {
+        $http.get(contextPath + baseStatusApi + "/completed")
+            .success(function(data, status, headers, config) {
+                if (data && data.success) {
+                    $scope.completedProcesses = data.statuses;
+                }
+            }).error(function(data, status){
+                console.log("Error retrieving completed processes.");
             });
     }
 });

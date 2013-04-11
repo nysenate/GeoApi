@@ -82,6 +82,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
             DistrictService districtService = this.newInstance(distProvider);
             districtService.fetchMaps(getMaps);
             districtResult = districtService.assignDistricts(geocodedAddress, districtTypes);
+            districtResult.setGeocodedAddress(geocodedAddress);
         }
         else {
             try {
@@ -184,7 +185,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
         return new Callable<DistrictResult>() {
             @Override
             public DistrictResult call() throws Exception {
-                districtService.fetchMaps(getMaps);
+                if (districtService.providesMaps()) {
+                    districtService.fetchMaps(getMaps);
+                }
                 return districtService.assignDistricts(geocodedAddress, districtTypes);
             }
         };
@@ -196,7 +199,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
         return new Callable<List<DistrictResult>>() {
             @Override
             public List<DistrictResult> call() throws Exception {
-                districtService.fetchMaps(getMaps);
+                if (districtService.providesMaps()) {
+                    districtService.fetchMaps(getMaps);
+                }
                 return districtService.assignDistricts(geocodedAddresses, districtTypes);
             }
         };

@@ -33,7 +33,7 @@ public class YahooDao
     private static final String GEOCODE_QUERY = "select * from geo.placefinder where text=\"%s\"";
     private static final String BATCH_GEOCODE_QUERY = "select * from geo.placefinder where %s";
     private static final String REVERSE_GEO_QUERY = "select * from geo.placefinder where text=\"%f,%f\" and gflags=\"R\"";
-    private static final int BATCH_SIZE = 95;
+    private static final int BATCH_SIZE = 25;
     private static final int THREAD_COUNT = 5;
 
     private Logger logger = Logger.getLogger(YahooDao.class);
@@ -111,6 +111,7 @@ public class YahooDao
                     }
                 }
                 else {
+                    logger.warn("Expected response size: " + locations.size() + ", recieved: " + batchResults.size());
                     logger.warn("Skipping failed Yahoo batch (" + batchOffset + " - " + (batchOffset + locations.size()) + ")");
                 }
                 batchOffset += locations.size();
@@ -203,13 +204,24 @@ public class YahooDao
                 JsonNode resultsNode = rootNode.get("results");
                 int resultCount = rootNode.get("count").asInt();
 
-                for (int i = 0; i < resultCount; i++) {
+                if (resultCount == 1) {
                     try {
-                        geocodedAddresses.add(getGeocodedAddressFromResultNode(resultsNode.get("Result").get(i)));
+                        geocodedAddresses.add(getGeocodedAddressFromResultNode(resultsNode.get("Result")));
                     }
-                    catch (Exception ex) {
+                    catch (NullPointerException ex) {
                         logger.warn("Error retrieving GeocodedAddress from Yahoo response " + json, ex);
                         geocodedAddresses.add(new GeocodedAddress());
+                    }
+                }
+                else {
+                    for (int i = 0; i < resultCount; i++) {
+                        try {
+                            geocodedAddresses.add(getGeocodedAddressFromResultNode(resultsNode.get("Result").get(i)));
+                        }
+                        catch (NullPointerException ex) {
+                            logger.warn("Error retrieving GeocodedAddress from Yahoo response " + json, ex);
+                            geocodedAddresses.add(new GeocodedAddress());
+                        }
                     }
                 }
             }
@@ -228,8 +240,6 @@ public class YahooDao
         }
         return geocodedAddresses;
     }
-
-
 
     /**
      * Parses and returns GeocodedAddress from result JSON node.

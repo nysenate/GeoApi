@@ -80,7 +80,7 @@ public class DistrictController extends BaseApiController
             switch (apiRequest.getRequest()) {
                 case "assign": {
                     if (address != null && !address.isEmpty()) {
-                        GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false)
+                        GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
                                                                             : geocodeProvider.geocode(address);
                         GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
                         DistrictResult districtResult = districtProvider.assignDistricts(

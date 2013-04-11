@@ -11,7 +11,6 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.service.address.AddressService;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -36,7 +35,7 @@ public final class AddressController extends BaseApiController
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        addressProviders = ApplicationFactory.getAddressServiceProviders();
+        addressProviders = ApplicationFactory.getAddressServiceProvider();
         logger.debug("Initialized " + this.getClass().getSimpleName());
     }
 

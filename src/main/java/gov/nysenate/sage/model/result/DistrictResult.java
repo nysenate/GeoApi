@@ -58,6 +58,13 @@ public class DistrictResult extends BaseResult
         return (districtedAddress != null) ? districtedAddress.getAddress() : null;
     }
 
+    public void setGeocodedAddress(GeocodedAddress geocodedAddress)
+    {
+        if (this.districtedAddress != null) {
+            this.districtedAddress.setGeocodedAddress(geocodedAddress);
+        }
+    }
+
     public GeocodedAddress getGeocodedAddress()
     {
         return (districtedAddress != null) ? districtedAddress.getGeocodedAddress() : null;

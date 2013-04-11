@@ -66,6 +66,13 @@ public class GeoCache implements GeocodeCacheService
     }
 
     @Override
+    public void saveToCacheAndFlush(GeocodeResult geocodeResult)
+    {
+        this.saveToCache(geocodeResult);
+        geoCacheDao.flushCacheBuffer();
+    }
+
+    @Override
     public void saveToCache(List<GeocodeResult> geocodeResults)
     {
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
@@ -75,5 +82,12 @@ public class GeoCache implements GeocodeCacheService
             }
         }
         geoCacheDao.cacheGeocodedAddresses(geocodedAddresses);
+    }
+
+    @Override
+    public void saveToCacheAndFlush(List<GeocodeResult> geocodeResults)
+    {
+        this.saveToCache(geocodeResults);
+        geoCacheDao.flushCacheBuffer();
     }
 }

@@ -2,12 +2,12 @@ package gov.nysenate.sage.factory;
 
 import gov.nysenate.sage.provider.*;
 import gov.nysenate.sage.listener.SageConfigurationListener;
+import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.service.address.AddressService;
-import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
-import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
 import org.apache.commons.configuration.ConfigurationException;
@@ -41,9 +41,10 @@ public class ApplicationFactory
     private DB tigerDB;
 
     /** Service Providers */
-    private ServiceProviders<AddressService> addressServiceProviders = new ServiceProviders<>();
+    private AddressServiceProvider addressServiceProvider;
     private DistrictServiceProvider districtServiceProvider;
     private GeocodeServiceProvider geocodeServiceProvider;
+    private MapServiceProvider mapServiceProvider;
 
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
@@ -90,8 +91,9 @@ public class ApplicationFactory
             this.tigerDB = new DB(this.config, "tiger.db");
 
             /** Setup service providers ( MOVE INTO CONFIG ) */
-            addressServiceProviders.registerDefaultProvider("usps", new USPS());
-            addressServiceProviders.registerProvider("mapquest", new MapQuest());
+            addressServiceProvider = new AddressServiceProvider();
+            addressServiceProvider.registerDefaultProvider("usps", new USPS());
+            addressServiceProvider.registerProvider("mapquest", new MapQuest());
 
             geocodeServiceProvider = new GeocodeServiceProvider();
             geocodeServiceProvider.registerDefaultProvider("yahoo", new Yahoo());
@@ -105,6 +107,9 @@ public class ApplicationFactory
             districtServiceProvider.registerDefaultProvider("shapefile", new DistrictShapefile());
             districtServiceProvider.registerProvider("streetfile", new StreetFile());
             districtServiceProvider.registerProvider("geoserver", new Geoserver());
+
+            mapServiceProvider = new MapServiceProvider();
+            mapServiceProvider.registerDefaultProvider("shapefile", new DistrictShapefile());
 
             return true;
         }
@@ -133,8 +138,8 @@ public class ApplicationFactory
         return factoryInstance.tigerDB.getDataSource();
     }
 
-    public static ServiceProviders<AddressService> getAddressServiceProviders() {
-        return factoryInstance.addressServiceProviders;
+    public static AddressServiceProvider getAddressServiceProvider() {
+        return factoryInstance.addressServiceProvider;
     }
 
     public static DistrictServiceProvider getDistrictServiceProvider() {
@@ -143,5 +148,9 @@ public class ApplicationFactory
 
     public static GeocodeServiceProvider getGeocodeServiceProvider()  {
         return factoryInstance.geocodeServiceProvider;
+    }
+
+    public static MapServiceProvider getMapServiceProvider() {
+        return factoryInstance.mapServiceProvider;
     }
 }

@@ -369,3 +369,7 @@ table.job-table {
 table.job-table td {
 
 }
+
+.WAITING_FOR_CRON {
+    color:#556b2f;
+}

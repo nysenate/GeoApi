@@ -61,6 +61,17 @@
         <url-pattern>/api/v2/district/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <display-name>MapController</display-name>
+        <servlet-name>MapController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.api.MapController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MapController</servlet-name>
+        <url-pattern>/api/v2/map/*</url-pattern>
+    </servlet-mapping>
+
+
     <!-- Job v2 Controller mapping -->
     <servlet>
         <display-name>JobController</display-name>

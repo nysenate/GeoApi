@@ -69,6 +69,29 @@
             </div>
             <p class="method-header teal">District Maps</p>
             <div id="district-mapview-container" class="form-container">
+                <form id="mapForm" action="" method="post" ng-controller="DistrictMapController" autocomplete="false">
+                    <ol class="input-container">
+                        <li>
+                            <label>Type</label>
+                            <select ng-model="type">
+                                <option value="senate">Senate</option>
+                                <option value="congressional">Congressional</option>
+                                <option value="assembly">Assembly</option>
+                                <option value="county">County</option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>District</label>
+                            <input ng-model="district" type="text" placeholder="(leave blank to view all)" id="districtCodeInput" />
+                        </li>
+                        <li>
+                            <button class="submit" ng-click="lookup();">
+                                <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
+                                <span>Show Map</span>
+                            </button>
+                        </li>
+                    </ol>
+                </form>
             </div>
             <p class="method-header maroon">Reverse Geocode</p>
             <div id="reverse-geocode-container" class="form-container">

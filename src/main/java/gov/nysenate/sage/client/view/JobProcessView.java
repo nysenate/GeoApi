@@ -11,6 +11,7 @@ public class JobProcessView
     protected int requestorId;
     protected String requestorEmail;
     protected String sourceFileName = "";
+    protected String fileName = "";
     protected Timestamp requestTime;
     protected int recordCount = 0;
     protected boolean validationRequired = false;
@@ -25,6 +26,7 @@ public class JobProcessView
             this.requestorEmail = jobProcess.getRequestor().getEmail();
         }
         this.sourceFileName = jobProcess.getSourceFileName();
+        this.fileName = jobProcess.getFileName();
         this.requestTime = jobProcess.getRequestTime();
         this.recordCount = jobProcess.getRecordCount();
         this.validationRequired = jobProcess.isValidationRequired();
@@ -62,6 +64,14 @@ public class JobProcessView
 
     public void setSourceFileName(String sourceFileName) {
         this.sourceFileName = sourceFileName;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public Timestamp getRequestTime() {
