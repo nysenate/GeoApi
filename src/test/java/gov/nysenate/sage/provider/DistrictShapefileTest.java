@@ -1,11 +1,59 @@
 package gov.nysenate.sage.provider;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ash
- * Date: 4/11/13
- * Time: 12:34 PM
- * To change this template use File | Settings | File Templates.
- */
-public class DistrictShapefileTest {
+import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.result.MapResult;
+import static org.junit.Assert.*;
+
+import gov.nysenate.sage.model.result.ResultStatus;
+import org.junit.Test;
+
+public class DistrictShapefileTest extends TestBase
+{
+   DistrictShapefile districtShapefile = new DistrictShapefile();
+
+   @Test
+   public void testGetDistrictMap()
+   {
+       MapResult mapResult;
+       mapResult = districtShapefile.getDistrictMap(DistrictType.SENATE, "44");
+       assertEquals(DistrictType.SENATE, mapResult.getDistrictMap().getDistrictType());
+       assertEquals("44", mapResult.getDistrictMap().getDistrictCode());
+       assertTrue(mapResult.getDistrictMap().getPolygons().size() > 0);
+       assertEquals(ResultStatus.SUCCESS, mapResult.getStatusCode());
+   }
+
+    @Test
+    public void testGetDistrictMaps()
+    {
+        MapResult mapResult;
+        mapResult = districtShapefile.getDistrictMaps(DistrictType.SENATE);
+        assertEquals(ResultStatus.SUCCESS, mapResult.getStatusCode());
+        assertEquals(63, mapResult.getDistrictMaps().size());
+    }
+
+    @Test
+    public void testGetDistrictMapWithUnsupportedDistrictType()
+    {
+        MapResult mapResult;
+        mapResult = districtShapefile.getDistrictMap(DistrictType.SCHOOL, "012");
+        assertEquals(ResultStatus.UNSUPPORTED_DISTRICT_MAP, mapResult.getStatusCode());
+    }
+
+    @Test
+    public void testGetDistrictMapsWithUnsupportedDistrictType()
+    {
+        MapResult mapResult;
+        mapResult = districtShapefile.getDistrictMaps(DistrictType.SCHOOL);
+        assertEquals(ResultStatus.NO_MAP_RESULT, mapResult.getStatusCode());
+    }
+
+    @Test
+    public void testGetDistrictMapWithEmptyCode()
+    {
+        MapResult mapResult;
+        mapResult = districtShapefile.getDistrictMap(DistrictType.SENATE, null);
+        assertEquals(ResultStatus.MISSING_DISTRICT_CODE, mapResult.getStatusCode());
+    }
 }
