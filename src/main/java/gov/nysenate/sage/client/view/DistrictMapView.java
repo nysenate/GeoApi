@@ -6,6 +6,7 @@ public class DistrictMapView
 {
     protected String type;
     protected String district;
+    protected String name;
     protected MapView map;
 
     public DistrictMapView(DistrictMap districtMap)
@@ -15,6 +16,7 @@ public class DistrictMapView
                 this.type = districtMap.getDistrictType().name();
             }
             this.district = districtMap.getDistrictCode();
+            this.name = districtMap.getDistrictName();
             this.map = new MapView(districtMap);
         }
     }
@@ -29,5 +31,9 @@ public class DistrictMapView
 
     public MapView getMap() {
         return map;
+    }
+
+    public String getName() {
+        return name;
     }
 }

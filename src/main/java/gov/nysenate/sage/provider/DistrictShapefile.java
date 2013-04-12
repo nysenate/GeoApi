@@ -18,7 +18,6 @@ import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -108,8 +107,8 @@ public class DistrictShapefile implements DistrictService, MapService
         MapResult mapResult = new MapResult(this.getClass());
         if (code != null && !code.isEmpty()) {
             code = FormatUtil.trimLeadingZeroes(code);
-            if (this.getDistrictMaps().get(districtType) != null) {
-                DistrictMap map = this.getDistrictMaps().get(districtType).get(code);
+            if (districtShapefileDao.getDistrictMapLookup().get(districtType) != null) {
+                DistrictMap map = districtShapefileDao.getDistrictMapLookup().get(districtType).get(code);
                 if (map != null) {
                     mapResult.setDistrictMap(map);
                     mapResult.setStatusCode(ResultStatus.SUCCESS);
@@ -132,9 +131,9 @@ public class DistrictShapefile implements DistrictService, MapService
     public MapResult getDistrictMaps(DistrictType districtType)
     {
         MapResult mapResult = new MapResult(this.getClass());
-        Map<String, DistrictMap> map = this.getDistrictMaps().get(districtType);
-        if (map != null) {
-            mapResult.setDistrictMaps(new ArrayList<>(map.values()));
+        List<DistrictMap> mapCollection = districtShapefileDao.getDistrictMaps().get(districtType);
+        if (mapCollection != null) {
+            mapResult.setDistrictMaps(mapCollection);
             mapResult.setStatusCode(ResultStatus.SUCCESS);
         }
         else {
@@ -143,9 +142,5 @@ public class DistrictShapefile implements DistrictService, MapService
         return mapResult;
     }
 
-    @Override
-    public Map<DistrictType, Map<String, DistrictMap>> getDistrictMaps()
-    {
-        return districtShapefileDao.getStateDistrictMaps();
-    }
+
 }

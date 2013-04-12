@@ -19,7 +19,4 @@ public interface MapService
 
     /** Provides a collection of all district maps for a given type */
     public MapResult getDistrictMaps(DistrictType districtType);
-
-    /** Provides a mapping of all DistrictMaps by district type and code */
-    public Map<DistrictType, Map<String, DistrictMap>> getDistrictMaps();
 }

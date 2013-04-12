@@ -19,6 +19,10 @@ public class MapResponse extends BaseResponse
         return (map != null) ? map.getDistrict() : null;
     }
 
+    public String getName() {
+        return (map != null) ? map.getName() : null;
+    }
+
     public String getType() {
         return (map != null) ? map.getType() : null;
     }

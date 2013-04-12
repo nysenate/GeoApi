@@ -13,6 +13,7 @@ public class DistrictMap
 {
     protected DistrictType districtType;
     protected String districtCode;
+    protected String districtName;
     private List<Polygon> polygons = new ArrayList<>();
 
     public DistrictMap() {}
@@ -31,6 +32,14 @@ public class DistrictMap
 
     public void setDistrictCode(String districtCode) {
         this.districtCode = districtCode;
+    }
+
+    public String getDistrictName() {
+        return districtName;
+    }
+
+    public void setDistrictName(String districtName) {
+        this.districtName = districtName;
     }
 
     public DistrictMap(List<Polygon> polygons) {
