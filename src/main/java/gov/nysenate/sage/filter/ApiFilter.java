@@ -47,7 +47,7 @@ public class ApiFilter implements Filter, Observer
     private String defaultKey;
 
     /** The valid format of an api request */
-    private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
+    private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map|street))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
 
     /** String keys used for setting key value attributes in the request object */
     private static final String responseObjectKey = "responseObject";

@@ -42,11 +42,11 @@ public enum ResultStatus
 
     NO_DISTRICT_RESULT(400, "District assignment returned no results."),
     MULTIPLE_DISTRICT_RESULT(401, "Multiple matches were found for certain districts."),
+    PARTIAL_DISTRICT_RESULT(402, "District assignment only yielded some of the districts requested."),
     NO_GEOCODE_RESULT(410, "Geocode service returned no results."),
     NO_REVERSE_GEOCODE_RESULT(411, "Reverse Geocode service returned no results."),
     NO_ADDRESS_VALIDATE_RESULT(420, "The address could not be validated."),
-
-    PARTIAL_DISTRICT_RESULT(430, "District assignment only yielded some of the districts requested."),
+    NO_STREET_LOOKUP_RESULT(430, "Street lookup returned no results for the given zip5"),
 
     NO_MAP_RESULT(450, "Map request returned no results"),
     UNSUPPORTED_DISTRICT_MAP(460, "Maps for the requested district type are not available"),

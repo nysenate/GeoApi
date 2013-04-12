@@ -60,7 +60,17 @@
         <servlet-name>DistrictController</servlet-name>
         <url-pattern>/api/v2/district/*</url-pattern>
     </servlet-mapping>
-
+    
+    <servlet>
+        <display-name>StreetController</display-name>
+        <servlet-name>StreetController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.api.StreetController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>StreetController</servlet-name>
+        <url-pattern>/api/v2/street/*</url-pattern>
+    </servlet-mapping>
+    
     <servlet>
         <display-name>MapController</display-name>
         <servlet-name>MapController</servlet-name>

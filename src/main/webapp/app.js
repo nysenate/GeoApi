@@ -49,7 +49,7 @@ sage.filter('remove', function(){
 sage.filter('capitalize', function() {
     return function(input) {
         if (input !== null && typeof input !== 'undefined') {
-            return input.substring(0,1).toUpperCase() + input.substring(1);
+            return capitalize(input);
         }
     }
 });
@@ -157,6 +157,20 @@ sage.controller('CityStateController', function($scope, $http, responseService) 
     }
 });
 
+sage.controller("StreetLookupController", function($scope, $http, responseService){
+    $scope.zip5 = "";
+
+    $scope.lookup = function () {
+        $http.get(this.getStreetLookupUrl())
+            .success(function(data){
+                responseService.setResponse("street", data, "street");
+            });
+    }
+
+    $scope.getStreetLookupUrl = function () {
+        return contextPath + baseApi + "/street/lookup?zip5=" + this.zip5;
+    }
+});
 /**------------------------------------------------\
  * Views                                           |
  *------------------------------------------------*/
@@ -190,12 +204,13 @@ sage.controller('DistrictsViewController', function($scope, responseService) {
     $scope.addressValidated = false;
     $scope.hasFacebook = false;
 
-    $scope.$on('districts', function() {
+    $scope.$on("districts", function() {
         if ($scope.addressValidated) {
             delete responseService.response.address;
         }
         $scope = angular.extend($scope, responseService.response);
-        responseService.setResponse("expandResults", true);
+        responseService.setResponse("expandResults", true, null);
+        responseService.setResponse("toggleMap", true, null);
     });
 
     $scope.$on('validate', function() {
@@ -209,7 +224,6 @@ sage.controller('DistrictsViewController', function($scope, responseService) {
     });
 
     $scope.$on("view", function(){
-        console.log(responseService.view);
         $scope.visible = ($scope.viewId == responseService.view);
     });
 
@@ -237,7 +251,23 @@ sage.controller("CityStateView", function($scope, responseService) {
     });
 });
 
+sage.controller("StreetViewController", function($scope, responseService) {
+   $scope.visible = false;
+   $scope.viewId = "street";
+
+   $scope.$on("street", function(){
+       $scope = angular.extend($scope, responseService.response);
+       responseService.setResponse("expandResults", false);
+       responseService.setResponse("toggleMap", false, null);
+   });
+
+   $scope.$on("view", function(){
+        $scope.visible = ($scope.viewId == responseService.view);
+   });
+});
+
 sage.controller('MapViewController', function($scope, responseService, $filter) {
+    $scope.el = $("#map_canvas");
     $scope.mapOptions = {
         center: new google.maps.LatLng(42.651445, -73.755254),
         zoom: 15,
@@ -377,6 +407,14 @@ sage.controller('MapViewController', function($scope, responseService, $filter) 
             this.clearPolygons();
         }
     }
+
+    $scope.$on("toggleMap", function() {
+        if (responseService.response) {
+            $($scope.el).fadeIn();
+        } else {
+            $($scope.el).fadeOut();
+        }
+    });
 
     $scope.clearPolygons = function() {
         $.each(this.polygons, function (i, v){

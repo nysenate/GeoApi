@@ -13,6 +13,7 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.DistrictServiceMetadata;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
+import gov.nysenate.sage.service.district.StreetLookupServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import org.apache.log4j.Logger;
 
@@ -76,9 +77,9 @@ public class DistrictController extends BaseApiController
 
         /** Handle single request */
         if (!apiRequest.isBatch()) {
-            Address address = getAddressFromParams(request);
             switch (apiRequest.getRequest()) {
-                case "assign": {
+                case "assign":
+                    Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
                         GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
                                                                             : geocodeProvider.geocode(address);
@@ -91,10 +92,9 @@ public class DistrictController extends BaseApiController
                         districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
                     }
                     break;
-                }
-                default : {
+
+                default :
                     districtResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
-                }
             }
         }
         /** Handle batch request */

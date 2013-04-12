@@ -1,6 +1,6 @@
 package gov.nysenate.sage.service.district;
 
-import gov.nysenate.sage.model.address.DistrictStreetRange;
+import gov.nysenate.sage.model.address.DistrictedStreetRange;
 
 import java.util.List;
 
@@ -10,5 +10,5 @@ import java.util.List;
  */
 public interface StreetLookupService
 {
-    public List<DistrictStreetRange> streetLookup(String zip5);
+    public List<DistrictedStreetRange> streetLookup(String zip5);
 }

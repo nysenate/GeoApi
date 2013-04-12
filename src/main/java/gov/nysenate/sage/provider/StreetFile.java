@@ -2,7 +2,7 @@ package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.dao.provider.StreetFileDao;
 import gov.nysenate.sage.dao.provider.TigerGeocoderDao;
-import gov.nysenate.sage.model.address.DistrictStreetRange;
+import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
@@ -54,7 +54,7 @@ public class StreetFile implements DistrictService, StreetLookupService
     }
 
     @Override
-    public List<DistrictStreetRange> streetLookup(String zip5)
+    public List<DistrictedStreetRange> streetLookup(String zip5)
     {
         try {
             int intZip5 = Integer.parseInt(zip5);

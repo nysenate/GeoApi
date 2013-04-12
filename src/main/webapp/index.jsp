@@ -8,11 +8,39 @@
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">
-        <div id="contentcolumn" ng-controller="MapViewController">
-            <div class="result-header" style="background-color: #333;color:white;">
-                <span aria-hidden="true" data-icon="&#59175;"></span>{{polygonName}}
+        <div id="contentcolumn">
+            <div ng-controller="MapViewController">
+                <div class="result-header" style="background-color: #333;color:white;">
+                    <span aria-hidden="true" data-icon="&#59175;"></span>{{polygonName}}
+                </div>
+                <div id="map_canvas"></div>
             </div>
-            <div id="map_canvas"></div>
+            <div ng-controller="StreetViewController">
+                <table>
+                    <thead>
+                        <th>From building</th>
+                        <th>To building</th>
+                        <th>Street</th>
+                        <th>Zip</th>
+                        <th>Senate</th>
+                        <th>Assembly</th>
+                        <th>Congressional</th>
+                        <th>Town</th>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="street in streets">
+                            <td>{{street.bldgLoNum}}</td>
+                            <td>{{street.bldgHiNum}}</td>
+                            <td>{{street.street}}</td>
+                            <td>{{street.zip5}}</td>
+                            <td>{{street.districts.senate}}</td>
+                            <td>{{street.districts.assembly}}</td>
+                            <td>{{street.districts.congressional}}</td>
+                            <td>{{street.districts.town}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -128,14 +156,14 @@
             </div>
             <p class="method-header green">Street Lookup</p>
             <div id="street-lookup-container" class="form-container">
-                <form id="street-lookup-form" action="" method="post">
-                    <ol class="input-container">        map
+                <form id="street-lookup-form" action="" method="post" ng-controller="StreetLookupController">
+                    <ol class="input-container">
                         <li>
                             <label>Zip5</label>
-                            <input type="text" name="zip">
+                            <input ng-model="zip5" type="text" name="zip">
                         </li>
                         <li>
-                            <button class="submit">
+                            <button class="submit" ng-click="lookup();">
                                 <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
                                 <span>Find Streets</span>
                             </button>

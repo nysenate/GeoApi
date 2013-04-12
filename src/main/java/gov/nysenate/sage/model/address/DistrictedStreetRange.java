@@ -3,14 +3,14 @@ package gov.nysenate.sage.model.address;
 import gov.nysenate.sage.model.address.StreetAddressRange;
 import gov.nysenate.sage.model.district.DistrictInfo;
 
-public class DistrictStreetRange
+public class DistrictedStreetRange
 {
     protected StreetAddressRange streetAddressRange;
     protected DistrictInfo districtInfo;
 
-    public DistrictStreetRange() {}
+    public DistrictedStreetRange() {}
 
-    public DistrictStreetRange(StreetAddressRange streetAddressRange, DistrictInfo districtInfo) {
+    public DistrictedStreetRange(StreetAddressRange streetAddressRange, DistrictInfo districtInfo) {
         this.streetAddressRange = streetAddressRange;
         this.districtInfo = districtInfo;
     }

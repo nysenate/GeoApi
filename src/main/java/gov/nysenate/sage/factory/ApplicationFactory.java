@@ -6,6 +6,7 @@ import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
+import gov.nysenate.sage.service.district.StreetLookupServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.Config;
@@ -45,6 +46,7 @@ public class ApplicationFactory
     private DistrictServiceProvider districtServiceProvider;
     private GeocodeServiceProvider geocodeServiceProvider;
     private MapServiceProvider mapServiceProvider;
+    private StreetLookupServiceProvider streetLookupServiceProvider;
 
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
@@ -111,6 +113,9 @@ public class ApplicationFactory
             mapServiceProvider = new MapServiceProvider();
             mapServiceProvider.registerDefaultProvider("shapefile", new DistrictShapefile());
 
+            streetLookupServiceProvider = new StreetLookupServiceProvider();
+            streetLookupServiceProvider.registerDefaultProvider("streetfile", new StreetFile());
+
             return true;
         }
         catch (ConfigurationException ce)
@@ -153,4 +158,9 @@ public class ApplicationFactory
     public static MapServiceProvider getMapServiceProvider() {
         return factoryInstance.mapServiceProvider;
     }
+
+    public static StreetLookupServiceProvider getStreetLookupServiceProvider() {
+        return factoryInstance.streetLookupServiceProvider;
+    }
+
 }

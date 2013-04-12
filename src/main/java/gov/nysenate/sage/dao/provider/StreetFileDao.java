@@ -112,17 +112,17 @@ public class StreetFileDao extends BaseDao
         }
     }
 
-    public List<DistrictStreetRange> getDistrictStreetRangesByZip(int zip5)
+    public List<DistrictedStreetRange> getDistrictStreetRangesByZip(int zip5)
     {
-        String sql = "SELECT * FROM streetfile WHERE zip5 = ?";
+        String sql = "SELECT * FROM streetfile WHERE zip5 = ? ORDER BY street, bldg_lo_num";
         try {
             Map<StreetAddressRange, DistrictInfo> resultMap = run.query(sql, new DistrictStreetRangeMapHandler(), zip5);
             if (resultMap != null && resultMap.size() > 0) {
-                List<DistrictStreetRange> districtStreetRanges = new ArrayList<>();
+                List<DistrictedStreetRange> districtedStreetRanges = new ArrayList<>();
                 for (StreetAddressRange sar : resultMap.keySet()) {
-                    districtStreetRanges.add(new DistrictStreetRange(sar, resultMap.get(sar)));
+                    districtedStreetRanges.add(new DistrictedStreetRange(sar, resultMap.get(sar)));
                 }
-                return districtStreetRanges;
+                return districtedStreetRanges;
             }
         }
         catch (SQLException ex) {
