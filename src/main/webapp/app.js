@@ -54,6 +54,12 @@ sage.filter('capitalize', function() {
     }
 });
 
+function capitalize(input) {
+    if (input !== null && typeof input !== 'undefined') {
+        return input.substring(0,1).toUpperCase() + input.substring(1).toLowerCase();
+    }
+}
+
 /** Formats an address properly */
 sage.filter('addressFormat', function(){
     return function(address) {
@@ -208,7 +214,10 @@ sage.controller('DistrictsViewController', function($scope, responseService) {
     });
 
     $scope.showDistrict = function(district) {
-        if ($scope.districts[district] != null && typeof $scope.districts[district] != "undefined"){
+        if ($scope.districts[district] != null && typeof $scope.districts[district] != "undefined") {
+            /** Set the district type as well so that the name shows up */
+            $scope.districts[district].type = district;
+            /** Send the event */
             responseService.setResponse("showDistrict", $scope.districts[district]);
         }
     }
@@ -228,7 +237,7 @@ sage.controller("CityStateView", function($scope, responseService) {
     });
 });
 
-sage.controller('MapViewController', function($scope, responseService) {
+sage.controller('MapViewController', function($scope, responseService, $filter) {
     $scope.mapOptions = {
         center: new google.maps.LatLng(42.651445, -73.755254),
         zoom: 15,
@@ -244,18 +253,24 @@ sage.controller('MapViewController', function($scope, responseService) {
     $scope.polygons = [];
     $scope.polygon = null;
     $scope.poiMarker = null;
-    $scope.polygonName = "";
+    $scope.polygonName = "Map";
     $scope.districtData = null;
 
     $scope.resizeMap = function() {
         google.maps.event.trigger($scope.map, 'resize');
     }
 
+    $scope.formatDistrictName = function(dist) {
+        console.log(dist);
+        return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district;
+
+    }
+
     $scope.$on('districts', function() {
         var data = responseService.response;
         /** If the districts were assigned, initially set the map to display the senate boundary */
         if (data.districtAssigned) {
-            $scope.setMapBoundary(data.districts.senate.map.geom);
+            $scope.setMapBoundary(data.districts.senate.map.geom, true, "Senate District " + data.districts.senate.district, true);
             /** Keep a reference to the district data in local scope */
             $scope.districtData = data;
         }
@@ -269,17 +284,19 @@ sage.controller('MapViewController', function($scope, responseService) {
         var data = responseService.response;
         console.log(data);
 
-        if (data.statusCode == 0) {                             // Check for a successful response
-            if (data != null && data.districts != null) {       // Show all district boundaries
+        if (data.statusCode == 0) {
+            /** Show all the district map boundaries */
+            if (data != null && data.districts != null) {
                 $scope.clearPolygons();
                 $.each(data.districts, function(i, v){
                     if (v.map != null) {
-                        $scope.setMapBoundary(v.map.geom, false, "");
+                        $scope.setMapBoundary(v.map.geom, false, $scope.formatDistrictName(v));
                     }
                 });
             }
-            else if (data.map != null) {                        // Show the specific district boundary
-                $scope.setMapBoundary(data.map.geom);
+            /** Show the individual district map */
+            else if (data.map != null) {
+                $scope.setMapBoundary(data.map.geom, true, $scope.formatDistrictName(data), true);
                 console.log("districtMap");
             }
         }
@@ -287,9 +304,9 @@ sage.controller('MapViewController', function($scope, responseService) {
 
 
     $scope.$on('showDistrict', function() {
-        var district = responseService.response;
+        var dist = responseService.response;
         $scope.resizeMap();
-        $scope.setMapBoundary(district.map.geom);
+        $scope.setMapBoundary(dist.map.geom, true, $scope.formatDistrictName(dist), true);
     });
 
     $scope.setMarker = function(lat, lon, markerTitle) {
@@ -309,7 +326,7 @@ sage.controller('MapViewController', function($scope, responseService) {
         this.map.setCenter(this.poiMarker.position);
     }
 
-    $scope.setMapBoundary = function(geom, clear, name) {
+    $scope.setMapBoundary = function(geom, clear, name, fitBounds) {
         if (geom != null) {
             if (clear == true) {
                 this.clearPolygons();
@@ -331,6 +348,10 @@ sage.controller('MapViewController', function($scope, responseService) {
 
                 google.maps.event.addListener(polygon,"mouseover",function(){
                     this.setOptions({fillOpacity: 0.4});
+                    var scope = angular.element($(".result-header")).scope();
+                    scope.$apply(function(){
+                        scope.polygonName = name;
+                    });
                 });
 
                 google.maps.event.addListener(polygon,"mouseout",function(){
@@ -344,8 +365,10 @@ sage.controller('MapViewController', function($scope, responseService) {
             }
 
             /** Set the zoom level to the district bounds and move a step closer */
-            this.map.fitBounds(this.polygon.getBounds());
-            this.map.setZoom(this.map.getZoom() + 1);
+            if (fitBounds) {
+                this.map.fitBounds(this.polygon.getBounds());
+                this.map.setZoom(this.map.getZoom() + 1);
+            }
 
             /** Text to display on the map header */
             this.polygonName = name;
@@ -353,34 +376,6 @@ sage.controller('MapViewController', function($scope, responseService) {
         else {
             this.clearPolygons();
         }
-    }
-
-    $scope.setMapBoundaries = function(geomList, name) {
-        if (geomList != null && geomList.length > 0) {
-            this.clearPolygons();
-
-            var coords = [];
-            $.each(geomList, function(index, geom) {
-                for (var i in geom) {
-                    for (var j in geom[i]) {
-                        coords.push(new google.maps.LatLng(geom[i][j][0], geom[i][j][1]));
-                    }
-                    var polygon = new google.maps.Polygon({
-                        paths: coords,
-                        strokeColor: "teal",
-                        strokeOpacity: 1,
-                        strokeWeight: 2,
-                        fillColor: "teal",
-                        fillOpacity: 0.2
-                    });
-                    polygon.setMap(this.map);
-                    this.polygons.push(polygon);
-                    this.polygon = polygon;
-                    coords = [];
-                }
-            });
-        }
-
     }
 
     $scope.clearPolygons = function() {

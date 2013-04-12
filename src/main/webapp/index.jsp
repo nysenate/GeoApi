@@ -8,10 +8,11 @@
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">
-        <div id="contentcolumn">
+        <div id="contentcolumn" ng-controller="MapViewController">
             <div class="result-header" style="background-color: #333;color:white;">
-                <span aria-hidden="true" data-icon="&#59175;"></span>Map</div>
-            <div id="map_canvas" ng-controller="MapViewController"></div>
+                <span aria-hidden="true" data-icon="&#59175;"></span>{{polygonName}}
+            </div>
+            <div id="map_canvas"></div>
         </div>
     </div>
 
@@ -78,6 +79,8 @@
                                 <option value="congressional">Congressional</option>
                                 <option value="assembly">Assembly</option>
                                 <option value="county">County</option>
+                                <option value="town">Town</option>
+                                <option value="school">School</option>
                             </select>
                         </li>
                         <li>
@@ -126,7 +129,7 @@
             <p class="method-header green">Street Lookup</p>
             <div id="street-lookup-container" class="form-container">
                 <form id="street-lookup-form" action="" method="post">
-                    <ol class="input-container">
+                    <ol class="input-container">        map
                         <li>
                             <label>Zip5</label>
                             <input type="text" name="zip">
