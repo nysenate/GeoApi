@@ -4,7 +4,9 @@ import gov.nysenate.sage.dao.model.AssemblyDao;
 import gov.nysenate.sage.dao.model.CongressionalDao;
 import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.MapResult;
 
 import static gov.nysenate.sage.model.district.DistrictType.ASSEMBLY;
 import static gov.nysenate.sage.model.district.DistrictType.CONGRESSIONAL;
@@ -16,13 +18,11 @@ import static gov.nysenate.sage.model.district.DistrictType.SENATE;
  * the district members and the senator information. Since this information is not always required, this
  * functionality should be invoked through a controller as opposed to the provider implementations.
  */
-public abstract class DistrictServiceMetadata
+public abstract class DistrictMemberProvider
 {
     /**
      * Sets the senator, congressional, and assembly member data to the district result.
      * @param districtResult
-     * @return true if all were assigned
-     *         false otherwise
      */
     public static void assignDistrictMembers(DistrictResult districtResult)
     {
@@ -45,6 +45,30 @@ public abstract class DistrictServiceMetadata
             }
 
             districtResult.setDistrictInfo(districtInfo);
+        }
+    }
+
+    /**
+     * Sets the senator, congressional, and assembly member data to the map result.
+     * @param mapResult
+     */
+    public static void assignDistrictMembers(MapResult mapResult)
+    {
+        if (mapResult != null && mapResult.isSuccess()) {
+            for (DistrictMap map : mapResult.getDistrictMaps()) {
+                if (map.getDistrictType().equals(SENATE)) {
+                    int senateCode = Integer.parseInt(map.getDistrictCode());
+                    map.setSenator(new SenateDao().getSenatorByDistrict(senateCode));
+                }
+                else if (map.getDistrictType().equals(CONGRESSIONAL)) {
+                    int congressionalCode = Integer.parseInt(map.getDistrictCode());
+                    map.setMember(new CongressionalDao().getCongressionalByDistrict(congressionalCode));
+                }
+                else if (map.getDistrictType().equals(ASSEMBLY)) {
+                    int assemblyCode = Integer.parseInt(map.getDistrictCode());
+                    map.setMember(new AssemblyDao().getAssemblyByDistrict(assemblyCode));
+                }
+            }
         }
     }
 }

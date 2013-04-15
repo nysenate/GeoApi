@@ -1,4 +1,4 @@
-package gov.nysenate.sage.service.district;
+package gov.nysenate.sage.service.street;
 
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 
