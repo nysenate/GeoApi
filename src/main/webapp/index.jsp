@@ -3,42 +3,37 @@
 
 <sage:wrapper>
     <jsp:attribute name="title">SAGE</jsp:attribute>
+    <jsp:attribute name="cssIncludes">
+        <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+    </jsp:attribute>
     <jsp:attribute name="jsIncludes">
+        <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
         <script type="text/javascript" src="app.js"></script>
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">
         <div id="contentcolumn">
-            <div ng-controller="MapViewController">
+            <div ng-controller="MapViewController" id="mapView">
                 <div class="result-header" style="background-color: #333;color:white;">
                     <span aria-hidden="true" data-icon="&#59175;"></span>{{polygonName}}
                 </div>
                 <div id="map_canvas"></div>
             </div>
-            <div ng-controller="StreetViewController">
-                <table>
+            <div ng-controller="StreetViewController" style="height:100%;padding:10px;">
+                <table id="streetViewTable" my-table="overrideOptions" aa-data="streets"
+                                            ao-column-defs="columnDefs" aa-sorting="sortDefault">
                     <thead>
-                        <th>From building</th>
-                        <th>To building</th>
+                        <th>From Bldg</th>
+                        <th>To Bldg</th>
                         <th>Street</th>
                         <th>Zip</th>
                         <th>Senate</th>
                         <th>Assembly</th>
                         <th>Congressional</th>
                         <th>Town</th>
+                        <th>County</th>
+                        <th>Election</th>
                     </thead>
-                    <tbody>
-                        <tr ng-repeat="street in streets">
-                            <td>{{street.bldgLoNum}}</td>
-                            <td>{{street.bldgHiNum}}</td>
-                            <td>{{street.street}}</td>
-                            <td>{{street.zip5}}</td>
-                            <td>{{street.districts.senate}}</td>
-                            <td>{{street.districts.assembly}}</td>
-                            <td>{{street.districts.congressional}}</td>
-                            <td>{{street.districts.town}}</td>
-                        </tr>
-                    </tbody>
                 </table>
             </div>
         </div>
@@ -124,7 +119,7 @@
                     </ol>
                 </form>
             </div>
-            <p class="method-header maroon">Reverse Geocode</p>
+            <p class="method-header teal">Reverse Geocode</p>
             <div id="reverse-geocode-container" class="form-container">
                 <form id="revgeo-form" action="" method="post">
                     <ol class="input-container">
@@ -154,7 +149,7 @@
                     </ol>
                 </form>
             </div>
-            <p class="method-header green">Street Lookup</p>
+            <p class="method-header teal">Street Finder</p>
             <div id="street-lookup-container" class="form-container">
                 <form id="street-lookup-form" action="" method="post" ng-controller="StreetLookupController">
                     <ol class="input-container">
@@ -171,7 +166,7 @@
                     </ol>
                 </form>
             </div>
-            <p class="method-header purple">City/State Lookup</p>
+            <p class="method-header teal">City/State Lookup</p>
             <div id="citystate-lookup-container" ng-controller="CityStateController" class="form-container">
                 <form id="citystate-lookup-form" action="" method="post">
                     <ol class="input-container">
@@ -220,7 +215,7 @@
                             <table style="width:100%">
                                 <tr>
                                     <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
-                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat | capitalize"></p>
+                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p>
                                     </td>
                                 </tr>
                                 <tr>
@@ -296,6 +291,36 @@
                 <div ng-show="visible">
                     <div class="info-container">
                         <p class="member-name">{{city}}, {{state}} {{zip5}}</p>
+                    </div>
+                </div>
+            </div>
+            <div id="map-member-results" ng-controller="MemberViewController">
+                <div ng-show="visible">
+                    <div>
+                        <div class="info-container senator">
+                            <div class="senator-pic-holder">
+                                <img ng-src={{member.imageUrl}} class="senator-pic">
+                            </div>
+                            <div>
+                                <p class="senator member-name">
+                                    <a target="_blank" ng-href="{{member.url}}">{{member.name}}</a>
+                                </p>
+                                <p class="senate district">Senate District {{member.district.number}}</p><br/>
+                                <p class="member-email">
+                                    <span aria-hidden="true" data-icon="&#9993;" style="color:teal;"></span>{{member.email}}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div id="district-offices" ng-repeat="office in member.offices">
+                            <div class="info-container" ng-show="office.name">
+                                <p style="font-size:18px;color:teal;">{{office.name}}</p>
+                                <p>{{office.street}}</p>
+                                <p>{{office.additional}}</p>
+                                <p>{{office.city}}, {{office.province}} {{office.postalCode}}</p>
+                                <p>Phone {{office.phone}}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

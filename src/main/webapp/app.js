@@ -79,6 +79,69 @@ sage.filter('addressFormat', function(){
 });
 
 /**------------------------------------------------\
+ * Directives                                      |
+ *-------------------------------------------------|*/
+sage.directive('myTable', function() {
+    return function(scope, element, attrs) {
+
+        // apply DataTable options, use defaults if none specified by user
+        var options = {};
+        if (attrs.myTable.length > 0) {
+            options = scope.$eval(attrs.myTable);
+        } else {
+            options = {
+                "bStateSave": true,
+                "iCookieDuration": 2419200, /* 1 month */
+                "bJQueryUI": true,
+                "bPaginate": false,
+                "bLengthChange": false,
+                "bFilter": false,
+                "bInfo": false,
+                "bDestroy": true
+            };
+        }
+
+        // Tell the dataTables plugin what columns to use
+        // We can either derive them from the dom, or use setup from the controller
+        var explicitColumns = [];
+        element.find('th').each(function(index, elem) {
+            explicitColumns.push($(elem).text());
+        });
+        if (explicitColumns.length > 0) {
+            options["aoColumns"] = explicitColumns;
+        } else if (attrs.aoColumns) {
+            options["aoColumns"] = scope.$eval(attrs.aoColumns);
+        }
+
+        // aoColumnDefs is dataTables way of providing fine control over column config
+        if (attrs.aoColumnDefs) {
+            options["aoColumnDefs"] = scope.$eval(attrs.aoColumnDefs);
+        }
+
+        // aaSorting defines which column to sort on by default
+        if (attrs.aaSorting) {
+            options["aaSorting"] = scope.$eval(attrs.aaSorting);
+        }
+
+        if (attrs.fnRowCallback) {
+            options["fnRowCallback"] = scope.$eval(attrs.fnRowCallback);
+        }
+
+        // apply the plugin
+        var dataTable = element.dataTable(options);
+
+        // watch for any changes to our data, rebuild the DataTable
+        scope.$watch(attrs.aaData, function(value) {
+            var val = value || null;
+            if (val) {
+                dataTable.fnClearTable();
+                dataTable.fnAddData(scope.$eval(attrs.aaData));
+            }
+        });
+    };
+});
+
+/**------------------------------------------------\
  * Controllers                                     |
  *-------------------------------------------------|
  * Allows binding between the form and the         |
@@ -137,7 +200,7 @@ sage.controller("DistrictMapController", function($scope, $http, responseService
     }
 
     $scope.getDistrictMapUrl = function () {
-        return contextPath + baseApi + "/map/" + this.type + ((this.district) ? ("?district=" + this.district) : "");
+        return contextPath + baseApi + "/map/" + this.type + "?showMembers=true" + ((this.district) ? ("&district=" + this.district) : "");
     }
 
 });
@@ -254,9 +317,39 @@ sage.controller("CityStateView", function($scope, responseService) {
 sage.controller("StreetViewController", function($scope, responseService) {
    $scope.visible = false;
    $scope.viewId = "street";
+   $scope.streets = [];
 
-   $scope.$on("street", function(){
-       $scope = angular.extend($scope, responseService.response);
+    $scope.columnDefs = [
+        { "mDataProp": "bldgLoNum", "aTargets":[0]},
+        { "mDataProp": "bldgHiNum", "aTargets":[1]},
+        { "mDataProp": "street", "aTargets":[2]},
+        { "mDataProp": "zip5", "aTargets":[3]},
+        { "mDataProp": "senate", "aTargets":[4]},
+        { "mDataProp": "congressional", "aTargets":[5]},
+        { "mDataProp": "assembly", "aTargets":[6]},
+        { "mDataProp": "county", "aTargets":[7]},
+        { "mDataProp": "town", "aTargets":[8]},
+        { "mDataProp": "election", "aTargets":[9]}
+    ];
+
+    $scope.overrideOptions = {
+        "bStateSave": false,
+        "iCookieDuration": 2419200, /* 1 month */
+        "bJQueryUI": false,
+        "bPaginate": true,
+        "bLengthChange": false,
+        "bFilter": true,
+        "bInfo": true,
+        "bDestroy": true,
+        "iDisplayLength": 20
+    };
+
+    // Sort by street ( column index 2 )
+    $scope.sortDefault = [[2, "asc"]];
+
+    $scope.$on("street", function(){
+       //$scope = angular.extend($scope, responseService.response);
+       $scope.streets = (responseService.response.streets);
        responseService.setResponse("expandResults", false);
        responseService.setResponse("toggleMap", false, null);
    });
@@ -266,8 +359,23 @@ sage.controller("StreetViewController", function($scope, responseService) {
    });
 });
 
+sage.controller("MemberViewController", function($scope, responseService) {
+    $scope.visible = false;
+    $scope.viewId = "member"
+    $scope.member;
+
+    $scope.$on("view", function(){
+        $scope.visible = ($scope.viewId == responseService.view);
+    });
+
+    $scope.$on("member", function() {
+        $scope.member = responseService.response;
+        responseService.setResponse("expandResults", true);     
+    });
+});
+
 sage.controller('MapViewController', function($scope, responseService, $filter) {
-    $scope.el = $("#map_canvas");
+    $scope.el = $("#mapView");
     $scope.mapOptions = {
         center: new google.maps.LatLng(42.651445, -73.755254),
         zoom: 15,
@@ -292,8 +400,8 @@ sage.controller('MapViewController', function($scope, responseService, $filter) 
 
     $scope.formatDistrictName = function(dist) {
         console.log(dist);
-        return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district;
-
+        return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district +
+               ((dist.member) ? " - " + dist.member.name : "");
     }
 
     $scope.$on('districts', function() {
@@ -312,22 +420,21 @@ sage.controller('MapViewController', function($scope, responseService, $filter) 
 
     $scope.$on("districtMap", function() {
         var data = responseService.response;
-        console.log(data);
-
         if (data.statusCode == 0) {
             /** Show all the district map boundaries */
             if (data != null && data.districts != null) {
                 $scope.clearPolygons();
                 $.each(data.districts, function(i, v){
                     if (v.map != null) {
-                        $scope.setMapBoundary(v.map.geom, false, $scope.formatDistrictName(v));
+                        $scope.setMapBoundary(v.map.geom, false, $scope.formatDistrictName(v), false, function() {
+                             responseService.setResponse("member", v.member, "member");
+                         });
                     }
                 });
             }
             /** Show the individual district map */
             else if (data.map != null) {
                 $scope.setMapBoundary(data.map.geom, true, $scope.formatDistrictName(data), true);
-                console.log("districtMap");
             }
         }
     });
@@ -356,7 +463,7 @@ sage.controller('MapViewController', function($scope, responseService, $filter) 
         this.map.setCenter(this.poiMarker.position);
     }
 
-    $scope.setMapBoundary = function(geom, clear, name, fitBounds) {
+    $scope.setMapBoundary = function(geom, clear, name, fitBounds, clickEvent) {
         if (geom != null) {
             if (clear == true) {
                 this.clearPolygons();
@@ -387,6 +494,20 @@ sage.controller('MapViewController', function($scope, responseService, $filter) 
                 google.maps.event.addListener(polygon,"mouseout",function(){
                     this.setOptions({fillOpacity: 0.2});
                 });
+
+                // Set up event handling for mouse click on polygon 
+                if(clickEvent) {
+                    google.maps.event.addListener(polygon,"click", function() {
+                        if ($scope.polygon) {
+                            $scope.polygon.setOptions({fillColor: "teal"});
+                            $scope.polygon.setOptions({fillOpacity: 0.2});
+                        }
+                        this.setOptions({fillColor: "orange"});
+                        this.setOptions({fillOpacity: 0.5});
+                        $scope.polygon = this;
+                        clickEvent();
+                    });
+                }
 
                 polygon.setMap(this.map);
                 this.polygons.push(polygon);
