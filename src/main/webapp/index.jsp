@@ -8,6 +8,7 @@
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" src="js/blockui.js"></script>
         <script type="text/javascript" src="app.js"></script>
     </jsp:attribute>
     <jsp:body>
@@ -192,7 +193,7 @@
                     <div id="success-district-results" ng-show="districtAssigned">
                         <div class="info-container senator">
                             <div class="senator-pic-holder">
-                                <img ng-src={{districts.senate.senator.imageUrl}} class="senator-pic">
+                                <img ng-src="{{districts.senate.senator.imageUrl}}" class="senator-pic">
                             </div>
                             <div>
                                 <p class="senator member-name">
@@ -200,16 +201,7 @@
                                 </p>
                                 <p class="senate district">Senate District {{districts.senate.district}}</p><br/>
                                 <p class="member-email"><span aria-hidden="true" data-icon="&#9993;" style="color:teal;"></span>{{districts.senate.senator.email}}</p>
-                                <div class="senator-social">
-                                    <p class="member-email" >
-                                        <a target="_blank" ng-href="{{districts.senate.senator.social.facebook}}">
-                                            <span aria-hidden="true" data-socialicon="&#62222;" class="social" style="color:teal;"></span>Facebook Page
-                                        </a>
-                                    </p>
-                                </div>
-                                <span style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('senate');">View Map</a></span>
                             </div>
-                            <hr style="clear:left;"/>
                         </div>
                         <div class="info-container">
                             <table style="width:100%">
@@ -231,7 +223,7 @@
                                         <p class="member-name"><a target="_blank" ng-href="{{districts.congressional.member.url}}">{{districts.congressional.member.name}}</a></p>
                                         <p class="district">Congressional District {{districts.congressional.district}}</p>
                                     </td>
-                                    <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('congressional');">View Map</a></td>
+                                    <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('congressional');">Map</a></td>
                                 </tr>
                             </table>
                         </div>
@@ -242,7 +234,7 @@
                                         <p class="member-name"><a target="_blank" ng-href="{{districts.assembly.member.url}}">{{districts.assembly.member.name}}</a></p>
                                         <p class="district">Assembly District {{districts.assembly.district}}</p>
                                     </td>
-                                    <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('assembly');">View Map</a></td>
+                                    <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('assembly');">Map</a></td>
                                 </tr>
                             </table>
                         </div>
@@ -253,7 +245,7 @@
                                         <p class="member-name">{{districts.county.name}}</p>
                                         <p class="district">County Code: {{districts.county.district}}</p>
                                     </td>
-                                    <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('county');">View Map</a></td>
+                                    <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('county');">Map</a></td>
                                 </tr>
                             </table>
                         </div>
@@ -263,7 +255,7 @@
                                     <td>
                                         <p class="member-name">Town of {{districts.town.name}}</p>
                                         <p class="district">Town Code: {{districts.town.district}}</p></td>
-                                    <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('town');">View Map</a></td>
+                                    <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('town');">Map</a></td>
                                 </tr>
                             </table>
                         </div>
@@ -274,7 +266,7 @@
                                         <p class="member-name">{{districts.school.name}}</p>
                                         <p class="district">School District Code: {{districts.school.district}}</p>
                                     </td>
-                                    <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('school');">View Map</a></td>
+                                    <td style="width:100px;font-size: 13px;color: #555;text-align: right;"><a ng-click="showDistrict('school');">Map</a></td>
                                 </tr>
                             </table>
                         </div>
@@ -299,7 +291,7 @@
                     <div>
                         <div class="info-container senator">
                             <div class="senator-pic-holder">
-                                <img ng-src={{member.imageUrl}} class="senator-pic">
+                                <img ng-src="{{member.imageUrl}}" class="senator-pic">
                             </div>
                             <div>
                                 <p class="senator member-name">

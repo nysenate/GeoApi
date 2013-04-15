@@ -56,7 +56,27 @@ public class StreetRangeView
         return zip5;
     }
 
-    public Map<String, String> getDistricts() {
-        return districts;
+    public String getSenate() {
+        return districts.get("senate");
+    }
+
+    public String getCongressional() {
+        return districts.get("congressional");
+    }
+
+    public String getAssembly() {
+        return districts.get("assembly");
+    }
+
+    public String getTown() {
+        return districts.get("town");
+    }
+
+    public String getCounty() {
+        return districts.get("county");
+    }
+
+    public String getElection() {
+        return districts.get("election");
     }
 }

@@ -7,13 +7,11 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.district.DistrictService;
-import gov.nysenate.sage.service.district.DistrictServiceMetadata;
+import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
-import gov.nysenate.sage.service.district.StreetLookupServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import org.apache.log4j.Logger;
 
@@ -22,15 +20,16 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.concurrent.*;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 public class DistrictController extends BaseApiController
 {
     private static Logger logger = Logger.getLogger(DistrictController.class);
+    private static AddressServiceProvider addressProvder = ApplicationFactory.getAddressServiceProvider();
     private static DistrictServiceProvider districtProvider = ApplicationFactory.getDistrictServiceProvider();
     private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
+
 
     @Override
     public void init(ServletConfig config) throws ServletException
@@ -62,6 +61,9 @@ public class DistrictController extends BaseApiController
         /** Specify whether or not to return map data */
         Boolean showMaps = Boolean.parseBoolean(request.getParameter("showMaps"));
 
+        /** Indicates whether address validation is required */
+        Boolean uspsValidate = Boolean.parseBoolean(request.getParameter("uspsValidate"));
+
         /**
          * If providers are specified then make sure they match the available providers. Send an
          * api error and return if the provider is not supported.
@@ -84,8 +86,18 @@ public class DistrictController extends BaseApiController
                         GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
                                                                             : geocodeProvider.geocode(address);
                         GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
+
+                        /** Perform USPS validation if required */
+                        if (uspsValidate) {
+                            AddressResult addressResult = addressProvder.newInstance("usps").validate(address);
+                            if (addressResult.isValidated() && geocodedAddress != null) {
+                                geocodedAddress.setAddress(addressResult.getAddress());
+                            }
+                        }
+
                         DistrictResult districtResult = districtProvider.assignDistricts(
                                 geocodedAddress, provider, DistrictType.getStandardTypes(), showMembers, showMaps);
+
                         districtResponse = new DistrictResponse(districtResult);
                     }
                     else {

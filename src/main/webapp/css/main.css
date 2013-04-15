@@ -266,7 +266,7 @@ button.submit[disabled] {
 }
 
 .info-container.senator {
-    height:120px;
+    height:90px;
 }
 
 hr.shadow {
@@ -279,7 +279,7 @@ hr.shadow {
 }
 
 div.senator-pic-holder {
-    height:120px;
+    height:90px;
     max-width:100px;
     overflow:hidden;
     float:left;
@@ -354,6 +354,23 @@ a.result-close:hover {
     opacity:1;
 }
 
+/* Street view data table */
+#streetViewTable_filter {
+    text-align:center;
+    margin:10px 0 10px 0;    
+}
+
+#streetViewTable_filter label {
+    font-size:16px;
+}
+
+#streetViewTable_filter label input {
+    width: 50%;
+    outline: 0;
+    border: 1px solid #999;
+    padding: 5px;
+}
+
 /*-----------------------
  Job page */
 #upload-container {
@@ -370,6 +387,7 @@ a.result-close:hover {
 
 table.job-table {
     font-size:14px;
+    text-align:left;
     width:100%;
 }
 

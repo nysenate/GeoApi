@@ -1,13 +1,14 @@
 package gov.nysenate.sage.model.district;
 
 import gov.nysenate.sage.model.geo.Polygon;
+import gov.nysenate.services.model.Senator;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Simple model to hold the geometry for a district boundary map. Some maps
- * are represented as multiple polygons.
+ * Holds all applicable information for a given district map which includes
+ * the geometry, member info, district code, etc.
  */
 public class DistrictMap
 {
@@ -15,6 +16,9 @@ public class DistrictMap
     protected String districtCode;
     protected String districtName;
     private List<Polygon> polygons = new ArrayList<>();
+
+    protected Senator senator;
+    protected DistrictMember member;
 
     public DistrictMap() {}
 
@@ -56,6 +60,22 @@ public class DistrictMap
 
     public void addPolygon(Polygon polygon) {
         this.polygons.add(polygon);
+    }
+
+    public Senator getSenator() {
+        return senator;
+    }
+
+    public void setSenator(Senator senator) {
+        this.senator = senator;
+    }
+
+    public DistrictMember getMember() {
+        return member;
+    }
+
+    public void setMember(DistrictMember member) {
+        this.member = member;
     }
 
     public String toString()

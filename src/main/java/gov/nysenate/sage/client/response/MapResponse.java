@@ -30,4 +30,8 @@ public class MapResponse extends BaseResponse
     public MapView getMap() {
         return (map != null) ? map.getMap() : null;
     }
+
+    public Object getMember() {
+        return (map != null) ? map.getMember() : null;
+    }
 }

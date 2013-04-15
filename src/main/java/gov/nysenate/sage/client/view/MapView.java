@@ -5,11 +5,13 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.FormatUtil;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MapView
 {
+    protected int precision = 8;
     protected List<List<Double[]>> geom;
 
     public MapView(DistrictMap districtMap)
@@ -21,8 +23,10 @@ public class MapView
                     List<Double[]> geomPoly = new ArrayList<>();
                     for (Point point : polygon.getPoints()) {
                         Double[] p = new Double[2];
-                        p[0] = point.getLat();
-                        p[1] = point.getLon();
+                        BigDecimal lat = new BigDecimal(point.getLat());
+                        BigDecimal lon = new BigDecimal(point.getLon());
+                        p[0] = lat.setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+                        p[1] = lon.setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
                         geomPoly.add(p);
                     }
                     geom.add(geomPoly);

@@ -1,6 +1,7 @@
 package gov.nysenate.sage.client.view;
 
 import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictType;
 
 public class DistrictMapView
 {
@@ -8,16 +9,24 @@ public class DistrictMapView
     protected String district;
     protected String name;
     protected MapView map;
+    protected Object member;
 
     public DistrictMapView(DistrictMap districtMap)
     {
         if (districtMap != null) {
-            if (districtMap.getDistrictType() != null) {
-                this.type = districtMap.getDistrictType().name();
+            DistrictType districtType = districtMap.getDistrictType();
+            if (districtType != null) {
+                this.type = districtType.name();
             }
             this.district = districtMap.getDistrictCode();
             this.name = districtMap.getDistrictName();
             this.map = new MapView(districtMap);
+            if (districtType.equals(DistrictType.SENATE)) {
+                this.member = districtMap.getSenator();
+            }
+            else if (districtType.equals(DistrictType.CONGRESSIONAL) || districtType.equals(DistrictType.ASSEMBLY)) {
+                this.member = new MemberView(districtMap.getMember());
+            }
         }
     }
 
@@ -35,5 +44,9 @@ public class DistrictMapView
 
     public String getName() {
         return name;
+    }
+
+    public Object getMember() {
+        return member;
     }
 }

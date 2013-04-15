@@ -1,24 +1,17 @@
 package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.*;
-
-import static gov.nysenate.sage.model.result.ResultStatus.API_INPUT_FORMAT_UNSUPPORTED;
-import static gov.nysenate.sage.model.result.ResultStatus.NO_GEOCODE_RESULT;
 
 /**
  * Point of access for all district assignment requests. This class maintains a collection of available
@@ -103,7 +96,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                 districtResult = consolidateDistrictResults(shapeFileService, shapeFileResult, streetFileResult);
 
                 if (getMembers) {
-                    DistrictServiceMetadata.assignDistrictMembers(districtResult);
+                    DistrictMemberProvider.assignDistrictMembers(districtResult);
                 }
             }
             catch (InterruptedException ex) {
@@ -120,7 +113,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
         }
 
         if (getMembers) {
-            DistrictServiceMetadata.assignDistrictMembers(districtResult);
+            DistrictMemberProvider.assignDistrictMembers(districtResult);
         }
         return districtResult;
     }
@@ -172,7 +165,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
 
         if (getMembers) {
             for (DistrictResult districtResult : districtResults) {
-                DistrictServiceMetadata.assignDistrictMembers(districtResult);
+                DistrictMemberProvider.assignDistrictMembers(districtResult);
             }
         }
 

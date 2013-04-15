@@ -33,6 +33,17 @@ sage.factory("responseService", function($rootScope) {
     return responseService;
 });
 
+sage.factory("uiBlocker", function($rootScope) {
+    var uiBlocker = {};
+    uiBlocker.block = function(msg) {
+        $.blockUI({message: msg});
+    }
+    uiBlocker.unBlock = function() {
+        $.unblockUI();
+    }
+    return uiBlocker;
+});
+
 /**------------------------------------------------\
  * Filters                                         |
  *------------------------------------------------*/
@@ -59,6 +70,14 @@ function capitalize(input) {
         return input.substring(0,1).toUpperCase() + input.substring(1).toLowerCase();
     }
 }
+
+sage.filter("senatorPic", function() {
+   return function(input) {
+       if (input) {
+           return "http://www.nysenate.gov/files/imagecache/senator_teaser/" + input.substring(30) ;
+       }
+   } 
+});
 
 /** Formats an address properly */
 sage.filter('addressFormat', function(){
@@ -188,11 +207,14 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
     }
 });
 
-sage.controller("DistrictMapController", function($scope, $http, responseService){
+sage.controller("DistrictMapController", function($scope, $http, responseService, uiBlocker){
     $scope.type = "senate";
     $scope.district = "";
 
     $scope.lookup = function () {
+        if (!this.district) {
+            uiBlocker.block("Loading " + this.type + " maps..");
+        }
         $http.get(this.getDistrictMapUrl())
             .success(function(data) {
                 responseService.setResponse("districtMap", data);
@@ -374,7 +396,7 @@ sage.controller("MemberViewController", function($scope, responseService) {
     });
 });
 
-sage.controller('MapViewController', function($scope, responseService, $filter) {
+sage.controller('MapViewController', function($scope, responseService, $filter, uiBlocker) {
     $scope.el = $("#mapView");
     $scope.mapOptions = {
         center: new google.maps.LatLng(42.651445, -73.755254),
@@ -426,17 +448,19 @@ sage.controller('MapViewController', function($scope, responseService, $filter) 
                 $scope.clearPolygons();
                 $.each(data.districts, function(i, v){
                     if (v.map != null) {
-                        $scope.setMapBoundary(v.map.geom, false, $scope.formatDistrictName(v), false, function() {
-                             responseService.setResponse("member", v.member, "member");
-                         });
-                    }
+                        $scope.setMapBoundary(v.map.geom, false, $scope.formatDistrictName(v), false, 
+                            (v.type == "SENATE") ? function() {responseService.setResponse("member", v.member, "member");} 
+                                                 : null
+                        );
+                    }                    
                 });
             }
             /** Show the individual district map */
             else if (data.map != null) {
                 $scope.setMapBoundary(data.map.geom, true, $scope.formatDistrictName(data), true);
-            }
+            }            
         }
+        uiBlocker.unBlock();
     });
 
 
@@ -550,7 +574,7 @@ sage.controller('MapViewController', function($scope, responseService, $filter) 
 });
 
 $(document).ready(function(){
-    initVerticalMenu();
+    initVerticalMenu();    
 });
 
 /**

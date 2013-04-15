@@ -8,7 +8,7 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 
 import gov.nysenate.sage.model.api.ApiRequest;
-import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.service.address.AddressService;
 import org.apache.log4j.Logger;
@@ -30,12 +30,12 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public final class AddressController extends BaseApiController
 {
     private Logger logger = Logger.getLogger(AddressController.class);
-    private static ServiceProviders<AddressService> addressProviders;
+    private static AddressServiceProvider addressProvider;
 
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        addressProviders = ApplicationFactory.getAddressServiceProvider();
+        addressProvider = ApplicationFactory.getAddressServiceProvider();
         logger.debug("Initialized " + this.getClass().getSimpleName());
     }
 
@@ -60,7 +60,7 @@ public final class AddressController extends BaseApiController
          * api error and return if the provider is not supported.
          */
         if (provider != null && !provider.isEmpty()) {
-            if (!addressProviders.isRegistered(provider)) {
+            if (!addressProvider.isRegistered(provider)) {
                 addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
                 setApiResponse(addressResponse, request);
                 return;
@@ -75,15 +75,15 @@ public final class AddressController extends BaseApiController
                 switch (apiRequest.getRequest())
                 {
                     case "validate": {
-                        addressResponse = new ValidateResponse(validate(address, provider));
+                        addressResponse = new ValidateResponse(addressProvider.validate(address, provider));
                         break;
                     }
                     case "citystate" : {
-                        addressResponse = new CityStateResponse(lookupCityState(address, provider));
+                        addressResponse = new CityStateResponse(addressProvider.lookupCityState(address, provider));
                         break;
                     }
                     case "zipcode" : {
-                        addressResponse = new ZipcodeResponse(lookupZipcode(address, provider));
+                        addressResponse = new ZipcodeResponse(addressProvider.lookupZipcode(address, provider));
                         break;
                     }
                     default: {
@@ -98,32 +98,5 @@ public final class AddressController extends BaseApiController
 
         /** Set response */
         setApiResponse(addressResponse, request);
-    }
-
-    /**
-     * USPS requires city so if we get an un-parsed address use MapQuest as the default option.
-     */
-    public static AddressResult validate(Address address, String provider)
-    {
-        if (address.isParsed()) {
-            return addressProviders.newInstance(provider, "usps").validate(address);
-        }
-        return addressProviders.newInstance(provider, "mapquest").validate(address);
-    }
-
-    /**
-     * Use USPS for a city state lookup by default.
-     */
-    public static AddressResult lookupCityState(Address address, String provider)
-    {
-        return addressProviders.newInstance(provider, "usps").lookupCityState(address);
-    }
-
-    /**
-     * Use USPS for zip code lookup by default.
-     */
-    public static AddressResult lookupZipcode(Address address, String provider)
-    {
-        return addressProviders.newInstance(provider, "usps").lookupZipCode(address);
     }
 }

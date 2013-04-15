@@ -7,7 +7,7 @@ import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.model.result.StreetResult;
-import gov.nysenate.sage.service.district.StreetLookupServiceProvider;
+import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
