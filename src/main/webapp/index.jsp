@@ -42,6 +42,7 @@
 
     <div id="leftcolumn">
         <div class="innertube">
+            <div class="icon-header" style="background:#333;color:white;"><span class="icon">&#9776;</span><div class="text">Services</div></div>
             <p class="method-header active teal">District Information</p>
             <div id="district-lookup-container" class="form-container active">
                 <form id="districtsForm" action="" method="post" ng-controller="DistrictInfoController" autocomplete="false">

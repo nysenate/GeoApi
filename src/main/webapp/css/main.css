@@ -156,11 +156,32 @@ ul.nav li:hover a{
     height:100%;
 }
 
-.method-header, .result-header{
+.icon-header {
+    padding:0px 15px;
+    margin:0px;
+    font-size:16px;
+}
+
+.icon-header .icon {
+    margin-right:5px;
+    float:left;
+    font-family:entypo;
+    font-size:40px;
+    line-height:40px;
+}
+
+.icon-header .text {
+    padding:9px 0px 11px 0px;
+}
+
+.method-header, .result-header {
     margin: 0px;
     padding: 10px 15px;
     font-size: 16px;
     color:#777;
+}
+
+.method-header {
     cursor:pointer;
 }
 
@@ -280,21 +301,20 @@ hr.shadow {
 
 div.senator-pic-holder {
     height:90px;
-    max-width:100px;
-    overflow:hidden;
+    max-width:90px;
     float:left;
     margin-right: 10px;
     margin-bottom: 5px;
+    overflow:hidden;
 }
 
 div.senator-pic-holder img.senator-pic {
-    height:100%;
-    width:auto;
+    height:auto;
+    width:100%;
 }
 
 /* Senator Info Card
 --------------------*/
-
 p {
     margin:0px;
 }
