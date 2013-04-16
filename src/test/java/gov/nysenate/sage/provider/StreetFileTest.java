@@ -52,7 +52,7 @@ public class StreetFileTest extends TestBase
     @Test
     public void test()
     {
-        FormatUtil.printObject(this.streetFile.assignDistricts(new GeocodedAddress(new Address("66 Becker St" ,"Roxbury", "NY", "12474"))));
+        FormatUtil.printObject(this.streetFile.assignDistricts(new GeocodedAddress(new Address("161 ATTORNEY ST APT 3A" ,"", "NY", "10002"))));
     }
 
 }

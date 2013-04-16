@@ -1,13 +1,13 @@
 package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.TestBase;
-import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
-import static org.junit.Assert.*;
-
 import gov.nysenate.sage.model.result.ResultStatus;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class DistrictShapefileTest extends TestBase
 {

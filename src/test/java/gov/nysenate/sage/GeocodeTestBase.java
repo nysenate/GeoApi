@@ -1,6 +1,7 @@
 package gov.nysenate.sage;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
@@ -12,6 +13,7 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static gov.nysenate.sage.AddressTestBase.*;
 import static junit.framework.Assert.assertEquals;
@@ -23,6 +25,22 @@ public abstract class GeocodeTestBase
     private static Logger logger = Logger.getLogger(GeocodeTestBase.class);
     /** Indicates how far apart two lat or lon values can be and yet considered similar. */
     private static double GEOCODE_EPSILON = 0.01;
+
+    public static ArrayList<Address> addresses = new ArrayList<>(Arrays.asList(
+            new Address("214 8th Street", "", "Troy", "NY", "12180", ""),
+            new Address("101 East State Street", "", "Olean", "NY", "14760", ""),
+            new Address("2012 E Rivr Road", "", "Olean", "NY", "14760", ""),
+            new Address("44 Fairlawn Ave", "Apt 2B", "Albany", "NY", "12203", ""),
+            new Address("18 Greenhaven Dr", "" ,"Port Jefferson Station", "NY", "11776", ""),
+            new Address("479 Deer Park AVE","", "Babylon", "NY", "11702", "")));
+
+    public static ArrayList<Geocode> expectedGeocode = new ArrayList<>(Arrays.asList(
+            new Geocode(new Point(42.7352408, -73.6828174), GeocodeQuality.POINT, "Test"),
+            new Geocode(new Point(42.0775849, -78.4298556), GeocodeQuality.POINT, "Test"),
+            new Geocode(new Point(42.0685706, -78.4138262), GeocodeQuality.POINT, "Test"),
+            new Geocode(new Point(42.6716696, -73.7985770), GeocodeQuality.POINT, "Test"),
+            new Geocode(new Point(40.9144780, -73.0568423), GeocodeQuality.POINT, "Test"),
+            new Geocode(new Point(40.7056276, -73.3219653), GeocodeQuality.POINT, "Test")));
 
     public static void assertSingleAddressGeocode(GeocodeService geocodeService)
     {

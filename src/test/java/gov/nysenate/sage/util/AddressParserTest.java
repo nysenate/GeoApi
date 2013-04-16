@@ -34,6 +34,6 @@ public class AddressParserTest
 
     @Test
     public void test() {
-        FormatUtil.printObject(AddressParser.parseAddress("100 Nyroy Drive, Troy NY 12108"));
+        FormatUtil.printObject(AddressParser.parseAddress("9264 224th st, Jamaica, NY 11432"));
     }
 }
