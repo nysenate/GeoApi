@@ -20,29 +20,45 @@
                 </div>
                 <div id="map_canvas"></div>
             </div>
-            <div ng-controller="StreetViewController" style="height:100%;padding:10px;">
-                <table id="streetViewTable" my-table="overrideOptions" aa-data="streets"
-                                            ao-column-defs="columnDefs" aa-sorting="sortDefault">
-                    <thead>
-                        <th>From Bldg</th>
-                        <th>To Bldg</th>
-                        <th>Street</th>
-                        <th>Zip</th>
-                        <th>Senate</th>
-                        <th>Assembly</th>
-                        <th>Congressional</th>
-                        <th>Town</th>
-                        <th>County</th>
-                        <th>Election</th>
-                    </thead>
-                </table>
+            <div ng-controller="StreetViewController">
+                <div ng-show="visible" style="height:100%;">
+                    <div class="icon-header" style="background-color: #333;color:white;">
+                        <div class="icon" aria-hidden="true">&#57349;</div>
+                        <div class="text">Street File Results</div>
+                    </div>
+                    <div style="padding:10px;">
+                        <div class="info-container street-search-filter">
+                            <label>Filter by street name: </label>
+                            <input id="street-search" type="text" />
+                        </div>
+                        <table id="street-view-table" my-table="overrideOptions" aa-data="streets"
+                               ao-column-defs="columnDefs" aa-sorting="sortDefault">
+                            <thead>
+                            <th>From Bldg</th>
+                            <th>To Bldg</th>
+                            <th>Street</th>
+                            <th>Location</th>
+                            <th>Zip</th>
+                            <th>Senate</th>
+                            <th>Assembly</th>
+                            <th>Congressional</th>
+                            <th>Town</th>
+                            <th>County</th>
+                            <th>Election</th>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="leftcolumn">
         <div class="innertube">
-            <div class="icon-header" style="background:#333;color:white;"><span class="icon">&#9776;</span><div class="text">Services</div></div>
+            <div class="icon-header" style="background:#333;color:white;">
+                <span class="icon">&#9776;</span>
+                <div class="text">Services</div>
+            </div>
             <p class="method-header active teal">District Information</p>
             <div id="district-lookup-container" class="form-container active">
                 <form id="districtsForm" action="" method="post" ng-controller="DistrictInfoController" autocomplete="false">
@@ -69,18 +85,18 @@
                         </li>
                         <li>
                             <label style="color:#444">Method</label>
+                            <select style="width: 98px; color:#444;" ng-model="provider">
+                                <option value="default">Default</option>
+                                <option value="streetfile">Streetfile</option>
+                                <option value="shapefile">Shapefile</option>
+                                <option value="geoserver">Geoserver</option>
+                            </select>
                             <select style="width: 98px; color:#444;" ng-model="geoProvider">
                                 <option value="default">Default</option>
                                 <option value="tiger">Tiger</option>
                                 <option value="yahoo">Yahoo</option>
                                 <option value="mapquest">MapQuest</option>
                                 <option value="osm">OSM</option>
-                            </select>
-                            <select style="width: 98px; color:#444;" ng-model="provider">
-                                <option value="default">Default</option>
-                                <option value="streetfile">Streetfile</option>
-                                <option value="shapefile">Shapefile</option>
-                                <option value="geoserver">Geoserver</option>
                             </select>
                         </li>
                         <li>
@@ -121,6 +137,23 @@
                     </ol>
                 </form>
             </div>
+            <p class="method-header teal">Street Finder</p>
+            <div id="street-lookup-container" class="form-container">
+                <form id="street-lookup-form" action="" method="post" ng-controller="StreetLookupController">
+                    <ol class="input-container">
+                        <li>
+                            <label>Zip5</label>
+                            <input ng-model="zip5" type="text" name="zip">
+                        </li>
+                        <li>
+                            <button class="submit" ng-click="lookup();">
+                                <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
+                                <span>Find Streets</span>
+                            </button>
+                        </li>
+                    </ol>
+                </form>
+            </div>
             <p class="method-header teal">Reverse Geocode</p>
             <div id="reverse-geocode-container" class="form-container">
                 <form id="revgeo-form" action="" method="post">
@@ -146,23 +179,6 @@
                             <button class="submit">
                                 <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
                                 <span>Find Address</span>
-                            </button>
-                        </li>
-                    </ol>
-                </form>
-            </div>
-            <p class="method-header teal">Street Finder</p>
-            <div id="street-lookup-container" class="form-container">
-                <form id="street-lookup-form" action="" method="post" ng-controller="StreetLookupController">
-                    <ol class="input-container">
-                        <li>
-                            <label>Zip5</label>
-                            <input ng-model="zip5" type="text" name="zip">
-                        </li>
-                        <li>
-                            <button class="submit" ng-click="lookup();">
-                                <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
-                                <span>Find Streets</span>
                             </button>
                         </li>
                     </ol>

@@ -149,6 +149,12 @@ sage.directive('myTable', function() {
         // apply the plugin
         var dataTable = element.dataTable(options);
 
+
+        $("#street-search").keyup( function () {
+            /* Filter on the street column */
+            dataTable.fnFilter( this.value, 2 );
+        });
+
         // watch for any changes to our data, rebuild the DataTable
         scope.$watch(attrs.aaData, function(value) {
             var val = value || null;
@@ -345,13 +351,14 @@ sage.controller("StreetViewController", function($scope, responseService) {
         { "mDataProp": "bldgLoNum", "aTargets":[0]},
         { "mDataProp": "bldgHiNum", "aTargets":[1]},
         { "mDataProp": "street", "aTargets":[2]},
-        { "mDataProp": "zip5", "aTargets":[3]},
-        { "mDataProp": "senate", "aTargets":[4]},
-        { "mDataProp": "congressional", "aTargets":[5]},
-        { "mDataProp": "assembly", "aTargets":[6]},
-        { "mDataProp": "county", "aTargets":[7]},
-        { "mDataProp": "town", "aTargets":[8]},
-        { "mDataProp": "election", "aTargets":[9]}
+        { "mDataProp": "location", "aTargets":[3]},
+        { "mDataProp": "zip5", "aTargets":[4]},
+        { "mDataProp": "senate", "aTargets":[5]},
+        { "mDataProp": "congressional", "aTargets":[6]},
+        { "mDataProp": "assembly", "aTargets":[7]},
+        { "mDataProp": "county", "aTargets":[8]},
+        { "mDataProp": "town", "aTargets":[9]},
+        { "mDataProp": "election", "aTargets":[10]}
     ];
 
     $scope.overrideOptions = {
@@ -370,7 +377,6 @@ sage.controller("StreetViewController", function($scope, responseService) {
     $scope.sortDefault = [[2, "asc"]];
 
     $scope.$on("street", function(){
-       //$scope = angular.extend($scope, responseService.response);
        $scope.streets = (responseService.response.streets);
        responseService.setResponse("expandResults", false);
        responseService.setResponse("toggleMap", false, null);

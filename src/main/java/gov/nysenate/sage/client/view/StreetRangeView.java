@@ -14,6 +14,7 @@ public class StreetRangeView
     protected int bldgLoNum;
     protected int bldgHiNum;
     protected String street;
+    protected String location;
     protected String zip5;
     protected Map<String, String> districts;
 
@@ -26,6 +27,7 @@ public class StreetRangeView
                 this.bldgLoNum = sar.getBldgLoNum();
                 this.bldgHiNum = sar.getBldgHiNum();
                 this.street = sar.getStreet();
+                this.location = sar.getLocation();
                 this.zip5 = sar.getZip5();
             }
             if (dInfo != null) {
@@ -50,6 +52,10 @@ public class StreetRangeView
 
     public String getStreet() {
         return street;
+    }
+
+    public String getLocation() {
+        return location;
     }
 
     public String getZip5() {

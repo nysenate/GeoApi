@@ -26,6 +26,7 @@ body{
     margin:0;
     padding:0;
     font-family:'Source Sans Pro', sans-serif;
+    letter-spacing:-.2px;
     height:100%;
     background-color:#eee;
 }
@@ -195,7 +196,7 @@ ul.nav li:hover a{
     font-weight: bold;
 }
 
-.result-header.success {
+.success {
     color: white;
     background-color:#477326;
     font-weight: bold;
@@ -374,22 +375,34 @@ a.result-close:hover {
     opacity:1;
 }
 
+.street-search-filter {
+    width:380px;
+    margin-bottom:10px;
+}
+
+.street-search-filter label {
+    color:#0E4E5A;
+    font-weight:bold;
+}
+
+.street-search-filter input {
+    margin-left:10px;
+    background:white;
+    color:#333;
+}
+
 /* Street view data table */
-#streetViewTable_filter {
-    text-align:center;
-    margin:10px 0 10px 0;    
+#street-view-table_filter {
+    display:none;
 }
 
-#streetViewTable_filter label {
-    font-size:16px;
-}
-
-#streetViewTable_filter label input {
-    width: 50%;
+#street-search {
+    width: 200px;
     outline: 0;
     border: 1px solid #999;
     padding: 5px;
 }
+
 
 /*-----------------------
  Job page */
