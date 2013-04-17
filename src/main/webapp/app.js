@@ -36,7 +36,7 @@ sage.factory("responseService", function($rootScope) {
 sage.factory("uiBlocker", function($rootScope) {
     var uiBlocker = {};
     uiBlocker.block = function(msg) {
-        $.blockUI({message: msg});
+        $.blockUI({css:{border:'1px solid #ddd'}, overlayCSS: { backgroundColor: '#eee', opacity:0.5 }, message: msg});
     }
     uiBlocker.unBlock = function() {
         $.unblockUI();
@@ -172,7 +172,7 @@ sage.directive('myTable', function() {
  * Allows binding between the form and the         |
  * underlying model. Creates and sends requests.   |
  *------------------------------------------------*/
-sage.controller('DistrictInfoController', function($scope, $http, responseService) {
+sage.controller('DistrictInfoController', function($scope, $http, responseService, uiBlocker) {
     $scope.addr1 = "8450 169st";
     $scope.city = "Jamaica";
     $scope.state = "NY";
@@ -181,6 +181,7 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
     $scope.provider = "default";
 
     $scope.lookup = function() {
+        uiBlocker.block("Looking up districts");
         $http.get(this.getDistUrl())
         .success(function(data, status, headers, config) {
             responseService.setResponse("districts", data, "districts");
@@ -295,17 +296,18 @@ sage.controller('ResultsViewController', function($scope, responseService, $root
         if (expand != null) {
             if (expand) {
                 $scope.centercolumn.css("marginRight", $scope.width); $scope.rightcolumn.show();
+                responseService.setResponse("resizeMap");
                 return true;
             } else {
                 $scope.centercolumn.css("marginRight", 0); $scope.rightcolumn.hide();
-                responseService.setResponse("resizeMap", null, null);
+                responseService.setResponse("resizeMap");
             }
         }
         return false;
     }
 });
 
-sage.controller('DistrictsViewController', function($scope, responseService) {
+sage.controller('DistrictsViewController', function($scope, responseService, uiBlocker) {
     $scope.visible = false;
     $scope.viewId = "districts";
     $scope.addressValidated = false;
@@ -318,6 +320,7 @@ sage.controller('DistrictsViewController', function($scope, responseService) {
         $scope = angular.extend($scope, responseService.response);
         responseService.setResponse("expandResults", true);
         responseService.setResponse("toggleMap", true);
+        uiBlocker.unBlock();
     });
 
     $scope.$on('validate', function() {
@@ -394,7 +397,7 @@ sage.controller("StreetViewController", function($scope, responseService) {
     $scope.$on("street", function(){
        $scope.streets = (responseService.response.streets);
        responseService.setResponse("expandResults", false);
-       responseService.setResponse("toggleMap", false, null);
+       responseService.setResponse("toggleMap", false);
    });
 
    $scope.$on("view", function(){
@@ -423,8 +426,11 @@ sage.controller("RevGeoViewController", function($scope, responseService) {
 
     $scope.$on("revgeo", function(){
         $scope = angular.extend($scope, responseService.response);
-        responseService.setResponse("setMarker", $scope.geocode);
+        if ($scope.statusCode == 0) {
+            responseService.setResponse("setMarker", $scope.geocode);
+        }
         responseService.setResponse("expandResults", true);
+        responseService.setResponse("toggleMap", true);
     });
 
     $scope.$on("view", function(){
@@ -456,6 +462,16 @@ sage.controller('MapViewController', function($scope, responseService, $filter, 
         google.maps.event.trigger($scope.map, 'resize');
     }
 
+    $scope.toggleMap = function(show) {
+        if (show) {
+            $(this.el).fadeIn('fast', function(){
+                $scope.resizeMap();
+            });
+        } else {
+            $(this.el).hide();
+        }
+    }
+
     $scope.formatDistrictName = function(dist) {
         console.log(dist);
         return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district +
@@ -472,7 +488,7 @@ sage.controller('MapViewController', function($scope, responseService, $filter, 
         }
         /** Update the marker location to point to the geocode */
         if (data.geocoded) {
-            $scope.setMarker(data.geocode.lat, data.geocode.lon, data.address.addr1);
+            $scope.setMarker(data.geocode.lat, data.geocode.lon, (data.address.addr1 != null) ? data.address.addr1 : "");
         }
     });
 
@@ -496,9 +512,9 @@ sage.controller('MapViewController', function($scope, responseService, $filter, 
                 $scope.setMapBoundary(data.map.geom, true, $scope.formatDistrictName(data), true);
             }            
         }
+        $scope.toggleMap(true);
         uiBlocker.unBlock();
     });
-
 
     $scope.$on('showDistrict', function() {
         var district = responseService.response;
@@ -587,7 +603,6 @@ sage.controller('MapViewController', function($scope, responseService, $filter, 
         else {
             this.clearPolygons();
         }
-        this.resizeMap();
     }
 
     $scope.$on("setMarker", function(){
@@ -600,11 +615,7 @@ sage.controller('MapViewController', function($scope, responseService, $filter, 
     });
 
     $scope.$on("toggleMap", function() {
-        if (responseService.response) {
-            $($scope.el).show();
-        } else {
-            $($scope.el).hide();
-        }
+        $scope.toggleMap(responseService.response);
     });
 
     $scope.clearPolygons = function() {

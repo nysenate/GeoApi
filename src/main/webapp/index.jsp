@@ -168,15 +168,6 @@
                             <input type="text" ng-model="lon" name="lon">
                         </li>
                         <li>
-                            <label>Method</label>
-                            <select name="service">
-                                <option>Yahoo</option>
-                                <option>YahooBoss</option>
-                                <option>Google</option>
-                                <option>Bing</option>
-                            </select>
-                        </li>
-                        <li>
                             <button class="submit" ng-click="lookup();">
                                 <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
                                 <span>Find Address</span>
@@ -336,17 +327,25 @@
             </div>
             <div id="rev-geo-results" ng-controller="RevGeoViewController">
                 <div ng-show="visible">
-                    <div class="info-container">
-                        <p style="color:teal;">Reverse Geocoded Address</p>
+                    <div ng-show="revGeocoded">
+                        <div class="info-container">
+                            <p style="color:teal;">Reverse Geocoded Address</p>
+                        </div>
+                        <div class="info-container" >
+                            <table style="width:100%">
+                                <tr>
+                                    <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
+                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
-                    <div class="info-container">
-                        <table style="width:100%">
-                            <tr>
-                                <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
-                                <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p>
-                                </td>
-                            </tr>
-                        </table>
+                    <div id="failed-geocode-result" ng-hide="revGeocoded">
+                        <div class="info-container">
+                            <p class="member-name" style="color:orangered;">No Reverse Geocode Result</p>
+                            <span>{{description}}</span>
+                        </div>
                     </div>
                 </div>
 
