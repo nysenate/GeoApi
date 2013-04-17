@@ -15,15 +15,16 @@
     <div id="contentwrapper">
         <div id="contentcolumn">
             <div ng-controller="MapViewController" id="mapView">
-                <div class="result-header" style="background-color: #333;color:white;">
-                    <span aria-hidden="true" data-icon="&#59175;"></span>{{polygonName}}
+                <div class="icon-header" style="background-color: #333;color:white;">
+                    <div class="icon" aria-hidden="true">&#59175;</div>
+                    <div class="text">{{header}}</div>
                 </div>
                 <div id="map_canvas"></div>
             </div>
             <div ng-controller="StreetViewController">
                 <div ng-show="visible" style="height:100%;">
                     <div class="icon-header" style="background-color: #333;color:white;">
-                        <div class="icon" aria-hidden="true">&#57349;</div>
+                        <div class="icon" aria-hidden="true">&#128248;</div>
                         <div class="text">Street File Results</div>
                     </div>
                     <div style="padding:10px;">
@@ -155,16 +156,16 @@
                 </form>
             </div>
             <p class="method-header teal">Reverse Geocode</p>
-            <div id="reverse-geocode-container" class="form-container">
+            <div id="reverse-geocode-container" class="form-container" ng-controller="RevGeoController">
                 <form id="revgeo-form" action="" method="post">
                     <ol class="input-container">
                         <li>
                             <label>Latitude</label>
-                            <input type="text" name="lat">
+                            <input type="text" ng-model="lat" name="lat">
                         </li>
                         <li>
                             <label>Longitude</label>
-                            <input type="text" name="lon">
+                            <input type="text" ng-model="lon" name="lon">
                         </li>
                         <li>
                             <label>Method</label>
@@ -176,7 +177,7 @@
                             </select>
                         </li>
                         <li>
-                            <button class="submit">
+                            <button class="submit" ng-click="lookup();">
                                 <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
                                 <span>Find Address</span>
                             </button>
@@ -332,6 +333,23 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div id="rev-geo-results" ng-controller="RevGeoViewController">
+                <div ng-show="visible">
+                    <div class="info-container">
+                        <p style="color:teal;">Reverse Geocoded Address</p>
+                    </div>
+                    <div class="info-container">
+                        <table style="width:100%">
+                            <tr>
+                                <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
+                                <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

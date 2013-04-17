@@ -262,6 +262,22 @@ sage.controller("StreetLookupController", function($scope, $http, responseServic
         return contextPath + baseApi + "/street/lookup?zip5=" + this.zip5;
     }
 });
+
+sage.controller("RevGeoController", function($scope, $http, responseService) {
+    $scope.lat = "";
+    $scope.lon = "";
+
+    $scope.lookup = function() {
+        $http.get(this.getRevGeoUrl())
+            .success(function(data, status, headers, config) {
+                responseService.setResponse("revgeo", data, "revgeo");
+            });
+    }
+
+    $scope.getRevGeoUrl = function() {
+        return contextPath + baseApi + "/geo/revgeocode?lat=" + this.lat + "&lon=" + this.lon;
+    }
+});
 /**------------------------------------------------\
  * Views                                           |
  *------------------------------------------------*/
@@ -300,8 +316,8 @@ sage.controller('DistrictsViewController', function($scope, responseService) {
             delete responseService.response.address;
         }
         $scope = angular.extend($scope, responseService.response);
-        responseService.setResponse("expandResults", true, null);
-        responseService.setResponse("toggleMap", true, null);
+        responseService.setResponse("expandResults", true);
+        responseService.setResponse("toggleMap", true);
     });
 
     $scope.$on('validate', function() {
@@ -319,10 +335,9 @@ sage.controller('DistrictsViewController', function($scope, responseService) {
     });
 
     $scope.showDistrict = function(district) {
+        /* Set the district type as well so that the name shows up and send the event */
         if ($scope.districts[district] != null && typeof $scope.districts[district] != "undefined") {
-            /** Set the district type as well so that the name shows up */
             $scope.districts[district].type = district;
-            /** Send the event */
             responseService.setResponse("showDistrict", $scope.districts[district]);
         }
     }
@@ -402,6 +417,21 @@ sage.controller("MemberViewController", function($scope, responseService) {
     });
 });
 
+sage.controller("RevGeoViewController", function($scope, responseService) {
+    $scope.visible = false;
+    $scope.viewId = "revgeo";
+
+    $scope.$on("revgeo", function(){
+        $scope = angular.extend($scope, responseService.response);
+        responseService.setResponse("setMarker", $scope.geocode);
+        responseService.setResponse("expandResults", true);
+    });
+
+    $scope.$on("view", function(){
+        $scope.visible = ($scope.viewId == responseService.view);
+    });
+});
+
 sage.controller('MapViewController', function($scope, responseService, $filter, uiBlocker) {
     $scope.el = $("#mapView");
     $scope.mapOptions = {
@@ -419,7 +449,7 @@ sage.controller('MapViewController', function($scope, responseService, $filter, 
     $scope.polygons = [];
     $scope.polygon = null;
     $scope.poiMarker = null;
-    $scope.polygonName = "Map";
+    $scope.header = "Map";
     $scope.districtData = null;
 
     $scope.resizeMap = function() {
@@ -471,9 +501,9 @@ sage.controller('MapViewController', function($scope, responseService, $filter, 
 
 
     $scope.$on('showDistrict', function() {
-        var dist = responseService.response;
+        var district = responseService.response;
         $scope.resizeMap();
-        $scope.setMapBoundary(dist.map.geom, true, $scope.formatDistrictName(dist), true);
+        $scope.setMapBoundary(district.map.geom, true, $scope.formatDistrictName(district), true);
     });
 
     $scope.setMarker = function(lat, lon, markerTitle) {
@@ -515,9 +545,9 @@ sage.controller('MapViewController', function($scope, responseService, $filter, 
 
                 google.maps.event.addListener(polygon,"mouseover",function(){
                     this.setOptions({fillOpacity: 0.4});
-                    var scope = angular.element($(".result-header")).scope();
+                    var scope = angular.element($("#mapView")).scope();
                     scope.$apply(function(){
-                        scope.polygonName = name;
+                        scope.header = name;
                     });
                 });
 
@@ -552,18 +582,28 @@ sage.controller('MapViewController', function($scope, responseService, $filter, 
             }
 
             /** Text to display on the map header */
-            this.polygonName = name;
+            this.header = name;
         }
         else {
             this.clearPolygons();
         }
+        this.resizeMap();
     }
+
+    $scope.$on("setMarker", function(){
+        var point = responseService.response;
+        $scope.setMarker(point.lat, point.lon, point.title);
+    });
+
+    $scope.$on("setHeader", function(){
+        $scope.header = responseService.response;
+    });
 
     $scope.$on("toggleMap", function() {
         if (responseService.response) {
-            $($scope.el).fadeIn();
+            $($scope.el).show();
         } else {
-            $($scope.el).fadeOut();
+            $($scope.el).hide();
         }
     });
 
