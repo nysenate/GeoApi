@@ -2,15 +2,13 @@ package gov.nysenate.sage.model.district;
 
 import gov.nysenate.services.model.Senator;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
  * DistrictInfo is used as a container for all assigned district names, codes, and district maps.
+ * It is designed to allow for quick look ups using maps as opposed to iterating over lists of districts.
  */
 public class DistrictInfo
 {
@@ -22,11 +20,19 @@ public class DistrictInfo
     /** A set of the DistrictTypes that might be incorrectly assigned. */
     protected Set<DistrictType> uncertainDistricts = new LinkedHashSet<>();
 
+    /** District names and codes */
     protected Map<DistrictType, String> districtNames = new HashMap<>();
     protected Map<DistrictType, String> districtCodes = new HashMap<>();
+
+    /** Names of assembly/congressional members */
     protected Map<DistrictType, DistrictMember> districtMembers = new HashMap<>();
+
+    /** District Maps and proximity values */
     protected Map<DistrictType, DistrictMap> districtMaps = new HashMap<>();
     protected Map<DistrictType, Double> districtProximities = new HashMap<>();
+
+    /** Neighboring District Maps */
+    protected Map<DistrictType, List<DistrictMap>> neighborMaps = new HashMap<>();
 
     public DistrictInfo() {}
 
@@ -39,6 +45,14 @@ public class DistrictInfo
         this.setDistCode(ASSEMBLY, assemblyCode);
         this.setDistCode(TOWN, townCode);
         this.setDistCode(SCHOOL, schoolCode);
+    }
+
+    public Senator getSenator() {
+        return senator;
+    }
+
+    public void setSenator(Senator senator) {
+        this.senator = senator;
     }
 
     public String getDistName(DistrictType districtType)
@@ -109,14 +123,6 @@ public class DistrictInfo
         this.uncertainDistricts.add(districtType);
     }
 
-    public Senator getSenator() {
-        return senator;
-    }
-
-    public void setSenator(Senator senator) {
-        this.senator = senator;
-    }
-
     public Set<DistrictType> getAssignedDistricts() {
         return assignedDistricts;
     }
@@ -131,6 +137,27 @@ public class DistrictInfo
 
     public Map<DistrictType, DistrictMap> getDistrictMaps() {
         return this.districtMaps;
+    }
+
+    public Map<DistrictType, List<DistrictMap>> getNeighborMaps() {
+        return neighborMaps;
+    }
+
+    /**
+     * Get neighboring DistrictMaps if they exist or an empty List.
+     * @param districtType  The district type to get neighbor maps for.
+     * @return List<DistrictMap>
+     */
+    public List<DistrictMap> getNeighborMaps(DistrictType districtType) {
+        return (neighborMaps.get(districtType) != null) ? neighborMaps.get(districtType) : new ArrayList<DistrictMap>();
+    }
+
+    public void setNeighborMaps(Map<DistrictType, List<DistrictMap>> neighborMaps) {
+        this.neighborMaps = neighborMaps;
+    }
+
+    public void addNeighborMaps(DistrictType districtType, List<DistrictMap> neighborMaps) {
+        this.neighborMaps.put(districtType, neighborMaps);
     }
 
     public String toString()

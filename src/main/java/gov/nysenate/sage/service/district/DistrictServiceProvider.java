@@ -93,6 +93,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                 DistrictResult shapeFileResult = shapeFileFuture.get();
                 DistrictResult streetFileResult = streetFileFuture.get();
 
+                districtResult = assignNeighbors(shapeFileService, shapeFileResult);
                 districtResult = consolidateDistrictResults(shapeFileService, shapeFileResult, streetFileResult);
 
                 if (getMembers) {
@@ -217,39 +218,48 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                                                       DistrictResult streetResult)
     {
         if (shapeResult.isSuccess() || shapeResult.isPartialSuccess()) {
-
+            /** Retrieve objects from result */
             DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
-            GeocodedAddress geocodedAddress = shapeResult.getGeocodedAddress();
             String address = (shapeResult.getAddress() != null) ? shapeResult.getAddress().toString() : "Missing Address!";
 
             /** Can only consolidate if a second set of results exists */
             if (streetResult.isSuccess() || streetResult.isPartialSuccess()) {
                 DistrictInfo streetInfo = streetResult.getDistrictInfo();
-                if (!shapeResult.isSuccess() && !shapeResult.isPartialSuccess()) {
-                    shapeResult.setDistrictInfo(new DistrictInfo());
-                }
                 Set<DistrictType> fallbackSet = new HashSet<>(streetResult.getAssignedDistricts());
-                for (DistrictType distType : shapeResult.getAssignedDistricts()) {
-                    if (shapeInfo.getDistProximity(distType) < PROXIMITY_THRESHOLD) {
-                        String shapeCode = shapeInfo.getDistCode(distType);
-                        String streetCode = streetInfo.getDistCode(distType);
-                        if (fallbackSet.contains(distType) && ! shapeCode.equalsIgnoreCase(streetCode)) {
-                            Map<String, DistrictMap> nearby = shapeService.nearbyDistricts(geocodedAddress, distType);
-                            if (nearby.containsKey(streetCode)) {
-                                logger.debug("Consolidating " + distType + " district from " + shapeCode + " to " + streetCode + " for " + address);
-                                shapeInfo.setDistCode(distType, streetCode);
-                                shapeInfo.setDistMap(distType, nearby.get(streetCode));
+                for (DistrictType assignedType : shapeResult.getAssignedDistricts()) {
+
+                    /** Only worry about instances where the location is close to a boundary */
+                    if (shapeInfo.getDistProximity(assignedType) < PROXIMITY_THRESHOLD) {
+                        String shapeCode = shapeInfo.getDistCode(assignedType);
+                        String streetCode = streetInfo.getDistCode(assignedType);
+                        if (fallbackSet.contains(assignedType) && ! shapeCode.equalsIgnoreCase(streetCode)) {
+
+                            /** Check the neighbor districts to see if one of them is the district found in the street result */
+                            List<DistrictMap> neighborMaps = shapeInfo.getNeighborMaps(assignedType);
+                            DistrictMap neighborMap = getNeighborMapByCode(neighborMaps, streetCode);
+
+                            /** If there is a match in the neighboring districts, set the neighbor district as the actual one */
+                            if (neighborMap != null) {
+                                logger.debug("Consolidating " + assignedType + " district from " + shapeCode + " to " + streetCode + " for " + address);
+                                shapeInfo.setDistCode(assignedType, neighborMap.getDistrictCode());
+                                shapeInfo.setDistName(assignedType, neighborMap.getDistrictName());
+                                shapeInfo.setDistMap(assignedType, neighborMap);
                             }
+
+                            /** Otherwise there was a mismatch between the street and shape files that can't be corrected */
                             else {
-                                logger.warn("Mismatch on " + distType + "| Shape: " + shapeCode + " Street: " + streetCode + " for " + address);
+                                logger.warn("Shapefile/Streetfile mismatch for district " + assignedType + " for address " + address);
                             }
                         }
+                        /** No comparison available, all we can do is declare it as uncertain */
                         else {
-                            logger.trace(distType + " district could not be verified for " + address);
-                            shapeInfo.addUncertainDistrict(distType);
+                            logger.trace(assignedType + " district could not be verified for " + address);
+                            shapeInfo.addUncertainDistrict(assignedType);
                         }
                     }
                 }
+
+                /** Incorporate all the districts found in street file result that are missing in the shape file result */
                 fallbackSet.removeAll(shapeInfo.getAssignedDistricts());
                 for (DistrictType districtType : fallbackSet) {
                     shapeInfo.setDistCode(districtType, streetInfo.getDistCode(districtType));
@@ -265,5 +275,32 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
             }
         }
         return shapeResult;
+    }
+
+    private DistrictResult assignNeighbors(DistrictService shapeService, DistrictResult shapeResult)
+    {
+        if (shapeResult != null && (shapeResult.isSuccess() || shapeResult.isPartialSuccess())) {
+            DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
+            GeocodedAddress geocodedAddress = shapeResult.getGeocodedAddress();
+
+            for (DistrictType districtType : shapeResult.getAssignedDistricts()) {
+                if (shapeInfo.getDistProximity(districtType) < PROXIMITY_THRESHOLD) {
+                    Map<String, DistrictMap> neighborDistricts = shapeService.nearbyDistricts(geocodedAddress, districtType);
+                    if (neighborDistricts != null && neighborDistricts.size() > 0) {
+                        shapeInfo.addNeighborMaps(districtType, new ArrayList<>(neighborDistricts.values()));
+                    }
+                }
+            }
+        }
+        return shapeResult;
+    }
+
+    private DistrictMap getNeighborMapByCode(List<DistrictMap> neighborMaps, String code) {
+        for (DistrictMap neighborMap : neighborMaps) {
+            if (neighborMap.getDistrictCode().equalsIgnoreCase(code)) {
+                return neighborMap;
+            }
+        }
+        return null;
     }
 }
