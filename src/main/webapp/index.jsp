@@ -14,10 +14,10 @@
     <jsp:body>
     <div id="contentwrapper">
         <div id="contentcolumn">
-            <div ng-controller="MapViewController" id="mapView">
+            <div id="mapView">
                 <div class="top-header">
                     <div class="icon" aria-hidden="true">&#59175;</div>
-                    <div class="text">{{header}}</div>
+                    <div class="text">Map | {{header}}</div>
                 </div>
                 <div id="map_canvas"></div>
             </div>
@@ -222,20 +222,7 @@
                                 <p class="member-email"><span aria-hidden="true" data-icon="&#9993;" style="color:teal;"></span>{{districts.senate.senator.email}}</p>
                             </div>
                         </div>
-                        <div class="info-container">
-                            <table style="width:100%">
-                                <tr>
-                                    <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
-                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><span aria-hidden="true" data-icon="&#127919;" style="color:teal;"></span></td>
-                                    <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}}) <small style="float:right;">{{geocode.method | remove:'Dao'}}</small></p></td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="info-container">
+                        <div class="info-container" style="padding:5px 10px;">
                             <table style="width:100%">
                                 <tr>
                                     <td>
@@ -250,13 +237,36 @@
                             </table>
                             <div ng-show="showOffices" ng-repeat="office in districts.senate.senator.offices">
                                 <div style="padding:5px;border-top:1px solid #ddd;" ng-show="office.name">
-                                    <p style="font-size:18px;color:teal;">{{office.name}}</p>
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td><p style="font-size:18px;color:teal;">{{office.name}}</p></td>
+                                            <td class="right-icon-placeholder">
+                                                <a title="Locate office" ng-click="setOfficeMarker(office);">
+                                                    <div class="small-icon" aria-hidden="true">&#59172;</div>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+
                                     <p>{{office.street}}</p>
                                     <p>{{office.additional}}</p>
                                     <p>{{office.city}}, {{office.province}} {{office.postalCode}}</p>
                                     <p>Phone {{office.phone}}</p>
                                 </div>
                             </div>
+                        </div>
+                        <div class="info-container">
+                            <table style="width:100%">
+                                <tr>
+                                    <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
+                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span aria-hidden="true" data-icon="&#127919;" style="color:teal;"></span></td>
+                                    <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}}) <small style="float:right;">{{geocode.method | remove:'Dao'}}</small></p></td>
+                                </tr>
+                            </table>
                         </div>
                         <div class="info-container congressional">
                             <table style="width:100%">
@@ -366,15 +376,26 @@
                             </div>
                         </div>
 
-                        <div id="district-offices" ng-repeat="office in member.offices">
-                            <div class="info-container" ng-show="office.name">
-                                <p style="font-size:18px;color:teal;">{{office.name}}</p>
+                        <div class="info-container" ng-repeat="office in member.offices">
+                            <div ng-show="office.name">
+                                <table style="width:100%">
+                                    <tr>
+                                        <td><p style="font-size:18px;color:teal;">{{office.name}}</p></td>
+                                        <td class="right-icon-placeholder">
+                                            <a title="Locate office" ng-click="setOfficeMarker(office);">
+                                                <div class="small-icon" aria-hidden="true">&#59172;</div>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+
                                 <p>{{office.street}}</p>
                                 <p>{{office.additional}}</p>
                                 <p>{{office.city}}, {{office.province}} {{office.postalCode}}</p>
                                 <p>Phone {{office.phone}}</p>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>

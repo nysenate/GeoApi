@@ -5,12 +5,8 @@ var baseApi = "/api/v2";
 var map;
 
 /**-------------------------------------------------\
- * Data Bus                                         |
- *--------------------------------------------------|
- * Allows controllers and views to communicate.     |
- * The ajax response is propagated to the specified |
- * 'handle'.                                        |
- * ------------------------------------------------*/
+ * Response Service                                 |
+ *-------------------------------------------------*/
 sage.factory("responseService", function($rootScope) {
     var responseService = {};
     responseService.setResponse = function(handle, response, view) {
@@ -33,6 +29,217 @@ sage.factory("responseService", function($rootScope) {
     return responseService;
 });
 
+/**--------------------------------------------
+ * Result View Service
+ ---------------------------------------------*/
+
+
+/**--------------------------------------------
+ * Map Service
+ ---------------------------------------------*/
+sage.factory("mapService", function($rootScope, uiBlocker) {
+    
+    /** Initialization */
+    var mapService = {};
+    mapService.el = $("#mapView");
+    mapService.mapOptions = {
+        center: new google.maps.LatLng(42.651445, -73.755254),
+        zoom: 15,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        panControl: false,
+        zoomControl: true,
+        zoomControlOptions: {
+            style: google.maps.ZoomControlStyle.LARGE,
+            position: google.maps.ControlPosition.LEFT_TOP
+        }
+    };
+    mapService.map = new google.maps.Map(document.getElementById("map_canvas"), mapService.mapOptions);
+    mapService.polygons = [];
+    mapService.polygon = null;
+    mapService.markers = [];
+    mapService.activeMarker = null;
+    mapService.header = "Map";
+    mapService.districtData = null;
+
+    /**
+     * Triggers a map resize
+     */
+    mapService.resizeMap = function() {
+        google.maps.event.trigger(mapService.map, 'resize');
+    }
+
+    /**
+     * Toggle the visibility of the map
+     * @param show - if true, then show and resize map
+     */
+    mapService.toggleMap = function(show) {
+        if (show) {
+            $(this.el).fadeIn('fast', function(){
+                mapService.resizeMap();
+            });
+        } else {
+            $(this.el).hide();
+        }
+    }
+
+    /**
+     * Place a marker on the map.
+     * lat - float
+     * lon - float
+     * title - tooltip text to display on hover
+     * clear - remove all other markers
+     * clickContent - display content upon marker click
+     */
+    mapService.setMarker = function(lat, lon, title, clear, clickContent) {
+        if (clear) {
+            this.clearMarkers();
+        }
+
+        var marker = new google.maps.Marker({
+            map: mapService.map,
+            draggable:false,
+            animation: google.maps.Animation.DROP,
+            position: new google.maps.LatLng(lat, lon),
+            title: title
+        });
+
+        if (clickContent) {
+            var infowindow = new google.maps.InfoWindow({
+                content: clickContent
+            });
+            google.maps.event.addListener(marker, 'click', function() {
+                infowindow.open(mapService.map, marker);
+            });
+        }
+
+        this.activeMarker = marker;
+        this.markers.push(marker);
+        this.map.setCenter(this.activeMarker.position);
+    }
+
+    /**
+     * Sets a polygon overlay on the map with hover and click functionality
+     * @param geom          Nested array of point arrays, e.g [[43.1,-73],[43.2,-73],[43.2,-73]]
+     * @param name          The name of the polygon to display on the info header bar
+     * @param fitBounds     If true then map will resize to fit polygon's bounds
+     * @param clear         If true then map will be cleared of all overlays
+     * @param clickHandler  If a callback is supplied it will be called when the polygon is clicked
+     */
+    mapService.setOverlay = function(geom, name, fitBounds, clear, clickHandler) {
+        if (geom != null) {
+            if (clear == true) {
+                this.clearPolygons();
+            }
+            var coords = [];
+            for (var i in geom) {
+                for (var j in geom[i]) {
+                    coords.push(new google.maps.LatLng(geom[i][j][0], geom[i][j][1]));
+                }
+                var polygon = new google.maps.Polygon({
+                    paths: coords,
+                    strokeColor: "teal",
+                    strokeOpacity: 1,
+                    strokeWeight: 2,
+                    fillColor: "teal",
+                    fillOpacity: 0.2
+                });
+
+                /** On mouseover update the header title */
+                google.maps.event.addListener(polygon,"mouseover",function(){
+                    this.setOptions({fillOpacity: 0.4});
+                    var scope = angular.element(mapService.el).scope();
+                    scope.$apply(function() {
+                        scope.header = name;
+                    });
+                });
+
+                /** On mouseout restore the opacity */
+                google.maps.event.addListener(polygon,"mouseout",function(){
+                    this.setOptions({fillOpacity: 0.2});
+                });
+
+                /** Set up event handling for mouse click on polygon */
+                if(clickHandler) {
+                    google.maps.event.addListener(polygon,"click", function() {
+                        if (mapService.polygon) {
+                            mapService.polygon.setOptions({fillColor: "teal"});
+                            mapService.polygon.setOptions({fillOpacity: 0.2});
+                        }
+                        this.setOptions({fillColor: "orange"});
+                        this.setOptions({fillOpacity: 0.5});
+                        mapService.polygon = this;
+                        clickHandler();
+                    });
+                }
+
+                polygon.setMap(this.map);
+                this.polygons.push(polygon);
+                this.polygon = polygon;
+                coords = [];
+            }
+
+            /** Set the zoom level to the district bounds and move a step closer */
+            if (fitBounds) {
+                this.map.fitBounds(this.polygon.getBounds());
+                this.map.setZoom(this.map.getZoom() + 1);
+            }
+
+            /** Text to display on the map header */
+            this.header = name;
+        }
+        else {
+            this.clearPolygons();
+        }
+    }
+
+    /**
+     * Removes all polygon overlays
+     */
+    mapService.clearPolygons = function() {
+        $.each(this.polygons, function (i, v){
+            v.setMap(null);
+        });
+        this.polygons = [];
+    }
+
+    /**
+     * Removes all markers
+     */
+    mapService.clearMarkers = function() {
+        $.each(this.markers, function(i, v){
+            v.setMap(null);
+        });
+        this.markers = [];
+    }
+
+
+
+    /* map.setCenter(results[0].geometry.location);
+     var marker = new google.maps.Marker({
+     map: map,
+     position: results[0].geometry.location
+     }); */
+    /**--------------------------------------------
+     * Client Geocoder
+     ---------------------------------------------*/
+    mapService.geocode = function(address) {
+        googleGeocoder.geocode( { 'address': address}, function(results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+                return results[0].geometry.location;
+            }
+            return null;
+        });
+    }
+
+    mapService.formatDistrictName = function(dist) {
+        console.log(dist);
+        return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district +
+            ((dist.member) ? " - " + dist.member.name : "");
+    }
+
+    return mapService;
+});
+
 sage.factory("uiBlocker", function($rootScope) {
     var uiBlocker = {};
     uiBlocker.block = function(msg) {
@@ -47,9 +254,8 @@ sage.factory("uiBlocker", function($rootScope) {
 /**------------------------------------------------\
  * Filters                                         |
  *------------------------------------------------*/
-
 /** Removes a sequence from an input string */
-sage.filter('remove', function(){
+sage.filter('remove', function() {
     return function(input, string) {
         if (input !== null && typeof input !== 'undefined') {
             return input.replace(string, "");
@@ -69,6 +275,11 @@ function capitalize(input) {
     if (input !== null && typeof input !== 'undefined') {
         return input.substring(0,1).toUpperCase() + input.substring(1).toLowerCase();
     }
+}
+
+function formatDistrictName(district) {
+    return ((district.name) ? district.name + " " : capitalize(district.type) + " District ")  + district.district +
+            ((district.member) ? " - " + district.member.name : "");
 }
 
 sage.filter("senatorPic", function() {
@@ -184,17 +395,10 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
         uiBlocker.block("Looking up districts");
         $http.get(this.getDistUrl())
         .success(function(data, status, headers, config) {
-            responseService.setResponse("districts", data, "districts");
+            responseService.setResponse("districtInfo", data, "districtView");
         }).error(function(data, status, headers, config) {
-                console.log(data);
+            console.log(data);
         });
-
-        /*$http.get(this.getValidateUrl())
-        .success(function(data, status, headers, config) {
-                responseService.setResponse("validate", data);
-        }).error(function(data, status, headers, config) {
-                console.log(data);
-        });*/
     }
 
     $scope.getDistUrl = function () {
@@ -205,12 +409,6 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
         url += "&showMembers=true&showMaps=true";
         url = url.replace(/#/g, "");
         return url;
-    }
-
-    $scope.getValidateUrl = function () {
-        return contextPath + baseApi + "/address/validate?addr1=" + this.addr1 + "&city=" + this.city
-                           + "&state=" + this.state + "&zip5=" + this.zip5;
-
     }
 });
 
@@ -307,46 +505,84 @@ sage.controller('ResultsViewController', function($scope, responseService, $root
     }
 });
 
-sage.controller('DistrictsViewController', function($scope, responseService, uiBlocker) {
+sage.controller('DistrictsViewController', function($scope, responseService, mapService, uiBlocker) {
     $scope.visible = false;
-    $scope.viewId = "districts";
-    $scope.addressValidated = false;
+    $scope.viewId = "districtView";
     $scope.showOffices = false;
-
-    $scope.$on("districts", function() {
-        if ($scope.addressValidated) {
-            delete responseService.response.address;
-        }
-        $scope = angular.extend($scope, responseService.response);
-        responseService.setResponse("expandResults", true);
-        responseService.setResponse("toggleMap", true);
-        uiBlocker.unBlock();
-    });
-
-    $scope.$on('validate', function() {
-        $scope.addressValidated = responseService.response.validated;
-        if ($scope.addressValidated) {
-            var validatedAddr = angular.extend($scope, responseService.response);
-            if (validatedAddr != null && validatedAddr.validated == true) {
-                $scope.address = validatedAddr.address;
-            }
-        }
-    });
 
     $scope.$on("view", function(){
         $scope.visible = ($scope.viewId == responseService.view);
     });
 
-    $scope.showDistrict = function(district) {
-        /* Set the district type as well so that the name shows up and send the event */
-        if ($scope.districts[district] != null && typeof $scope.districts[district] != "undefined") {
-            $scope.districts[district].type = district;
-            responseService.setResponse("showDistrict", $scope.districts[district]);
+    /** Handle results of district info query */
+    $scope.$on("districtInfo", function() {
+        $scope = angular.extend($scope, responseService.response);
+        responseService.setResponse("expandResults", true);
+        mapService.toggleMap(true);
+
+        /** If the districts were assigned, initially set the map to display the senate boundary */
+        if ($scope.districtAssigned) {
+            mapService.setOverlay($scope.districts.senate.map.geom,
+                                  "Senate District "+ $scope.districts.senate.district, true, true, null);
+        }
+        /** Update the marker location to point to the geocode */
+        if ($scope.geocoded) {
+            mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
+                                 ($scope.address.addr1 != null) ? $scope.address.addr1 : "", true, null);
+        }
+        uiBlocker.unBlock();
+        mapService.resizeMap();
+    });
+
+    /** Handle results of district maps query */
+    $scope.$on("districtMap", function() {
+        var data = responseService.response;
+        if (data.statusCode == 0) {
+
+            mapService.clearMarkers();
+
+            /** Show all the district map boundaries */
+            if (data != null && data.districts != null) {
+                mapService.clearPolygons();
+                $.each(data.districts, function(i, v){
+                    if (v.map != null) {
+                        mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
+                            (v.type == "SENATE") ? function() {responseService.setResponse("member", v.member, "member");}
+                                : null
+                        );
+                    }
+                });
+            }
+            /** Show the individual district map */
+            else if (data.map != null) {
+                mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true,
+                    (data.type == "SENATE") ? function() {responseService.setResponse("member", data.member, "member");}
+                    : null
+                );
+            }
+        }
+        mapService.toggleMap(true);
+        uiBlocker.unBlock();
+    });
+
+    /** Show the specified district map */
+    $scope.showDistrict = function(districtType) {
+        if ($scope.districts[districtType] != null && typeof $scope.districts[districtType] != "undefined") {
+            var district = $scope.districts[districtType];
+            district.type = districtType; // Set the type for the formatDistrictName method
+            mapService.resizeMap();
+            mapService.setOverlay(district.map.geom, formatDistrictName(district), true, true, null);
+        }
+    }
+
+    $scope.setOfficeMarker = function(office) {
+        if (office != null) {
+            mapService.setMarker(office.latitude, office.longitude, office.name, false, null);
         }
     }
 });
 
-sage.controller("CityStateView", function($scope, responseService) {
+sage.controller("CityStateView", function($scope, responseService, mapService) {
     $scope.visible = false;
     $scope.viewId = "citystate";
 
@@ -360,12 +596,12 @@ sage.controller("CityStateView", function($scope, responseService) {
     });
 });
 
-sage.controller("StreetViewController", function($scope, responseService) {
+sage.controller("StreetViewController", function($scope, responseService, mapService) {
    $scope.visible = false;
    $scope.viewId = "street";
    $scope.streets = [];
 
-    $scope.columnDefs = [
+   $scope.columnDefs = [
         { "mDataProp": "bldgLoNum", "aTargets":[0]},
         { "mDataProp": "bldgHiNum", "aTargets":[1]},
         { "mDataProp": "street", "aTargets":[2]},
@@ -397,7 +633,7 @@ sage.controller("StreetViewController", function($scope, responseService) {
     $scope.$on("street", function(){
        $scope.streets = (responseService.response.streets);
        responseService.setResponse("expandResults", false);
-       responseService.setResponse("toggleMap", false);
+       mapService.toggleMap(false);
    });
 
    $scope.$on("view", function(){
@@ -405,7 +641,7 @@ sage.controller("StreetViewController", function($scope, responseService) {
    });
 });
 
-sage.controller("MemberViewController", function($scope, responseService) {
+sage.controller("MemberViewController", function($scope, responseService, mapService) {
     $scope.visible = false;
     $scope.viewId = "member"
     $scope.member;
@@ -418,215 +654,31 @@ sage.controller("MemberViewController", function($scope, responseService) {
         $scope.member = responseService.response;
         responseService.setResponse("expandResults", true);     
     });
+
+    $scope.setOfficeMarker = function(office) {
+        if (office != null) {
+            mapService.setMarker(office.latitude, office.longitude, office.name, false, null);
+        }
+    }
 });
 
-sage.controller("RevGeoViewController", function($scope, responseService) {
+sage.controller("RevGeoViewController", function($scope, responseService, mapService) {
     $scope.visible = false;
     $scope.viewId = "revgeo";
+    $scope.revGeocoded = false;
 
     $scope.$on("revgeo", function(){
         $scope = angular.extend($scope, responseService.response);
-        if ($scope.statusCode == 0) {
-            responseService.setResponse("setMarker", $scope.geocode);
+        $scope.revGeocoded = ($scope.statusCode == 0);
+        if ($scope.revGeocoded) {
+            mapService.setMarker($scope.geocode.lat, $scope.geocode.lon);
         }
         responseService.setResponse("expandResults", true);
-        responseService.setResponse("toggleMap", true);
+        mapService.toggleMap(true);
     });
 
     $scope.$on("view", function(){
         $scope.visible = ($scope.viewId == responseService.view);
-    });
-});
-
-sage.controller('MapViewController', function($scope, responseService, $filter, uiBlocker) {
-    $scope.el = $("#mapView");
-    $scope.mapOptions = {
-        center: new google.maps.LatLng(42.651445, -73.755254),
-        zoom: 15,
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
-        panControl: false,
-        zoomControl: true,
-        zoomControlOptions: {
-            style: google.maps.ZoomControlStyle.LARGE,
-            position: google.maps.ControlPosition.LEFT_TOP
-        }
-    };
-    $scope.map = new google.maps.Map(document.getElementById("map_canvas"), $scope.mapOptions);
-    $scope.polygons = [];
-    $scope.polygon = null;
-    $scope.poiMarker = null;
-    $scope.header = "Map";
-    $scope.districtData = null;
-
-    $scope.resizeMap = function() {
-        google.maps.event.trigger($scope.map, 'resize');
-    }
-
-    $scope.toggleMap = function(show) {
-        if (show) {
-            $(this.el).fadeIn('fast', function(){
-                $scope.resizeMap();
-            });
-        } else {
-            $(this.el).hide();
-        }
-    }
-
-    $scope.formatDistrictName = function(dist) {
-        console.log(dist);
-        return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district +
-               ((dist.member) ? " - " + dist.member.name : "");
-    }
-
-    $scope.$on('districts', function() {
-        var data = responseService.response;
-        /** If the districts were assigned, initially set the map to display the senate boundary */
-        if (data.districtAssigned) {
-            $scope.setMapBoundary(data.districts.senate.map.geom, true, "Senate District " + data.districts.senate.district, true);
-            /** Keep a reference to the district data in local scope */
-            $scope.districtData = data;
-        }
-        /** Update the marker location to point to the geocode */
-        if (data.geocoded) {
-            $scope.setMarker(data.geocode.lat, data.geocode.lon, (data.address.addr1 != null) ? data.address.addr1 : "");
-        }
-    });
-
-    $scope.$on("districtMap", function() {
-        var data = responseService.response;
-        if (data.statusCode == 0) {
-            /** Show all the district map boundaries */
-            if (data != null && data.districts != null) {
-                $scope.clearPolygons();
-                $.each(data.districts, function(i, v){
-                    if (v.map != null) {
-                        $scope.setMapBoundary(v.map.geom, false, $scope.formatDistrictName(v), false, 
-                            (v.type == "SENATE") ? function() {responseService.setResponse("member", v.member, "member");} 
-                                                 : null
-                        );
-                    }                    
-                });
-            }
-            /** Show the individual district map */
-            else if (data.map != null) {
-                $scope.setMapBoundary(data.map.geom, true, $scope.formatDistrictName(data), true);
-            }            
-        }
-        $scope.toggleMap(true);
-        uiBlocker.unBlock();
-    });
-
-    $scope.$on('showDistrict', function() {
-        var district = responseService.response;
-        $scope.resizeMap();
-        $scope.setMapBoundary(district.map.geom, true, $scope.formatDistrictName(district), true);
-    });
-
-    $scope.setMarker = function(lat, lon, markerTitle) {
-        if (this.poiMarker != null) {
-            this.poiMarker.setMap(null);
-            this.poiMarker = null;
-        }
-
-        this.poiMarker = new google.maps.Marker({
-            map: $scope.map,
-            draggable:false,
-            animation: google.maps.Animation.DROP,
-            position: new google.maps.LatLng(lat, lon),
-            title: markerTitle
-        });
-
-        this.map.setCenter(this.poiMarker.position);
-    }
-
-    $scope.setMapBoundary = function(geom, clear, name, fitBounds, clickEvent) {
-        if (geom != null) {
-            if (clear == true) {
-                this.clearPolygons();
-            }
-
-            var coords = [];
-            for (var i in geom) {
-                for (var j in geom[i]) {
-                    coords.push(new google.maps.LatLng(geom[i][j][0], geom[i][j][1]));
-                }
-                var polygon = new google.maps.Polygon({
-                    paths: coords,
-                    strokeColor: "teal",
-                    strokeOpacity: 1,
-                    strokeWeight: 2,
-                    fillColor: "teal",
-                    fillOpacity: 0.2
-                });
-
-                google.maps.event.addListener(polygon,"mouseover",function(){
-                    this.setOptions({fillOpacity: 0.4});
-                    var scope = angular.element($("#mapView")).scope();
-                    scope.$apply(function(){
-                        scope.header = name;
-                    });
-                });
-
-                google.maps.event.addListener(polygon,"mouseout",function(){
-                    this.setOptions({fillOpacity: 0.2});
-                });
-
-                // Set up event handling for mouse click on polygon 
-                if(clickEvent) {
-                    google.maps.event.addListener(polygon,"click", function() {
-                        if ($scope.polygon) {
-                            $scope.polygon.setOptions({fillColor: "teal"});
-                            $scope.polygon.setOptions({fillOpacity: 0.2});
-                        }
-                        this.setOptions({fillColor: "orange"});
-                        this.setOptions({fillOpacity: 0.5});
-                        $scope.polygon = this;
-                        clickEvent();
-                    });
-                }
-
-                polygon.setMap(this.map);
-                this.polygons.push(polygon);
-                this.polygon = polygon;
-                coords = [];
-            }
-
-            /** Set the zoom level to the district bounds and move a step closer */
-            if (fitBounds) {
-                this.map.fitBounds(this.polygon.getBounds());
-                this.map.setZoom(this.map.getZoom() + 1);
-            }
-
-            /** Text to display on the map header */
-            this.header = name;
-        }
-        else {
-            this.clearPolygons();
-        }
-    }
-
-    $scope.$on("setMarker", function(){
-        var point = responseService.response;
-        $scope.setMarker(point.lat, point.lon, point.title);
-    });
-
-    $scope.$on("setHeader", function(){
-        $scope.header = responseService.response;
-    });
-
-    $scope.$on("toggleMap", function() {
-        $scope.toggleMap(responseService.response);
-    });
-
-    $scope.clearPolygons = function() {
-        $.each(this.polygons, function (i, v){
-            v.setMap(null);
-        });
-        this.polygons = [];
-    }
-
-    $scope.$on("resizeMap", function(){
-        $scope.resizeMap();
     });
 });
 
