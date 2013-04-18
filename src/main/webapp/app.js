@@ -311,7 +311,7 @@ sage.controller('DistrictsViewController', function($scope, responseService, uiB
     $scope.visible = false;
     $scope.viewId = "districts";
     $scope.addressValidated = false;
-    $scope.hasFacebook = false;
+    $scope.showOffices = false;
 
     $scope.$on("districts", function() {
         if ($scope.addressValidated) {
