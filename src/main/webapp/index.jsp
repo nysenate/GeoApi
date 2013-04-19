@@ -226,8 +226,8 @@
                             <table style="width:100%">
                                 <tr>
                                     <td>
-                                        <a ng-hide="showOffices" ng-click="showOffices=true;">View Senator Offices</a>
-                                        <a ng-show="showOffices" ng-click="showOffices=false;">Hide Senator Offices</a>
+                                        <a ng-hide="showOffices" ng-click="showOffices=true;">View Senator Office Locations</a>
+                                        <a ng-show="showOffices" ng-click="showOffices=false;">Hide Senator Office Locations</a>
                                     </td>
                                     <td class="right-icon-placeholder">
                                         <a ng-hide="showOffices" ng-click="showOffices=true;"><div class="small-icon">&#59228;</div></a>
@@ -254,6 +254,38 @@
                                     <p>Phone {{office.phone}}</p>
                                 </div>
                             </div>
+                        </div>
+                        <div class="info-container" ng-show="districts.senate.nearBorder" style="padding:5px 10px;">
+                            <table style="width:100%">
+                                <tr>
+                                    <td>
+                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistrict(districts.senate.neighbors[0])">View Neighbor Senate District</a>
+                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistrict()">Hide Neighbor Senate District</a>
+                                    </td>
+                                    <td class="right-icon-placeholder">
+                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistrict(districts.senate.neighbors[0])"><div class="small-icon">&#59228;</div></a>
+                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistrict()"><div class="small-icon">&#59231;</div></a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div ng-show="showNeighbors">
+                                <div style="padding:5px;border-top:1px solid #ddd;">
+                                    <div class="senator">
+                                        <div class="senator-pic-holder">
+                                            <img ng-src="{{districts.senate.neighbors[0].member.imageUrl}}" class="senator-pic">
+                                        </div>
+                                        <div>
+                                            <p class="senator member-name">
+                                                <a target="_blank" ng-href="{{districts.senate.neighbors[0].member.url}}">{{districts.senate.neighbors[0].member.name}}</a>
+                                            </p>
+                                            <p class="senate district" style="color:orangered">Senate District {{districts.senate.neighbors[0].district}}</p>
+                                            <br/>
+                                            <p class="member-email"><span aria-hidden="true" data-icon="&#9993;" style="color:teal;"></span>{{districts.senate.neighbors[0].member.email}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                         <div class="info-container">
                             <table style="width:100%">

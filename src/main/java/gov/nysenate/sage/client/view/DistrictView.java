@@ -21,7 +21,7 @@ public class DistrictView
             this.name = districtInfo.getDistName(districtType);
             this.district = districtInfo.getDistCode(districtType);
             this.map = new MapView(districtInfo.getDistMap(districtType));
-            this.nearBorder = districtInfo.getUncertainDistricts().contains(districtType);
+            this.nearBorder = districtInfo.getNearBorderDistricts().contains(districtType);
             for (DistrictMap neighborMap : districtInfo.getNeighborMaps(districtType)) {
                 neighbors.add(new DistrictNeighborView(neighborMap));
             }

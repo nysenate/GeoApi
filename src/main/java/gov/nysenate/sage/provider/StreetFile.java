@@ -139,4 +139,11 @@ public class StreetFile implements DistrictService, StreetLookupService
         logger.warn("Nearby district search is not implemented using streetfiles!");
         return null;
     }
+
+    @Override
+    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count)
+    {
+        logger.warn("Nearby district search is not implemented using streetfiles!");
+        return null;
+    }
 }

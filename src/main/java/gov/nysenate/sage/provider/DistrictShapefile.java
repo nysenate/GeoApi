@@ -93,9 +93,15 @@ public class DistrictShapefile implements DistrictService, MapService
     @Override
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType)
     {
+        return nearbyDistricts(geocodedAddress, districtType, 2);
+    }
+
+    @Override
+    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count)
+    {
         if (geocodedAddress != null && geocodedAddress.isGeocoded()) {
             Point point = geocodedAddress.getGeocode().getLatLon();
-            return this.districtShapefileDao.getNearbyDistricts(districtType, point, 3);
+            return this.districtShapefileDao.getNearbyDistricts(districtType, point, count);
         }
         return null;
     }

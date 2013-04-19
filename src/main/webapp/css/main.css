@@ -118,7 +118,7 @@ a:hover {
     float:left;
     font-family:'entypo';
     font-size:40px;
-    line-height:40px;
+    line-height:100%;
 }
 
 .top-header .text {
@@ -148,10 +148,6 @@ a:hover {
     color: white;
     font-weight: bold;
 }
-
-
-
-
 
 .input-container input, .input-container select {
     color:#111;
@@ -219,11 +215,9 @@ ul.nav li:hover a{
     color:teal;
 }
 
-
 #mapView, #map_canvas {
     height:100%;
 }
-
 
 .success {
     color: white;
@@ -236,7 +230,10 @@ ul.nav li:hover a{
     font-weight: bold;
 }
 
-.method-header.active.teal{ background-color:#0E4E5A;}
+.method-header.active.teal {
+    background-color:#0E4E5A;
+}
+
 .method-header.active.maroon{ background-color:#632127;}
 .method-header.active.green{background-color:#477326;}
 .method-header.active.purple{background-color:#632150;}

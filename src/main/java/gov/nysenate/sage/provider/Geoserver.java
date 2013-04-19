@@ -115,4 +115,10 @@ public class Geoserver implements DistrictService, Observer
         logger.warn("Nearby districts is not implemented in Geoserver");
         return null;
     }
+
+    @Override
+    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count) {
+        logger.warn("Nearby districts is not implemented in Geoserver");
+        return null;
+    }
 }

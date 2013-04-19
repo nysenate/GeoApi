@@ -51,7 +51,11 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
         zoomControlOptions: {
             style: google.maps.ZoomControlStyle.LARGE,
             position: google.maps.ControlPosition.LEFT_TOP
-        }
+        },
+        styles: [
+            {featureType: "transit",
+            stylers: [{ "visibility": "off"}]}
+        ]
     };
     mapService.map = new google.maps.Map(document.getElementById("map_canvas"), mapService.mapOptions);
     mapService.polygons = [];
@@ -124,8 +128,9 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
      * @param fitBounds     If true then map will resize to fit polygon's bounds
      * @param clear         If true then map will be cleared of all overlays
      * @param clickHandler  If a callback is supplied it will be called when the polygon is clicked
+     * @param color         Color of the polygon (default is teal)
      */
-    mapService.setOverlay = function(geom, name, fitBounds, clear, clickHandler) {
+    mapService.setOverlay = function(geom, name, fitBounds, clear, clickHandler, color) {
         if (geom != null) {
             if (clear == true) {
                 this.clearPolygons();
@@ -137,15 +142,15 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
                 }
                 var polygon = new google.maps.Polygon({
                     paths: coords,
-                    strokeColor: "teal",
+                    strokeColor: (color) ? color : "teal",
                     strokeOpacity: 1,
                     strokeWeight: 2,
-                    fillColor: "teal",
-                    fillOpacity: 0.2
+                    fillColor: (color) ? color : "teal",
+                    fillOpacity: 0.1
                 });
 
                 /** On mouseover update the header title */
-                google.maps.event.addListener(polygon,"mouseover",function(){
+                google.maps.event.addListener(polygon,"mouseover",function() {
                     this.setOptions({fillOpacity: 0.4});
                     var scope = angular.element(mapService.el).scope();
                     scope.$apply(function() {
@@ -186,9 +191,18 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
 
             /** Text to display on the map header */
             this.header = name;
+            return this.polygon;
         }
         else {
             this.clearPolygons();
+        }
+        return null;
+    }
+
+    mapService.clearPolygon = function(polygon) {
+        if (polygon) {
+            try { polygon.setMap(null);}
+            catch (ex) {}
         }
     }
 
@@ -211,8 +225,6 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
         });
         this.markers = [];
     }
-
-
 
     /* map.setCenter(results[0].geometry.location);
      var marker = new google.maps.Marker({
@@ -255,7 +267,7 @@ sage.factory("uiBlocker", function($rootScope) {
  * Filters                                         |
  *------------------------------------------------*/
 /** Removes a sequence from an input string */
-sage.filter('remove', function() {
+sage.filter("remove", function() {
     return function(input, string) {
         if (input !== null && typeof input !== 'undefined') {
             return input.replace(string, "");
@@ -263,11 +275,43 @@ sage.filter('remove', function() {
     }
 });
 
-sage.filter('capitalize', function() {
+sage.filter("capitalize", function() {
     return function(input) {
         if (input !== null && typeof input !== 'undefined') {
             return capitalize(input);
         }
+    }
+});
+
+sage.filter("districtName", function() {
+    return function(input) {
+        return formatDistrictName(input, type);
+    }
+});
+
+sage.filter("senatorPic", function() {
+    return function(input) {
+        if (input) {
+            return "http://www.nysenate.gov/files/imagecache/senator_teaser/" + input.substring(30) ;
+        }
+    }
+});
+
+/** Formats an address properly */
+sage.filter('addressFormat', function(){
+    return function(address) {
+        if (address != null && typeof address !== 'undefined') {
+            var line1 = (notNullOrEmpty(address.addr1) ? address.addr1 : "") +
+                (notNullOrEmpty(address.addr2) ? " " + address.addr2 + "" : "");
+
+            var line2 = (notNullOrEmpty(address.city) ? " " + address.city + "," : "") +
+                (notNullOrEmpty(address.state) ? " " + address.state : "") +
+                (notNullOrEmpty(address.zip5) ? " " + address.zip5 : "") +
+                (notNullOrEmpty(address.zip4) ? "-" + address.zip4 : "");
+            return (((line1) ? line1 + "<br>" : "") + line2).trim();
+        }
+
+        function notNullOrEmpty(input) { return input != null && input != '' && input != 'null'; }
     }
 });
 
@@ -277,36 +321,10 @@ function capitalize(input) {
     }
 }
 
-function formatDistrictName(district) {
-    return ((district.name) ? district.name + " " : capitalize(district.type) + " District ")  + district.district +
+function formatDistrictName(district, type) {
+    return ((district.name) ? district.name + " " : ((type) ? type : capitalize(district.type)) + " District ")  + district.district +
             ((district.member) ? " - " + district.member.name : "");
 }
-
-sage.filter("senatorPic", function() {
-   return function(input) {
-       if (input) {
-           return "http://www.nysenate.gov/files/imagecache/senator_teaser/" + input.substring(30) ;
-       }
-   } 
-});
-
-/** Formats an address properly */
-sage.filter('addressFormat', function(){
-    return function(address) {
-        if (address != null && typeof address !== 'undefined') {
-            var line1 = (notNullOrEmpty(address.addr1) ? address.addr1 : "") +
-                        (notNullOrEmpty(address.addr2) ? " " + address.addr2 + "" : "");
-
-            var line2 = (notNullOrEmpty(address.city) ? " " + address.city + "," : "") +
-                        (notNullOrEmpty(address.state) ? " " + address.state : "") +
-                        (notNullOrEmpty(address.zip5) ? " " + address.zip5 : "") +
-                        (notNullOrEmpty(address.zip4) ? "-" + address.zip4 : "");
-            return (((line1) ? line1 + "<br>" : "") + line2).trim();
-        }
-
-        function notNullOrEmpty(input) { return input != null && input != '' && input != 'null'; }
-    }
-});
 
 /**------------------------------------------------\
  * Directives                                      |
@@ -480,7 +498,7 @@ sage.controller("RevGeoController", function($scope, $http, responseService) {
 /**------------------------------------------------\
  * Views                                           |
  *------------------------------------------------*/
-sage.controller('ResultsViewController', function($scope, responseService, $rootScope) {
+sage.controller('ResultsViewController', function($scope, responseService, mapService) {
     $scope.paneVisible = false;
     $scope.centercolumn = $('#contentcolumn');
     $scope.rightcolumn = $("#rightcolumn");
@@ -494,21 +512,24 @@ sage.controller('ResultsViewController', function($scope, responseService, $root
         if (expand != null) {
             if (expand) {
                 $scope.centercolumn.css("marginRight", $scope.width); $scope.rightcolumn.show();
-                responseService.setResponse("resizeMap");
+                mapService.resizeMap();
                 return true;
             } else {
                 $scope.centercolumn.css("marginRight", 0); $scope.rightcolumn.hide();
-                responseService.setResponse("resizeMap");
+                mapService.resizeMap();
             }
         }
         return false;
     }
 });
 
-sage.controller('DistrictsViewController', function($scope, responseService, mapService, uiBlocker) {
+sage.controller('DistrictsViewController', function($scope, $http, responseService, mapService, uiBlocker) {
     $scope.visible = false;
     $scope.viewId = "districtView";
     $scope.showOffices = false;
+    $scope.showNeighbors = false;
+    $scope.neighborPolygon = null;
+    $scope.neighborSenator = null;
 
     $scope.$on("view", function(){
         $scope.visible = ($scope.viewId == responseService.view);
@@ -575,10 +596,24 @@ sage.controller('DistrictsViewController', function($scope, responseService, map
         }
     }
 
+    $scope.showNeighborDistrict = function(neighbor) {
+        this.showNeighbors = true;
+        this.neighborPolygon = mapService.setOverlay(neighbor.map.geom, formatDistrictName(neighbor), false, false, null, "orangered");
+    }
+
+    $scope.hideNeighborDistrict = function()  {
+        this.showNeighbors = false;
+        mapService.clearPolygon(this.neighborPolygon);
+    }
+
     $scope.setOfficeMarker = function(office) {
         if (office != null) {
             mapService.setMarker(office.latitude, office.longitude, office.name, false, null);
         }
+    }
+
+    $scope.getDistrictMapUrl = function () {
+        return
     }
 });
 

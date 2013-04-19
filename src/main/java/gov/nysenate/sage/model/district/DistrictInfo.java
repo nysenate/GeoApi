@@ -18,7 +18,7 @@ public class DistrictInfo
     protected Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
 
     /** A set of the DistrictTypes that might be incorrectly assigned. */
-    protected Set<DistrictType> uncertainDistricts = new LinkedHashSet<>();
+    protected Set<DistrictType> nearBorderDistricts = new LinkedHashSet<>();
 
     /** District names and codes */
     protected Map<DistrictType, String> districtNames = new HashMap<>();
@@ -111,16 +111,16 @@ public class DistrictInfo
         this.districtProximities.put(districtType, districtProximity);
     }
 
-    public Set<DistrictType> getUncertainDistricts() {
-        return uncertainDistricts;
+    public Set<DistrictType> getNearBorderDistricts() {
+        return nearBorderDistricts;
     }
 
-    public void setUncertainDistricts(Set<DistrictType> uncertainDistricts) {
-        this.uncertainDistricts = uncertainDistricts;
+    public void setNearBorderDistricts(Set<DistrictType> nearBorderDistricts) {
+        this.nearBorderDistricts = nearBorderDistricts;
     }
 
-    public void addUncertainDistrict(DistrictType districtType) {
-        this.uncertainDistricts.add(districtType);
+    public void addNearBorderDistrict(DistrictType districtType) {
+        this.nearBorderDistricts.add(districtType);
     }
 
     public Set<DistrictType> getAssignedDistricts() {

@@ -32,4 +32,5 @@ public interface DistrictService
 
     /** Nearby District Maps */
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType);
+    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count);
 }

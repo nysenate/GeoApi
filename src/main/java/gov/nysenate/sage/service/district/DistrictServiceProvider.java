@@ -5,9 +5,11 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -93,7 +95,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                 DistrictResult shapeFileResult = shapeFileFuture.get();
                 DistrictResult streetFileResult = streetFileFuture.get();
 
-                districtResult = assignNeighbors(shapeFileService, shapeFileResult);
+                districtResult = assignNeighbors(shapeFileService, shapeFileResult, getMaps);
                 districtResult = consolidateDistrictResults(shapeFileService, shapeFileResult, streetFileResult);
 
                 if (getMembers) {
@@ -226,36 +228,48 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
             if (streetResult.isSuccess() || streetResult.isPartialSuccess()) {
                 DistrictInfo streetInfo = streetResult.getDistrictInfo();
                 Set<DistrictType> fallbackSet = new HashSet<>(streetResult.getAssignedDistricts());
-                for (DistrictType assignedType : shapeResult.getAssignedDistricts()) {
 
-                    /** Only worry about instances where the location is close to a boundary */
-                    if (shapeInfo.getDistProximity(assignedType) < PROXIMITY_THRESHOLD) {
-                        String shapeCode = shapeInfo.getDistCode(assignedType);
-                        String streetCode = streetInfo.getDistCode(assignedType);
-                        if (fallbackSet.contains(assignedType) && ! shapeCode.equalsIgnoreCase(streetCode)) {
+                /** Only worry about instances where the location is close to a boundary */
+                for (DistrictType assignedType : shapeInfo.getNearBorderDistricts()) {
+                    String shapeCode = shapeInfo.getDistCode(assignedType);
+                    String streetCode = streetInfo.getDistCode(assignedType);
 
-                            /** Check the neighbor districts to see if one of them is the district found in the street result */
-                            List<DistrictMap> neighborMaps = shapeInfo.getNeighborMaps(assignedType);
-                            DistrictMap neighborMap = getNeighborMapByCode(neighborMaps, streetCode);
+                    /** If the street/shape files don't agree */
+                    if (fallbackSet.contains(assignedType) && !shapeCode.equalsIgnoreCase(streetCode)) {
 
-                            /** If there is a match in the neighboring districts, set the neighbor district as the actual one */
-                            if (neighborMap != null) {
-                                logger.debug("Consolidating " + assignedType + " district from " + shapeCode + " to " + streetCode + " for " + address);
-                                shapeInfo.setDistCode(assignedType, neighborMap.getDistrictCode());
-                                shapeInfo.setDistName(assignedType, neighborMap.getDistrictName());
-                                shapeInfo.setDistMap(assignedType, neighborMap);
-                            }
+                        /** Check the neighbor districts to see if one of them is the district found in the street result */
+                        List<DistrictMap> neighborMaps = shapeInfo.getNeighborMaps(assignedType);
+                        DistrictMap neighborMap = getNeighborMapByCode(neighborMaps, streetCode);
 
-                            /** Otherwise there was a mismatch between the street and shape files that can't be corrected */
-                            else {
-                                logger.warn("Shapefile/Streetfile mismatch for district " + assignedType + " for address " + address);
-                            }
+                        /** If there is a match in the neighboring districts, set the neighbor district as the actual one */
+                        if (neighborMap != null) {
+                            logger.debug("Consolidating " + assignedType + " district from " + shapeCode + " to " + streetCode + " for " + address);
+
+                            /** Preserve the original result as it will become the neighbor district */
+                            DistrictMap original = new DistrictMap();
+                            original.setDistrictType(assignedType);
+                            original.setDistrictCode(shapeInfo.getDistCode(assignedType));
+                            original.setDistrictName(shapeInfo.getDistName(assignedType));
+                            original.setPolygons((shapeInfo.getDistMap(assignedType) != null) ? shapeInfo.getDistMap(assignedType).getPolygons()
+                                                                                              : new ArrayList<Polygon>());
+
+                            /** Apply the new info */
+                            shapeInfo.setDistCode(assignedType, neighborMap.getDistrictCode());
+                            shapeInfo.setDistName(assignedType, neighborMap.getDistrictName());
+                            shapeInfo.setDistMap(assignedType, neighborMap);
+
+                            /** Replace the neighbor */
+                            int index = shapeInfo.getNeighborMaps(assignedType).indexOf(neighborMap);
+                            shapeInfo.getNeighborMaps(assignedType).set(index, original);
                         }
-                        /** No comparison available, all we can do is declare it as uncertain */
+                        /** Otherwise there was a mismatch between the street and shape files that can't be corrected */
                         else {
-                            logger.trace(assignedType + " district could not be verified for " + address);
-                            shapeInfo.addUncertainDistrict(assignedType);
+                            logger.warn("Shapefile/Streetfile mismatch for district " + assignedType + " for address " + address);
                         }
+                    }
+                    /** No comparison available. */
+                    else {
+                        logger.trace(assignedType + " district could not be verified for " + address);
                     }
                 }
 
@@ -267,27 +281,42 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
             }
             else {
                 logger.info("No street file result for " + address);
-                for (DistrictType distType : shapeResult.getAssignedDistricts()) {
-                    if (shapeInfo.getDistProximity(distType) < PROXIMITY_THRESHOLD) {
-                        shapeInfo.addUncertainDistrict(distType);
-                    }
-                }
             }
         }
         return shapeResult;
     }
 
-    private DistrictResult assignNeighbors(DistrictService shapeService, DistrictResult shapeResult)
+    /**
+     *
+     * @param shapeService
+     * @param shapeResult
+     * @param getMaps
+     * @return
+     */
+    private DistrictResult assignNeighbors(DistrictService shapeService, DistrictResult shapeResult, boolean getMaps)
     {
         if (shapeResult != null && (shapeResult.isSuccess() || shapeResult.isPartialSuccess())) {
             DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
             GeocodedAddress geocodedAddress = shapeResult.getGeocodedAddress();
 
+            /** Iterate over all assigned, near border districts */
             for (DistrictType districtType : shapeResult.getAssignedDistricts()) {
                 if (shapeInfo.getDistProximity(districtType) < PROXIMITY_THRESHOLD) {
+                    /** Designate that the district lines are close */
+                    shapeInfo.addNearBorderDistrict(districtType);
+
+                    /** Fetch the neighbors and add them to the district info */
                     Map<String, DistrictMap> neighborDistricts = shapeService.nearbyDistricts(geocodedAddress, districtType);
                     if (neighborDistricts != null && neighborDistricts.size() > 0) {
-                        shapeInfo.addNeighborMaps(districtType, new ArrayList<>(neighborDistricts.values()));
+                        List neighborList = new ArrayList<DistrictMap>();
+                        for (DistrictMap neighborMap : neighborDistricts.values()) {
+                            /** Clear out polygons if map data is not requested */
+                            if (!getMaps) {
+                                neighborMap.setPolygons(new ArrayList<Polygon>());
+                            }
+                            neighborList.add(neighborMap);
+                        }
+                        shapeInfo.addNeighborMaps(districtType, neighborList);
                     }
                 }
             }
@@ -295,6 +324,12 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
         return shapeResult;
     }
 
+    /**
+     *
+     * @param neighborMaps
+     * @param code
+     * @return
+     */
     private DistrictMap getNeighborMapByCode(List<DistrictMap> neighborMaps, String code) {
         for (DistrictMap neighborMap : neighborMaps) {
             if (neighborMap.getDistrictCode().equalsIgnoreCase(code)) {

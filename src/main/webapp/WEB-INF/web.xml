@@ -81,7 +81,6 @@
         <url-pattern>/api/v2/map/*</url-pattern>
     </servlet-mapping>
 
-
     <!-- Job v2 Controller mapping -->
     <servlet>
         <display-name>JobController</display-name>
@@ -101,6 +100,17 @@
     <servlet-mapping>
         <servlet-name>JobStatusController</servlet-name>
         <url-pattern>/job/status/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- Map v2 Controller mapping -->
+    <servlet>
+        <display-name>EmbeddedMapController</display-name>
+        <servlet-name>EmbeddedMapController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.map.EmbeddedMapController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EmbeddedMapController</servlet-name>
+        <url-pattern>/map/*</url-pattern>
     </servlet-mapping>
 
 </web-app>

@@ -44,6 +44,11 @@ public abstract class DistrictMemberProvider
                 districtInfo.setDistrictMember(ASSEMBLY, new AssemblyDao().getAssemblyByDistrict(assemblyCode));
             }
 
+            /** Fill in neighbor district senator info */
+            for (DistrictMap districtMap : districtInfo.getNeighborMaps(SENATE)) {
+                districtMap.setSenator(new SenateDao().getSenatorByDistrict(Integer.parseInt(districtMap.getDistrictCode())));
+            }
+
             districtResult.setDistrictInfo(districtInfo);
         }
     }
