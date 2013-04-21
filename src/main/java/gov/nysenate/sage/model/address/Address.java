@@ -78,7 +78,7 @@ public class Address implements Serializable, Cloneable
      */
     public String toNormalizedString()
     {
-        return toString().replace("^\\d+(-)\\d+","");
+        return toString().replaceFirst("^(\\d+)(-)(\\d+)","$1$3");
     }
 
     public String getAddr1()
