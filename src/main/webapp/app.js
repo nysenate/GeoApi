@@ -88,6 +88,15 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
         }
     }
 
+    /** Set the zoom level of the map */
+    mapService.setZoom = function(level) {
+        this.map.setZoom(level);
+    }
+
+    mapService.setCenter = function(lat, lon) {
+        this.map.setCenter(new google.maps.LatLng(lat, lon));
+    }
+
     /**
      * Place a marker on the map.
      * lat - float
@@ -228,11 +237,6 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
         this.markers = [];
     }
 
-    /* map.setCenter(results[0].geometry.location);
-     var marker = new google.maps.Marker({
-     map: map,
-     position: results[0].geometry.location
-     }); */
     /**--------------------------------------------
      * Client Geocoder
      ---------------------------------------------*/
@@ -332,7 +336,8 @@ function capitalize(input) {
  */
 function formatDistrictName(district, type) {
     return ((district.name) ? district.name + " " : ((type) ? type : capitalize(district.type)) + " District ")  +
-            ((district.type != "SENATE" && type != "Senate") ? district.district : "") +
+            ((!(district.type && district.type.toLowerCase() == "senate")
+               && !(type && type.toLowerCase() == "senate")) ? district.district : "") +
             ((district.member) ? " - " + district.member.name : "") +
             ((district.senator) ? " - " + district.senator.name : "");
 }
@@ -508,6 +513,29 @@ sage.controller("RevGeoController", function($scope, $http, responseService) {
         return contextPath + baseApi + "/geo/revgeocode?lat=" + this.lat + "&lon=" + this.lon;
     }
 });
+
+sage.controller("EmbeddedMapController", function($scope, $http, $window, responseService, uiBlocker) {
+    $scope.districtType = $window.districtType;
+    $scope.districtCode = $window.districtCode;
+
+    $scope.lookup = function() {
+        if (this.districtType) {
+            uiBlocker.block("Loading maps..");
+            $http.get(this.getDistrictMapUrl())
+                .success(function(data) {
+                    responseService.setResponse("embeddedMap", data);
+                })
+                .error(function(data){});
+        }
+    }
+
+    $scope.getDistrictMapUrl = function () {
+        return contextPath + baseApi + "/map/" + this.districtType + "?showMembers=true" + ((this.districtCode) ? ("&district=" + this.districtCode) : "");
+    }
+
+    $scope.lookup();
+});
+
 /**------------------------------------------------\
  * Views                                           |
  *------------------------------------------------*/
@@ -622,10 +650,6 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
             mapService.setMarker(office.latitude, office.longitude, office.name, false, null);
         }
     }
-
-    $scope.getDistrictMapUrl = function () {
-        return
-    }
 });
 
 sage.controller("CityStateView", function($scope, responseService, mapService) {
@@ -725,6 +749,53 @@ sage.controller("RevGeoViewController", function($scope, responseService, mapSer
 
     $scope.$on("view", function(){
         $scope.visible = ($scope.viewId == responseService.view);
+    });
+});
+
+sage.controller("EmbeddedMapViewController", function($scope, responseService, uiBlocker, mapService){
+
+    $scope.viewInfo = false;
+
+    $scope.$on("embeddedMap", function() {
+        var data = responseService.response;
+        if (data.statusCode == 0) {
+            mapService.clearMarkers();
+            /** Show all the district map boundaries */
+            if (data != null && data.districts != null) {
+                mapService.clearPolygons();
+                $.each(data.districts, function(i, v){
+                    if (v.map != null) {
+                        mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
+                            (v.type == "SENATE") ? function() {responseService.setResponse("member", v.member, "member");}
+                                : null
+                        );
+                    }
+                });
+                mapService.setCenter(42.440510, -76.495460); // Centers the map nicely
+                mapService.setZoom(7);
+            }
+            /** Show the individual district map */
+            else if (data.map != null) {
+                $scope.senator = data.member;
+                $scope.district = data.district;
+                mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
+                $.each(data.member.offices, function(i, office){
+                    if (office) {
+                        mapService.setMarker(office.latitude, office.longitude, "Senate", false,
+                            "<div>" +
+                                "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
+                                "<p>" + office.street + "</p>" +
+                                "<p>" + office.additional+ "</p>" +
+                                "<p>" + office.city + ", " + office.province + " " + office.postalCode +"</p>" +
+                                "<p>Phone " + office.phone + "</p>" +
+                            "</div>");
+                    }
+                });
+                $scope.showInfo = true;
+            }
+        }
+        mapService.toggleMap(true);
+        uiBlocker.unBlock();
     });
 });
 

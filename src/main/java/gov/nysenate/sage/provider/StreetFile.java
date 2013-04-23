@@ -13,7 +13,6 @@ import gov.nysenate.sage.service.street.StreetLookupService;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.AddressParser;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
@@ -86,7 +85,6 @@ public class StreetFile implements DistrictService, StreetLookupService
 
         //StreetAddress streetAddr = AddressParser.parseAddress(geocodedAddress.getAddress().toString());
         StreetAddress streetAddr = tigerGeocoderDao.getStreetAddress(geocodedAddress.getAddress());
-        FormatUtil.printObject(streetAddr);
         streetAddr = AddressParser.normalizeStreetAddress(streetAddr);
 
         try {
