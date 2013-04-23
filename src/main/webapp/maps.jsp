@@ -23,7 +23,7 @@
                 <div class="text">Map | {{header}}</div>
             </div>
 
-            <div class="info-container" style="position:absolute;left:40px;z-index:10000;">
+            <div class="info-container" ng-show="showPrompt" style="position:absolute;left:40px;z-index:10000;">
                 <table style="width:100%">
                 <tr>
                     <td>
@@ -38,7 +38,7 @@
                 </table>
                 <div ng-show="showInfo" id="senator-view" style="padding-top:10px;border-top:1px solid #ddd">
                     <div class="senator-pic-holder">
-                        <img ng-src="{{senator.imageUrl}}" class="senator-pic" />
+                        <a ng-href="{{senator.url}}" target="_top"><img ng-src="{{senator.imageUrl}}" class="senator-pic" /></a>
                     </div>
                     <div>
                         <p class="senator member-name">

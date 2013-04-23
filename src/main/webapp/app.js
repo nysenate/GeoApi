@@ -754,6 +754,7 @@ sage.controller("RevGeoViewController", function($scope, responseService, mapSer
 
 sage.controller("EmbeddedMapViewController", function($scope, responseService, uiBlocker, mapService){
 
+    $scope.showPrompt = false;
     $scope.viewInfo = false;
 
     $scope.$on("embeddedMap", function() {
@@ -766,9 +767,11 @@ sage.controller("EmbeddedMapViewController", function($scope, responseService, u
                 $.each(data.districts, function(i, v){
                     if (v.map != null) {
                         mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
-                            (v.type == "SENATE") ? function() {responseService.setResponse("member", v.member, "member");}
-                                : null
-                        );
+                            (v.type.toLowerCase() == "senate") ?
+                                function() {
+                                    responseService.setResponse("showEmbedSenator", v);
+                                }
+                            : null);
                     }
                 });
                 mapService.setCenter(42.440510, -76.495460); // Centers the map nicely
@@ -779,23 +782,51 @@ sage.controller("EmbeddedMapViewController", function($scope, responseService, u
                 $scope.senator = data.member;
                 $scope.district = data.district;
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
-                $.each(data.member.offices, function(i, office){
-                    if (office) {
-                        mapService.setMarker(office.latitude, office.longitude, "Senate", false,
-                            "<div>" +
-                                "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
-                                "<p>" + office.street + "</p>" +
-                                "<p>" + office.additional+ "</p>" +
-                                "<p>" + office.city + ", " + office.province + " " + office.postalCode +"</p>" +
-                                "<p>Phone " + office.phone + "</p>" +
-                            "</div>");
-                    }
-                });
-                $scope.showInfo = true;
+                if (data.type.toLowerCase() == "senate") {
+                    $.each(data.member.offices, function(i, office){
+                        if (office) {
+                            mapService.setMarker(office.latitude, office.longitude, "Senate", false,
+                                "<div>" +
+                                    "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
+                                    "<p>" + office.street + "</p>" +
+                                    "<p>" + office.additional+ "</p>" +
+                                    "<p>" + office.city + ", " + office.province + " " + office.postalCode +"</p>" +
+                                    "<p>Phone " + office.phone + "</p>" +
+                                    "</div>");
+                        }
+                    });
+                    $scope.showPrompt = true;
+                    $scope.showInfo = true;
+                }
             }
         }
         mapService.toggleMap(true);
         uiBlocker.unBlock();
+    });
+
+    $scope.$on("showEmbedSenator", function(){
+        var data = responseService.response;
+        if (data) {
+            $scope.$apply(function(){
+                $scope.showPrompt = true;
+                $scope.showInfo = true;
+                $scope.senator = data.member;
+                $scope.district = data.district;
+            });
+            mapService.clearMarkers();
+            $.each(data.member.offices, function(i, office){
+                if (office) {
+                    mapService.setMarker(office.latitude, office.longitude, office.name, false,
+                        "<div>" +
+                            "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
+                            "<p>" + office.street + "</p>" +
+                            "<p>" + office.additional+ "</p>" +
+                            "<p>" + office.city + ", " + office.province + " " + office.postalCode +"</p>" +
+                            "<p>Phone " + office.phone + "</p>" +
+                        "</div>");
+                }
+            });
+        }
     });
 });
 
