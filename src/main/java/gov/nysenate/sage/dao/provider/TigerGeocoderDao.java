@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.BeanProcessor;
 import org.apache.commons.dbutils.QueryRunner;
@@ -67,7 +68,8 @@ public class TigerGeocoderDao extends BaseDao
     {
         String sql = "SELECT * FROM normalize_address(?)";
         try {
-            StreetAddress streetAddress = run.query(sql, new StreetAddressHandler(), address.toString().replace("^\\d+(-)\\d+",""));
+            FormatUtil.printObject(address.toNormalizedString());
+            StreetAddress streetAddress = run.query(sql, new StreetAddressHandler(), address.toNormalizedString());
             return streetAddress;
         }
         catch (SQLException ex){

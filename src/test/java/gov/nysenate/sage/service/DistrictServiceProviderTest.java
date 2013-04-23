@@ -19,4 +19,10 @@ public class DistrictServiceProviderTest extends TestBase
         GeocodeResult geocodeResult = gsp.geocode(new Address("3 Tyron St", "Albany", "NY", "12203"));
         FormatUtil.printObject(dsp.assignDistricts(geocodeResult.getGeocodedAddress()));
     }
+
+    @Test
+    public void assignNeighborsTest() {
+        GeocodeResult geocodeResult = gsp.geocode(new Address("84-50 169st", "Jamaica", "NY", "11432"));
+        //FormatUtil.printObject(dsp.assignNeighbors(dsp.newInstance("shapefile"), dsp.assignDistricts(geocodeResult.getGeocodedAddress())));
+    }
 }

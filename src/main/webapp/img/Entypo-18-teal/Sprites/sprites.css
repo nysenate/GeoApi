@@ -1,0 +1,75 @@
+.icon-mail,.icon-paperplane,.icon-pencil,.icon-drawer,.icon-user,.icon-location,.icon-map,.icon-compass,.icon-location2,.icon-target,.icon-house,.icon-hourglass,.icon-network,.icon-earth,.icon-database,.icon-bars,.icon-graph,.icon-cross,.icon-upload,.icon-arrow-down,.icon-arrow-up {
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	background-image: url(sprites.png);
+	background-repeat: no-repeat;
+}
+
+.icon-mail,.icon-paperplane,.icon-pencil,.icon-drawer,.icon-user,.icon-location,.icon-map,.icon-compass,.icon-location2,.icon-target,.icon-house,.icon-hourglass,.icon-network,.icon-earth,.icon-database,.icon-bars,.icon-graph,.icon-cross,.icon-upload,.icon-arrow-down,.icon-arrow-up {
+	background-image: url(icons-18-aaaaaa.png);
+}
+
+.icon-mail {
+	background-position: 0 0;
+}
+.icon-paperplane {
+	background-position: -36px 0;
+}
+.icon-pencil {
+	background-position: -72px 0;
+}
+.icon-drawer {
+	background-position: -108px 0;
+}
+.icon-user {
+	background-position: -144px 0;
+}
+.icon-location {
+	background-position: -180px 0;
+}
+.icon-map {
+	background-position: -216px 0;
+}
+.icon-compass {
+	background-position: -252px 0;
+}
+.icon-location2 {
+	background-position: -288px 0;
+}
+.icon-target {
+	background-position: -324px 0;
+}
+.icon-house {
+	background-position: -360px 0;
+}
+.icon-hourglass {
+	background-position: -396px 0;
+}
+.icon-network {
+	background-position: -432px 0;
+}
+.icon-earth {
+	background-position: -468px 0;
+}
+.icon-database {
+	background-position: -504px 0;
+}
+.icon-bars {
+	background-position: -540px 0;
+}
+.icon-graph {
+	background-position: 0 -36px;
+}
+.icon-cross {
+	background-position: -36px -36px;
+}
+.icon-upload {
+	background-position: -72px -36px;
+}
+.icon-arrow-down {
+	background-position: -108px -36px;
+}
+.icon-arrow-up {
+	background-position: -144px -36px;
+}

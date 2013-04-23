@@ -260,7 +260,8 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
 
                             /** Replace the neighbor */
                             int index = shapeInfo.getNeighborMaps(assignedType).indexOf(neighborMap);
-                            shapeInfo.getNeighborMaps(assignedType).set(index, original);
+                            shapeInfo.getNeighborMaps(assignedType).remove(index);
+                            shapeInfo.getNeighborMaps(assignedType).set(0, original);
                         }
                         /** Otherwise there was a mismatch between the street and shape files that can't be corrected */
                         else {
@@ -282,6 +283,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
             else {
                 logger.info("No street file result for " + address);
             }
+        }
+        else {
+            shapeResult = streetResult;
         }
         return shapeResult;
     }

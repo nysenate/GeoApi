@@ -1,3 +1,5 @@
+var sage = angular.module('sage', []);
+
 /**-------------------------------------------------\
  * Base Configuration                               |
  * ------------------------------------------------*/
@@ -246,7 +248,8 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
     mapService.formatDistrictName = function(dist) {
         console.log(dist);
         return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district +
-            ((dist.member) ? " - " + dist.member.name : "");
+            ((dist.member) ? " - " + dist.member.name : "") +
+            ((dist.senator) ? " - " + dist.senator.name : "");
     }
 
     return mapService;
@@ -321,9 +324,17 @@ function capitalize(input) {
     }
 }
 
+/**
+ * Return the district name header as |
+ * @param district
+ * @param type
+ * @returns {string}
+ */
 function formatDistrictName(district, type) {
-    return ((district.name) ? district.name + " " : ((type) ? type : capitalize(district.type)) + " District ")  + district.district +
-            ((district.member) ? " - " + district.member.name : "");
+    return ((district.name) ? district.name + " " : ((type) ? type : capitalize(district.type)) + " District ")  +
+            ((district.type != "SENATE" && type != "Senate") ? district.district : "") +
+            ((district.member) ? " - " + district.member.name : "") +
+            ((district.senator) ? " - " + district.senator.name : "");
 }
 
 /**------------------------------------------------\
@@ -412,10 +423,11 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
     $scope.lookup = function() {
         uiBlocker.block("Looking up districts");
         $http.get(this.getDistUrl())
-        .success(function(data, status, headers, config) {
+        .success(function(data) {
             responseService.setResponse("districtInfo", data, "districtView");
         }).error(function(data, status, headers, config) {
-            console.log(data);
+            uiBlocker.unBlock();
+            alert("Failed to lookup districts. The application did not return a response.");
         });
     }
 
@@ -425,7 +437,7 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
         url += "&showMembers=true&showMaps=true";
-        url = url.replace(/#/g, "");
+        url = url.replace(/#/g, ""); // Pound marks mess up the query string
         return url;
     }
 });
@@ -435,12 +447,13 @@ sage.controller("DistrictMapController", function($scope, $http, responseService
     $scope.district = "";
 
     $scope.lookup = function () {
-        if (!this.district) {
-            uiBlocker.block("Loading " + this.type + " maps..");
-        }
+        uiBlocker.block("Loading " + this.type + " maps..");
         $http.get(this.getDistrictMapUrl())
             .success(function(data) {
                 responseService.setResponse("districtMap", data);
+            }).error(function(data) {
+                uiBlocker.unBlock();
+                alert("Failed to retrieve district maps.");
             });
     }
 
@@ -544,7 +557,7 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
         /** If the districts were assigned, initially set the map to display the senate boundary */
         if ($scope.districtAssigned) {
             mapService.setOverlay($scope.districts.senate.map.geom,
-                                  "Senate District "+ $scope.districts.senate.district, true, true, null);
+                                  formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
         }
         /** Update the marker location to point to the geocode */
         if ($scope.geocoded) {
@@ -559,9 +572,7 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
     $scope.$on("districtMap", function() {
         var data = responseService.response;
         if (data.statusCode == 0) {
-
             mapService.clearMarkers();
-
             /** Show all the district map boundaries */
             if (data != null && data.districts != null) {
                 mapService.clearPolygons();
@@ -598,7 +609,7 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
 
     $scope.showNeighborDistrict = function(neighbor) {
         this.showNeighbors = true;
-        this.neighborPolygon = mapService.setOverlay(neighbor.map.geom, formatDistrictName(neighbor), false, false, null, "orangered");
+        this.neighborPolygon = mapService.setOverlay(neighbor.map.geom, formatDistrictName(neighbor, "Senate"), false, false, null, "#FF4500");
     }
 
     $scope.hideNeighborDistrict = function()  {
@@ -718,22 +729,22 @@ sage.controller("RevGeoViewController", function($scope, responseService, mapSer
 });
 
 $(document).ready(function(){
-    initVerticalMenu();    
-});
+    initVerticalMenu();
 
-/**
- * Google maps doesn't have a native get bounds method for polygons.
- * @return {google.maps.LatLngBounds}
- */
-google.maps.Polygon.prototype.getBounds = function() {
-    var bounds = new google.maps.LatLngBounds();
-    var paths = this.getPaths();
-    var path;
-    for (var i = 0; i < paths.getLength(); i++) {
-        path = paths.getAt(i);
-        for (var ii = 0; ii < path.getLength(); ii++) {
-            bounds.extend(path.getAt(ii));
+    /**
+     * Google maps doesn't have a native get bounds method for polygons.
+     * @return {google.maps.LatLngBounds}
+     */
+    google.maps.Polygon.prototype.getBounds = function() {
+        var bounds = new google.maps.LatLngBounds();
+        var paths = this.getPaths();
+        var path;
+        for (var i = 0; i < paths.getLength(); i++) {
+            path = paths.getAt(i);
+            for (var ii = 0; ii < path.getLength(); ii++) {
+                bounds.extend(path.getAt(ii));
+            }
         }
+        return bounds;
     }
-    return bounds;
-}
+});

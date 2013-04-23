@@ -50,9 +50,9 @@ public class DistrictShapefileDao extends BaseDao
         /** Template SQL for looking up district given a point */
         String sqlTmpl =
                 "SELECT '%s' AS type, %s AS name, %s as code " + ((getMaps) ? ", ST_AsGeoJson(geom) AS map, " : ", null as map, ") +
-                "       ST_Distance(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + SRID + ")) As proximity " +
+                "       ST_Distance(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity " +
                 "FROM " + SCHEMA + ".%s " +
-                "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)' , " + SRID + "))";
+                "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)' , " + "%s" + "))";
 
         /** Iterate through all the requested types and format the template sql */
         ArrayList<String> queryList = new ArrayList<>();
@@ -60,9 +60,10 @@ public class DistrictShapefileDao extends BaseDao
             if (DistrictShapeCode.contains(districtType)) {
                 String nameColumn = DistrictShapeCode.getNameColumn(districtType);
                 String codeColumn = resolveCodeColumn(districtType);
+                String srid = resolveSRID(districtType);
 
                 queryList.add(String.format(sqlTmpl, districtType, nameColumn, codeColumn, point.getLon(), point.getLat(),
-                        districtType, point.getLon(), point.getLat())); // lon,lat is correct order
+                        srid, districtType, point.getLon(), point.getLat(), srid)); // lon,lat is correct order
             }
         }
 
@@ -145,13 +146,14 @@ public class DistrictShapefileDao extends BaseDao
         String tmpl =
             "SELECT '%s' AS type, %s as name, %s AS code, ST_AsGeoJson(geom) AS map \n" +
             "FROM " + SCHEMA +".%s \n" +
-            "WHERE ST_Contains(geom, ST_PointFromText('POINT(%f %f)'," + SRID +")) = false \n" +
-            "ORDER BY geom <-> ST_PointFromText('POINT(%f %f)'," + SRID + ") \n" +
+            "WHERE ST_Contains(geom, ST_PointFromText('POINT(%f %f)'," + "%s" +")) = false \n" +
+            "ORDER BY geom <-> ST_PointFromText('POINT(%f %f)'," + "%s" + ") \n" +
             "LIMIT %d;";
 
         if (DistrictShapeCode.contains(districtType)) {
+            String srid = resolveSRID(districtType);
             String sqlQuery = String.format(tmpl, districtType.name(), resolveNameColumn(districtType), resolveCodeColumn(districtType),
-                    districtType.name(), point.getLon(), point.getLat(), point.getLon(), point.getLat(), count);
+                    districtType.name(), point.getLon(), point.getLat(), srid, point.getLon(), point.getLat(), srid, count);
             try {
                 return run.query(sqlQuery, new NearbyDistrictMapsHandler());
             }
@@ -172,6 +174,15 @@ public class DistrictShapefileDao extends BaseDao
     private String resolveNameColumn(DistrictType districtType)
     {
         return DistrictShapeCode.getNameColumn(districtType);
+    }
+
+    private String resolveSRID(DistrictType districtType) {
+        if (districtType.equals(DistrictType.SENATE)) {
+            return "4269";
+        }
+        else {
+            return "4326";
+        }
     }
 
     /**

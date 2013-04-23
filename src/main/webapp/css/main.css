@@ -154,6 +154,14 @@ a:hover {
     font-size:14px;
 }
 
+/* Icons */
+.small-right-icon {
+    float:right;
+    position:relative;
+    cursor:pointer;
+    top:3px;
+}
+
 [data-icon]:after {
     font-family: 'entypo'; /* BYO icon font, mapped smartly */
     content: attr(data-icon);

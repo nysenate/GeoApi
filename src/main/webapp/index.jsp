@@ -5,6 +5,7 @@
     <jsp:attribute name="title">SAGE</jsp:attribute>
     <jsp:attribute name="cssIncludes">
         <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+        <link rel="stylesheet" type="text/css" href="css/icons.css" />
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
@@ -16,7 +17,7 @@
         <div id="contentcolumn">
             <div id="mapView">
                 <div class="top-header">
-                    <div class="icon" aria-hidden="true">&#59175;</div>
+                    <div class="large-icon icon-map white"></div>
                     <div class="text">Map | {{header}}</div>
                 </div>
                 <div id="map_canvas"></div>
@@ -42,9 +43,9 @@
                             <th>Zip</th>
                             <th>Senate</th>
                             <th>Assembly</th>
-                            <th>Congressional</th>
-                            <th>Town</th>
+                            <th>Congress</th>
                             <th>County</th>
+                            <th>Town</th>
                             <th>Election</th>
                             </thead>
                         </table>
@@ -57,7 +58,7 @@
     <div id="leftcolumn">
         <div class="innertube">
             <div class="top-header">
-                <span class="icon" style="color:teal;">&#127758;</span>
+                <div class="icon-earth large-icon teal"></div>
                 <div id="sage-logo-text">SAGE</div>
             </div>
             <p class="method-header active teal">District Information</p>
@@ -102,7 +103,7 @@
                         </li>
                         <li>
                             <button ng-click="lookup()" class="submit">
-                                <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
+                                <div class="icon-search"></div>
                                 <span>Find Districts</span>
                             </button>
                         </li>
@@ -126,12 +127,12 @@
                             </select>
                         </li>
                         <li>
-                            <label>District</label>
-                            <input ng-model="district" type="text" placeholder="(leave blank to view all)" id="districtCodeInput" />
+                            <label style="width:190px;">District (leave blank to view all)</label>
+                            <input style="width:52px;" ng-model="district" type="text" id="districtCodeInput" />
                         </li>
                         <li>
                             <button class="submit" ng-click="lookup();">
-                                <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
+                                <div class="icon-search"></div>
                                 <span>Show Map</span>
                             </button>
                         </li>
@@ -196,7 +197,10 @@
 
     <div id="rightcolumn" ng-controller="ResultsViewController">
         <div class="innertube">
-            <p class="result-header success" style="cursor:auto">Results <a ng-click="toggleResultPane(false);" class="result-close">&#10006;</a></p>
+            <div class="result-header success" style="cursor:auto;height:20px;">
+                <div style="float:left;">Results</div>
+                <div ng-click="toggleResultPane(false);" class="icon-cross small-right-icon"></div>
+            </div>
             <div id="district-results" ng-controller="DistrictsViewController">
                 <div ng-show="visible">
                     <div id="success-district-results" ng-show="districtAssigned">
@@ -213,13 +217,13 @@
                                         <td><p class="senate district">Senate District {{districts.senate.district}}</p></td>
                                         <td class="right-icon-placeholder">
                                             <a title="Show Map" ng-click="showDistrict('senate');">
-                                                <div class="small-icon" aria-hidden="true">&#59175;</div>
+                                                <div class="icon-map"></div>
                                             </a>
                                         </td>
                                     </tr>
                                 </table>
                                 <br/>
-                                <p class="member-email"><span aria-hidden="true" data-icon="&#9993;" style="color:teal;"></span>{{districts.senate.senator.email}}</p>
+                                <p class="member-email"><div class="icon-mail" style="margin-right: 5px;position: relative;top: 3px;"></div>{{districts.senate.senator.email}}</p>
                             </div>
                         </div>
                         <div class="info-container" style="padding:5px 10px;">
@@ -230,8 +234,8 @@
                                         <a ng-show="showOffices" ng-click="showOffices=false;">Hide Senator Office Locations</a>
                                     </td>
                                     <td class="right-icon-placeholder">
-                                        <a ng-hide="showOffices" ng-click="showOffices=true;"><div class="small-icon">&#59228;</div></a>
-                                        <a ng-show="showOffices" ng-click="showOffices=false;"><div class="small-icon">&#59231;</div></a>
+                                        <a ng-hide="showOffices" ng-click="showOffices=true;"><div class="icon-arrow-down"></div></a>
+                                        <a ng-show="showOffices" ng-click="showOffices=false;"><div class="icon-arrow-up"></div></a>
                                     </td>
                                 </tr>
                             </table>
@@ -242,7 +246,7 @@
                                             <td><p style="font-size:18px;color:teal;">{{office.name}}</p></td>
                                             <td class="right-icon-placeholder">
                                                 <a title="Locate office" ng-click="setOfficeMarker(office);">
-                                                    <div class="small-icon" aria-hidden="true">&#59172;</div>
+                                                    <div class="icon-location"></div>
                                                 </a>
                                             </td>
                                         </tr>
@@ -263,8 +267,8 @@
                                         <a ng-show="showNeighbors" ng-click="hideNeighborDistrict()">Hide Neighbor Senate District</a>
                                     </td>
                                     <td class="right-icon-placeholder">
-                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistrict(districts.senate.neighbors[0])"><div class="small-icon">&#59228;</div></a>
-                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistrict()"><div class="small-icon">&#59231;</div></a>
+                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistrict(districts.senate.neighbors[0])"><div class="icon-arrow-down"></div></a>
+                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistrict()"><div class="icon-arrow-up"></div></a>
                                     </td>
                                 </tr>
                             </table>
@@ -280,7 +284,7 @@
                                             </p>
                                             <p class="senate district" style="color:orangered">Senate District {{districts.senate.neighbors[0].district}}</p>
                                             <br/>
-                                            <p class="member-email"><span aria-hidden="true" data-icon="&#9993;" style="color:teal;"></span>{{districts.senate.neighbors[0].member.email}}</p>
+                                            <p class="member-email"><div style="margin-right:5px;" class="icon-mail"></div>{{districts.senate.neighbors[0].member.email}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -290,12 +294,12 @@
                         <div class="info-container">
                             <table style="width:100%">
                                 <tr>
-                                    <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
+                                    <td><div class="icon-location"></div></td>
                                     <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td><span aria-hidden="true" data-icon="&#127919;" style="color:teal;"></span></td>
+                                    <td><div class="icon-target"></div></td>
                                     <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}}) <small style="float:right;">{{geocode.method | remove:'Dao'}}</small></p></td>
                                 </tr>
                             </table>
@@ -309,7 +313,7 @@
                                     </td>
                                     <td class="right-icon-placeholder">
                                         <a title="Show Map" ng-click="showDistrict('congressional');">
-                                            <div class="small-icon" aria-hidden="true">&#59175;</div>
+                                            <div class="icon-map"></div>
                                         </a>
                                     </td>
                                 </tr>
@@ -324,7 +328,7 @@
                                     </td>
                                     <td class="right-icon-placeholder">
                                         <a title="Show Map" ng-click="showDistrict('assembly');">
-                                            <div class="small-icon" aria-hidden="true">&#59175;</div>
+                                            <div class="icon-map"></div>
                                         </a>
                                     </td>
                                 </tr>
@@ -339,13 +343,13 @@
                                     </td>
                                     <td class="right-icon-placeholder">
                                         <a title="Show Map" ng-click="showDistrict('county');">
-                                            <div class="small-icon" aria-hidden="true">&#59175;</div>
+                                            <div class="icon-map"></div>
                                         </a>
                                     </td>
                                 </tr>
                             </table>
                         </div>
-                        <div class="info-container">
+                        <div class="info-container" ng-show="districts.town.district">
                             <table style="width:100%">
                                 <tr>
                                     <td>
@@ -353,13 +357,13 @@
                                         <p class="district">Town Code: {{districts.town.district}}</p></td>
                                     <td class="right-icon-placeholder">
                                         <a title="Show Map" ng-click="showDistrict('town');">
-                                            <div class="small-icon" aria-hidden="true">&#59175;</div>
+                                            <div class="icon-map"></div>
                                         </a>
                                     </td>
                                 </tr>
                             </table>
                         </div>
-                        <div class="info-container">
+                        <div class="info-container" ng-show="districts.school.district">
                             <table style="width:100%">
                                 <tr>
                                     <td>
@@ -368,7 +372,7 @@
                                     </td>
                                     <td class="right-icon-placeholder">
                                         <a title="Show Map" ng-click="showDistrict('school');">
-                                            <div class="small-icon" aria-hidden="true">&#59175;</div>
+                                            <div class="icon-map"></div>
                                         </a>
                                     </td>
                                 </tr>
@@ -403,7 +407,7 @@
                                 </p>
                                 <p class="senate district">Senate District {{member.district.number}}</p><br/>
                                 <p class="member-email">
-                                    <span aria-hidden="true" data-icon="&#9993;" style="color:teal;"></span>{{member.email}}
+                                    <div class="icon-email"></div>{{member.email}}
                                 </p>
                             </div>
                         </div>
@@ -415,7 +419,7 @@
                                         <td><p style="font-size:18px;color:teal;">{{office.name}}</p></td>
                                         <td class="right-icon-placeholder">
                                             <a title="Locate office" ng-click="setOfficeMarker(office);">
-                                                <div class="small-icon" aria-hidden="true">&#59172;</div>
+                                                <div class="icon-location"></div>
                                             </a>
                                         </td>
                                     </tr>
@@ -440,7 +444,7 @@
                         <div class="info-container" >
                             <table style="width:100%">
                                 <tr>
-                                    <td><span aria-hidden="true" data-icon="&#59172;" style="color:teal;"></span></td>
+                                    <td><div class="icon-location"></div></td>
                                     <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p>
                                     </td>
                                 </tr>

@@ -23,6 +23,6 @@ public class EmbeddedMapController extends BaseMapController
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        request.getParameter("");
+        request.getRequestDispatcher("maps.jsp").forward(request, response);
     }
 }
