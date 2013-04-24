@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,14 +6,14 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to Sage ‘s documentation! &mdash; Sage  2.0 documentation</title>
+    <title>SAGE API v2 Reference &mdash; Sage  2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
+        URL_ROOT:    './',
         VERSION:     '2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
@@ -43,21 +41,397 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="welcome-to-sage-s-documentation">
-<h1>Welcome to Sage &#8216;s documentation!<a class="headerlink" href="#welcome-to-sage-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="sage-api-v2-reference">
+<h1>SAGE API v2 Reference<a class="headerlink" href="#sage-api-v2-reference" title="Permalink to this headline">¶</a></h1>
+<p>The SAGE API exposes methods for geocoding, address correction, and district assignment given addresses or geo-coordinates
+as input. The API supports <tt class="docutils literal"><span class="pre">JSON</span></tt>, <tt class="docutils literal"><span class="pre">JSON-P</span></tt>, and <tt class="docutils literal"><span class="pre">XML</span></tt> output formats. There is also support for handling batch requests.</p>
+<div class="section" id="basics">
+<h2>Basics<a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h2>
+<p>The API requests must be crafted to match the following structure:</p>
+<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?params..</pre>
+</div>
+<p>All API requests need to be validated using an assigned API key however it is not required when requests are made from
+within the NY Senate&#8217;s network. The key is supplied using the query parameter <tt class="docutils literal"><span class="pre">key</span></tt>:</p>
+<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;/&lt;params..&gt;&amp;key=YOUR KEY HERE</pre>
+</div>
+<p>The default output format is <tt class="docutils literal"><span class="pre">JSON</span></tt>. To change the output to <tt class="docutils literal"><span class="pre">XML</span></tt> or <tt class="docutils literal"><span class="pre">JSON-P</span></tt> simply set the <tt class="docutils literal"><span class="pre">format</span></tt> query
+parameter to <tt class="docutils literal"><span class="pre">xml</span></tt> or <tt class="docutils literal"><span class="pre">jsonp</span></tt>. For example to set to xml:</p>
+<div class="highlight-python"><pre>/api/v2/geo/geocode/addr=200 State St, Albany NY&amp;format=xml</pre>
+</div>
+<p>To output JSON-P a callback must also be specified.:</p>
+<div class="highlight-python"><pre>/api/v2/geo/geocode/addr=200 State St, Albany NY&amp;format=jsonp&amp;callback=methodName</pre>
+</div>
+</div>
+<div class="section" id="groups">
+<h2>Groups<a class="headerlink" href="#groups" title="Permalink to this headline">¶</a></h2>
+<p>Each API method belongs in a logical group in order to make it easy to understand the goal of the request. The supported
+types for the <tt class="docutils literal"><span class="pre">group</span></tt> segment are as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Group</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>address</td>
+<td>Address Lookup and Validation</td>
+</tr>
+<tr class="row-odd"><td>geo</td>
+<td>Geocode and Reverse Geocode</td>
+</tr>
+<tr class="row-even"><td>district</td>
+<td>District Assignment</td>
+</tr>
+<tr class="row-odd"><td>street</td>
+<td>Street Lookup</td>
+</tr>
+<tr class="row-even"><td>map</td>
+<td>Map Data</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="common-query-parameters">
+<h3>Common Query Parameters<a class="headerlink" href="#common-query-parameters" title="Permalink to this headline">¶</a></h3>
+<p>Many of the methods listed below follow a similar convention for inputting addresses or geo-coordinates.
+To supply a single address string use the parameter <tt class="docutils literal"><span class="pre">addr</span></tt>:</p>
+<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?addr=200 State St, Albany NY 12210</pre>
+</div>
+<p>To supply the individual components use the following parameters: <tt class="docutils literal"><span class="pre">addr1</span></tt>, <tt class="docutils literal"><span class="pre">addr2</span></tt>, <tt class="docutils literal"><span class="pre">city</span></tt>, <tt class="docutils literal"><span class="pre">state</span></tt>, <tt class="docutils literal"><span class="pre">zip5</span></tt>, <tt class="docutils literal"><span class="pre">zip4</span></tt>. The above query would be written as:</p>
+<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?addr1=200 State St&amp;city=Albany&amp;state=NY&amp;zip5=12210</pre>
+</div>
+<p>Geo-coordinate pairs can be supplied to the appropriate method using <tt class="docutils literal"><span class="pre">lat</span></tt> and <tt class="docutils literal"><span class="pre">lon</span></tt>:</p>
+<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?lat=43.00&amp;lon=-73.10</pre>
+</div>
+</div>
+<div class="section" id="address">
+<h3>Address<a class="headerlink" href="#address" title="Permalink to this headline">¶</a></h3>
+<p>The following methods are implemented for the <tt class="docutils literal"><span class="pre">address</span></tt> service:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>validate</td>
+<td>Validate the given address</td>
+</tr>
+<tr class="row-odd"><td>citystate</td>
+<td>Lookup the city and state given the zipcode</td>
+</tr>
+<tr class="row-even"><td>zipcode</td>
+<td>Lookup the zipcode given a street address</td>
+</tr>
+</tbody>
+</table>
+<p>The usage of <tt class="docutils literal"><span class="pre">validate</span></tt> with an address input:</p>
+<div class="highlight-python"><pre>/api/v2/address/validate?addr=44 Fairlawn Avenue, Albany, NY
+/api/v2/address/validate?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY</pre>
+</div>
+<p>The validated response:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span>
+    <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
+    <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Albany&quot;</span><span class="p">,</span>
+    <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
+    <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12203&quot;</span><span class="p">,</span>
+    <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;1914&quot;</span>
+  <span class="p">},</span>
+  <span class="s">&quot;validated&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">USPS address validation requires addr1, city and state explicitly specified in the query parameters. Given a query that
+is missing those fields, USPS will not be used to perform validation and another provider will be used instead.</p>
+</div>
+<p>The usage of <tt class="docutils literal"><span class="pre">citystate</span></tt> with a zip code input:</p>
+<div class="highlight-python"><pre>/api/v2/address/citystate?zip5=12210</pre>
+</div>
+<p>The city/state response:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;ALBANY&quot;</span><span class="p">,</span>
+  <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
+  <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12210&quot;</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The usage of <tt class="docutils literal"><span class="pre">zipcode</span></tt>:</p>
+<div class="highlight-python"><pre>/api/v2/address/zipcode?addr=44 Fairlawn Avenue, Albany, NY
+/api/v2/address/zipcode?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY</pre>
+</div>
+<p>The zipcode response:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12203&quot;</span><span class="p">,</span>
+  <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;1914&quot;</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Zipcode lookup has the same USPS constraints as the validate method</p>
+</div>
+<p>The following providers are available for address services</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">usps</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">mapquest</span></tt></li>
+</ul>
+<p>To force the request to use a certain provider supply the query parameter <tt class="docutils literal"><span class="pre">provider</span></tt>:</p>
+<div class="highlight-python"><pre>/api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=usps
+/api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=mapquest</pre>
+</div>
+</div>
+<div class="section" id="geocode">
+<h3>Geocode<a class="headerlink" href="#geocode" title="Permalink to this headline">¶</a></h3>
+<p>The following methods are implemented for the <tt class="docutils literal"><span class="pre">geo</span></tt> service:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>geocode</td>
+<td>Geocode the given address</td>
+</tr>
+<tr class="row-odd"><td>revgeocode</td>
+<td>Obtain address from given coordinate pair</td>
+</tr>
+</tbody>
+</table>
+<p>The available providers ordered from most accurate to least are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="63%" />
+<col width="18%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Provider</th>
+<th class="head">Description</th>
+<th class="head">API Limits</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>yahooboss</td>
+<td>Paid service from yahoo. (use sparingly)</td>
+<td>?</td>
+</tr>
+<tr class="row-odd"><td>yahoo</td>
+<td>Free YQL service from Yahoo. (recommended)</td>
+<td>~20000 day</td>
+</tr>
+<tr class="row-even"><td>mapquest</td>
+<td>Free MapQuest geocoding service</td>
+<td>5000 day?</td>
+</tr>
+<tr class="row-odd"><td>tiger</td>
+<td>In-database geocoding using census data</td>
+<td>Unlimited</td>
+</tr>
+<tr class="row-even"><td>ruby</td>
+<td>Ruby implementation using census data</td>
+<td>Unlimited</td>
+</tr>
+<tr class="row-odd"><td>osm</td>
+<td>Open Street Maps API</td>
+<td>1 per sec?</td>
+</tr>
+</tbody>
+</table>
+<p>Methods have the following optional parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Param</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>provider</td>
+<td>Specify which geocode provider to use first (see above table)</td>
+</tr>
+<tr class="row-odd"><td>useFallback</td>
+<td>If false and provider is set, only the provider will be used for the request.</td>
+</tr>
+</tbody>
+</table>
+<p>For example to use just yahoo without falling back to other providers in case of error:</p>
+<div class="highlight-python"><pre>/api/v2/geo/&lt;method&gt;?&lt;params..&gt;&amp;provider=yahoo&amp;useFallback=false</pre>
+</div>
+<p>The usage of <tt class="docutils literal"><span class="pre">geocode</span></tt> with an address input:</p>
+<div class="highlight-python"><pre>/api/v2/geo/geocode?addr=200 State St, Albany NY 12210
+/api/v2/geo/geocode?addr1=200 State St&amp;city=Albany&amp;state=NY&amp;zip5=12210</pre>
+</div>
+<p>The geocode response:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;GeoCache&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;200 State St&quot;</span><span class="p">,</span>
+    <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
+    <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Albany&quot;</span><span class="p">,</span>
+    <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
+    <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12210&quot;</span><span class="p">,</span>
+    <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span>
+  <span class="p">},</span>
+  <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.65203</span><span class="p">,</span>
+    <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.75759</span><span class="p">,</span>
+    <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
+    <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span>
+  <span class="p">},</span>
+  <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">source</span></tt> indicates where the response was returned from whereas <tt class="docutils literal"><span class="pre">geocode.method</span></tt> indicates where the geocode was computed.</p>
+<p>The <tt class="docutils literal"><span class="pre">address</span></tt> is typically a normalized representation of the input address but it depends on the geocode provider used.</p>
+<p>The <tt class="docutils literal"><span class="pre">geocode.quality</span></tt> metric indicates the accuracy/confidence level of the geocode. A successful geocode response will have
+one of the following quality levels ordered from most accurate to least:</p>
+<ul class="simple">
+<li>POINT</li>
+<li>HOUSE</li>
+<li>ZIP_EXT</li>
+<li>STREET</li>
+<li>ZIP</li>
+</ul>
+<p>An unsuccessful response will resemble the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_GEOCODE_RESULT&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;TigerGeocoder&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">410</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Geocode service returned no results.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>A <tt class="docutils literal"><span class="pre">RESPONSE_PARSE_ERROR</span></tt> status will also indicate a failed geocode operation.</p>
+<p>The usage of <tt class="docutils literal"><span class="pre">revgeocode</span></tt> with a coordinate pair input:</p>
+<div class="highlight-python"><pre>api/v2/geo/revgeocode?lat=42.652030&amp;lon=-73.757590</pre>
+</div>
+<p>The reverse geocode response:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;Yahoo&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;200 State St&quot;</span><span class="p">,</span>
+    <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
+    <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Albany&quot;</span><span class="p">,</span>
+    <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
+    <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12210&quot;</span><span class="p">,</span>
+    <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span>
+  <span class="p">},</span>
+  <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.65204</span><span class="p">,</span>
+    <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.757602</span><span class="p">,</span>
+    <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
+    <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span>
+  <span class="p">},</span>
+  <span class="s">&quot;revGeocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>It is identical to the geocode response except for the <tt class="docutils literal"><span class="pre">revGeocoded</span></tt> field that indicates whether the reverse geocoding succeeded.</p>
+</div>
+<div class="section" id="district">
+<h3>District<a class="headerlink" href="#district" title="Permalink to this headline">¶</a></h3>
+<p>The district service has the following method(s).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>assign</td>
+<td>Assign district information given an address or coordinate pair</td>
+</tr>
+</tbody>
+</table>
+<p>The available providers are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="55%" />
+<col width="26%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Provider</th>
+<th class="head">Description</th>
+<th class="head">Requirements</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>shapefile</td>
+<td>In-database district shapes.</td>
+<td>Geocode</td>
+</tr>
+<tr class="row-odd"><td>streetfile</td>
+<td>Street file database.</td>
+<td>Address</td>
+</tr>
+<tr class="row-even"><td>geoserver</td>
+<td>Geoserver hosted shape files</td>
+<td>Geocode</td>
+</tr>
+</tbody>
+</table>
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
 <ul class="simple">
 </ul>
 </div>
 </div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
-<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
-<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
-</ul>
+</div>
 </div>
 
 
@@ -68,10 +442,20 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Welcome to Sage &#8216;s documentation!</a><ul>
+<li><a class="reference internal" href="#">SAGE API v2 Reference</a><ul>
+<li><a class="reference internal" href="#basics">Basics</a></li>
+<li><a class="reference internal" href="#groups">Groups</a></li>
+<li><a class="reference internal" href="#methods">Methods</a><ul>
+<li><a class="reference internal" href="#common-query-parameters">Common Query Parameters</a></li>
+<li><a class="reference internal" href="#address">Address</a></li>
+<li><a class="reference internal" href="#geocode">Geocode</a></li>
+<li><a class="reference internal" href="#district">District</a><ul>
 </ul>
 </li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
   <h3>This Page</h3>
@@ -107,7 +491,7 @@
     </div>
     <div class="footer">
         &copy; Copyright 2013, NY Senate.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
   </body>
 </html>
