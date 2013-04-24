@@ -15,7 +15,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
             return this.newInstance(provider).validate(address);
         }
         if (address != null && address.isParsed()
-                && !address.getCity().isEmpty()) {
+                && !address.getCity().isEmpty() && !address.getState().isEmpty()) {
             return this.newInstance("usps").validate(address);
         }
         return this.newInstance("mapquest").validate(address);
@@ -30,10 +30,10 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
     }
 
     /**
-     * Use USPS for zip code lookup by default.
+     * Zipcode lookup is the same as a validate request with less output.
      */
     public AddressResult lookupZipcode(Address address, String provider)
     {
-        return this.newInstance(provider, "usps").lookupZipCode(address);
+        return validate(address, provider);
     }
 }

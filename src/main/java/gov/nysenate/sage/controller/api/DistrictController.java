@@ -7,6 +7,9 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
@@ -79,10 +82,13 @@ public class DistrictController extends BaseApiController
 
         /** Handle single request */
         if (!apiRequest.isBatch()) {
-            switch (apiRequest.getRequest()) {
+            switch (apiRequest.getRequest())
+            {
                 case "assign":
                     Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
+
+                        /** Perform geocoding */
                         GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
                                                                             : geocodeProvider.geocode(address);
                         GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
@@ -100,8 +106,30 @@ public class DistrictController extends BaseApiController
 
                         districtResponse = new DistrictResponse(districtResult);
                     }
+                    /** If a point is supplied, proceed with district assignment.
+                     *  If a district provider is not specified then the point will be reverse geocoded and the
+                     *  resulting geocoded address will be sent along the default district assignment pipeline.
+                     */
                     else {
-                        districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
+                        Point point = getPointFromParams(request);
+                        if (point != null) {
+                            GeocodedAddress geocodedAddress = new GeocodedAddress(null, new Geocode(point, GeocodeQuality.POINT));
+                            if (provider != "shapefile") {
+                                GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.reverseGeocode(point, geoProvider, false)
+                                                                                    : geocodeProvider.reverseGeocode(point);
+                                if (geocodeResult.isSuccess()) {
+                                    geocodedAddress.setAddress(geocodeResult.getAddress());
+                                }
+                            }
+
+                            DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider,
+                                    DistrictType.getStandardTypes(), showMembers, showMaps);
+
+                            districtResponse = new DistrictResponse(districtResult);
+                        }
+                        else {
+                            districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
+                        }
                     }
                     break;
 

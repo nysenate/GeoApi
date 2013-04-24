@@ -27,10 +27,11 @@ public abstract class DistrictServiceValidator
         }
         else
         {
-            if (geoAddress.getAddress() == null) {
+            if (geoAddress.getAddress() == null && geoAddress.getGeocode() == null) {
                 districtResult.setStatusCode(MISSING_ADDRESS);
             }
-            else if (geoAddress.getAddress().isEmpty()) {
+            else if (geoAddress.getAddress() != null && geoAddress.getAddress().isEmpty()
+                                                     && geoAddress.getGeocode() == null) {
                 districtResult.setStatusCode(INSUFFICIENT_ADDRESS);
             }
             else if (requireGeocode && !geoAddress.isGeocoded()) {

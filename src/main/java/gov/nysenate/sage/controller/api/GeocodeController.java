@@ -27,7 +27,6 @@ public class GeocodeController extends BaseApiController
     private Logger logger = Logger.getLogger(GeocodeController.class);
     private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
 
-
     @Override
     public void init(ServletConfig config) throws ServletException
     {

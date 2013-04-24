@@ -93,9 +93,10 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                 Future<DistrictResult> streetFileFuture = districtExecutor.submit(streetFileCall);
 
                 DistrictResult shapeFileResult = shapeFileFuture.get();
+                districtResult = assignNeighbors(shapeFileService, shapeFileResult, getMaps);
+
                 DistrictResult streetFileResult = streetFileFuture.get();
 
-                districtResult = assignNeighbors(shapeFileService, shapeFileResult, getMaps);
                 districtResult = consolidateDistrictResults(shapeFileService, shapeFileResult, streetFileResult);
 
                 if (getMembers) {
@@ -154,6 +155,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                 List<DistrictResult> streetFileResults = streetFileFuture.get();
 
                 for (int i = 0; i < shapeFileResults.size(); i++) {
+                    assignNeighbors(shapeFileService, shapeFileResults.get(i), getMaps);
                     districtResults.add(consolidateDistrictResults(shapeFileService, shapeFileResults.get(i),
                                                                    streetFileResults.get(i)));
                 }
@@ -318,6 +320,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                             if (!getMaps) {
                                 neighborMap.setPolygons(new ArrayList<Polygon>());
                             }
+                            logger.trace("Adding " + districtType + " neighbor: " + neighborMap.getDistrictCode());
                             neighborList.add(neighborMap);
                         }
                         shapeInfo.addNeighborMaps(districtType, neighborList);

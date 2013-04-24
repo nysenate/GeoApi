@@ -77,9 +77,7 @@ public abstract class BaseApiController extends HttpServlet
             try {
                 point = new Point(Double.parseDouble(r.getParameter("lat")), Double.parseDouble(r.getParameter("lon")));
             }
-            catch (Exception ex) {
-                logger.debug(ex.getMessage());
-            }
+            catch (Exception ex) { /** Ignored Exception */ }
         }
         return point;
     }

@@ -241,25 +241,45 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService>
     /**
      * Reverse geocoding uses the same strategy as <code>geocode</code>
      */
-    public static GeocodeResult reverseGeocode(Point point)
+    public GeocodeResult reverseGeocode(Point point)
     {
-        return null;
+        return reverseGeocode(point, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true);
     }
 
     /**
      * Reverse geocoding uses the same strategy as <code>geocode</code>
      */
-    public static GeocodeResult reverseGeocode(Point point, String provider, boolean useFalback)
+    public GeocodeResult reverseGeocode(Point point, String provider, boolean useFallback)
     {
-        return null;
+        return reverseGeocode(point, provider, DEFAULT_GEO_FALLBACK, useFallback);
     }
 
     /**
      * Reverse geocoding uses the same strategy as <code>geocode</code>
      */
-    public static GeocodeResult reverseGeocode(Point point, String provider, LinkedList<String> fallbackProviders,
-                                               boolean useFallback)
+    public GeocodeResult reverseGeocode(Point point, String provider, LinkedList<String> fallbackProviders,
+                                        boolean useFallback)
     {
-        return null;
+        GeocodeResult geocodeResult = null;
+        if (provider != null && !provider.isEmpty()) {
+            geocodeResult = this.newInstance(provider).reverseGeocode(point);
+        }
+        if (!geocodeResult.isSuccess() && useFallback) {
+
+            /** Clone the list of fall back reverse geocode providers */
+            LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
+                                                                      : new LinkedList<>(DEFAULT_GEO_FALLBACK);
+
+            Iterator<String> fallbackIterator = fallback.iterator();
+            while (!geocodeResult.isSuccess() && fallbackIterator.hasNext()) {
+                geocodeResult = this.newInstance(fallbackIterator.next()).reverseGeocode(point);
+            }
+        }
+        /** Ensure we don't return a null response */
+        if (geocodeResult == null) {
+            geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_REVERSE_GEOCODE_RESULT);
+        }
+
+        return geocodeResult;
     }
 }
