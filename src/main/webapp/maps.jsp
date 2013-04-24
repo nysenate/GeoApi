@@ -3,9 +3,6 @@
 
 <sage:wrapper>
     <jsp:attribute name="title">SAGE Map Viewer</jsp:attribute>
-    <jsp:attribute name="cssIncludes">
-        <link rel="stylesheet" type="text/css" href="css/icons.css" />
-    </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script type="text/javascript" src="js/blockui.js"></script>
         <script type="text/javascript" src="app.js"></script>

@@ -1,12 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
-<%
-    request.setAttribute("email", "MUWHAHAHA");
-    String email = (String)request.getParameter("email");
-    String error = (String)request.getAttribute("error");
-    String context = (String)request.getContextPath();
-    email = email == null ? "" : email;
-%>
 <sage:wrapper>
     <jsp:attribute name="title">SAGE - Batch Services Login</jsp:attribute>
     <jsp:attribute name="cssIncludes">
@@ -16,9 +9,13 @@
         <script src="js/job.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
+        <div class="top-header">
+            <div class="icon-earth large-icon teal"></div>
+            <div id="sage-logo-text">SAGE</div>
+        </div>
         <h1 style="text-align: center; color:#222;">SAGE Batch Services</h1>
         <div style="margin:auto;width:720px;text-align: center;">
-            <p>SAGE offers batch geocoding and district assignment services for registered users.</p>
+            <p>SAGE provides batch geocoding and district assignment services to registered users.</p>
         </div>
         <div style="width:500px;margin:auto;" ng-controller="JobAuthController">
             <form id="uploadForm" method="post" ng-submit="login()" action="job/login">

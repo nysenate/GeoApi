@@ -5,7 +5,6 @@
     <jsp:attribute name="title">SAGE</jsp:attribute>
     <jsp:attribute name="cssIncludes">
         <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
-        <link rel="stylesheet" type="text/css" href="css/icons.css" />
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
@@ -15,7 +14,7 @@
     <jsp:body>
     <div id="contentwrapper">
         <div id="contentcolumn">
-            <div id="mapView">
+            <div id="mapView" ng-controller="EmbeddedMapViewController">
                 <div class="top-header">
                     <div class="large-icon icon-map white"></div>
                     <div class="text">Map | {{header}}</div>
@@ -29,7 +28,7 @@
                         <div class="text">Street File Results</div>
                     </div>
                     <div style="padding:10px;">
-                        <div class="info-container street-search-filter">
+                        <div class="street-search-filter">
                             <label>Filter by street name: </label>
                             <input id="street-search" type="text" />
                         </div>
@@ -38,7 +37,7 @@
                             <thead>
                             <th>From Bldg</th>
                             <th>To Bldg</th>
-                            <th>Street</th>
+                            <th style="width:300px;">Street</th>
                             <th>Location</th>
                             <th>Zip</th>
                             <th>Senate</th>
@@ -192,6 +191,7 @@
                     </ol>
                 </form>
             </div>
+            <a href="${contextPath}/job"><p class="method-header teal">Batch Jobs</p></a>
         </div>
     </div>
 
@@ -263,28 +263,26 @@
                             <table style="width:100%">
                                 <tr>
                                     <td>
-                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistrict(districts.senate.neighbors[0])">View Neighbor Senate District</a>
-                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistrict()">Hide Neighbor Senate District</a>
+                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)">View Neighbor Senate District</a>
+                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()">Hide Neighbor Senate District</a>
                                     </td>
                                     <td class="right-icon-placeholder">
-                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistrict(districts.senate.neighbors[0])"><div class="icon-arrow-down"></div></a>
-                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistrict()"><div class="icon-arrow-up"></div></a>
+                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)"><div class="icon-arrow-down"></div></a>
+                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()"><div class="icon-arrow-up"></div></a>
                                     </td>
                                 </tr>
                             </table>
                             <div ng-show="showNeighbors">
-                                <div style="padding:5px;border-top:1px solid #ddd;">
+                                <div style="padding:5px;border-top:1px solid #ddd;" ng-repeat="neighbor in districts.senate.neighbors">
                                     <div class="senator">
-                                        <div class="senator-pic-holder">
-                                            <img ng-src="{{districts.senate.neighbors[0].member.imageUrl}}" class="senator-pic">
+                                        <div class="senator-pic-holder" style="width:50px;height:50px;">
+                                            <img ng-src="{{neighbor.member.imageUrl | senatorPic}}" class="senator-pic">
                                         </div>
                                         <div>
                                             <p class="senator member-name">
-                                                <a target="_blank" ng-href="{{districts.senate.neighbors[0].member.url}}">{{districts.senate.neighbors[0].member.name}}</a>
+                                                <a target="_blank" ng-href="{{neighbor.member.url}}">{{neighbor.member.name}}</a>
                                             </p>
-                                            <p class="senate district" style="color:orangered">Senate District {{districts.senate.neighbors[0].district}}</p>
-                                            <br/>
-                                            <p class="member-email"><div style="margin-right:5px;" class="icon-mail"></div>{{districts.senate.neighbors[0].member.email}}</p>
+                                            <p class="senate district" ng-style="neighbor.style">Senate District {{neighbor.district}}</p>
                                         </div>
                                     </div>
                                 </div>

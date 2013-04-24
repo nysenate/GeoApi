@@ -418,10 +418,10 @@ sage.directive('myTable', function() {
  * underlying model. Creates and sends requests.   |
  *------------------------------------------------*/
 sage.controller('DistrictInfoController', function($scope, $http, responseService, uiBlocker) {
-    $scope.addr1 = "8450 169st";
-    $scope.city = "Jamaica";
+    $scope.addr1 = "30 Tryon Pl";
+    $scope.city = "Albany";
     $scope.state = "NY";
-    $scope.zip5 = "11432";
+    $scope.zip5 = "";
     $scope.geoProvider = "default";
     $scope.provider = "default";
 
@@ -570,7 +570,8 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
     $scope.showOffices = false;
     $scope.showNeighbors = false;
     $scope.neighborPolygon = null;
-    $scope.neighborSenator = null;
+    $scope.neighborPolygons = [];
+    $scope.neighborColors = ["#FF4500", "#639A00"];
 
     $scope.$on("view", function(){
         $scope.visible = ($scope.viewId == responseService.view);
@@ -635,14 +636,20 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
         }
     }
 
-    $scope.showNeighborDistrict = function(neighbor) {
+    $scope.showNeighborDistricts = function(type, neighbors) {
         this.showNeighbors = true;
-        this.neighborPolygon = mapService.setOverlay(neighbor.map.geom, formatDistrictName(neighbor, "Senate"), false, false, null, "#FF4500");
+        $.each(neighbors, function(i, neighbor){
+            neighbor.style = {'color' : $scope.neighborColors[i % 2] };
+            $scope.neighborPolygons.push(mapService.setOverlay(neighbor.map.geom, formatDistrictName(neighbor, "Senate"),
+                                                               false, false, null, neighbor.style['color']));
+        });
     }
 
-    $scope.hideNeighborDistrict = function()  {
+    $scope.hideNeighborDistricts = function()  {
         this.showNeighbors = false;
-        mapService.clearPolygon(this.neighborPolygon);
+        $.each($scope.neighborPolygons, function(i, neighborPolygon){
+            mapService.clearPolygon(neighborPolygon);
+        });
     }
 
     $scope.setOfficeMarker = function(office) {
@@ -721,8 +728,10 @@ sage.controller("MemberViewController", function($scope, responseService, mapSer
     });
 
     $scope.$on("member", function() {
-        $scope.member = responseService.response;
-        responseService.setResponse("expandResults", true);     
+        $scope.$apply(function(){
+            $scope.member = responseService.response;
+            responseService.setResponse("expandResults", true);
+        });
     });
 
     $scope.setOfficeMarker = function(office) {

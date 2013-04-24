@@ -11,6 +11,7 @@
         <title><jsp:invoke fragment="title"/></title>
         <link rel="stylesheet" type="text/css" href="css/normalize.css" />
         <link rel="stylesheet" type="text/css" href="css/main.css" />
+        <link rel="stylesheet" type="text/css" href="css/icons.css" />
         <jsp:invoke fragment="cssIncludes"/>
         <script>contextPath = "<%=request.getContextPath()%>";</script>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
