@@ -143,17 +143,19 @@ public class DistrictShapefileDao extends BaseDao
      */
     public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, int count)
     {
-        String tmpl =
-            "SELECT '%s' AS type, %s as name, %s AS code, ST_AsGeoJson(geom) AS map \n" +
-            "FROM " + SCHEMA +".%s \n" +
-            "WHERE ST_Contains(geom, ST_PointFromText('POINT(%f %f)'," + "%s" +")) = false \n" +
-            "ORDER BY geom <-> ST_PointFromText('POINT(%f %f)'," + "%s" + ") \n" +
-            "LIMIT %d;";
-
         if (DistrictShapeCode.contains(districtType)) {
             String srid = resolveSRID(districtType);
+            String tmpl =
+                    "SELECT '%s' AS type, %s as name, %s AS code, ST_AsGeoJson(geom) AS map \n" +
+                            "FROM " + SCHEMA +".%s \n" +
+                            "WHERE ST_Contains(geom, %s) = false \n" +
+                            "ORDER BY ST_ClosestPoint(geom, %s) <-> %s \n" +
+                            "LIMIT %d;";
+
+           String pointText = String.format("ST_PointFromText('POINT(%s %s)', %s)", point.getLon(), point.getLat(), srid);
+
             String sqlQuery = String.format(tmpl, districtType.name(), resolveNameColumn(districtType), resolveCodeColumn(districtType),
-                    districtType.name(), point.getLon(), point.getLat(), srid, point.getLon(), point.getLat(), srid, count);
+                    districtType.name(), pointText, pointText, pointText, count);
             try {
                 return run.query(sqlQuery, new NearbyDistrictMapsHandler());
             }

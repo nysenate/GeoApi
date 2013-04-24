@@ -263,8 +263,8 @@
                             <table style="width:100%">
                                 <tr>
                                     <td>
-                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)">View Neighbor Senate District</a>
-                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()">Hide Neighbor Senate District</a>
+                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)">View Neighbor Senate Districts</a>
+                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()">Hide Neighbor Senate Districts</a>
                                     </td>
                                     <td class="right-icon-placeholder">
                                         <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)"><div class="icon-arrow-down"></div></a>

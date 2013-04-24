@@ -569,7 +569,6 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
     $scope.viewId = "districtView";
     $scope.showOffices = false;
     $scope.showNeighbors = false;
-    $scope.neighborPolygon = null;
     $scope.neighborPolygons = [];
     $scope.neighborColors = ["#FF4500", "#639A00"];
 
@@ -593,6 +592,8 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
             mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
                                  ($scope.address.addr1 != null) ? $scope.address.addr1 : "", true, null);
         }
+        /** Hide neighbors initially */
+        $scope.showNeighbors = false;
         uiBlocker.unBlock();
         mapService.resizeMap();
     });
