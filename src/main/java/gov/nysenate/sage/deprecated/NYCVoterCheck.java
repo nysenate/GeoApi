@@ -1,4 +1,4 @@
-package gov.nysenate.sage.scripts;
+package gov.nysenate.sage.deprecated;
 
 import gov.nysenate.sage.deprecated.boe.AddressUtils;
 import gov.nysenate.sage.deprecated.boe.BOEAddressRange;
