@@ -108,7 +108,7 @@ The validated response::
       "description" : "Success."
     }
 
-.. note:: USPS address validation requires addr1, city and state explicitly specified in the query parameters. Given a query that
+.. caution:: USPS address validation requires addr1, city and state explicitly specified in the query parameters. Given a query that
           is missing those fields, USPS will not be used to perform validation and another provider will be used instead.
 
 The usage of ``citystate`` with a zip code input::
@@ -313,6 +313,211 @@ The available providers are:
 +-------------+--------------------------------------+------------------+
 | geoserver   | Geoserver hosted shape files         | Geocode          |
 +-------------+--------------------------------------+------------------+
+
+Methods have the following optional parameters:
+
++-------------+-------------------------------------------------------------------------------+
+| Param       | Description                                                                   |
++=============+===============================================================================+
+| provider    | Specify which district provider to use.                                       |
++-------------+-------------------------------------------------------------------------------+
+| geoProvider | Specify which geocode provider to use.                                        |
++-------------+-------------------------------------------------------------------------------+
+| showMembers | If true: senator, assembly, and congressional member data is appended.        |
++-------------+-------------------------------------------------------------------------------+
+| showMaps    | If true: map data is appended for each district.                              |
++-------------+-------------------------------------------------------------------------------+
+| uspsValidate| If true: usps will be used to perform address correction.                     |
++-------------+-------------------------------------------------------------------------------+
+
+Unlike the ``geo`` service, specifying a ``provider`` or ``geoProvider`` will by default disable any fallback. If the provider
+is not specified the service will utilize multiple providers to provide the most accurate result. If the geoProvider is not
+specified, the service will iterate through a series of providers if needed until a geocode match is obtained. Specifying
+provider or geoProvider is not recommended as it may reduce the accuracy of the results.
+
+.. caution:: USPS validation will only work when addr1, city, and state are provided. See address section above for details.
+
+The default query usage is as follows::
+
+    /api/v2/district/assign?addr=280 Madison Ave, New York, NY
+    /api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY
+
+The district assignment response::
+
+    {
+      "status" : "SUCCESS",
+      "source" : "DistrictShapefile",
+      "messages" : [ ],
+      "address" : {
+        "addr1" : "280 Madison Ave",
+        "addr2" : "",
+        "city" : "New York",
+        "state" : "NY",
+        "zip5" : "10016",
+        "zip4" : "0802"
+      },
+      "geocode" : {
+        "lat" : 40.751352,
+        "lon" : -73.980335,
+        "quality" : "HOUSE",
+        "method" : "YahooDao"
+      },
+      "districts" : {
+        "senate" : {
+          "name" : "State Senate District 27",
+          "district" : "27",
+          "map" : {
+            "geom" : [ ]
+          },
+          "nearBorder" : true,
+          "neighbors" : [ {
+            "name" : "State Senate District 28",
+            "district" : "28",
+            "member" : null,
+            "map" : {
+              "geom" : [ ]
+            }
+          } ],
+          "senator" : null
+        },
+        "congressional" : {
+          "name" : null,
+          "district" : "12",
+          "map" : null,
+          "nearBorder" : false,
+          "neighbors" : [ ],
+          "member" : null
+        },
+        "assembly" : {
+          "name" : null,
+          "district" : "73",
+          "map" : null,
+          "nearBorder" : false,
+          "neighbors" : [ ],
+          "member" : null
+        },
+        "county" : {
+          "name" : "New York County",
+          "district" : "62",
+          "map" : null,
+          "nearBorder" : false,
+          "neighbors" : [ ]
+        },
+        "election" : {
+          "name" : null,
+          "district" : "6",
+          "map" : null,
+          "nearBorder" : false,
+          "neighbors" : [ ]
+        },
+        "school" : {
+          "name" : "Manhattan School District",
+          "district" : "369",
+          "map" : null,
+          "nearBorder" : false,
+          "neighbors" : [ ]
+        },
+        "town" : {
+          "name" : "New York",
+          "district" : "-NYC",
+          "map" : null,
+          "nearBorder" : false,
+          "neighbors" : [ ]
+        },
+        "cleg" : null,
+        "ward" : null,
+        "village" : null
+      },
+      "geocoded" : true,
+      "districtAssigned" : true,
+      "statusCode" : 0,
+      "description" : "Success."
+    }
+
+The main components of the response are ``address``, ``geocode``, and ``districts``. The ``address`` typically contains
+a corrected address response from the geocode provider or is the result of USPS correction if ``uspsValidate`` is set to true.
+The ``geocode`` contains the coordinates that were used to perform district assignment. The ``districts`` object contains all
+the district types supported by the service. ``district`` refers to the code or number that represents the district.
+``map.geom`` will contain polygon data if ``showMaps`` is true. ``nearBorder`` indicates that the address is very close
+to a district boundary. If ``nearBorder`` is true it suggests that the result for that district may be not be certain although
+by default the service will automatically attempt to correct the uncertain districts. ``neighbors`` will contain a list of
+districts that are near the geocode location but for performance reasons will only be populated if ``nearBorder`` was true
+for that district.
+
+The neighbors array will be of the following format regardless of district type ( ``...`` represents truncated output )::
+
+    /api/v2/district/assign?addr=280 Madison Ave, NY
+
+    {
+        ...
+        "districts" : {
+            "senate " : {
+                ...
+                "neighbors" : [{
+                    "name" : "State Senate District 28",
+                    "district" : "28",
+                    "member" : null,
+                    "map" : {
+                        "geom" : [ ]
+                    }
+                }]
+            ...
+            }
+        ...
+        }
+    ...
+    }
+
+The ``geom`` will be populated if ``showMaps`` is set to true::
+
+    /api/v2/district/assign?addr=280 Madison Ave, NY&showMaps=true
+
+    "map" : {
+            "geom" : [ [ [ 40.732752,  -74.019809 ], [ .. ] ] ]
+    }
+
+.. tip::
+     'geom' is an array containing an array of coordinate pairs which are represented as two floats in an array,
+     e.g geom[0] -> array of coordinate pairs (represented as [lat, lon]) of the first polygon.
+
+.. note::
+     Not all district types have polygon data available. Currently only senate, assembly, congressional, county, town,
+     and school maps are available. However the other district types may be supported in the future.
+
+District assignment via coordinate pairs is also supported::
+
+    /api/v2/district/assign?lat=40.751352&lon=-73.980335
+
+The supplied point will automatically be reverse geocoded by the service and will match the response given by an address input.
+
+An unsuccessful district assign response will look similar to the following::
+
+    {
+      "status" : "NO_DISTRICT_RESULT",
+      "source" : "StreetFile",
+      "messages" : [ ],
+      "address" : null,
+      "geocode" : null,
+      "districts" : null,
+      "geocoded" : false,
+      "districtAssigned" : false,
+      "statusCode" : 400,
+      "description" : "District assignment returned no results."
+    }
+
+A full description of status codes can be found >>>here<<<
+
+Street
+------
+
+The street service provides a comprehensive list of street address range to district mappings. This data is compiled from
+Board of Election Street File data and can be searched via zip code.
+
+The ``street`` service has the following method(s):
+
+
+
+
 
 
 

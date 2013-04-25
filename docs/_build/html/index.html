@@ -158,8 +158,8 @@ To supply a single address string use the parameter <tt class="docutils literal"
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
+<div class="admonition caution">
+<p class="first admonition-title">Caution</p>
 <p class="last">USPS address validation requires addr1, city and state explicitly specified in the query parameters. Given a query that
 is missing those fields, USPS will not be used to perform validation and another provider will be used instead.</p>
 </div>
@@ -425,6 +425,214 @@ one of the following quality levels ordered from most accurate to least:</p>
 </tr>
 </tbody>
 </table>
+<p>Methods have the following optional parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Param</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>provider</td>
+<td>Specify which district provider to use.</td>
+</tr>
+<tr class="row-odd"><td>geoProvider</td>
+<td>Specify which geocode provider to use.</td>
+</tr>
+<tr class="row-even"><td>showMembers</td>
+<td>If true: senator, assembly, and congressional member data is appended.</td>
+</tr>
+<tr class="row-odd"><td>showMaps</td>
+<td>If true: map data is appended for each district.</td>
+</tr>
+<tr class="row-even"><td>uspsValidate</td>
+<td>If true: usps will be used to perform address correction.</td>
+</tr>
+</tbody>
+</table>
+<p>Unlike the <tt class="docutils literal"><span class="pre">geo</span></tt> service, specifying a <tt class="docutils literal"><span class="pre">provider</span></tt> or <tt class="docutils literal"><span class="pre">geoProvider</span></tt> will by default disable any fallback. If the provider
+is not specified the service will utilize multiple providers to provide the most accurate result. If the geoProvider is not
+specified, the service will iterate through a series of providers if needed until a geocode match is obtained. Specifying
+provider or geoProvider is not recommended as it may reduce the accuracy of the results.</p>
+<div class="admonition caution">
+<p class="first admonition-title">Caution</p>
+<p class="last">USPS validation will only work when addr1, city, and state are provided. See address section above for details.</p>
+</div>
+<p>The default query usage is as follows:</p>
+<div class="highlight-python"><pre>/api/v2/district/assign?addr=280 Madison Ave, New York, NY
+/api/v2/district/assign?addr1=280 Madison Ave&amp;city=New York&amp;state=NY</pre>
+</div>
+<p>The district assignment response:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;DistrictShapefile&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;280 Madison Ave&quot;</span><span class="p">,</span>
+    <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
+    <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;New York&quot;</span><span class="p">,</span>
+    <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
+    <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;10016&quot;</span><span class="p">,</span>
+    <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;0802&quot;</span>
+  <span class="p">},</span>
+  <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">40.751352</span><span class="p">,</span>
+    <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.980335</span><span class="p">,</span>
+    <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
+    <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span>
+  <span class="p">},</span>
+  <span class="s">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;State Senate District 27&quot;</span><span class="p">,</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;27&quot;</span><span class="p">,</span>
+      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+      <span class="p">},</span>
+      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;State Senate District 28&quot;</span><span class="p">,</span>
+        <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;28&quot;</span><span class="p">,</span>
+        <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+        <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+        <span class="p">}</span>
+      <span class="p">}</span> <span class="p">],</span>
+      <span class="s">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="p">},</span>
+    <span class="s">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;12&quot;</span><span class="p">,</span>
+      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+      <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="p">},</span>
+    <span class="s">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;73&quot;</span><span class="p">,</span>
+      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+      <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="p">},</span>
+    <span class="s">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;New York County&quot;</span><span class="p">,</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;62&quot;</span><span class="p">,</span>
+      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;6&quot;</span><span class="p">,</span>
+      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s">&quot;school&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;Manhattan School District&quot;</span><span class="p">,</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;369&quot;</span><span class="p">,</span>
+      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;New York&quot;</span><span class="p">,</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;-NYC&quot;</span><span class="p">,</span>
+      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s">&quot;cleg&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s">&quot;village&quot;</span> <span class="p">:</span> <span class="n">null</span>
+  <span class="p">},</span>
+  <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The main components of the response are <tt class="docutils literal"><span class="pre">address</span></tt>, <tt class="docutils literal"><span class="pre">geocode</span></tt>, and <tt class="docutils literal"><span class="pre">districts</span></tt>. The <tt class="docutils literal"><span class="pre">address</span></tt> typically contains
+a corrected address response from the geocode provider or is the result of USPS correction if <tt class="docutils literal"><span class="pre">uspsValidate</span></tt> is set to true.
+The <tt class="docutils literal"><span class="pre">geocode</span></tt> contains the coordinates that were used to perform district assignment. The <tt class="docutils literal"><span class="pre">districts</span></tt> object contains all
+the district types supported by the service. <tt class="docutils literal"><span class="pre">district</span></tt> refers to the code or number that represents the district.
+<tt class="docutils literal"><span class="pre">map.geom</span></tt> will contain polygon data if <tt class="docutils literal"><span class="pre">showMaps</span></tt> is true. <tt class="docutils literal"><span class="pre">nearBorder</span></tt> indicates that the address is very close
+to a district boundary. If <tt class="docutils literal"><span class="pre">nearBorder</span></tt> is true it suggests that the result for that district may be not be certain although
+by default the service will automatically attempt to correct the uncertain districts. <tt class="docutils literal"><span class="pre">neighbors</span></tt> will contain a list of
+districts that are near the geocode location but for performance reasons will only be populated if <tt class="docutils literal"><span class="pre">nearBorder</span></tt> was true
+for that district.</p>
+<p>The neighbors array will be of the following format regardless of district type ( <tt class="docutils literal"><span class="pre">...</span></tt> represents truncated output ):</p>
+<div class="highlight-python"><pre>/api/v2/district/assign?addr=280 Madison Ave, NY
+
+{
+    ...
+    "districts" : {
+        "senate " : {
+            ...
+            "neighbors" : [{
+                "name" : "State Senate District 28",
+                "district" : "28",
+                "member" : null,
+                "map" : {
+                    "geom" : [ ]
+                }
+            }]
+        ...
+        }
+    ...
+    }
+...
+}</pre>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">geom</span></tt> will be populated if <tt class="docutils literal"><span class="pre">showMaps</span></tt> is set to true:</p>
+<div class="highlight-python"><pre>/api/v2/district/assign?addr=280 Madison Ave, NY&amp;showMaps=true
+
+"map" : {
+        "geom" : [ [ [ 40.732752,  -74.019809 ], [ .. ] ] ]
+}</pre>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">&#8216;geom&#8217; is an array containing an array of coordinate pairs which are represented as two floats in an array,
+e.g geom[0] -&gt; array of coordinate pairs (represented as [lat, lon]) of the first polygon.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Not all district types have polygon data available. Currently only senate, assembly, congressional, county, town,
+and school maps are available. However the other district types may be supported in the future.</p>
+</div>
+<p>District assignment via coordinate pairs is also supported:</p>
+<div class="highlight-python"><pre>/api/v2/district/assign?lat=40.751352&amp;lon=-73.980335</pre>
+</div>
+<p>The supplied point will automatically be reverse geocoded by the service and will match the response given by an address input.</p>
+<p>An unsuccessful district assign response will look similar to the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_DISTRICT_RESULT&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;StreetFile&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s">&quot;districts&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;District assignment returned no results.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>A full description of status codes can be found &gt;&gt;&gt;here&lt;&lt;&lt;</p>
+</div>
+<div class="section" id="street">
+<h3>Street<a class="headerlink" href="#street" title="Permalink to this headline">¶</a></h3>
+<p>The street service provides a comprehensive list of street address range to district mappings. This data is compiled from
+Board of Election Street File data and can be searched via zip code.</p>
+<p>The <tt class="docutils literal"><span class="pre">street</span></tt> service has the following method(s):</p>
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
 <ul class="simple">
@@ -449,7 +657,8 @@ one of the following quality levels ordered from most accurate to least:</p>
 <li><a class="reference internal" href="#common-query-parameters">Common Query Parameters</a></li>
 <li><a class="reference internal" href="#address">Address</a></li>
 <li><a class="reference internal" href="#geocode">Geocode</a></li>
-<li><a class="reference internal" href="#district">District</a><ul>
+<li><a class="reference internal" href="#district">District</a></li>
+<li><a class="reference internal" href="#street">Street</a><ul>
 </ul>
 </li>
 </ul>
