@@ -15,6 +15,6 @@ public class MemberDistrictView extends DistrictView
     }
 
     public MemberView getMember() {
-        return member;
+        return (member != null && member.name != null) ? member : null;
     }
 }

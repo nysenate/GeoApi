@@ -37,7 +37,7 @@ public class DistrictView
     }
 
     public MapView getMap() {
-        return map;
+        return (map != null && map.geom != null) ? map : null;
     }
 
     public boolean isNearBorder() {

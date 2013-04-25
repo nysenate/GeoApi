@@ -39,7 +39,7 @@ public class DistrictsView
     }
 
     public SenateDistrictView getSenate() {
-        return senate;
+        return (senate != null && senate.district != null) ? senate : null;
     }
 
     public MemberDistrictView getCongressional() {
@@ -47,27 +47,27 @@ public class DistrictsView
     }
 
     public MemberDistrictView getAssembly() {
-        return assembly;
+        return (assembly != null && assembly.district != null) ? assembly : null;
     }
 
     public DistrictView getCounty() {
-        return county;
+        return (county != null && county.district != null) ? county : null;
     }
 
     public DistrictView getElection() {
-        return election;
+        return (election != null && election.district != null) ? election : null;
     }
 
     public DistrictView getSchool() {
-        return school;
+        return (school != null && school.district != null) ? school : null;
     }
 
     public DistrictView getTown() {
-        return town;
+        return (town != null && school.district != null) ? town : null;
     }
 
     public DistrictView getCleg() {
-        return cleg;
+        return (cleg != null && cleg.district != null) ? cleg : null;
     }
 
     public void setCleg(DistrictView cleg) {
@@ -75,7 +75,7 @@ public class DistrictsView
     }
 
     public DistrictView getWard() {
-        return ward;
+        return (ward != null && ward.district != null) ? ward : null;
     }
 
     public void setWard(DistrictView ward) {
@@ -83,7 +83,7 @@ public class DistrictsView
     }
 
     public DistrictView getVillage() {
-        return village;
+        return (village != null && village.district != null) ? village : null;
     }
 
     public void setVillage(DistrictView village) {
