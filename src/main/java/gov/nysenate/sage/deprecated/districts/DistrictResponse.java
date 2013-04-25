@@ -1,6 +1,6 @@
 package gov.nysenate.sage.deprecated.districts;
 
-import gov.nysenate.sage.Response;
+import gov.nysenate.sage.deprecated.Response;
 
 import java.util.ArrayList;
 

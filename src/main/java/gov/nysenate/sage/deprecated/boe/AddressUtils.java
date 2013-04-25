@@ -1,14 +1,9 @@
-package gov.nysenate.sage.boe;
+package gov.nysenate.sage.deprecated.boe;
 
-import gov.nysenate.sage.Address;
-import gov.nysenate.sage.boe.BOEAddress;
-import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.BOEStreetAddress;
-import gov.nysenate.sage.boe.BluebirdAddress;
+import gov.nysenate.sage.deprecated.Address;
 import gov.nysenate.sage.util.FormatUtil;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

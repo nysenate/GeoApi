@@ -1,4 +1,4 @@
-package gov.nysenate.sage;
+package gov.nysenate.sage.deprecated;
 
 /**
  * A generic address structure supplied to all services.

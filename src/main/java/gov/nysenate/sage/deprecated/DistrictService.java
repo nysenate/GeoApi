@@ -1,7 +1,4 @@
-package gov.nysenate.sage.service;
-
-import gov.nysenate.sage.Address;
-import gov.nysenate.sage.Result;
+package gov.nysenate.sage.deprecated;
 
 import java.util.ArrayList;
 import java.util.Arrays;

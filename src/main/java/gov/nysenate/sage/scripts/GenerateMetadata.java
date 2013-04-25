@@ -173,14 +173,7 @@ public class GenerateMetadata
 
     private static void generateDistrictMapData(File outDir)
     {
-        outDir.mkdirs();
-        for (int distnum = 1; distnum <= MAX_DISTRICTS; distnum++) {
-            SenateDistrictMap districtMap = new SenateDistrictMap(distnum);
-            String fileName = String.format("sd%02d.json", distnum);
-            File outFile = new File(outDir, fileName);
-            districtMap.loadCoordinates();
-            districtMap.writeCoordinatesAsJson(outFile);
-        }
+        return;
     }
 }
 

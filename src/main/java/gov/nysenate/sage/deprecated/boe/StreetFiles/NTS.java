@@ -1,8 +1,8 @@
-package gov.nysenate.sage.boe.StreetFiles;
+package gov.nysenate.sage.deprecated.boe.StreetFiles;
 
-import gov.nysenate.sage.boe.AddressUtils;
-import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.StreetFileHandler;
+import gov.nysenate.sage.deprecated.boe.AddressUtils;
+import gov.nysenate.sage.deprecated.boe.BOEAddressRange;
+import gov.nysenate.sage.deprecated.boe.StreetFileHandler;
 
 import java.io.BufferedReader;
 import java.io.File;

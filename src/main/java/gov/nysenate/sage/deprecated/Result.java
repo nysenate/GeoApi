@@ -1,4 +1,4 @@
-package gov.nysenate.sage;
+package gov.nysenate.sage.deprecated;
 
 import java.util.ArrayList;
 import java.util.List;

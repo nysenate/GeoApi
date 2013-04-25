@@ -1,9 +1,9 @@
 package gov.nysenate.sage.scripts;
 
-import gov.nysenate.sage.boe.AddressUtils;
-import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.BOEStreetAddress;
-import gov.nysenate.sage.boe.DistrictLookup;
+import gov.nysenate.sage.deprecated.boe.AddressUtils;
+import gov.nysenate.sage.deprecated.boe.BOEAddressRange;
+import gov.nysenate.sage.deprecated.boe.BOEStreetAddress;
+import gov.nysenate.sage.deprecated.boe.DistrictLookup;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
 

@@ -1,17 +1,17 @@
 package gov.nysenate.sage.scripts;
 
-import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.StreetFileHandler;
-import gov.nysenate.sage.boe.StreetFiles.Erie;
-import gov.nysenate.sage.boe.StreetFiles.Essex;
-import gov.nysenate.sage.boe.StreetFiles.NTS;
-import gov.nysenate.sage.boe.StreetFiles.NTSAlt;
-import gov.nysenate.sage.boe.StreetFiles.NYC;
-import gov.nysenate.sage.boe.StreetFiles.Nassau;
-import gov.nysenate.sage.boe.StreetFiles.Schoharie;
-import gov.nysenate.sage.boe.StreetFiles.Suffolk;
-import gov.nysenate.sage.boe.StreetFiles.Westchester;
-import gov.nysenate.sage.boe.StreetFiles.Wyoming;
+import gov.nysenate.sage.deprecated.boe.BOEAddressRange;
+import gov.nysenate.sage.deprecated.boe.StreetFileHandler;
+import gov.nysenate.sage.deprecated.boe.StreetFiles.Erie;
+import gov.nysenate.sage.deprecated.boe.StreetFiles.Essex;
+import gov.nysenate.sage.deprecated.boe.StreetFiles.NTS;
+import gov.nysenate.sage.deprecated.boe.StreetFiles.NTSAlt;
+import gov.nysenate.sage.deprecated.boe.StreetFiles.NYC;
+import gov.nysenate.sage.deprecated.boe.StreetFiles.Nassau;
+import gov.nysenate.sage.deprecated.boe.StreetFiles.Schoharie;
+import gov.nysenate.sage.deprecated.boe.StreetFiles.Suffolk;
+import gov.nysenate.sage.deprecated.boe.StreetFiles.Westchester;
+import gov.nysenate.sage.deprecated.boe.StreetFiles.Wyoming;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
 

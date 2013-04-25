@@ -1,4 +1,4 @@
-package gov.nysenate.sage.boe;
+package gov.nysenate.sage.deprecated.boe;
 
 
 import java.io.File;

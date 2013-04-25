@@ -1,13 +1,13 @@
 package gov.nysenate.sage.deprecated.methods.api.methods;
 
-import gov.nysenate.sage.Address;
-import gov.nysenate.sage.Result;
+import gov.nysenate.sage.deprecated.Address;
+import gov.nysenate.sage.deprecated.Result;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiTypeException;
-import gov.nysenate.sage.boe.AddressUtils;
-import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.BluebirdAddress;
-import gov.nysenate.sage.boe.DistrictLookup;
+import gov.nysenate.sage.deprecated.boe.AddressUtils;
+import gov.nysenate.sage.deprecated.boe.BOEAddressRange;
+import gov.nysenate.sage.deprecated.boe.BluebirdAddress;
+import gov.nysenate.sage.deprecated.boe.DistrictLookup;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.FormatUtil;
 

@@ -1,7 +1,7 @@
-package gov.nysenate.sage;
+package gov.nysenate.sage.deprecated;
 
-import gov.nysenate.sage.boe.BOEAddressRange;
-import gov.nysenate.sage.boe.BluebirdAddress;
+import gov.nysenate.sage.deprecated.boe.BOEAddressRange;
+import gov.nysenate.sage.deprecated.boe.BluebirdAddress;
 
 public class BulkResult {
     public static enum STATUS { HOUSE, STREET, ZIP5, SHAPEFILE, INVALID, NOMATCH };

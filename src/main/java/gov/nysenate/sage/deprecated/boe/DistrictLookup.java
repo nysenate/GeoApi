@@ -1,4 +1,4 @@
-package gov.nysenate.sage.boe;
+package gov.nysenate.sage.deprecated.boe;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -8,8 +8,8 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import gov.nysenate.sage.Address;
-import gov.nysenate.sage.service.DistrictService;
+import gov.nysenate.sage.deprecated.Address;
+import gov.nysenate.sage.deprecated.DistrictService;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.BeanProcessor;
 import org.apache.commons.dbutils.QueryRunner;

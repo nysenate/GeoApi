@@ -1,7 +1,7 @@
 package gov.nysenate.sage.deprecated.methods.api.methods;
 
-import gov.nysenate.sage.Address;
-import gov.nysenate.sage.Result;
+import gov.nysenate.sage.deprecated.Address;
+import gov.nysenate.sage.deprecated.Result;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiFormatException;
 import gov.nysenate.sage.deprecated.methods.api.exceptions.ApiInternalException;

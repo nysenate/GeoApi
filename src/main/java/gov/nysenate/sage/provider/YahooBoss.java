@@ -1,7 +1,7 @@
 package gov.nysenate.sage.provider;
 
-import gov.nysenate.sage.Address;
-import gov.nysenate.sage.Result;
+import gov.nysenate.sage.deprecated.Address;
+import gov.nysenate.sage.deprecated.Result;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;

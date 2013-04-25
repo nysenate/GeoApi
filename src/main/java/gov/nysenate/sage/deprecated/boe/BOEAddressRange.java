@@ -1,6 +1,4 @@
-package gov.nysenate.sage.boe;
-
-import gov.nysenate.sage.Address;
+package gov.nysenate.sage.deprecated.boe;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
