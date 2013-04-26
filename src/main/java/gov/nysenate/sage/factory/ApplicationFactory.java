@@ -1,5 +1,7 @@
 package gov.nysenate.sage.factory;
 
+import gov.nysenate.sage.dao.model.SenateDao;
+import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.provider.*;
 import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
@@ -59,12 +61,6 @@ public class ApplicationFactory
         return factoryInstance.build(defaultPropertyFileName);
     }
 
-    public static void close()
-    {
-        factoryInstance.baseDB.getDataSource().close();
-        factoryInstance.tigerDB.getDataSource().close();
-    }
-
     /**
      * Public access call to buildTesting()
      * @return boolean - If true then build succeeded
@@ -72,6 +68,21 @@ public class ApplicationFactory
     public static boolean buildTestInstances()
     {
         return factoryInstance.build(defaultTestPropertyFileName);
+    }
+
+    /**
+     * Builds all the in-memory caches
+     */
+    public static void initializeCache()
+    {
+        factoryInstance.initCache();
+    }
+
+    /** Closes all data sources */
+    public static void close()
+    {
+        factoryInstance.baseDB.getDataSource().close();
+        factoryInstance.tigerDB.getDataSource().close();
     }
 
     /**
@@ -128,6 +139,18 @@ public class ApplicationFactory
         }
         return false;
     }
+
+    private void initCache()
+    {
+        /** Initialize district map cache */
+        DistrictShapefileDao dso = new DistrictShapefileDao();
+        dso.getDistrictMaps();
+
+        /** Initialize senator cache */
+        SenateDao sd = new SenateDao();
+        sd.getSenators();
+    }
+
 
     public static Config getConfig() {
         return factoryInstance.config;
