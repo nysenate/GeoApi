@@ -104,8 +104,9 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
      * title - tooltip text to display on hover
      * clear - remove all other markers
      * clickContent - display content upon marker click
+     * center - set true to center map on marker
      */
-    mapService.setMarker = function(lat, lon, title, clear, clickContent) {
+    mapService.setMarker = function(lat, lon, title, clear, center, clickContent) {
         if (clear) {
             this.clearMarkers();
         }
@@ -129,7 +130,9 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
 
         this.activeMarker = marker;
         this.markers.push(marker);
-        this.map.setCenter(this.activeMarker.position);
+        if (center) {
+            this.map.setCenter(this.activeMarker.position);
+        }
     }
 
     /**
@@ -483,13 +486,16 @@ sage.controller('CityStateController', function($scope, $http, responseService) 
     }
 });
 
-sage.controller("StreetLookupController", function($scope, $http, responseService){
+sage.controller("StreetLookupController", function($scope, $http, responseService, uiBlocker){
     $scope.zip5 = "";
 
     $scope.lookup = function () {
+        uiBlocker.block("Loading street information.");
         $http.get(this.getStreetLookupUrl())
-            .success(function(data){
+            .success(function(data) {
                 responseService.setResponse("street", data, "street");
+            }).error(function(data) {
+                uiBlocker.unBlock();
             });
     }
 
@@ -584,13 +590,15 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
 
         /** If the districts were assigned, initially set the map to display the senate boundary */
         if ($scope.districtAssigned) {
-            mapService.setOverlay($scope.districts.senate.map.geom,
-                                  formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
+            if ($scope.districts.senate.map) {
+                mapService.setOverlay($scope.districts.senate.map.geom,
+                    formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
+            }
         }
         /** Update the marker location to point to the geocode */
         if ($scope.geocoded) {
             mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
-                                 ($scope.address.addr1 != null) ? $scope.address.addr1 : "", true, null);
+                                 ($scope.address.addr1 != null) ? $scope.address.addr1 : "", true, true, null);
         }
         /** Hide neighbors initially */
         $scope.showNeighbors = false;
@@ -617,10 +625,11 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
             }
             /** Show the individual district map */
             else if (data.map != null) {
-                mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true,
-                    (data.type == "SENATE") ? function() {responseService.setResponse("member", data.member, "member");}
-                    : null
-                );
+                mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
+                console.log(data);
+                if (data.type == "SENATE") {
+                    responseService.setResponse("member", data.member, "member");
+                }
             }
         }
         mapService.toggleMap(true);
@@ -655,7 +664,7 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
 
     $scope.setOfficeMarker = function(office) {
         if (office != null) {
-            mapService.setMarker(office.latitude, office.longitude, office.name, false, null);
+            mapService.setMarker(office.latitude, office.longitude, office.name, false, true, null);
         }
     }
 });
@@ -674,7 +683,7 @@ sage.controller("CityStateView", function($scope, responseService, mapService) {
     });
 });
 
-sage.controller("StreetViewController", function($scope, responseService, mapService) {
+sage.controller("StreetViewController", function($scope, responseService, uiBlocker, mapService) {
    $scope.visible = false;
    $scope.viewId = "street";
    $scope.streets = [];
@@ -712,6 +721,7 @@ sage.controller("StreetViewController", function($scope, responseService, mapSer
        $scope.streets = (responseService.response.streets);
        responseService.setResponse("expandResults", false);
        mapService.toggleMap(false);
+       uiBlocker.unBlock();
    });
 
    $scope.$on("view", function(){
@@ -729,15 +739,13 @@ sage.controller("MemberViewController", function($scope, responseService, mapSer
     });
 
     $scope.$on("member", function() {
-        $scope.$apply(function(){
-            $scope.member = responseService.response;
-            responseService.setResponse("expandResults", true);
-        });
+        $scope.member = responseService.response;
+        responseService.setResponse("expandResults", true);
     });
 
     $scope.setOfficeMarker = function(office) {
         if (office != null) {
-            mapService.setMarker(office.latitude, office.longitude, office.name, false, null);
+            mapService.setMarker(office.latitude, office.longitude, office.name, false, true, null);
         }
     }
 });
@@ -751,7 +759,7 @@ sage.controller("RevGeoViewController", function($scope, responseService, mapSer
         $scope = angular.extend($scope, responseService.response);
         $scope.revGeocoded = ($scope.statusCode == 0);
         if ($scope.revGeocoded) {
-            mapService.setMarker($scope.geocode.lat, $scope.geocode.lon);
+            mapService.setMarker($scope.geocode.lat, $scope.geocode.lon, "", false, true, null);
         }
         responseService.setResponse("expandResults", true);
         mapService.toggleMap(true);
@@ -794,8 +802,8 @@ sage.controller("EmbeddedMapViewController", function($scope, responseService, u
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
                 if (data.type.toLowerCase() == "senate") {
                     $.each(data.member.offices, function(i, office){
-                        if (office) {
-                            mapService.setMarker(office.latitude, office.longitude, "Senate", false,
+                        if (office && office.name != null && office.name != "") {
+                            mapService.setMarker(office.latitude, office.longitude, "Senate", false, false,
                                 "<div>" +
                                     "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
                                     "<p>" + office.street + "</p>" +
@@ -825,8 +833,8 @@ sage.controller("EmbeddedMapViewController", function($scope, responseService, u
             });
             mapService.clearMarkers();
             $.each(data.member.offices, function(i, office){
-                if (office) {
-                    mapService.setMarker(office.latitude, office.longitude, office.name, false,
+                if (office && office.name != null && office.name != "") {
+                    mapService.setMarker(office.latitude, office.longitude, office.name, false, false,
                         "<div>" +
                             "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
                             "<p>" + office.street + "</p>" +

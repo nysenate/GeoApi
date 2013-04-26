@@ -334,13 +334,18 @@ hr.shadow {
     box-shadow: #999 0px 1px 4px;
 }
 
-div.senator-pic-holder {
+div.mini-senator-pic-holder, div.senator-pic-holder {
     height:90px;
     max-width:90px;
     float:left;
     margin-right: 10px;
     margin-bottom: 5px;
     overflow:hidden;
+}
+
+div.mini-senator-pic-holder {
+    height:50px;
+    max-width:50px;
 }
 
 div.senator-pic-holder img.senator-pic {

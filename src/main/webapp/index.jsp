@@ -126,7 +126,7 @@
                             </select>
                         </li>
                         <li>
-                            <label style="width:190px;">District (leave blank to view all)</label>
+                            <label style="width:190px;">District <span style="color:#777">(leave blank to view all)</span></label>
                             <input style="width:52px;" ng-model="district" type="text" id="districtCodeInput" />
                         </li>
                         <li>
@@ -216,7 +216,7 @@
                                     <tr>
                                         <td><p class="senate district">Senate District {{districts.senate.district}}</p></td>
                                         <td class="right-icon-placeholder">
-                                            <a title="Show Map" ng-click="showDistrict('senate');">
+                                            <a title="Show Map" ng-show="districts.senate.map" ng-click="showDistrict('senate');">
                                                 <div class="icon-map"></div>
                                             </a>
                                         </td>
@@ -310,7 +310,7 @@
                                         <p class="district">Congressional District {{districts.congressional.district}}</p>
                                     </td>
                                     <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-click="showDistrict('congressional');">
+                                        <a title="Show Map" ng-show="districts.congressional.map" ng-click="showDistrict('congressional');">
                                             <div class="icon-map"></div>
                                         </a>
                                     </td>
@@ -325,7 +325,7 @@
                                         <p class="district">Assembly District {{districts.assembly.district}}</p>
                                     </td>
                                     <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-click="showDistrict('assembly');">
+                                        <a title="Show Map" ng-show="districts.assembly.map" ng-click="showDistrict('assembly');">
                                             <div class="icon-map"></div>
                                         </a>
                                     </td>
@@ -340,7 +340,7 @@
                                         <p class="district">County Code: {{districts.county.district}}</p>
                                     </td>
                                     <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-click="showDistrict('county');">
+                                        <a title="Show Map" ng-show="districts.county.map" ng-click="showDistrict('county');">
                                             <div class="icon-map"></div>
                                         </a>
                                     </td>
@@ -354,7 +354,7 @@
                                         <p class="member-name">Town of {{districts.town.name}}</p>
                                         <p class="district">Town Code: {{districts.town.district}}</p></td>
                                     <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-click="showDistrict('town');">
+                                        <a title="Show Map" ng-show="districts.town.map" ng-click="showDistrict('town');">
                                             <div class="icon-map"></div>
                                         </a>
                                     </td>
@@ -369,7 +369,7 @@
                                         <p class="district">School District Code: {{districts.school.district}}</p>
                                     </td>
                                     <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-click="showDistrict('school');">
+                                        <a title="Show Map" ng-show="districts.school.map" ng-click="showDistrict('school');">
                                             <div class="icon-map"></div>
                                         </a>
                                     </td>

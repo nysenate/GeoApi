@@ -16,7 +16,7 @@
         </div>
         <div id="mapView" ng-controller="EmbeddedMapViewController">
             <div class="top-header">
-                <div class="icon" aria-hidden="true">&#59175;</div>
+                <div class="large-icon icon-map white"></div>
                 <div class="text">Map | {{header}}</div>
             </div>
 
@@ -34,16 +34,14 @@
                 </tr>
                 </table>
                 <div ng-show="showInfo" id="senator-view" style="padding-top:10px;border-top:1px solid #ddd">
-                    <div class="senator-pic-holder">
-                        <a ng-href="{{senator.url}}" target="_top"><img ng-src="{{senator.imageUrl}}" class="senator-pic" /></a>
+                    <div class="mini-senator-pic-holder">
+                        <a ng-href="{{senator.url}}" target="_top"><img ng-src="{{senator.imageUrl | senatorPic}}" class="senator-pic" /></a>
                     </div>
                     <div>
                         <p class="senator member-name">
                             <a target="_blank" ng-href="{{senator.url}}">{{senator.name}}</a>
                         </p>
                         <p class="senate district">Senate District {{district}}</p>
-                        <br/>
-                        <p class="member-email">{{senator.email}}</p>
                     </div>
                 </div>
             </div>

@@ -36,7 +36,7 @@
     background-image: url(../img/entypo-16/teal/sprites.png);
 }
 
-.icon-search {
+.icon-search, .icon-user {
     background-image: url(../img/entypo-16/white/sprites.png) !important;
 }
 

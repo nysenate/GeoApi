@@ -33,17 +33,12 @@
                     </li>
                     <li>
                         <button class="submit">
-                            <span aria-hidden="true" data-icon="&#128100;"></span>
+                            <div class="icon-user"></div>
                             <span>Login</span>
                         </button>
                     </li>
                 </ol>
             </form>
-
-            <div class="error-container" ng-show="error">
-                <p><span style="position:relative; top:-1px;" aria-hidden="true" data-icon="&#8854;"></span>
-                    {{errorMessage}}</p>
-            </div>
         </div>
     </jsp:body>
 </sage:wrapper>

@@ -91,26 +91,6 @@
                             </table>
                         </div>
 
-                        <h3>Recently Completed Jobs</h3>
-                        <div style="padding:20px;background:#fefefe;box-shadow: 0px 3px 2px #ddd">
-                            <table class="job-table">
-                                <thead style="text-align:left;border-bottom: 1px solid #999">
-                                <tr>
-                                    <th>Job Id</th>
-                                    <th>File name</th>
-                                    <th>Completed On</th>
-                                    <th>Download Link</th>
-                                </tr>
-                                </thead>
-                                <tr ng-repeat="completedProcess in completedProcesses">
-                                    <td>{{completedProcess.processId}}</td>
-                                    <td style="color:teal">{{completedProcess.process.sourceFileName}}</td>
-                                    <td>{{completedProcess.completeTime | date:'short'}}</td>
-                                    <td><a ng-href="${downloadDir}{{completedProcess.process.fileName}}">Download</a></td>
-                                </tr>
-                            </table>
-                        </div>
-
                         <div ng-show="showProcessQueue();">
                             <h3>Queued jobs</h3>
                             <div style="padding:20px;background:#fefefe;box-shadow: 0px 3px 2px #ddd">
@@ -136,6 +116,36 @@
                                 </table>
                             </div>
                         </div>
+
+                        <h3>Recently Completed Jobs</h3>
+                        <div style="padding:20px;background:#fefefe;box-shadow: 0px 3px 2px #ddd">
+                            <table class="job-table">
+                                <thead style="text-align:left;border-bottom: 1px solid #999">
+                                <tr>
+                                    <th>Job Id</th>
+                                    <th>File name</th>
+                                    <th>Completed On</th>
+                                    <th>Download Link</th>
+                                </tr>
+                                </thead>
+                                <tr ng-repeat="completedProcess in completedProcesses">
+                                    <td style="padding-top: 5px;">{{completedProcess.processId}}</td>
+                                    <td style="color:teal">{{completedProcess.process.sourceFileName}}</td>
+                                    <td>{{completedProcess.completeTime | date:'short'}}</td>
+                                    <td>
+                                        <a style="background:#477326;color:white;padding:2px;" ng-href="${downloadDir}{{completedProcess.process.fileName}}">Download</a>
+                                    </td>
+                                </tr>
+                                <tr ng-hide="completedProcesses">
+                                    <td></td>
+                                    <td>Nothing recently completed.</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </div>
+
+
                     </div>
 
                 </div>
@@ -171,7 +181,7 @@
 
         <div id="leftcolumn" style="border-right:1px solid #ddd;" ng-controller="MenuController">
             <div class="innertube">
-                <p ng-click="toggleView(1)" class="method-header  teal">Start new batch jobs</p>
+                <p ng-click="toggleView(1)" class="method-header teal">Start new batch jobs</p>
                 <p ng-click="toggleView(2)" class="method-header active maroon">View current batch jobs</p>
                 <p ng-click="toggleView(3)" class="method-header purple">View batch job history</p>
             </div>
