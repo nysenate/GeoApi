@@ -29,10 +29,10 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public class DistrictController extends BaseApiController
 {
     private static Logger logger = Logger.getLogger(DistrictController.class);
-    private static AddressServiceProvider addressProvder = ApplicationFactory.getAddressServiceProvider();
+    private static AddressServiceProvider addressProvider = ApplicationFactory.getAddressServiceProvider();
     private static DistrictServiceProvider districtProvider = ApplicationFactory.getDistrictServiceProvider();
     private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
-
+    private static String bluebirdDistrictStrategy = ApplicationFactory.getConfig().getValue("district.strategy.bluebird");
 
     @Override
     public void init(ServletConfig config) throws ServletException
@@ -67,6 +67,12 @@ public class DistrictController extends BaseApiController
         /** Indicates whether address validation is required */
         Boolean uspsValidate = Boolean.parseBoolean(request.getParameter("uspsValidate"));
 
+        /** Specify whether or not to geocode (Warning: If false, district assignment will be impaired) */
+        Boolean skipGeocode = Boolean.parseBoolean(request.getParameter("skipGeocode"));
+
+        /** Specify district strategy */
+        String districtStrategy = request.getParameter("districtStrategy");
+
         /**
          * If providers are specified then make sure they match the available providers. Send an
          * api error and return if the provider is not supported.
@@ -82,54 +88,35 @@ public class DistrictController extends BaseApiController
 
         /** Handle single request */
         if (!apiRequest.isBatch()) {
+
+            Address address = getAddressFromParams(request);
+
             switch (apiRequest.getRequest())
             {
                 case "assign":
-                    Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
-
-                        /** Perform geocoding */
-                        GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
-                                                                            : geocodeProvider.geocode(address);
-                        GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
-
-                        /** Perform USPS validation if required */
-                        if (uspsValidate) {
-                            AddressResult addressResult = addressProvder.newInstance("usps").validate(address);
-                            if (addressResult.isValidated() && geocodedAddress != null) {
-                                geocodedAddress.setAddress(addressResult.getAddress());
-                            }
-                        }
-
-                        DistrictResult districtResult = districtProvider.assignDistricts(
-                                geocodedAddress, provider, DistrictType.getStandardTypes(), showMembers, showMaps);
-
-                        districtResponse = new DistrictResponse(districtResult);
+                        districtResponse = new DistrictResponse(districtAssign(address, provider, geoProvider, uspsValidate,
+                                !skipGeocode, showMembers, showMaps, districtStrategy));
                     }
-                    /** If a point is supplied, proceed with district assignment.
-                     *  If a district provider is not specified then the point will be reverse geocoded and the
-                     *  resulting geocoded address will be sent along the default district assignment pipeline.
-                     */
                     else {
                         Point point = getPointFromParams(request);
                         if (point != null) {
-                            GeocodedAddress geocodedAddress = new GeocodedAddress(null, new Geocode(point, GeocodeQuality.POINT));
-                            if (provider != "shapefile") {
-                                GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.reverseGeocode(point, geoProvider, false)
-                                                                                    : geocodeProvider.reverseGeocode(point);
-                                if (geocodeResult.isSuccess()) {
-                                    geocodedAddress.setAddress(geocodeResult.getAddress());
-                                }
-                            }
-
-                            DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider,
-                                    DistrictType.getStandardTypes(), showMembers, showMaps);
-
-                            districtResponse = new DistrictResponse(districtResult);
+                            districtResponse = new DistrictResponse(districtAssign(point, provider, geoProvider,uspsValidate,
+                                    !skipGeocode, showMembers, showMaps, districtStrategy));
                         }
                         else {
                             districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
                         }
+                    }
+                    break;
+
+                case "bluebird":
+                    if (address != null && !address.isEmpty()) {
+                        districtResponse = new DistrictResponse(
+                                districtAssign(address, null, null, true, true, false, false, bluebirdDistrictStrategy));
+                    }
+                    else {
+                        districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
                     }
                     break;
 
@@ -143,5 +130,75 @@ public class DistrictController extends BaseApiController
         }
 
         setApiResponse(districtResponse, request);
+    }
+
+    /**
+     * Utilizes the service providers to perform address validation, geo-coding, and district assignment for an address.
+     * @return DistrictResult
+     */
+    private DistrictResult districtAssign(Address address, String provider, String geoProvider, Boolean uspsValidate,
+                                          Boolean performGeocode, Boolean showMembers, Boolean showMaps, String districtStrategy)
+    {
+        GeocodedAddress geocodedAddress = new GeocodedAddress(address);
+        if (performGeocode) {
+            GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
+                                                                : geocodeProvider.geocode(address);
+            geocodedAddress = geocodeResult.getGeocodedAddress();
+        }
+
+        if (uspsValidate) {
+            AddressResult addressResult = addressProvider.newInstance("usps").validate(address);
+            if (addressResult.isValidated() && geocodedAddress != null) {
+                geocodedAddress.setAddress(addressResult.getAddress());
+            }
+        }
+
+        DistrictServiceProvider.DistrictStrategy strategy;
+        try {
+            strategy = DistrictServiceProvider.DistrictStrategy.valueOf(districtStrategy);
+        }
+        catch (Exception ex) {
+            strategy = null;
+        }
+
+        return districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
+                                                showMembers, showMaps, strategy);
+    }
+
+    /**
+     * Utilizes the service providers to perform address validation, geo-coding, and district assignment for a point.
+     * @return DistrictResult
+     */
+    private DistrictResult districtAssign(Point point, String provider, String geoProvider, Boolean uspsValidate,
+                                          Boolean performGeocode, Boolean showMembers, Boolean showMaps, String districtStrategy)
+    {
+        GeocodedAddress geocodedAddress = new GeocodedAddress(null, new Geocode(point, GeocodeQuality.POINT));
+
+        /** Note: If the provider is `streetfile` then we must resolve the point into an address */
+        if (performGeocode || (provider != null && provider.equalsIgnoreCase("streetfile"))) {
+            GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.reverseGeocode(point, geoProvider, false)
+                                                                : geocodeProvider.reverseGeocode(point);
+            if (geocodeResult.isSuccess()) {
+                Address revGeocodedAddress = geocodeResult.getAddress();
+                if (uspsValidate) {
+                    AddressResult addressResult = addressProvider.newInstance("usps").validate(revGeocodedAddress);
+                    if (addressResult.isValidated() && geocodedAddress != null) {
+                        revGeocodedAddress = addressResult.getAddress();
+                    }
+                }
+                geocodedAddress.setAddress(revGeocodedAddress);
+            }
+        }
+
+        DistrictServiceProvider.DistrictStrategy strategy;
+        try {
+            strategy = DistrictServiceProvider.DistrictStrategy.valueOf(districtStrategy);
+        }
+        catch (Exception ex) {
+            strategy = null;
+        }
+
+        return districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
+                                                showMembers, showMaps, strategy);
     }
 }

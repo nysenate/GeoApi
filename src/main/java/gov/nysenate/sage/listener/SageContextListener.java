@@ -45,7 +45,6 @@ public class SageContextListener implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce)
     {
         logger.info("Closing data source");
-        ApplicationFactory.getDataSource().close();
-        ApplicationFactory.getTigerDataSource().close();
+        ApplicationFactory.close();
     }
 }

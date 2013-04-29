@@ -21,7 +21,6 @@ import java.util.*;
 /**
  * Utility class for performing JSON object serialization/de-serialization and mapping.
 */
-
 public class FormatUtil {
 
     protected static Logger logger = Logger.getLogger(FormatUtil.class);
