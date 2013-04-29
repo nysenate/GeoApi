@@ -6,6 +6,7 @@
         <link href="css/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
+        <script src="js/fileuploader.js" type="text/javascript"></script>
         <script src="js/job.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>

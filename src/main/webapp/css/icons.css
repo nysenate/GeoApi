@@ -28,6 +28,10 @@
     background-image: url(../img/entypo-22/white/map.png);
 }
 
+.icon-database.large-icon.white {
+    background-image: url(../img/entypo-22/white/database.png);
+}
+
 .icon-mail {
     background-image: url(../img/entypo-16/teal/sprites.png);
 }

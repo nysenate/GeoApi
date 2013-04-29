@@ -24,7 +24,7 @@
             <div ng-controller="StreetViewController">
                 <div ng-show="visible" style="height:100%;">
                     <div class="top-header">
-                        <div class="icon" aria-hidden="true">&#128248;</div>
+                        <div class="large-icon icon-database white"></div>
                         <div class="text">Street File Results</div>
                     </div>
                     <div style="padding:10px;">
@@ -293,8 +293,12 @@
                             <table style="width:100%">
                                 <tr>
                                     <td><div class="icon-location"></div></td>
-                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p>
-                                    </td>
+                                    <!--[if IE]>
+                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | simpleAddressFormat"></p></td>
+                                    <![endif]-->
+                                    <![if !IE]>
+                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p></td>
+                                    <![endif]>
                                 </tr>
                                 <tr>
                                     <td><div class="icon-target"></div></td>

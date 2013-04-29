@@ -325,6 +325,12 @@ sage.filter('addressFormat', function(){
     }
 });
 
+sage.filter('simpleAddressFormat', function(){
+    return function(address) {
+        return (address.addr1 + ", " + address.city + ", " + address.state + " " + address.zip5);
+    }
+});
+
 function capitalize(input) {
     if (input !== null && typeof input !== 'undefined') {
         return input.substring(0,1).toUpperCase() + input.substring(1).toLowerCase();
