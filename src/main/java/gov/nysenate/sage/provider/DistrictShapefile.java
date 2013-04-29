@@ -101,7 +101,7 @@ public class DistrictShapefile implements DistrictService, MapService
     {
         if (geocodedAddress != null && geocodedAddress.isGeocoded()) {
             Point point = geocodedAddress.getGeocode().getLatLon();
-            return this.districtShapefileDao.getNearbyDistricts(districtType, point, count);
+            return this.districtShapefileDao.getNearbyDistricts(districtType, point, this.fetchMaps, count);
         }
         return null;
     }

@@ -30,8 +30,9 @@ public class SageContextListener implements ServletContextListener {
     {
         logger.info("Servlet Context Listener started.");
 
-        /** Build instances and set the init attribute to true if succeeded */
+        /** Build instances, initialize cache, and set the init attribute to true if succeeded */
         boolean buildStatus = ApplicationFactory.buildInstances();
+        ApplicationFactory.initializeCache();
         logger.info("Bootstrapped using ApplicationFactory: " + buildStatus);
         sce.getServletContext().setAttribute("init", buildStatus);
     }

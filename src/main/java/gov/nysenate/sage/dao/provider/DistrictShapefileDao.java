@@ -141,12 +141,12 @@ public class DistrictShapefileDao extends BaseDao
      * @param point
      * @return
      */
-    public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, int count)
+    public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int count)
     {
         if (DistrictShapeCode.contains(districtType)) {
             String srid = resolveSRID(districtType);
             String tmpl =
-                    "SELECT '%s' AS type, %s as name, %s AS code, ST_AsGeoJson(geom) AS map \n" +
+                    "SELECT '%s' AS type, %s as name, %s AS code, " + ((getMaps) ? "ST_AsGeoJson(geom) AS map " : "null as map \n") +
                             "FROM " + SCHEMA +".%s \n" +
                             "WHERE ST_Contains(geom, %s) = false \n" +
                             "ORDER BY ST_ClosestPoint(geom, %s) <-> %s \n" +
@@ -267,6 +267,9 @@ public class DistrictShapefileDao extends BaseDao
                 DistrictType type = DistrictType.resolveType(rs.getString("type"));
                 String code = getDistrictCode(rs);
                 DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
+                if (map == null) {
+                    map = new DistrictMap();
+                }
                 map.setDistrictName(rs.getString("name"));
                 map.setDistrictType(type);
                 map.setDistrictCode(code);
@@ -310,8 +313,8 @@ public class DistrictShapefileDao extends BaseDao
      */
     private DistrictMap getDistrictMapFromJson(String jsonMap)
     {
-        DistrictMap districtMap = new DistrictMap();
-        if (jsonMap != null && !jsonMap.isEmpty()) {
+        if (jsonMap != null && !jsonMap.isEmpty() && jsonMap != "null") {
+            DistrictMap districtMap = new DistrictMap();
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 JsonNode mapNode = objectMapper.readTree(jsonMap);

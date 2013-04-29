@@ -9,7 +9,6 @@ import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -21,10 +20,17 @@ import java.util.concurrent.*;
  */
 public class DistrictServiceProvider extends ServiceProviders<DistrictService>
 {
+    private enum DistrictStrategy {
+        complete, /** Perform shape and street lookup, performing neighbor consolidation as needed. (slow | most reliable) */
+        fallback, /** Perform street lookup and only fall back to shape files when street lookup failed. (fast | reliable) */
+        quick     /** Perform street lookup only (fastest | less reliable) */
+    }
+
     private final Logger logger = Logger.getLogger(DistrictServiceProvider.class);
     private Config config = ApplicationFactory.getConfig();
-    private final static String DEFAULT_DISTRICT_PROVIDER = "shapefile";
-    private final static LinkedList<String> DEFAULT_DISTRICT_FALLBACK = new LinkedList<>(Arrays.asList("streetfile", "geoserver"));
+
+    private static DistrictStrategy SINGLE_DISTRICT_STRATEGY;
+    private static DistrictStrategy BATCH_DISTRICT_STRATEGY;
 
     /** Specifies the distance to a district boundary in which the accuracy of shapefiles is uncertain */
     private static Double PROXIMITY_THRESHOLD = 0.001;
@@ -32,7 +38,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
     public DistrictServiceProvider()
     {
         PROXIMITY_THRESHOLD = Double.parseDouble(this.config.getValue("proximity.threshold", "0.001"));
+        SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf(this.config.getValue("district.strategy.single", "complete"));
+        BATCH_DISTRICT_STRATEGY = DistrictStrategy.valueOf(this.config.getValue("district.strategy.batch", "fallback"));
     }
+
+    /** Single District Assign ---------------------------------------------------------------------------------------*/
 
     /**
      * Assign standard districts using default method.
@@ -70,34 +80,52 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                                           final List<DistrictType> districtTypes, final boolean getMembers, final boolean getMaps)
     {
         logger.info("Assigning districts " + ((geocodedAddress != null) ? geocodedAddress.getAddress() : ""));
-        DistrictResult districtResult = null;
+        DistrictResult districtResult = null, streetFileResult, shapeFileResult;
         ExecutorService districtExecutor = null;
 
         if (this.isRegistered(distProvider)) {
             DistrictService districtService = this.newInstance(distProvider);
             districtService.fetchMaps(getMaps);
             districtResult = districtService.assignDistricts(geocodedAddress, districtTypes);
-            districtResult.setGeocodedAddress(geocodedAddress);
         }
         else {
             try {
-                districtExecutor = Executors.newFixedThreadPool(2);
 
                 DistrictService shapeFileService = this.newInstance("shapefile");
                 DistrictService streetFileService = this.newInstance("streetfile");
 
-                Callable<DistrictResult> shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
-                Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
+                switch (SINGLE_DISTRICT_STRATEGY) {
+                    case complete:
+                        districtExecutor = Executors.newFixedThreadPool(2);
 
-                Future<DistrictResult> shapeFileFuture = districtExecutor.submit(shapeFileCall);
-                Future<DistrictResult> streetFileFuture = districtExecutor.submit(streetFileCall);
+                        Callable<DistrictResult> shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
+                        Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
 
-                DistrictResult shapeFileResult = shapeFileFuture.get();
-                districtResult = assignNeighbors(shapeFileService, shapeFileResult, getMaps);
+                        Future<DistrictResult> shapeFileFuture = districtExecutor.submit(shapeFileCall);
+                        Future<DistrictResult> streetFileFuture = districtExecutor.submit(streetFileCall);
 
-                DistrictResult streetFileResult = streetFileFuture.get();
+                        shapeFileResult = shapeFileFuture.get();
+                        logger.info("Assigning district neighbors");
+                        districtResult = assignNeighbors(shapeFileService, shapeFileResult, getMaps);
 
-                districtResult = consolidateDistrictResults(shapeFileService, shapeFileResult, streetFileResult);
+                        streetFileResult = streetFileFuture.get();
+                        logger.debug("Checking with street file result");
+                        districtResult = consolidateDistrictResults(shapeFileService, shapeFileResult, streetFileResult);
+                        break;
+
+                    case fallback:
+                        streetFileResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
+                        districtResult = consolidateFallback(streetFileResult, shapeFileService, geocodedAddress, getMaps);
+                        break;
+
+                    case quick:
+                        districtResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
+                        break;
+
+                    default:
+                        logger.error("Incorrect batch district assignment strategy set. Cannot proceed with assignment!");
+                        break;
+                }
 
                 if (getMembers) {
                     DistrictMemberProvider.assignDistrictMembers(districtResult);
@@ -119,9 +147,24 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
         if (getMembers) {
             DistrictMemberProvider.assignDistrictMembers(districtResult);
         }
+
+        districtResult.setGeocodedAddress(geocodedAddress);
+
         return districtResult;
     }
 
+    /** Batch District Assign ----------------------------------------------------------------------------------------*/
+
+    public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses) {
+        return assignDistricts(geocodedAddresses, DistrictType.getStandardTypes());
+    }
+
+    /**
+     * Assign specified district types using default method. No maps or members.
+     * @param geocodedAddresses
+     * @param districtTypes
+     * @return List<DistrictResult>
+     */
     public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses,
                                                 final List<DistrictType> districtTypes) {
         return assignDistricts(geocodedAddresses, null, districtTypes, false, false);
@@ -131,7 +174,10 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
                                                 final List<DistrictType> districtTypes, final boolean getMembers, final boolean getMaps)
     {
         ExecutorService districtExecutor;
-        List<DistrictResult> districtResults = new ArrayList<>();
+        List<DistrictResult> districtResults = new ArrayList<>(), streetFileResults, shapeFileResults;
+
+        DistrictService streetFileService = this.newInstance("streetfile");
+        DistrictService shapeFileService = this.newInstance("shapefile");
 
         if (this.isRegistered(distProvider)) {
             DistrictService districtService = this.newInstance(distProvider);
@@ -140,24 +186,43 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
         }
         else {
             try {
-                districtExecutor = Executors.newFixedThreadPool(2);
+                switch (BATCH_DISTRICT_STRATEGY) {
+                    case complete:
+                        districtExecutor = Executors.newFixedThreadPool(2);
 
-                DistrictService streetFileService = this.newInstance("streetfile");
-                DistrictService shapeFileService = this.newInstance("shapefile");
+                        Callable<List<DistrictResult>> streetFileCall = getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes, false);
+                        Callable<List<DistrictResult>> shapeFileCall = getDistrictsCallable(geocodedAddresses, shapeFileService, districtTypes, getMaps);
 
-                Callable<List<DistrictResult>> streetFileCall = getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes, false);
-                Callable<List<DistrictResult>> shapeFileCall = getDistrictsCallable(geocodedAddresses, shapeFileService, districtTypes, getMaps);
+                        Future<List<DistrictResult>> shapeFileFuture = districtExecutor.submit(shapeFileCall);
+                        Future<List<DistrictResult>> streetFileFuture = districtExecutor.submit(streetFileCall);
 
-                Future<List<DistrictResult>> shapeFileFuture = districtExecutor.submit(shapeFileCall);
-                Future<List<DistrictResult>> streetFileFuture = districtExecutor.submit(streetFileCall);
+                        shapeFileResults = shapeFileFuture.get();
+                        streetFileResults = streetFileFuture.get();
 
-                List<DistrictResult> shapeFileResults = shapeFileFuture.get();
-                List<DistrictResult> streetFileResults = streetFileFuture.get();
+                        for (int i = 0; i < shapeFileResults.size(); i++) {
+                            assignNeighbors(shapeFileService, shapeFileResults.get(i), getMaps);
+                            DistrictResult consolidated = consolidateDistrictResults(shapeFileService, shapeFileResults.get(i), streetFileResults.get(i));
+                            consolidated.setGeocodedAddress(geocodedAddresses.get(i));
+                            districtResults.add(consolidated);
+                        }
+                        break;
 
-                for (int i = 0; i < shapeFileResults.size(); i++) {
-                    assignNeighbors(shapeFileService, shapeFileResults.get(i), getMaps);
-                    districtResults.add(consolidateDistrictResults(shapeFileService, shapeFileResults.get(i),
-                                                                   streetFileResults.get(i)));
+                    case fallback:
+                        streetFileResults = streetFileService.assignDistricts(geocodedAddresses, districtTypes);
+                        for (int i = 0; i < streetFileResults.size(); i++) {
+                            DistrictResult consolidated = consolidateFallback(streetFileResults.get(i), shapeFileService, geocodedAddresses.get(i), getMaps);
+                            consolidated.setGeocodedAddress(geocodedAddresses.get(i));
+                            districtResults.add(consolidated);
+                        }
+                        break;
+
+                    case quick:
+                        districtResults = streetFileService.assignDistricts(geocodedAddresses, districtTypes);
+                        break;
+
+                    default:
+                        logger.error("Incorrect batch district assignment strategy set. Cannot proceed with assignment!");
+                        break;
                 }
             }
             catch (InterruptedException ex) {
@@ -176,6 +241,8 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
 
         return districtResults;
     }
+
+    /** Callables ----------------------------------------------------------------------------------------------------*/
 
     private Callable<DistrictResult> getDistrictsCallable(final GeocodedAddress geocodedAddress,
                                                           final DistrictService districtService,
@@ -204,6 +271,8 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
             }
         };
     }
+
+    /** Internal Processsing Code ------------------------------------------------------------------------------------*/
 
     /**
      * Shapefile lookups return a proximity metric that indicates how close the geocode is to a district boundary.
@@ -293,11 +362,29 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
     }
 
     /**
-     *
-     * @param shapeService
-     * @param shapeResult
-     * @param getMaps
-     * @return
+     * Performs shape file fallback when using the fallback strategy.
+     * @param streetFileResult The street file result
+     * @param shapeFileService Reference to a shape file lookup instance
+     * @param geocodedAddress  The geocoded address to district assign with shape file if needed
+     * @param getMaps          If false, geometry will not be retrieved with shape file lookup
+     * @return                 DistrictResult with either original street file result or fallback shape result.
+     */
+    private DistrictResult consolidateFallback(DistrictResult streetFileResult, DistrictService shapeFileService,
+                                               GeocodedAddress geocodedAddress, boolean getMaps)
+    {
+        if (!streetFileResult.isSuccess() && !streetFileResult.isPartialSuccess()) {
+            shapeFileService.fetchMaps(getMaps);
+            return shapeFileService.assignDistricts(geocodedAddress);
+        }
+        return streetFileResult;
+    }
+
+    /**
+     * Assign nearest neighbor districts for any district that meets the proximity condition.
+     * @param shapeService  Reference to a shape file lookup instance
+     * @param shapeResult   The shape file DistrictResult
+     * @param getMaps       If false, then the map geometry will be cleared out
+     * @return DistrictResult with neighbors set
      */
     private DistrictResult assignNeighbors(DistrictService shapeService, DistrictResult shapeResult, boolean getMaps)
     {
@@ -332,10 +419,10 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService>
     }
 
     /**
-     *
-     * @param neighborMaps
-     * @param code
-     * @return
+     * Searches through a list of neighbor district maps and returns the neighbor that matches the specified code.
+     * @param neighborMaps  List of neighboring DistrictMaps
+     * @param code          District code to search for.
+     * @return              DistrictMap of the matched neighbor.
      */
     private DistrictMap getNeighborMapByCode(List<DistrictMap> neighborMaps, String code) {
         for (DistrictMap neighborMap : neighborMaps) {

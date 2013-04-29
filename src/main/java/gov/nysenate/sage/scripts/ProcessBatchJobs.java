@@ -38,6 +38,7 @@ public class ProcessBatchJobs
     private static Config config;
     private static String UPLOAD_DIR;
     private static String DOWNLOAD_DIR;
+    private static String USER_DOWNLOAD_DIR;
     private static Integer GEOCODE_THREAD_COUNT;
     private static Integer DISTRICT_THREAD_COUNT;
     private static Integer JOB_BATCH_SIZE;
@@ -54,6 +55,7 @@ public class ProcessBatchJobs
         config = ApplicationFactory.getConfig();
         UPLOAD_DIR = config.getValue("job.upload.dir");
         DOWNLOAD_DIR = config.getValue("job.download.dir");
+        USER_DOWNLOAD_DIR = config.getValue("job.user.download.dir");
         GEOCODE_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.geocode"));
         DISTRICT_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.distassign"));
         JOB_BATCH_SIZE = Integer.parseInt(config.getValue("job.batch.size", "95"));
@@ -74,8 +76,8 @@ public class ProcessBatchJobs
         ApplicationFactory.buildInstances();
         ProcessBatchJobs processBatchJobs = new ProcessBatchJobs();
 
-        if (args.length > 0) {
-            switch (args[0]) {
+        if (args.length > 1) {
+            switch (args[1]) {
                 case "clean" : {
                     processBatchJobs.cancelRunningJobs();
                     break;
@@ -90,7 +92,7 @@ public class ProcessBatchJobs
                     break;
                 }
                 default : {
-                    logger.error("Unsupported argument. Exiting..");
+                    logger.error("Unsupported argument. " + args[1] + " Exiting..");
                 }
             }
         }
@@ -342,12 +344,11 @@ public class ProcessBatchJobs
 
         String message = String.format("Your request on %s has been completed and can be downloaded <a href='%s'>here</a>." +
                                        "<br/>This is an automated message.", jobProcess.getRequestTime().toString(),
-                                        mailer.getContext() + "/downloads/" + jobProcess.getFileName());
+                                        USER_DOWNLOAD_DIR + jobProcess.getFileName());
 
         String adminMessage = String.format("Request by %s on %s has been completed and can be downloaded <a href='%s'>here</a>." +
                                         "<br/>This is an automated message.", jobUser.getEmail(),
-                                        jobProcess.getRequestTime().toString(), mailer.getContext() + "/downloads/" + jobProcess.getFileName());
-
+                                        jobProcess.getRequestTime().toString(), USER_DOWNLOAD_DIR + jobProcess.getFileName());
 
         logger.info("Sending email to " + jobUser.getEmail());
         mailer.sendMail(jobUser.getEmail(), subject, message);

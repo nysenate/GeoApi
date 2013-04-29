@@ -81,7 +81,6 @@ public class ApplicationFactory
     /** Closes all data sources */
     public static void close()
     {
-        factoryInstance.baseDB.getDataSource().close();
         factoryInstance.tigerDB.getDataSource().close();
     }
 

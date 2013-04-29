@@ -68,7 +68,6 @@ public class TigerGeocoderDao extends BaseDao
     {
         String sql = "SELECT * FROM normalize_address(?)";
         try {
-            FormatUtil.printObject(address.toNormalizedString());
             StreetAddress streetAddress = run.query(sql, new StreetAddressHandler(), address.toNormalizedString());
             return streetAddress;
         }
