@@ -2,6 +2,7 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.ApiError;
 import gov.nysenate.sage.client.response.DistrictResponse;
+import gov.nysenate.sage.client.response.MappedDistrictResponse;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -16,6 +17,7 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -23,21 +25,31 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Observable;
+import java.util.Observer;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
-public class DistrictController extends BaseApiController
+public class DistrictController extends BaseApiController implements Observer
 {
     private static Logger logger = Logger.getLogger(DistrictController.class);
+    private static Config appConfig = ApplicationFactory.getConfig();
     private static AddressServiceProvider addressProvider = ApplicationFactory.getAddressServiceProvider();
     private static DistrictServiceProvider districtProvider = ApplicationFactory.getDistrictServiceProvider();
     private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
-    private static String bluebirdDistrictStrategy = ApplicationFactory.getConfig().getValue("district.strategy.bluebird");
+    private static String bluebirdDistrictStrategy;
+
+    @Override
+    public void update(Observable o, Object arg) {
+        bluebirdDistrictStrategy = appConfig.getValue("district.strategy.bluebird");
+    }
 
     @Override
     public void init(ServletConfig config) throws ServletException
     {
         logger.debug("Initialized " + this.getClass().getSimpleName());
+        appConfig.notifyOnChange(this);
+        update(null, null);
     }
 
     @Override
@@ -95,14 +107,16 @@ public class DistrictController extends BaseApiController
             {
                 case "assign":
                     if (address != null && !address.isEmpty()) {
-                        districtResponse = new DistrictResponse(districtAssign(address, provider, geoProvider, uspsValidate,
-                                !skipGeocode, showMembers, showMaps, districtStrategy));
+                        DistrictResult districtResult = districtAssign(address, provider, geoProvider, uspsValidate,
+                                !skipGeocode, showMembers, showMaps, districtStrategy);
+                        districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
                     }
                     else {
                         Point point = getPointFromParams(request);
                         if (point != null) {
-                            districtResponse = new DistrictResponse(districtAssign(point, provider, geoProvider,uspsValidate,
-                                    !skipGeocode, showMembers, showMaps, districtStrategy));
+                            DistrictResult districtResult = districtAssign(point, provider, geoProvider,uspsValidate,
+                                    !skipGeocode, showMembers, showMaps, districtStrategy);
+                            districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
                         }
                         else {
                             districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);

@@ -75,6 +75,17 @@ public class DistrictInfo
         this.districtCodes.put(districtType, code);
         if (isValidDistCode(code)) {
             this.assignedDistricts.add(districtType);
+
+            /** Fill in the names for congressional and assembly districts */
+            if (districtType.equals(SENATE)) {
+                this.districtNames.put(SENATE, "State Senate District " + code);
+            }
+            else if (districtType.equals(CONGRESSIONAL)) {
+                this.districtNames.put(CONGRESSIONAL, "State Congressional District " + code);
+            }
+            else if (districtType.equals(ASSEMBLY)) {
+                this.districtNames.put(ASSEMBLY, "State Assembly District " + code);
+            }
         }
         else {
             this.assignedDistricts.remove(districtType);
