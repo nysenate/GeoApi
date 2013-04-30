@@ -50,9 +50,7 @@ public class StreetFile implements DistrictService, StreetLookupService
 
     /** No map functionality */
     @Override
-    public void fetchMaps(boolean fetch) {
-        logger.warn("Street files do not support district maps!");
-    }
+    public void fetchMaps(boolean fetch) {}
 
     @Override
     public List<DistrictedStreetRange> streetLookup(String zip5)
@@ -87,7 +85,7 @@ public class StreetFile implements DistrictService, StreetLookupService
         //StreetAddress streetAddr = AddressParser.parseAddress(geocodedAddress.getAddress().toString());
         StreetAddress streetAddr = tigerGeocoderDao.getStreetAddress(geocodedAddress.getAddress());
         streetAddr = AddressParser.normalizeStreetAddress(streetAddr);
-
+        logger.debug("Streetfile lookup on " + streetAddr.toStringParsed());
         try {
             /** Try a House level match */
             DistrictedAddress match = streetFileDao.getDistAddressByHouse(streetAddr);
@@ -119,6 +117,7 @@ public class StreetFile implements DistrictService, StreetLookupService
             districtResult.setStatusCode(INTERNAL_ERROR);
             logger.error(ex);
         }
+        logger.debug("Done with street lookup");
         return districtResult;
     }
 

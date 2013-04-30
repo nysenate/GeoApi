@@ -54,6 +54,12 @@ public class StreetFileDao extends BaseDao
         }
 
         if (whereStreet) {
+
+            String street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
+            street += streetAddr.getStreet();
+            street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
+            street = street.toUpperCase();
+
             /** Sometimes the bldg_chr is actually the tail end of the street name */
             if (whereBldgChr) {
                 /** Handle dashed NYC buildings by collapsing on the dash */
@@ -72,13 +78,13 @@ public class StreetFileDao extends BaseDao
                 if (streetAddr.getBldgChar() != null) {
                     if (fuzzy) {
                         sql += " AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
-                        params.add(streetAddr.getBldgChar() + " " + streetAddr.getStreet() + "%");
-                        params.add(streetAddr.getStreet() + "%");
+                        params.add(streetAddr.getBldgChar() + " " + street + "%");
+                        params.add(street + "%");
                     }
                     else {
                         sql += " AND (street = ? OR (street = ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
-                        params.add(streetAddr.getBldgChar() + " " + streetAddr.getStreet());
-                        params.add(streetAddr.getStreet());
+                        params.add(streetAddr.getBldgChar() + " " + street);
+                        params.add(street);
                     }
                     params.add(streetAddr.getBldgChar());
                     params.add(streetAddr.getBldgChar());
@@ -87,11 +93,13 @@ public class StreetFileDao extends BaseDao
             else {
                 if (fuzzy) {
                     sql += " AND (street LIKE ?) \n";
-                    params.add(streetAddr.getStreet() + "%");
+                    params.add(street + "%");
                 }
                 else {
+                    street += (streetAddr.getStreetType() != null && !streetAddr.getStreetType().isEmpty()) ? streetAddr.getStreetType() : "";
+                    street = street.toUpperCase();
                     sql += " AND (street = ?) \n";
-                    params.add(streetAddr.getStreet());
+                    params.add(street);
                 }
             }
 

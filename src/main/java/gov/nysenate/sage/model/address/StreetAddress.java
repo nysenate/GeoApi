@@ -65,6 +65,14 @@ public class StreetAddress
         return this.toAddress().toString();
     }
 
+    public String toStringParsed()
+    {
+        return "bldgNum [" + this.getBldgNum() + "] preDir [" + this.preDir + "] street [" + this.getStreet() + "] postDir [" +
+                this.postDir + "] streetType [" + this.getStreetType() + "] city [" + this.getLocation() +
+                "] zip5 [" + this.getZip5() + "]";
+    }
+
+
     /** Getters / Setters */
 
     public int getBldgNum() {
