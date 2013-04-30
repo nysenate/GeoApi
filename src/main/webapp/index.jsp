@@ -8,8 +8,8 @@
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
-        <script type="text/javascript" src="js/blockui.js"></script>
-        <script type="text/javascript" src="app.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/blockui.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/app.js"></script>
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">
@@ -56,10 +56,12 @@
 
     <div id="leftcolumn">
         <div class="innertube">
-            <div class="top-header">
-                <div class="icon-earth large-icon teal"></div>
-                <div id="sage-logo-text">SAGE</div>
-            </div>
+            <a href="${pageContext.request.contextPath}">
+                <div class="top-header">
+                    <div class="icon-earth large-icon teal"></div>
+                    <div id="sage-logo-text">SAGE</div>
+                </div>
+            </a>
             <p class="method-header active teal">District Information</p>
             <div id="district-lookup-container" class="form-container active">
                 <form id="districtsForm" action="" method="post" ng-controller="DistrictInfoController" autocomplete="false">
@@ -148,7 +150,7 @@
                         </li>
                         <li>
                             <button class="submit" ng-click="lookup();">
-                                <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
+                                <div class="icon-search"></div>
                                 <span>Find Streets</span>
                             </button>
                         </li>
@@ -169,7 +171,7 @@
                         </li>
                         <li>
                             <button class="submit" ng-click="lookup();">
-                                <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
+                                <div class="icon-search"></div>
                                 <span>Find Address</span>
                             </button>
                         </li>
@@ -185,7 +187,7 @@
                             <input ng-model="zip5" maxlength="5" type="text" name="zip">
                         </li>
                         <button ng-click="lookup()" class="submit">
-                            <span aria-hidden="true" data-icon="&#128269;" class="search-icon"></span>
+                            <div class="icon-search"></div>
                             <span>Find City/State</span>
                         </button>
                     </ol>
@@ -293,12 +295,7 @@
                             <table style="width:100%">
                                 <tr>
                                     <td><div class="icon-location"></div></td>
-                                    <!--[if IE]>
-                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | simpleAddressFormat"></p></td>
-                                    <![endif]-->
-                                    <![if !IE]>
                                     <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p></td>
-                                    <![endif]>
                                 </tr>
                                 <tr>
                                     <td><div class="icon-target"></div></td>

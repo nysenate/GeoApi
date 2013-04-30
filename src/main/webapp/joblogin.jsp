@@ -3,11 +3,10 @@
 <sage:wrapper>
     <jsp:attribute name="title">SAGE - Batch Services Login</jsp:attribute>
     <jsp:attribute name="cssIncludes">
-        <link href="css/fileuploader.css" rel="stylesheet" type="text/css"/>
+        <link href="${pageContext.request.contextPath}/css/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script src="js/fileuploader.js" type="text/javascript"></script>
-        <script src="js/job.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
         <div class="top-header">

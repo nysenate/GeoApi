@@ -3,15 +3,6 @@
 --------------------------------------------------------*/
 @import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro);
 
-@font-face {
-    font-family: 'entypo';
-    src: url('../fonts/entypo/entypo.eot'); /* IE9 Compat Modes */
-    src: url('../fonts/entypo/entypo?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-    url('../fonts/entypo/entypo.woff') format('woff'), /* Modern Browsers */
-    url('../fonts/entypo/entypo.ttf')  format('truetype'), /* Safari, Android, iOS */
-    url('../fonts/entypo/entypo.svg#svgFontName') format('svg'); /* Legacy iOS */
-}
-
 /*-------------------------------------------------------
   Defaults
 --------------------------------------------------------*/
@@ -109,7 +100,7 @@ a:hover {
     padding:0px 15px;
     margin:0px;
     font-size:16px;
-    background:#1a1a1a;
+    background:#2a2a2a;
     color:white;
 }
 
@@ -435,7 +426,6 @@ a.result-close:hover {
 /**      */
 
 .street-search-filter {
-    width:380px;
     margin-bottom:10px;
 }
 

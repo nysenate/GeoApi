@@ -318,18 +318,12 @@ sage.filter('addressFormat', function(){
                 (notNullOrEmpty(address.state) ? " " + address.state : "") +
                 (notNullOrEmpty(address.zip5) ? " " + address.zip5 : "") +
                 (notNullOrEmpty(address.zip4) ? "-" + address.zip4 : "");
-            return (((line1) ? line1 + "<br>" : "") + line2).trim();
+            return ((line1) ? line1 + "<br>" : "") + line2;
         }
-
-        function notNullOrEmpty(input) { return input != null && input != '' && input != 'null'; }
     }
 });
 
-sage.filter('simpleAddressFormat', function(){
-    return function(address) {
-        return (address.addr1 + ", " + address.city + ", " + address.state + " " + address.zip5);
-    }
-});
+function notNullOrEmpty(input) { return input != null && input != '' && input != 'null'; }
 
 function capitalize(input) {
     if (input !== null && typeof input !== 'undefined') {
@@ -427,8 +421,8 @@ sage.directive('myTable', function() {
  * underlying model. Creates and sends requests.   |
  *------------------------------------------------*/
 sage.controller('DistrictInfoController', function($scope, $http, responseService, uiBlocker) {
-    $scope.addr1 = "30 Tryon Pl";
-    $scope.city = "Albany";
+    $scope.addr1 = "";
+    $scope.city = "";
     $scope.state = "NY";
     $scope.zip5 = "";
     $scope.geoProvider = "default";

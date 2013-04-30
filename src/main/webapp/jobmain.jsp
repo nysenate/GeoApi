@@ -5,20 +5,22 @@
 <sage:wrapper>
     <jsp:attribute name="title">SAGE - Batch Services Main</jsp:attribute>
     <jsp:attribute name="cssIncludes">
-        <link href="css/fileuploader.css" rel="stylesheet" type="text/css"/>
+        <link href="${pageContext.request.contextPath}/css/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script src="js/fileuploader.js" type="text/javascript"></script>
-        <script src="js/job.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/fileuploader.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
         <script>
             downloadDir = "${downloadDir}";
         </script>
     </jsp:attribute>
     <jsp:body>
-        <div class="top-header">
-            <div class="icon-earth large-icon teal"></div>
-            <div id="sage-logo-text">SAGE</div>
-        </div>
+        <a href="${pageContext.request.contextPath}">
+            <div class="top-header">
+                <div class="icon-earth large-icon teal"></div>
+                <div id="sage-logo-text">SAGE</div>
+            </div>
+        </a>
         <div id="contentwrapper">
             <div id="contentcolumn" style="margin:0px 10px 0px 300px;padding-top:20px;">
                 <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController" style="width:100%;height:100%;">

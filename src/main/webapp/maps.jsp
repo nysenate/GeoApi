@@ -4,8 +4,8 @@
 <sage:wrapper>
     <jsp:attribute name="title">SAGE Map Viewer</jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script type="text/javascript" src="js/blockui.js"></script>
-        <script type="text/javascript" src="app.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/blockui.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/app.js"></script>
     </jsp:attribute>
     <jsp:body>
         <div ng-controller="EmbeddedMapController">
@@ -20,12 +20,12 @@
                 <div class="text">Map | {{header}}</div>
             </div>
 
-            <div class="info-container" ng-show="showPrompt" style="position:absolute;left:40px;z-index:10000;">
+            <div class="info-container" ng-show="showPrompt" style="width:280px;padding:3px 10px;position:absolute;left:40px;z-index:10000;">
                 <table style="width:100%">
                 <tr>
                     <td>
-                        <a ng-hide="showInfo" ng-click="showInfo=true;">View Senator Information</a>
-                        <a ng-show="showInfo" ng-click="showInfo=false;">Hide Senator Information</a>
+                        <a ng-hide="showInfo" ng-click="showInfo=true;">Senator Information</a>
+                        <a ng-show="showInfo" ng-click="showInfo=false;">Senator Information</a>
                     </td>
                     <td class="right-icon-placeholder">
                         <a ng-hide="showInfo" ng-click="showInfo=true;"><div class="icon-arrow-down"></div></a>
