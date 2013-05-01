@@ -184,7 +184,7 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
                             mapService.polygon.setOptions({fillColor: "teal"});
                             mapService.polygon.setOptions({fillOpacity: 0.2});
                         }
-                        this.setOptions({fillColor: "orange"});
+                        this.setOptions({fillColor: "#ffcc00"});
                         this.setOptions({fillOpacity: 0.5});
                         mapService.polygon = this;
                         clickHandler();

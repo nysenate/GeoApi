@@ -197,7 +197,7 @@ $(document).ready(function() {
         multiple:false,
         template: '<ul class="qq-upload-list"></ul><div class="qq-uploader">' +
             '<div class="qq-upload-drop-area"><span>Drop file here to upload</span></div>' +
-            '<div class="custom-button qq-upload-button"><span><span aria-hidden="true" style="color:teal;" data-icon="&#128228;"></span>Add a file</span></div>' +
+            '<div class="custom-button qq-upload-button"><span><div class="icon-upload teal" style="margin-right:5px;"></div>Add a file</span></div>' +
             '</div>',
         onSubmit: doSubmit,
         onComplete: doComplete

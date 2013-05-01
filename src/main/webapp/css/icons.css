@@ -20,6 +20,10 @@
     top:3px;
 }
 
+.icon-upload.teal {
+    background-image: url(../img/entypo-16/teal/sprites.png) !important;
+}
+
 .icon-earth.large-icon.teal {
     background-image: url(../img/entypo-22/teal/earth.png);
 }

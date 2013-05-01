@@ -9,16 +9,18 @@
         <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
-        <div class="top-header">
-            <div class="icon-earth large-icon teal"></div>
-            <div id="sage-logo-text">SAGE</div>
-        </div>
+        <a href="${pageContext.request.contextPath}">
+            <div class="top-header">
+                <div class="icon-earth large-icon teal"></div>
+                <div id="sage-logo-text">SAGE</div>
+            </div>
+        </a>
         <h1 style="text-align: center; color:#222;">SAGE Batch Services</h1>
         <div style="margin:auto;width:720px;text-align: center;">
             <p>SAGE provides batch geocoding and district assignment services to registered users.</p>
         </div>
         <div style="width:500px;margin:auto;" ng-controller="JobAuthController">
-            <form id="uploadForm" method="post" ng-submit="login()" action="job/login">
+            <form id="uploadForm" method="post" ng-submit="login()" action="${pageContext.request.contextPath}/job/login">
                 <ol class="input-container" style="width:280px;margin:auto;padding:20px;">
                     <li>
                         <label>Email</label>
