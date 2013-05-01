@@ -303,7 +303,7 @@
                                 </tr>
                             </table>
                         </div>
-                        <div class="info-container congressional">
+                        <div class="info-container congressional" ng-show="districts.congressional.district">
                             <table style="width:100%">
                                 <tr>
                                     <td>
@@ -318,7 +318,7 @@
                                 </tr>
                             </table>
                         </div>
-                        <div class="info-container assembly">
+                        <div class="info-container assembly" ng-show="districts.assembly.district">
                             <table style="width:100%">
                                 <tr>
                                     <td>
@@ -333,7 +333,7 @@
                                 </tr>
                             </table>
                         </div>
-                        <div class="info-container">
+                        <div class="info-container" ng-show="districts.county.district">
                             <table style="width:100%">
                                 <tr>
                                     <td>
@@ -352,7 +352,7 @@
                             <table style="width:100%">
                                 <tr>
                                     <td>
-                                        <p class="member-name">Town of {{districts.town.name}}</p>
+                                        <p class="member-name" ng-show="districts.town.name">Town of {{districts.town.name}}</p>
                                         <p class="district">Town Code: {{districts.town.district}}</p></td>
                                     <td class="right-icon-placeholder">
                                         <a title="Show Map" ng-show="districts.town.map" ng-click="showDistrict('town');">
@@ -377,6 +377,9 @@
                                 </tr>
                             </table>
                         </div>
+                    </div>
+                    <div class="info-container congressional" ng-show="districts.election.district">
+                        <p class="district">Election District: {{districts.election.district}}</p>
                     </div>
                     <div id="failed-district-result" ng-hide="districtAssigned">
                         <div class="info-container">
