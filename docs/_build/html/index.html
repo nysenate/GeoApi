@@ -135,9 +135,28 @@ To supply a single address string use the parameter <tt class="docutils literal"
 </tr>
 </tbody>
 </table>
+<p>The available providers are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Provider</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>usps</td>
+<td>USPS Address Correction</td>
+</tr>
+<tr class="row-odd"><td>mapquest</td>
+<td>MapQuest geocoding and address services</td>
+</tr>
+</tbody>
+</table>
 <p>The usage of <tt class="docutils literal"><span class="pre">validate</span></tt> with an address input:</p>
-<div class="highlight-python"><pre>/api/v2/address/validate?addr=44 Fairlawn Avenue, Albany, NY
-/api/v2/address/validate?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY</pre>
+<div class="highlight-python"><pre>/api/v2/address/validate?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY</pre>
 </div>
 <p>The validated response:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
@@ -180,8 +199,7 @@ is missing those fields, USPS will not be used to perform validation and another
 </pre></div>
 </div>
 <p>The usage of <tt class="docutils literal"><span class="pre">zipcode</span></tt>:</p>
-<div class="highlight-python"><pre>/api/v2/address/zipcode?addr=44 Fairlawn Avenue, Albany, NY
-/api/v2/address/zipcode?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY</pre>
+<div class="highlight-python"><pre>/api/v2/address/zipcode?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY</pre>
 </div>
 <p>The zipcode response:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
@@ -199,18 +217,13 @@ is missing those fields, USPS will not be used to perform validation and another
 <p class="first admonition-title">Note</p>
 <p class="last">Zipcode lookup has the same USPS constraints as the validate method</p>
 </div>
-<p>The following providers are available for address services</p>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">usps</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">mapquest</span></tt></li>
-</ul>
 <p>To force the request to use a certain provider supply the query parameter <tt class="docutils literal"><span class="pre">provider</span></tt>:</p>
 <div class="highlight-python"><pre>/api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=usps
 /api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=mapquest</pre>
 </div>
 </div>
-<div class="section" id="geocode">
-<h3>Geocode<a class="headerlink" href="#geocode" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="geo">
+<h3>Geo<a class="headerlink" href="#geo" title="Permalink to this headline">¶</a></h3>
 <p>The following methods are implemented for the <tt class="docutils literal"><span class="pre">geo</span></tt> service:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -245,27 +258,23 @@ is missing those fields, USPS will not be used to perform validation and another
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>yahooboss</td>
-<td>Paid service from yahoo. (use sparingly)</td>
-<td>?</td>
-</tr>
-<tr class="row-odd"><td>yahoo</td>
+<tr class="row-even"><td>yahoo</td>
 <td>Free YQL service from Yahoo. (recommended)</td>
 <td>~20000 day</td>
 </tr>
-<tr class="row-even"><td>mapquest</td>
+<tr class="row-odd"><td>mapquest</td>
 <td>Free MapQuest geocoding service</td>
 <td>5000 day?</td>
 </tr>
-<tr class="row-odd"><td>tiger</td>
+<tr class="row-even"><td>tiger</td>
 <td>In-database geocoding using census data</td>
 <td>Unlimited</td>
 </tr>
-<tr class="row-even"><td>ruby</td>
+<tr class="row-odd"><td>ruby</td>
 <td>Ruby implementation using census data</td>
 <td>Unlimited</td>
 </tr>
-<tr class="row-odd"><td>osm</td>
+<tr class="row-even"><td>osm</td>
 <td>Open Street Maps API</td>
 <td>1 per sec?</td>
 </tr>
@@ -380,7 +389,7 @@ one of the following quality levels ordered from most accurate to least:</p>
 </div>
 <div class="section" id="district">
 <h3>District<a class="headerlink" href="#district" title="Permalink to this headline">¶</a></h3>
-<p>The district service has the following method(s).</p>
+<p>The <tt class="docutils literal"><span class="pre">district</span></tt> service has the following method(s).</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="17%" />
@@ -394,6 +403,9 @@ one of the following quality levels ordered from most accurate to least:</p>
 <tbody valign="top">
 <tr class="row-even"><td>assign</td>
 <td>Assign district information given an address or coordinate pair</td>
+</tr>
+<tr class="row-odd"><td>bluebird</td>
+<td>Performs district assign with preset options for Bluebird</td>
 </tr>
 </tbody>
 </table>
@@ -425,11 +437,11 @@ one of the following quality levels ordered from most accurate to least:</p>
 </tr>
 </tbody>
 </table>
-<p>Methods have the following optional parameters:</p>
+<p><tt class="docutils literal"><span class="pre">assign</span></tt> has the following optional parameters:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="14%" />
-<col width="86%" />
+<col width="19%" />
+<col width="81%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Param</th>
@@ -438,7 +450,7 @@ one of the following quality levels ordered from most accurate to least:</p>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>provider</td>
-<td>Specify which district provider to use.</td>
+<td>Specify which district provider to use. Overrides &#8216;districtStrategy&#8217;</td>
 </tr>
 <tr class="row-odd"><td>geoProvider</td>
 <td>Specify which geocode provider to use.</td>
@@ -452,8 +464,15 @@ one of the following quality levels ordered from most accurate to least:</p>
 <tr class="row-even"><td>uspsValidate</td>
 <td>If true: usps will be used to perform address correction.</td>
 </tr>
+<tr class="row-odd"><td>skipGeocode</td>
+<td>If true: no geocoding will occur, useful when provider=streetfile</td>
+</tr>
+<tr class="row-even"><td>districtStrategy</td>
+<td>Specify the strategy to use for district assignment (see below)</td>
+</tr>
 </tbody>
 </table>
+<p>The following district strategies can be utilized:</p>
 <p>Unlike the <tt class="docutils literal"><span class="pre">geo</span></tt> service, specifying a <tt class="docutils literal"><span class="pre">provider</span></tt> or <tt class="docutils literal"><span class="pre">geoProvider</span></tt> will by default disable any fallback. If the provider
 is not specified the service will utilize multiple providers to provide the most accurate result. If the geoProvider is not
 specified, the service will iterate through a series of providers if needed until a geocode match is obtained. Specifying
@@ -489,63 +508,33 @@ provider or geoProvider is not recommended as it may reduce the accuracy of the 
     <span class="s">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
       <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;State Senate District 27&quot;</span><span class="p">,</span>
       <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;27&quot;</span><span class="p">,</span>
-      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
-      <span class="p">},</span>
-      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;State Senate District 28&quot;</span><span class="p">,</span>
-        <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;28&quot;</span><span class="p">,</span>
-        <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-        <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
-          <span class="s">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
-        <span class="p">}</span>
-      <span class="p">}</span> <span class="p">],</span>
       <span class="s">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
     <span class="p">},</span>
     <span class="s">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;State Congressional District 12&quot;</span><span class="p">,</span>
       <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;12&quot;</span><span class="p">,</span>
-      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
       <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
     <span class="p">},</span>
     <span class="s">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;State Assembly District 73&quot;</span><span class="p">,</span>
       <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;73&quot;</span><span class="p">,</span>
-      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
       <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
     <span class="p">},</span>
     <span class="s">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
       <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;New York County&quot;</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;62&quot;</span><span class="p">,</span>
-      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;62&quot;</span>
     <span class="p">},</span>
     <span class="s">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
       <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;6&quot;</span><span class="p">,</span>
-      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;6&quot;</span>
     <span class="p">},</span>
     <span class="s">&quot;school&quot;</span> <span class="p">:</span> <span class="p">{</span>
       <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;Manhattan School District&quot;</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;369&quot;</span><span class="p">,</span>
-      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;369&quot;</span>
     <span class="p">},</span>
     <span class="s">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
       <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;New York&quot;</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;-NYC&quot;</span><span class="p">,</span>
-      <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-      <span class="s">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;-NYC&quot;</span>
     <span class="p">},</span>
     <span class="s">&quot;cleg&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
     <span class="s">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
@@ -561,42 +550,147 @@ provider or geoProvider is not recommended as it may reduce the accuracy of the 
 <p>The main components of the response are <tt class="docutils literal"><span class="pre">address</span></tt>, <tt class="docutils literal"><span class="pre">geocode</span></tt>, and <tt class="docutils literal"><span class="pre">districts</span></tt>. The <tt class="docutils literal"><span class="pre">address</span></tt> typically contains
 a corrected address response from the geocode provider or is the result of USPS correction if <tt class="docutils literal"><span class="pre">uspsValidate</span></tt> is set to true.
 The <tt class="docutils literal"><span class="pre">geocode</span></tt> contains the coordinates that were used to perform district assignment. The <tt class="docutils literal"><span class="pre">districts</span></tt> object contains all
-the district types supported by the service. <tt class="docutils literal"><span class="pre">district</span></tt> refers to the code or number that represents the district.
-<tt class="docutils literal"><span class="pre">map.geom</span></tt> will contain polygon data if <tt class="docutils literal"><span class="pre">showMaps</span></tt> is true. <tt class="docutils literal"><span class="pre">nearBorder</span></tt> indicates that the address is very close
+the district types supported by the service. <tt class="docutils literal"><span class="pre">district</span></tt> refers to the code or number that represents the district.</p>
+<p>If <tt class="docutils literal"><span class="pre">showMaps</span></tt> is set to true the <tt class="docutils literal"><span class="pre">districts</span></tt> portion of the response will be different:</p>
+<div class="highlight-python"><pre>/api/v2/district/assign?addr=280 Madison Ave, NY&amp;showMaps=true
+
+{
+  "status" : "SUCCESS",
+  "source" : "DistrictShapefile",
+  "messages" : [ ],
+  "address" : {
+    "addr1" : "280 Madison Ave",
+    "addr2" : "",
+    "city" : "New York",
+    "state" : "NY",
+    "zip5" : "10016",
+    "zip4" : "0802"
+  },
+  "geocode" : {
+    "lat" : 40.751352,
+    "lon" : -73.980335,
+    "quality" : "HOUSE",
+    "method" : "YahooDao"
+  },
+  "districts" : {
+    "senate" : {
+      "name" : "State Senate District 27",
+      "district" : "27",
+      "map" : {
+        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
+      },
+      "nearBorder" : true,
+      "neighbors" : [ {
+        "name" : "State Senate District 28",
+        "district" : "28",
+        "member" : null,
+        "map" : {
+          "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
+        }
+      } ],
+      "senator" : null
+    },
+    "congressional" : {
+      "name" : "State Congressional District 12",
+      "district" : "12",
+      "map" : {
+        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
+      },
+      "nearBorder" : false,
+      "neighbors" : [ ],
+      "member" : null
+    },
+    "assembly" : {
+      "name" : "State Assembly District 73",
+      "district" : "73",
+      "map" : {
+        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
+      },
+      "nearBorder" : true,
+      "neighbors" : [ {
+        "name" : null,
+        "district" : "75",
+        "member" : null,
+        "map" : {
+          "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
+        }
+      }, {
+        "name" : null,
+        "district" : "74",
+        "member" : null,
+        "map" : {
+          "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
+        }
+      } ],
+      "member" : null
+    },
+    "county" : {
+      "name" : "New York County",
+      "district" : "62",
+      "map" : {
+        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
+      },
+      "nearBorder" : false,
+      "neighbors" : [ ]
+    },
+    "election" : {
+      "name" : null,
+      "district" : "6",
+      "map" : null,
+      "nearBorder" : false,
+      "neighbors" : [ ]
+    },
+    "school" : {
+      "name" : "Manhattan School District",
+      "district" : "369",
+      "map" : {
+        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
+       },
+      "nearBorder" : false,
+      "neighbors" : [ ]
+    },
+    "town" : {
+      "name" : "New York",
+      "district" : "-NYC",
+      "map" : {
+        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
+      },
+      "nearBorder" : false,
+      "neighbors" : [ ]
+    },
+    "cleg" : {
+      "name" : null,
+      "district" : null,
+      "map" : null,
+      "nearBorder" : false,
+      "neighbors" : [ ]
+    },
+    "ward" : {
+      "name" : null,
+      "district" : null,
+      "map" : null,
+      "nearBorder" : false,
+      "neighbors" : [ ]
+    },
+    "village" : {
+      "name" : null,
+      "district" : null,
+      "map" : null,
+      "nearBorder" : false,
+      "neighbors" : [ ]
+    }
+  },
+  "geocoded" : true,
+  "districtAssigned" : true,
+  "statusCode" : 0,
+  "description" : "Success."
+}</pre>
+</div>
+<p><tt class="docutils literal"><span class="pre">map.geom</span></tt> will contain polygon data if <tt class="docutils literal"><span class="pre">showMaps</span></tt> is true. <tt class="docutils literal"><span class="pre">nearBorder</span></tt> indicates that the address is very close
 to a district boundary. If <tt class="docutils literal"><span class="pre">nearBorder</span></tt> is true it suggests that the result for that district may be not be certain although
 by default the service will automatically attempt to correct the uncertain districts. <tt class="docutils literal"><span class="pre">neighbors</span></tt> will contain a list of
 districts that are near the geocode location but for performance reasons will only be populated if <tt class="docutils literal"><span class="pre">nearBorder</span></tt> was true
-for that district.</p>
-<p>The neighbors array will be of the following format regardless of district type ( <tt class="docutils literal"><span class="pre">...</span></tt> represents truncated output ):</p>
-<div class="highlight-python"><pre>/api/v2/district/assign?addr=280 Madison Ave, NY
-
-{
-    ...
-    "districts" : {
-        "senate " : {
-            ...
-            "neighbors" : [{
-                "name" : "State Senate District 28",
-                "district" : "28",
-                "member" : null,
-                "map" : {
-                    "geom" : [ ]
-                }
-            }]
-        ...
-        }
-    ...
-    }
-...
-}</pre>
-</div>
-<p>The <tt class="docutils literal"><span class="pre">geom</span></tt> will be populated if <tt class="docutils literal"><span class="pre">showMaps</span></tt> is set to true:</p>
-<div class="highlight-python"><pre>/api/v2/district/assign?addr=280 Madison Ave, NY&amp;showMaps=true
-
-"map" : {
-        "geom" : [ [ [ 40.732752,  -74.019809 ], [ .. ] ] ]
-}</pre>
-</div>
+for that district. Any district that does not have any map data associated with it will have <tt class="docutils literal"><span class="pre">map</span></tt> : null;</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last">&#8216;geom&#8217; is an array containing an array of coordinate pairs which are represented as two floats in an array,
@@ -611,6 +705,19 @@ and school maps are available. However the other district types may be supported
 <div class="highlight-python"><pre>/api/v2/district/assign?lat=40.751352&amp;lon=-73.980335</pre>
 </div>
 <p>The supplied point will automatically be reverse geocoded by the service and will match the response given by an address input.</p>
+<p>For integration with Bluebird CRM, the bluebird method can be used instead, ex:</p>
+<div class="highlight-python"><pre>/api/v2/district/bluebird?addr=280 Madison Ave NY
+/api/v2/district/bluebird?addr1=280 Madison Ave&amp;state=NY</pre>
+</div>
+<p>Bluebird district assign is similar to the default assign except that the options are preconfigured:</p>
+<div class="highlight-python"><pre>showMaps:    false
+showMembers: false
+skipGeocode: false
+uspsValidate:true</pre>
+</div>
+<p>The response is identical to that of a default district assign except that the address is validated through USPS. More
+importantly the district assignment strategy for the bluebird method can be configured by the application so that
+district assignment for <tt class="docutils literal"><span class="pre">district/assign`</span> <span class="pre">and</span> <span class="pre">``district/bluebird</span></tt> can follow different execution paths.</p>
 <p>An unsuccessful district assign response will look similar to the following:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
   <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_DISTRICT_RESULT&quot;</span><span class="p">,</span>
@@ -626,14 +733,206 @@ and school maps are available. However the other district types may be supported
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>A full description of status codes can be found &gt;&gt;&gt;here&lt;&lt;&lt;</p>
 </div>
 <div class="section" id="street">
 <h3>Street<a class="headerlink" href="#street" title="Permalink to this headline">¶</a></h3>
-<p>The street service provides a comprehensive list of street address range to district mappings. This data is compiled from
+<p>The <tt class="docutils literal"><span class="pre">street</span></tt> service provides a comprehensive list of street address range to district mappings. This data is compiled from
 Board of Election Street File data and can be searched via zip code.</p>
 <p>The <tt class="docutils literal"><span class="pre">street</span></tt> service has the following method(s):</p>
-<p>Contents:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>lookup</td>
+<td>Retrieve street information via zipcode.</td>
+</tr>
+</tbody>
+</table>
+<p>A request is of the following form:</p>
+<div class="highlight-python"><pre>/api/v2/street/lookup?zip5=12210</pre>
+</div>
+<p>The response is:</p>
+<div class="highlight-python"><pre>{
+  "status" : "SUCCESS",
+  "source" : "StreetController",
+  "messages" : [ ],
+  "streets" : [ {
+    "bldgLoNum" : 2,
+    "bldgHiNum" : 40,
+    "street" : "1 ST",
+    "location" : "ALBANY",
+    "zip5" : "12210",
+    "senate" : "44",
+    "congressional" : "20",
+    "assembly" : "108",
+    "county" : "1",
+    "election" : "7",
+    "town" : "-ALBAN"
+  }, {
+    "bldgLoNum" : 5,
+    "bldgHiNum" : 191,
+    "street" : "1 ST",
+    "location" : "ALBANY",
+    "zip5" : "12210",
+    "senate" : "44",
+    "congressional" : "20",
+    "assembly" : "108",
+    "county" : "1",
+    "election" : "7",
+    "town" : "-ALBAN"
+  },
+  ... ]
+}</pre>
+</div>
+</div>
+<div class="section" id="map">
+<h3>Map<a class="headerlink" href="#map" title="Permalink to this headline">¶</a></h3>
+<p>The <tt class="docutils literal"><span class="pre">map</span></tt> service provides geometry information for certain district types. The methods for this service
+actually represent the district type to retrieve maps for. The available methods are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="32%" />
+<col width="68%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>senate</td>
+<td>NY State Senate Maps</td>
+</tr>
+<tr class="row-odd"><td>assembly</td>
+<td>NY State Assembly Maps</td>
+</tr>
+<tr class="row-even"><td>congressional</td>
+<td>NY State Congressional Maps</td>
+</tr>
+<tr class="row-odd"><td>county</td>
+<td>NY County Maps</td>
+</tr>
+<tr class="row-even"><td>town</td>
+<td>NY Town Maps</td>
+</tr>
+<tr class="row-odd"><td>school</td>
+<td>NY School District Maps</td>
+</tr>
+</tbody>
+</table>
+<p>The parameters are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Params</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>district</td>
+<td>Specify the district code. If unspecified, all districts will be retrieved.</td>
+</tr>
+<tr class="row-odd"><td>showMembers</td>
+<td>If true: senator, assembly member, and congressional member data will be appended.</td>
+</tr>
+</tbody>
+</table>
+<p>To retrieve map and member data for all senate districts:</p>
+<div class="highlight-python"><pre>/api/v2/map/senate?showMembers=true</pre>
+</div>
+<p>To retrieve map data for just senate district 1:</p>
+<div class="highlight-python"><pre>/api/v2/map/senate?district=1</pre>
+</div>
+<p>The response of the second query is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;DistrictShapefile&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">[</span> <span class="p">[</span> <span class="mf">41.052309</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.141594</span> <span class="p">],</span>  <span class="p">(</span><span class="n">truncated</span><span class="p">)</span> <span class="p">]]</span>
+  <span class="p">},</span>
+  <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>
+  <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;State Senate District 1&quot;</span><span class="p">,</span>
+  <span class="s">&quot;type&quot;</span> <span class="p">:</span> <span class="s">&quot;SENATE&quot;</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The member data for senate districts will have the same senator output as in district assignment:</p>
+<div class="highlight-python"><pre>"member" : {
+    "name" : "Kenneth P. LaValle",
+    "lastName" : "LaValle",
+    "shortName" : "lavalle",
+    "email" : "lavalle@nysenate.gov",
+    "additionalContact" : "",
+    "imageUrl" : "http://www.nysenate.gov/files/profile-pictures/NewHeadShotLavalle2.jpg",
+    "url" : "http://www.nysenate.gov/senator/kenneth-p-lavalle",
+    "partyAffiliations" : [ "R" ],
+    "offices" : [ {
+      "name" : "Albany Office",
+      "street" : "188 State Street",
+      "city" : "Albany",
+      "postalCode" : "12247",
+      "provinceName" : "New York",
+      "province" : "NY",
+      "countryName" : "United States",
+      "country" : "us",
+      "phone" : "(518) 455-3121",
+      "fax" : "",
+      "otherPhone" : "",
+      "additional" : "Room 806, Legislative Office Building",
+      "latitude" : 42.652855,
+      "longitude" : -73.759091
+    }, {
+      "name" : "District Office",
+      "street" : "28 North Country Rd",
+      "city" : "Mount Sinai",
+      "postalCode" : "11766",
+      "provinceName" : "New York",
+      "province" : "NY",
+      "countryName" : "United States",
+      "country" : "us",
+      "phone" : "(631) 473-1461",
+      "fax" : "(631) 473-1513",
+      "otherPhone" : "",
+      "additional" : "Suite 203",
+      "latitude" : 40.938617,
+      "longitude" : -73.035149
+    } ],
+    "district" : {
+      "number" : 1,
+      "url" : "http://www.nysenate.gov/district/01",
+      "imageUrl" : "http://www.nysenate.gov/files/sd1_1.jpg",
+      "mapUrl" : "http://geo.nysenate.gov/maps/regular.jsp?x=850&amp;y=595&amp;sd=01"
+    },
+    "social" : {
+      "twitter" : "http://twitter.com/senatorlavalle",
+      "youtube" : "http://www.youtube.com/user/KPLSenate",
+      "myspace" : "",
+      "picasa" : "",
+      "flickr" : "",
+      "facebook" : "https://www.facebook.com/kenneth.p.lavalle"
+    }
+}</pre>
+</div>
+<p>Sample member data for assembly and congressional districts:</p>
+<div class="highlight-python"><pre>"member" : {
+    "name" : "Thiele, Jr., Fred ",
+    "url" : "http://assembly.state.ny.us/mem/Fred-W-Thiele-Jr"
+}</pre>
+</div>
 <div class="toctree-wrapper compound">
 <ul class="simple">
 </ul>
@@ -656,9 +955,10 @@ Board of Election Street File data and can be searched via zip code.</p>
 <li><a class="reference internal" href="#methods">Methods</a><ul>
 <li><a class="reference internal" href="#common-query-parameters">Common Query Parameters</a></li>
 <li><a class="reference internal" href="#address">Address</a></li>
-<li><a class="reference internal" href="#geocode">Geocode</a></li>
+<li><a class="reference internal" href="#geo">Geo</a></li>
 <li><a class="reference internal" href="#district">District</a></li>
-<li><a class="reference internal" href="#street">Street</a><ul>
+<li><a class="reference internal" href="#street">Street</a></li>
+<li><a class="reference internal" href="#map">Map</a><ul>
 </ul>
 </li>
 </ul>
