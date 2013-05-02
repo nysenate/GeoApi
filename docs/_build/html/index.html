@@ -473,6 +473,31 @@ one of the following quality levels ordered from most accurate to least:</p>
 </tbody>
 </table>
 <p>The following district strategies can be utilized:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Strategy</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>neighborMatch</td>
+<td>Perform shape and street lookup, consolidating only when proximity condition met.</td>
+</tr>
+<tr class="row-odd"><td>streetFallback</td>
+<td>Perform shape and street lookup, using street file in case of mismatch.</td>
+</tr>
+<tr class="row-even"><td>shapeFallback</td>
+<td>Perform street lookup and only fall back to shape files when street lookup failed.</td>
+</tr>
+<tr class="row-odd"><td>streetOnly</td>
+<td>Perform street lookup only.</td>
+</tr>
+</tbody>
+</table>
 <p>Unlike the <tt class="docutils literal"><span class="pre">geo</span></tt> service, specifying a <tt class="docutils literal"><span class="pre">provider</span></tt> or <tt class="docutils literal"><span class="pre">geoProvider</span></tt> will by default disable any fallback. If the provider
 is not specified the service will utilize multiple providers to provide the most accurate result. If the geoProvider is not
 specified, the service will iterate through a series of providers if needed until a geocode match is obtained. Specifying
@@ -717,7 +742,7 @@ uspsValidate:true</pre>
 </div>
 <p>The response is identical to that of a default district assign except that the address is validated through USPS. More
 importantly the district assignment strategy for the bluebird method can be configured by the application so that
-district assignment for <tt class="docutils literal"><span class="pre">district/assign`</span> <span class="pre">and</span> <span class="pre">``district/bluebird</span></tt> can follow different execution paths.</p>
+district assignment for <tt class="docutils literal"><span class="pre">district/assign</span></tt> and <tt class="docutils literal"><span class="pre">district/bluebird</span></tt> can follow different execution paths.</p>
 <p>An unsuccessful district assign response will look similar to the following:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
   <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_DISTRICT_RESULT&quot;</span><span class="p">,</span>

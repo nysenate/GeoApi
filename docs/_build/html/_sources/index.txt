@@ -339,17 +339,17 @@ The available providers are:
 
 The following district strategies can be utilized:
 
-+------------------+---------------------------------------------------------------------------------------------+
-| Strategy         | Description                                                                                 |
-+==================+=============================================================================================+
-| neighborMatch    | Perform shape and street lookup, performing consolidation only when proximity condition met.|
-+------------------+---------------------------------------------------------------------------------------------+
-| streetFallback   | Perform shape and street lookup, using street file in case of mismatch.                     |                    |
-+------------------+---------------------------------------------------------------------------------------------+
-| shapeFallback    | Perform street lookup and only fall back to shape files when street lookup failed.          |
-+------------------+---------------------------------------------------------------------------------------------+
-| streetOnly       | Perform street lookup only.                                                                 |
-+------------------+---------------------------------------------------------------------------------------------+
++------------------+-------------------------------------------------------------------------------------+
+| Strategy         | Description                                                                         |
++==================+=====================================================================================+
+| neighborMatch    | Perform shape and street lookup, consolidating only when proximity condition met.   |
++------------------+-------------------------------------------------------------------------------------+
+| streetFallback   | Perform shape and street lookup, using street file in case of mismatch.             |
++------------------+-------------------------------------------------------------------------------------+
+| shapeFallback    | Perform street lookup and only fall back to shape files when street lookup failed.  |
++------------------+-------------------------------------------------------------------------------------+
+| streetOnly       | Perform street lookup only.                                                         |
++------------------+-------------------------------------------------------------------------------------+
 
 Unlike the ``geo`` service, specifying a ``provider`` or ``geoProvider`` will by default disable any fallback. If the provider
 is not specified the service will utilize multiple providers to provide the most accurate result. If the geoProvider is not
@@ -600,7 +600,7 @@ Bluebird district assign is similar to the default assign except that the option
 
 The response is identical to that of a default district assign except that the address is validated through USPS. More
 importantly the district assignment strategy for the bluebird method can be configured by the application so that
-district assignment for ``district/assign` and ``district/bluebird`` can follow different execution paths.
+district assignment for ``district/assign`` and ``district/bluebird`` can follow different execution paths.
 
 An unsuccessful district assign response will look similar to the following::
 
