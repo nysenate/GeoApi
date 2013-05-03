@@ -4,7 +4,7 @@ import gov.nysenate.sage.TestBase;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class AddressTest extends TestBase
+public class AddressTest
 {
     @Test
     public void cloneTest()
@@ -42,6 +42,13 @@ public class AddressTest extends TestBase
 
         Address noState = new Address("1234 Testing Ln", "Testing Valley", "", "12345");
         assertEquals("1234 Testing Ln, Testing Valley, 12345", noState.toString());
+
+        Address justState = new Address();
+        justState.setState("NY");
+        assertEquals("NY", justState.toString());
+
+        Address shortZip = new Address("Something", "", "City", "NJ", "8540", "5632");
+        System.out.println(shortZip.toString());
     }
 
 
@@ -65,5 +72,14 @@ public class AddressTest extends TestBase
 
         a.setCity("");
         assertFalse(a.isParsed());
+    }
+
+    @Test
+    public void zipTest()
+    {
+        Address a = new Address();
+        a.setZip5("1132");
+
+        assertEquals("01132", a.getZip5());
     }
 }

@@ -42,7 +42,7 @@ public class DistrictShapefileDaoTest extends TestBase
     @Test
     public void getNearbyDistrictsTest()
     {
-        Map<String, DistrictMap> neighbors = dsDao.getNearbyDistricts(DistrictType.SENATE, new Point(40.714920, -73.795158), 2);
+        Map<String, DistrictMap> neighbors = dsDao.getNearbyDistricts(DistrictType.SENATE, new Point(40.714920, -73.795158), true, 2);
         assertTrue(neighbors.containsKey("14"));
         FormatUtil.printObject(neighbors);
     }
