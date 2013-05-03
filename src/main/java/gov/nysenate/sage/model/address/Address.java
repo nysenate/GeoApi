@@ -1,5 +1,7 @@
 package gov.nysenate.sage.model.address;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,25 +133,25 @@ public class Address implements Serializable, Cloneable
 
     public String getZip5()
     {
-        return zip5;
+        return this.zip5;
     }
 
     public void setZip5(String zip5)
     {
-        if (zip5 != null){
-            this.zip5 = zip5;
+        if (zip5 != null && !zip5.isEmpty()){
+            this.zip5 = StringUtils.leftPad(zip5, 5, "0");
         }
     }
 
     public String getZip4()
     {
-        return zip4;
+        return this.zip4;
     }
 
     public void setZip4(String zip4)
     {
-        if (zip4 != null){
-            this.zip4 = zip4;
+        if (zip4 != null && !zip4.isEmpty()){
+            this.zip4 = StringUtils.leftPad(zip4, 4, "0");
         }
     }
 
@@ -174,3 +176,4 @@ public class Address implements Serializable, Cloneable
         }
     }
 }
+

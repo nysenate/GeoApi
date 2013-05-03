@@ -1,48 +1,28 @@
 package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.dao.provider.YahooDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeService;
-import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.*;
-
-import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
-public class Yahoo implements GeocodeService, Observer
+public class Yahoo implements GeocodeService
 {
     private final Logger logger = Logger.getLogger(Yahoo.class);
     private YahooDao yahooDao;
-    private Config config;
 
     public Yahoo()
     {
-        this.config = ApplicationFactory.getConfig();
         this.yahooDao = new YahooDao();
-        configure();
-        config.notifyOnChange(this);
         logger.info("Initialized Yahoo Adapter");
-    }
-
-    private void configure()
-    {
-        String baseUrl = config.getValue("yahoo.url");
-        this.yahooDao.setBaseUrl(baseUrl);
-    }
-
-    public void update(Observable o, Object arg)
-    {
-        configure();
     }
 
     @Override
@@ -52,13 +32,13 @@ public class Yahoo implements GeocodeService, Observer
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Proceed only on valid input */
-        if (!validateGeocodeInput(address, geocodeResult)) return geocodeResult;
+        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) return geocodeResult;
 
         /** Retrieve geocoded address from dao */
         GeocodedAddress geocodedAddress = this.yahooDao.getGeocodedAddress(address);
 
         /** Validate and return */
-        if (!validateGeocodeResult(geocodedAddress, geocodeResult)) {
+        if (!GeocodeServiceValidator.validateGeocodeResult(geocodedAddress, geocodeResult)) {
             logger.warn("Failed to geocode " + address.toString() + " using Yahoo!");
         }
         return geocodeResult;
@@ -74,7 +54,8 @@ public class Yahoo implements GeocodeService, Observer
         List<GeocodedAddress> geocodedAddresses = this.yahooDao.getGeocodedAddresses(addresses);
 
         /** Validate and return */
-        if (!validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults, geocodedAddresses)){
+        if (!GeocodeServiceValidator.validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults,
+                                                                geocodedAddresses)){
             logger.warn("Failed to batch geocode using Yahoo!");
         }
         return geocodeResults;

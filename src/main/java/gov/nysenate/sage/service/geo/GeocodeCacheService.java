@@ -4,6 +4,9 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 
 import java.util.List;
 
+/**
+ * Interface for geocode caching.
+ */
 public interface GeocodeCacheService extends GeocodeService
 {
     public void saveToCache(GeocodeResult geocodeResult);

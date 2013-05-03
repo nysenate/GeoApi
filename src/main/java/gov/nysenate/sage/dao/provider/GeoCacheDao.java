@@ -22,13 +22,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class GeoCacheDao extends BaseDao
 {
     protected Logger logger = Logger.getLogger(GeoCacheDao.class);
+    protected Config config;
     protected static TigerGeocoderDao tigerGeocoderDao = new TigerGeocoderDao();
     protected static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
-    protected Config config;
     protected static int BUFFER_SIZE = 100;
     protected QueryRunner tigerRun = getTigerQueryRunner();
-    //protected static ExecutorService executorService = Executors.newSingleThreadExecutor();
-    //protected AsyncQueryRunner tigerAsyncQuery = getAsyncTigerQueryRunner(executorService);
 
     public GeoCacheDao() {
         this.config = ApplicationFactory.getConfig();
@@ -146,6 +144,9 @@ public class GeoCacheDao extends BaseDao
                     }
                     catch(Exception ex) {
                         logger.error(ex);
+                    }
+                    finally {
+
                     }
                 }
             }

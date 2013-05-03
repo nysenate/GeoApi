@@ -2,13 +2,16 @@ package gov.nysenate.sage.dao.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.UrlRequest;
+import javafx.application.Application;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -18,6 +21,8 @@ import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  *  Provides a data abstraction layer for performing Yahoo Placefinder requests.
@@ -26,14 +31,16 @@ import java.util.List;
  *  Documentation available here:
  *  http://developer.yahoo.com/boss/geo/docs/free_YQL.html#table_pf
  */
-public class YahooDao
+public class YahooDao implements Observer
 {
+    private static final Config config = ApplicationFactory.getConfig();
     private static final String DEFAULT_BASE_URL = "http://query.yahooapis.com/v1/public/yql";
     private static final String SET_QUERY_AS = "?format=json&q=";
-    private static final String GEOCODE_QUERY = "select * from geo.placefinder where text=\"%s\"";
+    private static final String GEOCODE_QUERY = "select line1, city, statecode, postal, quality, latitude, longitude " +
+                                                "from geo.placefinder where text=\"%s\"";
     private static final String BATCH_GEOCODE_QUERY = "select * from geo.placefinder where %s";
     private static final String REVERSE_GEO_QUERY = "select * from geo.placefinder where text=\"%f,%f\" and gflags=\"R\"";
-    private static final int BATCH_SIZE = 25;
+    private static int BATCH_SIZE = 100;
     private static final int THREAD_COUNT = 5;
 
     private Logger logger = Logger.getLogger(YahooDao.class);
@@ -44,15 +51,15 @@ public class YahooDao
         this.objectMapper = new ObjectMapper();
     }
 
-    public String getBaseUrl() {
-        return (this.baseUrl != null && !this.baseUrl.isEmpty()) ? this.baseUrl : DEFAULT_BASE_URL;
+    @Override
+    public void update(Observable o, Object arg)
+    {
+        this.baseUrl = config.getValue("yahoo.url");
+
     }
 
-    public void setBaseUrl(String baseUrl)
-    {
-        if (baseUrl != null && !baseUrl.isEmpty()){
-            this.baseUrl = baseUrl;
-        }
+    public String getBaseUrl() {
+        return (this.baseUrl != null && !this.baseUrl.isEmpty()) ? this.baseUrl : DEFAULT_BASE_URL;
     }
 
     /**
@@ -81,11 +88,22 @@ public class YahooDao
         return geocodedAddress;
     }
 
+    /**
+     * Batch geocode a list of addresses.
+     * @param addresses Addresses to geocode
+     * @return          List<GeocodedAddress>
+     */
     public List<GeocodedAddress> getGeocodedAddresses(List<Address> addresses)
     {
         /** Pre-populate the batch result with addresses */
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
         for (Address address : addresses) {
+
+            /** Remove PO Box since they tend to return multiple results */
+            if (address.getAddr1() != null && address.getAddr1().matches("(?i:po box)")) {
+                address.setAddr1("");
+            }
+
             geocodedAddresses.add(new GeocodedAddress(address));
         }
 
@@ -182,7 +200,7 @@ public class YahooDao
             logger.error("Malformed URL! ", ex);
         }
         catch (IOException ex) {
-            logger.error("Error opening API resource! Response: " + json, ex);
+            logger.error("Error opening API resource! " + ex.toString() + " Response: " + json);
         }
         catch (NullPointerException ex) {
             logger.error("Yahoo response was not formatted correctly! Response: " + json, ex);

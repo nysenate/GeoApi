@@ -200,7 +200,7 @@ public class MapQuestDao
             logger.error("UTF-8 Unsupported?!", ex);
         }
         catch (IOException ex) {
-            logger.error("Error opening API resource! " + ex.toString());
+            logger.error("Error opening API resource! " + ex.toString() + " Response: " + json);
         }
         catch (NullPointerException ex) {
             logger.error("MapQuest response was not formatted correctly. Response: " + json, ex);

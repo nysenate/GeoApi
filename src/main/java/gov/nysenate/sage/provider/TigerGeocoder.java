@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import org.apache.log4j.Logger;
 
@@ -44,7 +45,7 @@ public class TigerGeocoder implements GeocodeService
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Proceed if valid address */
-        if (!validateRequest(address, geocodeResult)){
+        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
             return geocodeResult;
         }
 
@@ -58,11 +59,9 @@ public class TigerGeocoder implements GeocodeService
             geocode.setQuality(resolveGeocodeQuality(address, gsa));
 
             GeocodedAddress geocodedAddress = new GeocodedAddress(convertedAddress, geocode);
-            geocodeResult.setGeocodedAddress(geocodedAddress);
 
-            /** Return success result only if the GeocodeQuality indicates a match */
-            if (geocode.getQuality().equals(GeocodeQuality.NOMATCH)) {
-                geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
+            if (!GeocodeServiceValidator.validateGeocodeResult(geocodedAddress, geocodeResult)) {
+                logger.warn("Failed to geocode " + address.toString() + " using Tiger!");
             }
         }
         else {
@@ -93,27 +92,6 @@ public class TigerGeocoder implements GeocodeService
             geocodeResult.setStatusCode(ResultStatus.NO_REVERSE_GEOCODE_RESULT);
         }
         return geocodeResult;
-    }
-
-    /**
-     * Validates the input and performs basic null checks.
-     *
-     * @param address        The input address
-     * @param geocodeResult  A reference to the geocode result
-     * @return               True if input valid, otherwise false and the geocodeResult
-     *                       will have the appropriate status set.
-     */
-    private boolean validateRequest(Address address, GeocodeResult geocodeResult)
-    {
-        if (address == null) {
-            geocodeResult.setStatusCode(ResultStatus.MISSING_ADDRESS);
-            return false;
-        }
-        else if (address.isEmpty()) {
-            geocodeResult.setStatusCode(ResultStatus.INSUFFICIENT_ADDRESS);
-            return false;
-        }
-        return true;
     }
 
     /**

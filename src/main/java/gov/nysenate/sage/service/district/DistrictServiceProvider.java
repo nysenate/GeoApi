@@ -409,6 +409,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                 else {
                     shapeResult = streetResult;
                 }
+                logger.debug("Completed neighborMatch consolidation");
                 return shapeResult;
             }
 

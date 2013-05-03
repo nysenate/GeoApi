@@ -1,11 +1,17 @@
 package gov.nysenate.sage.provider;
 
-import gov.nysenate.sage.deprecated.Address;
-import gov.nysenate.sage.deprecated.Result;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.Config;
 
 import java.io.IOException;
@@ -17,11 +23,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -32,57 +33,18 @@ import oauth.signpost.exception.OAuthMessageSignerException;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 /**
- * Yahoo Boss - free geocoding service
+ * Yahoo Boss - Paid geo-coding service
  */
 public class YahooBoss implements GeocodeService, Observer
 {
     private static final String DEFAULT_BASE_URL = "http://yboss.yahooapis.com/geo/placefinder";
     private final Logger logger = Logger.getLogger(YahooBoss.class);
+    private ObjectMapper objectMapper = new ObjectMapper();
     private Config config;
     private String baseUrl;
     private String consumerKey;
     private String consumerSecret;
-
-    @Override
-    public GeocodeResult geocode(gov.nysenate.sage.model.address.Address address)
-    {
-        return null;
-    }
-
-    @Override
-    public ArrayList<GeocodeResult> geocode(ArrayList<gov.nysenate.sage.model.address.Address> addresses)
-    {
-        return null;
-    }
-
-    @Override
-    public GeocodeResult reverseGeocode(Point point)
-    {
-        return null;
-    }
-
-    public class ParallelRequest implements Callable<Result>
-    {
-        private final YahooBoss yahooBoss;
-        private final Address address;
-
-        ParallelRequest(YahooBoss yahooBoss, Address address)
-        {
-            this.yahooBoss = yahooBoss;
-            this.address = address;
-        }
-
-        @Override
-        public Result call()
-        {
-            return yahooBoss.geocode(address);
-        }
-    }
 
     public YahooBoss() throws Exception
     {
@@ -100,44 +62,23 @@ public class YahooBoss implements GeocodeService, Observer
      *  Yahoo doesn't implement batch geocoding so we use the single address geocoding
      *  method in parallel for performance improvements on our end.
      */
-    public ArrayList<Result> geocode(ArrayList<Address> addresses, Address.TYPE hint)
+    public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        ArrayList<Result> results = new ArrayList<>();
-        ExecutorService executor = Executors.newFixedThreadPool(5);
-        ArrayList<Future<Result>> futureResults = new ArrayList<>();
-
-        for (Address address : addresses) {
-            futureResults.add(executor.submit(new ParallelRequest(this, address)));
-        }
-
-        for (Future<Result> result : futureResults) {
-            try {
-                results.add(result.get());
-            }
-            catch (InterruptedException e) {
-                //throw new GeoException(e);
-            }
-            catch (ExecutionException e) {
-                //throw new GeoException(e.getCause());
-            }
-        }
-        executor.shutdown();
-        return results;
+        return ParallelGeocodeService.geocode(this, addresses);
     }
 
 
-    public Result geocode(Address address)
+    public GeocodeResult geocode(Address address)
     {
-        Result result = null;
+        GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         if (address == null) {
-            return result;
+            return geocodeResult;
         }
 
         try {
             /** Parse the API response */
-            String urlText = baseUrl +"?flags=J&location="+URLEncoder.encode(address.as_raw(), "UTF-8").replace("+", "%20");
-            result = new Result(urlText);
+            String urlText = baseUrl +"?flags=J&location="+URLEncoder.encode(address.toString(), "UTF-8").replace("+", "%20");
             logger.info(urlText);
 
             URL u = new URL(urlText);
@@ -147,42 +88,44 @@ public class YahooBoss implements GeocodeService, Observer
             int httpRespCode = uc.getResponseCode();
 
             if (httpRespCode != HttpURLConnection.HTTP_OK) {
-                result.setStatus(String.valueOf(httpRespCode));
-                result.addMessage(IOUtils.toString(uc.getErrorStream()));
-                return result;
+                geocodeResult.setStatusCode(ResultStatus.RESPONSE_ERROR);
+                geocodeResult.addMessage(IOUtils.toString(uc.getErrorStream()));
+                return geocodeResult;
             }
 
             String body = IOUtils.toString(uc.getInputStream());
-            JSONObject jsonObj = new JSONObject(body).getJSONObject("bossresponse");
-            String status = jsonObj.getString("responsecode");
+
+            JsonNode bossResponse = objectMapper.readTree(body).get("bossresponse");
+            String status = bossResponse.get("responsecode").asText();
             if (!status.equals("200")) {
-                result.setStatus(status);
-                result.addMessage(jsonObj.getString("reason"));
-                return result;
+                geocodeResult.setStatusCode(ResultStatus.RESPONSE_ERROR);
+                geocodeResult.addMessage(bossResponse.get("reason").asText());
+                return geocodeResult;
             }
 
-            JSONArray resultSet = jsonObj.getJSONObject("placefinder").getJSONArray("results");
-            for (int i = 0; i < resultSet.length(); i++) {
-                Address resultAddr = buildAddress(resultSet.getJSONObject(i));
-                result.addAddress(resultAddr);
+            JsonNode resultSet = bossResponse.get("placefinder").get("results");
+            for (int i = 0; i < resultSet.size(); i++) {
+                GeocodedAddress geocodedAddress = getGeocodedAddressFromResultNode(resultSet.get(i));
+                geocodeResult.setGeocodedAddress(geocodedAddress);
+                geocodeResult.setStatusCode(ResultStatus.SUCCESS);
             }
 
-            return result;
+            return geocodeResult;
         }
         catch (UnsupportedEncodingException e) {
             String msg = "UTF-8 encoding not supported!?";
             logger.error(msg);
         }
         catch (MalformedURLException e) {
-            String msg = "Malformed URL '"+result.getSource()+"', check API key and address values.";
+            String msg = "Malformed URL '"+geocodeResult.getSource()+"', check API key and address values.";
             logger.error(msg, e);
         }
         catch (IOException e) {
-            String msg = "Error opening API resource '"+result.getSource()+"'";
+            String msg = "Error opening API resource '"+geocodeResult.getSource()+"'";
             logger.error(msg, e);
-            result.setStatus("500");
-            result.addMessage(e.getMessage());
-            return result;
+            geocodeResult.setStatusCode(ResultStatus.RESPONSE_ERROR);
+            geocodeResult.addMessage(e.getMessage());
+            return geocodeResult;
         }
         catch (OAuthMessageSignerException e) {
             String msg = "OAuthMessageSignerException";
@@ -196,13 +139,14 @@ public class YahooBoss implements GeocodeService, Observer
             String msg = "OAuthCommunicationException";
             logger.error(msg, e);
         }
-        catch (JSONException jsonEx) {
-            String msg = "Error while processing JSON result";
-            logger.error(msg, jsonEx);
-        }
         return null;
     } // geocode()
 
+    @Override
+    public GeocodeResult reverseGeocode(Point point)
+    {
+        return null;
+    }
 
     private void configure()
     {
@@ -217,18 +161,19 @@ public class YahooBoss implements GeocodeService, Observer
     }
 
 
-    private Address buildAddress(JSONObject jsonRes) throws JSONException
+    private GeocodedAddress getGeocodedAddressFromResultNode(JsonNode jsonRes)
     {
-        String street = jsonRes.optString("line1", null);
-        String city = jsonRes.optString("city", null);
-        String state = jsonRes.optString("statecode", null);
-        String zip_code = jsonRes.optString("postal", null);
-        int quality = jsonRes.optInt("quality", 0);
-        double lat = jsonRes.optDouble("offsetlat", 0.0);
-        double lng = jsonRes.optDouble("offsetlon", 0.0);
+        String street = (jsonRes.get("line1") != null) ? jsonRes.get("line1").asText() : null;
+        String city = (jsonRes.get("city") != null) ? jsonRes.get("city").asText() : null;
+        String state = (jsonRes.get("statecode") != null) ? jsonRes.get("statecode").asText() : null;
+        String postal = (jsonRes.get("postal") != null) ? jsonRes.get("postal").asText() : null;
+        int quality = (jsonRes.get("quality") != null) ? jsonRes.get("quality").asInt() : 0;
+        double lat = (jsonRes.get("offsetlat") != null) ? jsonRes.get("offsetlat").asDouble() : 0.0;
+        double lng = (jsonRes.get("offsetlon") != null) ? jsonRes.get("offsetlon").asDouble() : 0.0;
 
-        Address resultAddress = new Address(street, city, state, zip_code);
-        resultAddress.setGeocode(lat, lng, quality);
-        return resultAddress;
+        Address resultAddress = new Address(street, city, state, postal);
+        Geocode geocode = new Geocode(new Point(lat,lng), GeocodeQuality.UNKNOWN);
+
+        return new GeocodedAddress(resultAddress, geocode);
     }
 }
