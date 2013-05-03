@@ -7,7 +7,9 @@ SAGE API v2 Reference
 =================================
 
 The SAGE API exposes methods for geocoding, address correction, and district assignment given addresses or geo-coordinates
-as input. The API supports ``JSON``, ``JSON-P``, and ``XML`` output formats. There is also support for handling batch requests.
+as input. The API supports ``JSON``, ``JSON-P``, and ``XML`` output formats.
+
+SAGE is also able to handle BluebirdCRM_ district assignment requests.
 
 Basics
 ~~~~~~
@@ -39,15 +41,15 @@ types for the ``group`` segment are as follows:
 +-------------+----------------------------------------+
 | Group       | Description                            |
 +=============+========================================+
-| address     | Address Lookup and Validation          |
+| address_    | Address Lookup and Validation          |
 +-------------+----------------------------------------+
-| geo         | Geocode and Reverse Geocode            |
+| geo_        | Geocode and Reverse Geocode            |
 +-------------+----------------------------------------+
-| district    | District Assignment                    |
+| district_   | District Assignment                    |
 +-------------+----------------------------------------+
-| street      | Street Lookup                          |
+| street_     | Street Lookup                          |
 +-------------+----------------------------------------+
-| map         | Map Data                               |
+| map_        | Map Data                               |
 +-------------+----------------------------------------+
 
 Methods
@@ -69,10 +71,14 @@ Geo-coordinate pairs can be supplied to the appropriate method using ``lat`` and
 
     /api/v2/<group>/<method>?lat=43.00&lon=-73.10
 
+Address, Geo, and District API calls allow for specifying a provider to carry out the request::
+
+    /api/v2/<group>/<method>?provider=PROVIDER_NAME
+
 Address
 -------
 
-The following methods are implemented for the ``address`` service:
+The following methods are implemented for the address_ service:
 
 +-------------+---------------------------------------------+
 | Method      | Description                                 |
@@ -117,6 +123,18 @@ The validated response::
       "description" : "Success."
     }
 
+A failed validation response::
+
+    {
+      "status" : "NO_ADDRESS_VALIDATE_RESULT",
+      "source" : "MapQuest",
+      "messages" : [ ],
+      "address" : null,
+      "validated" : false,
+      "statusCode" : 420,
+      "description" : "The address could not be validated."
+    }
+
 .. caution:: USPS address validation requires addr1, city and state explicitly specified in the query parameters. Given a query that
           is missing those fields, USPS will not be used to perform validation and another provider will be used instead.
 
@@ -137,6 +155,19 @@ The city/state response::
       "description" : "Success."
     }
 
+A failed city/state response with invalid input::
+
+    {
+      "status" : "NO_ADDRESS_VALIDATE_RESULT",
+      "source" : "USPS",
+      "messages" : [ "Invalid Zip Code." ],
+      "city" : "",
+      "state" : "",
+      "zip5" : "",
+      "statusCode" : 420,
+      "description" : "The address could not be validated."
+    }
+
 The usage of ``zipcode``::
 
     /api/v2/address/zipcode?addr1=44 Fairlawn Avenue&city=Albany&state=NY
@@ -153,6 +184,18 @@ The zipcode response::
       "description" : "Success."
     }
 
+A failed zipcode response, similar to the failed validate response::
+
+    {
+      "status" : "NO_ADDRESS_VALIDATE_RESULT",
+      "source" : "MapQuest",
+      "messages" : [ ],
+      "zip5" : null,
+      "zip4" : null,
+      "statusCode" : 420,
+      "description" : "The address could not be validated."
+    }
+
 .. note:: Zipcode lookup has the same USPS constraints as the validate method
 
 To force the request to use a certain provider supply the query parameter ``provider``::
@@ -163,7 +206,7 @@ To force the request to use a certain provider supply the query parameter ``prov
 Geo
 ---
 
-The following methods are implemented for the ``geo`` service:
+The following methods are implemented for the geo_ service:
 
 +-------------+---------------------------------------------+
 | Method      | Description                                 |
@@ -295,7 +338,7 @@ It is identical to the geocode response except for the ``revGeocoded`` field tha
 District
 --------
 
-The ``district`` service has the following method(s).
+The district_ service has the following method(s).
 
 +-------------+-----------------------------------------------------------------+
 | Method      | Description                                                     |
@@ -357,6 +400,9 @@ specified, the service will iterate through a series of providers if needed unti
 provider or geoProvider is not recommended as it may reduce the accuracy of the results.
 
 .. caution:: USPS validation will only work when addr1, city, and state are provided. See address section above for details.
+
+Assign
+^^^^^^
 
 The default query usage is as follows::
 
@@ -586,7 +632,10 @@ District assignment via coordinate pairs is also supported::
 
 The supplied point will automatically be reverse geocoded by the service and will match the response given by an address input.
 
-For integration with Bluebird CRM, the bluebird method can be used instead, ex::
+BluebirdCRM
+^^^^^^^^^^^
+
+For integration with Bluebird CRM, the bluebird method can be used instead::
 
     /api/v2/district/bluebird?addr=280 Madison Ave NY
     /api/v2/district/bluebird?addr1=280 Madison Ave&state=NY
@@ -620,10 +669,10 @@ An unsuccessful district assign response will look similar to the following::
 Street
 ------
 
-The ``street`` service provides a comprehensive list of street address range to district mappings. This data is compiled from
+The street_ service provides a comprehensive list of street address range to district mappings. This data is compiled from
 Board of Election Street File data and can be searched via zip code.
 
-The ``street`` service has the following method(s):
+The street_ service has the following method(s):
 
 +-------------+-----------------------------------------------------------------+
 | Method      | Description                                                     |
@@ -672,7 +721,7 @@ The response is::
 Map
 ---
 
-The ``map`` service provides geometry information for certain district types. The methods for this service
+The map_ service provides geometry information for certain district types. The methods for this service
 actually represent the district type to retrieve maps for. The available methods are:
 
 +---------------+--------------------------------+

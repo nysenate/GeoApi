@@ -44,7 +44,8 @@
   <div class="section" id="sage-api-v2-reference">
 <h1>SAGE API v2 Reference<a class="headerlink" href="#sage-api-v2-reference" title="Permalink to this headline">¶</a></h1>
 <p>The SAGE API exposes methods for geocoding, address correction, and district assignment given addresses or geo-coordinates
-as input. The API supports <tt class="docutils literal"><span class="pre">JSON</span></tt>, <tt class="docutils literal"><span class="pre">JSON-P</span></tt>, and <tt class="docutils literal"><span class="pre">XML</span></tt> output formats. There is also support for handling batch requests.</p>
+as input. The API supports <tt class="docutils literal"><span class="pre">JSON</span></tt>, <tt class="docutils literal"><span class="pre">JSON-P</span></tt>, and <tt class="docutils literal"><span class="pre">XML</span></tt> output formats.</p>
+<p>SAGE is also able to handle <a class="reference internal" href="#bluebirdcrm">BluebirdCRM</a> district assignment requests.</p>
 <div class="section" id="basics">
 <h2>Basics<a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h2>
 <p>The API requests must be crafted to match the following structure:</p>
@@ -77,19 +78,19 @@ types for the <tt class="docutils literal"><span class="pre">group</span></tt> s
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>address</td>
+<tr class="row-even"><td><a class="reference internal" href="#address">address</a></td>
 <td>Address Lookup and Validation</td>
 </tr>
-<tr class="row-odd"><td>geo</td>
+<tr class="row-odd"><td><a class="reference internal" href="#geo">geo</a></td>
 <td>Geocode and Reverse Geocode</td>
 </tr>
-<tr class="row-even"><td>district</td>
+<tr class="row-even"><td><a class="reference internal" href="#district">district</a></td>
 <td>District Assignment</td>
 </tr>
-<tr class="row-odd"><td>street</td>
+<tr class="row-odd"><td><a class="reference internal" href="#street">street</a></td>
 <td>Street Lookup</td>
 </tr>
-<tr class="row-even"><td>map</td>
+<tr class="row-even"><td><a class="reference internal" href="#map">map</a></td>
 <td>Map Data</td>
 </tr>
 </tbody>
@@ -109,10 +110,13 @@ To supply a single address string use the parameter <tt class="docutils literal"
 <p>Geo-coordinate pairs can be supplied to the appropriate method using <tt class="docutils literal"><span class="pre">lat</span></tt> and <tt class="docutils literal"><span class="pre">lon</span></tt>:</p>
 <div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?lat=43.00&amp;lon=-73.10</pre>
 </div>
+<p>Address, Geo, and District API calls allow for specifying a provider to carry out the request:</p>
+<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?provider=PROVIDER_NAME</pre>
+</div>
 </div>
 <div class="section" id="address">
 <h3>Address<a class="headerlink" href="#address" title="Permalink to this headline">¶</a></h3>
-<p>The following methods are implemented for the <tt class="docutils literal"><span class="pre">address</span></tt> service:</p>
+<p>The following methods are implemented for the <a class="reference internal" href="#address">address</a> service:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="22%" />
@@ -177,6 +181,18 @@ To supply a single address string use the parameter <tt class="docutils literal"
 <span class="p">}</span>
 </pre></div>
 </div>
+<p>A failed validation response:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;MapQuest&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s">&quot;validated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">420</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;The address could not be validated.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <div class="admonition caution">
 <p class="first admonition-title">Caution</p>
 <p class="last">USPS address validation requires addr1, city and state explicitly specified in the query parameters. Given a query that
@@ -198,6 +214,19 @@ is missing those fields, USPS will not be used to perform validation and another
 <span class="p">}</span>
 </pre></div>
 </div>
+<p>A failed city/state response with invalid input:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s">&quot;Invalid Zip Code.&quot;</span> <span class="p">],</span>
+  <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
+  <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
+  <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">420</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;The address could not be validated.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p>The usage of <tt class="docutils literal"><span class="pre">zipcode</span></tt>:</p>
 <div class="highlight-python"><pre>/api/v2/address/zipcode?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY</pre>
 </div>
@@ -213,6 +242,18 @@ is missing those fields, USPS will not be used to perform validation and another
 <span class="p">}</span>
 </pre></div>
 </div>
+<p>A failed zipcode response, similar to the failed validate response:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;MapQuest&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">420</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;The address could not be validated.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Zipcode lookup has the same USPS constraints as the validate method</p>
@@ -224,7 +265,7 @@ is missing those fields, USPS will not be used to perform validation and another
 </div>
 <div class="section" id="geo">
 <h3>Geo<a class="headerlink" href="#geo" title="Permalink to this headline">¶</a></h3>
-<p>The following methods are implemented for the <tt class="docutils literal"><span class="pre">geo</span></tt> service:</p>
+<p>The following methods are implemented for the <a class="reference internal" href="#geo">geo</a> service:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="22%" />
@@ -389,7 +430,7 @@ one of the following quality levels ordered from most accurate to least:</p>
 </div>
 <div class="section" id="district">
 <h3>District<a class="headerlink" href="#district" title="Permalink to this headline">¶</a></h3>
-<p>The <tt class="docutils literal"><span class="pre">district</span></tt> service has the following method(s).</p>
+<p>The <a class="reference internal" href="#district">district</a> service has the following method(s).</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="17%" />
@@ -506,6 +547,8 @@ provider or geoProvider is not recommended as it may reduce the accuracy of the 
 <p class="first admonition-title">Caution</p>
 <p class="last">USPS validation will only work when addr1, city, and state are provided. See address section above for details.</p>
 </div>
+<div class="section" id="assign">
+<h4>Assign<a class="headerlink" href="#assign" title="Permalink to this headline">¶</a></h4>
 <p>The default query usage is as follows:</p>
 <div class="highlight-python"><pre>/api/v2/district/assign?addr=280 Madison Ave, New York, NY
 /api/v2/district/assign?addr1=280 Madison Ave&amp;city=New York&amp;state=NY</pre>
@@ -730,7 +773,10 @@ and school maps are available. However the other district types may be supported
 <div class="highlight-python"><pre>/api/v2/district/assign?lat=40.751352&amp;lon=-73.980335</pre>
 </div>
 <p>The supplied point will automatically be reverse geocoded by the service and will match the response given by an address input.</p>
-<p>For integration with Bluebird CRM, the bluebird method can be used instead, ex:</p>
+</div>
+<div class="section" id="bluebirdcrm">
+<h4>BluebirdCRM<a class="headerlink" href="#bluebirdcrm" title="Permalink to this headline">¶</a></h4>
+<p>For integration with Bluebird CRM, the bluebird method can be used instead:</p>
 <div class="highlight-python"><pre>/api/v2/district/bluebird?addr=280 Madison Ave NY
 /api/v2/district/bluebird?addr1=280 Madison Ave&amp;state=NY</pre>
 </div>
@@ -759,11 +805,12 @@ district assignment for <tt class="docutils literal"><span class="pre">district/
 </pre></div>
 </div>
 </div>
+</div>
 <div class="section" id="street">
 <h3>Street<a class="headerlink" href="#street" title="Permalink to this headline">¶</a></h3>
-<p>The <tt class="docutils literal"><span class="pre">street</span></tt> service provides a comprehensive list of street address range to district mappings. This data is compiled from
+<p>The <a class="reference internal" href="#street">street</a> service provides a comprehensive list of street address range to district mappings. This data is compiled from
 Board of Election Street File data and can be searched via zip code.</p>
-<p>The <tt class="docutils literal"><span class="pre">street</span></tt> service has the following method(s):</p>
+<p>The <a class="reference internal" href="#street">street</a> service has the following method(s):</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="17%" />
@@ -819,7 +866,7 @@ Board of Election Street File data and can be searched via zip code.</p>
 </div>
 <div class="section" id="map">
 <h3>Map<a class="headerlink" href="#map" title="Permalink to this headline">¶</a></h3>
-<p>The <tt class="docutils literal"><span class="pre">map</span></tt> service provides geometry information for certain district types. The methods for this service
+<p>The <a class="reference internal" href="#map">map</a> service provides geometry information for certain district types. The methods for this service
 actually represent the district type to retrieve maps for. The available methods are:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -981,7 +1028,11 @@ actually represent the district type to retrieve maps for. The available methods
 <li><a class="reference internal" href="#common-query-parameters">Common Query Parameters</a></li>
 <li><a class="reference internal" href="#address">Address</a></li>
 <li><a class="reference internal" href="#geo">Geo</a></li>
-<li><a class="reference internal" href="#district">District</a></li>
+<li><a class="reference internal" href="#district">District</a><ul>
+<li><a class="reference internal" href="#assign">Assign</a></li>
+<li><a class="reference internal" href="#bluebirdcrm">BluebirdCRM</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#street">Street</a></li>
 <li><a class="reference internal" href="#map">Map</a><ul>
 </ul>
