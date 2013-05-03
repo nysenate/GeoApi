@@ -194,6 +194,7 @@
                 </form>
             </div>
             <a href="${contextPath}/job"><p class="method-header teal">Batch Jobs</p></a>
+            <a href="https://sage-senate-address-geocoding-engine.readthedocs.org/en/latest/"><p class="method-header teal">API Reference</p></a>
         </div>
     </div>
 

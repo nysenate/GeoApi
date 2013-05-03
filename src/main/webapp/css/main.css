@@ -154,28 +154,6 @@ a:hover {
     top:3px;
 }
 
-[data-icon]:after {
-    font-family: 'entypo'; /* BYO icon font, mapped smartly */
-    content: attr(data-icon);
-    speak: none;
-    font-size:32px;
-    line-height:0px;
-    position:relative;
-    top: 4px;
-    margin-right:5px;
-}
-
-[data-socialicon]:before {
-    font-family: 'entypo-social'; /* BYO icon font, mapped smartly */
-    content: attr(data-socialicon);
-    speak: none;
-    font-size:32px;
-    line-height:0px;
-    position:relative;
-    top: 3px;
-    margin-right:5px;
-}
-
 b{font-size: 110%;}
 em{color: red;}
 
@@ -424,7 +402,23 @@ a.result-close:hover {
     opacity:1;
 }
 
-/**      */
+/** Data Table */
+
+table.dataTable tr.odd {
+    background-color:transparent !important;
+}
+
+table.dataTable tr.odd td.sorting_1 {
+    background-color:#ddd !important;
+}
+
+table.dataTable tr.even td.sorting_1 {
+    background-color:#eee !important;
+}
+
+.dataTables_wrapper {
+    margin-bottom: 40px !important;
+}
 
 .street-search-filter {
     margin-bottom:10px;
