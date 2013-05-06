@@ -338,11 +338,15 @@ function capitalize(input) {
  * @returns {string}
  */
 function formatDistrictName(district, type) {
-    return ((district.name) ? district.name + " " : ((type) ? type : capitalize(district.type)) + " District ")  +
-            ((!(district.type && district.type.toLowerCase() == "senate")
-               && !(type && type.toLowerCase() == "senate")) ? district.district : "") +
-            ((district.member) ? " - " + district.member.name : "") +
-            ((district.senator) ? " - " + district.senator.name : "");
+    var distType = district.type || type;
+    if (distType !== null && typeof distType !== "undefined") {
+        distType = distType.toLowerCase();
+    }
+    console.log(distType);
+    return (district.name) ? district.name + " " : "" +
+           !(distType == "senate" || distType == "assembly" || distType == "congressional") ? district.district : "" +
+           (district.member) ? " - " + district.member.name : "" +
+           (district.senator) ? " - " + district.senator.name : "";
 }
 
 /**------------------------------------------------\
@@ -792,7 +796,7 @@ sage.controller("EmbeddedMapViewController", function($scope, responseService, u
                             : null);
                     }
                 });
-                mapService.setCenter(42.440510, -76.495460); // Centers the map nicely
+                mapService.setCenter(42.440510, -76.495460); // Centers the map nicely over NY
                 mapService.setZoom(7);
             }
             /** Show the individual district map */
