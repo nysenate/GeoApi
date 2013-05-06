@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
@@ -84,6 +85,17 @@ public class MapQuest implements AddressService, GeocodeService
             geocodeResult.setStatusCode(MISSING_POINT);
         }
         return geocodeResult;
+    }
+
+    /**
+     * Performs batch reverseGeocodes
+     * @param points    List<Point>
+     * @return          List<GeocodeResult>
+     */
+    @Override
+    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
+    {
+        return ParallelGeocodeService.reverseGeocode(this, points);
     }
 
     /**

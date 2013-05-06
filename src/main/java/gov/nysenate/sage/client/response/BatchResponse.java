@@ -6,10 +6,7 @@ public class BatchResponse<T>
 {
     protected List<T> results;
 
-    public BatchResponse( List<T> results)
-    {
-        this.results = results;
-    }
+    public BatchResponse() {}
 
     public List<T> getResults() {
         return results;

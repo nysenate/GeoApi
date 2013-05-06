@@ -1,14 +1,13 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.ApiError;
-import gov.nysenate.sage.client.response.GeocodeResponse;
-import gov.nysenate.sage.client.response.RevGeocodeResponse;
+import gov.nysenate.sage.client.response.*;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -16,6 +15,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
@@ -61,10 +62,12 @@ public class GeocodeController extends BaseApiController
             return;
         }
 
-        /** Handle single geocoding requests */
-        if (!apiRequest.isBatch()) {
-            switch (apiRequest.getRequest()) {
-                case "geocode": {
+
+        switch (apiRequest.getRequest()) {
+            case "geocode":
+            {
+                /** Handle single geocoding/revgeocoding requests */
+                if (!apiRequest.isBatch()) {
                     Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
                         geocodeResponse = new GeocodeResponse(
@@ -73,9 +76,24 @@ public class GeocodeController extends BaseApiController
                     else {
                         geocodeResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
                     }
-                    break;
                 }
-                case "revgeocode" : {
+                /** Handle batch geocoding requests */
+                else {
+                    List<Address> addresses = getAddressesFromJsonBody(request);
+                    if (addresses.size() > 0) {
+                        List<GeocodeResult> geocodeResults = geocodeServiceProvider.geocode(addresses);
+                        geocodeResponse = new BatchGeocodeResponse(geocodeResults);
+                    }
+                    else {
+                        geocodeResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
+                    }
+                }
+                break;
+            }
+            case "revgeocode" :
+            {
+                /** Handle single rev geocoding requests */
+                if (!apiRequest.isBatch()) {
                     Point point = getPointFromParams(request);
                     if (point != null ) {
                         geocodeResponse = new RevGeocodeResponse(reverseGeocode(point, provider));
@@ -83,17 +101,24 @@ public class GeocodeController extends BaseApiController
                     else {
                         geocodeResponse = new ApiError(this.getClass(), MISSING_POINT);
                     }
-                    break;
                 }
-                default: {
-                    geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
+                /** Handle batch rev geocoding requests */
+                else {
+                    List<Point> points = getPointsFromJsonBody(request);
+                    if (points.size() > 0) {
+                        List<GeocodeResult> revGeocodeResults = geocodeServiceProvider.reverseGeocode(points);
+                        geocodeResponse = new BatchGeocodeResponse(revGeocodeResults);
+                    }
+                    else {
+                        geocodeResponse = new ApiError(this.getClass(), INVALID_BATCH_POINTS);
+                    }
                 }
+                break;
+            }
+            default: {
+                geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
             }
         }
-        else {
-            geocodeResponse = new ApiError(this.getClass(), FEATURE_NOT_SUPPORTED);
-        }
-
         /** Set response */
         setApiResponse(geocodeResponse, request);
     }

@@ -94,6 +94,12 @@ public class TigerGeocoder implements GeocodeService
         return geocodeResult;
     }
 
+    @Override
+    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
+    {
+        return ParallelGeocodeService.reverseGeocode(this, points);
+    }
+
     /**
      * TigerGeocoder provides more of a confidence rating than a quality rating. For example a geocode
      * that has a high rating ( low ratings are better ) might turn out to be accurate but the

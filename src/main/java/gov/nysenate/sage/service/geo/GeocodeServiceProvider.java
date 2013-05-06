@@ -291,4 +291,33 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         }
         return geocodeResult;
     }
+
+    /**
+     * For batch reverse geocode, simply call the single reverse geocode method iteratively.
+     */
+    public List<GeocodeResult> reverseGeocode(List<Point> points)
+    {
+        return reverseGeocode(points, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK);
+    }
+
+    /**
+     * For batch reverse geocode, simply call the single reverse geocode method iteratively.
+     */
+    public List<GeocodeResult> reverseGeocode(List<Point> points, String provider)
+    {
+        return reverseGeocode(points, provider, DEFAULT_GEO_FALLBACK);
+    }
+
+    /**
+     * For batch reverse geocode, simply call the single reverse geocode method iteratively.
+     */
+    public List<GeocodeResult> reverseGeocode(List<Point> points, String provider, LinkedList<String> fallbackProviders)
+    {
+        List<GeocodeResult> geocodeResults = new ArrayList<>();
+        for (Point point : points) {
+            geocodeResults.add(reverseGeocode(point, provider, fallbackProviders, true));
+        }
+        return geocodeResults;
+    }
+
 }

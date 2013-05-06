@@ -21,6 +21,11 @@ public class Point
         this.lon = lon;
     }
 
+    public Point(String lat, String lon) {
+        this.lat = Double.parseDouble(lat);
+        this.lon = Double.parseDouble(lon);
+    }
+
     /**
      * Retrieve the latitude associated with this Point.*
      * @return the latitude as a double-precision number

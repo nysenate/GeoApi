@@ -6,6 +6,7 @@ import gov.nysenate.sage.filter.ApiFilter;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
@@ -16,6 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * The base API controller provides various common methods for the controllers
@@ -103,18 +106,32 @@ public abstract class BaseApiController extends HttpServlet
         ArrayList<Address> addresses = new ArrayList<>();
         try {
             String json = IOUtils.toString(r.getInputStream(), "UTF-8");
+            logger.debug("Batch address json body " + json);
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(json);
-            for ( int i = 0; i < root.size(); i++ ){
-                JsonNode node = root.get(i);
-                addresses.add(new Address(node.get("addr1").asText(), node.get("addr2").asText(),
-                                          node.get("city").asText(),  node.get("state").asText(),
-                                          node.get("zip5").asText(),  node.get("zip4").asText()));
-            }
+            return new ArrayList<>(Arrays.asList(mapper.readValue(json, Address[].class)));
         }
         catch(Exception ex){
             logger.error("Failed to get address from JSON body.", ex);
         }
         return addresses;
+    }
+
+    public static ArrayList<Point> getPointsFromJsonBody(HttpServletRequest r)
+    {
+        ArrayList<Point> points = new ArrayList<>();
+        try {
+            String json = IOUtils.toString(r.getInputStream(), "UTF-8");
+            logger.debug("Batch points json body " + json);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(json);
+            for (int i = 0; i < node.size(); i++) {
+                JsonNode point = node.get(i);
+                points.add(new Point(point.get("lat").asDouble(), point.get("lon").asDouble()));
+            }
+        }
+        catch(Exception ex){
+            logger.error("Failed to get points from JSON body.", ex);
+        }
+        return points;
     }
 }

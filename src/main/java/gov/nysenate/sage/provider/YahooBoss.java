@@ -140,10 +140,16 @@ public class YahooBoss implements GeocodeService, Observer
             logger.error(msg, e);
         }
         return null;
-    } // geocode()
+    }
 
     @Override
     public GeocodeResult reverseGeocode(Point point)
+    {
+        return null;
+    }
+
+    @Override
+    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {
         return null;
     }

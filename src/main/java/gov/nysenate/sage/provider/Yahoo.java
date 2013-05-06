@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
+import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -87,5 +88,10 @@ public class Yahoo implements GeocodeService
             geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
         }
         return geocodeResult;
+    }
+
+    @Override
+    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points) {
+        return ParallelGeocodeService.reverseGeocode(this, points);
     }
 }

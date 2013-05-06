@@ -58,6 +58,11 @@ public class GeoCache implements GeocodeCacheService
     }
 
     @Override
+    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points) {
+        throw new NotImplementedException("No reverse geocoding yet!");
+    }
+
+    @Override
     public void saveToCache(GeocodeResult geocodeResult)
     {
         if (geocodeResult != null && geocodeResult.isSuccess()) {

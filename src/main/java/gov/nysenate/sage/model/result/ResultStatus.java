@@ -35,6 +35,8 @@ public enum ResultStatus
     INVALID_GEOCODE(220, "The supplied geocoded coordinate pair is invalid."),
     INVALID_ZIPCODE(230, "The supplied zipcode is invalid."),
     INVALID_STATE(240, "The supplied state is invalid or is not supported."),
+    INVALID_BATCH_ADDRESSES(250, "The supplied batch address list could not be parsed."),
+    INVALID_BATCH_POINTS(260, "The supplied batch point list could not be parsed"),
 
     INSUFFICIENT_INPUT_PARAMS(300, "One or more parameters are insufficient."),
     INSUFFICIENT_ADDRESS(310, "The supplied address is missing one or more parameters."),
