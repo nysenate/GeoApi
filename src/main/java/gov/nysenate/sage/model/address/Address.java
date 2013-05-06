@@ -138,7 +138,7 @@ public class Address implements Serializable, Cloneable
 
     public void setZip5(String zip5)
     {
-        if (zip5 != null && !zip5.isEmpty()){
+        if (zip5 != null && !zip5.isEmpty() && !zip5.equalsIgnoreCase("null")){
             this.zip5 = StringUtils.leftPad(zip5, 5, "0");
         }
     }
@@ -150,7 +150,7 @@ public class Address implements Serializable, Cloneable
 
     public void setZip4(String zip4)
     {
-        if (zip4 != null && !zip4.isEmpty()){
+        if (zip4 != null && !zip4.isEmpty() && !zip5.equalsIgnoreCase("null")){
             this.zip4 = StringUtils.leftPad(zip4, 4, "0");
         }
     }

@@ -114,7 +114,6 @@ public class GeoCacheDao extends BaseDao
      */
     public synchronized void flushCacheBuffer()
     {
-        logger.info("Flushing cache buffer!");
         String sql = "INSERT INTO cache.geocache (bldgnum, predir, street, streettype, postdir, location, state, zip5," +
                                                 " latlon, method, quality) " +
                      "VALUES (?,?,?,?,?,?,?,?,ST_GeomFromText(?),?,?)";
@@ -126,28 +125,24 @@ public class GeoCacheDao extends BaseDao
                 Geocode gc = geocodedAddress.getGeocode();
                 if (getCacheHit(address) == null) {
                     StreetAddress sa = tigerGeocoderDao.getStreetAddress(geocodedAddress.getAddress());
-                    try {
-                        tigerRun.update(sql, Integer.valueOf(sa.getBldgNum()),
-                                sa.getPreDir(),
-                                sa.getStreet(),
-                                sa.getStreetType(),
-                                sa.getPostDir(),
-                                sa.getLocation(),
-                                sa.getState(),
-                                sa.getZip5(),
-                                "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
-                                gc.getMethod(),
-                                gc.getQuality().name());
+                    if (sa.getBldgNum() > 0 && sa.getStreet() != null && !sa.getStreet().startsWith("[")) {
+                        try {
+                            tigerRun.update(sql, Integer.valueOf(sa.getBldgNum()),
+                                    sa.getPreDir(), sa.getStreet(), sa.getStreetType(), sa.getPostDir(), sa.getLocation(),
+                                    sa.getState(), sa.getZip5(), "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
+                                    gc.getMethod(), gc.getQuality().name());
+                            logger.info("Saved " + sa.toString() + " in cache.");
+                        }
+                        catch(SQLException ex) {
+                            logger.trace(ex); // Most likely a duplicate row warning
+                        }
+                        catch(Exception ex) {
+                            logger.error(ex);
+                        }
                     }
-                    catch(SQLException ex) {
-                        logger.trace(ex); // Most likely a duplicate row warning
-                    }
-                    catch(Exception ex) {
-                        logger.error(ex);
-                    }
-                    finally {
-
-                    }
+                }
+                else {
+                    logger.debug(address + " already in cache.");
                 }
             }
         }
