@@ -105,7 +105,6 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                 if (districtStrategy == null) {
                     districtStrategy = SINGLE_DISTRICT_STRATEGY;
                 }
-
                 logger.info("Using district assign strategy: " + districtStrategy);
 
                 switch (districtStrategy) {
@@ -187,6 +186,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
 
     /** Batch District Assign ----------------------------------------------------------------------------------------*/
 
+    /**
+     * Assign standard districts. No maps or members.
+     * @param geocodedAddresses
+     * @return
+     */
     public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses) {
         return assignDistricts(geocodedAddresses, DistrictType.getStandardTypes());
     }
@@ -199,11 +203,21 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
      */
     public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses,
                                                 final List<DistrictType> districtTypes) {
-        return assignDistricts(geocodedAddresses, null, districtTypes, false, false);
+        return assignDistricts(geocodedAddresses, null, districtTypes, false, false, null);
     }
 
+    /**
+     *
+     * @param geocodedAddresses
+     * @param distProvider
+     * @param districtTypes
+     * @param getMembers
+     * @param getMaps
+     * @return
+     */
     public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final String distProvider,
-                                                final List<DistrictType> districtTypes, final boolean getMembers, final boolean getMaps)
+                                                final List<DistrictType> districtTypes, final boolean getMembers, final boolean getMaps,
+                                                DistrictStrategy districtStrategy)
     {
         ExecutorService districtExecutor;
         List<DistrictResult> districtResults = new ArrayList<>(), streetFileResults, shapeFileResults;
@@ -217,8 +231,14 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
             districtResults = districtService.assignDistricts(geocodedAddresses, districtTypes);
         }
         else {
+
+            if (districtStrategy == null) {
+                districtStrategy = BATCH_DISTRICT_STRATEGY;
+            }
+            logger.info("Using district assign strategy: " + districtStrategy);
+
             try {
-                switch (BATCH_DISTRICT_STRATEGY) {
+                switch (districtStrategy) {
                     case neighborMatch:
                         districtExecutor = Executors.newFixedThreadPool(2);
 
@@ -242,7 +262,6 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                         break;
 
                     case streetFallback:
-
                         districtExecutor = Executors.newFixedThreadPool(2);
 
                         streetFileCall = getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes, false);

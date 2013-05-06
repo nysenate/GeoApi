@@ -1,6 +1,7 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.ApiError;
+import gov.nysenate.sage.client.response.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.DistrictResponse;
 import gov.nysenate.sage.client.response.MappedDistrictResponse;
 import gov.nysenate.sage.factory.ApplicationFactory;
@@ -25,6 +26,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -37,11 +40,11 @@ public class DistrictController extends BaseApiController implements Observer
     private static AddressServiceProvider addressProvider = ApplicationFactory.getAddressServiceProvider();
     private static DistrictServiceProvider districtProvider = ApplicationFactory.getDistrictServiceProvider();
     private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
-    private static String bluebirdDistrictStrategy;
+    private static String BLUEBIRD_DISTRICT_STRATEGY;
 
     @Override
     public void update(Observable o, Object arg) {
-        bluebirdDistrictStrategy = appConfig.getValue("district.strategy.bluebird");
+        BLUEBIRD_DISTRICT_STRATEGY = appConfig.getValue("district.strategy.bluebird");
     }
 
     @Override
@@ -61,7 +64,7 @@ public class DistrictController extends BaseApiController implements Observer
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        Object districtResponse;
+        Object districtResponse = null;
 
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
@@ -98,14 +101,13 @@ public class DistrictController extends BaseApiController implements Observer
             return;
         }
 
-        /** Handle single request */
-        if (!apiRequest.isBatch()) {
-
-            Address address = getAddressFromParams(request);
-
-            switch (apiRequest.getRequest())
+        switch (apiRequest.getRequest())
+        {
+            case "assign":
             {
-                case "assign":
+                /** Handle single assign request */
+                if (!apiRequest.isBatch()) {
+                    Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
                         DistrictResult districtResult = districtAssign(address, provider, geoProvider, uspsValidate,
                                 !skipGeocode, showMembers, showMaps, districtStrategy);
@@ -122,25 +124,53 @@ public class DistrictController extends BaseApiController implements Observer
                             districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
                         }
                     }
-                    break;
-
-                case "bluebird":
+                }
+                /** Handle batch assign request */
+                else {
+                    List<Address> addresses = getAddressesFromJsonBody(request);
+                    if (addresses.size() > 0) {
+                        List<DistrictResult> districtResults =
+                                districtAssign(addresses, provider, geoProvider, uspsValidate, !skipGeocode, showMembers,
+                                               false, districtStrategy);
+                        districtResponse = new BatchDistrictResponse(districtResults);
+                    }
+                    else {
+                        districtResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
+                    }
+                }
+                break;
+            }
+            case "bluebird":
+            {
+                /** Handle single bluebird assign */
+                if (!apiRequest.isBatch()) {
+                    Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
                         districtResponse = new DistrictResponse(
-                                districtAssign(address, null, null, true, true, false, false, bluebirdDistrictStrategy));
+                                districtAssign(address, null, null, true, true, false, false, BLUEBIRD_DISTRICT_STRATEGY));
                     }
                     else {
                         districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
                     }
-                    break;
-
-                default :
-                    districtResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
+                }
+                /** Handle batch bluebird assign */
+                else {
+                    logger.info("Batch bluebird district assign");
+                    List<Address> addresses = getAddressesFromJsonBody(request);
+                    if (addresses.size() > 0) {
+                        List<DistrictResult> districtResults =
+                                districtAssign(addresses, null, null, true, true, false, false, BLUEBIRD_DISTRICT_STRATEGY);
+                        districtResponse = new BatchDistrictResponse(districtResults);
+                    }
+                    else {
+                        districtResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
+                    }
+                }
+                break;
             }
-        }
-        /** Handle batch request */
-        else {
-            districtResponse = new ApiError(this.getClass(), FEATURE_NOT_SUPPORTED);
+            default : {
+                districtResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
+            }
         }
 
         setApiResponse(districtResponse, request);
@@ -176,6 +206,47 @@ public class DistrictController extends BaseApiController implements Observer
         }
 
         return districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
+                                                showMembers, showMaps, strategy);
+    }
+
+    /**
+     * Utilizes the service providers to perform batch address validation, geo-coding, and district assignment for an address.
+     * @return List<DistrictResult>
+     */
+    private List<DistrictResult> districtAssign(List<Address> addresses, String provider, String geoProvider, Boolean uspsValidate,
+                                          Boolean performGeocode, Boolean showMembers, Boolean showMaps, String districtStrategy)
+    {
+        List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
+        for (Address address : addresses) {
+            geocodedAddresses.add(new GeocodedAddress(address));
+        }
+
+        if (performGeocode) {
+            List<GeocodeResult> geocodeResults =
+                    (geoProvider != null) ? geocodeProvider.geocode(addresses, geoProvider, false, false) : geocodeProvider.geocode(addresses);
+            for (int i = 0; i < geocodeResults.size(); i++) {
+                geocodedAddresses.set(i, geocodeResults.get(i).getGeocodedAddress());
+            }
+        }
+
+        if (uspsValidate) {
+            List<AddressResult> addressResults = addressProvider.newInstance("usps").validate((ArrayList) addresses);
+            for (int i = 0; i < addressResults.size(); i++) {
+                if (addressResults.get(i).isValidated() && !geocodedAddresses.isEmpty()) {
+                    geocodedAddresses.get(i).setAddress(addressResults.get(i).getAddress());
+                }
+            }
+        }
+
+        DistrictServiceProvider.DistrictStrategy strategy;
+        try {
+            strategy = DistrictServiceProvider.DistrictStrategy.valueOf(districtStrategy);
+        }
+        catch (Exception ex) {
+            strategy = null;
+        }
+
+        return districtProvider.assignDistricts(geocodedAddresses, provider, DistrictType.getStandardTypes(),
                                                 showMembers, showMaps, strategy);
     }
 

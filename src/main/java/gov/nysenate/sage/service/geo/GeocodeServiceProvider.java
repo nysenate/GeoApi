@@ -157,7 +157,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      * @param useFallback       Set true to use default fallback
      * @return                  List<GeocodeResult> corresponding to the addresses list.
      */
-    public List<GeocodeResult> geocode(List<Address> addresses, String provider, boolean useFallback)
+    public List<GeocodeResult> geocode(List<Address> addresses, String provider, boolean useFallback, boolean useCache)
     {
         return this.geocode(addresses, provider, DEFAULT_GEO_FALLBACK, useFallback, true);
     }
