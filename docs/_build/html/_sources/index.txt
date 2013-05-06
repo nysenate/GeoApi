@@ -476,9 +476,11 @@ a corrected address response from the geocode provider or is the result of USPS 
 The ``geocode`` contains the coordinates that were used to perform district assignment. The ``districts`` object contains all
 the district types supported by the service. ``district`` refers to the code or number that represents the district.
 
-If ``showMaps`` is set to true the ``districts`` portion of the response will be different::
+If ``showMaps`` is set to true::
 
     /api/v2/district/assign?addr=280 Madison Ave, NY&showMaps=true
+
+the ``districts`` portion of the response will be different::
 
     {
       "status" : "SUCCESS",
@@ -626,6 +628,24 @@ for that district. Any district that does not have any map data associated with 
      Not all district types have polygon data available. Currently only senate, assembly, congressional, county, town,
      and school maps are available. However the other district types may be supported in the future.
 
+By default district assignment attempts to assign the following districts: senate, assembly, congressional, county, town, and school.
+Typically when using shape files all of those districts will be assigned. However if using street files they may not be.
+
+In that event a partial district assign status is returned and looks something like::
+
+    {
+      "status" : "PARTIAL_DISTRICT_RESULT",
+      "source" : "StreetFile",
+      "messages" : [ ],
+      ... (truncated data) ...
+      "districtAssigned" : true,
+      "statusCode" : 402,
+      "description" : "District assignment only yielded some of the districts requested."
+    }
+
+Therefore both ``SUCCESS`` and ``PARTIAL_DISTRICT_ASSIGN`` statuses represent proper district assignments. Alternatively the ``districtAssigned``
+field can also be used to check for a valid response.
+
 District assignment via coordinate pairs is also supported::
 
     /api/v2/district/assign?lat=40.751352&lon=-73.980335
@@ -716,6 +736,17 @@ The response is::
         "town" : "-ALBAN"
       },
       ... ]
+    }
+
+An invalid response, typically due to a non matching zip code is::
+
+    {
+      "status" : "NO_STREET_LOOKUP_RESULT",
+      "source" : "StreetController",
+      "messages" : [ ],
+      "streets" : [ ],
+      "statusCode" : 430,
+      "description" : "Street lookup returned no results for the given zip5"
     }
 
 Map
@@ -839,6 +870,104 @@ Sample member data for assembly and congressional districts::
         "name" : "Thiele, Jr., Fred ",
         "url" : "http://assembly.state.ny.us/mem/Fred-W-Thiele-Jr"
     }
+
+Status Codes
+~~~~~~~~~~~~
+
+The following table lists all status codes. A positive response will usually have a status code of 0 while the rest are
+generally error statuses:
+
++----------------------------------+------+---------------------------------------------------------------------------------+
+| Status                           | Code | Description                                                                     |
++==================================+======+=================================================================================+
+| SUCCESS                          | 0    | Success                                                                         |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| SERVICE_NOT_SUPPORTED            | 1    | The requested service is unsupported                                            |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| FEATURE_NOT_SUPPORTED            | 2    | The requested feature is unsupported                                            |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| PROVIDER_NOT_SUPPORTED           | 3    | The requested provider is unsupported                                           |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| ADDRESS_PROVIDER_NOT_SUPPORTED   | 4    | The requested address provider is unsupported                                   |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| GEOCODE_PROVIDER_NOT_SUPPORTED   | 5    | The requested geocoding provider is unsupported                                 |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| DISTRICT_PROVIDER_NOT_SUPPORTED  | 6    | The requested district assignment provider is unsupported                       |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| API_KEY_INVALID                  | 10   | The supplied API key could not be authenticated                                 |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| API_KEY_MISSING                  | 11   | An API key is required                                                          |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| API_REQUEST_INVALID              | 20   | The request is not in a valid format. Check the documentation for proper usage  |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| API_INPUT_FORMAT_UNSUPPORTED     | 21   | The requested input format is currently not supported                           |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| API_OUTPUT_FORMAT_UNSUPPORTED    | 22   | The requested output format is currently not supported                          |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| JSONP_CALLBACK_NOT_SPECIFIED     | 23   | A callback signature must be specified as a parameter e.g &callback=method")    |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| RESPONSE_MISSING_ERROR           | 90   | No response from service provider                                               |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| RESPONSE_PARSE_ERROR             | 91   | Error parsing response from service provider                                    |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| MISSING_INPUT_PARAMS             | 100  | One or more parameters are missing                                              |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| MISSING_ADDRESS                  | 110  | An address is required                                                          |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| MISSING_GEOCODE                  | 120  | A valid geocoded coordinate pair is required                                    |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| MISSING_ZIPCODE                  | 130  | A zipcode is required                                                           |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| MISSING_STATE                    | 140  | A state is required                                                             |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| MISSING_POINT                    | 150  | A coordinate pair is required                                                   |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| MISSING_GEOCODED_ADDRESS         | 160  | A valid geocoded address is required                                            |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| INVALID_INPUT_PARAMS             | 200  | One or more parameters are invalid                                              |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| INVALID_ADDRESS                  | 210  | The supplied address is invalid                                                 |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| INVALID_GEOCODE                  | 220  | The supplied geocoded coordinate pair is invalid                                |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| INVALID_ZIPCODE                  | 230  | The supplied zipcode is invalid                                                 |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| INVALID_STATE                    | 240  | The supplied state is invalid or is not supported                               |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| INSUFFICIENT_INPUT_PARAMS        | 300  | One or more parameters are insufficient                                         |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| INSUFFICIENT_ADDRESS             | 310  | The supplied address is missing one or more parameters                          |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| INSUFFICIENT_GEOCODE             | 310  | The supplied geocoded is missing one or more parameters                         |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| NO_DISTRICT_RESULT               | 400  | District assignment returned no results                                         |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| MULTIPLE_DISTRICT_RESULT         | 401  | Multiple matches were found for certain districts                               |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| PARTIAL_DISTRICT_RESULT          | 402  | District assignment only yielded some of the districts requested                |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| NO_GEOCODE_RESULT                | 410  | Geocode service returned no results                                             |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| NO_REVERSE_GEOCODE_RESULT        | 411  | Reverse Geocode service returned no results                                     |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| NO_ADDRESS_VALIDATE_RESULT       | 420  | The address could not be validated                                              |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| NO_STREET_LOOKUP_RESULT          | 430  | Street lookup returned no results for the given zip5                            |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| NO_MAP_RESULT                    | 450  | Map request returned no results                                                 |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| UNSUPPORTED_DISTRICT_MAP         | 460  | Maps for the requested district type are not available                          |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| MISSING_DISTRICT_CODE            | 470  | A district code is required                                                     |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| INTERNAL_ERROR                   | 500  | Internal Server Error                                                           |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| DATABASE_ERROR                   | 501  | Database Error                                                                  |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| RESPONSE_ERROR                   | 502  | Application failed to provide a response                                        |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| RESPONSE_SERIALIZATION_ERROR     | 503  | Failed to serialize response                                                    |
++----------------------------------+------+---------------------------------------------------------------------------------+
 
 .. toctree::
    :maxdepth: 2

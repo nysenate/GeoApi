@@ -619,10 +619,11 @@ provider or geoProvider is not recommended as it may reduce the accuracy of the 
 a corrected address response from the geocode provider or is the result of USPS correction if <tt class="docutils literal"><span class="pre">uspsValidate</span></tt> is set to true.
 The <tt class="docutils literal"><span class="pre">geocode</span></tt> contains the coordinates that were used to perform district assignment. The <tt class="docutils literal"><span class="pre">districts</span></tt> object contains all
 the district types supported by the service. <tt class="docutils literal"><span class="pre">district</span></tt> refers to the code or number that represents the district.</p>
-<p>If <tt class="docutils literal"><span class="pre">showMaps</span></tt> is set to true the <tt class="docutils literal"><span class="pre">districts</span></tt> portion of the response will be different:</p>
-<div class="highlight-python"><pre>/api/v2/district/assign?addr=280 Madison Ave, NY&amp;showMaps=true
-
-{
+<p>If <tt class="docutils literal"><span class="pre">showMaps</span></tt> is set to true:</p>
+<div class="highlight-python"><pre>/api/v2/district/assign?addr=280 Madison Ave, NY&amp;showMaps=true</pre>
+</div>
+<p>the <tt class="docutils literal"><span class="pre">districts</span></tt> portion of the response will be different:</p>
+<div class="highlight-python"><pre>{
   "status" : "SUCCESS",
   "source" : "DistrictShapefile",
   "messages" : [ ],
@@ -769,6 +770,21 @@ e.g geom[0] -&gt; array of coordinate pairs (represented as [lat, lon]) of the f
 <p class="last">Not all district types have polygon data available. Currently only senate, assembly, congressional, county, town,
 and school maps are available. However the other district types may be supported in the future.</p>
 </div>
+<p>By default district assignment attempts to assign the following districts: senate, assembly, congressional, county, town, and school.
+Typically when using shape files all of those districts will be assigned. However if using street files they may not be.</p>
+<p>In that event a partial district assign status is returned and looks something like:</p>
+<div class="highlight-python"><pre>{
+  "status" : "PARTIAL_DISTRICT_RESULT",
+  "source" : "StreetFile",
+  "messages" : [ ],
+  ... (truncated data) ...
+  "districtAssigned" : true,
+  "statusCode" : 402,
+  "description" : "District assignment only yielded some of the districts requested."
+}</pre>
+</div>
+<p>Therefore both <tt class="docutils literal"><span class="pre">SUCCESS</span></tt> and <tt class="docutils literal"><span class="pre">PARTIAL_DISTRICT_ASSIGN</span></tt> statuses represent proper district assignments. Alternatively the <tt class="docutils literal"><span class="pre">districtAssigned</span></tt>
+field can also be used to check for a valid response.</p>
 <p>District assignment via coordinate pairs is also supported:</p>
 <div class="highlight-python"><pre>/api/v2/district/assign?lat=40.751352&amp;lon=-73.980335</pre>
 </div>
@@ -862,6 +878,17 @@ Board of Election Street File data and can be searched via zip code.</p>
   },
   ... ]
 }</pre>
+</div>
+<p>An invalid response, typically due to a non matching zip code is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_STREET_LOOKUP_RESULT&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;StreetController&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;streets&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">430</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Street lookup returned no results for the given zip5&quot;</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 </div>
 <div class="section" id="map">
@@ -1005,10 +1032,206 @@ actually represent the district type to retrieve maps for. The available methods
     "url" : "http://assembly.state.ny.us/mem/Fred-W-Thiele-Jr"
 }</pre>
 </div>
+</div>
+</div>
+<div class="section" id="status-codes">
+<h2>Status Codes<a class="headerlink" href="#status-codes" title="Permalink to this headline">¶</a></h2>
+<p>The following table lists all status codes. A positive response will usually have a status code of 0 while the rest are
+generally error statuses:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%" />
+<col width="5%" />
+<col width="67%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Status</th>
+<th class="head">Code</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>SUCCESS</td>
+<td>0</td>
+<td>Success</td>
+</tr>
+<tr class="row-odd"><td>SERVICE_NOT_SUPPORTED</td>
+<td>1</td>
+<td>The requested service is unsupported</td>
+</tr>
+<tr class="row-even"><td>FEATURE_NOT_SUPPORTED</td>
+<td>2</td>
+<td>The requested feature is unsupported</td>
+</tr>
+<tr class="row-odd"><td>PROVIDER_NOT_SUPPORTED</td>
+<td>3</td>
+<td>The requested provider is unsupported</td>
+</tr>
+<tr class="row-even"><td>ADDRESS_PROVIDER_NOT_SUPPORTED</td>
+<td>4</td>
+<td>The requested address provider is unsupported</td>
+</tr>
+<tr class="row-odd"><td>GEOCODE_PROVIDER_NOT_SUPPORTED</td>
+<td>5</td>
+<td>The requested geocoding provider is unsupported</td>
+</tr>
+<tr class="row-even"><td>DISTRICT_PROVIDER_NOT_SUPPORTED</td>
+<td>6</td>
+<td>The requested district assignment provider is unsupported</td>
+</tr>
+<tr class="row-odd"><td>API_KEY_INVALID</td>
+<td>10</td>
+<td>The supplied API key could not be authenticated</td>
+</tr>
+<tr class="row-even"><td>API_KEY_MISSING</td>
+<td>11</td>
+<td>An API key is required</td>
+</tr>
+<tr class="row-odd"><td>API_REQUEST_INVALID</td>
+<td>20</td>
+<td>The request is not in a valid format. Check the documentation for proper usage</td>
+</tr>
+<tr class="row-even"><td>API_INPUT_FORMAT_UNSUPPORTED</td>
+<td>21</td>
+<td>The requested input format is currently not supported</td>
+</tr>
+<tr class="row-odd"><td>API_OUTPUT_FORMAT_UNSUPPORTED</td>
+<td>22</td>
+<td>The requested output format is currently not supported</td>
+</tr>
+<tr class="row-even"><td>JSONP_CALLBACK_NOT_SPECIFIED</td>
+<td>23</td>
+<td>A callback signature must be specified as a parameter e.g &amp;callback=method&#8221;)</td>
+</tr>
+<tr class="row-odd"><td>RESPONSE_MISSING_ERROR</td>
+<td>90</td>
+<td>No response from service provider</td>
+</tr>
+<tr class="row-even"><td>RESPONSE_PARSE_ERROR</td>
+<td>91</td>
+<td>Error parsing response from service provider</td>
+</tr>
+<tr class="row-odd"><td>MISSING_INPUT_PARAMS</td>
+<td>100</td>
+<td>One or more parameters are missing</td>
+</tr>
+<tr class="row-even"><td>MISSING_ADDRESS</td>
+<td>110</td>
+<td>An address is required</td>
+</tr>
+<tr class="row-odd"><td>MISSING_GEOCODE</td>
+<td>120</td>
+<td>A valid geocoded coordinate pair is required</td>
+</tr>
+<tr class="row-even"><td>MISSING_ZIPCODE</td>
+<td>130</td>
+<td>A zipcode is required</td>
+</tr>
+<tr class="row-odd"><td>MISSING_STATE</td>
+<td>140</td>
+<td>A state is required</td>
+</tr>
+<tr class="row-even"><td>MISSING_POINT</td>
+<td>150</td>
+<td>A coordinate pair is required</td>
+</tr>
+<tr class="row-odd"><td>MISSING_GEOCODED_ADDRESS</td>
+<td>160</td>
+<td>A valid geocoded address is required</td>
+</tr>
+<tr class="row-even"><td>INVALID_INPUT_PARAMS</td>
+<td>200</td>
+<td>One or more parameters are invalid</td>
+</tr>
+<tr class="row-odd"><td>INVALID_ADDRESS</td>
+<td>210</td>
+<td>The supplied address is invalid</td>
+</tr>
+<tr class="row-even"><td>INVALID_GEOCODE</td>
+<td>220</td>
+<td>The supplied geocoded coordinate pair is invalid</td>
+</tr>
+<tr class="row-odd"><td>INVALID_ZIPCODE</td>
+<td>230</td>
+<td>The supplied zipcode is invalid</td>
+</tr>
+<tr class="row-even"><td>INVALID_STATE</td>
+<td>240</td>
+<td>The supplied state is invalid or is not supported</td>
+</tr>
+<tr class="row-odd"><td>INSUFFICIENT_INPUT_PARAMS</td>
+<td>300</td>
+<td>One or more parameters are insufficient</td>
+</tr>
+<tr class="row-even"><td>INSUFFICIENT_ADDRESS</td>
+<td>310</td>
+<td>The supplied address is missing one or more parameters</td>
+</tr>
+<tr class="row-odd"><td>INSUFFICIENT_GEOCODE</td>
+<td>310</td>
+<td>The supplied geocoded is missing one or more parameters</td>
+</tr>
+<tr class="row-even"><td>NO_DISTRICT_RESULT</td>
+<td>400</td>
+<td>District assignment returned no results</td>
+</tr>
+<tr class="row-odd"><td>MULTIPLE_DISTRICT_RESULT</td>
+<td>401</td>
+<td>Multiple matches were found for certain districts</td>
+</tr>
+<tr class="row-even"><td>PARTIAL_DISTRICT_RESULT</td>
+<td>402</td>
+<td>District assignment only yielded some of the districts requested</td>
+</tr>
+<tr class="row-odd"><td>NO_GEOCODE_RESULT</td>
+<td>410</td>
+<td>Geocode service returned no results</td>
+</tr>
+<tr class="row-even"><td>NO_REVERSE_GEOCODE_RESULT</td>
+<td>411</td>
+<td>Reverse Geocode service returned no results</td>
+</tr>
+<tr class="row-odd"><td>NO_ADDRESS_VALIDATE_RESULT</td>
+<td>420</td>
+<td>The address could not be validated</td>
+</tr>
+<tr class="row-even"><td>NO_STREET_LOOKUP_RESULT</td>
+<td>430</td>
+<td>Street lookup returned no results for the given zip5</td>
+</tr>
+<tr class="row-odd"><td>NO_MAP_RESULT</td>
+<td>450</td>
+<td>Map request returned no results</td>
+</tr>
+<tr class="row-even"><td>UNSUPPORTED_DISTRICT_MAP</td>
+<td>460</td>
+<td>Maps for the requested district type are not available</td>
+</tr>
+<tr class="row-odd"><td>MISSING_DISTRICT_CODE</td>
+<td>470</td>
+<td>A district code is required</td>
+</tr>
+<tr class="row-even"><td>INTERNAL_ERROR</td>
+<td>500</td>
+<td>Internal Server Error</td>
+</tr>
+<tr class="row-odd"><td>DATABASE_ERROR</td>
+<td>501</td>
+<td>Database Error</td>
+</tr>
+<tr class="row-even"><td>RESPONSE_ERROR</td>
+<td>502</td>
+<td>Application failed to provide a response</td>
+</tr>
+<tr class="row-odd"><td>RESPONSE_SERIALIZATION_ERROR</td>
+<td>503</td>
+<td>Failed to serialize response</td>
+</tr>
+</tbody>
+</table>
 <div class="toctree-wrapper compound">
 <ul class="simple">
 </ul>
-</div>
 </div>
 </div>
 </div>
@@ -1034,9 +1257,10 @@ actually represent the district type to retrieve maps for. The available methods
 </ul>
 </li>
 <li><a class="reference internal" href="#street">Street</a></li>
-<li><a class="reference internal" href="#map">Map</a><ul>
+<li><a class="reference internal" href="#map">Map</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#status-codes">Status Codes</a><ul>
 </ul>
 </li>
 </ul>
