@@ -25,8 +25,6 @@ import java.util.List;
  */
 public class GenerateMetadata
 {
-    private static final int MAX_DISTRICTS = 63;
-    private Logger logger = Logger.getLogger(GenerateMetadata.class);
     private Config config;
 
     public GenerateMetadata()
@@ -36,6 +34,11 @@ public class GenerateMetadata
 
     public static void main(String[] args) throws Exception
     {
+        if (args.length == 1) {
+            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s] [--maps|-m]");
+            System.exit(1);
+        }
+
         /** Load up the configuration settings */
         if (!ApplicationFactory.buildInstances()){
             System.err.println("Failed to configure application config");
@@ -44,24 +47,18 @@ public class GenerateMetadata
 
         GenerateMetadata generateMetadata = new GenerateMetadata();
 
-        if (args.length == 0) {
-            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s] [--maps|-m]");
-            System.exit(1);
-        }
-
         boolean processAssembly = false;
         boolean processCongress = false;
         boolean processSenate = false;
-        boolean generateMaps = false;
 
-        for (int i = 0; i < args.length; i++) {
+        for (int i = 1; i < args.length; i++) {
 
             String arg = args[i];
+            System.out.println(arg);
             if (arg.equals("--all")) {
                 processAssembly = true;
                 processSenate = true;
                 processCongress = true;
-                generateMaps = true;
             }
             else if (arg.equals("--assembly") || arg.equals("-a")) {
                 processAssembly = true;
@@ -71,9 +68,6 @@ public class GenerateMetadata
             }
             else if (arg.equals("--senate") || arg.equals("-s")) {
                 processSenate = true;
-            }
-            else if (arg.equals("--maps") || arg.equals("-m")) {
-                generateMaps = true;
             }
             else {
                 System.err.println(arg+": Invalid option");
@@ -90,12 +84,6 @@ public class GenerateMetadata
 
         if (processSenate) {
             generateMetadata.generateSenateData();
-        }
-
-        if (generateMaps) {
-            File writeDir = new File(generateMetadata.config.getValue("district_maps.dir"));
-            System.out.println("Generating map data for all NYSenate districts; output will be in " + writeDir.getCanonicalPath());
-            generateDistrictMapData(writeDir);
         }
     }
 
@@ -169,11 +157,6 @@ public class GenerateMetadata
             /** Senator table will contain all of the senator information */
             senateDao.insertSenator(senator);
         }
-    }
-
-    private static void generateDistrictMapData(File outDir)
-    {
-        return;
     }
 }
 
