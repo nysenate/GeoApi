@@ -178,13 +178,10 @@ public class DistrictShapefileDao extends BaseDao
         return DistrictShapeCode.getNameColumn(districtType);
     }
 
-    private String resolveSRID(DistrictType districtType) {
-        if (districtType.equals(DistrictType.SENATE)) {
-            return "4269";
-        }
-        else {
-            return "4326";
-        }
+    /** Convenience method to access DistrictShapeCode */
+    private String resolveSRID(DistrictType districtType)
+    {
+        return DistrictShapeCode.getSridColumn(districtType);
     }
 
     /**

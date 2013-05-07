@@ -13,6 +13,8 @@ public enum DistrictShapeCode
 
     private static HashMap<DistrictType, String> nameColumn = new java.util.HashMap<>();
     private static HashMap<DistrictType, String> codeColumn = new HashMap<>();
+    private static HashMap<DistrictType, String> sridColumn = new HashMap<>();
+
     static {
         nameColumn.put(DistrictType.SENATE, "NAMELSAD");
         nameColumn.put(DistrictType.CONGRESSIONAL, "NAME");
@@ -27,6 +29,13 @@ public enum DistrictShapeCode
         codeColumn.put(DistrictType.COUNTY, "COUNTYFP");
         codeColumn.put(DistrictType.SCHOOL, "TFCODE");
         codeColumn.put(DistrictType.TOWN, "ABBREV");
+
+        sridColumn.put(DistrictType.SENATE, "4269");
+        sridColumn.put(DistrictType.CONGRESSIONAL, "4326");
+        sridColumn.put(DistrictType.ASSEMBLY, "4326");
+        sridColumn.put(DistrictType.COUNTY, "4326");
+        sridColumn.put(DistrictType.SCHOOL, "4326");
+        sridColumn.put(DistrictType.TOWN, "4326");
     }
 
     public static boolean contains(DistrictType districtType)
@@ -42,5 +51,10 @@ public enum DistrictShapeCode
     public static String getCodeColumn(DistrictType districtType)
     {
         return codeColumn.get(districtType);
+    }
+
+    public static String getSridColumn(DistrictType districtType)
+    {
+        return sridColumn.get(districtType);
     }
 }
