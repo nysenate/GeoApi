@@ -99,7 +99,7 @@ types for the <tt class="docutils literal"><span class="pre">group</span></tt> s
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="common-query-parameters">
-<h3>Common Query Parameters<a class="headerlink" href="#common-query-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="id1"></span><h3>Common Query Parameters<a class="headerlink" href="#common-query-parameters" title="Permalink to this headline">¶</a></h3>
 <p>Many of the methods listed below follow a similar convention for inputting addresses or geo-coordinates.
 To supply a single address string use the parameter <tt class="docutils literal"><span class="pre">addr</span></tt>:</p>
 <div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?addr=200 State St, Albany NY 12210</pre>
@@ -110,7 +110,7 @@ To supply a single address string use the parameter <tt class="docutils literal"
 <p>Geo-coordinate pairs can be supplied to the appropriate method using <tt class="docutils literal"><span class="pre">lat</span></tt> and <tt class="docutils literal"><span class="pre">lon</span></tt>:</p>
 <div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?lat=43.00&amp;lon=-73.10</pre>
 </div>
-<p>Address, Geo, and District API calls allow for specifying a provider to carry out the request:</p>
+<p>Address, Geo, and District API calls allow for specifying a <tt class="docutils literal"><span class="pre">provider</span></tt> to carry out the request:</p>
 <div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?provider=PROVIDER_NAME</pre>
 </div>
 </div>
@@ -344,6 +344,8 @@ is missing those fields, USPS will not be used to perform validation and another
 <p>For example to use just yahoo without falling back to other providers in case of error:</p>
 <div class="highlight-python"><pre>/api/v2/geo/&lt;method&gt;?&lt;params..&gt;&amp;provider=yahoo&amp;useFallback=false</pre>
 </div>
+<div class="section" id="geocode">
+<h4>Geocode<a class="headerlink" href="#geocode" title="Permalink to this headline">¶</a></h4>
 <p>The usage of <tt class="docutils literal"><span class="pre">geocode</span></tt> with an address input:</p>
 <div class="highlight-python"><pre>/api/v2/geo/geocode?addr=200 State St, Albany NY 12210
 /api/v2/geo/geocode?addr1=200 State St&amp;city=Albany&amp;state=NY&amp;zip5=12210</pre>
@@ -398,6 +400,9 @@ one of the following quality levels ordered from most accurate to least:</p>
 </pre></div>
 </div>
 <p>A <tt class="docutils literal"><span class="pre">RESPONSE_PARSE_ERROR</span></tt> status will also indicate a failed geocode operation.</p>
+</div>
+<div class="section" id="reverse-geocode">
+<h4>Reverse Geocode<a class="headerlink" href="#reverse-geocode" title="Permalink to this headline">¶</a></h4>
 <p>The usage of <tt class="docutils literal"><span class="pre">revgeocode</span></tt> with a coordinate pair input:</p>
 <div class="highlight-python"><pre>api/v2/geo/revgeocode?lat=42.652030&amp;lon=-73.757590</pre>
 </div>
@@ -427,6 +432,87 @@ one of the following quality levels ordered from most accurate to least:</p>
 </pre></div>
 </div>
 <p>It is identical to the geocode response except for the <tt class="docutils literal"><span class="pre">revGeocoded</span></tt> field that indicates whether the reverse geocoding succeeded.</p>
+</div>
+<div class="section" id="batch-geocode">
+<span id="id2"></span><h4>Batch Geocode<a class="headerlink" href="#batch-geocode" title="Permalink to this headline">¶</a></h4>
+<p>Multiple addresses can be geocoded with a single query using the batch api call.
+The format of the batch geocoding call is:</p>
+<div class="highlight-python"><pre>/api/v2/geo/geocode/batch</pre>
+</div>
+<p>The format of the batch reverse geocoding call is:</p>
+<div class="highlight-python"><pre>/api/v2/geo/revgeocode/batch</pre>
+</div>
+<p>The addresses for geocoding and points for reverse geocoding must be JSON encoded and sent in the POST request payload.
+The fields are identical to the query parameter fields for both address and point. Likewise any options can be specified
+the same way as the single request version. For example to specify provider:</p>
+<div class="highlight-python"><pre>/api/v2/geo/geocode/batch?provider=PROVIDER_NAME</pre>
+</div>
+<p>A sample batch geocoding request in PHP:</p>
+<div class="highlight-python"><pre>&lt;?php
+$addresses = array(
+    array(
+        "addr1" =&gt; "100 Nyroy Dr",
+        "city" =&gt; "Troy",
+        "state" =&gt; "NY",
+        "zip5" =&gt; "12180"
+    ),
+    array(
+        "addr1" =&gt; "44 Fairlawn Ave",
+        "city" =&gt; "Albany",
+        "state" =&gt; "NY",
+        "zip5" =&gt; "12203"
+    )
+);
+
+$post_body = json_encode($addresses);
+
+$ch = curl_init("http://localhost:8080/GeoApi/geo/geocode/batch");
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+    'Content-Type: application/json',
+    'Content-Length: ' . strlen($post_body)
+));
+
+$result = curl_exec($ch);</pre>
+</div>
+<p>And the response:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>  <span class="s">&quot;results&quot;</span> <span class="p">:[</span>
+    <span class="p">{</span> <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
+      <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;GeoCache&quot;</span><span class="p">,</span> <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+      <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;100 Nyroy Dr&quot;</span><span class="p">,</span> <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Troy&quot;</span><span class="p">,</span> <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span> <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12180&quot;</span><span class="p">,</span> <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span> <span class="p">},</span>
+      <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.741112</span><span class="p">,</span> <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.668762</span><span class="p">,</span> <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span> <span class="p">},</span> <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span> <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
+      <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;GeoCache&quot;</span><span class="p">,</span>
+      <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+      <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span> <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Albany&quot;</span><span class="p">,</span> <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span> <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12203&quot;</span><span class="p">,</span> <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span> <span class="p">},</span>
+      <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.670583</span><span class="p">,</span> <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.799606</span><span class="p">,</span> <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span> <span class="p">},</span>
+      <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span> <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+    <span class="p">}</span>
+  <span class="p">],</span>
+  <span class="s">&quot;total&quot;</span> <span class="p">:</span> <span class="mi">2</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The results array consists of the same geocode responses that would be returned using the single geocode call.
+The <tt class="docutils literal"><span class="pre">total</span></tt> field simply indicates the number of records returned. The order of the results should match the
+order of the addresses in the JSON payload.</p>
+<p>In the event that the payload fails to parse, the response will be:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;INVALID_BATCH_ADDRESSES&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;GeocodeController&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;The supplied batch address list could not be parsed.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Refer to <a class="reference internal" href="#common-query-parameters"><em>Common Query Parameters</em></a> to ensure that the correct fields are being used.</p>
+</div>
 </div>
 <div class="section" id="district">
 <h3>District<a class="headerlink" href="#district" title="Permalink to this headline">¶</a></h3>
@@ -821,6 +907,143 @@ district assignment for <tt class="docutils literal"><span class="pre">district/
 </pre></div>
 </div>
 </div>
+<div class="section" id="batch-district-assign">
+<h4>Batch District Assign<a class="headerlink" href="#batch-district-assign" title="Permalink to this headline">¶</a></h4>
+<p>Both <a class="reference internal" href="#assign">Assign</a> and <a class="reference internal" href="#bluebirdcrm">BluebirdCRM</a> methods can handle batch requests as well. The format is:</p>
+<div class="highlight-python"><pre>/api/v2/district/assign/batch
+/api/v2/district/bluebird/batch</pre>
+</div>
+<p>The addresses must be JSON encoded and sent along the POST payload in the same way as <a class="reference internal" href="#batch-geocode"><em>Batch Geocode</em></a>.</p>
+<p>A sample batch district assign in PHP:</p>
+<div class="highlight-python"><pre>&lt;?php
+
+$addresses = array(
+        array(
+                "addr1" =&gt; "100 Nyroy Dr",
+                "city" =&gt; "Troy",
+                "state" =&gt; "NY",
+                "zip5" =&gt; "12180"
+        ),
+        array(
+                "addr1" =&gt; "44 Fairlawn Ave",
+                "city" =&gt; "Albany",
+                "state" =&gt; "NY",
+                "zip5" =&gt; "12203"
+        )
+);
+
+$post_body = json_encode($addresses);
+
+$ch = curl_init("http://localhost:8080/GeoApi/api/v2/district/assign/batch");
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($post_body)
+));
+
+$result = curl_exec($ch);
+
+print_r($result);</pre>
+</div>
+<p>And the response:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;results&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s">&quot;status&quot;</span><span class="p">:</span> <span class="s">&quot;PARTIAL_DISTRICT_RESULT&quot;</span><span class="p">,</span>
+      <span class="s">&quot;source&quot;</span><span class="p">:</span> <span class="s">&quot;StreetFile&quot;</span><span class="p">,</span>
+      <span class="s">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[],</span>
+      <span class="s">&quot;address&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s">&quot;addr1&quot;</span><span class="p">:</span> <span class="s">&quot;100 Nyroy Dr&quot;</span><span class="p">,</span> <span class="s">&quot;addr2&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;city&quot;</span><span class="p">:</span> <span class="s">&quot;Troy&quot;</span><span class="p">,</span> <span class="s">&quot;state&quot;</span><span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span> <span class="s">&quot;zip5&quot;</span><span class="p">:</span> <span class="s">&quot;12180&quot;</span><span class="p">,</span> <span class="s">&quot;zip4&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span> <span class="p">},</span>
+      <span class="s">&quot;geocode&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s">&quot;lat&quot;</span><span class="p">:</span> <span class="mf">42.741112</span><span class="p">,</span> <span class="s">&quot;lon&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">73.668762</span><span class="p">,</span> <span class="s">&quot;quality&quot;</span><span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s">&quot;method&quot;</span><span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span> <span class="p">},</span>
+      <span class="s">&quot;districts&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&quot;senate&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;State Senate District 44&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;44&quot;</span><span class="p">,</span> <span class="s">&quot;senator&quot;</span><span class="p">:</span> <span class="n">null</span>
+        <span class="p">},</span>
+        <span class="s">&quot;congressional&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;State Congressional District 20&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;20&quot;</span><span class="p">,</span> <span class="s">&quot;member&quot;</span><span class="p">:</span> <span class="n">null</span>
+        <span class="p">},</span>
+        <span class="s">&quot;assembly&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;State Assembly District 107&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;107&quot;</span><span class="p">,</span> <span class="s">&quot;member&quot;</span><span class="p">:</span> <span class="n">null</span>
+        <span class="p">},</span>
+        <span class="s">&quot;county&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;38&quot;</span>
+        <span class="p">},</span>
+        <span class="s">&quot;election&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;12&quot;</span>
+        <span class="p">},</span>
+        <span class="s">&quot;school&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+        <span class="s">&quot;town&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+        <span class="s">&quot;cleg&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span>
+        <span class="p">},</span>
+        <span class="s">&quot;ward&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;0&quot;</span>
+        <span class="p">},</span>
+        <span class="s">&quot;village&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;000&quot;</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="s">&quot;geocoded&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s">&quot;districtAssigned&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s">&quot;statusCode&quot;</span><span class="p">:</span> <span class="mi">402</span><span class="p">,</span>
+      <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="s">&quot;District assignment only yielded some of the districts requested.&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s">&quot;status&quot;</span><span class="p">:</span> <span class="s">&quot;PARTIAL_DISTRICT_RESULT&quot;</span><span class="p">,</span>
+      <span class="s">&quot;source&quot;</span><span class="p">:</span> <span class="s">&quot;StreetFile&quot;</span><span class="p">,</span>
+      <span class="s">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[],</span>
+      <span class="s">&quot;address&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s">&quot;addr1&quot;</span><span class="p">:</span> <span class="s">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span> <span class="s">&quot;addr2&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;city&quot;</span><span class="p">:</span> <span class="s">&quot;Albany&quot;</span><span class="p">,</span> <span class="s">&quot;state&quot;</span><span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span> <span class="s">&quot;zip5&quot;</span><span class="p">:</span> <span class="s">&quot;12203&quot;</span><span class="p">,</span> <span class="s">&quot;zip4&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">},</span>
+      <span class="s">&quot;geocode&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s">&quot;lat&quot;</span><span class="p">:</span> <span class="mf">42.670583</span><span class="p">,</span> <span class="s">&quot;lon&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">73.799606</span><span class="p">,</span> <span class="s">&quot;quality&quot;</span><span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s">&quot;method&quot;</span><span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span> <span class="p">},</span>
+      <span class="s">&quot;districts&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&quot;senate&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;State Senate District 44&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;44&quot;</span><span class="p">,</span> <span class="s">&quot;senator&quot;</span><span class="p">:</span> <span class="n">null</span>
+        <span class="p">},</span>
+        <span class="s">&quot;congressional&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;State Congressional District 20&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;20&quot;</span><span class="p">,</span> <span class="s">&quot;member&quot;</span><span class="p">:</span> <span class="n">null</span>
+        <span class="p">},</span>
+        <span class="s">&quot;assembly&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;State Assembly District 109&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;109&quot;</span><span class="p">,</span> <span class="s">&quot;member&quot;</span><span class="p">:</span> <span class="n">null</span>
+        <span class="p">},</span>
+        <span class="s">&quot;county&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span>
+        <span class="p">},</span>
+        <span class="s">&quot;election&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;5&quot;</span>
+        <span class="p">},</span>
+        <span class="s">&quot;school&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+        <span class="s">&quot;town&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+        <span class="s">&quot;cleg&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;13&quot;</span>
+        <span class="p">},</span>
+        <span class="s">&quot;ward&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;13&quot;</span>
+        <span class="p">},</span>
+        <span class="s">&quot;village&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="s">&quot;geocoded&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s">&quot;districtAssigned&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s">&quot;statusCode&quot;</span><span class="p">:</span> <span class="mi">402</span><span class="p">,</span>
+      <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="s">&quot;District assignment only yielded some of the districts requested.&quot;</span>
+    <span class="p">}</span>
+  <span class="p">],</span>
+  <span class="s">&quot;total&quot;</span><span class="p">:</span> <span class="mi">2</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>And a parse error response in case of invalid input:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;status&quot;</span><span class="p">:</span> <span class="s">&quot;INVALID_BATCH_ADDRESSES&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span><span class="p">:</span> <span class="s">&quot;DistrictController&quot;</span><span class="p">,</span>
+  <span class="s">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="s">&quot;statusCode&quot;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+  <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="s">&quot;The supplied batch address list could not be parsed.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="street">
 <h3>Street<a class="headerlink" href="#street" title="Permalink to this headline">¶</a></h3>
@@ -1159,6 +1382,14 @@ generally error statuses:</p>
 <td>240</td>
 <td>The supplied state is invalid or is not supported</td>
 </tr>
+<tr class="row-odd"><td>INVALID_BATCH_ADDRESSES</td>
+<td>250</td>
+<td>The supplied batch address list could not be parsed</td>
+</tr>
+<tr class="row-even"><td>INVALID_BATCH_POINTS</td>
+<td>260</td>
+<td>The supplied batch point list could not be parsed</td>
+</tr>
 <tr class="row-odd"><td>INSUFFICIENT_INPUT_PARAMS</td>
 <td>300</td>
 <td>One or more parameters are insufficient</td>
@@ -1250,10 +1481,16 @@ generally error statuses:</p>
 <li><a class="reference internal" href="#methods">Methods</a><ul>
 <li><a class="reference internal" href="#common-query-parameters">Common Query Parameters</a></li>
 <li><a class="reference internal" href="#address">Address</a></li>
-<li><a class="reference internal" href="#geo">Geo</a></li>
+<li><a class="reference internal" href="#geo">Geo</a><ul>
+<li><a class="reference internal" href="#geocode">Geocode</a></li>
+<li><a class="reference internal" href="#reverse-geocode">Reverse Geocode</a></li>
+<li><a class="reference internal" href="#batch-geocode">Batch Geocode</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#district">District</a><ul>
 <li><a class="reference internal" href="#assign">Assign</a></li>
 <li><a class="reference internal" href="#bluebirdcrm">BluebirdCRM</a></li>
+<li><a class="reference internal" href="#batch-district-assign">Batch District Assign</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#street">Street</a></li>

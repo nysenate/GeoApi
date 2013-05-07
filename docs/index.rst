@@ -55,6 +55,8 @@ types for the ``group`` segment are as follows:
 Methods
 ~~~~~~~
 
+.. _common-query-parameters:
+
 Common Query Parameters
 -----------------------
 
@@ -71,7 +73,7 @@ Geo-coordinate pairs can be supplied to the appropriate method using ``lat`` and
 
     /api/v2/<group>/<method>?lat=43.00&lon=-73.10
 
-Address, Geo, and District API calls allow for specifying a provider to carry out the request::
+Address, Geo, and District API calls allow for specifying a ``provider`` to carry out the request::
 
     /api/v2/<group>/<method>?provider=PROVIDER_NAME
 
@@ -246,6 +248,9 @@ For example to use just yahoo without falling back to other providers in case of
 
     /api/v2/geo/<method>?<params..>&provider=yahoo&useFallback=false
 
+Geocode
+^^^^^^^
+
 The usage of ``geocode`` with an address input::
 
     /api/v2/geo/geocode?addr=200 State St, Albany NY 12210
@@ -304,6 +309,9 @@ An unsuccessful response will resemble the following::
 
 A ``RESPONSE_PARSE_ERROR`` status will also indicate a failed geocode operation.
 
+Reverse Geocode
+^^^^^^^^^^^^^^^
+
 The usage of ``revgeocode`` with a coordinate pair input::
 
     api/v2/geo/revgeocode?lat=42.652030&lon=-73.757590
@@ -334,6 +342,94 @@ The reverse geocode response::
     }
 
 It is identical to the geocode response except for the ``revGeocoded`` field that indicates whether the reverse geocoding succeeded.
+
+.. _batch-geocode:
+
+Batch Geocode
+^^^^^^^^^^^^^
+
+Multiple addresses can be geocoded with a single query using the batch api call.
+The format of the batch geocoding call is::
+
+    /api/v2/geo/geocode/batch
+
+The format of the batch reverse geocoding call is::
+
+    /api/v2/geo/revgeocode/batch
+
+The addresses for geocoding and points for reverse geocoding must be JSON encoded and sent in the POST request payload.
+The fields are identical to the query parameter fields for both address and point. Likewise any options can be specified
+the same way as the single request version. For example to specify provider::
+
+    /api/v2/geo/geocode/batch?provider=PROVIDER_NAME
+
+A sample batch geocoding request in PHP::
+
+    <?php
+    $addresses = array(
+        array(
+            "addr1" => "100 Nyroy Dr",
+            "city" => "Troy",
+            "state" => "NY",
+            "zip5" => "12180"
+        ),
+        array(
+            "addr1" => "44 Fairlawn Ave",
+            "city" => "Albany",
+            "state" => "NY",
+            "zip5" => "12203"
+        )
+    );
+
+    $post_body = json_encode($addresses);
+
+    $ch = curl_init("http://localhost:8080/GeoApi/geo/geocode/batch");
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($post_body)
+    ));
+
+    $result = curl_exec($ch);
+
+And the response::
+
+    {  "results" :[
+        { "status" : "SUCCESS",
+          "source" : "GeoCache", "messages" : [ ],
+          "address" : { "addr1" : "100 Nyroy Dr", "addr2" : "", "city" : "Troy", "state" : "NY", "zip5" : "12180", "zip4" : "" },
+          "geocode" : { "lat" : 42.741112, "lon" : -73.668762, "quality" : "HOUSE", "method" : "YahooDao" }, "geocoded" : true,
+          "statusCode" : 0,
+          "description" : "Success."
+        },
+        { "status" : "SUCCESS",
+          "source" : "GeoCache",
+          "messages" : [ ],
+          "address" : { "addr1" : "44 Fairlawn Ave", "addr2" : "", "city" : "Albany", "state" : "NY", "zip5" : "12203", "zip4" : "" },
+          "geocode" : { "lat" : 42.670583, "lon" : -73.799606, "quality" : "HOUSE", "method" : "YahooDao" },
+          "geocoded" : true, "statusCode" : 0, "description" : "Success."
+        }
+      ],
+      "total" : 2
+    }
+
+The results array consists of the same geocode responses that would be returned using the single geocode call.
+The ``total`` field simply indicates the number of records returned. The order of the results should match the
+order of the addresses in the JSON payload.
+
+In the event that the payload fails to parse, the response will be::
+
+    {
+      "status" : "INVALID_BATCH_ADDRESSES",
+      "source" : "GeocodeController",
+      "messages" : [ ],
+      "statusCode" : 250,
+      "description" : "The supplied batch address list could not be parsed."
+    }
+
+Refer to :ref:`common-query-parameters` to ensure that the correct fields are being used.
 
 District
 --------
@@ -686,6 +782,151 @@ An unsuccessful district assign response will look similar to the following::
       "description" : "District assignment returned no results."
     }
 
+Batch District Assign
+^^^^^^^^^^^^^^^^^^^^^
+
+Both Assign_ and BluebirdCRM_ methods can handle batch requests as well. The format is::
+
+    /api/v2/district/assign/batch
+    /api/v2/district/bluebird/batch
+
+The addresses must be JSON encoded and sent along the POST payload in the same way as :ref:`batch-geocode`.
+
+A sample batch district assign in PHP::
+
+    <?php
+
+    $addresses = array(
+            array(
+                    "addr1" => "100 Nyroy Dr",
+                    "city" => "Troy",
+                    "state" => "NY",
+                    "zip5" => "12180"
+            ),
+            array(
+                    "addr1" => "44 Fairlawn Ave",
+                    "city" => "Albany",
+                    "state" => "NY",
+                    "zip5" => "12203"
+            )
+    );
+
+    $post_body = json_encode($addresses);
+
+    $ch = curl_init("http://localhost:8080/GeoApi/api/v2/district/assign/batch");
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($post_body)
+    ));
+
+    $result = curl_exec($ch);
+
+    print_r($result);
+
+And the response::
+
+    {
+      "results": [
+        {
+          "status": "PARTIAL_DISTRICT_RESULT",
+          "source": "StreetFile",
+          "messages": [],
+          "address": { "addr1": "100 Nyroy Dr", "addr2": "", "city": "Troy", "state": "NY", "zip5": "12180", "zip4": "" },
+          "geocode": { "lat": 42.741112, "lon": -73.668762, "quality": "HOUSE", "method": "YahooDao" },
+          "districts": {
+            "senate": {
+              "name": "State Senate District 44", "district": "44", "senator": null
+            },
+            "congressional": {
+              "name": "State Congressional District 20", "district": "20", "member": null
+            },
+            "assembly": {
+              "name": "State Assembly District 107", "district": "107", "member": null
+            },
+            "county": {
+              "name": null, "district": "38"
+            },
+            "election": {
+              "name": null, "district": "12"
+            },
+            "school": null,
+            "town": null,
+            "cleg": {
+              "name": null, "district": "1"
+            },
+            "ward": {
+              "name": null, "district": "0"
+            },
+            "village": {
+              "name": null, "district": "000"
+            }
+          },
+          "geocoded": true,
+          "districtAssigned": true,
+          "statusCode": 402,
+          "description": "District assignment only yielded some of the districts requested."
+        },
+        {
+          "status": "PARTIAL_DISTRICT_RESULT",
+          "source": "StreetFile",
+          "messages": [],
+          "address": { "addr1": "44 Fairlawn Ave", "addr2": "", "city": "Albany", "state": "NY", "zip5": "12203", "zip4": ""},
+          "geocode": { "lat": 42.670583, "lon": -73.799606, "quality": "HOUSE", "method": "YahooDao" },
+          "districts": {
+            "senate": {
+              "name": "State Senate District 44", "district": "44", "senator": null
+            },
+            "congressional": {
+              "name": "State Congressional District 20", "district": "20", "member": null
+            },
+            "assembly": {
+              "name": "State Assembly District 109", "district": "109", "member": null
+            },
+            "county": {
+              "name": null, "district": "1"
+            },
+            "election": {
+              "name": null, "district": "5"
+            },
+            "school": null,
+            "town": null,
+            "cleg": {
+              "name": null, "district": "13"
+            },
+            "ward": {
+              "name": null, "district": "13"
+            },
+            "village": {
+              "name": null, "district": ""
+            }
+          },
+          "geocoded": true,
+          "districtAssigned": true,
+          "statusCode": 402,
+          "description": "District assignment only yielded some of the districts requested."
+        }
+      ],
+      "total": 2
+    }
+
+And a parse error response in case of invalid input::
+
+    {
+      "status": "INVALID_BATCH_ADDRESSES",
+      "source": "DistrictController",
+      "messages": [],
+      "statusCode": 250,
+      "description": "The supplied batch address list could not be parsed."
+    }
+
+.. note: Batch district assignment can be configured by the application to follow a different strategy for
+         purposes of improving performance. In this example the configuration was set to use street files only
+         hence why many of the results are partial successes. However this behaviour can be changed using
+         the same query parameters as the single request version.
+
 Street
 ------
 
@@ -934,6 +1175,10 @@ generally error statuses:
 +----------------------------------+------+---------------------------------------------------------------------------------+
 | INVALID_STATE                    | 240  | The supplied state is invalid or is not supported                               |
 +----------------------------------+------+---------------------------------------------------------------------------------+
+| INVALID_BATCH_ADDRESSES          | 250  | The supplied batch address list could not be parsed                             |
++----------------------------------+------+---------------------------------------------------------------------------------+
+| INVALID_BATCH_POINTS             | 260  | The supplied batch point list could not be parsed                               |
++----------------------------------+------+---------------------------------------------------------------------------------+
 | INSUFFICIENT_INPUT_PARAMS        | 300  | One or more parameters are insufficient                                         |
 +----------------------------------+------+---------------------------------------------------------------------------------+
 | INSUFFICIENT_ADDRESS             | 310  | The supplied address is missing one or more parameters                          |
@@ -968,6 +1213,7 @@ generally error statuses:
 +----------------------------------+------+---------------------------------------------------------------------------------+
 | RESPONSE_SERIALIZATION_ERROR     | 503  | Failed to serialize response                                                    |
 +----------------------------------+------+---------------------------------------------------------------------------------+
+
 
 .. toctree::
    :maxdepth: 2
