@@ -95,6 +95,10 @@ public class ApplicationFactory
     {
         try
         {
+            System.out.println("------------------------------");
+            System.out.println("       INITIALIZING SAGE      ");
+            System.out.println("------------------------------");
+
             /** Setup application config */
             this.configurationListener = new SageConfigurationListener();
             this.config = new Config(propertyFileName, this.configurationListener);
@@ -125,6 +129,10 @@ public class ApplicationFactory
             streetLookupServiceProvider = new StreetLookupServiceProvider();
             streetLookupServiceProvider.registerDefaultProvider("streetfile", new StreetFile());
 
+            System.out.println("------------------------------");
+            System.out.println("       INITIALIZED SAGE       ");
+            System.out.println("------------------------------");
+
             return true;
         }
         catch (ConfigurationException ce)
@@ -142,6 +150,10 @@ public class ApplicationFactory
 
     private void initCache()
     {
+        System.out.println("------------------------------");
+        System.out.println("        LOADING CACHES        ");
+        System.out.println("------------------------------");
+
         /** Initialize district map cache */
         DistrictShapefileDao dso = new DistrictShapefileDao();
         dso.getDistrictMaps();
@@ -149,6 +161,10 @@ public class ApplicationFactory
         /** Initialize senator cache */
         SenateDao sd = new SenateDao();
         sd.getSenators();
+
+        System.out.println("------------------------------");
+        System.out.println("         CACHES LOADED        ");
+        System.out.println("------------------------------");
     }
 
 

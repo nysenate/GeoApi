@@ -31,7 +31,7 @@ import java.util.concurrent.*;
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
 
 /**
- *
+ * Performs batch processing of uploaded jobs.
  */
 public class ProcessBatchJobs
 {

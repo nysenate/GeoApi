@@ -5,9 +5,11 @@ import gov.nysenate.sage.model.job.JobUser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * JobUserDao provides database persistence for the JobUser model.
@@ -18,7 +20,20 @@ public class JobUserDao extends BaseDao
     private String TABLE = "user";
     private Logger logger = Logger.getLogger(JobUserDao.class);
     private ResultSetHandler<JobUser> handler = new BeanHandler<>(JobUser.class);
+    private ResultSetHandler<List<JobUser>> listHandler = new BeanListHandler<>(JobUser.class);
     private QueryRunner run = getQueryRunner();
+
+    public List<JobUser> getJobUsers()
+    {
+        try {
+            return run.query("SELECT * FROM " + getTableName(), listHandler);
+        }
+        catch (SQLException sqlEx) {
+            logger.error("Failed to get JobUsers!");
+            logger.error(sqlEx.getMessage());
+        }
+        return null;
+    }
 
     public JobUser getJobUserById(int id)
     {
@@ -57,17 +72,33 @@ public class JobUserDao extends BaseDao
     public int addJobUser(JobUser jobUser)
     {
         try {
-            return run.update("INSERT INTO " + getTableName() + "(id,email,password,firstname,lastname,active) " +
-                              "VALUES (?,?,?,?,?,?)",
-                               jobUser.getId(), jobUser.getEmail(), jobUser.getPassword(), jobUser.getFirstname(),
+            return run.update("INSERT INTO " + getTableName() + "(email,password,firstname,lastname,active) " +
+                              "VALUES (?,?,?,?,?)",
+                               jobUser.getEmail(), jobUser.getPassword(), jobUser.getFirstname(),
                                jobUser.getLastname(), jobUser.isActive());
         }
-        catch (SQLException sqlEx)
-        {
+        catch (SQLException sqlEx) {
             logger.error("Failed to add JobUser in JobUserDao!");
             logger.error(sqlEx.getMessage());
             return -1;
         }
+    }
+
+    /**
+     * Removes a JobUser from the database.
+     * @param jobUser
+     * @return  1 if user was removed, 0 otherwise.
+     */
+    public int removeJobUser(JobUser jobUser)
+    {
+        try {
+            return run.update("DELETE FROM " + getTableName() + " WHERE id = ?", jobUser.getId());
+        }
+        catch (SQLException sqlEx) {
+            logger.error("Failed to remove JobUser in JobUserDao!");
+            logger.error(sqlEx.getMessage());
+        }
+        return 0;
     }
 
     private String getTableName()
