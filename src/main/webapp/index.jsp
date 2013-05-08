@@ -9,7 +9,7 @@
     <jsp:attribute name="jsIncludes">
         <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/blockui.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/app.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">

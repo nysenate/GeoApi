@@ -5,7 +5,7 @@
     <jsp:attribute name="title">SAGE Map Viewer</jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/blockui.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/app.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
     </jsp:attribute>
     <jsp:body>
         <div ng-controller="EmbeddedMapController">
