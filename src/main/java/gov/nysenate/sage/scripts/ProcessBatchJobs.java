@@ -56,8 +56,8 @@ public class ProcessBatchJobs
         UPLOAD_DIR = config.getValue("job.upload.dir");
         DOWNLOAD_DIR = config.getValue("job.download.dir");
         USER_DOWNLOAD_DIR = config.getValue("job.user.download.dir");
-        GEOCODE_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.geocode"));
-        DISTRICT_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.distassign"));
+        GEOCODE_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.geocode", "3"));
+        DISTRICT_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.distassign", "3"));
         JOB_BATCH_SIZE = Integer.parseInt(config.getValue("job.batch.size", "95"));
 
         mailer = new Mailer();

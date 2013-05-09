@@ -360,7 +360,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                                       DistrictStrategy strategy, boolean getMaps)
     {
         switch (strategy) {
-            case neighborMatch: {
+            case neighborMatch:
                 if (shapeResult.isSuccess() || shapeResult.isPartialSuccess()) {
                     DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
                     String address = (shapeResult.getAddress() != null) ? shapeResult.getAddress().toString() : "Missing Address!";
@@ -430,7 +430,6 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                 }
                 logger.debug("Completed neighborMatch consolidation");
                 return shapeResult;
-            }
 
             case streetFallback:
                 if (shapeResult.isSuccess() || shapeResult.isPartialSuccess()) {
