@@ -9,9 +9,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.UrlRequest;
-import javafx.application.Application;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
