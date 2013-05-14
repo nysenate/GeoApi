@@ -1,5 +1,10 @@
 package gov.nysenate.sage.util;
 
+import oauth.signpost.OAuthConsumer;
+import oauth.signpost.basic.DefaultOAuthConsumer;
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
@@ -64,6 +69,50 @@ public abstract class UrlRequest
         InputStream inputStream = uc.getInputStream();
         logger.debug("Retrieved input stream");
         return inputStream;
+    }
+
+    public static String getResponseFromUrlUsingOauth(String url, String consumerKey, String consumerSecret) throws IOException
+    {
+        InputStream is = getInputStreamFromUrlUsingOauth(url, consumerKey, consumerSecret);
+        if (is != null) {
+            return IOUtils.toString(is);
+        }
+        return null;
+    }
+
+    public static InputStream getInputStreamFromUrlUsingOauth(String url, String consumerKey, String consumerSecret)
+    {
+        try {
+            logger.debug("Requesting connection to: " + url);
+            URL u = new URL(url);
+            HttpURLConnection uc = (HttpURLConnection)u.openConnection();
+            OAuthConsumer consumer = new DefaultOAuthConsumer(consumerKey, consumerSecret);
+            consumer.sign(uc);
+
+            int responseCode = uc.getResponseCode();
+            if (responseCode >= 400) {
+                logger.error("Failed to get a successful response. (Response " + responseCode + "). Returning null input stream.");
+                return null;
+            }
+
+            return uc.getInputStream();
+        }
+        catch(MalformedURLException ex) {
+            logger.error("Malformed Url in Oauth Request: " + ex.getMessage(), ex);
+        }
+        catch(IOException ex) {
+            logger.error("IO Exception during Oauth Request: " + ex.getMessage(), ex);
+        }
+        catch (OAuthExpectationFailedException ex) {
+            logger.error(ex);
+        }
+        catch (OAuthCommunicationException ex) {
+            logger.error(ex);
+        }
+        catch (OAuthMessageSignerException ex) {
+            logger.error(ex);
+        }
+        return null;
     }
 
 }
