@@ -38,15 +38,22 @@ public class YahooDao implements Observer
                                                 "from geo.placefinder where text=\"%s\"";
     private static final String BATCH_GEOCODE_QUERY = "select * from geo.placefinder where %s";
     private static final String REVERSE_GEO_QUERY = "select * from geo.placefinder where text=\"%f,%f\" and gflags=\"R\"";
+
+    private static String CONSUMER_KEY;
+    private static String CONSUMER_SECRET;
     private static int BATCH_SIZE = 100;
-    private static final int THREAD_COUNT = 5;
 
     private Logger logger = Logger.getLogger(YahooDao.class);
     private String baseUrl;
     private ObjectMapper objectMapper;
 
-    public YahooDao(){
+    public YahooDao()
+    {
         this.objectMapper = new ObjectMapper();
+        this.baseUrl = config.getValue("yahoo.url", DEFAULT_BASE_URL);
+        CONSUMER_KEY = config.getValue("yahoo.consumer.key");
+        CONSUMER_SECRET = config.getValue("yahoo.consumer.secret");
+        BATCH_SIZE = Integer.parseInt(config.getValue("yahoo.batch.size", "100"));
     }
 
     @Override
@@ -177,7 +184,7 @@ public class YahooDao implements Observer
         GeocodedAddress geocodedAddress = null;
         String json = "";
         try {
-            json = UrlRequest.getResponseFromUrl(url);
+            json = UrlRequest.getResponseFromUrlUsingOauth(url, CONSUMER_KEY, CONSUMER_SECRET);
             if (json != null) {
                 JsonNode rootNode = objectMapper.readTree(json).get("query");
                 JsonNode resultsNode = rootNode.get("results");
@@ -214,7 +221,7 @@ public class YahooDao implements Observer
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
         String json = "";
         try {
-            json = UrlRequest.getResponseFromUrl(url);
+            json = UrlRequest.getResponseFromUrlUsingOauth(url, CONSUMER_KEY, CONSUMER_SECRET);
             if (json != null) {
                 JsonNode rootNode = objectMapper.readTree(json).get("query");
                 JsonNode resultsNode = rootNode.get("results");

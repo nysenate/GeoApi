@@ -209,7 +209,9 @@
                     <div id="success-district-results" ng-show="districtAssigned">
                         <div class="info-container senator">
                             <div class="senator-pic-holder">
-                                <img ng-src="{{districts.senate.senator.imageUrl}}" class="senator-pic">
+                                <a target="_blank" ng-href="{{districts.senate.senator.url}}">
+                                    <img ng-src="{{districts.senate.senator.imageUrl}}" class="senator-pic">
+                                </a>
                             </div>
                             <div>
                                 <p class="senator member-name">
