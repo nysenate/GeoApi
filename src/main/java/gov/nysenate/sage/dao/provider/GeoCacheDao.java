@@ -129,7 +129,7 @@ public class GeoCacheDao extends BaseDao
                     if (sa.getBldgNum() > 0 && sa.getStreet() != null && !sa.getStreet().startsWith("[")) {
                         try {
                             tigerRun.update(sql, Integer.valueOf(sa.getBldgNum()),
-                                    sa.getPreDir(), sa.getStreet(), sa.getStreetType(), sa.getPostDir(), sa.getLocation(),
+                                    sa.getPreDir(), sa.getStreetName(), sa.getStreetType(), sa.getPostDir(), sa.getLocation(),
                                     sa.getState(), sa.getZip5(), "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
                                     gc.getMethod(), gc.getQuality().name());
                             logger.info("Saved " + sa.toString() + " in cache.");
@@ -161,7 +161,7 @@ public class GeoCacheDao extends BaseDao
                 Geocode gc = new Geocode();
                 sa.setBldgNum(rs.getInt("bldgnum"));
                 sa.setPreDir(rs.getString("predir"));
-                sa.setStreet(rs.getString("street"));
+                sa.setStreetName(rs.getString("street"));
                 sa.setStreetType(rs.getString("streettype"));
                 sa.setPostDir(rs.getString("postdir"));
                 sa.setLocation(rs.getString("location"));

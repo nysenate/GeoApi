@@ -35,7 +35,6 @@ public class StreetAddress
         if (getBldgNum() != 0) addr1 += Integer.toString(getBldgNum()) + " ";
         if (!getPreDir().isEmpty()) addr1 += getPreDir() + " ";
         if (!getStreet().isEmpty()) addr1 += getStreet() + " ";
-        if (!getStreetType().isEmpty()) addr1 += getStreetType() + " ";
         if (!getPostDir().isEmpty()) addr1 += getPostDir() + " ";
 
         String addr2 = "";
