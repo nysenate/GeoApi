@@ -14,6 +14,7 @@ import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.AddressParser;
 import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
@@ -34,12 +35,10 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 public class StreetFile implements DistrictService, StreetLookupService
 {
     private Logger logger = Logger.getLogger(StreetFile.class);
-    private TigerGeocoderDao tigerGeocoderDao;
     private StreetFileDao streetFileDao;
 
     public StreetFile() {
         this.streetFileDao = new StreetFileDao();
-        this.tigerGeocoderDao = new TigerGeocoderDao();
     }
 
     @Override
@@ -81,11 +80,9 @@ public class StreetFile implements DistrictService, StreetLookupService
             return districtResult;
         }
         /** Parse the address */
-
-        //StreetAddress streetAddr = AddressParser.parseAddress(geocodedAddress.getAddress().toString());
-        StreetAddress streetAddr = tigerGeocoderDao.getStreetAddress(geocodedAddress.getAddress());
-        streetAddr = AddressParser.normalizeStreetAddress(streetAddr);
+        StreetAddress streetAddr = StreetAddressParser.parseAddress(geocodedAddress.getAddress());
         logger.debug("Streetfile lookup on " + streetAddr.toStringParsed());
+
         try {
             /** Try a House level match */
             DistrictedAddress match = streetFileDao.getDistAddressByHouse(streetAddr);

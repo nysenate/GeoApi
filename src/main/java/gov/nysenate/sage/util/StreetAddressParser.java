@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 public abstract class StreetAddressParser
 {
-    public static boolean DEBUG = true;
+    public static boolean DEBUG = false;
     public static Logger logger = Logger.getLogger(StreetAddressParser.class);
     public static final String SEP = "[ ,]+";
 
@@ -53,6 +53,30 @@ public abstract class StreetAddressParser
         return parseAddress(new Address(address));
     }
 
+    public static StreetAddress normalizeStreetAddress(StreetAddress streetAddr)
+    {
+        /** Fix up towns */
+        String town = streetAddr.getLocation();
+        if (isset(town)) {
+            town = town.replaceFirst("^(TOWN |TOWN OF |CITY |CITY OF |)", "");
+            town = town.replaceFirst("(\\(CITY\\)|/CITY)$", "");
+            streetAddr.setLocation(town);
+        }
+
+        /** Fix up street */
+        String street = streetAddr.getStreet();
+        if (isset(street)) {
+            if (!street.isEmpty()) {
+                /** Remove all numerical suffixes and special characters. */
+                street = street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
+                street = street.replaceAll("[#:;.,]", "").replaceAll("'", "").replaceAll(" +", " ").replaceAll("-", " ");
+                street = normalize(street);
+                streetAddr.setStreet(street);
+            }
+        }
+        return streetAddr;
+    }
+
     /** Internal parsing code ----------------------------------------------------------------------------------------*/
 
     private static StreetAddress parseAddressComponents(Address addr)
@@ -78,7 +102,7 @@ public abstract class StreetAddressParser
             extractStreet(addrStr, stAddr);
         }
 
-        return stAddr;
+        return normalizeStreetAddress(stAddr);
     }
 
     /**
@@ -143,7 +167,7 @@ public abstract class StreetAddressParser
                              ((matcher.group("bldgNum2") != null) ? matcher.group("bldgNum2") : "");
             String bldgChr = (matcher.group("bldgChr") != null ? matcher.group("bldgChr") : "");
             logger.debug("BldgNum: " + bldgNum);
-            streetAddress.setBldgNum(Integer.parseInt(matcher.group("bldgNum1")));
+            streetAddress.setBldgNum(Integer.parseInt(bldgNum));
             streetAddress.setBldgChar(bldgChr);
             addressStr = addressStr.replaceFirst(bldgNumPattern, "").trim();
         }

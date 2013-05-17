@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;
@@ -124,7 +125,7 @@ public class GeoCacheDao extends BaseDao
                 Address address = geocodedAddress.getAddress();
                 Geocode gc = geocodedAddress.getGeocode();
                 if (getCacheHit(address) == null) {
-                    StreetAddress sa = tigerGeocoderDao.getStreetAddress(geocodedAddress.getAddress());
+                    StreetAddress sa = StreetAddressParser.parseAddress(geocodedAddress.getAddress());
                     if (sa.getBldgNum() > 0 && sa.getStreet() != null && !sa.getStreet().startsWith("[")) {
                         try {
                             tigerRun.update(sql, Integer.valueOf(sa.getBldgNum()),

@@ -94,16 +94,6 @@ public class AddressParser
 
     /** Load static key value pairs that are used in the normalization maps */
     static {
-        String zip = "([0-9]{5})(?:-([0-9]{4}))?";
-        String sep = "(?:[ ]+)";
-        String state = "([A-Z]{2})";
-        String city = "([A-Z. '-,]+?)";
-        String street = "((?: ?[-.'A-Z0-9]){2,}?)";
-        String building = "(?:([0-9]+)([A-Z]|-[0-9]+| 1/2)?)";
-        String apt_number = "(?:(?:(?:([0-9]+?)(?:ND|ST|RD|TH)?(?:[ -]*([A-Z0-9]+))?)|(?:([A-Z]+)(?:[ -]*([0-9]+))?)|BSMT|BSMNT|PH|PENTHOUSE)(?:FL)?)";
-        String apartment = "(?:(?:#|APT|STE|UNIT|BLDG|LOWR|UPPR|LOT|BOX|LEFT|RIGHT|TRLR|RM)[. ]*(?:#|FL)?)"+apt_number+"?";
-
-        addrPattern = Pattern.compile("()(?:"+building+sep+")?"+street+"(?:"+sep+apartment+")?"+"(?:[ ,]+"+city+")?"+"(?:"+sep+state+")?"+"(?:"+sep+zip+")?$");
 
         ordinals.put("NORTH", "N");
         ordinals.put("SOUTH", "S");
