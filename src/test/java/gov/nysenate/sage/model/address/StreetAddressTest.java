@@ -32,12 +32,6 @@ public class StreetAddressTest extends TestBase
         a = sa.toAddress();
         assertEquals("A", a.getAddr2());
 
-        /** If bldg char not found, try apt as addr2 */
-        sa.setBldgChar("");
-        sa.setAptNum(11);
-        sa.setAptChar("B");
-        a = sa.toAddress();
-        assertEquals("11B", a.getAddr2());
     }
 
 }

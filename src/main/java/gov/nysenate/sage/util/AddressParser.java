@@ -27,32 +27,7 @@ public class AddressParser
 
     public static StreetAddress parseAddress(String address)
     {
-        Matcher m = addrPattern.matcher(address.toUpperCase());
-        if (m.find()) {
-
-            StreetAddress parsed = new StreetAddress();
-            parsed.setBldgNum(m.group(2) != null ? Integer.parseInt(m.group(2)) : 0);
-            parsed.setBldgChar(m.group(3) != null ? m.group(3) : "");
-            parsed.setStreet(m.group(4) != null ? m.group(4) : "");
-
-            if( m.group(5) != null || m.group(6) != null) {
-                parsed.setAptNum(m.group(5) != null ? Integer.parseInt(m.group(5)) : 0);
-                parsed.setAptChar(m.group(6) != null ? m.group(6) : "");
-            }
-            else {
-                parsed.setAptChar(m.group(7) != null ? m.group(7) : "");
-                parsed.setAptNum(m.group(8) != null ? Integer.parseInt(m.group(8)) : 0);
-            }
-
-            parsed.setLocation(m.group(9) != null ? m.group(9) : "");
-            parsed.setState(m.group(10) != null ? m.group(10) : "");
-            parsed.setZip5(m.group(11) != null ? m.group(11) : "");
-            return normalizeStreetAddress(parsed);
-        }
-        else {
-            logger.warn("Could not match: " + address);
-            return null;
-        }
+        return null;
     }
 
     public static StreetAddress normalizeStreetAddress(StreetAddress streetAddr)

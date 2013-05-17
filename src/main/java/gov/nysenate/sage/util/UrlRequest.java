@@ -19,19 +19,19 @@ public abstract class UrlRequest
     public static Logger logger = Logger.getLogger(UrlRequest.class);
 
     /**
-     * Connects to a url and retrieves the body response in String representation.
-     * This function can alternatively be implemented using the code snippet below
-     * but this produces unnecessarily detailed logs.
-     * <code>
-     *     Content content = Request.Get(url).execute().returnContent();
-     *     String response = content.asString();
-     * </code>
-     *
-     * @param url   Url request string
-     * @return      String containing response
-     * @throws MalformedURLException
-     * @throws IOException
-     */
+    * Connects to a url and retrieves the body response in String representation.
+    * This function can alternatively be implemented using the code snippet below
+    * but this produces unnecessarily detailed logs.
+    * <code>
+    *     Content content = Request.Get(url).execute().returnContent();
+    *     String response = content.asString();
+    * </code>
+    *
+    * @param url   Url request string
+    * @return      String containing response
+    * @throws MalformedURLException
+    * @throws IOException
+    */
     public static String getResponseFromUrl(String url) throws IOException
     {
         InputStream inputStream = getInputStreamFromUrl(url);
@@ -47,11 +47,11 @@ public abstract class UrlRequest
     }
 
     /**
-     * Retrieves an input stream from a url resource
-     * @param url
-     * @return
-     * @throws IOException
-     */
+    * Retrieves an input stream from a url resource
+    * @param url
+    * @return
+    * @throws IOException
+    */
     public static InputStream getInputStreamFromUrl(String url) throws IOException
     {
         URL u = new URL(url);
@@ -71,6 +71,13 @@ public abstract class UrlRequest
         return inputStream;
     }
 
+    /**
+    * Retrieves String response from an OAuth signed url request.
+    * @param url            Request Url
+    * @param consumerKey    Consumer Key for OAuth request
+    * @param consumerSecret Consumer Secret for OAuth request
+    * @return               InputStream on success, null otherwise
+    */
     public static String getResponseFromUrlUsingOauth(String url, String consumerKey, String consumerSecret) throws IOException
     {
         InputStream is = getInputStreamFromUrlUsingOauth(url, consumerKey, consumerSecret);
@@ -80,6 +87,13 @@ public abstract class UrlRequest
         return null;
     }
 
+    /**
+    * Retrieves input stream from an OAuth signed url request.
+    * @param url            Request Url
+    * @param consumerKey    Consumer Key for OAuth request
+    * @param consumerSecret Consumer Secret for OAuth request
+    * @return               InputStream on success, null otherwise
+    */
     public static InputStream getInputStreamFromUrlUsingOauth(String url, String consumerKey, String consumerSecret)
     {
         try {

@@ -6,19 +6,21 @@ package gov.nysenate.sage.model.address;
 public class StreetAddress
 {
     protected int bldgNum;
-    protected String preDir = "";
-    protected String street = "";
-    protected String streetType = "";
-    protected String postDir = "";
-    protected String bldgChar = "";
-    protected int aptNum;
-    protected String aptChar = "";
-    protected String internal = "";
-    protected String location = "";
-    protected String state = "";
-    protected String zip5 = "";
-    protected String bldgParity = "";
-    protected String aptParity = "";
+    protected String bldgChar;
+    protected String preDir;
+    protected String street;
+    protected String streetName;
+    protected String streetType;
+    protected String postDir;
+    protected String internal;
+    protected String location;
+    protected String state;
+    protected String zip5;
+    protected String zip4;
+    protected String city;
+    protected String poBox;
+    protected boolean isHwy;
+    protected String bldgParity;
 
     public StreetAddress(){}
 
@@ -43,9 +45,8 @@ public class StreetAddress
         else if (!getBldgChar().isEmpty()){
             addr2 = getBldgChar();
         }
-        else if (getAptNum() != 0) {
-            addr2 += Integer.toString(getAptNum());
-            addr2 += getAptChar();
+        else if (!getInternal().isEmpty()) {
+            addr2 += getInternal();
         }
 
         String city = getLocation();
@@ -84,7 +85,9 @@ public class StreetAddress
     }
 
     public String getStreet() {
-        return (street != null) ? street : "";
+        return (this.street != null) ? this.street :
+               ((this.streetName != null) ? this.streetName : "") +
+               ((this.streetType != null) ?  " " + this.streetType : "");
     }
 
     public void setStreet(String street) {
@@ -97,38 +100,6 @@ public class StreetAddress
 
     public void setBldgChar(String bldgChar) {
         this.bldgChar = bldgChar;
-    }
-
-    public int getAptNum() {
-        return aptNum;
-    }
-
-    public void setAptNum(int aptNum) {
-        this.aptNum = aptNum;
-    }
-
-    public String getAptChar() {
-        return (aptChar != null) ? aptChar : "";
-    }
-
-    public void setAptChar(String aptChar) {
-        this.aptChar = aptChar;
-    }
-
-    public String getBldgParity() {
-        return (bldgParity != null) ? bldgParity : "";
-    }
-
-    public void setBldgParity(String bldgParity) {
-        this.bldgParity = bldgParity;
-    }
-
-    public String getAptParity() {
-        return (aptParity != null) ? aptParity : "";
-    }
-
-    public void setAptParity(String aptParity) {
-        this.aptParity = aptParity;
     }
 
     public String getPreDir() {
@@ -185,5 +156,53 @@ public class StreetAddress
 
     public String getZip5() {
         return (zip5 != null) ? zip5 : "";
+    }
+
+    public String getStreetName() {
+        return (streetName != null) ? streetName : "";
+    }
+
+    public void setStreetName(String streetName) {
+        this.streetName = streetName;
+    }
+
+    public String getZip4() {
+        return (zip4 != null) ? zip4 : "";
+    }
+
+    public void setZip4(String zip4) {
+        this.zip4 = zip4;
+    }
+
+    public String getCity() {
+        return (city != null) ? city : "";
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getPoBox() {
+        return (poBox != null) ? poBox : "";
+    }
+
+    public void setPoBox(String poBox) {
+        this.poBox = poBox;
+    }
+
+    public boolean isHwy() {
+        return isHwy;
+    }
+
+    public void setHwy(boolean hwy) {
+        isHwy = hwy;
+    }
+
+    public String getBldgParity() {
+        return (bldgParity != null) ? bldgParity : "";
+    }
+
+    public void setBldgParity(String bldgParity) {
+        this.bldgParity = bldgParity;
     }
 }
