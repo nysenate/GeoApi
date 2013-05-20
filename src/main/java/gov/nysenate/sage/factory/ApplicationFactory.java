@@ -11,9 +11,12 @@ import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
+import gov.nysenate.services.model.Senator;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
+
+import java.util.Collection;
 
 /**
  * ApplicationFactory is responsible for instantiating all single-instance objects that are utilized
@@ -148,7 +151,7 @@ public class ApplicationFactory
         return false;
     }
 
-    private void initCache()
+    private boolean initCache()
     {
         System.out.println("------------------------------");
         System.out.println("        LOADING CACHES        ");
@@ -156,15 +159,24 @@ public class ApplicationFactory
 
         /** Initialize district map cache */
         DistrictShapefileDao dso = new DistrictShapefileDao();
-        dso.getDistrictMaps();
+        if (!dso.cacheDistrictMaps()) {
+            logger.fatal("Failed to cache district maps!");
+            return false;
+        };
 
         /** Initialize senator cache */
         SenateDao sd = new SenateDao();
-        sd.getSenators();
+        Collection<Senator> senators = sd.getSenators();
+        if (senators == null || senators.isEmpty()) {
+            logger.fatal("Failed to cache senators!");
+            return false;
+        }
 
         System.out.println("------------------------------");
         System.out.println("         CACHES LOADED        ");
         System.out.println("------------------------------");
+
+        return true;
     }
 
 

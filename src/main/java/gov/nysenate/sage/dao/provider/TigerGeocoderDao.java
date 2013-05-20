@@ -155,7 +155,7 @@ public class TigerGeocoderDao extends BaseDao
         {
             saColumns.put("address", "bldgNum");
             saColumns.put("predirabbrev", "preDir");
-            saColumns.put("streetname", "street");
+            saColumns.put("streetname", "streetName");
             saColumns.put("streettypeabbrev", "streetType");
             saColumns.put("postdirabbrev", "postDir");
             saColumns.put("internal", "internal");

@@ -17,12 +17,25 @@ public class StreetAddress
     protected String state;
     protected String zip5;
     protected String zip4;
-    protected String city;
     protected String poBox;
     protected boolean isHwy;
     protected String bldgParity;
 
     public StreetAddress(){}
+
+    public StreetAddress(int bldgNum, String preDir, String streetName, String streetType, String postDir, String internal,
+                         String location, String state, String zip5)
+    {
+        this.setBldgNum(bldgNum);
+        this.setPreDir(preDir);
+        this.setStreetName(streetName);
+        this.setStreetType(streetType);
+        this.setPostDir(postDir);
+        this.setInternal(internal);
+        this.setLocation(location);
+        this.setState(state);
+        this.setZip5(zip5);
+    }
 
     /**
      * Converts the street address into a basic Address object performing the
@@ -171,14 +184,6 @@ public class StreetAddress
 
     public void setZip4(String zip4) {
         this.zip4 = zip4;
-    }
-
-    public String getCity() {
-        return (city != null) ? city : "";
-    }
-
-    public void setCity(String city) {
-        this.city = city;
     }
 
     public String getPoBox() {

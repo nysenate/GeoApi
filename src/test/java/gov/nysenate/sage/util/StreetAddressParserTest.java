@@ -1,12 +1,12 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.address.Address;
-import org.junit.*;
+import gov.nysenate.sage.model.address.StreetAddress;
 import org.junit.Test;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 public class StreetAddressParserTest {
-
-    StreetAddressParser parser = new StreetAddressParser();
 
     @Test
     public void unParsedTest() {
@@ -23,7 +23,8 @@ public class StreetAddressParserTest {
         //Address address = new Address("300 CENTRAL PARK W New York NY 12108");
 
         //Address address = new Address("3771 w 118th St West, Apartment #4001C, Queens NY 11432");
-        Address address = new Address("2655E Richmond Avenue, 10314");
+        Address address = new Address("17303 SENECA CHASE PARK RD, POOLESVILLE, MD 20837");
+        StreetAddress sa = new StreetAddress(17303, "", "SENECA CHASE PARK", "RD", "", "", "POOLESVILLE", "MD", "20837");
 
         /** Route/Highway Addresses */
         //Address address = new Address("2613 ROUTE 11 APT 5 LA FAYETTE, NY 13084");
@@ -45,7 +46,13 @@ public class StreetAddressParserTest {
         //Address address = new Address("385 HOFSTRA UNIV C SQUARE W DOVER 516A, Hempstead, NY 11549");
         //Address address = new Address("500 JOSEPH C WILSON BLVD # 272844, ROCHESTER NY 14627");
 
-        FormatUtil.printObject(parser.parseAddressComponents(address));
+        assertStreetAddressesAreEqual(sa, StreetAddressParser.parseAddress(address));
+    }
+
+    @Test
+    public void edgeCases()
+    {
+
     }
 
     @Test
@@ -53,6 +60,24 @@ public class StreetAddressParserTest {
     {
         // PreDir with Internal
         Address address = new Address("211 S LOWELL AVE # 1 FL 3", "Syracuse", "NY", "13204");
-        System.out.print(parser.parseAddressComponents(address).toStringParsed());
+        System.out.print(StreetAddressParser.parseAddress(address).toStringParsed());
     }
+
+    public void assertStreetAddressesAreEqual(StreetAddress s1, StreetAddress s2)
+    {
+        assertThat(s1, notNullValue());
+        assertThat(s2, notNullValue());
+        assertThat("bldgNum", s1.getBldgNum(), is(s2.getBldgNum()));
+        assertThat("bldgChr", s1.getBldgChar(), is(s2.getBldgChar()));
+        assertThat("preDir", s1.getPreDir(), is(s2.getPreDir()));
+        assertThat("streetName", s1.getStreetName(), is(s2.getStreetName()));
+        assertThat("streetType", s1.getStreetType(), is(s2.getStreetType()));
+        assertThat("internal", s1.getInternal(), is(s2.getInternal()));
+        assertThat("location", s1.getLocation(), is(s2.getLocation()));
+        assertThat("postDir", s1.getPostDir(), is(s2.getPostDir()));
+        assertThat("zip5", s1.getZip5(), is(s2.getZip5()));
+        assertThat("zip4", s1.getZip4(), is(s2.getZip4()));
+    }
+
+
 }

@@ -63,16 +63,14 @@ public abstract class StreetAddressParser
             streetAddr.setLocation(town);
         }
 
-        /** Fix up street */
+        /** Fix up street name */
         String street = streetAddr.getStreetName();
         if (isset(street)) {
-            if (!street.isEmpty()) {
-                /** Remove all numerical suffixes and special characters. */
-                street = street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
-                street = street.replaceAll("[#:;.,]", "").replaceAll("'", "").replaceAll(" +", " ").replaceAll("-", " ");
-                street = normalize(street);
-                streetAddr.setStreetName(street);
-            }
+            /** Remove all numerical suffixes and special characters. */
+            street = street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
+            street = street.replaceAll("[#:;.,]", "").replaceAll("'", "").replaceAll(" +", " ").replaceAll("-", " ");
+            street = normalize(street);
+            streetAddr.setStreetName(street);
         }
         return streetAddr;
     }

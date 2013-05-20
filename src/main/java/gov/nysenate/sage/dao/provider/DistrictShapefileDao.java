@@ -107,7 +107,7 @@ public class DistrictShapefileDao extends BaseDao
      * Fetches all the district maps from the database and stores them in a collection as well as
      * a lookup cache for fast retrieval.
      */
-    private void cacheDistrictMaps()
+    public boolean cacheDistrictMaps()
     {
         String sql = "SELECT '%s' AS type, %s as name, %s as code, ST_AsGeoJson(geom) AS map " +
                 "FROM " + SCHEMA + ".%s";
@@ -128,9 +128,11 @@ public class DistrictShapefileDao extends BaseDao
         try {
             run.query(sqlQuery, new DistrictMapsHandler());
             logger.info("Cached state based maps");
+            return true;
         }
         catch (SQLException ex) {
             logger.error(ex);
+            return false;
         }
     }
 
