@@ -10,6 +10,14 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Utility class for parsing free-form or semi-parsed addresses into StreetAddress objects.
+ * The algorithm does not rely on a specific formatting but supplying commas to delimit the
+ * apartment and city from the street can make things easier.
+ *
+ * Parsing addresses is a core requirement for performing street file look-ups as well as
+ * performing geocode caching as they both operate on StreetAddress objects.
+ */
 public abstract class StreetAddressParser
 {
     public static boolean DEBUG = false;
@@ -53,6 +61,11 @@ public abstract class StreetAddressParser
         return parseAddress(new Address(address));
     }
 
+    /**
+     * Applies minor corrections to the StreetAddress and returns a reference to it.
+     * @param streetAddr
+     * @return normalized StreetAddresss
+     */
     public static StreetAddress normalizeStreetAddress(StreetAddress streetAddr)
     {
         /** Fix up towns */
@@ -72,11 +85,17 @@ public abstract class StreetAddressParser
             street = normalize(street);
             streetAddr.setStreetName(street);
         }
+
         return streetAddr;
     }
 
     /** Internal parsing code ----------------------------------------------------------------------------------------*/
 
+    /**
+    * Delegates to parsing methods based on the Address.isParsed condition.
+    * @param addr Address to parse
+    * @return parsed StreetAddress
+    */
     private static StreetAddress parseAddressComponents(Address addr)
     {
         StreetAddress stAddr = new StreetAddress();
@@ -104,11 +123,24 @@ public abstract class StreetAddressParser
     }
 
     /**
-     * Assumes zip code has already been extracted from addressStr
-     * @param addressStr
-     * @param streetAddress
-     * @return
-     */
+    * Extracts the zip and sets it to the supplied StreetAddress
+    */
+    private static String extractZip(String addressStr, StreetAddress streetAddress)
+    {
+        String zipPattern = "(?<zip>(?<zip5>(?<![0-9])([-0-9]{5}))([ -](?<zip4>([0-9]{4})))?)$";
+        Matcher zipMatcher = Pattern.compile(zipPattern).matcher(addressStr);
+        if (zipMatcher.find()) {
+            streetAddress.setZip5(zipMatcher.group("zip5"));
+            streetAddress.setZip4(zipMatcher.group("zip4"));
+            logger.debug("Zipcode: " + zipMatcher.group("zip"));
+            addressStr = addressStr.replace(zipMatcher.group("zip"), "").trim();
+        }
+        return addressStr;
+    }
+
+    /**
+    * Assumes zip code has already been extracted from addressStr
+    */
     private static String extractState(String addressStr, StreetAddress streetAddress)
     {
         String stateAbbrPattern = SEP + "(?<state>\\w{2})$";
@@ -139,22 +171,9 @@ public abstract class StreetAddressParser
         return addressStr;
     }
 
-    private static String extractZip(String addressStr, StreetAddress streetAddress)
-    {
-        String zipPattern = "(?<zip>(?<zip5>(?<![0-9])([-0-9]{5}))([ -](?<zip4>([0-9]{4})))?)$";
-        Matcher zipMatcher = Pattern.compile(zipPattern).matcher(addressStr);
-        if (zipMatcher.find()) {
-            streetAddress.setZip5(zipMatcher.group("zip5"));
-            streetAddress.setZip4(zipMatcher.group("zip4"));
-            logger.debug("Zipcode: " + zipMatcher.group("zip"));
-            addressStr = addressStr.replace(zipMatcher.group("zip"), "").trim();
-        }
-        return addressStr;
-    }
-
     /**
     * Assume that the address begins with a digit, and extract it from the input string.
-    * Handle dashes in the building number
+    * Handle dashes in the building number as well as a possible building character.
     */
     private static String extractBldgNum(String addressStr, StreetAddress streetAddress)
     {
@@ -172,6 +191,10 @@ public abstract class StreetAddressParser
         return addressStr;
     }
 
+    /**
+    * Despite the name, this method actually extracts the streetName, streetType, internal, location,
+    * pre/post directionals, and possible PO Boxes.
+    */
     private static String extractStreet(String addressStr, StreetAddress streetAddress)
     {
         String[] addrParts = addressStr.split(",");
@@ -207,9 +230,11 @@ public abstract class StreetAddressParser
                     String internal = extractInternal(intParts, stParts, streetAddress);
                     if (!internal.isEmpty()) {
                         streetAddress.setInternal(internal);
-                        streetAddress.setLocation(normalize(addrParts[1]));
                         logger.debug("Internal: " + streetAddress.getInternal());
-                        logger.debug("Location: " + streetAddress.getLocation());
+                        if (!isset(streetAddress.getLocation())) {
+                            streetAddress.setLocation(normalize(addrParts[1]));
+                            logger.debug("Location: " + streetAddress.getLocation());
+                        }
                     }
                     else {
                         intParts = new LinkedList<>(Arrays.asList(addrParts[1].split(" ")));
@@ -220,8 +245,10 @@ public abstract class StreetAddressParser
                             logger.debug("Internal: " + streetAddress.getInternal());
                         }
                         else {
-                            streetAddress.setLocation(normalize(addrParts[1]));
-                            logger.debug("Location: " + streetAddress.getLocation());
+                            if (!isset(streetAddress.getLocation())) {
+                                streetAddress.setLocation(normalize(addrParts[1]));
+                                logger.debug("Location: " + streetAddress.getLocation());
+                            }
                         }
                     }
                 }
@@ -250,16 +277,22 @@ public abstract class StreetAddressParser
                         if (loc > -1) {
                             if (single) {
                                 streetAddress.setInternal(StringUtils.join(intList.subList(0, loc + 1), " "));
-                                streetAddress.setLocation(StringUtils.join(intList.subList(loc + 1, intList.size()), " "));
+                                if (!isset(streetAddress.getLocation())) {
+                                    streetAddress.setLocation(StringUtils.join(intList.subList(loc + 1, intList.size()), " "));
+                                }
                             }
                             else {
                                 if (intList.get(loc + 1).equals("#")) {
                                     streetAddress.setInternal(StringUtils.join(intList.subList(0, loc + 3), " "));
-                                    streetAddress.setLocation(StringUtils.join(intList.subList(loc + 3, intList.size()), " "));
+                                    if (!isset(streetAddress.getLocation())) {
+                                        streetAddress.setLocation(StringUtils.join(intList.subList(loc + 3, intList.size()), " "));
+                                    }
                                 }
                                 else {
                                     streetAddress.setInternal(StringUtils.join(intList.subList(0, loc + 2), " "));
-                                    streetAddress.setLocation(StringUtils.join(intList.subList(loc + 2, intList.size()), " "));
+                                    if (!isset(streetAddress.getLocation())) {
+                                        streetAddress.setLocation(StringUtils.join(intList.subList(loc + 2, intList.size()), " "));
+                                    }
                                 }
                             }
                             logger.debug("Internal: " + streetAddress.getInternal());
@@ -322,9 +355,11 @@ public abstract class StreetAddressParser
                 if (streetAddress.isHwy() && !isset(streetAddress.getLocation()) && !streetName.isEmpty()) {
                     LinkedList<String> streetNameList = new LinkedList<>(Arrays.asList(streetName.split(" ")));
                     streetAddress.setStreetName(streetNameList.get(0));
-                    streetAddress.setLocation(StringUtils.join(streetNameList.subList(1, streetNameList.size()), " "));
+                    if (!isset(streetAddress.getLocation())) {
+                        streetAddress.setLocation(StringUtils.join(streetNameList.subList(1, streetNameList.size()), " "));
+                        logger.debug("Location: " + streetAddress.getLocation());
+                    }
                     logger.debug("StreetName: " + streetAddress.getStreetName());
-                    logger.debug("Location: " + streetAddress.getLocation());
                 }
                 else {
                     streetAddress.setStreetName(streetName);
@@ -337,9 +372,10 @@ public abstract class StreetAddressParser
     }
 
     /**
-     * Look for a street or highway type designator in the list of street parts provided
-     * @return List of words that comprise the street type or empty list if nothing matched
-     */
+    * Look for a street or highway type designator in the list of street parts provided
+    * @param sts  List of street level words
+    * @return List of words that comprise the street type or empty list if nothing matched
+    */
     private static LinkedList<String> extractStreetType(LinkedList<String> sts, StreetAddress streetAddress)
     {
         String streetType = null;
@@ -378,6 +414,14 @@ public abstract class StreetAddressParser
         return sList;
     }
 
+    /**
+    * Attempts to find an internal component from the given list of candidates.
+    * @param candidates     List of words that are extracted from the street level portion of the address string
+    * @param streetList     The overall street level list that could be the same as the candidates list
+    *                       If a match for a unit type is found in candidates, it will be removed from streetList.
+    * @param streetAddress  StreetAddress to set
+    * @return String representation of the matched internal component
+    */
     private static String extractInternal(LinkedList<String> candidates, LinkedList<String> streetList, StreetAddress streetAddress)
     {
         String internal = "";
