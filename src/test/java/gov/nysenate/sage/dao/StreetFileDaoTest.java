@@ -4,8 +4,8 @@ import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.dao.provider.StreetFileDao;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.StreetAddress;
-import gov.nysenate.sage.util.AddressParser;
 import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.StreetAddressParser;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ public class StreetFileDaoTest extends TestBase
     @Test
     public void test() throws Exception
     {
-        StreetAddress s = AddressParser.parseAddress("300 CENTRAL PARK W, APT 7K, New York, NY 10024");
+        StreetAddress s = StreetAddressParser.parseAddress("300 CENTRAL PARK W, APT 7K, New York, NY 10024");
         FormatUtil.printObject(s);
         FormatUtil.printObject(streetFileDao.getDistAddressByHouse(s));
     }

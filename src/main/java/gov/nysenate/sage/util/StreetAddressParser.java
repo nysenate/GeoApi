@@ -337,8 +337,8 @@ public abstract class StreetAddressParser
     }
 
     /**
-     *
-     * @return
+     * Look for a street or highway type designator in the list of street parts provided
+     * @return List of words that comprise the street type or empty list if nothing matched
      */
     private static LinkedList<String> extractStreetType(LinkedList<String> sts, StreetAddress streetAddress)
     {

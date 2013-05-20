@@ -14,17 +14,17 @@ public class StreetAddressParserTest {
         //Address address = new Address("205 N 1105 st W Apt 14 Beverly Hills CA 90210-5221");
 
         /** PreDir with Internal */
-        //Address address = new Address("211 South Pearl Street apt # 3 New York NY 13204");
+        //Address address = new Address("211 South Pearl Street, Nothing, NY 13204");
 
         /** Post Dir */
-        //Address address = new Address("175-90 HILLCREST VLG E APT A3, NISKAYUNA, NY 12309-3806");
+        //Address address = new Address("175-90 HILLCREST VLG E #A3, NISKAYUNA, NY 12309-3806");
         //Address address = new Address("175-90 Hillcrest Village East, Niskayuna, NY 12309-3806");
         //Address address = new Address("13830 West WATERPORT CARLTON RD, APT #78, ALBION, NY 14411");
-        //Address address = new Address("300 CENTRAL PARK W New York NY 12108");
+        //Address address = new Address("300 East CENTRAL PARK West APt 2K New York NY 12108");
 
         //Address address = new Address("3771 w 118th St West, Apartment #4001C, Queens NY 11432");
-        Address address = new Address("17303 SENECA CHASE PARK RD, POOLESVILLE, MD 20837");
-        StreetAddress sa = new StreetAddress(17303, "", "SENECA CHASE PARK", "RD", "", "", "POOLESVILLE", "MD", "20837");
+        //Address address = new Address("17303 SENECA CHASE PARK RD, POOLESVILLE, MD 20837");
+        //StreetAddress sa = new StreetAddress(17303, "", "SENECA CHASE PARK", "RD", "", "", "POOLESVILLE", "MD", "20837");
 
         /** Route/Highway Addresses */
         //Address address = new Address("2613 ROUTE 11 APT 5 LA FAYETTE, NY 13084");
@@ -37,16 +37,18 @@ public class StreetAddressParserTest {
         /** PO BOX */
         //Address address = new Address("PO BOX 612 CENTEREACH NY 11722");
         //Address address = new Address("PO BOX 612 CENTEREACH NY 11722");
-        //Address address = new Address("PO BOX 1582 BRIDGEHAMPTON NY 11932-1582");
+        Address address = new Address("PO BOX 1582 BRIDGEHAMPTON NY 11932-1582");
 
         /** Edge cases */
         //Address address = new Address("8121 Main Street, Red Creek NY 13143");
         //Address address = new Address("234 State Hwy 45B, NY 12343");
         //Address address = new Address("241 Avenue X, New York 12324-2324");
-        //Address address = new Address("385 HOFSTRA UNIV C SQUARE W DOVER 516A, Hempstead, NY 11549");
+        //Address address = new Address("385 HOFSTRA UNIV C SQUARE W Unit 516A, Hempstead, NY 11549");
         //Address address = new Address("500 JOSEPH C WILSON BLVD # 272844, ROCHESTER NY 14627");
 
-        assertStreetAddressesAreEqual(sa, StreetAddressParser.parseAddress(address));
+        FormatUtil.printObject(StreetAddressParser.parseAddress(address));
+
+        //assertStreetAddressesAreEqual(sa, StreetAddressParser.parseAddress(address));
     }
 
     @Test
