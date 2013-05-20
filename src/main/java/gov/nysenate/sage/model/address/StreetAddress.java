@@ -98,8 +98,8 @@ public class StreetAddress
 
     public String getStreet() {
         return (this.street != null) ? this.street :
-               ((this.streetName != null) ? this.streetName : "") +
-               ((this.streetType != null) ?  " " + this.streetType : "");
+               (!this.isHwy) ? this.getStreetName() + ((this.streetType != null) ? " " + this.streetType : "") :
+                               this.getStreetType() + ((this.streetName != null) ? " " + this.streetName : "");
     }
 
     public void setStreet(String street) {

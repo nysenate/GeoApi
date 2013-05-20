@@ -60,9 +60,6 @@ public class StreetFileDao extends BaseDao
             street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
             street = street.toUpperCase();
 
-            /** Given street: 67 streetType: STATE HWY, this variation produces 'State HWY 67' */
-            String streetVariation = (streetAddr.getStreetType() + " " + streetAddr.getStreet()).toUpperCase();
-
             /** Sometimes the bldg_chr is actually the tail end of the street name */
             if (whereBldgChr) {
                 /** Handle dashed NYC buildings by collapsing on the dash */
@@ -96,9 +93,8 @@ public class StreetFileDao extends BaseDao
             else {
                 /** Loose street match */
                 if (fuzzy) {
-                    sql += " AND (street LIKE ? OR street LIKE ?) \n";
+                    sql += " AND (street LIKE ?) \n";
                     params.add(street + "%");
-                    params.add(streetVariation + "%");
                 }
                 /** Strict street match */
                 else {
