@@ -73,7 +73,7 @@ public class ProcessBatchJobs
         checkLockFile();
 
         /** Bootstrap the application */
-        ApplicationFactory.buildInstances();
+        ApplicationFactory.bootstrap();
         ProcessBatchJobs processBatchJobs = new ProcessBatchJobs();
 
         if (args.length > 1) {

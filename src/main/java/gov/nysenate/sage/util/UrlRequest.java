@@ -94,7 +94,7 @@ public abstract class UrlRequest
     * @param consumerSecret Consumer Secret for OAuth request
     * @return               InputStream on success, null otherwise
     */
-    public static InputStream getInputStreamFromUrlUsingOauth(String url, String consumerKey, String consumerSecret)
+    public static InputStream getInputStreamFromUrlUsingOauth(String url, String consumerKey, String consumerSecret) throws IOException
     {
         try {
             logger.debug("Requesting connection to: " + url);
@@ -113,9 +113,6 @@ public abstract class UrlRequest
         }
         catch(MalformedURLException ex) {
             logger.error("Malformed Url in Oauth Request: " + ex.getMessage(), ex);
-        }
-        catch(IOException ex) {
-            logger.error("IO Exception during Oauth Request: " + ex.getMessage(), ex);
         }
         catch (OAuthExpectationFailedException ex) {
             logger.error(ex);

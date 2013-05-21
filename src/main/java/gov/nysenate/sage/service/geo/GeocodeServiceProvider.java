@@ -26,6 +26,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     private final static String DEFAULT_GEO_PROVIDER = "yahoo";
     private final static LinkedList<String> DEFAULT_GEO_FALLBACK = new LinkedList<>(Arrays.asList("mapquest", "tiger"));
 
+    private static List<String> cacheableProviders = new ArrayList<>();
     private GeocodeCacheService geocodeCache;
     private Boolean CACHE_ENABLED = true;
 
@@ -37,6 +38,25 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     @Override
     public void update(Observable o, Object arg) {
         CACHE_ENABLED = Boolean.parseBoolean(config.getValue("cache.enabled"));
+    }
+
+    /**
+     * Designates a provider (that has been registered) as a reliable source for caching results.
+     * @param providerName Same providerName used when registering the provider
+     */
+    public void registerProviderAsCacheable(String providerName)
+    {
+        cacheableProviders.add(providerName);
+    }
+
+    /**
+     * Checks if providerName is allowed to save result into cache
+     * @param providerName
+     * @return true if it is allowed, false otherwise
+     */
+    public boolean isProviderCacheable(String providerName)
+    {
+        return cacheableProviders.contains(providerName);
     }
 
     /**
@@ -126,7 +146,8 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         if (!geocodeResult.isSuccess() && useFallback) {
             Iterator<String> fallbackIterator = fallback.iterator();
             while (!geocodeResult.isSuccess() && fallbackIterator.hasNext()) {
-                geocodeResult = this.newInstance(fallbackIterator.next()).geocode(address);
+                provider = fallbackIterator.next();
+                geocodeResult = this.newInstance(provider).geocode(address);
             }
         }
         /** Ensure we don't return a null response */
@@ -134,7 +155,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
         }
         /** Cache result */
-        if (CACHE_ENABLED && useCache && !cacheHit) {
+        if (CACHE_ENABLED && !cacheHit && isProviderCacheable(provider)) {
             geocodeCache.saveToCacheAndFlush(geocodeResult);
         }
         return geocodeResult;
@@ -251,73 +272,4 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         }
         return failedIndices;
     }
-
-    /**
-     * Reverse geocoding uses the same strategy as <code>geocode</code>
-     */
-    public GeocodeResult reverseGeocode(Point point)
-    {
-        return reverseGeocode(point, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true);
-    }
-
-    /**
-     * Reverse geocoding uses the same strategy as <code>geocode</code>
-     */
-    public GeocodeResult reverseGeocode(Point point, String provider, boolean useFallback)
-    {
-        return reverseGeocode(point, provider, DEFAULT_GEO_FALLBACK, useFallback);
-    }
-
-    /**
-     * Reverse geocoding uses the same strategy as <code>geocode</code>
-     */
-    public GeocodeResult reverseGeocode(Point point, String provider, LinkedList<String> fallbackProviders,
-                                        boolean useFallback)
-    {
-        GeocodeResult geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_REVERSE_GEOCODE_RESULT);
-        if (provider != null && !provider.isEmpty()) {
-            geocodeResult = this.newInstance(provider).reverseGeocode(point);
-        }
-        if (!geocodeResult.isSuccess() && useFallback) {
-
-            /** Clone the list of fall back reverse geocode providers */
-            LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
-                                                                      : new LinkedList<>(DEFAULT_GEO_FALLBACK);
-
-            Iterator<String> fallbackIterator = fallback.iterator();
-            while (!geocodeResult.isSuccess() && fallbackIterator.hasNext()) {
-                geocodeResult = this.newInstance(fallbackIterator.next()).reverseGeocode(point);
-            }
-        }
-        return geocodeResult;
-    }
-
-    /**
-     * For batch reverse geocode, simply call the single reverse geocode method iteratively.
-     */
-    public List<GeocodeResult> reverseGeocode(List<Point> points)
-    {
-        return reverseGeocode(points, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK);
-    }
-
-    /**
-     * For batch reverse geocode, simply call the single reverse geocode method iteratively.
-     */
-    public List<GeocodeResult> reverseGeocode(List<Point> points, String provider)
-    {
-        return reverseGeocode(points, provider, DEFAULT_GEO_FALLBACK);
-    }
-
-    /**
-     * For batch reverse geocode, simply call the single reverse geocode method iteratively.
-     */
-    public List<GeocodeResult> reverseGeocode(List<Point> points, String provider, LinkedList<String> fallbackProviders)
-    {
-        List<GeocodeResult> geocodeResults = new ArrayList<>();
-        for (Point point : points) {
-            geocodeResults.add(reverseGeocode(point, provider, fallbackProviders, true));
-        }
-        return geocodeResults;
-    }
-
 }

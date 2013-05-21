@@ -16,11 +16,11 @@ import java.util.concurrent.*;
 public abstract class ParallelGeocodeService
 {
     private static Logger logger = Logger.getLogger(ParallelGeocodeService.class);
-    private static int THREAD_COUNT = 10;
+    private static int THREAD_COUNT = 3;
 
     /**
-     * Callable for parallel geocoding requests
-     */
+    * Callable for parallel geocoding requests
+    */
     private static class ParallelGeocode implements Callable<GeocodeResult>
     {
         public final GeocodeService geocodeService;
@@ -35,26 +35,6 @@ public abstract class ParallelGeocodeService
         public GeocodeResult call()
         {
             return geocodeService.geocode(address);
-        }
-    }
-
-    /**
-     * Callable for parallel reverse geocoding requests
-     */
-    private static class ParallelRevGeocode implements Callable<GeocodeResult>
-    {
-        public final GeocodeService geocodeService;
-        public final Point point;
-        public ParallelRevGeocode(GeocodeService geocodeService, Point point)
-        {
-            this.geocodeService = geocodeService;
-            this.point = point;
-        }
-
-        @Override
-        public GeocodeResult call()
-        {
-            return geocodeService.reverseGeocode(point);
         }
     }
 
@@ -82,31 +62,5 @@ public abstract class ParallelGeocodeService
         }
         executor.shutdown();
         return geocodeResults;
-    }
-
-    public static ArrayList<GeocodeResult> reverseGeocode(GeocodeService geocodeService, List<Point> points)
-    {
-        ArrayList<GeocodeResult> revGeocodeResults = new ArrayList<>();
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
-        ArrayList<Future<GeocodeResult>> futureRevGeocodeResults = new ArrayList<>();
-
-        logger.debug("Reverse geocoding using " + THREAD_COUNT + " threads");
-        for (Point point: points) {
-            futureRevGeocodeResults.add(executor.submit(new ParallelRevGeocode(geocodeService, point)));
-        }
-
-        for (Future<GeocodeResult> geocodeResult : futureRevGeocodeResults) {
-            try {
-                revGeocodeResults.add(geocodeResult.get());
-            }
-            catch (InterruptedException ex) {
-                logger.error(ex.getMessage());
-            }
-            catch (ExecutionException ex) {
-                logger.error(ex.getMessage());
-            }
-        }
-        executor.shutdown();
-        return revGeocodeResults;
     }
 }

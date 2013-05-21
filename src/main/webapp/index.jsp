@@ -96,9 +96,11 @@
                             </select>
                             <select style="width: 98px; color:#444;" ng-model="geoProvider">
                                 <option value="default">Default</option>
-                                <option value="tiger">Tiger</option>
                                 <option value="yahoo">Yahoo</option>
+                                <option value="yahooboss">Yahoo Boss</option>
+                                <option value="tiger">Tiger</option>
                                 <option value="mapquest">MapQuest</option>
+                                <option value="ruby">Ruby</option>
                                 <option value="osm">OSM</option>
                             </select>
                         </li>

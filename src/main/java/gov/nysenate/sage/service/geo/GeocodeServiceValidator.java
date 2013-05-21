@@ -3,7 +3,6 @@ package gov.nysenate.sage.service.geo;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
-import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import org.apache.log4j.Logger;
 
@@ -12,6 +11,9 @@ import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
+/**
+* Utility class for validating geocode requests and responses.
+*/
 public abstract class GeocodeServiceValidator
 {
     private static final Logger logger = Logger.getLogger(GeocodeServiceValidator.class);

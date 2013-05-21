@@ -5,9 +5,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.geo.GeocodeService;
-import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
-import gov.nysenate.sage.service.geo.ParallelGeocodeService;
+import gov.nysenate.sage.service.geo.*;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -15,7 +13,7 @@ import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
-public class Yahoo implements GeocodeService
+public class Yahoo implements GeocodeService, RevGeocodeService
 {
     private final Logger logger = Logger.getLogger(Yahoo.class);
     private YahooDao yahooDao;
@@ -25,6 +23,8 @@ public class Yahoo implements GeocodeService
         this.yahooDao = new YahooDao();
         logger.info("Initialized Yahoo Adapter");
     }
+
+    /** Geocode Service Implementation -----------------------------------------------------------*/
 
     @Override
     public GeocodeResult geocode(Address address)
@@ -38,9 +38,9 @@ public class Yahoo implements GeocodeService
         /** Retrieve geocoded address from dao */
         GeocodedAddress geocodedAddress = this.yahooDao.getGeocodedAddress(address);
 
-        /** Validate and return */
+        /** Validate and set result */
         if (!GeocodeServiceValidator.validateGeocodeResult(geocodedAddress, geocodeResult)) {
-            logger.warn("Failed to geocode " + address.toString() + " using Yahoo!");
+            logger.warn("Failed to geocode " + address.toString() + " using Yahoo Free!");
         }
         return geocodeResult;
     }
@@ -56,42 +56,47 @@ public class Yahoo implements GeocodeService
 
         /** Validate and return */
         if (!GeocodeServiceValidator.validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults,
-                                                                geocodedAddresses)){
-            logger.warn("Failed to batch geocode using Yahoo!");
+                geocodedAddresses)){
+            logger.warn("Failed to batch geocode using Yahoo Free!");
         }
         return geocodeResults;
     }
 
+    /** Reverse Geocode Service Implementation ---------------------------------------------------*/
+
+    /**
+    * Reverse Geocode using Yahoo Free
+    * @param point Point to lookup address for
+    * @return      GeocodeResult
+    */
     @Override
     public GeocodeResult reverseGeocode(Point point)
     {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Validate the input */
-        if (point == null) {
-            geocodeResult.setStatusCode(MISSING_POINT);
+        if (!RevGeocodeServiceValidator.validateRevGeocodeInput(point, geocodeResult)) {
+            return geocodeResult;
         }
 
-        GeocodedAddress geocodedAddress = this.yahooDao.getGeocodedAddress(point);
+        /** Perform reverse geocoding */
+        GeocodedAddress revGeocodedAddress = this.yahooDao.getGeocodedAddress(point);
 
-        /** Handle error cases or set GeocodedAddress */
-        if (geocodedAddress != null){
-            geocodeResult.setGeocodedAddress(geocodedAddress);
-            if (!geocodedAddress.isReverseGeocoded()){
-                geocodeResult.setStatusCode(NO_REVERSE_GEOCODE_RESULT);
-            }
-            else {
-                geocodeResult.setStatusCode(SUCCESS);
-            }
-        }
-        else {
-            geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
+        /** Validate and set response */
+        if (!RevGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {
+            logger.warn("Reverse geocode failed for point " + point + " using Yahoo Free");
         }
         return geocodeResult;
     }
 
+    /**
+    * Batch Reverse Geocode using Yahoo Free. Simply runs the single version in parallel.
+    * @param points Points to lookup addresses for
+    * @return       ArrayList<GeocodeResult>
+    */
     @Override
-    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points) {
-        return ParallelGeocodeService.reverseGeocode(this, points);
+    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
+    {
+        return ParallelRevGeocodeService.reverseGeocode(this, points);
     }
 }

@@ -10,9 +10,7 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.service.geo.GeocodeService;
-import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
-import gov.nysenate.sage.service.geo.ParallelGeocodeService;
+import gov.nysenate.sage.service.geo.*;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -23,7 +21,7 @@ import java.util.ArrayList;
  * implements fuzzy matching. This service primarily relays requests to the TigerGeocoderDao
  * and performs validation and result formatting.
  */
-public class TigerGeocoder implements GeocodeService
+public class TigerGeocoder implements GeocodeService, RevGeocodeService
 {
     private static Logger logger = Logger.getLogger(TigerGeocoder.class);
     private TigerGeocoderDao tigerGeocoderDao;
@@ -49,6 +47,7 @@ public class TigerGeocoder implements GeocodeService
             return geocodeResult;
         }
 
+        /** Retrieve geocoded addresses from dao */
         GeocodedStreetAddress gsa = tigerGeocoderDao.getGeocodedStreetAddress(address);
 
         if (gsa != null) {
@@ -97,7 +96,7 @@ public class TigerGeocoder implements GeocodeService
     @Override
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {
-        return ParallelGeocodeService.reverseGeocode(this, points);
+        return ParallelRevGeocodeService.reverseGeocode(this, points);
     }
 
     /**

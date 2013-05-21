@@ -1,6 +1,5 @@
 package gov.nysenate.sage.provider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.provider.MapQuestDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
@@ -9,8 +8,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressService;
-import gov.nysenate.sage.service.geo.GeocodeService;
-import gov.nysenate.sage.service.geo.ParallelGeocodeService;
+import gov.nysenate.sage.service.geo.*;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
@@ -25,7 +23,7 @@ import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateBatc
  *
  * @author Graylin Kim, Ash Islam
  */
-public class MapQuest implements AddressService, GeocodeService
+public class MapQuest implements AddressService, GeocodeService, RevGeocodeService
 {
     private final Logger logger = Logger.getLogger(MapQuest.class);
     private MapQuestDao mapQuestDao;
@@ -44,6 +42,8 @@ public class MapQuest implements AddressService, GeocodeService
         this.mapQuestDao.setRevGeoUrl(config.getValue("mapquest.rev.url"));
         this.mapQuestDao.setKey(config.getValue("mapquest.key"));
     }
+
+    /** Geocode Service Implementation ------------------------------------------------------------------*/
 
     /**
      * Geocodes a single address by delegating to the batch geocoding method
@@ -65,46 +65,11 @@ public class MapQuest implements AddressService, GeocodeService
     }
 
     /**
-     * Given a lat lng pair return the address that is closest to that point.
-     * Mapquest does not have a bulk option for this operation.
-     * @param point     Point to reverse geocode.
-     * @return          GeocodeResult
-     */
-    @Override
-    public GeocodeResult reverseGeocode(Point point)
-    {
-        GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
-        if (point != null) {
-            GeocodedAddress revGeocodedAddress = this.mapQuestDao.getGeocodedAddress(point);
-            geocodeResult.setGeocodedAddress(revGeocodedAddress);
-            if (revGeocodedAddress != null && revGeocodedAddress.isReverseGeocoded()){
-                geocodeResult.setStatusCode(NO_REVERSE_GEOCODE_RESULT);
-            }
-        }
-        else {
-            geocodeResult.setStatusCode(MISSING_POINT);
-        }
-        return geocodeResult;
-    }
-
-    /**
-     * Performs batch reverseGeocodes
-     * @param points    List<Point>
-     * @return          List<GeocodeResult>
-     */
-    @Override
-    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
-    {
-        return ParallelGeocodeService.reverseGeocode(this, points);
-    }
-
-    /**
-     * Geocodes multiple addresses in a batch. Mapquest provides a native batch
-     * geocoding api so this is used for all requests.
-     *
-     * @param addresses List of Addresses to geocode
-     * @return          List of GeocodeResults
-     */
+    * Geocodes multiple addresses in a batch. Mapquest provides a native batch
+    * geocoding api so this is used for all requests.
+    * @param addresses List of Addresses to geocode
+    * @return          List of GeocodeResults
+    */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
@@ -121,7 +86,48 @@ public class MapQuest implements AddressService, GeocodeService
         return geocodeResults;
     }
 
-    /** Proxy to validate(addresses) */
+    /** Reverse Geocode Service Implementation ----------------------------------------------------------*/
+
+    /**
+    * Given a lat lng pair return the address that is closest to that point.
+    * Mapquest does not have a bulk option for this operation.
+    * @param point     Point to reverse geocode.
+    * @return          GeocodeResult
+    */
+    @Override
+    public GeocodeResult reverseGeocode(Point point)
+    {
+        GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
+
+        /** Validate the input */
+        if (!RevGeocodeServiceValidator.validateRevGeocodeInput(point, geocodeResult)) {
+            return geocodeResult;
+        }
+
+        /** Perform reverse geocoding */
+        GeocodedAddress revGeocodedAddress = this.mapQuestDao.getGeocodedAddress(point);
+
+        /** Validate and set response */
+        if (!RevGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {
+            logger.warn("Reverse geocode failed for point " + point + " using MapQuest");
+        }
+        return geocodeResult;
+    }
+
+    /**
+    * Performs batch reverseGeocodes
+    * @param points    List<Point>
+    * @return          List<GeocodeResult>
+    */
+    @Override
+    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
+    {
+        return ParallelRevGeocodeService.reverseGeocode(this, points);
+    }
+
+    /** Address Service Implementation ------------------------------------------------------------------*/
+
+    /** Proxy to <code>validate(addresses)</code> */
     @Override
     public AddressResult validate(Address address)
     {
@@ -158,28 +164,28 @@ public class MapQuest implements AddressService, GeocodeService
         return addressResults;
     }
 
-    /** No special functionality here. Just proxy to validate */
+    /** Proxy to <code>validate</code> */
     @Override
     public AddressResult lookupCityState(Address address)
     {
         return validate(address);
     }
 
-    /** No special functionality here. Just proxy to validate */
+    /** Proxy to <code>validate</code> */
     @Override
     public ArrayList<AddressResult> lookupCityState(ArrayList<Address> addresses)
     {
         return validate(addresses);
     }
 
-    /** No special functionality here. Just proxy to validate */
+    /** Proxy to <code>validate</code> */
     @Override
     public AddressResult lookupZipCode(Address address)
     {
         return validate(address);
     }
 
-    /** No special functionality here. Just proxy to validate */
+    /** Proxy to <code>validate</code> */
     @Override
     public ArrayList<AddressResult> lookupZipCode(ArrayList<Address> addresses)
     {

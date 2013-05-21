@@ -6,6 +6,7 @@ import gov.nysenate.sage.provider.*;
 import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
+import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.map.MapServiceProvider;
@@ -24,8 +25,8 @@ import java.util.Collection;
  * all classes that would typically be implemented as singletons can be instantiated like regular classes
  * which allows for unit testing.
  *
- * The buildInstances method must be called once when the application is starting up. However if only
- * unit tests are to be run, the buildTestInstances method should be called instead. While these two
+ * The bootstrap method must be called once when the application is starting up. However if only
+ * unit tests are to be run, the bootstrapTest method should be called instead. While these two
  * methods may setup similar dependencies, it will allow for using different configurations and
  * implementations for running unit tests.
  *
@@ -48,6 +49,7 @@ public class ApplicationFactory
     private AddressServiceProvider addressServiceProvider;
     private DistrictServiceProvider districtServiceProvider;
     private GeocodeServiceProvider geocodeServiceProvider;
+    private RevGeocodeServiceProvider revGeocodeServiceProvider;
     private MapServiceProvider mapServiceProvider;
     private StreetLookupServiceProvider streetLookupServiceProvider;
 
@@ -56,19 +58,19 @@ public class ApplicationFactory
     private static String defaultTestPropertyFileName = "test.app.properties";
 
     /**
-     * Public access call to build()
+     * Sets up core application classes
      * @return boolean - If true then build succeeded
      */
-    public static boolean buildInstances()
+    public static boolean bootstrap()
     {
         return factoryInstance.build(defaultPropertyFileName);
     }
 
     /**
-     * Public access call to buildTesting()
+     * Sets up core application classes for testing
      * @return boolean - If true then build succeeded
      */
-    public static boolean buildTestInstances()
+    public static boolean bootstrapTest()
     {
         return factoryInstance.build(defaultTestPropertyFileName);
     }
@@ -110,27 +112,31 @@ public class ApplicationFactory
 
             /** Setup service providers ( MOVE INTO CONFIG ) */
             addressServiceProvider = new AddressServiceProvider();
-            addressServiceProvider.registerDefaultProvider("usps", new USPS());
-            addressServiceProvider.registerProvider("mapquest", new MapQuest());
+            addressServiceProvider.registerDefaultProvider("usps", USPS.class);
+            addressServiceProvider.registerProvider("mapquest", MapQuest.class);
 
             geocodeServiceProvider = new GeocodeServiceProvider();
-            geocodeServiceProvider.registerDefaultProvider("yahoo", new Yahoo());
-            geocodeServiceProvider.registerProvider("tiger", new TigerGeocoder());
-            geocodeServiceProvider.registerProvider("mapquest", new MapQuest());
-            geocodeServiceProvider.registerProvider("yahooboss", new YahooBoss());
-            geocodeServiceProvider.registerProvider("osm", new OSM());
-            geocodeServiceProvider.registerProvider("ruby", new RubyGeocoder());
+            geocodeServiceProvider.registerDefaultProvider("yahoo", Yahoo.class);
+            geocodeServiceProvider.registerProvider("tiger", TigerGeocoder.class);
+            geocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
+            geocodeServiceProvider.registerProvider("yahooboss", YahooBoss.class);
+            geocodeServiceProvider.registerProvider("osm", OSM.class);
+            geocodeServiceProvider.registerProvider("ruby", RubyGeocoder.class);
+
+            geocodeServiceProvider.registerProviderAsCacheable("yahoo");
+            geocodeServiceProvider.registerProviderAsCacheable("yahooboss");
+            geocodeServiceProvider.registerProviderAsCacheable("mapquest");
 
             districtServiceProvider = new DistrictServiceProvider();
-            districtServiceProvider.registerDefaultProvider("shapefile", new DistrictShapefile());
-            districtServiceProvider.registerProvider("streetfile", new StreetFile());
-            districtServiceProvider.registerProvider("geoserver", new Geoserver());
+            districtServiceProvider.registerDefaultProvider("shapefile", DistrictShapefile.class);
+            districtServiceProvider.registerProvider("streetfile", StreetFile.class);
+            districtServiceProvider.registerProvider("geoserver", Geoserver.class);
 
             mapServiceProvider = new MapServiceProvider();
-            mapServiceProvider.registerDefaultProvider("shapefile", new DistrictShapefile());
+            mapServiceProvider.registerDefaultProvider("shapefile", DistrictShapefile.class);
 
             streetLookupServiceProvider = new StreetLookupServiceProvider();
-            streetLookupServiceProvider.registerDefaultProvider("streetfile", new StreetFile());
+            streetLookupServiceProvider.registerDefaultProvider("streetfile", StreetFile.class);
 
             System.out.println("------------------------------");
             System.out.println("       INITIALIZED SAGE       ");
@@ -202,6 +208,10 @@ public class ApplicationFactory
 
     public static GeocodeServiceProvider getGeocodeServiceProvider()  {
         return factoryInstance.geocodeServiceProvider;
+    }
+
+    public static RevGeocodeServiceProvider getRevGeocodeServiceProvider() {
+        return factoryInstance.revGeocodeServiceProvider;
     }
 
     public static MapServiceProvider getMapServiceProvider() {

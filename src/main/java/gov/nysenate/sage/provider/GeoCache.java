@@ -22,6 +22,11 @@ public class GeoCache implements GeocodeCacheService
     private final Logger logger = Logger.getLogger(GeoCache.class);
     private GeoCacheDao geoCacheDao;
 
+    private static List<String> allowedProviders = new ArrayList<>();
+    static {
+
+    }
+
     public GeoCache() {
         this.geoCacheDao = new GeoCacheDao();
     }
@@ -49,17 +54,6 @@ public class GeoCache implements GeocodeCacheService
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
         return ParallelGeocodeService.geocode(this, addresses);
-    }
-
-    @Override
-    public GeocodeResult reverseGeocode(Point point)
-    {
-        throw new NotImplementedException("No reverse geocoding yet!");
-    }
-
-    @Override
-    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points) {
-        throw new NotImplementedException("No reverse geocoding yet!");
     }
 
     @Override

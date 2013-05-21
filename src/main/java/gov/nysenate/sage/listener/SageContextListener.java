@@ -1,15 +1,11 @@
 package gov.nysenate.sage.listener;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 /**
  * SageContextListener is used to call initialization methods when the context is (re)deployed and
@@ -31,7 +27,7 @@ public class SageContextListener implements ServletContextListener {
         logger.info("Servlet Context Listener started.");
 
         /** Build instances, initialize cache, and set the init attribute to true if succeeded */
-        boolean buildStatus = ApplicationFactory.buildInstances();
+        boolean buildStatus = ApplicationFactory.bootstrap();
         if (buildStatus && ApplicationFactory.getConfig() != null) {
             if (Boolean.parseBoolean(ApplicationFactory.getConfig().getValue("init.caches"))) {
                 logger.info("Initializing caches in memory..");

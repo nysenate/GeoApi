@@ -7,8 +7,10 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
+import sun.applet.AppletListener;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -20,13 +22,12 @@ import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
-/**
- *
- */
+/** Handles Geo Api requests */
 public class GeocodeController extends BaseApiController
 {
     private Logger logger = Logger.getLogger(GeocodeController.class);
     private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
+    private static RevGeocodeServiceProvider revGeocodeServiceProvider = ApplicationFactory.getRevGeocodeServiceProvider();
 
     @Override
     public void init(ServletConfig config) throws ServletException
@@ -62,7 +63,6 @@ public class GeocodeController extends BaseApiController
             return;
         }
 
-
         switch (apiRequest.getRequest()) {
             case "geocode":
             {
@@ -70,8 +70,9 @@ public class GeocodeController extends BaseApiController
                 if (!apiRequest.isBatch()) {
                     Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
+                        /** Only want to use cache when the provider is not specified */
                         geocodeResponse = new GeocodeResponse(
-                                geocodeServiceProvider.geocode(address, provider, useFallback));
+                                geocodeServiceProvider.geocode(address, provider, useFallback, (provider == null)));
                     }
                     else {
                         geocodeResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
@@ -96,7 +97,8 @@ public class GeocodeController extends BaseApiController
                 if (!apiRequest.isBatch()) {
                     Point point = getPointFromParams(request);
                     if (point != null ) {
-                        geocodeResponse = new RevGeocodeResponse(reverseGeocode(point, provider));
+                        GeocodeResult revGeocodeResult = revGeocodeServiceProvider.reverseGeocode(point, provider, true);
+                        geocodeResponse = new RevGeocodeResponse(revGeocodeResult);
                     }
                     else {
                         geocodeResponse = new ApiError(this.getClass(), MISSING_POINT);
@@ -106,7 +108,7 @@ public class GeocodeController extends BaseApiController
                 else {
                     List<Point> points = getPointsFromJsonBody(request);
                     if (points.size() > 0) {
-                        List<GeocodeResult> revGeocodeResults = geocodeServiceProvider.reverseGeocode(points);
+                        List<GeocodeResult> revGeocodeResults = revGeocodeServiceProvider.reverseGeocode(points);
                         geocodeResponse = new BatchGeocodeResponse(revGeocodeResults);
                     }
                     else {
@@ -121,25 +123,5 @@ public class GeocodeController extends BaseApiController
         }
         /** Set response */
         setApiResponse(geocodeResponse, request);
-    }
-
-    /**
-     * Reverse geocoding uses the same strategy as <code>geocode</code>
-     */
-    public static GeocodeResult reverseGeocode(Point point, String provider)
-    {
-        if (provider != null && !provider.isEmpty()) {
-            return geocodeServiceProvider.newInstance(provider).reverseGeocode(point);
-        }
-        else {
-            GeocodeResult result = geocodeServiceProvider.newInstance("tiger").reverseGeocode(point);
-            if (!result.isSuccess()) {
-                result = geocodeServiceProvider.newInstance("yahoo").reverseGeocode(point);
-                if (!result.isSuccess()) {
-                    result = geocodeServiceProvider.newInstance("mapquest").reverseGeocode(point);
-                }
-            }
-            return result;
-        }
     }
 }

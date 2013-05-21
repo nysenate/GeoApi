@@ -90,16 +90,6 @@ public class RubyGeocoder implements GeocodeService
         return geocodeParsedBulk(addresses);
     }
 
-    @Override
-    public GeocodeResult reverseGeocode(Point point) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points) {
-        return null;
-    }
-
     private ArrayList<GeocodeResult> geocodeParsedBulk(ArrayList<Address> addresses)
     {
         String urlText = "";

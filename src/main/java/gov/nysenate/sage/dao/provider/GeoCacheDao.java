@@ -12,8 +12,10 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
+import org.apache.commons.lang3.text.WordUtils;
 import org.apache.log4j.Logger;
 
+import java.io.StreamTokenizer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -26,7 +28,7 @@ public class GeoCacheDao extends BaseDao
     protected Config config;
     protected static TigerGeocoderDao tigerGeocoderDao = new TigerGeocoderDao();
     protected static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
-    protected static int BUFFER_SIZE = 100;
+    protected static int BUFFER_SIZE;
     protected QueryRunner tigerRun = getTigerQueryRunner();
 
     public GeoCacheDao() {
@@ -41,17 +43,20 @@ public class GeoCacheDao extends BaseDao
      */
     public GeocodedStreetAddress getCacheHit(Address address)
     {
+        StreetAddress sa = StreetAddressParser.parseAddress(address);
         String sql =
                 "SELECT gc.*, ST_Y(latlon) AS lat, ST_X(latlon) AS lon\n" +
-                "FROM cache.geocache AS gc, tiger.normalize_address(?) AS sa\n" +
-                "WHERE gc.bldgnum = sa.address\n" +
-                "AND COALESCE(gc.predir, '') ILIKE COALESCE(sa.predirabbrev, '')\n" +
-                "AND gc.street ILIKE sa.streetname\n" +
-                "AND COALESCE(gc.postdir, '') ILIKE COALESCE(sa.postdirabbrev, '')\n" +
-                "AND gc.streetType ILIKE sa.streettypeabbrev\n" +
-                "AND gc.zip5 ILIKE sa.zip";
+                "FROM cache.geocache AS gc \n" +
+                "WHERE gc.bldgnum = ? \n" +
+                "AND COALESCE(gc.predir, '') = ? \n" +
+                "AND gc.street = ? \n" +
+                "AND COALESCE(gc.postdir, '') = ? \n" +
+                "AND gc.streetType = ? \n" +
+                "AND (gc.zip5 = ? OR gc.location = ?)";
         try {
-            return tigerRun.query(sql, new GeocodedStreetAddressHandler(), address.toNormalizedString());
+            return tigerRun.query(sql, new GeocodedStreetAddressHandler(),
+                    sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
+                    sa.getStreetType(), sa.getZip5(), sa.getLocation());
         }
         catch (SQLException ex) {
             logger.error("Error retrieving geo cache hit!", ex);
@@ -61,14 +66,16 @@ public class GeoCacheDao extends BaseDao
 
     public boolean isCached(Address address)
     {
+        StreetAddress sa = StreetAddressParser.parseAddress(address);
         String sql =
-                "SELECT 1 FROM cache.geocache AS gc, tiger.normalize_address(?) AS sa\n" +
-                "WHERE gc.bldgnum = sa.address\n" +
-                "AND COALESCE(gc.predir, '') ILIKE COALESCE(sa.predirabbrev, '')\n" +
-                "AND gc.street ILIKE sa.streetname\n" +
-                "AND COALESCE(gc.postdir, '') ILIKE COALESCE(sa.postdirabbrev, '')\n" +
-                "AND gc.streetType ILIKE sa.streettypeabbrev\n" +
-                "AND gc.zip5 ILIKE sa.zip";
+                "SELECT 1 " +
+                "FROM cache.geocache AS gc \n" +
+                "WHERE gc.bldgnum = ? \n" +
+                "AND COALESCE(gc.predir, '') = ? \n" +
+                "AND gc.street = ? \n" +
+                "AND COALESCE(gc.postdir, '') = ? \n" +
+                "AND gc.streetType = ? \n" +
+                "AND (gc.zip5 = ? OR gc.location = ?)";
         try {
             return tigerRun.query(sql, new ResultSetHandler<Boolean>() {
                 @Override
@@ -78,7 +85,9 @@ public class GeoCacheDao extends BaseDao
                     }
                     return false;
                 }
-            }, address.toNormalizedString());
+            },
+            sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
+            sa.getStreetType(), sa.getZip5(), sa.getLocation());
         }
         catch (SQLException ex) {
             logger.error("Error retrieving geo cache hit!", ex);
@@ -161,10 +170,10 @@ public class GeoCacheDao extends BaseDao
                 Geocode gc = new Geocode();
                 sa.setBldgNum(rs.getInt("bldgnum"));
                 sa.setPreDir(rs.getString("predir"));
-                sa.setStreetName(rs.getString("street"));
-                sa.setStreetType(rs.getString("streettype"));
+                sa.setStreetName(WordUtils.capitalizeFully(rs.getString("street")));
+                sa.setStreetType(WordUtils.capitalizeFully(rs.getString("streettype")));
                 sa.setPostDir(rs.getString("postdir"));
-                sa.setLocation(rs.getString("location"));
+                sa.setLocation(WordUtils.capitalizeFully(rs.getString("location")));
                 sa.setState(rs.getString("state"));
                 sa.setZip5(rs.getString("zip5"));
                 gc.setLat(rs.getDouble("lat"));

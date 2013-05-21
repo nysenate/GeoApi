@@ -143,16 +143,4 @@ public class OSM implements GeocodeService, Observer
     {
         return ParallelGeocodeService.geocode(this, addresses);
     }
-
-    @Override
-    public GeocodeResult reverseGeocode(Point point)
-    {
-        return null;
-    }
-
-    @Override
-    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
-    {
-        return null;
-    }
 }

@@ -118,11 +118,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                         Future<DistrictResult> streetFileFuture = districtExecutor.submit(streetFileCall);
 
                         shapeFileResult = shapeFileFuture.get();
-                        logger.info("Assigning district neighbors");
                         districtResult = assignNeighbors(shapeFileService, shapeFileResult, getMaps);
 
                         streetFileResult = streetFileFuture.get();
-                        logger.debug("Checking with street file result");
                         districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
                                                                     streetFileResult, DistrictStrategy.neighborMatch, getMaps);
                         break;
@@ -428,7 +426,6 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                 else {
                     shapeResult = streetResult;
                 }
-                logger.debug("Completed neighborMatch consolidation");
                 return shapeResult;
 
             case streetFallback:

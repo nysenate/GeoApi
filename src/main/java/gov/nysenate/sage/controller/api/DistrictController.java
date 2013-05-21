@@ -18,6 +18,7 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
@@ -33,6 +34,7 @@ import java.util.Observer;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
+/** Handles District Api requests */
 public class DistrictController extends BaseApiController implements Observer
 {
     private static Logger logger = Logger.getLogger(DistrictController.class);
@@ -40,6 +42,7 @@ public class DistrictController extends BaseApiController implements Observer
     private static AddressServiceProvider addressProvider = ApplicationFactory.getAddressServiceProvider();
     private static DistrictServiceProvider districtProvider = ApplicationFactory.getDistrictServiceProvider();
     private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
+    private static RevGeocodeServiceProvider revGeocodeProvider = ApplicationFactory.getRevGeocodeServiceProvider();
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
     @Override
@@ -261,8 +264,8 @@ public class DistrictController extends BaseApiController implements Observer
 
         /** Note: If the provider is `streetfile` then we must resolve the point into an address */
         if (performGeocode || (provider != null && provider.equalsIgnoreCase("streetfile"))) {
-            GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.reverseGeocode(point, geoProvider, false)
-                                                                : geocodeProvider.reverseGeocode(point);
+            GeocodeResult geocodeResult = (geoProvider != null) ? revGeocodeProvider.reverseGeocode(point, geoProvider, false)
+                                                                : revGeocodeProvider.reverseGeocode(point);
             if (geocodeResult.isSuccess()) {
                 Address revGeocodedAddress = geocodeResult.getAddress();
                 if (uspsValidate) {

@@ -28,7 +28,7 @@ public class Admin
         }
 
         /** Load up the configuration settings */
-        if (!ApplicationFactory.buildInstances()){
+        if (!ApplicationFactory.bootstrap()){
             System.err.println("Failed to configure application config");
             System.exit(-1);
         }

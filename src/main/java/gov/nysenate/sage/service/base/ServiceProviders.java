@@ -6,33 +6,21 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This class is used for registering and obtaining implementation instances for a
- * particular service identified by the template parameter.
- *
- * For example, using ExampleService as the service and exampleImpl as an instance:
- * <code>
- * ServiceProviders<ExampleService> exampleServiceProvider = new ServiceProviders<>();
- * exampleServiceProvider.registerDefaultProvider("impl", exampleImpl); // Register
- * ExampleService impl = exampleServiceProvider.newInstance();   // Get new instance
- * </code>
- *
- * So essentially it's a simple way to keep track of which classes can serve as an
+ * This class is essentially a simple way to keep track of which classes can serve as an
  * implementation of a given service and instantiate them.
- * @param <T>   T is the Service to provide implementations for.
- *
- * @author Ash Islam
+ * @param <T> the Service to provide implementations for.
  */
 public class ServiceProviders<T>
 {
     private Logger logger = Logger.getLogger(this.getClass());
-    private Map<String,T> providers = new HashMap<>();
+    private Map<String,Class<? extends T>> providers = new HashMap<>();
     private String defaultProvider = "default";
 
     /**
      * Registers the default service as an instance of the given provider.
      * @param provider  The service implementation that should be default.
      */
-    public void registerDefaultProvider(String providerName, T provider)
+    public void registerDefaultProvider(String providerName, Class<? extends T> provider)
     {
         defaultProvider = providerName;
         providers.put(defaultProvider, provider);
@@ -41,9 +29,9 @@ public class ServiceProviders<T>
     /**
      * Registers an instance of a service implementation.
      * @param providerName  Key that will be used to reference this provider.
-     * @param provider      An instance of the provider.
+     * @param provider      The provider class.
      */
-    public void registerProvider(String providerName, T provider)
+    public void registerProvider(String providerName, Class<? extends T> provider)
     {
         providers.put(providerName.toLowerCase(), provider);
     }
@@ -95,7 +83,7 @@ public class ServiceProviders<T>
         if (providerName != null && !providerName.isEmpty()) {
             if (providers.containsKey(providerName.toLowerCase())){
                 try {
-                    return (T) providers.get(providerName.toLowerCase()).getClass().newInstance();
+                    return (T) providers.get(providerName.toLowerCase()).newInstance();
                 }
                 catch (InstantiationException ie){
                     logger.error(ie.getMessage());

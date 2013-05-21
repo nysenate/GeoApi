@@ -38,7 +38,6 @@ public class MapQuestDao
     static {
         /**
          * Map the quality codes to GeocodeQuality values.
-         *
          * Point Values Based on Yahoo's quality point scheme
          * http://developer.yahoo.com/geo/placefinder/guide/responses.html#address-quality
          *

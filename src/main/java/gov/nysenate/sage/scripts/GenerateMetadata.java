@@ -9,10 +9,8 @@ import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.util.*;
 import gov.nysenate.services.MemoryCachedNYSenateClient;
 import gov.nysenate.services.model.Senator;
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -40,7 +38,7 @@ public class GenerateMetadata
         }
 
         /** Load up the configuration settings */
-        if (!ApplicationFactory.buildInstances()){
+        if (!ApplicationFactory.bootstrap()){
             System.err.println("Failed to configure application config");
             System.exit(-1);
         }

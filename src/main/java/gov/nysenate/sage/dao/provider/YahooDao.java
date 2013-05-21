@@ -50,20 +50,20 @@ public class YahooDao implements Observer
     public YahooDao()
     {
         this.objectMapper = new ObjectMapper();
+        this.update(null, null);
+    }
+
+    @Override
+    public void update(Observable o, Object arg)
+    {
         this.baseUrl = config.getValue("yahoo.url", DEFAULT_BASE_URL);
         CONSUMER_KEY = config.getValue("yahoo.consumer.key");
         CONSUMER_SECRET = config.getValue("yahoo.consumer.secret");
         BATCH_SIZE = Integer.parseInt(config.getValue("yahoo.batch.size", "100"));
     }
 
-    @Override
-    public void update(Observable o, Object arg)
+    public String getBaseUrl()
     {
-        this.baseUrl = config.getValue("yahoo.url");
-
-    }
-
-    public String getBaseUrl() {
         return (this.baseUrl != null && !this.baseUrl.isEmpty()) ? this.baseUrl : DEFAULT_BASE_URL;
     }
 
@@ -134,7 +134,7 @@ public class YahooDao implements Observer
                     }
                 }
                 else {
-                    logger.warn("Expected response size: " + locations.size() + ", recieved: " + batchResults.size());
+                    logger.warn("Expected response size: " + locations.size() + ", received: " + batchResults.size());
                     logger.warn("Skipping failed Yahoo batch (" + batchOffset + " - " + (batchOffset + locations.size()) + ")");
                 }
                 batchOffset += locations.size();
