@@ -61,34 +61,6 @@ public class FormatUtil {
         }
     }
 
-    @Deprecated
-    public static String getString(JSONObject json, String key) {
-        try {
-            return json.has(key) && !json.isNull(key) ? json.getString(key) : "";
-        } catch (JSONException e) {
-            return null;
-        }
-    }
-
-    @Deprecated
-    public static Double getDouble(JSONObject json, String key) {
-        try {
-            return json.has(key) && !json.isNull(key) && !json.getString(key).equals("") ? json.getDouble(key) : 0;
-        } catch (JSONException e) {
-            return null;
-        }
-    }
-
-    @Deprecated
-    public static Integer getInteger(JSONObject json, String key) {
-
-        try {
-            return json.has(key) && !json.isNull(key) && !json.getString(key).equals("") ? json.getInt(key) : 0;
-        } catch (JSONException e) {
-            return null;
-        }
-    }
-
     /**
      * Returns JSON representation of object.
      * Failure to map object results in empty string.

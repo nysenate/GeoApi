@@ -1,7 +1,6 @@
 package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.dao.provider.StreetFileDao;
-import gov.nysenate.sage.dao.provider.TigerGeocoderDao;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -12,8 +11,6 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.service.street.StreetLookupService;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
-import gov.nysenate.sage.util.AddressParser;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.log4j.Logger;
 
@@ -81,17 +78,18 @@ public class StreetFile implements DistrictService, StreetLookupService
         }
         /** Parse the address */
         StreetAddress streetAddr = StreetAddressParser.parseAddress(geocodedAddress.getAddress());
-        logger.debug("Streetfile lookup on " + streetAddr.toStringParsed());
+        logger.trace("Streetfile lookup on " + streetAddr.toStringParsed());
 
         try {
-            /** Try a House level match */
-            DistrictedAddress match = streetFileDao.getDistAddressByHouse(streetAddr);
-
-            /** Try a Street level match */
-            if (match == null) {
-                match = streetFileDao.getDistAddressByStreet(streetAddr);
+            DistrictedAddress match = null;
+            if (!streetAddr.isStreetEmpty()) {
+                /** Try a House level match */
+                match = streetFileDao.getDistAddressByHouse(streetAddr);
+                /** Try a Street level match */
+                if (match == null) {
+                    match = streetFileDao.getDistAddressByStreet(streetAddr);
+                }
             }
-
             /** Try a Zip5 level match */
             if (match == null) {
                 match = streetFileDao.getDistAddressByZip(streetAddr);

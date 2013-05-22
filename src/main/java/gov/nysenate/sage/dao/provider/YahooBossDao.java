@@ -86,15 +86,15 @@ public class YahooBossDao implements Observer
 
     private GeocodedAddress getGeocodedAddressFromResultNode(JsonNode jsonResult)
     {
-        String street = (jsonResult.get("line1") != null) ? jsonResult.get("line1").asText() : null;
-        String city = (jsonResult.get("city") != null) ? jsonResult.get("city").asText() : null;
-        String state = (jsonResult.get("statecode") != null) ? jsonResult.get("statecode").asText() : null;
-        String postal = (jsonResult.get("postal") != null) ? jsonResult.get("postal").asText() : null;
-        int rawQuality = (jsonResult.get("quality") != null) ? jsonResult.get("quality").asInt() : 0;
-        double lat = (jsonResult.get("offsetlat") != null) ? jsonResult.get("offsetlat").asDouble() : 0.0;
-        double lng = (jsonResult.get("offsetlon") != null) ? jsonResult.get("offsetlon").asDouble() : 0.0;
+        String street = (jsonResult.hasNonNull("line1")) ? jsonResult.get("line1").asText() : "";
+        String city = (jsonResult.hasNonNull("city")) ? jsonResult.get("city").asText() : "";
+        String state = (jsonResult.hasNonNull("statecode")) ? jsonResult.get("statecode").asText() : "";
+        String postal = (jsonResult.hasNonNull("postal")) ? jsonResult.get("postal").asText() : "";
+        int rawQuality = (jsonResult.hasNonNull("quality")) ? jsonResult.get("quality").asInt() : 0;
+        double lat = (jsonResult.hasNonNull("offsetlat")) ? jsonResult.get("offsetlat").asDouble() : 0.0;
+        double lng = (jsonResult.hasNonNull("offsetlon")) ? jsonResult.get("offsetlon").asDouble() : 0.0;
 
-        Geocode geocode = new Geocode(new Point(lat,lng), resolveGeocodeQuality(rawQuality));
+        Geocode geocode = new Geocode(new Point(lat,lng), resolveGeocodeQuality(rawQuality), this.getClass().getSimpleName());
         geocode.setRawQuality(rawQuality);
 
         return new GeocodedAddress(new Address(street, city, state, postal), geocode);

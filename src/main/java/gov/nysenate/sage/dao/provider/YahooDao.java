@@ -277,10 +277,10 @@ public class YahooDao implements Observer
      */
     private GeocodedAddress getGeocodedAddressFromResultNode(JsonNode resultNode)
     {
-        String street = resultNode.get("line1").asText();
-        String city = resultNode.get("city").asText();
+        String street = resultNode.hasNonNull("line1") ? resultNode.get("line1").asText() : "";
+        String city = resultNode.hasNonNull("city") ? resultNode.get("city").asText() : "";
         String state = resultNode.get("statecode").asText();
-        String postal = resultNode.get("postal").asText();
+        String postal = resultNode.hasNonNull("postal") ? resultNode.get("postal").asText() : "";
         GeocodeQuality quality = resolveGeocodeQuality(resultNode.get("quality").asInt());
         double lat = resultNode.get("latitude").asDouble(0.0);
         double lng = resultNode.get("longitude").asDouble(0.0);

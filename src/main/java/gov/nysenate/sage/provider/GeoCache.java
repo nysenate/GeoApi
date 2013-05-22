@@ -4,10 +4,12 @@ import gov.nysenate.sage.dao.provider.GeoCacheDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
+import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeCacheService;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
+import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 
@@ -21,11 +23,6 @@ public class GeoCache implements GeocodeCacheService
 {
     private final Logger logger = Logger.getLogger(GeoCache.class);
     private GeoCacheDao geoCacheDao;
-
-    private static List<String> allowedProviders = new ArrayList<>();
-    static {
-
-    }
 
     public GeoCache() {
         this.geoCacheDao = new GeoCacheDao();
@@ -41,7 +38,8 @@ public class GeoCache implements GeocodeCacheService
         if (!validateGeocodeInput(address, geocodeResult)) return geocodeResult;
 
         /** Retrieve geocoded address from cache */
-        GeocodedStreetAddress geocodedStreetAddress = geoCacheDao.getCacheHit(address);
+        StreetAddress sa = StreetAddressParser.parseAddress(address);
+        GeocodedStreetAddress geocodedStreetAddress = geoCacheDao.getCacheHit(sa);
 
         /** Validate and return */
         if (!validateGeocodeResult(geocodedStreetAddress, geocodeResult)) {

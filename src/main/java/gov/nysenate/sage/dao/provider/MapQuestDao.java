@@ -218,10 +218,10 @@ public class MapQuestDao
     private Address getAddressFromLocationNode(JsonNode location)
     {
         Address address = new Address();
-        address.setAddr1(location.get("street").asText());
-        address.setCity(location.get("adminArea5").asText());
-        address.setState(location.get("adminArea3").asText());
-        address.setPostal(location.get("postalCode").asText());
+        address.setAddr1(location.hasNonNull("street") ? location.get("street").asText() : "");
+        address.setCity(location.hasNonNull("adminArea5") ? location.get("adminArea5").asText() : "");
+        address.setState(location.hasNonNull("adminArea3") ? location.get("adminArea3").asText() : "");
+        address.setPostal(location.hasNonNull("postalCode") ? location.get("postalCode").asText() : "");
         return address;
     }
 

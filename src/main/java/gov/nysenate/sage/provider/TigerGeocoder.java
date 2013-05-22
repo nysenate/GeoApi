@@ -81,7 +81,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
     {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
         StreetAddress streetAddress = tigerGeocoderDao.getStreetAddress(point);
-        if (streetAddress != null && !streetAddress.isEmpty()){
+        if (streetAddress != null && !streetAddress.isStreetEmpty()){
             Address address = streetAddress.toAddress();
             Geocode geocode = new Geocode(point);
             GeocodedAddress geocodedAddress = new GeocodedAddress(address, geocode);

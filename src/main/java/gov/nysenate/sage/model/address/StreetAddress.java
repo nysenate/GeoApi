@@ -64,11 +64,12 @@ public class StreetAddress
         String city = getLocation();
         String state = getState();
         String zip5 = getZip5();
+        String zip4 = getZip4();
 
-        return new Address(addr1.trim(), addr2.trim(), city.trim(), state.trim(), zip5.trim(), "");
+        return new Address(addr1.trim(), addr2.trim(), city.trim(), state.trim(), zip5.trim(), zip4.trim());
     }
 
-    public boolean isEmpty()
+    public boolean isStreetEmpty()
     {
         return (this.street == null || this.street.isEmpty());
     }
@@ -80,11 +81,10 @@ public class StreetAddress
 
     public String toStringParsed()
     {
-        return "bldgNum [" + this.getBldgNum() + "] preDir [" + this.preDir + "] street [" + this.getStreet() + "] postDir [" +
-                this.postDir + "] streetType [" + this.getStreetType() + "] city [" + this.getLocation() +
+        return "bldgNum [" + this.getBldgNum() + "] preDir [" + this.getPreDir() + "] streetName [" + this.getStreetName() + "] postDir [" +
+                this.getPostDir() + "] streetType [" + this.getStreetType() + "] city [" + this.getLocation() +
                 "] zip5 [" + this.getZip5() + "]";
     }
-
 
     /** Getters / Setters */
 
@@ -175,7 +175,9 @@ public class StreetAddress
     }
 
     public void setStreetName(String streetName) {
-        this.streetName = streetName;
+        if (streetName != null && !streetName.isEmpty() && !streetName.equalsIgnoreCase("null")){
+            this.streetName = streetName;
+        }
     }
 
     public String getZip4() {
@@ -192,6 +194,10 @@ public class StreetAddress
 
     public void setPoBox(String poBox) {
         this.poBox = poBox;
+    }
+
+    public boolean isPoBoxAddress() {
+        return !getPoBox().isEmpty();
     }
 
     public boolean isHwy() {
