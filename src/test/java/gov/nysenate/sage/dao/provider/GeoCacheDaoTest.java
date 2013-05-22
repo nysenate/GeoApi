@@ -17,13 +17,7 @@ public class GeoCacheDaoTest extends TestBase
     @Test
     public void testGetCacheHit()
     {
-        FormatUtil.printObject(geoCacheDao.getCacheHit(new Address("2012 East River Road, Olean, NY 14760")));
-    }
-
-    @Test
-    public void testIsCached()
-    {
-        FormatUtil.printObject(geoCacheDao.isCached(new Address("2012 East River Road, Olean, NY 14760")));
+        //FormatUtil.printObject(geoCacheDao.getCacheHit(new Address("2012 East River Road, Olean, NY 14760")));
     }
 
     @Test

@@ -20,7 +20,7 @@ public class StreetAddressParserTest {
         //Address address = new Address("175-90 HILLCREST VLG E #A3, NISKAYUNA, NY 12309-3806");
         //Address address = new Address("175-90 Hillcrest Village East, Niskayuna, NY 12309-3806");
         //Address address = new Address("13830 West WATERPORT CARLTON RD, APT #78, ALBION, NY 14411");
-        //Address address = new Address("300 East CENTRAL PARK West APt 2K New York NY 12108");
+        //Address address = new Address("300 East 12 Service Drive West APt 2K New York NY 12108");
 
         //Address address = new Address("3771 w 118th St West, Apartment #4001C, Queens NY 11432");
         //Address address = new Address("17303 SENECA CHASE PARK RD, POOLESVILLE, MD 20837");
@@ -28,23 +28,25 @@ public class StreetAddressParserTest {
 
         /** Route/Highway Addresses */
         //Address address = new Address("2613 ROUTE 11 APT 5 LA FAYETTE, NY 13084");
+        //Address address = new Address("2613 ROUTE 11", "APT 5A", "La Fayette", "NY", "13084", "");
         //Address address = new Address("2613 ROUTE 11-5 LA FAYETTE, NY 13084");
         //Address address = new Address("7967 W STATE HIGHWAY 5, ST JOHNSVILLE NY 13452-3528");
-        //Address address = new Address("3851 ROUTE 9 W, HIGHLAND, NY 12528");
+        //Address address = new Address("3851 E ROUTE 9 W", "HIGHLAND", "NY", "12528");
         //Address address = new Address("1375 US HIGHWAY 6, Port Jervis, NY 12771");
         //Address address = new Address("9874 W ROUTE 32, FREEHOLD NY 12431-5349");
 
         /** PO BOX */
         //Address address = new Address("PO BOX 612 CENTEREACH NY 11722");
         //Address address = new Address("PO BOX 612 CENTEREACH NY 11722");
-        Address address = new Address("PO BOX 1582 BRIDGEHAMPTON NY 11932-1582");
+        //Address address = new Address("PO BOX 1582 BRIDGEHAMPTON NY 11932-1582");
 
         /** Edge cases */
-        //Address address = new Address("8121 Main Street, Red Creek NY 13143");
+        Address address = new Address("8121 Main Street, Red Creek NY 13143");
         //Address address = new Address("234 State Hwy 45B, NY 12343");
         //Address address = new Address("241 Avenue X, New York 12324-2324");
-        //Address address = new Address("385 HOFSTRA UNIV C SQUARE W Unit 516A, Hempstead, NY 11549");
-        //Address address = new Address("500 JOSEPH C WILSON BLVD # 272844, ROCHESTER NY 14627");
+        //Address address = new Address("385 HOFSTRA UNIV C SQUARE W", "Dover 516A", "Hempstead", "NY", "11549", "");
+        //Address address = new Address("500 JOSEPH C WILSON BLVD # 272844", "", "ROCHESTER", "NY", "14627", "");
+       // Address address = new Address("500 JOSEPH C WILSON BLVD APT 272844 ROCHESTER NY 14627");
 
         FormatUtil.printObject(StreetAddressParser.parseAddress(address));
 

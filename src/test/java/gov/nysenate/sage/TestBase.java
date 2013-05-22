@@ -1,7 +1,6 @@
 package gov.nysenate.sage;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
-import org.junit.Before;
 import org.junit.BeforeClass;
 
 /**
@@ -15,6 +14,6 @@ public class TestBase
     @BeforeClass
     public static void initBase()
     {
-        ApplicationFactory.buildTestInstances();
+        ApplicationFactory.bootstrapTest();
     }
 }

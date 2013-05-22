@@ -8,6 +8,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.RevGeocodeService;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
@@ -101,10 +102,10 @@ public abstract class GeocodeTestBase
         }
     }
 
-    public static void assertSingleReverseGeocode(GeocodeService geocodeService)
+    public static void assertSingleReverseGeocode(RevGeocodeService revGeocodeService)
     {
         /** This is not an accuracy test, but rather a check to see if the address returned is reasonable */
-        GeocodeResult geocodeResult = geocodeService.reverseGeocode(new Point(42.6716696, -73.7985770));
+        GeocodeResult geocodeResult = revGeocodeService.reverseGeocode(new Point(42.6716696, -73.7985770));
         assertNotNull(geocodeResult);
 
         Address expected = new Address("44 Fairlawn Ave", "", "Albany", "NY", "12203", "");
