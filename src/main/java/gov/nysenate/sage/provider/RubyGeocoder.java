@@ -53,7 +53,7 @@ public class RubyGeocoder implements GeocodeService
         }
 
         String url;
-        GeocodeResult geocodeResult = null;
+        GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
         if (address.isParsed()) {
             url = m_baseUrl+"?street="+address.getAddr1()+"&city="+address.getCity()+"&state="+address.getState()+"&zip="+address.getZip5();
         }
@@ -65,22 +65,26 @@ public class RubyGeocoder implements GeocodeService
         try {
             logger.info(url);
             String jsonString = UrlRequest.getResponseFromUrl(url);
-            logger.info(jsonString);
-            JsonNode root = this.jsonMapper.readTree(jsonString);
+            if (jsonString != null) {
+                logger.info(jsonString);
+                JsonNode root = this.jsonMapper.readTree(jsonString);
 
-            if (root == null) {
-                geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
-                return geocodeResult;
+                if (root == null) {
+                    geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
+                    return geocodeResult;
+                }
+
+                JsonNode jsonResult = root.get(0);
+                geocodeResult = getGeocodeResultFromResultNode(jsonResult);
             }
-
-            JsonNode jsonResult = root.get(0);
-            geocodeResult = getGeocodeResultFromResultNode(jsonResult);
-            return geocodeResult;
+            else {
+                geocodeResult.setStatusCode(ResultStatus.RESPONSE_ERROR);
+            }
         }
         catch (IOException e) {
             logger.error("Error opening API resource '"+url+"'", e);
-            return null;
         }
+        return geocodeResult;
     }
 
     @Override

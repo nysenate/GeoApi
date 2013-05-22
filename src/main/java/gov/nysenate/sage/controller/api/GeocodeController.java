@@ -63,6 +63,10 @@ public class GeocodeController extends BaseApiController
             return;
         }
 
+        logger.info("--------------------------------------");
+        logger.info(String.format("Geocode Request | Mode: %s", apiRequest.getRequest()));
+        logger.info("--------------------------------------");
+
         switch (apiRequest.getRequest()) {
             case "geocode":
             {
@@ -97,6 +101,7 @@ public class GeocodeController extends BaseApiController
                 if (!apiRequest.isBatch()) {
                     Point point = getPointFromParams(request);
                     if (point != null ) {
+                        logger.debug("sending to rev geo service provider");
                         GeocodeResult revGeocodeResult = revGeocodeServiceProvider.reverseGeocode(point, provider, true);
                         geocodeResponse = new RevGeocodeResponse(revGeocodeResult);
                     }

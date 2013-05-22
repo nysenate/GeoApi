@@ -17,6 +17,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -114,6 +115,7 @@ public class ApplicationFactory
             addressServiceProvider = new AddressServiceProvider();
             addressServiceProvider.registerDefaultProvider("usps", USPS.class);
             addressServiceProvider.registerProvider("mapquest", MapQuest.class);
+            addressServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest"));
 
             geocodeServiceProvider = new GeocodeServiceProvider();
             geocodeServiceProvider.registerDefaultProvider("yahoo", Yahoo.class);
@@ -122,15 +124,23 @@ public class ApplicationFactory
             geocodeServiceProvider.registerProvider("yahooboss", YahooBoss.class);
             geocodeServiceProvider.registerProvider("osm", OSM.class);
             geocodeServiceProvider.registerProvider("ruby", RubyGeocoder.class);
+            geocodeServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest", "tiger", "yahooBoss"));
 
             geocodeServiceProvider.registerProviderAsCacheable("yahoo");
             geocodeServiceProvider.registerProviderAsCacheable("yahooboss");
             geocodeServiceProvider.registerProviderAsCacheable("mapquest");
 
+            revGeocodeServiceProvider = new RevGeocodeServiceProvider();
+            revGeocodeServiceProvider.registerDefaultProvider("yahoo", Yahoo.class);
+            revGeocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
+            revGeocodeServiceProvider.registerProvider("tiger", TigerGeocoder.class);
+            revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest, tiger"));
+
             districtServiceProvider = new DistrictServiceProvider();
             districtServiceProvider.registerDefaultProvider("shapefile", DistrictShapefile.class);
             districtServiceProvider.registerProvider("streetfile", StreetFile.class);
             districtServiceProvider.registerProvider("geoserver", Geoserver.class);
+            districtServiceProvider.setProviderFallbackChain(Arrays.asList("streetfile"));
 
             mapServiceProvider = new MapServiceProvider();
             mapServiceProvider.registerDefaultProvider("shapefile", DistrictShapefile.class);

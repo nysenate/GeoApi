@@ -2,13 +2,11 @@ package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.GeoCache;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -22,11 +20,8 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 {
     private final Logger logger = Logger.getLogger(GeocodeServiceProvider.class);
     private final static Config config = ApplicationFactory.getConfig();
-
-    private final static String DEFAULT_GEO_PROVIDER = "yahoo";
-    private final static LinkedList<String> DEFAULT_GEO_FALLBACK = new LinkedList<>(Arrays.asList("mapquest", "tiger"));
-
     private static List<String> cacheableProviders = new ArrayList<>();
+
     private GeocodeCacheService geocodeCache;
     private Boolean CACHE_ENABLED = true;
 
@@ -75,7 +70,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      */
     public GeocodeResult geocode(Address address)
     {
-        return this.geocode(address, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true, true);
+        return this.geocode(address, this.defaultProvider, this.defaultFallback, true, true);
     }
 
     /**
@@ -88,7 +83,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     public GeocodeResult geocode(Address address, String provider, boolean useFallback)
     {
         if (provider == null || provider.isEmpty()) {
-            provider = DEFAULT_GEO_PROVIDER;
+            provider = this.defaultProvider;
         }
         return this.geocode(address, provider, useFallback, true);
     }
@@ -103,9 +98,9 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     public GeocodeResult geocode(Address address, String provider, boolean useFallback, boolean useCache)
     {
         if (provider == null || provider.isEmpty()) {
-            provider = DEFAULT_GEO_PROVIDER;
+            provider = this.defaultProvider;
         }
-        return this.geocode(address, provider, DEFAULT_GEO_FALLBACK, useFallback, useCache);
+        return this.geocode(address, provider, this.defaultFallback, useFallback, useCache);
     }
 
     /**
@@ -123,7 +118,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
         /** Clone the list of fall back providers */
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
-                                                                  : new LinkedList<>(DEFAULT_GEO_FALLBACK);
+                                                                  : new LinkedList<>(this.defaultFallback);
         GeocodeResult geocodeResult = (CACHE_ENABLED && useCache) ? this.geocodeCache.geocode(address)
                                                  : new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
         boolean cacheHit = CACHE_ENABLED && useCache && geocodeResult.isSuccess();
@@ -136,9 +131,9 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             }
             else {
                 logger.error("Supplied an invalid geocoding provider! " + provider);
-                if (useFallback && !fallbackProviders.contains(DEFAULT_GEO_PROVIDER)) {
+                if (useFallback && !fallbackProviders.contains(this.defaultProvider)) {
                     logger.info("Adding default geocoder as fallback");
-                    fallbackProviders.set(0, DEFAULT_GEO_PROVIDER);
+                    fallbackProviders.set(0, this.defaultProvider);
                 }
             }
         }
@@ -168,7 +163,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      */
     public List<GeocodeResult> geocode(List<Address> addresses)
     {
-        return this.geocode(addresses, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true, true);
+        return this.geocode(addresses, this.defaultProvider, this.defaultFallback, true, true);
     }
 
     /**
@@ -180,7 +175,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      */
     public List<GeocodeResult> geocode(List<Address> addresses, String provider, boolean useFallback, boolean useCache)
     {
-        return this.geocode(addresses, provider, DEFAULT_GEO_FALLBACK, useFallback, true);
+        return this.geocode(addresses, provider, this.defaultFallback, useFallback, true);
     }
 
     /**
@@ -201,7 +196,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
         /** Clone the list of fall back providers */
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
-                                                                  : new LinkedList<>(DEFAULT_GEO_FALLBACK);
+                                                                  : new LinkedList<>(this.defaultFallback);
         List<GeocodeResult> geocodeResults = null;
         List<Integer> failedIndices;
 

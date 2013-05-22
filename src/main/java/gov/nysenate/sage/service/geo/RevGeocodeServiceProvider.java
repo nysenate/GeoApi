@@ -18,9 +18,6 @@ public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeServic
     private final Logger logger = Logger.getLogger(GeocodeServiceProvider.class);
     private final static Config config = ApplicationFactory.getConfig();
 
-    private final static String DEFAULT_GEO_PROVIDER = "yahoo";
-    private final static LinkedList<String> DEFAULT_GEO_FALLBACK = new LinkedList<>(Arrays.asList("mapquest", "tiger"));
-
     public RevGeocodeServiceProvider() {}
 
     @Override
@@ -33,7 +30,7 @@ public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeServic
      */
     public GeocodeResult reverseGeocode(Point point)
     {
-        return reverseGeocode(point, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK, true);
+        return reverseGeocode(point, this.defaultProvider, this.defaultFallback, true);
     }
 
     /**
@@ -45,7 +42,7 @@ public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeServic
      */
     public GeocodeResult reverseGeocode(Point point, String provider, boolean useFallback)
     {
-        return reverseGeocode(point, provider, DEFAULT_GEO_FALLBACK, useFallback);
+        return reverseGeocode(point, provider, this.defaultFallback, useFallback);
     }
 
     /**
@@ -59,16 +56,20 @@ public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeServic
     public GeocodeResult reverseGeocode(Point point, String provider, LinkedList<String> fallbackProviders,
                                         boolean useFallback)
     {
+        logger.debug("Performing reverse geocode on point " + point);
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_REVERSE_GEOCODE_RESULT);
+        /** Clone the list of fall back reverse geocode providers */
+        LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
+                                                                  : new LinkedList<>(this.defaultFallback);
+
         if (provider != null && !provider.isEmpty()) {
             geocodeResult = this.newInstance(provider).reverseGeocode(point);
         }
+        else {
+            fallbackProviders.addFirst(this.defaultProvider);
+        }
+
         if (!geocodeResult.isSuccess() && useFallback) {
-
-            /** Clone the list of fall back reverse geocode providers */
-            LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
-                    : new LinkedList<>(DEFAULT_GEO_FALLBACK);
-
             Iterator<String> fallbackIterator = fallback.iterator();
             while (!geocodeResult.isSuccess() && fallbackIterator.hasNext()) {
                 geocodeResult = this.newInstance(fallbackIterator.next()).reverseGeocode(point);
@@ -82,7 +83,7 @@ public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeServic
     */
     public List<GeocodeResult> reverseGeocode(List<Point> points)
     {
-        return reverseGeocode(points, DEFAULT_GEO_PROVIDER, DEFAULT_GEO_FALLBACK);
+        return reverseGeocode(points, this.defaultProvider, this.defaultFallback);
     }
 
     /**
@@ -90,7 +91,7 @@ public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeServic
     */
     public List<GeocodeResult> reverseGeocode(List<Point> points, String provider)
     {
-        return reverseGeocode(points, provider, DEFAULT_GEO_FALLBACK);
+        return reverseGeocode(points, provider, this.defaultFallback);
     }
 
     /**

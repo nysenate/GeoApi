@@ -1,9 +1,8 @@
 package gov.nysenate.sage.service.base;
 
 import org.apache.log4j.Logger;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 
 /**
  * This class is essentially a simple way to keep track of which classes can serve as an
@@ -13,8 +12,9 @@ import java.util.Set;
 public class ServiceProviders<T>
 {
     private Logger logger = Logger.getLogger(this.getClass());
-    private Map<String,Class<? extends T>> providers = new HashMap<>();
-    private String defaultProvider = "default";
+    protected Map<String,Class<? extends T>> providers = new HashMap<>();
+    protected String defaultProvider = "default";
+    protected LinkedList<String> defaultFallback = new LinkedList<>();
 
     /**
      * Registers the default service as an instance of the given provider.
@@ -34,6 +34,11 @@ public class ServiceProviders<T>
     public void registerProvider(String providerName, Class<? extends T> provider)
     {
         providers.put(providerName.toLowerCase(), provider);
+    }
+
+    public void setProviderFallbackChain(List<String> fallbackChain)
+    {
+        defaultFallback = new LinkedList<>(fallbackChain);
     }
 
     /**
