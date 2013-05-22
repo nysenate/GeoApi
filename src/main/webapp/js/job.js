@@ -36,12 +36,14 @@ sage.filter('yesno', function(){
  * corresponds to its index. If the index matches the id then the
  * container for that controller will be visible.
  */
-sage.controller('MenuController', function($scope, dataBus){
+sage.controller('MenuController', function($scope, $window, dataBus){
     $scope.active = 2;
     $scope.toggleView = function(index) {
         dataBus.setBroadcast("toggleView", index);
     }
-
+    $scope.logout = function() {
+        $window.location.href = contextPath + '/job/logout';
+    }
     $scope.toggleView(2);
 });
 
@@ -51,7 +53,6 @@ sage.controller('JobAuthController', function($scope, $http) {
     $scope.password = "";
     $scope.error = false;
     $scope.errorMessage = "";
-
 });
 
 sage.controller('JobUploadController', function($scope, $http, dataBus) {
@@ -66,6 +67,11 @@ sage.controller('JobUploadController', function($scope, $http, dataBus) {
 
     $scope.$on("toggleView", function(){
         $scope.visible = ($scope.id == dataBus.data);
+        if ($scope.visible) {
+            console.log("initializing uploader!");
+            initUploader();
+        }
+
     });
 });
 
@@ -182,65 +188,67 @@ sage.controller('JobHistoryController', function($scope, $http, dataBus) {
 
 });
 
+function initUploader() {
+    if (uploader === null || typeof uploader === 'undefined'){
+        uploader = new qq.FileUploader({
+            action: contextPath + '/job/upload',
+            element: document.getElementById('fileuploader'),
+            allowedExtensions:['tsv','csv', 'txt'],
+            multiple:false,
+            template: '<ul class="qq-upload-list"></ul><div class="qq-uploader">' +
+                '<div class="qq-upload-drop-area"><span>Drop file here to upload</span></div>' +
+                '<div class="custom-button qq-upload-button"><span><div class="icon-upload teal" style="margin-right:5px;"></div>Add a file</span></div>' +
+                '</div>',
+            onSubmit: doSubmit,
+            onComplete: doComplete
+        });
+
+        function doSubmit(id, fileName) {
+            return true;
+        }
+
+        function doComplete(id, fileName, uploadResponse) {
+            var html="";
+            if(uploadResponse.success == true && uploadResponse.process != null) {
+
+                var scope = angular.element($("#upload-container")).scope();
+                scope.$apply(function(){
+                    scope.addProcess(uploadResponse.process);
+                });
+            }
+            else {
+                //take care of bad headers or blank files here
+                alert(uploadResponse.message);
+            }
+        }
+
+        $('.custom-submit-button').click(function() {
+            var message = validate();
+            if(message == "" && canSubmit) {
+                $('#form_submit').html("Saving...");
+
+                canSubmit = false;
+
+                $('#uploadForm').submit();
+                return true;
+            }
+            else {
+                if(!canSubmit) {
+                    message += "<br>Select a valid file";
+                }
+                $("#error").html(message);
+                if(!$("#error").is(":visible")) {
+                    $("#error").slideToggle(500);
+                }
+                return false;
+            }
+        });
+    }
+}
+
 $(document).ready(function() {
-
     initVerticalMenu();
-
     if ($.trim($("#error").html())=="") {
         $("#error").hide();
     }
-
-    uploader = new qq.FileUploader({
-        action: contextPath + '/job/upload',
-        element: document.getElementById('fileuploader'),
-        allowedExtensions:['tsv','csv', 'txt'],
-        multiple:false,
-        template: '<ul class="qq-upload-list"></ul><div class="qq-uploader">' +
-            '<div class="qq-upload-drop-area"><span>Drop file here to upload</span></div>' +
-            '<div class="custom-button qq-upload-button"><span><div class="icon-upload teal" style="margin-right:5px;"></div>Add a file</span></div>' +
-            '</div>',
-        onSubmit: doSubmit,
-        onComplete: doComplete
-    });
-
-    function doSubmit(id, fileName) {
-        return true;
-    }
-
-    function doComplete(id, fileName, uploadResponse) {
-        var html="";
-        if(uploadResponse.success == true && uploadResponse.process != null) {
-
-            var scope = angular.element($("#upload-container")).scope();
-            scope.$apply(function(){
-                scope.addProcess(uploadResponse.process);
-            });
-        }
-        else {
-            //take care of bad headers or blank files here
-            alert(uploadResponse.message);
-        }
-    }
-
-    $('.custom-submit-button').click(function() {
-        var message = validate();
-        if(message == "" && canSubmit) {
-            $('#form_submit').html("Saving...");
-
-            canSubmit = false;
-
-            $('#uploadForm').submit();
-            return true;
-        }
-        else {
-            if(!canSubmit) {
-                message += "<br>Select a valid file";
-            }
-            $("#error").html(message);
-            if(!$("#error").is(":visible")) {
-                $("#error").slideToggle(500);
-            }
-            return false;
-        }
-    });
 });

@@ -91,6 +91,10 @@ public class DistrictController extends BaseApiController implements Observer
         /** Specify district strategy */
         String districtStrategy = request.getParameter("districtStrategy");
 
+        logger.info("--------------------------------------");
+        logger.info(String.format("District Request | Mode: %s", apiRequest.getRequest()));
+        logger.info("--------------------------------------");
+
         /**
          * If providers are specified then make sure they match the available providers. Send an
          * api error and return if the provider is not supported.

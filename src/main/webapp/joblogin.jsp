@@ -9,12 +9,10 @@
         <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
-        <a href="${pageContext.request.contextPath}">
-            <div class="top-header">
-                <div class="icon-earth large-icon teal"></div>
-                <div id="sage-logo-text">SAGE</div>
-            </div>
-        </a>
+        <div class="top-header">
+            <div class="icon-earth large-icon teal"></div>
+            <div id="sage-logo-text"><a style="color:white" href="${pageContext.request.contextPath}">SAGE</a></div>
+        </div>
         <h1 style="text-align: center; color:#222;">SAGE Batch Services</h1>
         <div style="margin:auto;width:720px;text-align: center;">
             <p>SAGE provides batch geocoding and district assignment services to registered users.</p>
@@ -41,6 +39,7 @@
                     </li>
                 </ol>
             </form>
+            <div id="login-error" ng-model="errorMessage">${errorMessage}</div>
         </div>
     </jsp:body>
 </sage:wrapper>

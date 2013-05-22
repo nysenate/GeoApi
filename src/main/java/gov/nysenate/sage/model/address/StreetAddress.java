@@ -71,7 +71,7 @@ public class StreetAddress
 
     public boolean isStreetEmpty()
     {
-        return (this.street == null || this.street.isEmpty());
+        return this.getStreet().isEmpty();
     }
 
     public String toString()

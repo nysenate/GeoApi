@@ -68,7 +68,7 @@ public class ApiFilter implements Filter, Observer
     {
         ipFilter = config.getValue("user.ip_filter");
         defaultKey = config.getValue("user.default");
-        logger.debug(String.format("Allowing access on %s via default key %s", ipFilter, defaultKey));
+        logger.trace(String.format("Allowing access on %s via default key %s", ipFilter, defaultKey));
     }
 
     public void update(Observable o, Object arg)
@@ -114,7 +114,7 @@ public class ApiFilter implements Filter, Observer
     {
         if (key == null && remoteIp.matches(ipFilter)) {
             key = defaultKey;
-            logger.debug(String.format("Default user: %s granted default key %s", remoteIp, key));
+            logger.trace(String.format("Default user: %s granted default key %s", remoteIp, key));
         }
 
         if (key != null) {
@@ -122,18 +122,18 @@ public class ApiFilter implements Filter, Observer
             ApiUser apiUser = apiUserAuth.getApiUser(key);
 
             if (apiUser != null) {
-                logger.debug(String.format("ApiUser %s has been authenticated successfully", apiUser.getName()));
+                logger.trace(String.format("ApiUser %s has been authenticated successfully", apiUser.getName()));
                 request.setAttribute("apiUser", apiUser);
                 return true;
             }
             else {
                 setApiResponse(new ApiError(API_KEY_INVALID), request);
-                logger.debug(String.format("Failed to validate request to %s from %s using key: %s", uri, remoteIp, key));
+                logger.warn(String.format("Failed to validate request to %s from %s using key: %s", uri, remoteIp, key));
             }
         }
         else {
             setApiResponse(new ApiError(API_KEY_MISSING), request);
-            logger.debug(String.format("No key supplied to access %s from %s", uri, remoteIp));
+            logger.warn(String.format("No key supplied to access %s from %s", uri, remoteIp));
         }
         return false;
     }

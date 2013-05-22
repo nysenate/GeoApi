@@ -66,7 +66,13 @@ public abstract class BaseJobController extends HttpServlet
     {
         HttpSession session = request.getSession();
         session.setMaxInactiveInterval(3600);
-        request.getSession().setAttribute(JOB_USER_ATTR, user);
+        session.setAttribute(JOB_USER_ATTR, user);
+    }
+
+    public static void unsetJobUser(HttpServletRequest request)
+    {
+        HttpSession session = request.getSession();
+        session.invalidate();
     }
 
     public static void setJobResponse(Object responseObj, HttpServletResponse response)

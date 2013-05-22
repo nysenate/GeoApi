@@ -15,12 +15,10 @@
         </script>
     </jsp:attribute>
     <jsp:body>
-        <a href="${pageContext.request.contextPath}">
-            <div class="top-header">
-                <div class="icon-earth large-icon teal"></div>
-                <div id="sage-logo-text">SAGE</div>
-            </div>
-        </a>
+        <div class="top-header">
+            <div class="icon-earth large-icon teal"></div>
+            <div id="sage-logo-text"><a style='color:white;' href="${pageContext.request.contextPath}">SAGE</a></div>
+        </div>
         <div id="contentwrapper">
             <div id="contentcolumn" style="margin:0px 10px 0px 300px;padding-top:20px;">
                 <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController" style="width:100%;height:100%;">
@@ -36,7 +34,6 @@
                                             <thead style="text-align:left;border-bottom: 1px solid #999">
                                             <tr>
                                                 <th width="450px">File name</th>
-                                                <th>Validate Address</th>
                                                 <th>Geocode</th>
                                                 <th>District Assign</th>
                                                 <th>Record Count</th>
@@ -44,7 +41,6 @@
                                             </thead>
                                             <tr ng-repeat="process in processes">
                                                 <td>{{process.sourceFileName}}</td>
-                                                <td>{{process.validationRequired | yesno}}</td>
                                                 <td>{{process.geocodeRequired | yesno}}</td>
                                                 <td>{{process.districtRequired | yesno}}</td>
                                                 <td>{{process.recordCount}}</td>
@@ -186,6 +182,7 @@
                 <p ng-click="toggleView(1)" class="method-header teal">Start new batch jobs</p>
                 <p ng-click="toggleView(2)" class="method-header active maroon">View current batch jobs</p>
                 <p ng-click="toggleView(3)" class="method-header purple">View batch job history</p>
+                <p ng-click="logout()" class="method-header purple">Log Out</p>
             </div>
         </div>
 

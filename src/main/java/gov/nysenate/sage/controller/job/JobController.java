@@ -34,17 +34,26 @@ public class JobController extends BaseJobController
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
         logger.debug("Accessing job service");
-        if (isAuthenticated(request)) {
-            logger.debug("Authenticated! Sending to main job page");
-            /** Clear out previous info */
-            getJobRequest(request).clear();
+        String method = request.getPathInfo();
 
-            request.setAttribute("downloadDir", config.getValue("job.user.download.dir"));
-            request.getRequestDispatcher("/jobmain.jsp").forward(request, response);
-        }
-        else {
-            logger.info("Authentication failed! Sending to login page");
+        /** Handle log out */
+        if (method != null && method.equalsIgnoreCase("/logout")) {
+            doLogout(request, response);
             request.getRequestDispatcher("/joblogin.jsp").forward(request, response);
+        }
+        /** Handle all other requests */
+        else {
+            if (isAuthenticated(request)) {
+                logger.debug("Authenticated! Sending to main job page");
+                /** Clear out previous info */
+                getJobRequest(request).clear();
+                request.setAttribute("downloadDir", config.getValue("job.user.download.dir"));
+                request.getRequestDispatcher("/jobmain.jsp").forward(request, response);
+            }
+            else {
+                logger.info("Authentication failed! Sending to login page");
+                request.getRequestDispatcher("/joblogin.jsp").forward(request, response);
+            }
         }
     }
 
@@ -62,6 +71,9 @@ public class JobController extends BaseJobController
                 }
                 case "/submit" : {
                     doSubmit(request, response); break;
+                }
+                case "/logout" : {
+                    doLogout(request, response); break;
                 }
                 default : {
                     request.getRequestDispatcher("/joblogin.jsp").forward(request, response);
@@ -84,6 +96,7 @@ public class JobController extends BaseJobController
         }
         else {
             logger.info("Denied job service access to " + email);
+            request.setAttribute("errorMessage", "Invalid credentials");
             request.getRequestDispatcher("/joblogin.jsp").forward(request, response);
         }
     }
@@ -210,5 +223,10 @@ public class JobController extends BaseJobController
 
         /** Redirect to main page */
         response.sendRedirect(request.getContextPath() + "/job");
+    }
+
+    public void doLogout(HttpServletRequest request, HttpServletResponse response) throws IOException
+    {
+        unsetJobUser(request);
     }
 }

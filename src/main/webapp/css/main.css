@@ -469,10 +469,8 @@ table.job-table {
     width:100%;
 }
 
-table.job-table td {
-
-}
-
-.WAITING_FOR_CRON {
-    color:#556b2f;
+#login-error {
+    color: maroon;
+    font-weight: bold;
+    text-align: center;
 }

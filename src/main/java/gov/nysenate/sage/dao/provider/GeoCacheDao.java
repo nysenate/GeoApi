@@ -66,7 +66,7 @@ public class GeoCacheDao extends BaseDao
             }
             /** PO BOX addresses can be looked up by just the location/zip */
             else {
-                logger.trace("Cache lookup without street");
+                logger.debug("Cache lookup without street");
                 sql += "WHERE gc.state = ? \n" +
                        "AND gc.street = '' \n" +
                        "AND ((gc.zip5 = ? AND gc.zip5 != '') OR (? = '' AND gc.location = ? AND gc.location != ''))";

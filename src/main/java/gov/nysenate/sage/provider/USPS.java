@@ -145,7 +145,6 @@ public class USPS implements AddressService, Observer
             try
             {
                 url = baseUrl +"?API=Verify&XML="+URLEncoder.encode(xmlRequest.toString(), "UTF-8");
-                logger.info(url);
                 response = xmlBuilder.parse(UrlRequest.getInputStreamFromUrl(url));
 
                 /** If the request failed, mark them all as such */
