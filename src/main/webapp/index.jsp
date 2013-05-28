@@ -230,7 +230,10 @@
                                     </tr>
                                 </table>
                                 <br/>
-                                <p class="member-email"><div class="icon-mail" style="margin-right: 5px;position: relative;top: 3px;"></div>{{districts.senate.senator.email}}</p>
+                                <p class="member-email">
+                                    <div class="icon-mail" style="margin-right: 5px;position: relative;top: 3px;"></div>
+                                    <span style='font-size:15px'>{{districts.senate.senator.email}}</span>
+                                </p>
                             </div>
                         </div>
                         <div class="info-container" style="padding:5px 10px;">
