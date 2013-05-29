@@ -11,6 +11,8 @@ import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.Config;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.regex.Matcher;
@@ -84,7 +86,7 @@ public class ApiFilter implements Filter, Observer
         String uri = ((HttpServletRequest)request).getRequestURI();
 
         /** Check that the url is formatted correctly */
-        if (validateRequest(uri, request)){
+        if (validateRequest(uri, remoteIp, request)){
             /** The filter will proceed to the next chain only if the user has a valid key or is the default user.
              *  Otherwise an error message will be sent. */
             if (authenticateUser(key, remoteIp, uri, request)) {
@@ -146,7 +148,7 @@ public class ApiFilter implements Filter, Observer
      * @return  true if api parsed correctly
      *          false otherwise
      */
-    private boolean validateRequest(String uri, ServletRequest request) throws IOException
+    private boolean validateRequest(String uri, String remoteIp, ServletRequest request) throws IOException
     {
         Pattern validFormatPattern = Pattern.compile(validFormat);
         Matcher matcher = validFormatPattern.matcher(uri);
@@ -174,14 +176,24 @@ public class ApiFilter implements Filter, Observer
         /** If the url pattern matches, then obtain the parameters and propagate an ApiResult object as an
          *  attribute with the key 'apiRequest'. */
         if (matcher.find()) {
-
             int version = Integer.valueOf(matcher.group("version"));
             String service = matcher.group("service");
             String req = matcher.group("request");
             boolean batch = (matcher.group("batch") != null);
 
+            /** Resolve ip address into InetAddress */
+            InetAddress remoteInetAddress = null;
+            try {
+                remoteInetAddress = InetAddress.getByName(remoteIp);
+                logger.debug("Request from " + remoteInetAddress.getCanonicalHostName());
+            }
+            catch (UnknownHostException ex)
+            {
+                logger.warn("Unknown remote ip host!", ex);
+            }
+
             /** Construct an ApiRequest object */
-            ApiRequest apiRequest = new ApiRequest(version, service, req, batch);
+            ApiRequest apiRequest = new ApiRequest(version, service, req, batch, remoteInetAddress);
             apiRequest.setProvider(request.getParameter("provider"));
 
             setApiRequest(apiRequest, request);
