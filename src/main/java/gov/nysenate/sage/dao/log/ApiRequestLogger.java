@@ -13,20 +13,41 @@ public class ApiRequestLogger extends BaseDao
     private static Logger logger = Logger.getLogger(ApiRequestLogger.class);
     private QueryRunner runner = getQueryRunner();
 
+    /**
+     * Log an Api request to the database.
+     * @param apiRequest ApiRequest to log
+     */
     public void logApiRequest(ApiRequest apiRequest)
     {
 
     }
 
-    public List<ApiRequest> getApiRequests(String apiKey, String method, int limit)
+    /**
+     * Retrieve logged Api requests.
+     * @param apiKey         Api Key to search for. If null or blank, search for all Api keys.
+     * @param method         Method to filter by. If null or blank, search for all methods.
+     * @param limit          Limit results. If -1, return all results.
+     * @param orderByRecent  If true, sort by most recent first. Otherwise return least recent first.
+     * @return
+     */
+    public List<ApiRequest> getApiRequests(String apiKey, String method, int limit, boolean orderByRecent)
     {
         return null;
     }
 
-    public List<ApiRequest> getApiRequestsDuring(String apiKey, String method, Timestamp from, Timestamp to, int limit)
+    /**
+     * Retrieve logged Api requests within a specified time frame.
+     * @param apiKey         Api Key to search for. If null or blank, search for all Api keys.
+     * @param method         Method to filter by. If null or blank, search for all methods.
+     * @param from           Inclusive start date/time.
+     * @param to             Inclusive end date/time.
+     * @param limit          Limit results. If -1, return all results.
+     * @param orderByRecent  If true, sort by most recent first. Otherwise return least recent first.
+     * @return
+     */
+    public List<ApiRequest> getApiRequestsDuring(String apiKey, String method, Timestamp from, Timestamp to, int limit,
+                                                 boolean orderByRecent)
     {
         return null;
     }
-
-
 }
