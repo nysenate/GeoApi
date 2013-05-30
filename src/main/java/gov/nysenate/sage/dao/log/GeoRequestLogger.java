@@ -1,8 +1,7 @@
 package gov.nysenate.sage.dao.log;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.api.GeoRequest;
+import gov.nysenate.sage.model.api.GeocodeRequest;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.log4j.Logger;
 
@@ -18,7 +17,7 @@ public class GeoRequestLogger extends BaseDao
     *
     * @param geoRequest
     */
-    public void logGeoRequest(GeoRequest geoRequest)
+    public void logGeoRequest(GeocodeRequest geoRequest)
     {
 
     }
@@ -29,7 +28,7 @@ public class GeoRequestLogger extends BaseDao
     * @param limit          Limit results. If -1, return all results.
     * @param orderByRecent  If true, sort by most recent first. Otherwise return least recent first.
     */
-    public List<GeoRequest> getGeoRequests(String apiKey, int limit, boolean orderByRecent)
+    public List<GeocodeRequest> getGeoRequests(String apiKey, int limit, boolean orderByRecent)
     {
         return null;
     }
@@ -43,7 +42,7 @@ public class GeoRequestLogger extends BaseDao
      * @param orderByRecent  If true, sort by most recent first. Otherwise return least recent first.
      * @return
      */
-    public List<GeoRequest> getGeoRequestsDuring(String apiKey, Timestamp from, Timestamp to, int limit, boolean orderByRecent)
+    public List<GeocodeRequest> getGeoRequestsDuring(String apiKey, Timestamp from, Timestamp to, int limit, boolean orderByRecent)
     {
         return null;
     }

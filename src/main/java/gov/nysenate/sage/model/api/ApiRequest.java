@@ -13,6 +13,8 @@ import java.util.Date;
  */
 public class ApiRequest
 {
+    protected int id;
+
     /** Authentication */
     protected InetAddress ipAddress;
 
@@ -34,6 +36,22 @@ public class ApiRequest
         this.isBatch = batch;
         if (request != null) { this.request = request.toLowerCase().trim(); }
         this.apiRequestTime = new Timestamp(new Date().getTime());
+        this.ipAddress = ipAddress;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public InetAddress getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(InetAddress ipAddress) {
         this.ipAddress = ipAddress;
     }
 

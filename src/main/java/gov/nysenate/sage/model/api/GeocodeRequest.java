@@ -2,14 +2,14 @@ package gov.nysenate.sage.model.api;
 
 import gov.nysenate.sage.model.address.Address;
 
-public class GeoRequest
+public class GeocodeRequest
 {
     private ApiRequest apiRequest;
     private Address address;
     private boolean useFallback;
     private boolean useCache;
 
-    public GeoRequest(ApiRequest apiRequest) {
+    public GeocodeRequest(ApiRequest apiRequest) {
         this.apiRequest = apiRequest;
     }
 
