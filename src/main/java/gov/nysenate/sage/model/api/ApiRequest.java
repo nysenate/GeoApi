@@ -16,6 +16,7 @@ public class ApiRequest
     protected int id;
 
     /** Authentication */
+    protected ApiUser apiUser;
     protected InetAddress ipAddress;
 
     /** Uri attributes */
@@ -45,6 +46,14 @@ public class ApiRequest
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public ApiUser getApiUser() {
+        return apiUser;
+    }
+
+    public void setApiUser(ApiUser apiUser) {
+        this.apiUser = apiUser;
     }
 
     public InetAddress getIpAddress() {

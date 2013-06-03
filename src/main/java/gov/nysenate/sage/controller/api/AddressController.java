@@ -67,6 +67,10 @@ public final class AddressController extends BaseApiController
             }
         }
 
+        logger.info("--------------------------------------");
+        logger.info(String.format("Address Request | Mode: %s", apiRequest.getRequest()));
+        logger.info("--------------------------------------");
+
         /** Handle single request */
         if (!apiRequest.isBatch()) {
 

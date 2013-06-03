@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import gov.nysenate.sage.client.response.ApiError;
+import gov.nysenate.sage.dao.log.ApiRequestLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
@@ -44,6 +45,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public class ApiFilter implements Filter, Observer
 {
     private Logger logger = Logger.getLogger(ApiFilter.class);
+    private ApiRequestLogger apiRequestLogger;
     private Config config;
     private String ipFilter;
     private String defaultKey;
@@ -55,6 +57,7 @@ public class ApiFilter implements Filter, Observer
     private static final String responseObjectKey = "responseObject";
     private static final String formattedResponseKey = "formattedResponse";
     private static final String apiRequestKey = "apiRequest";
+    private static final String apiUserKey = "apiUser";
 
     /** Available format types */
     public enum FormatType { JSON, XML, JSONP }
@@ -62,14 +65,15 @@ public class ApiFilter implements Filter, Observer
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
     {
-        config = ApplicationFactory.getConfig();
+        this.config = ApplicationFactory.getConfig();
+        this.apiRequestLogger = new ApiRequestLogger();
         configure();
     }
 
     public void configure()
     {
-        ipFilter = config.getValue("user.ip_filter");
-        defaultKey = config.getValue("user.default");
+        this.ipFilter = config.getValue("user.ip_filter");
+        this.defaultKey = config.getValue("user.default");
         logger.trace(String.format("Allowing access on %s via default key %s", ipFilter, defaultKey));
     }
 
@@ -111,9 +115,9 @@ public class ApiFilter implements Filter, Observer
      * @return          true if authenticated, false otherwise
      * @throws IOException
      */
-    private boolean authenticateUser(String key, String remoteIp, String uri,
-                                     ServletRequest request) throws IOException
+    private boolean authenticateUser(String key, String remoteIp, String uri, ServletRequest request) throws IOException
     {
+        ApiRequest apiRequest = getApiRequest(request);
         if (key == null && remoteIp.matches(ipFilter)) {
             key = defaultKey;
             logger.trace(String.format("Default user: %s granted default key %s", remoteIp, key));
@@ -125,7 +129,12 @@ public class ApiFilter implements Filter, Observer
 
             if (apiUser != null) {
                 logger.trace(String.format("ApiUser %s has been authenticated successfully", apiUser.getName()));
-                request.setAttribute("apiUser", apiUser);
+                apiRequest.setApiUser(apiUser);
+
+                /** Log Api Request into the database */
+                int id = apiRequestLogger.logApiRequest(apiRequest);
+                apiRequest.setId(id);
+
                 return true;
             }
             else {
@@ -137,6 +146,7 @@ public class ApiFilter implements Filter, Observer
             setApiResponse(new ApiError(API_KEY_MISSING), request);
             logger.warn(String.format("No key supplied to access %s from %s", uri, remoteIp));
         }
+
         return false;
     }
 

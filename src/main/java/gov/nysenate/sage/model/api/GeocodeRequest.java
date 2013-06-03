@@ -2,15 +2,26 @@ package gov.nysenate.sage.model.api;
 
 import gov.nysenate.sage.model.address.Address;
 
+import java.sql.Timestamp;
+import java.util.Date;
+
 public class GeocodeRequest
 {
     private ApiRequest apiRequest;
     private Address address;
+    private String provider;
     private boolean useFallback;
     private boolean useCache;
+    private Timestamp requestTime;
 
-    public GeocodeRequest(ApiRequest apiRequest) {
+    public GeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache)
+    {
         this.apiRequest = apiRequest;
+        this.address = address;
+        this.provider = provider;
+        this.useFallback = useFallback;
+        this.useCache = useCache;
+        this.requestTime = new Timestamp(new Date().getTime());
     }
 
     public ApiRequest getApiRequest() {
@@ -43,5 +54,21 @@ public class GeocodeRequest
 
     public void setUseCache(boolean useCache) {
         this.useCache = useCache;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public Timestamp getRequestTime() {
+        return requestTime;
+    }
+
+    public void setRequestTime(Timestamp requestTime) {
+        this.requestTime = requestTime;
     }
 }

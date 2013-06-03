@@ -39,10 +39,13 @@ public class DistrictController extends BaseApiController implements Observer
 {
     private static Logger logger = Logger.getLogger(DistrictController.class);
     private static Config appConfig = ApplicationFactory.getConfig();
+
+    /** Service Providers */
     private static AddressServiceProvider addressProvider = ApplicationFactory.getAddressServiceProvider();
     private static DistrictServiceProvider districtProvider = ApplicationFactory.getDistrictServiceProvider();
     private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
     private static RevGeocodeServiceProvider revGeocodeProvider = ApplicationFactory.getRevGeocodeServiceProvider();
+
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
     @Override

@@ -2,24 +2,56 @@ package gov.nysenate.sage.dao.log;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.api.ApiRequest;
+import gov.nysenate.sage.model.api.ApiUser;
+import gov.nysenate.sage.util.FormatUtil;
+import org.apache.commons.dbutils.AsyncQueryRunner;
 import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ApiRequestLogger extends BaseDao
 {
     private static Logger logger = Logger.getLogger(ApiRequestLogger.class);
-    private QueryRunner runner = getQueryRunner();
+    private QueryRunner run = getQueryRunner();
 
     /**
      * Log an Api request to the database.
      * @param apiRequest ApiRequest to log
+     * @return int id of ApiRequest
      */
-    public void logApiRequest(ApiRequest apiRequest)
+    public int logApiRequest(ApiRequest apiRequest)
     {
-
+        if (apiRequest != null) {
+            ApiUser apiUser = apiRequest.getApiUser();
+            FormatUtil.printObject(apiRequest);
+            String sql = "INSERT INTO log.apiRequests(ipAddress, apiUserId, version, requestTypeId, requestTime) \n" +
+                    "SELECT inet '" + apiRequest.getIpAddress().getHostAddress() + "', ?, 2, rt.id, now() \n" +
+                    "FROM log.requestTypes AS rt \n" +
+                    "LEFT JOIN log.services ser ON rt.serviceId = ser.id \n" +
+                    "WHERE rt.name = ? AND ser.name = ?\n" +
+                    "RETURNING id";
+            try {
+                int id = run.query(sql, new ResultSetHandler<Integer>() {
+                        @Override
+                        public Integer handle(ResultSet rs) throws SQLException {
+                            return (rs.next()) ? rs.getInt("id") : -1;
+                        }
+                }, apiUser.getId(), apiRequest.getRequest(), apiRequest.getService());
+                logger.debug("Saved apiRequest " + id + " to log");
+                return id;
+            }
+            catch (SQLException ex) {
+                logger.error("Failed to log Api Request into the database", ex);
+            }
+        }
+        return 0;
     }
 
     /**

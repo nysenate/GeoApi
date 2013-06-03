@@ -8,16 +8,16 @@ import org.apache.log4j.Logger;
 import java.sql.Timestamp;
 import java.util.List;
 
-public class GeoRequestLogger extends BaseDao
+public class GeocodeRequestLogger extends BaseDao
 {
-    private static Logger logger = Logger.getLogger(GeoRequestLogger.class);
+    private static Logger logger = Logger.getLogger(GeocodeRequestLogger.class);
     private QueryRunner runner = getQueryRunner();
 
     /**
     *
     * @param geoRequest
     */
-    public void logGeoRequest(GeocodeRequest geoRequest)
+    public void logGeocodeRequest(GeocodeRequest geoRequest)
     {
 
     }
