@@ -46,7 +46,7 @@ public class GeoCacheDao extends BaseDao
         logger.debug("Looking up " + sa.toStringParsed() + " in cache..");
         if (isStreetAddressRetrievable(sa)) {
             String sql = "SELECT gc.*, ST_Y(latlon) AS lat, ST_X(latlon) AS lon\n" +
-                    "FROM cache.geocache AS gc \n";
+                         "FROM cache.geocache AS gc \n";
             if (!sa.isPoBoxAddress() && !sa.isStreetEmpty()) {
                 sql += "WHERE gc.bldgnum = ? \n" +
                         "AND COALESCE(gc.predir, '') = ? \n" +

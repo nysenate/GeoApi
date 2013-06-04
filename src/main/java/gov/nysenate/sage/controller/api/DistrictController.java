@@ -4,10 +4,13 @@ import gov.nysenate.sage.client.response.ApiError;
 import gov.nysenate.sage.client.response.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.DistrictResponse;
 import gov.nysenate.sage.client.response.MappedDistrictResponse;
+import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
+import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
+import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
@@ -46,6 +49,10 @@ public class DistrictController extends BaseApiController implements Observer
     private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
     private static RevGeocodeServiceProvider revGeocodeProvider = ApplicationFactory.getRevGeocodeServiceProvider();
 
+    /** Loggers */
+    private static GeocodeRequestLogger geocodeRequestLogger;
+    private static GeocodeResultLogger geocodeResultLogger;
+
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
     @Override
@@ -56,9 +63,10 @@ public class DistrictController extends BaseApiController implements Observer
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        logger.debug("Initialized " + this.getClass().getSimpleName());
         appConfig.notifyOnChange(this);
         update(null, null);
+        geocodeRequestLogger = new GeocodeRequestLogger();
+        geocodeResultLogger = new GeocodeResultLogger();
     }
 
     @Override
@@ -119,8 +127,8 @@ public class DistrictController extends BaseApiController implements Observer
                 if (!apiRequest.isBatch()) {
                     Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
-                        DistrictResult districtResult = districtAssign(address, provider, geoProvider, uspsValidate,
-                                !skipGeocode, showMembers, showMaps, districtStrategy);
+                        DistrictResult districtResult = districtAssign(
+                                apiRequest, address, provider, geoProvider, uspsValidate, !skipGeocode, showMembers, showMaps, districtStrategy);
                         districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
                     }
                     else {
@@ -157,7 +165,7 @@ public class DistrictController extends BaseApiController implements Observer
                     Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
                         districtResponse = new DistrictResponse(
-                                districtAssign(address, null, null, true, true, false, false, BLUEBIRD_DISTRICT_STRATEGY));
+                                districtAssign(apiRequest, address, null, null, true, true, false, false, BLUEBIRD_DISTRICT_STRATEGY));
                     }
                     else {
                         districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
@@ -190,7 +198,7 @@ public class DistrictController extends BaseApiController implements Observer
      * Utilizes the service providers to perform address validation, geo-coding, and district assignment for an address.
      * @return DistrictResult
      */
-    private DistrictResult districtAssign(Address address, String provider, String geoProvider, Boolean uspsValidate,
+    private DistrictResult districtAssign(ApiRequest apiRequest, Address address, String provider, String geoProvider, Boolean uspsValidate,
                                           Boolean performGeocode, Boolean showMembers, Boolean showMaps, String districtStrategy)
     {
         GeocodedAddress geocodedAddress = new GeocodedAddress(address);
@@ -198,6 +206,10 @@ public class DistrictController extends BaseApiController implements Observer
             GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
                                                                 : geocodeProvider.geocode(address);
             geocodedAddress = geocodeResult.getGeocodedAddress();
+
+            /** Log geocode request/result to database */
+            int requestId = geocodeRequestLogger.logGeocodeRequest(new GeocodeRequest(apiRequest, address, provider, (geoProvider == null), (geoProvider == null)));
+            geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
         }
 
         if (uspsValidate) {

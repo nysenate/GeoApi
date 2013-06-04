@@ -12,6 +12,9 @@ import org.junit.Test;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
@@ -178,5 +181,16 @@ public class ApiFilterTest extends TestBase
 
         /** Verify that filter does NOT proceed */
         verify(mf.getMockFilterChain(), never()).doFilter(isA(ServletRequest.class), isA(ServletResponse.class));
+    }
+
+    @Test
+    public void test() {
+        try {
+            InetAddress inetAddress = InetAddress.getByName("127.0.0.1");
+            System.out.print(inetAddress.getHostAddress());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
     }
 }

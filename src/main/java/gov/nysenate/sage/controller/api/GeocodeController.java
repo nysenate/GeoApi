@@ -1,8 +1,8 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.*;
-import gov.nysenate.sage.dao.log.GeocodeRequestLogger;
-import gov.nysenate.sage.dao.log.GeocodeResultLogger;
+import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
+import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
@@ -11,16 +11,13 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
-import sun.applet.AppletListener;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
@@ -86,11 +83,14 @@ public class GeocodeController extends BaseApiController
                 if (!apiRequest.isBatch()) {
                     Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
-                        /** Log valid geocode request to database */
-                        geocodeRequestLogger.logGeocodeRequest(new GeocodeRequest(apiRequest, address, provider, useFallback, useCache));
-
                         /** Obtain geocode response */
                         GeocodeResult geocodeResult = geocodeServiceProvider.geocode(address, provider, useFallback, useCache);
+
+                        /** Log geocode request/result to database */
+                        int requestId = geocodeRequestLogger.logGeocodeRequest(new GeocodeRequest(apiRequest, address, provider, useFallback, useCache));
+                        geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
+
+                        /** Construct response from request */
                         geocodeResponse = new GeocodeResponse(geocodeResult);
                     }
                     else {

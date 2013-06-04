@@ -1,10 +1,10 @@
-package gov.nysenate.sage.dao.log;
+package gov.nysenate.sage.dao.logger;
 
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.commons.dbutils.AsyncQueryRunner;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;
@@ -13,8 +13,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ApiRequestLogger extends BaseDao
 {
@@ -38,12 +36,7 @@ public class ApiRequestLogger extends BaseDao
                     "WHERE rt.name = ? AND ser.name = ?\n" +
                     "RETURNING id";
             try {
-                int id = run.query(sql, new ResultSetHandler<Integer>() {
-                        @Override
-                        public Integer handle(ResultSet rs) throws SQLException {
-                            return (rs.next()) ? rs.getInt("id") : -1;
-                        }
-                }, apiUser.getId(), apiRequest.getRequest(), apiRequest.getService());
+                int id = run.query(sql, new ReturnIdHandler(), apiUser.getId(), apiRequest.getRequest(), apiRequest.getService());
                 logger.debug("Saved apiRequest " + id + " to log");
                 return id;
             }

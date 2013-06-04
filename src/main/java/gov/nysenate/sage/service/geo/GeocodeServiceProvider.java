@@ -1,10 +1,7 @@
 package gov.nysenate.sage.service.geo;
 
-import gov.nysenate.sage.dao.log.GeocodeRequestLogger;
-import gov.nysenate.sage.dao.log.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.GeoCache;
@@ -12,6 +9,7 @@ import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -153,6 +151,10 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         if (geocodeResult == null) {
             geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
         }
+
+        /** Set the timestamp */
+        geocodeResult.setResultTime(new Timestamp(new Date().getTime()));
+
         /** Cache result */
         if (CACHE_ENABLED && !cacheHit && isProviderCacheable(provider)) {
             geocodeCache.saveToCacheAndFlush(geocodeResult);
@@ -246,6 +248,13 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
                 geocodeResults.set(failedIndex, fallbackResultIterator.next());
             }
             failedIndices = getFailedResultIndices(geocodeResults);
+        }
+
+        /** Loop through results and set the timestamp */
+        for (GeocodeResult geocodeResult : geocodeResults) {
+            if (geocodeResult != null) {
+                geocodeResult.setResultTime(new Timestamp(new Date().getTime()));
+            }
         }
 
         /** Cache results */

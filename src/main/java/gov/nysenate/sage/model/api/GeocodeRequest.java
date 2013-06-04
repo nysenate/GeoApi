@@ -7,6 +7,9 @@ import java.util.Date;
 
 public class GeocodeRequest
 {
+    private int id;
+    private int addressId;
+
     private ApiRequest apiRequest;
     private Address address;
     private String provider;
@@ -22,6 +25,22 @@ public class GeocodeRequest
         this.useFallback = useFallback;
         this.useCache = useCache;
         this.requestTime = new Timestamp(new Date().getTime());
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getAddressId() {
+        return addressId;
+    }
+
+    public void setAddressId(int addressId) {
+        this.addressId = addressId;
     }
 
     public ApiRequest getApiRequest() {
