@@ -28,7 +28,6 @@ public class ApiRequestLogger extends BaseDao
     {
         if (apiRequest != null) {
             ApiUser apiUser = apiRequest.getApiUser();
-            FormatUtil.printObject(apiRequest);
             String sql = "INSERT INTO log.apiRequests(ipAddress, apiUserId, version, requestTypeId, requestTime) \n" +
                     "SELECT inet '" + apiRequest.getIpAddress().getHostAddress() + "', ?, 2, rt.id, now() \n" +
                     "FROM log.requestTypes AS rt \n" +

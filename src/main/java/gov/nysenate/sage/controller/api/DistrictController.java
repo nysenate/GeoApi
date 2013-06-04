@@ -4,12 +4,14 @@ import gov.nysenate.sage.client.response.ApiError;
 import gov.nysenate.sage.client.response.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.DistrictResponse;
 import gov.nysenate.sage.client.response.MappedDistrictResponse;
+import gov.nysenate.sage.dao.logger.DistrictRequestLogger;
 import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
 import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
+import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -36,6 +38,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
+import static gov.nysenate.sage.service.district.DistrictServiceProvider.*;
 
 /** Handles District Api requests */
 public class DistrictController extends BaseApiController implements Observer
@@ -52,6 +55,7 @@ public class DistrictController extends BaseApiController implements Observer
     /** Loggers */
     private static GeocodeRequestLogger geocodeRequestLogger;
     private static GeocodeResultLogger geocodeResultLogger;
+    private static DistrictRequestLogger districtRequestLogger;
 
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
@@ -67,6 +71,7 @@ public class DistrictController extends BaseApiController implements Observer
         update(null, null);
         geocodeRequestLogger = new GeocodeRequestLogger();
         geocodeResultLogger = new GeocodeResultLogger();
+        districtRequestLogger = new DistrictRequestLogger();
     }
 
     @Override
@@ -219,16 +224,22 @@ public class DistrictController extends BaseApiController implements Observer
             }
         }
 
-        DistrictServiceProvider.DistrictStrategy strategy;
+        DistrictStrategy strategy;
         try {
-            strategy = DistrictServiceProvider.DistrictStrategy.valueOf(districtStrategy);
+            strategy = DistrictStrategy.valueOf(districtStrategy);
         }
         catch (Exception ex) {
             strategy = null;
         }
 
-        return districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
-                                                showMembers, showMaps, strategy);
+        /** Log district request to database */
+        int requestId = districtRequestLogger.logDistrictRequest(new DistrictRequest(apiRequest, geocodedAddress.getAddress(), provider, geoProvider, showMembers,
+                                                                 showMaps, uspsValidate, !performGeocode, strategy));
+
+        DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
+                                                                         showMembers, showMaps, strategy);
+
+        return districtResult;
     }
 
     /**
@@ -260,9 +271,9 @@ public class DistrictController extends BaseApiController implements Observer
             }
         }
 
-        DistrictServiceProvider.DistrictStrategy strategy;
+        DistrictStrategy strategy;
         try {
-            strategy = DistrictServiceProvider.DistrictStrategy.valueOf(districtStrategy);
+            strategy = DistrictStrategy.valueOf(districtStrategy);
         }
         catch (Exception ex) {
             strategy = null;
@@ -297,9 +308,9 @@ public class DistrictController extends BaseApiController implements Observer
             }
         }
 
-        DistrictServiceProvider.DistrictStrategy strategy;
+        DistrictStrategy strategy;
         try {
-            strategy = DistrictServiceProvider.DistrictStrategy.valueOf(districtStrategy);
+            strategy = DistrictStrategy.valueOf(districtStrategy);
         }
         catch (Exception ex) {
             strategy = null;
