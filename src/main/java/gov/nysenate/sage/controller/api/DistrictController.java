@@ -5,6 +5,7 @@ import gov.nysenate.sage.client.response.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.DistrictResponse;
 import gov.nysenate.sage.client.response.MappedDistrictResponse;
 import gov.nysenate.sage.dao.logger.DistrictRequestLogger;
+import gov.nysenate.sage.dao.logger.DistrictResultLogger;
 import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
 import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
@@ -56,6 +57,7 @@ public class DistrictController extends BaseApiController implements Observer
     private static GeocodeRequestLogger geocodeRequestLogger;
     private static GeocodeResultLogger geocodeResultLogger;
     private static DistrictRequestLogger districtRequestLogger;
+    private static DistrictResultLogger districtResultLogger;
 
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
@@ -235,10 +237,9 @@ public class DistrictController extends BaseApiController implements Observer
         /** Log district request to database */
         int requestId = districtRequestLogger.logDistrictRequest(new DistrictRequest(apiRequest, geocodedAddress.getAddress(), provider, geoProvider, showMembers,
                                                                  showMaps, uspsValidate, !performGeocode, strategy));
-
         DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
                                                                          showMembers, showMaps, strategy);
-
+        districtResultLogger.logDistrictResult(requestId, districtResult);
         return districtResult;
     }
 
