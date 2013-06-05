@@ -113,4 +113,15 @@
         <url-pattern>/map/*</url-pattern>
     </servlet-mapping>
 
+    <!-- Admin v2 Controller mapping -->
+    <servlet>
+        <display-name>AdminViewController</display-name>
+        <servlet-name>AdminViewController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.admin.AdminViewController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminViewController</servlet-name>
+        <url-pattern>/adminview/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>
