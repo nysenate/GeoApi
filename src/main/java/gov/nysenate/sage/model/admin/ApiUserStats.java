@@ -9,7 +9,6 @@ public class ApiUserStats
 {
     private ApiUser apiUser;
 
-
     public ApiUser getApiUser() {
         return apiUser;
     }

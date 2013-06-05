@@ -11,6 +11,7 @@ import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -178,6 +179,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         }
 
         districtResult.setGeocodedAddress(geocodedAddress);
+        districtResult.setResultTime(new Timestamp(new Date().getTime()));
 
         return districtResult;
     }

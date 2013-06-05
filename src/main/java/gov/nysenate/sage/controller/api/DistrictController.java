@@ -74,6 +74,7 @@ public class DistrictController extends BaseApiController implements Observer
         geocodeRequestLogger = new GeocodeRequestLogger();
         geocodeResultLogger = new GeocodeResultLogger();
         districtRequestLogger = new DistrictRequestLogger();
+        districtResultLogger = new DistrictResultLogger();
     }
 
     @Override
@@ -238,7 +239,7 @@ public class DistrictController extends BaseApiController implements Observer
         int requestId = districtRequestLogger.logDistrictRequest(new DistrictRequest(apiRequest, geocodedAddress.getAddress(), provider, geoProvider, showMembers,
                                                                  showMaps, uspsValidate, !performGeocode, strategy));
         DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
-                                                                         showMembers, showMaps, strategy);
+                showMembers, showMaps, strategy);
         districtResultLogger.logDistrictResult(requestId, districtResult);
         return districtResult;
     }
