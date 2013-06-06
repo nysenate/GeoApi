@@ -135,6 +135,9 @@ public class ApiFilter implements Filter, Observer
                 int id = apiRequestLogger.logApiRequest(apiRequest);
                 apiRequest.setId(id);
 
+                /** Cache the current Api Request id */
+                request.setAttribute("apiRequestId", id);
+
                 return true;
             }
             else {

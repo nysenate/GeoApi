@@ -84,11 +84,21 @@ public class ApplicationFactory
         factoryInstance.initCache();
     }
 
-    /** Closes all data sources */
-    public static void close()
+    /**
+     * Closes all data connections
+     * @return true if succeeded, false if exception was thrown
+     */
+    public static boolean close()
     {
-        factoryInstance.baseDB.getDataSource().close();
-        factoryInstance.tigerDB.getDataSource().close();
+        try {
+            factoryInstance.baseDB.getDataSource().close();
+            factoryInstance.tigerDB.getDataSource().close();
+            return true;
+        }
+        catch (Exception ex) {
+            logger.error("Failed to close data connections!", ex);
+        }
+        return false;
     }
 
     /**

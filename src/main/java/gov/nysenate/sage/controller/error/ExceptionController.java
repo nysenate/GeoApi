@@ -1,36 +1,45 @@
 package gov.nysenate.sage.controller.error;
 
 import gov.nysenate.sage.controller.api.BaseApiController;
+import gov.nysenate.sage.dao.logger.ExceptionLogger;
 import org.apache.log4j.Logger;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.sql.Timestamp;
+import java.util.Date;
 
-public class ExceptionController extends BaseApiController
+public class ExceptionController extends HttpServlet
 {
     private static Logger logger = Logger.getLogger(ExceptionController.class);
-
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        Exception ex = (Exception) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-        logger.fatal(ex.toString());
-        logger.fatal(request.getAttribute(RequestDispatcher.ERROR_MESSAGE));
-        logger.fatal(request.getAttribute(RequestDispatcher.ERROR_SERVLET_NAME));
-        logger.fatal(request.getAttribute(RequestDispatcher.ERROR_EXCEPTION_TYPE));
-        response.getWriter().write("MOOOOO");
-    }
+    private ExceptionLogger exceptionLogger;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        exceptionLogger = new ExceptionLogger();
+    }
+
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        doGet(request, response);
+    }
+
+    @Override
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+        Integer apiRequestId = (Integer) request.getAttribute("apiRequestId");
+        Exception ex = (Exception) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+        if (ex != null) {
+            exceptionLogger.logException(ex, new Timestamp(new Date().getTime()), apiRequestId);
+        }
+        logger.fatal("Unhandled exception occurred!", ex);
+        response.sendError(500, "An unexpected application error has occurred. The administrators have been notified. Please try again later.");
     }
 }

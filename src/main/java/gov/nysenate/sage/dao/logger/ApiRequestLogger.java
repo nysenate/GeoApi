@@ -16,6 +16,7 @@ import java.util.List;
 
 public class ApiRequestLogger extends BaseDao
 {
+
     private static Logger logger = Logger.getLogger(ApiRequestLogger.class);
     private QueryRunner run = getQueryRunner();
 

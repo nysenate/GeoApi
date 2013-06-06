@@ -1,11 +1,14 @@
 package gov.nysenate.sage.listener;
 
+import gov.nysenate.sage.dao.logger.DeploymentLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * SageContextListener is used to call initialization methods when the context is (re)deployed and
@@ -15,6 +18,7 @@ import javax.servlet.annotation.WebListener;
 public class SageContextListener implements ServletContextListener {
 
     public Logger logger = Logger.getLogger(this.getClass());
+    public DeploymentLogger deploymentLogger;
 
     public SageContextListener() {}
 
@@ -35,8 +39,10 @@ public class SageContextListener implements ServletContextListener {
             }
         }
 
-        logger.info("Bootstrapped using ApplicationFactory: " + buildStatus);
+        //Integer deploymentId = deploymentLogger.logDeploymentStatus(true, -1, new Timestamp(new Date().getTime()));
+        //logger.info("Bootstrapped using ApplicationFactory: " + buildStatus);
         sce.getServletContext().setAttribute("init", buildStatus);
+        //sce.getServletContext().setAttribute("deploymentId", deploymentId);
     }
 
     /**
@@ -47,6 +53,8 @@ public class SageContextListener implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce)
     {
         logger.info("Closing data source");
-        ApplicationFactory.close();
+        //Integer deploymentId = (Integer) sce.getServletContext().getAttribute("deploymentId");
+        //deploymentLogger.logDeploymentStatus(false, deploymentId, new Timestamp(new Date().getTime()));
+        boolean status = ApplicationFactory.close();
     }
 }
