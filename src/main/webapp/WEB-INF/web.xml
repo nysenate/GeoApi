@@ -3,6 +3,21 @@
 
     <display-name>GeoApi</display-name>
 
+    <!-- Exceptions -->
+    <servlet>
+        <servlet-name>ExceptionController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.error.ExceptionController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ExceptionController</servlet-name>
+        <url-pattern>/exception</url-pattern>
+    </servlet-mapping>
+    <error-page>
+        <exception-type>java.lang.Exception</exception-type>
+        <location>/exception</location>
+    </error-page>
+
+    <!-- Listeners -->
     <listener>
         <description>Context initialization and shutdown</description>
         <display-name>SageContextListener</display-name>
@@ -123,5 +138,17 @@
         <servlet-name>AdminViewController</servlet-name>
         <url-pattern>/adminview/*</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+        <display-name>AdminController</display-name>
+        <servlet-name>AdminController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.admin.AdminController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminController</servlet-name>
+        <url-pattern>/admin/*</url-pattern>
+    </servlet-mapping>
+
+
 
 </web-app>

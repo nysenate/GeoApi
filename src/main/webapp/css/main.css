@@ -474,3 +474,12 @@ table.job-table {
     font-weight: bold;
     text-align: center;
 }
+
+/*-------------------------------------------------------
+  Admin Page
+--------------------------------------------------------*/
+#uptime-stats ul li {
+    display:inline;
+    list-style-type: none;
+    padding-right:20px;
+}

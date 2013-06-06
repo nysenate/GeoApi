@@ -253,7 +253,6 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
     }
 
     mapService.formatDistrictName = function(dist) {
-        console.log(dist);
         return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district +
             ((dist.member) ? " - " + dist.member.name : "") +
             ((dist.senator) ? " - " + dist.senator.name : "");
@@ -342,7 +341,6 @@ function formatDistrictName(district, type) {
     if (distType !== null && typeof distType !== "undefined") {
         distType = distType.toLowerCase();
     }
-    console.log(distType);
     return (district.name) ? district.name + " " : "" +
            !(distType == "senate" || distType == "assembly" || distType == "congressional") ? district.district : "" +
            (district.member) ? " - " + district.member.name : "" +
@@ -630,7 +628,6 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
             /** Show the individual district map */
             else if (data.map != null) {
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
-                console.log(data);
                 if (data.type == "SENATE") {
                     responseService.setResponse("member", data.member, "member");
                 }

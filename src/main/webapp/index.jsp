@@ -56,12 +56,7 @@
 
     <div id="leftcolumn">
         <div class="innertube">
-            <a href="${pageContext.request.contextPath}">
-                <div class="top-header">
-                    <div class="icon-earth large-icon teal"></div>
-                    <div id="sage-logo-text">SAGE</div>
-                </div>
-            </a>
+            <sage:header></sage:header>
             <p class="method-header active teal">District Information</p>
             <div id="district-lookup-container" class="form-container active">
                 <form id="districtsForm" action="" method="post" ng-controller="DistrictInfoController" autocomplete="false">
