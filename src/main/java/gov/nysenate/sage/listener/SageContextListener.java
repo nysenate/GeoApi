@@ -39,10 +39,11 @@ public class SageContextListener implements ServletContextListener {
             }
         }
 
-        //Integer deploymentId = deploymentLogger.logDeploymentStatus(true, -1, new Timestamp(new Date().getTime()));
-        //logger.info("Bootstrapped using ApplicationFactory: " + buildStatus);
+        deploymentLogger = new DeploymentLogger();
+        Integer deploymentId = deploymentLogger.logDeploymentStatus(true, -1, new Timestamp(new Date().getTime()));
+        logger.info("Bootstrapped using ApplicationFactory: " + buildStatus);
         sce.getServletContext().setAttribute("init", buildStatus);
-        //sce.getServletContext().setAttribute("deploymentId", deploymentId);
+        sce.getServletContext().setAttribute("deploymentId", deploymentId);
     }
 
     /**
@@ -53,8 +54,8 @@ public class SageContextListener implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce)
     {
         logger.info("Closing data source");
-        //Integer deploymentId = (Integer) sce.getServletContext().getAttribute("deploymentId");
-        //deploymentLogger.logDeploymentStatus(false, deploymentId, new Timestamp(new Date().getTime()));
+        Integer deploymentId = (Integer) sce.getServletContext().getAttribute("deploymentId");
+        deploymentLogger.logDeploymentStatus(false, deploymentId, new Timestamp(new Date().getTime()));
         boolean status = ApplicationFactory.close();
     }
 }

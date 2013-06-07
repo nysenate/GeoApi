@@ -1,7 +1,7 @@
-package gov.nysenate.sage.dao.admin;
+package gov.nysenate.sage.dao.stats;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.model.admin.ApiUserStats;
+import gov.nysenate.sage.model.stats.ApiUserStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;

@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.admin;
+package gov.nysenate.sage.model.stats;
 
 import gov.nysenate.sage.model.api.ApiUser;
 
