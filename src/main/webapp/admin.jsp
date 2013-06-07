@@ -14,8 +14,8 @@
                     <h3>SAGE Usage Stats</h3>
                     <div id="uptime-stats">
                         <ul>
-                            <li>Last Deployed - 06/04/2013 12:34 PM</li>
-                            <li>Uptime - 48234.3 hours</li>
+                            <li>Last Deployed - {{${lastDeployed} | date:'medium'}}</li>
+                            <li>Latest Uptime - ${latestUptime / 3600000} hours</li>
                             <li>Api Requests - 1435</li>
                             <li>Bluebird Requests - 90</li>
                         </ul>

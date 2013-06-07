@@ -28,7 +28,8 @@ public class AdminController extends BaseApiController
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         DeploymentStats deploymentStats = deploymentStatsDao.getDeploymentStats();
-        FormatUtil.printObject(deploymentStats);
+        request.setAttribute("lastDeployed", deploymentStats.getLastDeploymentTime().getTime());
+        request.setAttribute("latestUptime", deploymentStats.getLatestUptime());
         request.getRequestDispatcher("/admin.jsp").forward(request, response);
     }
 }

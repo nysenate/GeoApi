@@ -37,13 +37,13 @@ public class SageContextListener implements ServletContextListener {
                 logger.info("Initializing caches in memory..");
                 ApplicationFactory.initializeCache();
             }
-        }
 
-        deploymentLogger = new DeploymentLogger();
-        Integer deploymentId = deploymentLogger.logDeploymentStatus(true, -1, new Timestamp(new Date().getTime()));
-        logger.info("Bootstrapped using ApplicationFactory: " + buildStatus);
+            deploymentLogger = new DeploymentLogger();
+            Integer deploymentId = deploymentLogger.logDeploymentStatus(true, -1, new Timestamp(new Date().getTime()));
+            logger.info("Bootstrapped using ApplicationFactory: " + buildStatus);
+            sce.getServletContext().setAttribute("deploymentId", deploymentId);
+        }
         sce.getServletContext().setAttribute("init", buildStatus);
-        sce.getServletContext().setAttribute("deploymentId", deploymentId);
     }
 
     /**
