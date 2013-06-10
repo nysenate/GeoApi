@@ -1,0 +1,476 @@
+/*-------------------------------------------------------
+  Web Fonts
+--------------------------------------------------------*/
+@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro);
+
+/*-------------------------------------------------------
+  Defaults
+--------------------------------------------------------*/
+html {
+    height:100%;
+}
+
+body{
+    margin:0;
+    padding:0;
+    font-family:'Source Sans Pro', sans-serif;
+    letter-spacing:-.2px;
+    height:100%;
+    background-color:#eee;
+}
+
+a {
+    color:#333;
+    text-decoration: none;
+    outline:0;
+}
+
+a:hover {
+    color:teal;
+    text-decoration:underline !important;
+}
+
+:focus {outline:none;}
+::-moz-focus-inner {border:0;}
+
+/*-------------------------------------------------------
+  3 Column Fluid Layout
+--------------------------------------------------------*/
+#contentwrapper {
+    float: left;
+    width: 100%;
+    height:100%;
+}
+
+#contentcolumn {
+    margin: 0 0px 0 300px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
+    height:100%;
+}
+
+#leftcolumn {
+    float: left;
+    width: 300px; /*Width of left column*/
+    margin-left: -100%;
+    background: #eee;
+    height:100%;
+}
+
+#rightcolumn {
+    float: left;
+    width: 360px; /*Width of right column*/
+    margin-left: -360px; /*Set left margin to -(RightColumnWidth)*/
+    background: #eee;
+    height:100%;
+    display:none;
+}
+
+#footer {
+    clear: left;
+    width: 100%;
+    background: #ababab;
+    color: #FFF;
+    text-align: center;
+    padding: 4px 0;
+    height:40px;
+}
+
+#footer a {
+    color: #FFFF80;
+}
+
+.innertube {
+    margin-top: 0;
+    height:100%;
+}
+
+#maincontainer {
+    height:100%;
+}
+
+/*-------------------------------------------------------
+  Top Header Bar
+--------------------------------------------------------*/
+#sage-logo-text {
+    font-size: 150%;
+    padding: 0;
+    font-weight: bold;
+    line-height: 40px;
+}
+
+.top-header {
+    padding:0px 15px;
+    margin:0px;
+    font-size:16px;
+    background:#2a2a2a;
+    color:white;
+}
+
+.top-header .icon {
+    margin-right:5px;
+    float:left;
+    font-family:'entypo';
+    font-size:40px;
+    line-height:100%;
+}
+
+.top-header .text {
+    padding:9px 0px 11px 0px;
+}
+
+/*-------------------------------------------------------
+  Left Nav
+  ------------------------------------------------------*/
+.method-header, .result-header {
+    margin: 0px;
+    padding: 10px 15px;
+    font-size: 100%;
+    color:#777;
+}
+
+.method-header {
+    cursor:pointer;
+}
+
+.method-header:hover{
+    color:#333;
+    background-color:#ddd;
+}
+
+.method-header.active {
+    color: white;
+    font-weight: bold;
+}
+
+.input-container input, .input-container select {
+    color:#111;
+    font-size:14px;
+}
+
+/* Icons */
+.small-right-icon {
+    float:right;
+    position:relative;
+    cursor:pointer;
+    top:3px;
+}
+
+b{font-size: 110%;}
+em{color: red;}
+
+#topsection{
+    background: #1a1a1a;
+    height: 39px; /*Height of top section*/
+    border-bottom:1px solid #333;
+    display:none;
+}
+
+h1.logo {
+    color:#ddd;
+    margin: 0px 15px 0px 10px;
+    float:left;
+    font-size:30px;
+}
+
+ul.nav{
+    padding-top:10px;
+    list-style-type: none;
+    margin:0px 0px 0px 100px;
+}
+
+ul.nav li{
+    float:left;
+    margin-right:30px;
+    cursor:pointer;
+}
+
+ul.nav li a{
+    color:#bbb;
+    margin:0px;
+    font-size:14px;
+}
+
+ul.nav li:hover a{
+    color:teal;
+}
+
+#mapView, #map_canvas {
+    height:100%;
+}
+
+.success {
+    color: white;
+    background-color:#477326;
+    font-weight: bold;
+}
+
+.result-header.error {
+    background-color: #8E2F2F;
+    font-weight: bold;
+}
+
+.method-header.active.teal {
+    background-color:#0E4E5A;
+}
+
+.method-header.active.maroon{ background-color:#632127;}
+.method-header.active.green{background-color:#477326;}
+.method-header.active.purple{background-color:#632150;}
+.method-header.active.brown{background-color:#957732;}
+
+
+.form-container {
+    display:none;
+}
+
+.form-container.active {
+    display:block;
+}
+
+.info-container{
+    box-shadow:1px 1px 2px 0 #b0b0b0;
+    width: 325px;
+    margin: 5px auto;
+    background: white;
+    height: auto;
+    padding:10px;
+}
+
+form ol{
+    padding:0px 0px 0px 10px;
+    list-style-type: none;
+}
+
+ol.input-container li {
+    margin-bottom:3px;
+}
+
+ol.input-container li label {
+    float:left;
+    text-align: right;
+    margin-right:10px;
+    width:55px;
+    line-height:29px;
+    font-size:13px;
+}
+
+ol.input-container li input {
+    width:188px;
+    background:white;
+    border:1px solid #ccc;
+    padding:5px;
+    margin-bottom:2px;
+}
+
+ol.input-container li select {
+    padding:4px 2px;
+    outline:none;
+    border:1px solid #ccc;
+    width:200px;
+    background:white;
+    margin-bottom:2px;
+}
+
+button.submit {
+    text-align: center;
+    background: #799933;
+    color: white;
+    border: 0;
+    outline: 0;
+    font-size: 14px;
+    font-family: 'Source Sans Pro';
+    padding: 7px 20px;
+    width: 264px;
+    font-weight: bold;
+}
+
+button.submit:hover{
+    background: #7BA838;
+}
+
+button.submit[disabled] {
+    background: #aaa;
+}
+
+.info-container.senator {
+    height:90px;
+}
+
+hr.shadow {
+    color: #333;
+    border-style: none none solid none;
+    outline: none;
+    border-width: 1px;
+    border-color: #BBB;
+    box-shadow: #999 0px 1px 4px;
+}
+
+div.mini-senator-pic-holder, div.senator-pic-holder {
+    height:90px;
+    max-width:90px;
+    float:left;
+    margin-right: 10px;
+    margin-bottom: 5px;
+    overflow:hidden;
+}
+
+div.mini-senator-pic-holder {
+    height:50px;
+    max-width:50px;
+}
+
+div.senator-pic-holder img.senator-pic {
+    height:auto;
+    width:100%;
+}
+
+/* Senator Info Card
+--------------------*/
+p {
+    margin:0px;
+}
+
+.member-name.senator {
+    color:#444;
+    font-size:20px;
+}
+
+.member-name {
+    color:#444;
+    font-size:18px;
+}
+
+.member-email {
+    color:#444;
+    font-size:14px;
+}
+
+.district.senate {
+    font-size:18px;
+    color: teal;
+}
+
+.district {
+    font-size:16px;
+    color: teal;
+}
+
+.validated-address {
+    color: #333;
+    font-size:18px;
+}
+
+.right-icon-placeholder {
+    width:30px;
+    font-size: 13px;
+    color: #555;
+    text-align: right;
+}
+
+.small-icon {
+    font-family:'entypo';
+    font-size:30px;
+    color:#aaa;
+    line-height:23px;
+}
+
+.small-icon:hover {
+    color:teal;
+}
+
+.error-container {
+    width: 400px;
+    text-align: center;
+    margin: auto;
+    color: red;
+    padding: 10px;
+    box-shadow: 0px 2px 2px #BBB;
+    background-color: white;
+}
+
+.result-close {
+    font-family: entypo;
+    opacity:0.6;
+    color:white;
+    font-size: 34px;
+    font-weight: normal;
+    float: right;
+    cursor:pointer;
+    line-height: 22px;
+}
+
+a.result-close:hover {
+    opacity:1;
+}
+
+/** Data Table */
+
+table.dataTable tr.odd {
+    background-color:transparent !important;
+}
+
+table.dataTable tr.odd td.sorting_1 {
+    background-color:#ddd !important;
+}
+
+table.dataTable tr.even td.sorting_1 {
+    background-color:#eee !important;
+}
+
+.dataTables_wrapper {
+    margin-bottom: 40px !important;
+}
+
+.street-search-filter {
+    margin-bottom:10px;
+}
+
+.street-search-filter label {
+    color:#0E4E5A;
+    font-weight:bold;
+}
+
+.street-search-filter input {
+    margin-left:10px;
+    background:white;
+    color:#333;
+}
+
+/* Street view data table */
+#street-view-table_filter {
+    display:none;
+}
+
+#street-search {
+    width: 200px;
+    outline: 0;
+    border: 1px solid #999;
+    padding: 5px;
+}
+
+
+/*-------------------------------------------------------
+  Job Page
+--------------------------------------------------------*/
+#upload-container {
+    width:650px;margin:auto;text-align: center;
+}
+
+.running-process-view {
+    background: #fbfbfb;
+    box-shadow: 0px 2px 3px #DDD;
+    width: 780px;
+    margin: auto;
+    padding: 10px;
+}
+
+table.job-table {
+    font-size:14px;
+    text-align:left;
+    width:100%;
+}
+
+#login-error {
+    color: maroon;
+    font-weight: bold;
+    text-align: center;
+}

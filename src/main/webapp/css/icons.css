@@ -1,0 +1,120 @@
+.large-icon {
+    display: inline-block !important;
+    width: 22px !important;
+    height: 22px !important;
+    background-repeat: no-repeat !important;
+    background-position: 0px 0 !important;
+    float: left !important;
+    position: relative !important;
+    top: 9px !important;
+    margin-right: 5px !important;
+}
+
+.icon-mail,.icon-paperplane,.icon-pencil,.icon-drawer,.icon-user,.icon-location,.icon-map,.icon-compass,.icon-location2,.icon-target,.icon-house,.icon-search,.icon-hourglass,.icon-network,.icon-earth,.icon-database,.icon-bars,.icon-graph,.icon-cross,.icon-upload,.icon-arrow-down,.icon-arrow-up {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url(../img/entypo-16/gray/sprites.png);
+    background-repeat: no-repeat;
+    position:relative;
+    top:3px;
+}
+
+.icon-upload.teal {
+    background-image: url(../img/entypo-16/teal/sprites.png) !important;
+}
+
+.icon-earth.large-icon.teal {
+    background-image: url(../img/entypo-22/teal/earth.png);
+}
+
+.icon-map.large-icon.white {
+    background-image: url(../img/entypo-22/white/map.png);
+}
+
+.icon-database.large-icon.white {
+    background-image: url(../img/entypo-22/white/database.png);
+}
+
+.icon-mail {
+    background-image: url(../img/entypo-16/teal/sprites.png);
+}
+
+.icon-map:hover, .icon-location:hover {
+    background-image: url(../img/entypo-16/teal/sprites.png);
+}
+
+.icon-search, .icon-user {
+    background-image: url(../img/entypo-16/white/sprites.png) !important;
+}
+
+.icon-cross:hover {
+    background-image: url(../img/entypo-16/white/sprites.png) !important;
+}
+
+.icon-mail {
+    background-position: 0 0;
+}
+.icon-paperplane {
+    background-position: -32px 0;
+}
+.icon-pencil {
+    background-position: -64px 0;
+}
+.icon-drawer {
+    background-position: -96px 0;
+}
+.icon-user {
+    background-position: -128px 0;
+}
+.icon-location {
+    background-position: -160px 0;
+}
+.icon-map {
+    background-position: -192px 0;
+}
+.icon-compass {
+    background-position: -224px 0;
+}
+.icon-location2 {
+    background-position: -256px 0;
+}
+.icon-target {
+    background-position: -288px 0;
+}
+.icon-house {
+    background-position: -320px 0;
+}
+.icon-search {
+    background-position: -352px 0;
+}
+.icon-hourglass {
+    background-position: -384px 0;
+}
+.icon-network {
+    background-position: -416px 0;
+}
+.icon-earth {
+    background-position: -448px 0;
+}
+.icon-database {
+    background-position: -480px 0;
+}
+.icon-bars {
+    background-position: 0 -32px;
+}
+.icon-graph {
+    background-position: -32px -32px;
+}
+.icon-cross {
+    background-position: -64px -32px;
+}
+.icon-upload {
+    background-position: -96px -32px;
+}
+.icon-arrow-down {
+    background-position: -128px -32px;
+}
+.icon-arrow-up {
+    background-position: -160px -32px;
+}

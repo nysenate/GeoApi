@@ -1,137 +1,476 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<script type="text/javascript">
-contextPath = "<%=request.getContextPath()%>";
-</script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery.min.js"></script>
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery.color.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/js/app.js"></script>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 
-<link href="<%=request.getContextPath()%>/style.css" rel="stylesheet" type="text/css">
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>SAGE (Senate Address GeoCoding Engine)</title>
-</head>
-<body onload="initialize();">
-  <div class="response_body">
-  </div>
-  
-  <div id="map_canvas">
-  </div>
-
-<div class="message_list"> 
-    <p class="message_head"><cite>District Information</cite></p> 
-    <div class="message_body"> 
-        <form id="districtsForm" action="" method="post">
-          <ol>
-            <li>
-              <label>Address</label>
-              <input type="text" placeholder="street address..." name="addr2">
-            </li>
-            <li>
-              <label>City</label>
-              <input type="text" name="city">
-            </li>
-            <li>
-              <label>State</label>
-              <input type="text" placeholder="e.g. NY" name="state" maxlength="2">
-            </li>
-            <li>
-              <label>Zip5</label>
-              <input type="text" name="zip5" maxlength="5">
-            </li>
-            <li>
-              <label>Zip4</label>
-              <input type="text" name="zip4" maxlength="4">
-            </li>
-            <li>
-              <label>Service</label>
-              <select name="service">
-                <option>Yahoo</option>
-                <option value="YahooBoss">Yahoo BOSS</option>
-                <option>Mapquest</option>
-                <option>OSM</option>
-                <option>GeoCoder</option>
-              </select>
-            </li>
-            <li id="send">
-              <input type="submit" id="districts" name="submit">
-            </li>
-          </ol>
-        </form>
+<sage:wrapper>
+    <jsp:attribute name="title">SAGE</jsp:attribute>
+    <jsp:attribute name="cssIncludes">
+        <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+    </jsp:attribute>
+    <jsp:attribute name="jsIncludes">
+        <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/blockui.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
+    </jsp:attribute>
+    <jsp:body>
+    <div id="contentwrapper">
+        <div id="contentcolumn">
+            <div id="mapView" ng-controller="EmbeddedMapViewController">
+                <div class="top-header">
+                    <div class="large-icon icon-map white"></div>
+                    <div class="text">Map | {{header}}</div>
+                </div>
+                <div id="map_canvas"></div>
+            </div>
+            <div ng-controller="StreetViewController">
+                <div ng-show="visible" style="height:100%;">
+                    <div class="top-header">
+                        <div class="large-icon icon-database white"></div>
+                        <div class="text">Street File Results</div>
+                    </div>
+                    <div style="padding:10px;">
+                        <div class="street-search-filter">
+                            <label>Filter by street name: </label>
+                            <input id="street-search" type="text" />
+                        </div>
+                        <table id="street-view-table" my-table="overrideOptions" aa-data="streets"
+                               ao-column-defs="columnDefs" aa-sorting="sortDefault">
+                            <thead>
+                            <th>From Bldg</th>
+                            <th>To Bldg</th>
+                            <th style="width:300px;">Street</th>
+                            <th>Location</th>
+                            <th>Zip</th>
+                            <th>Senate</th>
+                            <th>Assembly</th>
+                            <th>Congress</th>
+                            <th>County</th>
+                            <th>Town</th>
+                            <th>Election</th>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <p class="message_head"><cite>Reverse GeoCode</cite></p> 
-    <div class="message_body"> 
-        <form id="revgeoForm" action="" method="post">
-          <ol>
-            <li>
-              <label>Latitude</label>
-              <input type="text" name="lat">
-            </li>
-            <li>
-              <label>Longitude</label>
-              <input type="text" name="lon">
-            </li>
-            <li>
-              <label>Service</label>
-              <select name="service">
-                <option>Yahoo</option>
-                <option>YahooBoss</option>
-                <option>Google</option>
-                <option>Bing</option>
-              </select>
-            </li>
-            <li id="send">
-              <input type="submit" id="revgeo" name="submit">
-            </li>
-          </ol>
-        </form>
-    </div> 
+    <div id="leftcolumn">
+        <div class="innertube">
+            <a href="${pageContext.request.contextPath}">
+                <div class="top-header">
+                    <div class="icon-earth large-icon teal"></div>
+                    <div id="sage-logo-text">SAGE</div>
+                </div>
+            </a>
+            <p class="method-header active teal">District Information</p>
+            <div id="district-lookup-container" class="form-container active">
+                <form id="districtsForm" action="" method="post" ng-controller="DistrictInfoController" autocomplete="false">
+                    <ol class="input-container">
+                        <li>
+                            <label>Address</label>
+                            <input type="text" placeholder="street address..." name="addr1" ng-model="addr1" autocomplete="false">
+                        </li>
+                        <li>
+                            <label>City</label>
+                            <input type="text" name="city" ng-model="city">
+                        </li>
+                        <li>
+                            <label>State</label>
+                            <input type="text" placeholder="e.g. NY" name="state" maxlength="2" ng-model="state" autocomplete="false">
+                        </li>
+                        <li>
+                            <label>Zip5</label>
+                            <input type="text" name="zip5" maxlength="5" ng-model="zip5" autocomplete="false">
+                        </li>
+                        <li>
+                            <label style="color:#444;">Zip4</label>
+                            <input type="text" name="zip4" maxlength="4" ng-model="zip4" autocomplete="false">
+                        </li>
+                        <li>
+                            <label style="color:#444">Method</label>
+                            <select style="width: 98px; color:#444;" ng-model="provider">
+                                <option value="default">Default</option>
+                                <option value="streetfile">Streetfile</option>
+                                <option value="shapefile">Shapefile</option>
+                                <option value="geoserver">Geoserver</option>
+                            </select>
+                            <select style="width: 98px; color:#444;" ng-model="geoProvider">
+                                <option value="default">Default</option>
+                                <option value="yahoo">Yahoo</option>
+                                <option value="yahooboss">Yahoo Boss</option>
+                                <option value="tiger">Tiger</option>
+                                <option value="mapquest">MapQuest</option>
+                                <option value="ruby">Ruby</option>
+                                <option value="osm">OSM</option>
+                            </select>
+                        </li>
+                        <li>
+                            <button ng-click="lookup()" class="submit">
+                                <div class="icon-search"></div>
+                                <span>Find Districts</span>
+                            </button>
+                        </li>
+                    </ol>
 
-    <p class="message_head"><cite>Street Lookup</cite></p> 
-    <div class="message_body"> 
-      <form id="streetLookupForm" action="" method="post">
-          <ol>
-            <li>
-              <label>Zip5</label>
-              <input type="text" name="zip">
-            </li>
-            <li id="send">
-              <input type="submit" id="streetLookup" name="submit">
-            </li>
-          </ol>
-        </form>
+                </form>
+            </div>
+            <p class="method-header teal">District Maps</p>
+            <div id="district-mapview-container" class="form-container">
+                <form id="mapForm" action="" method="post" ng-controller="DistrictMapController" autocomplete="false">
+                    <ol class="input-container">
+                        <li>
+                            <label>Type</label>
+                            <select ng-model="type">
+                                <option value="senate">Senate</option>
+                                <option value="congressional">Congressional</option>
+                                <option value="assembly">Assembly</option>
+                                <option value="county">County</option>
+                                <option value="town">Town</option>
+                                <option value="school">School</option>
+                            </select>
+                        </li>
+                        <li>
+                            <label style="width:190px;">District <span style="color:#777">(leave blank to view all)</span></label>
+                            <input style="width:52px;" ng-model="district" type="text" id="districtCodeInput" />
+                        </li>
+                        <li>
+                            <button class="submit" ng-click="lookup();">
+                                <div class="icon-search"></div>
+                                <span>Show Map</span>
+                            </button>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <p class="method-header teal">Street Finder</p>
+            <div id="street-lookup-container" class="form-container">
+                <form id="street-lookup-form" action="" method="post" ng-controller="StreetLookupController">
+                    <ol class="input-container">
+                        <li>
+                            <label>Zip5</label>
+                            <input ng-model="zip5" type="text" name="zip">
+                        </li>
+                        <li>
+                            <button class="submit" ng-click="lookup();">
+                                <div class="icon-search"></div>
+                                <span>Find Streets</span>
+                            </button>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <p class="method-header teal">Reverse Geocode</p>
+            <div id="reverse-geocode-container" class="form-container" ng-controller="RevGeoController">
+                <form id="revgeo-form" action="" method="post">
+                    <ol class="input-container">
+                        <li>
+                            <label>Latitude</label>
+                            <input type="text" ng-model="lat" name="lat">
+                        </li>
+                        <li>
+                            <label>Longitude</label>
+                            <input type="text" ng-model="lon" name="lon">
+                        </li>
+                        <li>
+                            <button class="submit" ng-click="lookup();">
+                                <div class="icon-search"></div>
+                                <span>Find Address</span>
+                            </button>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <p class="method-header teal">City/State Lookup</p>
+            <div id="citystate-lookup-container" ng-controller="CityStateController" class="form-container">
+                <form id="citystate-lookup-form" action="" method="post">
+                    <ol class="input-container">
+                        <li>
+                            <label>Zip5</label>
+                            <input ng-model="zip5" maxlength="5" type="text" name="zip">
+                        </li>
+                        <button ng-click="lookup()" class="submit">
+                            <div class="icon-search"></div>
+                            <span>Find City/State</span>
+                        </button>
+                    </ol>
+                </form>
+            </div>
+            <a href="${contextPath}/job"><p class="method-header teal">Batch Jobs</p></a>
+            <a href="https://sage-senate-address-geocoding-engine.readthedocs.org/en/latest/"><p class="method-header teal">API Reference</p></a>
+        </div>
     </div>
 
-    <p class="message_head"><cite>City/State Lookup</cite></p> 
-    <div class="message_body"> 
-      <form id="citystateLookupForm" action="" method="post">
-          <ol>
-            <li>
-              <label>Zip5</label>
-              <input type="text" name="zip">
-            </li>
-            <li id="send">
-              <input type="submit" id="citystateLookup" name="submit">
-            </li>
-          </ol>
-        </form>
-    </div>
+    <div id="rightcolumn" ng-controller="ResultsViewController">
+        <div class="innertube">
+            <div class="result-header success" style="cursor:auto;height:20px;">
+                <div style="float:left;">Results</div>
+                <div ng-click="toggleResultPane(false);" class="icon-cross small-right-icon"></div>
+            </div>
+            <div id="district-results" ng-controller="DistrictsViewController">
+                <div ng-show="visible">
+                    <div id="success-district-results" ng-show="districtAssigned">
+                        <div class="info-container senator">
+                            <div class="senator-pic-holder">
+                                <a target="_blank" ng-href="{{districts.senate.senator.url}}">
+                                    <img ng-src="{{districts.senate.senator.imageUrl}}" class="senator-pic">
+                                </a>
+                            </div>
+                            <div>
+                                <p class="senator member-name">
+                                    <a target="_blank" ng-href="{{districts.senate.senator.url}}">{{districts.senate.senator.name}}</a>
+                                </p>
+                                <table style="width:225px;">
+                                    <tr>
+                                        <td><p class="senate district">Senate District {{districts.senate.district}}</p></td>
+                                        <td class="right-icon-placeholder">
+                                            <a title="Show Map" ng-show="districts.senate.map" ng-click="showDistrict('senate');">
+                                                <div class="icon-map"></div>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <br/>
+                                <p class="member-email">
+                                    <div class="icon-mail" style="margin-right: 5px;position: relative;top: 3px;"></div>
+                                    <span style='font-size:15px'>{{districts.senate.senator.email}}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="info-container" style="padding:5px 10px;">
+                            <table style="width:100%">
+                                <tr>
+                                    <td>
+                                        <a ng-hide="showOffices" ng-click="showOffices=true;">Senator Office Locations</a>
+                                        <a ng-show="showOffices" ng-click="showOffices=false;">Senator Office Locations</a>
+                                    </td>
+                                    <td class="right-icon-placeholder">
+                                        <a ng-hide="showOffices" ng-click="showOffices=true;"><div class="icon-arrow-down"></div></a>
+                                        <a ng-show="showOffices" ng-click="showOffices=false;"><div class="icon-arrow-up"></div></a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div ng-show="showOffices" ng-repeat="office in districts.senate.senator.offices">
+                                <div style="padding:5px;border-top:1px solid #ddd;" ng-show="office.name">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td><p style="font-size:18px;color:teal;">{{office.name}}</p></td>
+                                            <td class="right-icon-placeholder">
+                                                <a title="Locate office" ng-click="setOfficeMarker(office);">
+                                                    <div class="icon-location"></div>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
 
-    <p class="message_head"><cite>About</cite></p> 
-    <div class="message_body">
-      Geocoding for this service is provided primarily 
-      by <a href="http://developer.yahoo.com/geo/placefinder/">Yahoo! PlaceFinder</a>, 
-      but geocoding services from <a href="http://code.google.com/apis/maps/index.html">Google</a> 
-      and <a href="http://www.microsoft.com/maps/developers/web.aspx">Bing</a> are also available 
-      for testing purposes.
-    </div>
-    
-</div> 
+                                    <p>{{office.street}}</p>
+                                    <p>{{office.additional}}</p>
+                                    <p>{{office.city}}, {{office.province}} {{office.postalCode}}</p>
+                                    <p>Phone {{office.phone}}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-container" ng-show="districts.senate.nearBorder" style="padding:5px 10px;">
+                            <table style="width:100%">
+                                <tr>
+                                    <td>
+                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)">Neighbor Senate Districts</a>
+                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()">Neighbor Senate Districts</a>
+                                    </td>
+                                    <td class="right-icon-placeholder">
+                                        <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)"><div class="icon-arrow-down"></div></a>
+                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()"><div class="icon-arrow-up"></div></a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div ng-show="showNeighbors">
+                                <div style="padding:5px;border-top:1px solid #ddd;" ng-repeat="neighbor in districts.senate.neighbors">
+                                    <div class="senator">
+                                        <div class="senator-pic-holder" style="width:50px;height:50px;">
+                                            <img ng-src="{{neighbor.member.imageUrl | senatorPic}}" class="senator-pic">
+                                        </div>
+                                        <div>
+                                            <p class="senator member-name">
+                                                <a target="_blank" ng-href="{{neighbor.member.url}}">{{neighbor.member.name}}</a>
+                                            </p>
+                                            <p class="senate district" ng-style="neighbor.style">Senate District {{neighbor.district}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-</body>
-</html>
+                        </div>
+                        <div class="info-container">
+                            <table style="width:100%">
+                                <tr>
+                                    <td><div class="icon-location"></div></td>
+                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p></td>
+                                </tr>
+                                <tr>
+                                    <td><div class="icon-target"></div></td>
+                                    <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}}) <small style="float:right;">{{geocode.method | remove:'Dao'}}</small></p></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="info-container congressional" ng-show="districts.congressional.district">
+                            <table style="width:100%">
+                                <tr>
+                                    <td>
+                                        <p class="member-name"><a target="_blank" ng-href="{{districts.congressional.member.url}}">{{districts.congressional.member.name}}</a></p>
+                                        <p class="district">Congressional District {{districts.congressional.district}}</p>
+                                    </td>
+                                    <td class="right-icon-placeholder">
+                                        <a title="Show Map" ng-show="districts.congressional.map" ng-click="showDistrict('congressional');">
+                                            <div class="icon-map"></div>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="info-container assembly" ng-show="districts.assembly.district">
+                            <table style="width:100%">
+                                <tr>
+                                    <td>
+                                        <p class="member-name"><a target="_blank" ng-href="{{districts.assembly.member.url}}">{{districts.assembly.member.name}}</a></p>
+                                        <p class="district">Assembly District {{districts.assembly.district}}</p>
+                                    </td>
+                                    <td class="right-icon-placeholder">
+                                        <a title="Show Map" ng-show="districts.assembly.map" ng-click="showDistrict('assembly');">
+                                            <div class="icon-map"></div>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="info-container" ng-show="districts.county.district">
+                            <table style="width:100%">
+                                <tr>
+                                    <td>
+                                        <p class="member-name">{{districts.county.name}}</p>
+                                        <p class="district">County Code: {{districts.county.district}}</p>
+                                    </td>
+                                    <td class="right-icon-placeholder">
+                                        <a title="Show Map" ng-show="districts.county.map" ng-click="showDistrict('county');">
+                                            <div class="icon-map"></div>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="info-container" ng-show="districts.town.district">
+                            <table style="width:100%">
+                                <tr>
+                                    <td>
+                                        <p class="member-name" ng-show="districts.town.name">Town of {{districts.town.name}}</p>
+                                        <p class="district">Town Code: {{districts.town.district}}</p></td>
+                                    <td class="right-icon-placeholder">
+                                        <a title="Show Map" ng-show="districts.town.map" ng-click="showDistrict('town');">
+                                            <div class="icon-map"></div>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="info-container" ng-show="districts.school.district">
+                            <table style="width:100%">
+                                <tr>
+                                    <td>
+                                        <p class="member-name">{{districts.school.name}}</p>
+                                        <p class="district">School District Code: {{districts.school.district}}</p>
+                                    </td>
+                                    <td class="right-icon-placeholder">
+                                        <a title="Show Map" ng-show="districts.school.map" ng-click="showDistrict('school');">
+                                            <div class="icon-map"></div>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="info-container congressional" ng-show="districts.election.district">
+                        <p class="district">Election District: {{districts.election.district}}</p>
+                    </div>
+                    <div id="failed-district-result" ng-hide="districtAssigned">
+                        <div class="info-container">
+                            <p class="member-name" style="color:orangered;">No District Results</p>
+                            <span>{{description}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="citystate-results" ng-controller="CityStateView">
+                <div ng-show="visible">
+                    <div class="info-container">
+                        <p class="member-name">{{city}}, {{state}} {{zip5}}</p>
+                    </div>
+                </div>
+            </div>
+            <div id="map-member-results" ng-controller="MemberViewController">
+                <div ng-show="visible">
+                    <div>
+                        <div class="info-container senator">
+                            <div class="senator-pic-holder">
+                                <img ng-src="{{member.imageUrl}}" class="senator-pic">
+                            </div>
+                            <div>
+                                <p class="senator member-name">
+                                    <a target="_blank" ng-href="{{member.url}}">{{member.name}}</a>
+                                </p>
+                                <p class="senate district">Senate District {{member.district.number}}</p><br/>
+                                <p class="member-email">
+                                    <div class="icon-email"></div>{{member.email}}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="info-container" ng-repeat="office in member.offices">
+                            <div ng-show="office.name">
+                                <table style="width:100%">
+                                    <tr>
+                                        <td><p style="font-size:18px;color:teal;">{{office.name}}</p></td>
+                                        <td class="right-icon-placeholder">
+                                            <a title="Locate office" ng-click="setOfficeMarker(office);">
+                                                <div class="icon-location"></div>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <p>{{office.street}}</p>
+                                <p>{{office.additional}}</p>
+                                <p>{{office.city}}, {{office.province}} {{office.postalCode}}</p>
+                                <p>Phone {{office.phone}}</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div id="rev-geo-results" ng-controller="RevGeoViewController">
+                <div ng-show="visible">
+                    <div ng-show="revGeocoded">
+                        <div class="info-container">
+                            <p style="color:teal;">Reverse Geocoded Address</p>
+                        </div>
+                        <div class="info-container" >
+                            <table style="width:100%">
+                                <tr>
+                                    <td><div class="icon-location"></div></td>
+                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="failed-geocode-result" ng-hide="revGeocoded">
+                        <div class="info-container">
+                            <p class="member-name" style="color:orangered;">No Reverse Geocode Result</p>
+                            <span>{{description}}</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    </jsp:body>
+</sage:wrapper>
