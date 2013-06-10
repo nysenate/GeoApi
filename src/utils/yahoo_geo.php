@@ -6,19 +6,24 @@
 // Author: Ken Zalewski
 // Organization: New York State Senate
 // Date: 2013-03-14
+// Revised: 2013-04-09
 //
-// NOTE: To use this script with API keys (YQL and YBOSS), you will need to
-// create a configuration file named yahoo_geo.cfg with the following entries:
-//    yql.key=<MY_YQL_CONSUMER_KEY>
-//    yql.secret=<MY_YQL_CONSUMER_SECRET>
-//    yboss.key=<MY_YBOSS_CONSUMER_KEY>
-//    yboss.secret=<MY_YBOSS_CONSUMER_SECRET>
+// This script allows the user to test the three different methods of making
+// geocoding requests using Yahoo's APIs:  YQL public, YQL keyed, and YBOSS.
 //
-// The config file is not necessary when using the YQL public service.
+// To use this script with API keys (YQL keyed and YBOSS), you will need to
+// specify the --oauth command line option.  In addition, you will need to
+// create at least one config file with the following entries:
+//    key=<MY_CONSUMER_KEY>
+//    secret=<MY_CONSUMER_SECRET>
 //
-// The -f option can be used to specify a different filename for the
-// configuration file.
-
+// By default, the script will look for a config file named yahoo_geo.cfg
+// whenever the --oauth option is specified.  Use the -f option to specify
+// a different filename for the config file.
+//
+// The config file is not necessary when using the YQL public service, since
+// API keys are not required to access it.
+//
 
 require('OAuth.php');
 
@@ -29,15 +34,16 @@ define('YBOSS_BASE_URL', 'http://yboss.yahooapis.com/geo/placefinder');
 
 
 $prog = $argv[0];
+$usage = "Usage: $prog [-f cfgfile] [--json [--decode]] [--xml] [--oauth] [--yboss] address [address ...]";
 $cfgfile = DEFAULT_CONFIG_FILE;
 $use_json = false;
 $decode_json = false;
 $use_oauth = false;
 $use_yboss = false;
-$location = '';
+$locations = array();
 
 if ($argc <= 1) {
-  echo "Usage: $prog [-f cfgfile] [--json [--decode]] [--xml] [--oauth] [--yboss] address\n";
+  echo "$usage\n";
   exit(1);
 }
 
@@ -61,22 +67,43 @@ for ($i = 1; $i < $argc; $i++) {
     case '--yboss': case '-y':
       $use_yboss = true;
       break;
+    case '--help': case '-h':
+      echo "$usage\n";
+      exit(0);
+      break;
     default:
-      $location = $location.' '.$argv[$i];
+      if ($argv[$i][0] == '-') {
+        echo "$prog: {$argv[$i]}: Invalid option\n";
+        exit(1);
+      }
+      else {
+        $locations[] = $argv[$i];
+      }
   }
+}
+
+if (count($locations) < 1) {
+  echo "$prog: Must specify at least one address\n$usage\n";
+  exit(1);
 }
 
 $args = array();
 
 if ($use_yboss) {
-  $args['location'] = $location;
+  if (count($locations) > 1) {
+    echo "$prog: Warning: YBOSS can handle only one address per request; using first address specified\n";
+  }
+  $args['location'] = $locations[0];
   if ($use_json) {
     $args['flags'] = 'J';
   }
 }
 else {
-  $yql = "select * from geo.placefinder where text='$location'";
-  $args['q'] = $yql;
+  $yql = "select * from geo.placefinder where text='{$locations[0]}'";
+  for ($i = 1; $i < count($locations); $i++) {
+    $yql .= " or text='{$locations[$i]}'";
+  }
+  $args['q'] = $yql.';';
   if ($use_json) { 
     $args['format'] = "json";
   }
@@ -85,13 +112,9 @@ else {
 $base_url = PUBLIC_BASE_URL;
 if ($use_yboss) {
   $base_url = YBOSS_BASE_URL;
-  $key_keyname = 'yboss.key';
-  $secret_keyname = 'yboss.secret';
 }
 else if ($use_oauth) {
   $base_url = YQL_BASE_URL;
-  $key_keyname = 'yql.key';
-  $secret_keyname = 'yql.secret';
 }
 
 if ($use_oauth) {
@@ -101,8 +124,14 @@ if ($use_oauth) {
     exit(1);
   }
 
-  $cc_key = $cfgparms[$key_keyname];
-  $cc_secret = $cfgparms[$secret_keyname];
+  if (isset($cfgparms['key']) && isset($cfgparms['secret'])) {
+    $cc_key = $cfgparms['key'];
+    $cc_secret = $cfgparms['secret'];
+  }
+  else {
+    echo "$prog: $cfgfile: Must contain both key= and secret= parameters\n";
+    exit(1);
+  }
 
   $consumer = new OAuthConsumer($cc_key, $cc_secret);
   $request = OAuthRequest::from_consumer_and_token($consumer, null, 'GET', $base_url, $args);
