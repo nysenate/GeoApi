@@ -30,6 +30,7 @@ public class AdminController extends BaseApiController
         DeploymentStats deploymentStats = deploymentStatsDao.getDeploymentStats();
         request.setAttribute("lastDeployed", deploymentStats.getLastDeploymentTime().getTime());
         request.setAttribute("latestUptime", deploymentStats.getLatestUptime());
+        request.setAttribute("latestRequestsSince", deploymentStats.getRequestsSinceLatest());
         request.getRequestDispatcher("/admin.jsp").forward(request, response);
     }
 }

@@ -6,6 +6,8 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.SageLogger;
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -185,12 +187,8 @@ public class ApiFilterTest extends TestBase
 
     @Test
     public void test() {
-        try {
-            InetAddress inetAddress = InetAddress.getByName("127.0.0.1");
-            System.out.print(inetAddress.getHostAddress());
-        } catch (UnknownHostException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
+
+        SageLogger sageLogger = (SageLogger) Logger.getLogger(this.getClass());
 
     }
 }

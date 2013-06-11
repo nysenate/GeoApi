@@ -8,6 +8,7 @@ public class Deployment
     private boolean deployed;
     private int deploymentRef;
     private Timestamp deployTime;
+    private int apiRequestsSince;
 
     public int getId() {
         return id;
@@ -39,5 +40,13 @@ public class Deployment
 
     public void setDeployTime(Timestamp deployTime) {
         this.deployTime = deployTime;
+    }
+
+    public int getApiRequestsSince() {
+        return apiRequestsSince;
+    }
+
+    public void setApiRequestsSince(int apiRequestsSince) {
+        this.apiRequestsSince = apiRequestsSince;
     }
 }

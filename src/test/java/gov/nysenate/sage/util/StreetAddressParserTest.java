@@ -41,7 +41,7 @@ public class StreetAddressParserTest {
         //Address address = new Address("PO BOX 1582 BRIDGEHAMPTON NY 11932-1582");
 
         /** Edge cases */
-        Address address = new Address("8121 Main Street, Red Creek NY 13143");
+        Address address = new Address("108-41 Guy R. Brewer Boulevard Jamaica, NY 11433");
         //Address address = new Address("234 State Hwy 45B, NY 12343");
         //Address address = new Address("241 Avenue X, New York 12324-2324");
         //Address address = new Address("385 HOFSTRA UNIV C SQUARE W", "Dover 516A", "Hempstead", "NY", "11549", "");

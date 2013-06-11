@@ -143,7 +143,7 @@
                     <ol class="input-container">
                         <li>
                             <label>Zip5</label>
-                            <input ng-model="zip5" type="text" name="zip">
+                            <input ng-model="zip5" type="text" name="zip" maxlength="5">
                         </li>
                         <li>
                             <button class="submit" ng-click="lookup();">

@@ -483,3 +483,27 @@ table.job-table {
     list-style-type: none;
     padding-right:20px;
 }
+
+.highlight-section {
+    border: 1px solid #ddd;
+    padding: 10px;
+    box-shadow: 0px 2px 1px #bbb;
+    background: white;
+    margin: 10px;
+}
+
+.highlight-section label {
+    color:teal;
+    font-weight:bold;
+}
+
+#geocoder-stats {
+    float:left;
+    width:29%;
+    height:300px;
+}
+
+#api-usage-stats {
+    width:63%;
+    float:left;
+}

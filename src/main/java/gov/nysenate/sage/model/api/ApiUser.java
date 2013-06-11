@@ -11,6 +11,7 @@ public class ApiUser implements Serializable
 	private String apiKey;
 	private String name;
 	private String description;
+    private int monthlyRequestCap;
 
 	public ApiUser() {}
 
@@ -52,4 +53,12 @@ public class ApiUser implements Serializable
 	public void setDescription(String description) {
 		this.description = description;
 	}
+
+    public int getMonthlyRequestCap() {
+        return monthlyRequestCap;
+    }
+
+    public void setMonthlyRequestCap(int monthlyRequestCap) {
+        this.monthlyRequestCap = monthlyRequestCap;
+    }
 }

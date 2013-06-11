@@ -1,4 +1,4 @@
-package gov.nysenate.sage.dao;
+package gov.nysenate.sage.dao.provider;
 
 import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.dao.provider.YahooDao;

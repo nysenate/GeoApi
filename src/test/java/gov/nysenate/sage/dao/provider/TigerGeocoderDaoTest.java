@@ -1,7 +1,6 @@
-package gov.nysenate.sage.dao;
+package gov.nysenate.sage.dao.provider;
 
 import gov.nysenate.sage.TestBase;
-import gov.nysenate.sage.dao.provider.TigerGeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.StreetAddress;

@@ -26,8 +26,9 @@ public class DeploymentStatsDao extends BaseDao
      */
     public DeploymentStats getDeploymentStats()
     {
-        String sql = "SELECT id, deployed, refId AS deploymentRef, deployTime \n" +
-                     "FROM " + SCHEMA + "." + TABLE;
+        String sql = "SELECT id, deployed, refId AS deploymentRef, deployTime, apiRequestsSince \n" +
+                     "FROM " + SCHEMA + "." + TABLE + " \n" +
+                     "ORDER BY deploytime ASC";
         try {
             List<Deployment> deployments = run.query(sql, listHandler);
             return new DeploymentStats(deployments);
@@ -46,7 +47,7 @@ public class DeploymentStatsDao extends BaseDao
      */
     public DeploymentStats getDeploymentStatsDuring(Timestamp since, Timestamp until)
     {
-        String sql = "SELECT id, deployed, refId AS deploymentRef, deployTime \n" +
+        String sql = "SELECT id, deployed, refId AS deploymentRef, deployTime, apiRequestsSince \n" +
                      "FROM " + SCHEMA + "." + TABLE + " \n" +
                      "WHERE deployTime >= ? AND deployTime <= ?";
         try {

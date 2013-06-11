@@ -1,4 +1,4 @@
-package gov.nysenate.sage.dao;
+package gov.nysenate.sage.dao.model;
 
 import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.dao.model.CongressionalDao;

@@ -1,5 +1,7 @@
 package gov.nysenate.sage.model.stats;
 
+import gov.nysenate.sage.util.FormatUtil;
+
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Iterator;
@@ -8,7 +10,7 @@ import java.util.ListIterator;
 
 public class DeploymentStats
 {
-    private List<Deployment> deployments;
+    private static List<Deployment> deployments;
 
     public DeploymentStats(List<Deployment> deployments)
     {
@@ -24,7 +26,7 @@ public class DeploymentStats
     }
 
     private Deployment getLast(boolean isDeployed) {
-        ListIterator<Deployment> deploymentIterator = deployments.listIterator(deployments.size() - 1);
+        ListIterator<Deployment> deploymentIterator = deployments.listIterator(deployments.size());
         while (deploymentIterator.hasPrevious()) {
             Deployment deployment = deploymentIterator.previous();
             if (deployment.isDeployed() == isDeployed) {
@@ -53,6 +55,11 @@ public class DeploymentStats
     public Timestamp getLastDeploymentTime() {
         Deployment deployment = getLastDeployment();
         return (deployment != null) ? deployment.getDeployTime() : null;
+    }
+
+    public int getRequestsSinceLatest() {
+        Deployment deployment = getLastDeployment();
+        return (deployment != null) ? deployment.getApiRequestsSince() : 0;
     }
 
     public long getLatestUptime()
