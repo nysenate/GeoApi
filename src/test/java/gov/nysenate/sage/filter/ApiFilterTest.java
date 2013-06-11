@@ -6,7 +6,6 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.SageLogger;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
@@ -183,12 +182,5 @@ public class ApiFilterTest extends TestBase
 
         /** Verify that filter does NOT proceed */
         verify(mf.getMockFilterChain(), never()).doFilter(isA(ServletRequest.class), isA(ServletResponse.class));
-    }
-
-    @Test
-    public void test() {
-
-        SageLogger sageLogger = (SageLogger) Logger.getLogger(this.getClass());
-
     }
 }

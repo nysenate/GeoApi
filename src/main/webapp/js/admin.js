@@ -39,7 +39,7 @@ $(function () {
         },
         series: [{
             type: 'pie',
-            name: 'Browser share',
+            name: 'Geocoder usage',
             data: [
                 ['YahooDao',   60.0],
                 ['YahooBossDao',  32.0],
@@ -48,4 +48,69 @@ $(function () {
             ]
         }]
     });
+    $('#api-usage-stats').highcharts({
+            chart: {
+                zoomType: 'x',
+                spacingRight: 20,
+                height: 300
+            },
+            title: {
+                text: 'Api Requests Since Deployment'
+            },
+            subtitle: {
+                text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' :
+                    'Drag your finger over the plot to zoom in'
+            },
+            xAxis: {
+                type: 'datetime',
+                maxZoom: 3600000, // 1 hour
+                title: {
+                    text: null
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Requests per hour'
+                }
+            },
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                enabled: false
+            },
+            plotOptions: {
+                area: {
+                    fillColor: {
+                        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
+                        stops: [
+                            [0, Highcharts.getOptions().colors[0]],
+                            [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                        ]
+                    },
+                    lineWidth: 1,
+                    marker: {
+                        enabled: false
+                    },
+                    shadow: false,
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    },
+                    threshold: null
+                }
+            },
+
+            series: [{
+                type: 'area',
+                name: 'Requests',
+                pointInterval: 3600 * 1000,
+                pointStart: Date.UTC(2013, 5, 11),
+                data: [12, 0, 2, 2, 5, 5, 0, 0, 0, 0 , 0, 0, 0, 18, 19, 20, 34]
+            }]
+        });
+
+
 });

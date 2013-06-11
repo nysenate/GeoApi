@@ -179,7 +179,7 @@
                 <p ng-click="toggleView(1)" class="method-header teal">Start new batch jobs</p>
                 <p ng-click="toggleView(2)" class="method-header active maroon">View current batch jobs</p>
                 <p ng-click="toggleView(3)" class="method-header purple">View batch job history</p>
-                <p ng-click="logout()" class="method-header purple">Log Out</p>
+                <p ng-click="logout()" class="method-header purple">Exit</p>
             </div>
         </div>
 

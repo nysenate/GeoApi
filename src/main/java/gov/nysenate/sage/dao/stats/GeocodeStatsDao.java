@@ -3,7 +3,6 @@ package gov.nysenate.sage.dao.stats;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.stats.DeploymentStats;
 import gov.nysenate.sage.model.stats.GeocodeStats;
-import gov.nysenate.sage.util.SageLogger;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;

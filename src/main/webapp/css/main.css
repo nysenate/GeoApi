@@ -45,6 +45,7 @@ a:hover {
 #contentcolumn {
     margin: 0 0px 0 300px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
     height:100%;
+    background-color:#f5f5f5;
 }
 
 #leftcolumn {

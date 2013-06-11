@@ -399,7 +399,6 @@ sage.directive('myTable', function() {
         // apply the plugin
         var dataTable = element.dataTable(options);
 
-
         $("#street-search").keyup( function () {
             /* Filter on the street column */
             dataTable.fnFilter( this.value, 2 );
