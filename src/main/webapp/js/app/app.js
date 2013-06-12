@@ -306,6 +306,14 @@ sage.filter("senatorPic", function() {
     }
 });
 
+sage.filter("localSenatorPic", function() {
+    return function(input) {
+        if (input) {
+            return contextPath + "/img/senators/120/" + input + ".png";
+        }
+    }
+});
+
 /** Formats an address properly */
 sage.filter('addressFormat', function(){
     return function(address) {

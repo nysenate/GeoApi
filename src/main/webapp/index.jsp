@@ -208,16 +208,18 @@
                         <div class="info-container senator">
                             <div class="senator-pic-holder">
                                 <a target="_blank" ng-href="{{districts.senate.senator.url}}">
-                                    <img ng-src="{{districts.senate.senator.imageUrl}}" class="senator-pic">
+                                    <img ng-src="{{districts.senate.senator.shortName | localSenatorPic}}" class="senator-pic">
                                 </a>
                             </div>
-                            <div>
-                                <p class="senator member-name">
-                                    <a target="_blank" ng-href="{{districts.senate.senator.url}}">{{districts.senate.senator.name}}</a>
-                                </p>
-                                <table style="width:225px;">
+                            <div style='margin-top:10px'>
+                                <table style="width:230px;">
                                     <tr>
-                                        <td><p class="senate district">Senate District {{districts.senate.district}}</p></td>
+                                        <td>
+                                            <p class="senator member-name">
+                                                <a target="_blank" ng-href="{{districts.senate.senator.url}}">{{districts.senate.senator.name}}</a>
+                                            </p>
+                                            <p class="senate district">Senate District {{districts.senate.district}}</p>
+                                        </td>
                                         <td class="right-icon-placeholder">
                                             <a title="Show Map" ng-show="districts.senate.map" ng-click="showDistrict('senate');">
                                                 <div class="icon-map"></div>
@@ -226,13 +228,17 @@
                                     </tr>
                                 </table>
                                 <br/>
-                                <p class="member-email">
-                                    <div class="icon-mail" style="margin-right: 5px;position: relative;top: 3px;"></div>
-                                    <span style='font-size:15px'>{{districts.senate.senator.email}}</span>
-                                </p>
                             </div>
                         </div>
-                        <div class="info-container" style="padding:5px 10px;">
+
+                        <div class="info-container">
+                            <p class="member-email">
+                                <div class="icon-mail" style="margin-right: 5px;"></div>
+                                <span style='font-size:15px'>{{districts.senate.senator.email}}</span>
+                            </p>
+                        </div>
+
+                        <div class="info-container slim">
                             <table style="width:100%">
                                 <tr>
                                     <td>
