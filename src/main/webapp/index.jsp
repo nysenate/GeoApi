@@ -2,14 +2,15 @@
 <%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 
 <sage:wrapper>
+    <jsp:attribute name="ngApp">sage</jsp:attribute>
     <jsp:attribute name="title">SAGE</jsp:attribute>
     <jsp:attribute name="cssIncludes">
         <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/blockui.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/app.js"></script>
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">
@@ -41,8 +42,8 @@
                             <th>Location</th>
                             <th>Zip</th>
                             <th>Senate</th>
-                            <th>Assembly</th>
                             <th>Congress</th>
+                            <th>Assembly</th>
                             <th>County</th>
                             <th>Town</th>
                             <th>Election</th>
@@ -402,19 +403,22 @@
             <div id="map-member-results" ng-controller="MemberViewController">
                 <div ng-show="visible">
                     <div>
-                        <div class="info-container senator">
+                        <div class="info-container" style="height:70px;">
                             <div class="senator-pic-holder">
-                                <img ng-src="{{member.imageUrl}}" class="senator-pic">
+                                <img ng-src="{{member.imageUrl | senatorPic}}" class="senator-pic">
                             </div>
                             <div>
                                 <p class="senator member-name">
                                     <a target="_blank" ng-href="{{member.url}}">{{member.name}}</a>
                                 </p>
                                 <p class="senate district">Senate District {{member.district.number}}</p><br/>
-                                <p class="member-email">
-                                    <div class="icon-email"></div>{{member.email}}
-                                </p>
                             </div>
+                        </div>
+
+                        <div class="info-container">
+                            <p class="member-email">
+                                <div class="icon-mail"></div>{{member.email}}
+                            </p>
                         </div>
 
                         <div class="info-container" ng-repeat="office in member.offices">

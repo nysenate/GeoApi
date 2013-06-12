@@ -1,12 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <sage:wrapper>
+    <jsp:attribute name="ngApp">sage-job</jsp:attribute>
     <jsp:attribute name="title">SAGE - Batch Services Login</jsp:attribute>
     <jsp:attribute name="cssIncludes">
         <link href="${pageContext.request.contextPath}/css/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/job/job.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
         <sage:header></sage:header>

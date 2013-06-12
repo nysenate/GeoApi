@@ -3,13 +3,14 @@
 <% request.setAttribute("contextPath", request.getContextPath()); %>
 
 <sage:wrapper>
+    <jsp:attribute name="ngApp">sage-job</jsp:attribute>
     <jsp:attribute name="title">SAGE - Batch Services Main</jsp:attribute>
     <jsp:attribute name="cssIncludes">
         <link href="${pageContext.request.contextPath}/css/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script src="${pageContext.request.contextPath}/js/fileuploader.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/vendor/fileuploader.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/job/job.js" type="text/javascript"></script>
         <script>
             downloadDir = "${downloadDir}";
         </script>

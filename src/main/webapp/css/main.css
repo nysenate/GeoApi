@@ -479,6 +479,11 @@ table.job-table {
 /*-------------------------------------------------------
   Admin Page
 --------------------------------------------------------*/
+#leftcolumn.admin {
+    width:250px;
+    border-right:1px solid #ddd;
+}
+
 #uptime-stats ul li {
     display:inline;
     list-style-type: none;

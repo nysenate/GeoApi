@@ -2,10 +2,11 @@
 <%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 
 <sage:wrapper>
+    <jsp:attribute name="ngApp">sage</jsp:attribute>
     <jsp:attribute name="title">SAGE Map Viewer</jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/blockui.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/app.js"></script>
     </jsp:attribute>
     <jsp:body>
         <div ng-controller="EmbeddedMapController">

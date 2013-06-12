@@ -1,4 +1,12 @@
-var sage = angular.module('sage', []);
+var sageAdmin = angular.module('sage-admin', ['sage-common']);
+
+sageAdmin.controller('DashboardController', function($scope, dataBus) {
+    $scope.id = 1;
+    $scope.visible = true;
+    $scope.$on('toggleView', function(){
+        $scope.visible = ($scope.id == dataBus.data);
+    });
+});
 
 $(document).ready(function() {
     initVerticalMenu();

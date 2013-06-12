@@ -14,42 +14,42 @@
     display: inline-block;
     width: 16px;
     height: 16px;
-    background-image: url(../img/entypo-16/gray/sprites.png);
+    background-image: url(../img/icons/entypo-16/gray/sprites.png);
     background-repeat: no-repeat;
     position:relative;
     top:3px;
 }
 
 .icon-upload.teal {
-    background-image: url(../img/entypo-16/teal/sprites.png) !important;
+    background-image: url(../img/icons/entypo-16/teal/sprites.png) !important;
 }
 
 .icon-earth.large-icon.teal {
-    background-image: url(../img/entypo-22/teal/earth.png);
+    background-image: url(../img/icons/entypo-22/teal/earth.png);
 }
 
 .icon-map.large-icon.white {
-    background-image: url(../img/entypo-22/white/map.png);
+    background-image: url(../img/icons/entypo-22/white/map.png);
 }
 
 .icon-database.large-icon.white {
-    background-image: url(../img/entypo-22/white/database.png);
+    background-image: url(../img/icons/entypo-22/white/database.png);
 }
 
 .icon-mail {
-    background-image: url(../img/entypo-16/teal/sprites.png);
+    background-image: url(../img/icons/entypo-16/teal/sprites.png);
 }
 
 .icon-map:hover, .icon-location:hover {
-    background-image: url(../img/entypo-16/teal/sprites.png);
+    background-image: url(../img/icons/entypo-16/teal/sprites.png);
 }
 
 .icon-search, .icon-user {
-    background-image: url(../img/entypo-16/white/sprites.png) !important;
+    background-image: url(../img/icons/entypo-16/white/sprites.png) !important;
 }
 
 .icon-cross:hover {
-    background-image: url(../img/entypo-16/white/sprites.png) !important;
+    background-image: url(../img/icons/entypo-16/white/sprites.png) !important;
 }
 
 .icon-mail {

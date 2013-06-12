@@ -2,16 +2,18 @@
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 
 <sage:wrapper>
+    <jsp:attribute name="ngApp">sage-admin</jsp:attribute>
     <jsp:attribute name="title">SAGE - Admin Console</jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script src="http://cdnjs.cloudflare.com/ajax/libs/highcharts/3.0.2/highcharts.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/common.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/admin/admin.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
         <sage:header></sage:header>
         <div id="contentwrapper">
-            <div id="contentcolumn" style="margin-left:250px;padding-top:20px;background-color:#f5f5f5">
-                <div style="text-align: center">
+            <div id="contentcolumn" style="text-align:center;margin-left:250px;padding-top:20px;background-color:#f5f5f5">
+                <div ng-controller='DashboardController' ng-show='visible'>
                     <h3>SAGE Dashboard</h3>
                     <div id="uptime-stats">
                         <ul class="highlight-section">
@@ -30,11 +32,11 @@
                 </div>
             </div>
         </div>
-        <div id="leftcolumn" style="width:250px;border-right:1px solid #ddd;">
+        <div id="leftcolumn" class="admin" ng-controller="MenuController">
             <div class="innertube">
-                <p class="method-header teal active">Dashboard</p>
-                <p class="method-header teal">Requests Log</p>
-                <p class="method-header teal">User Console</p>
+                <p ng-click='toggleView(1)' class="method-header teal active">Dashboard</p>
+                <p ng-click='toggleView(2)' class="method-header teal">Requests Log</p>
+                <p ng-click='toggleView(3)' class="method-header teal">User Console</p>
                 <p class="method-header">Exit</p>
             </div>
         </div>
