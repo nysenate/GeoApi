@@ -1,4 +1,4 @@
-var sage = angular.module('sage', []);
+var sageJob = angular.module('sage-job', []);
 var baseStatusApi = "/job/status";
 var uploader;
 
@@ -9,7 +9,7 @@ var uploader;
  * The ajax response is propagated to the specified |
  * 'view' by emitting an event from the $rootScope. |
  * ------------------------------------------------*/
-sage.factory("dataBus", function($rootScope) {
+sageJob.factory("dataBus", function($rootScope) {
     var dataBus = {};
     dataBus.setBroadcast = function(handle, data) {
         this.handle = handle;
@@ -24,7 +24,7 @@ sage.factory("dataBus", function($rootScope) {
     return dataBus;
 });
 
-sage.filter('yesno', function(){
+sageJob.filter('yesno', function(){
     return function(input) {
         return (input) ? 'Yes' : 'No';
     }
@@ -36,7 +36,7 @@ sage.filter('yesno', function(){
  * corresponds to its index. If the index matches the id then the
  * container for that controller will be visible.
  */
-sage.controller('MenuController', function($scope, $window, dataBus){
+sageJob.controller('MenuController', function($scope, $window, dataBus){
     $scope.active = 2;
     $scope.toggleView = function(index) {
         dataBus.setBroadcast("toggleView", index);
@@ -47,7 +47,7 @@ sage.controller('MenuController', function($scope, $window, dataBus){
     $scope.toggleView(2);
 });
 
-sage.controller('JobAuthController', function($scope, $http) {
+sageJob.controller('JobAuthController', function($scope, $http) {
     $scope.visible = true;
     $scope.email = "";
     $scope.password = "";
@@ -55,7 +55,7 @@ sage.controller('JobAuthController', function($scope, $http) {
     $scope.errorMessage = "";
 });
 
-sage.controller('JobUploadController', function($scope, $http, dataBus) {
+sageJob.controller('JobUploadController', function($scope, $http, dataBus) {
     $scope.id = 1;
     $scope.visible = false;
     $scope.empty = true;
@@ -75,7 +75,7 @@ sage.controller('JobUploadController', function($scope, $http, dataBus) {
     });
 });
 
-sage.controller('JobStatusController', function($scope, $http, dataBus) {
+sageJob.controller('JobStatusController', function($scope, $http, dataBus) {
     $scope.id = 2;
     $scope.visible = false;
     $scope.rpInterval = 0;  // Running processes interval id
@@ -165,7 +165,7 @@ sage.controller('JobStatusController', function($scope, $http, dataBus) {
     }
 });
 
-sage.controller('JobHistoryController', function($scope, $http, dataBus) {
+sageJob.controller('JobHistoryController', function($scope, $http, dataBus) {
     $scope.id = 3;
     $scope.visible = false;
     $scope.allProcesses = [];
