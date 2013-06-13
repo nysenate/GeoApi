@@ -297,7 +297,7 @@ button.submit[disabled] {
 }
 
 .info-container.senator {
-    height:90px;
+    height:70px;
 }
 
 hr.shadow {
@@ -310,12 +310,15 @@ hr.shadow {
 }
 
 div.mini-senator-pic-holder, div.senator-pic-holder {
-    height:90px;
-    max-width:90px;
     float:left;
     margin-right: 10px;
     margin-bottom: 5px;
     overflow:hidden;
+}
+
+div.senator-pic-holder {
+    height:80px;
+    max-width:90px;
 }
 
 div.mini-senator-pic-holder {

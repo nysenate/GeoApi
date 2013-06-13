@@ -208,11 +208,11 @@
                         <div class="info-container senator">
                             <div class="senator-pic-holder">
                                 <a target="_blank" ng-href="{{districts.senate.senator.url}}">
-                                    <img ng-src="{{districts.senate.senator.shortName | localSenatorPic}}" class="senator-pic">
+                                    <img ng-src="{{districts.senate.senator.imageUrl | senatorPic}}" class="senator-pic">
                                 </a>
                             </div>
                             <div style='margin-top:10px'>
-                                <table style="width:230px;">
+                                <table style="width:260px;">
                                     <tr>
                                         <td>
                                             <p class="senator member-name">
@@ -231,7 +231,7 @@
                             </div>
                         </div>
 
-                        <div class="info-container">
+                        <div class="info-container slim">
                             <p class="member-email">
                                 <div class="icon-mail" style="margin-right: 5px;"></div>
                                 <span style='font-size:15px'>{{districts.senate.senator.email}}</span>
@@ -413,7 +413,7 @@
                             <div class="senator-pic-holder">
                                 <img ng-src="{{member.imageUrl | senatorPic}}" class="senator-pic">
                             </div>
-                            <div>
+                            <div style="margin-top:10px">
                                 <p class="senator member-name">
                                     <a target="_blank" ng-href="{{member.url}}">{{member.name}}</a>
                                 </p>
@@ -421,9 +421,9 @@
                             </div>
                         </div>
 
-                        <div class="info-container">
+                        <div class="info-container slim">
                             <p class="member-email">
-                                <div class="icon-mail"></div>{{member.email}}
+                                <div class="icon-mail" style="margin-right:10px;"></div>{{member.email}}
                             </p>
                         </div>
 
