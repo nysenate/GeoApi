@@ -21,6 +21,47 @@
                     <div class="text">Map | {{header}}</div>
                 </div>
                 <div id="map_canvas"></div>
+                <div id="overlayTest" ng-controller="DistrictInfoController">
+                    <form id="districtsFormMini" action="" method="post">
+                        <label>Enter location to district assign</label>
+                        <input type="text" ng-model="addr" />
+                        <button ng-click="lookup()" class="submit mini">
+                            <div class="icon-search"></div>
+                            <span></span>
+                        </button>
+                        <a id="showDistrictInfoOptions" class="options-link" ng-hide="showOptions" ng-click="showOptions=true">Show options</a>
+                        <a id="hideDistrictInfoOptions" class="options-link" ng-show="showOptions" ng-click="showOptions=false">Hide options</a>
+                        <br/>
+                        <div id="districtInfoOptions" ng-show="showOptions">
+                            <table style='border-top:1px solid #ddd;width:95%;margin-top:5px;'>
+                                <tr>
+                                    <td><label>District data source</label></td>
+                                    <td style="width:180px;">
+                                        <select style="width: 100%;font-size:13px;color:#444;" ng-model="provider">
+                                            <option value="default">Default (Recommended)</option>
+                                            <option value="streetfile">Board of Elections</option>
+                                            <option value="shapefile">Census TIGER/LINE</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><label>Geocoder</label></td>
+                                    <td>
+                                        <select style="width: 100%;font-size:13px;color:#444;" ng-model="geoProvider">
+                                            <option value="default">Default (Recommended)</option>
+                                            <option value="yahoo">Yahoo</option>
+                                            <option value="yahooboss">Yahoo Boss</option>
+                                            <option value="tiger">Tiger</option>
+                                            <option value="mapquest">MapQuest</option>
+                                            <option value="ruby">Ruby</option>
+                                            <option value="osm">OSM</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </form>
+                </div>
             </div>
             <div ng-controller="StreetViewController">
                 <div ng-show="visible" style="height:100%;">
@@ -60,7 +101,7 @@
             <sage:header></sage:header>
             <p class="method-header active teal">District Information</p>
             <div id="district-lookup-container" class="form-container active">
-                <form id="districtsForm" action="" method="post" ng-controller="DistrictInfoController" autocomplete="false">
+                <form id="districtsForm" action="" method="post" autocomplete="false">
                     <ol class="input-container">
                         <li>
                             <label>Address</label>
@@ -116,7 +157,7 @@
                     <ol class="input-container">
                         <li>
                             <label>Type</label>
-                            <select ng-model="type">
+                            <select ng-model="type" ng-change="metaLookup();">
                                 <option value="senate">Senate</option>
                                 <option value="congressional">Congressional</option>
                                 <option value="assembly">Assembly</option>
@@ -126,8 +167,9 @@
                             </select>
                         </li>
                         <li>
-                            <label style="width:190px;">District <span style="color:#777">(leave blank to view all)</span></label>
-                            <input style="width:52px;" ng-model="district" type="text" id="districtCodeInput" />
+                            <label style="width:190px;">District</label>
+                            <select ng-model="selectedDistrict" ng-options="d.district for d in districtList">
+                            </select>
                         </li>
                         <li>
                             <button class="submit" ng-click="lookup();">

@@ -3,6 +3,48 @@
 --------------------------------------------------------*/
 @import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro);
 
+#overlayTest {
+    position: absolute;
+    top: 60px;
+    left: 225px;
+    height: auto;
+    width: 350px;
+    background: whitesmoke;
+    border: 1px solid #999;
+    box-shadow: 0px 0px 10px #999;
+    border-radius: 3px;
+    padding: 10px 0px 5px 5px;
+}
+
+#overlayTest label {
+    color: #0E4E5A;
+    font-size: 15px;
+}
+
+#overlayTest input {
+    outline: 0;
+    border: 1px solid #ddd;
+    width: 285px;
+    border-radius: 2px;
+    height: 35px;
+    margin-top: 1px;
+    padding: 2px;
+    background:white;
+    box-sizing: border-box;
+}
+
+#overlayTest table label {
+    font-size:14px;
+    color: #0E4E5A;
+}
+
+.options-link {
+    font-size:13px;
+    position: relative;
+    top: 3px;
+    left: 1px;
+}
+
 /*-------------------------------------------------------
   Defaults
 --------------------------------------------------------*/
@@ -43,14 +85,14 @@ a:hover {
 }
 
 #contentcolumn {
-    margin: 0 0px 0 300px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
+    margin: 0 0px 0 180px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
     height:100%;
     background-color:#f5f5f5;
 }
 
 #leftcolumn {
     float: left;
-    width: 300px; /*Width of left column*/
+    width: 180px; /*Width of left column*/
     margin-left: -100%;
     background: #eee;
     height:100%;
@@ -218,13 +260,12 @@ ul.nav li:hover a{
 .method-header.active.purple{background-color:#632150;}
 .method-header.active.brown{background-color:#957732;}
 
-
 .form-container {
     display:none;
 }
 
 .form-container.active {
-    display:block;
+    display:none;
 }
 
 .info-container {
@@ -286,6 +327,22 @@ button.submit {
     padding: 7px 20px;
     width: 264px;
     font-weight: bold;
+    border-radius: 2px;
+}
+
+button.submit.mini {
+    text-align: center;
+    background: #799933;
+    color: white;
+    border: 0;
+    outline: 0;
+    font-size: 14px;
+    font-family: 'Source Sans Pro';
+    padding: 7px 20px;
+    width: 52px;
+    font-weight: bold;
+    border-radius: 2px;
+    box-sizing: border-box;
 }
 
 button.submit:hover{

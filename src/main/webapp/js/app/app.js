@@ -32,11 +32,6 @@ sage.factory("responseService", function($rootScope) {
 });
 
 /**--------------------------------------------
- * Result View Service
- ---------------------------------------------*/
-
-
-/**--------------------------------------------
  * Map Service
  ---------------------------------------------*/
 sage.factory("mapService", function($rootScope, uiBlocker) {
@@ -425,18 +420,20 @@ sage.directive('myTable', function() {
 
 /**------------------------------------------------\
  * Controllers                                     |
- *-------------------------------------------------|
- * Allows binding between the form and the         |
- * underlying model. Creates and sends requests.   |
  *------------------------------------------------*/
+
+/**
+ * Controller for handling the `District Information` function.
+ */
 sage.controller('DistrictInfoController', function($scope, $http, responseService, uiBlocker) {
-    $scope.addr1 = "";
-    $scope.city = "";
-    $scope.state = "NY";
-    $scope.zip5 = "";
+    $scope.addr = "";
+    $scope.showOptions = false;
     $scope.geoProvider = "default";
     $scope.provider = "default";
 
+    /**
+     * Performs request to District Assign API and delegates to the `districtInfo` handler.
+     */
     $scope.lookup = function() {
         uiBlocker.block("Looking up districts");
         $http.get(this.getDistUrl())
@@ -448,9 +445,12 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
         });
     }
 
+    /**
+     * Returns the url for accessing the district assignment API.
+     * @returns {string}
+     */
     $scope.getDistUrl = function () {
-        var url = contextPath + baseApi + "/district/assign?addr1=" + this.addr1 + "&city=" + this.city
-                              + "&state=" + ((this.state) ? this.state : "NY") + "&zip5=" + this.zip5;
+        var url = contextPath + baseApi + "/district/assign?addr=" + this.addr;
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
         url += "&showMembers=true&showMaps=true";
@@ -459,10 +459,28 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
     }
 });
 
+/**
+ * Controller for handling the `District Maps` function.
+ */
 sage.controller("DistrictMapController", function($scope, $http, responseService, uiBlocker){
     $scope.type = "senate";
-    $scope.district = "";
+    $scope.districtList = [];
+    $scope.selectedDistrict = "";
 
+    /**
+     * Performs request to district map API to retrieve meta data to populate districtList.
+     */
+    $scope.metaLookup = function() {
+        $http.get(this.getDistrictMapUrl(true))
+            .success(function(data){
+                $scope.districtList = data.districts;
+            })
+            .error(function(data){});
+    };
+
+    /**
+     * Performs request to district map API to retrieve map data and delegates to the `districtMap` handler.
+     */
     $scope.lookup = function () {
         uiBlocker.block("Loading " + this.type + " maps..");
         $http.get(this.getDistrictMapUrl())
@@ -472,12 +490,18 @@ sage.controller("DistrictMapController", function($scope, $http, responseService
                 uiBlocker.unBlock();
                 alert("Failed to retrieve district maps.");
             });
-    }
+    };
 
-    $scope.getDistrictMapUrl = function () {
-        return contextPath + baseApi + "/map/" + this.type + "?showMembers=true" + ((this.district) ? ("&district=" + this.district) : "");
+    /**
+     * Returns the url for accessing the district map API.
+     * @param meta If true then no polygon data will be retrieved (just meta data)
+     * @returns {string}
+     */
+    $scope.getDistrictMapUrl = function(meta) {
+        return contextPath + baseApi + "/map/" + this.type + "?showMembers=true"
+            + ((this.selectedDistrict) ? ("&district=" + this.selectedDistrict.district) : "")
+            + ((meta === true) ? "&meta=true" : "");
     }
-
 });
 
 sage.controller('CityStateController', function($scope, $http, responseService) {

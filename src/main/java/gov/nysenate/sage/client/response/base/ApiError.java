@@ -1,4 +1,4 @@
-package gov.nysenate.sage.client.response;
+package gov.nysenate.sage.client.response.base;
 
 import gov.nysenate.sage.model.result.ResultStatus;
 
