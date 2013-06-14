@@ -33,7 +33,7 @@ public class GeocodeRequestLogger extends BaseDao
                 int requestId = run.query(
                           "INSERT INTO " + SCHEMA + "." + TABLE + "(apiRequestId, addressId, provider, useFallback, useCache, requestTime) \n" +
                           "VALUES (?, ?, ?, ?, ?, ?) \n" +
-                          "RETURNING id", new ReturnIdHandler(), apiRequest.getId(), addressId, geoRequest.getProvider(), geoRequest.isUseFallback(),
+                          "RETURNING id", new ReturnIdHandler(), apiRequest.getId(), (addressId > -1) ? addressId : null, geoRequest.getProvider(), geoRequest.isUseFallback(),
                                                                  geoRequest.isUseCache(), geoRequest.getRequestTime());
                 geoRequest.setId(requestId);
                 return requestId;

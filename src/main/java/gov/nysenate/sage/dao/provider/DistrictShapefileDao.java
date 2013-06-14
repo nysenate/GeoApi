@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.CountyDao;
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictShapeCode;
-import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.FormatUtil;
@@ -92,7 +89,7 @@ public class DistrictShapefileDao extends BaseDao
     }
 
     /**
-     * Retrieves a mapped collection of DistrictMaps
+     * Retrieves a mapped collection of DistrictMaps.
      * @return Map<DistrictType, List<DistrictMap>>
      */
     public Map<DistrictType, List<DistrictMap>> getDistrictMaps()
@@ -110,7 +107,7 @@ public class DistrictShapefileDao extends BaseDao
     public boolean cacheDistrictMaps()
     {
         String sql = "SELECT '%s' AS type, %s as name, %s as code, ST_AsGeoJson(geom) AS map " +
-                "FROM " + SCHEMA + ".%s";
+                     "FROM " + SCHEMA + ".%s";
 
         /** Iterate through all the requested types and format the template sql */
         ArrayList<String> queryList = new ArrayList<>();
@@ -122,8 +119,8 @@ public class DistrictShapefileDao extends BaseDao
             }
         }
 
-        /** Combine the queries using UNION ALL */
-        String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
+        /** Combine the queries using UNION ALL and set the sort condition */
+        String sqlQuery = StringUtils.join(queryList, " UNION ALL ") + " ORDER BY type, code";
 
         try {
             run.query(sqlQuery, new DistrictMapsHandler());
@@ -240,10 +237,10 @@ public class DistrictShapefileDao extends BaseDao
                     }
 
                     String code = getDistrictCode(rs);
+                    DistrictMetadata metadata = new DistrictMetadata(type, rs.getString("name"), code);
+
                     DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
-                    map.setDistrictName(rs.getString("name"));
-                    map.setDistrictType(type);
-                    map.setDistrictCode(code);
+                    map.setDistrictMetadata(metadata);
 
                     /** Set values in the lookup HashMap */
                     if (code != null && map != null) {

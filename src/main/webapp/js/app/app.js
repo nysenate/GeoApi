@@ -1,4 +1,4 @@
-var sage = angular.module('sage', []);
+var sage = angular.module('sage', ['sage-common']);
 
 /**-------------------------------------------------\
  * Base Configuration                               |
@@ -40,8 +40,9 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
     var mapService = {};
     mapService.el = $("#mapView");
     mapService.mapOptions = {
-        center: new google.maps.LatLng(42.651445, -73.755254),
-        zoom: 15,
+        center: new google.maps.LatLng(42.440510, -76.495460), // Centers the map nicely over NY
+        zoom: 7,
+        mapTypeControl: false,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         panControl: false,
         zoomControl: true,
@@ -425,11 +426,17 @@ sage.directive('myTable', function() {
 /**
  * Controller for handling the `District Information` function.
  */
-sage.controller('DistrictInfoController', function($scope, $http, responseService, uiBlocker) {
+sage.controller('DistrictInfoController', function($scope, $http, dataBus, responseService, uiBlocker) {
+    $scope.visible = true;
+    $scope.id = 1;
     $scope.addr = "";
     $scope.showOptions = false;
     $scope.geoProvider = "default";
     $scope.provider = "default";
+
+    $scope.$on("toggleView", function() {
+        $scope.visible = ($scope.id === dataBus.data);
+    });
 
     /**
      * Performs request to District Assign API and delegates to the `districtInfo` handler.
@@ -462,18 +469,33 @@ sage.controller('DistrictInfoController', function($scope, $http, responseServic
 /**
  * Controller for handling the `District Maps` function.
  */
-sage.controller("DistrictMapController", function($scope, $http, responseService, uiBlocker){
-    $scope.type = "senate";
+sage.controller("DistrictMapController", function($scope, $http, dataBus, responseService, uiBlocker){
+    $scope.visible = false;
+    $scope.id = 2;
+    $scope.type = "";
+    $scope.senateDistricts = null;
     $scope.districtList = [];
     $scope.selectedDistrict = "";
+
+    $scope.$on("toggleView", function() {
+        $scope.visible = ($scope.id === dataBus.data);
+        if ($scope.visible) {
+            if ($scope.senateDistricts == null) {
+                $http.get($scope.getDistrictMapUrl('senate', true))
+                    .success(function(data) {
+                        $scope.senateDistrict = data.districts;
+                    });
+            }
+        }
+    });
 
     /**
      * Performs request to district map API to retrieve meta data to populate districtList.
      */
-    $scope.metaLookup = function() {
-        $http.get(this.getDistrictMapUrl(true))
+    $scope.metaLookup = function(type) {
+        $http.get(this.getDistrictMapUrl(type, true))
             .success(function(data){
-                $scope.districtList = data.districts;
+                //data.districts.unshift({district:'All'});
             })
             .error(function(data){});
     };
@@ -483,7 +505,7 @@ sage.controller("DistrictMapController", function($scope, $http, responseService
      */
     $scope.lookup = function () {
         uiBlocker.block("Loading " + this.type + " maps..");
-        $http.get(this.getDistrictMapUrl())
+        $http.get(this.getDistrictMapUrl(this.type, false))
             .success(function(data) {
                 responseService.setResponse("districtMap", data);
             }).error(function(data) {
@@ -497,14 +519,14 @@ sage.controller("DistrictMapController", function($scope, $http, responseService
      * @param meta If true then no polygon data will be retrieved (just meta data)
      * @returns {string}
      */
-    $scope.getDistrictMapUrl = function(meta) {
-        return contextPath + baseApi + "/map/" + this.type + "?showMembers=true"
-            + ((this.selectedDistrict) ? ("&district=" + this.selectedDistrict.district) : "")
-            + ((meta === true) ? "&meta=true" : "");
+    $scope.getDistrictMapUrl = function(type, meta) {
+        return contextPath + baseApi + "/map/" + type + "?showMembers=true"
+            + ((meta === true) ? "&meta=true" :
+                ((this.selectedDistrict) ? ("&district=" + this.selectedDistrict.district) : ""));
     }
 });
 
-sage.controller('CityStateController', function($scope, $http, responseService) {
+sage.controller('CityStateController', function($scope, $http, dataBus, responseService) {
     $scope.zip5 = "";
 
     $scope.lookup = function() {
@@ -580,9 +602,10 @@ sage.controller("EmbeddedMapController", function($scope, $http, $window, respon
  *------------------------------------------------*/
 sage.controller('ResultsViewController', function($scope, responseService, mapService) {
     $scope.paneVisible = false;
+    $scope.showResultsTab = $("#showResultsTab");
     $scope.centercolumn = $('#contentcolumn');
     $scope.rightcolumn = $("#rightcolumn");
-    $scope.width = '360px';
+    $scope.width = '330px';
 
     $scope.$on('expandResults', function() {
         $scope.paneVisible = $scope.toggleResultPane(responseService.response);
@@ -591,12 +614,17 @@ sage.controller('ResultsViewController', function($scope, responseService, mapSe
     $scope.toggleResultPane = function(expand) {
         if (expand != null) {
             if (expand) {
-                $scope.centercolumn.css("marginRight", $scope.width); $scope.rightcolumn.show();
+                $scope.centercolumn.css("marginRight", $scope.width);
+                $scope.rightcolumn.show();
                 mapService.resizeMap();
+                $scope.showResultsTab.hide();
                 return true;
-            } else {
-                $scope.centercolumn.css("marginRight", 0); $scope.rightcolumn.hide();
+            }
+            else {
+                $scope.centercolumn.css("marginRight", 0);
+                $scope.rightcolumn.hide();
                 mapService.resizeMap();
+                $scope.showResultsTab.show();
             }
         }
         return false;

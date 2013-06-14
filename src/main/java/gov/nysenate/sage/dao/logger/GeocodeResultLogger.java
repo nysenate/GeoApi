@@ -37,7 +37,7 @@ public class GeocodeResultLogger extends BaseDao
                 String method = (success) ? geocode.getMethod() : null;
                 String quality = (success) ? geocode.getQuality().name() : null;
                 String point = (success) ? "POINT(" + geocode.getLat() + " " + geocode.getLat() + ")" : null;
-                return run.query(sql, new ReturnIdHandler(), geocodeRequestId, success, addressId, method, quality, point, geocodeResult.getResultTime());
+                return run.query(sql, new ReturnIdHandler(), geocodeRequestId, success, (addressId > -1) ? addressId : null, method, quality, point, geocodeResult.getResultTime());
             }
             catch (SQLException ex) {
                 logger.error("Failed to log geocode result!", ex);

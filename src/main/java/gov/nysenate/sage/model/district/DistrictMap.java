@@ -1,53 +1,27 @@
 package gov.nysenate.sage.model.district;
 
 import gov.nysenate.sage.model.geo.Polygon;
-import gov.nysenate.services.model.Senator;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Holds all applicable information for a given district map which includes
- * the geometry, member info, district code, etc.
+ * Extends DistrictMetadata with district map geometry information.
  */
-public class DistrictMap
+public class DistrictMap extends DistrictMetadata
 {
-    protected DistrictType districtType;
-    protected String districtCode;
-    protected String districtName;
     private List<Polygon> polygons = new ArrayList<>();
-
-    protected Senator senator;
-    protected DistrictMember member;
 
     public DistrictMap() {}
 
-    public DistrictType getDistrictType() {
-        return districtType;
-    }
-
-    public void setDistrictType(DistrictType districtType) {
-        this.districtType = districtType;
-    }
-
-    public String getDistrictCode() {
-        return districtCode;
-    }
-
-    public void setDistrictCode(String districtCode) {
-        this.districtCode = districtCode;
-    }
-
-    public String getDistrictName() {
-        return districtName;
-    }
-
-    public void setDistrictName(String districtName) {
-        this.districtName = districtName;
-    }
-
     public DistrictMap(List<Polygon> polygons) {
         this.polygons = polygons;
+    }
+
+    public void setDistrictMetadata(DistrictMetadata dm) {
+        this.setDistrictCode(dm.districtCode);
+        this.setDistrictName(dm.districtName);
+        this.setDistrictType(dm.districtType);
     }
 
     public List<Polygon> getPolygons() {
@@ -60,22 +34,6 @@ public class DistrictMap
 
     public void addPolygon(Polygon polygon) {
         this.polygons.add(polygon);
-    }
-
-    public Senator getSenator() {
-        return senator;
-    }
-
-    public void setSenator(Senator senator) {
-        this.senator = senator;
-    }
-
-    public DistrictMember getMember() {
-        return member;
-    }
-
-    public void setMember(DistrictMember member) {
-        this.member = member;
     }
 
     public String toString()

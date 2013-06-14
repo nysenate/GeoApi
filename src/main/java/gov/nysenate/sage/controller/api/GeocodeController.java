@@ -1,6 +1,9 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.*;
+import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.geo.BatchGeocodeResponse;
+import gov.nysenate.sage.client.response.geo.GeocodeResponse;
+import gov.nysenate.sage.client.response.geo.RevGeocodeResponse;
 import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
 import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;

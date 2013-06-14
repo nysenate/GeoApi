@@ -1,9 +1,9 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.ApiError;
-import gov.nysenate.sage.client.response.BatchDistrictResponse;
-import gov.nysenate.sage.client.response.DistrictResponse;
-import gov.nysenate.sage.client.response.MappedDistrictResponse;
+import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
+import gov.nysenate.sage.client.response.district.DistrictResponse;
+import gov.nysenate.sage.client.response.district.MappedDistrictResponse;
 import gov.nysenate.sage.dao.logger.DistrictRequestLogger;
 import gov.nysenate.sage.dao.logger.DistrictResultLogger;
 import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
@@ -236,10 +236,11 @@ public class DistrictController extends BaseApiController implements Observer
         }
 
         /** Log district request to database */
-        int requestId = districtRequestLogger.logDistrictRequest(new DistrictRequest(apiRequest, geocodedAddress.getAddress(), provider, geoProvider, showMembers,
-                                                                 showMaps, uspsValidate, !performGeocode, strategy));
+        int requestId = districtRequestLogger.logDistrictRequest(
+                new DistrictRequest(apiRequest, (geocodedAddress != null) ? geocodedAddress.getAddress() : null,
+                                    provider, geoProvider, showMembers, showMaps, uspsValidate, !performGeocode, strategy));
         DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
-                showMembers, showMaps, strategy);
+                                                                         showMembers, showMaps, strategy);
         districtResultLogger.logDistrictResult(requestId, districtResult);
         return districtResult;
     }
@@ -302,7 +303,7 @@ public class DistrictController extends BaseApiController implements Observer
                 Address revGeocodedAddress = geocodeResult.getAddress();
                 if (uspsValidate) {
                     AddressResult addressResult = addressProvider.newInstance("usps").validate(revGeocodedAddress);
-                    if (addressResult.isValidated() && geocodedAddress != null) {
+                    if (addressResult.isValidated()) {
                         revGeocodedAddress = addressResult.getAddress();
                     }
                 }

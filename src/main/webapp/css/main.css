@@ -1,48 +1,64 @@
 /*-------------------------------------------------------
   Web Fonts
 --------------------------------------------------------*/
-@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro);
+@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600);
 
-#overlayTest {
+.search-container {
     position: absolute;
     top: 60px;
     left: 225px;
     height: auto;
     width: 350px;
-    background: whitesmoke;
+    background: #f9f9f9;
     border: 1px solid #999;
     box-shadow: 0px 0px 10px #999;
     border-radius: 3px;
     padding: 10px 0px 5px 5px;
 }
 
-#overlayTest label {
+.search-container label {
     color: #0E4E5A;
     font-size: 15px;
 }
 
-#overlayTest input {
+.search-container select {
+    background-color:white;
+    border:1px solid #ddd;
+}
+
+.search-container input {
     outline: 0;
     border: 1px solid #ddd;
     width: 285px;
-    border-radius: 2px;
+    border-radius: 2px 0px 0px 2px;
     height: 35px;
-    margin-top: 1px;
-    padding: 2px;
+    line-height:25px;
     background:white;
+    padding-left:5px;
     box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
 }
 
-#overlayTest table label {
+.search-container table label {
     font-size:14px;
     color: #0E4E5A;
 }
 
-.options-link {
+.search-container a.options-link {
     font-size:13px;
     position: relative;
     top: 3px;
     left: 1px;
+}
+
+.info-container.clickable {
+    cursor:pointer;
+}
+
+div.info-container.clickable:hover {
+    box-shadow:1px 1px 2px 0 teal;
+    background-color:#f5f5f5;
 }
 
 /*-------------------------------------------------------
@@ -56,6 +72,7 @@ body{
     margin:0;
     padding:0;
     font-family:'Source Sans Pro', sans-serif;
+    font-weight:400;
     letter-spacing:-.2px;
     height:100%;
     background-color:#eee;
@@ -100,8 +117,8 @@ a:hover {
 
 #rightcolumn {
     float: left;
-    width: 360px; /*Width of right column*/
-    margin-left: -360px; /*Set left margin to -(RightColumnWidth)*/
+    width: 330px; /*Width of right column*/
+    margin-left: -330px; /*Set left margin to -(RightColumnWidth)*/
     background: #eee;
     height:100%;
     display:none;
@@ -172,6 +189,7 @@ a:hover {
 
 .method-header {
     cursor:pointer;
+    font-size:16px;
 }
 
 .method-header:hover{
@@ -181,7 +199,7 @@ a:hover {
 
 .method-header.active {
     color: white;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .input-container input, .input-container select {
@@ -268,9 +286,27 @@ ul.nav li:hover a{
     display:none;
 }
 
+#showResultsTab {
+    width:300px;
+    position:absolute;
+    top:0px;
+    right:0px;
+    cursor: pointer;
+    display:none;
+}
+
+#resultsTab {
+    cursor: pointer;
+    height:20px;
+}
+
+#showResultsTab:hover, #resultsTab:hover {
+    background-color:#799933 !important;
+}
+
 .info-container {
     box-shadow:1px 1px 2px 0 #b0b0b0;
-    width: 325px;
+    width: 300px;
     margin: 5px auto;
     background: white;
     height: auto;
@@ -338,10 +374,11 @@ button.submit.mini {
     outline: 0;
     font-size: 14px;
     font-family: 'Source Sans Pro';
+    height:35px;
     padding: 7px 20px;
     width: 52px;
     font-weight: bold;
-    border-radius: 2px;
+    border-radius: 0px 2px 2px 0px;
     box-sizing: border-box;
 }
 
@@ -388,6 +425,17 @@ div.senator-pic-holder img.senator-pic {
     width:100%;
 }
 
+.options-table {
+    border-top:1px solid #ddd;
+    width:95%;
+    margin-top:5px;
+}
+
+.options-table tr td select {
+    font-size:13px;
+    color:#444;
+}
+
 /* Senator Info Card
 --------------------*/
 p {
@@ -396,7 +444,7 @@ p {
 
 .member-name.senator {
     color:#444;
-    font-size:20px;
+    font-size:18px;
 }
 
 .member-name {
