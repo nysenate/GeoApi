@@ -32,13 +32,13 @@ public class DistrictMetadata
 
             /** Fill in the names for congressional and assembly districts */
             if (type.equals(SENATE)) {
-                this.districtName = "State Senate District " + code;
+                this.districtName = "NY Senate District " + code;
             }
             else if (type.equals(CONGRESSIONAL)) {
-                this.districtName = "State Congressional District " + code;
+                this.districtName = "NY Congressional District " + code;
             }
             else if (type.equals(ASSEMBLY)) {
-                this.districtName = "State Assembly District " + code;
+                this.districtName = "NY Assembly District " + code;
             }
         }
     }

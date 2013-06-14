@@ -239,10 +239,11 @@ sage.factory("mapService", function($rootScope, uiBlocker) {
     /**--------------------------------------------
      * Client Geocoder
      ---------------------------------------------*/
-    mapService.geocode = function(address) {
+    mapService.geocode = function(address, callback) {
+        var googleGeocoder = new google.maps.Geocoder();
         googleGeocoder.geocode( { 'address': address}, function(results, status) {
             if (status == google.maps.GeocoderStatus.OK) {
-                return results[0].geometry.location;
+                return callback(results[0].geometry.location);
             }
             return null;
         });
@@ -472,30 +473,32 @@ sage.controller('DistrictInfoController', function($scope, $http, dataBus, respo
 sage.controller("DistrictMapController", function($scope, $http, dataBus, responseService, uiBlocker){
     $scope.visible = false;
     $scope.id = 2;
+    $scope.minimized = false;
     $scope.type = "";
-    $scope.senateDistricts = null;
+    $scope.showMemberOption = false;
+    $scope.showMemberList = false;
     $scope.districtList = [];
     $scope.selectedDistrict = "";
 
     $scope.$on("toggleView", function() {
         $scope.visible = ($scope.id === dataBus.data);
         if ($scope.visible) {
-            if ($scope.senateDistricts == null) {
-                $http.get($scope.getDistrictMapUrl('senate', true))
-                    .success(function(data) {
-                        $scope.senateDistrict = data.districts;
-                    });
-            }
+            $scope.minimized = false;
+            $scope.showMemberList = false;
         }
     });
 
     /**
      * Performs request to district map API to retrieve meta data to populate districtList.
      */
-    $scope.metaLookup = function(type) {
-        $http.get(this.getDistrictMapUrl(type, true))
-            .success(function(data){
-                //data.districts.unshift({district:'All'});
+    $scope.metaLookup = function() {
+        $http.get(this.getDistrictMapUrl(this.type, null, true))
+            .success(function(data) {
+                $scope.showMemberOption = ($scope.type === 'senate' || $scope.type === 'congressional' || $scope.type === 'assembly');
+                $scope.showMemberList = false;
+                $scope.selectedDistrict = {district:null, name:'All districts'};
+                data.districts.unshift($scope.selectedDistrict);
+                $scope.districtList = data.districts;
             })
             .error(function(data){});
     };
@@ -505,7 +508,7 @@ sage.controller("DistrictMapController", function($scope, $http, dataBus, respon
      */
     $scope.lookup = function () {
         uiBlocker.block("Loading " + this.type + " maps..");
-        $http.get(this.getDistrictMapUrl(this.type, false))
+        $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.district, false))
             .success(function(data) {
                 responseService.setResponse("districtMap", data);
             }).error(function(data) {
@@ -519,15 +522,21 @@ sage.controller("DistrictMapController", function($scope, $http, dataBus, respon
      * @param meta If true then no polygon data will be retrieved (just meta data)
      * @returns {string}
      */
-    $scope.getDistrictMapUrl = function(type, meta) {
+    $scope.getDistrictMapUrl = function(type, district, meta) {
         return contextPath + baseApi + "/map/" + type + "?showMembers=true"
             + ((meta === true) ? "&meta=true" :
-                ((this.selectedDistrict) ? ("&district=" + this.selectedDistrict.district) : ""));
+                ((district) ? ("&district=" + district) : ""));
     }
 });
 
-sage.controller('CityStateController', function($scope, $http, dataBus, responseService) {
+sage.controller('CityStateController', function($scope, $http, mapService, dataBus, responseService) {
+    $scope.id = 5;
+    $scope.visible = false;
     $scope.zip5 = "";
+
+    $scope.$on("toggleView", function() {
+        $scope.visible = ($scope.id === dataBus.data);
+    });
 
     $scope.lookup = function() {
         $http.get(this.getCityStateUrl())
@@ -732,13 +741,20 @@ sage.controller('DistrictsViewController', function($scope, $http, responseServi
 sage.controller("CityStateView", function($scope, responseService, mapService) {
     $scope.visible = false;
     $scope.viewId = "citystate";
+    $scope.error = false;
 
     $scope.$on("view", function(){
         $scope.visible = ($scope.viewId == responseService.view);
     });
 
     $scope.$on("citystate", function() {
-        $scope = angular.extend($scope, responseService.response);
+        var cityState = responseService.response;
+        $scope.error = cityState.statusCode != 0;
+        $scope = angular.extend($scope, cityState);
+        mapService.geocode(cityState.city + ", " + cityState.state + " " + cityState.zip5, function(data) {
+            mapService.setMarker(data.jb, data.kb, cityState.city, true, true);
+        });
+
         responseService.setResponse("expandResults", true);
     });
 });

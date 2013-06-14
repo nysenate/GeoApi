@@ -100,31 +100,56 @@
                 <form id="districtMapFormMini" action="" method="post">
                     <div class="icon-list icon-teal"></div>
                     <label>Select which district(s) to display</label>
-                    <div style="margin-right: 10px" class="icon-arrow-up2 icon-hover-teal small-right-icon"></div>
+                    <div ng-click="minimized=true;" ng-hide="minimized" style="margin-right: 10px" class="icon-arrow-up2 icon-hover-teal small-right-icon"></div>
+                    <div ng-click="minimized=false;" ng-show="minimized" style="margin-right: 10px" class="icon-arrow-down2 icon-hover-teal small-right-icon"></div>
                     <br/>
-                    <section style="border-top:1px solid #ddd;margin-top:4px;padding:5px;">
-                        <div style="float:left">
-                            <label style="display:block">Type</label>
-                            <select style="display:block;width:170px;height:35px;" ng-model="type" ng-change="metaLookup();">
-                                <option value="senate">Senate</option>
-                                <option value="congressional">Congressional</option>
-                                <option value="assembly">Assembly</option>
-                                <option value="county">County</option>
-                                <option value="town">Town</option>
-                                <option value="school">School</option>
-                            </select>
+                    <div ng-hide="minimized">
+                        <section style="border-top:1px solid #ddd;margin-top:4px;padding:5px;">
+                            <div style="float:left">
+                                <label class="menu-overhead">Type</label>
+                                <select id="districtTypeMenu" class="menu" style="width:85px;" ng-model="type" ng-change="metaLookup();">
+                                    <option value="senate">Senate</option>
+                                    <option value="congressional">Congressional</option>
+                                    <option value="assembly">Assembly</option>
+                                    <option value="county">County</option>
+                                    <option value="town">Town</option>
+                                    <option value="school">School</option>
+                                </select>
+                            </div>
+                            <div style="float:left">
+                                <label class="menu-overhead">District</label>
+                                <select id="districtCodeMenu" class="menu" style="width:190px;" ng-model="selectedDistrict" ng-options="d.name for d in districtList"></select>
+                            </div>
+                            <div style="float:left">
+                                <label style="display:block;font-size:13px;">&nbsp;</label>
+                                <button class="submit mini compact" ng-click="lookup();">
+                                    <div class="icon-search icon-white-no-hover"></div>
+                                </button>
+                            </div>
+                        </section>
+                        <a ng-show="showMemberOption" ng-click="showMemberList=true;showMemberOption=false;" class="options-link" ng-click="">Show Senator/Member List</a>
+                        <a ng-show="showMemberList" ng-click="showMemberList=false;showMemberOption=true;" class="options-link" ng-click="">Hide Senator/Member List</a>
+                        <div style="border-top:1px solid #ddd;margin-top:4px;padding:5px;" ng-show="showMemberList">
+                            <div style="float:left">
+                                <label class="menu-overhead">Member</label>
+                                <select class="menu" style="width:280px;" ng-model="selectedDistrict" ng-options="d.member.name for d in districtList"></select>
+                            </div>
                         </div>
-                        <div style="float:left">
-                            <label style="display:block">District</label>
-                            <select style="display:block;width:110px;height:35px;" ng-model="selectedDistrict" ng-options="d.district for d in senateDistricts"></select>
-                        </div>
-                        <div style="float:left">
-                            <label style="display:block;">&nbsp;</label>
-                            <button style="display:block;" class="submit mini" ng-click="lookup();">
-                                <div class="icon-search icon-white-no-hover"></div>
-                            </button>
-                        </div>
-                    </section>
+                    </div>
+                </form>
+            </div>
+            <div id="cityStateSearch" class="search-container" ng-show="visible" ng-controller="CityStateController">
+                <form id="cityStateForm" action="" method="post">
+                    <div class="icon-directions icon-teal"></div>
+                    <label>Enter a zipcode</label>
+                    <div style='margin-top:2px'>
+                        <input type="text" ng-model="zip5" maxlength="5" placeholder="e.g. 12210"/>
+                        <button ng-click="lookup()" class="submit mini">
+                            <div class="icon-search icon-white-no-hover"></div>
+                            <span></span>
+                        </button>
+                    </div>
+
                 </form>
             </div>
         </div>
@@ -174,21 +199,7 @@
                         </ol>
                     </form>
                 </div>
-                <p class="method-header teal">City/State Lookup</p>
-                <div id="citystate-lookup-container" ng-controller="CityStateController" class="form-container">
-                    <form id="citystate-lookup-form" action="" method="post">
-                        <ol class="input-container">
-                            <li>
-                                <label>Zip5</label>
-                                <input ng-model="zip5" maxlength="5" type="text" name="zip">
-                            </li>
-                            <button ng-click="lookup()" class="submit">
-                                <div class="icon-search"></div>
-                                <span>Find City/State</span>
-                            </button>
-                        </ol>
-                    </form>
-                </div>
+                <p class="method-header teal" ng-click="toggleView(5)">City/State Lookup</p>
                 <a href="${contextPath}/job"><p class="method-header teal">Batch Jobs</p></a>
                 <a href="https://sage-senate-address-geocoding-engine.readthedocs.org/en/latest/"><p class="method-header teal">API Reference</p></a>
             </div>
@@ -406,7 +417,8 @@
             <div id="citystate-results" ng-controller="CityStateView">
                 <div ng-show="visible">
                     <div class="info-container">
-                        <p class="member-name">{{city}}, {{state}} {{zip5}}</p>
+                        <p ng-hide="error" class="member-name">{{city}}, {{state}} {{zip5}}</p>
+                        <p ng-show="error" style="color:orangered;">No city/state result!</p>
                     </div>
                 </div>
             </div>

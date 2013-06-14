@@ -29,8 +29,8 @@
                         <a ng-show="showInfo" ng-click="showInfo=false;">Senator Information</a>
                     </td>
                     <td class="right-icon-placeholder">
-                        <a ng-hide="showInfo" ng-click="showInfo=true;"><div class="icon-arrow-down"></div></a>
-                        <a ng-show="showInfo" ng-click="showInfo=false;"><div class="icon-arrow-up"></div></a>
+                        <a ng-hide="showInfo" ng-click="showInfo=true;"><div class="icon-arrow-down2"></div></a>
+                        <a ng-show="showInfo" ng-click="showInfo=false;"><div class="icon-arrow-up2"></div></a>
                     </td>
                 </tr>
                 </table>
