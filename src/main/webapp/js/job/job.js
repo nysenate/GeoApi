@@ -1,28 +1,6 @@
-var sageJob = angular.module('sage-job', []);
+var sageJob = angular.module('sage-job', ['sage-common']);
 var baseStatusApi = "/job/status";
 var uploader;
-
-/**-------------------------------------------------\
- * Data Bus                                         |
- *--------------------------------------------------|
- * Allows controllers and views to communicate.     |
- * The ajax response is propagated to the specified |
- * 'view' by emitting an event from the $rootScope. |
- * ------------------------------------------------*/
-sageJob.factory("dataBus", function($rootScope) {
-    var dataBus = {};
-    dataBus.setBroadcast = function(handle, data) {
-        this.handle = handle;
-        this.data = data;
-        this.broadcastItem();
-        return this;
-    }
-
-    dataBus.broadcastItem = function() {
-        $rootScope.$broadcast(this.handle);
-    }
-    return dataBus;
-});
 
 sageJob.filter('yesno', function(){
     return function(input) {
@@ -31,20 +9,20 @@ sageJob.filter('yesno', function(){
 });
 
 /**
- * The menu controller broadcasts a toggleView event containing
+ * The menu controller broadcasts a toggleMethod event containing
  * an index. The receiving controllers are preset with an id that
  * corresponds to its index. If the index matches the id then the
  * container for that controller will be visible.
  */
 sageJob.controller('MenuController', function($scope, $window, dataBus){
     $scope.active = 2;
-    $scope.toggleView = function(index) {
-        dataBus.setBroadcast("toggleView", index);
+    $scope.toggleMethod = function(index) {
+        dataBus.setBroadcast("toggleMethod", index);
     }
     $scope.logout = function() {
         $window.location.href = contextPath + '/job/logout';
     }
-    $scope.toggleView(2);
+    $scope.toggleMethod(2);
 });
 
 sageJob.controller('JobAuthController', function($scope, $http) {
@@ -65,7 +43,7 @@ sageJob.controller('JobUploadController', function($scope, $http, dataBus) {
         this.processes.push(process);
     }
 
-    $scope.$on("toggleView", function(){
+    $scope.$on("toggleMethod", function(){
         $scope.visible = ($scope.id == dataBus.data);
         if ($scope.visible) {
             console.log("initializing uploader!");
@@ -92,7 +70,7 @@ sageJob.controller('JobStatusController', function($scope, $http, dataBus) {
 
     $scope.lastCompletedRecords = 0;
 
-    $scope.$on("toggleView", function(){
+    $scope.$on("toggleMethod", function(){
         $scope.visible = ($scope.id == dataBus.data);
         if ($scope.visible) {
             $scope.getActiveProcesses();
@@ -170,7 +148,7 @@ sageJob.controller('JobHistoryController', function($scope, $http, dataBus) {
     $scope.visible = false;
     $scope.allProcesses = [];
 
-    $scope.$on("toggleView", function(){
+    $scope.$on("toggleMethod", function(){
         $scope.visible = ($scope.id == dataBus.data);
         if ($scope.visible) {
             $scope.getAllProcesses();

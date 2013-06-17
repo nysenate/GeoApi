@@ -144,7 +144,7 @@ public class ApplicationFactory
             revGeocodeServiceProvider.registerDefaultProvider("yahoo", Yahoo.class);
             revGeocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
             revGeocodeServiceProvider.registerProvider("tiger", TigerGeocoder.class);
-            revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest, tiger"));
+            revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest", "tiger"));
 
             districtServiceProvider = new DistrictServiceProvider();
             districtServiceProvider.registerDefaultProvider("shapefile", DistrictShapefile.class);

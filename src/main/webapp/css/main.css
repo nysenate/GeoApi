@@ -16,6 +16,10 @@
     padding: 10px 0px 5px 5px;
 }
 
+.search-container.small {
+    width:240px;
+}
+
 .search-container label {
     color: #0E4E5A;
     font-size: 15px;
@@ -77,6 +81,12 @@
 div.info-container.clickable:hover {
     box-shadow:1px 1px 2px 0 teal;
     background-color:#f5f5f5;
+}
+
+.section {
+    border-top:1px solid #ddd;
+    margin-top:4px;
+    padding:5px;
 }
 
 /*-------------------------------------------------------
@@ -540,30 +550,31 @@ table.dataTable tr.odd {
 }
 
 table.dataTable tr.odd td.sorting_1 {
-    background-color:#ddd !important;
+    background-color:transparent !important;
+    color:teal;
 }
 
 table.dataTable tr.even td.sorting_1 {
-    background-color:#eee !important;
+    background-color:transparent !important;
+    color:teal;
 }
 
 .dataTables_wrapper {
     margin-bottom: 40px !important;
 }
 
-.street-search-filter {
-    margin-bottom:10px;
+.dataTables_info {
+    color: #999 !important;
+    font-size: 14px !important;
+    margin-top: 10px !important;
 }
 
-.street-search-filter label {
-    color:#0E4E5A;
-    font-weight:bold;
+.dataTables_paginate.paging_two_button {
+    margin-top: 10px !important;
 }
 
-.street-search-filter input {
-    margin-left:10px;
-    background:white;
-    color:#333;
+.paginate_disabled_previous, .paginate_disabled_next {
+    color:#777 !important;
 }
 
 /* Street view data table */
@@ -578,7 +589,24 @@ table.dataTable tr.even td.sorting_1 {
     padding: 5px;
 }
 
+#streetLookupSearch {
+    position:inherit;
+    top:0px;
+    left:0px;
+    width:100%;
+    border:0;
+    box-shadow: 0px 2px 2px #eee;
+    border-radius:0;
+    margin:10px;
+}
 
+#streetLookupForm, #streetSearchFilter {
+    float:left;
+}
+
+#streetSearchFilter {
+    margin-left:20px;
+}
 /*-------------------------------------------------------
   Job Page
 --------------------------------------------------------*/

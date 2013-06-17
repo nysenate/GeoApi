@@ -34,7 +34,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
     @Override
     public void update(Observable o, Object arg) {
-        CACHE_ENABLED = Boolean.parseBoolean(config.getValue("cache.enabled"));
+        CACHE_ENABLED = Boolean.parseBoolean(config.getValue("geocache.enabled"));
     }
 
     /**

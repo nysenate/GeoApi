@@ -31,7 +31,7 @@
                     </li>
                     <li>
                         <button class="submit">
-                            <div class="icon-user"></div>
+                            <div class="icon-user icon-white-no-hover"></div>
                             <span>Login</span>
                         </button>
                     </li>

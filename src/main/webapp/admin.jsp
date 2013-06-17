@@ -6,7 +6,7 @@
     <jsp:attribute name="title">SAGE - Admin Console</jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script src="http://cdnjs.cloudflare.com/ajax/libs/highcharts/3.0.2/highcharts.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/common.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/common/common.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/admin/admin.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>

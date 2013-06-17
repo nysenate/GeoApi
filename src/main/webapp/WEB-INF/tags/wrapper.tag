@@ -21,7 +21,7 @@
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/common.js"></script>
         <jsp:invoke fragment="jsIncludes"/>
     </head>
     <body>

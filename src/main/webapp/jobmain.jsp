@@ -18,7 +18,7 @@
     <jsp:body>
         <sage:header></sage:header>
         <div id="contentwrapper">
-            <div id="contentcolumn" style="margin:0px 10px 0px 300px;padding-top:20px;background-color:#f5f5f5">
+            <div id="contentcolumn" style="margin:0px 10px 0px 180px;padding-top:20px;background-color:#f5f5f5">
                 <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController" style="width:100%;height:100%;">
                     <form id="uploadForm" method="post" action="${contextPath}/job/submit" style="width:95%;margin:auto;">
                         <ol>
@@ -177,9 +177,9 @@
 
         <div id="leftcolumn" style="border-right:1px solid #ddd;" ng-controller="MenuController">
             <div class="innertube">
-                <p ng-click="toggleView(1)" class="method-header teal">Start new batch jobs</p>
-                <p ng-click="toggleView(2)" class="method-header active maroon">View current batch jobs</p>
-                <p ng-click="toggleView(3)" class="method-header purple">View batch job history</p>
+                <p ng-click="toggleMethod(1)" class="method-header teal">Start new batch job</p>
+                <p ng-click="toggleMethod(2)" class="method-header active maroon">View current jobs</p>
+                <p ng-click="toggleMethod(3)" class="method-header purple">View job history</p>
                 <p ng-click="logout()" class="method-header purple">Exit</p>
             </div>
         </div>

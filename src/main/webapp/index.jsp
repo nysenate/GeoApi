@@ -18,21 +18,38 @@
             <div id="mapView" ng-controller="EmbeddedMapViewController">
                 <div class="top-header">
                     <div class="large-icon icon-map white"></div>
-                    <div class="text">Map | {{header}}</div>
+                    <div class="text">{{mapTitle}}</div>
                 </div>
                 <div id="map_canvas"></div>
             </div>
-            <div id="streetView" ng-controller="StreetViewController">
-                <div ng-show="visible" style="height:100%;">
+            <div id="streetView" ng-show="visible" ng-controller="StreetLookupController">
+                <div style="height:100%;">
                     <div class="top-header">
                         <div class="large-icon icon-database white"></div>
-                        <div class="text">Street File Results</div>
+                        <div class="text">Board of Elections Street Lookup</div>
                     </div>
-                    <div style="padding:10px;">
-                        <div class="street-search-filter">
-                            <label>Filter by street name: </label>
-                            <input id="street-search" type="text" />
+                    <div id="streetLookupSearch" class="search-container small">
+                        <form id="streetLookupForm" action="" method="post">
+                            <div class="icon-location icon-teal"></div>
+                            <label>Enter a zipcode to find streets</label>
+                            <div style='margin-top:2px'>
+                                <input type="text" ng-model="zip5" style="width:175px" maxlength="5" placeholder="e.g. 12210"/>
+                                <button ng-click="lookup()" class="submit mini">
+                                    <div class="icon-search icon-white-no-hover"></div>
+                                    <span></span>
+                                </button>
+                            </div>
+                        </form>
+                        <div id="streetSearchFilter" ng-show="showFilter">
+                            <div class="icon-list icon-teal"></div>
+                            <label>Filter by street</label>
+                            <div style='margin-top:2px'>
+                                <input id="street-search" type="text" style="width:175px"/>
+                            </div>
                         </div>
+                        <div style="clear:both"></div>
+                    </div>
+                    <div style="padding:10px;" ng-controller="StreetViewController">
                         <table id="street-view-table" my-table="overrideOptions" aa-data="streets"
                                ao-column-defs="columnDefs" aa-sorting="sortDefault">
                             <thead>
@@ -104,7 +121,7 @@
                     <div ng-click="minimized=false;" ng-show="minimized" style="margin-right: 10px" class="icon-arrow-down2 icon-hover-teal small-right-icon"></div>
                     <br/>
                     <div ng-hide="minimized">
-                        <section style="border-top:1px solid #ddd;margin-top:4px;padding:5px;">
+                        <div class="section">
                             <div style="float:left">
                                 <label class="menu-overhead">Type</label>
                                 <select id="districtTypeMenu" class="menu" style="width:85px;" ng-model="type" ng-change="metaLookup();">
@@ -121,12 +138,12 @@
                                 <select id="districtCodeMenu" class="menu" style="width:190px;" ng-model="selectedDistrict" ng-options="d.name for d in districtList"></select>
                             </div>
                             <div style="float:left">
-                                <label style="display:block;font-size:13px;">&nbsp;</label>
+                                <label class="menu-overhead">&nbsp;</label>
                                 <button class="submit mini compact" ng-click="lookup();">
                                     <div class="icon-search icon-white-no-hover"></div>
                                 </button>
                             </div>
-                        </section>
+                        </div>
                         <a ng-show="showMemberOption" ng-click="showMemberList=true;showMemberOption=false;" class="options-link" ng-click="">Show Senator/Member List</a>
                         <a ng-show="showMemberList" ng-click="showMemberList=false;showMemberOption=true;" class="options-link" ng-click="">Hide Senator/Member List</a>
                         <div style="border-top:1px solid #ddd;margin-top:4px;padding:5px;" ng-show="showMemberList">
@@ -138,18 +155,39 @@
                     </div>
                 </form>
             </div>
-            <div id="cityStateSearch" class="search-container" ng-show="visible" ng-controller="CityStateController">
+            <div id="cityStateSearch" class="search-container small" ng-show="visible" ng-controller="CityStateController">
                 <form id="cityStateForm" action="" method="post">
-                    <div class="icon-directions icon-teal"></div>
+                    <div class="icon-location icon-teal"></div>
                     <label>Enter a zipcode</label>
                     <div style='margin-top:2px'>
-                        <input type="text" ng-model="zip5" maxlength="5" placeholder="e.g. 12210"/>
+                        <input type="text" ng-model="zip5" style="width:175px" maxlength="5" placeholder="e.g. 12210"/>
                         <button ng-click="lookup()" class="submit mini">
                             <div class="icon-search icon-white-no-hover"></div>
                             <span></span>
                         </button>
                     </div>
-
+                </form>
+            </div>
+            <div id="reverseGeocodeSearch" ng-show="visible" class="search-container small" ng-controller="RevGeoController">
+                <form id="revGeoForm" action="" method="post">
+                    <div class="icon-target icon-teal"></div>
+                    <label>Enter geo-coordinate</label><br/>
+                    <div class="section">
+                        <div style="float:left">
+                            <label class="menu-overhead">Latitude</label>
+                            <input type="text" style="width:80px;margin-right:5px;" ng-model="lat" name="lat">
+                        </div>
+                        <div style="float:left">
+                            <label class="menu-overhead">Longitude</label>
+                            <input type="text" style="width:80px;margin-right:5px;" ng-model="lon" name="lon">
+                        </div>
+                        <div style="float:left">
+                            <label class="menu-overhead">&nbsp;</label>
+                            <button class="submit mini" ng-click="lookup();">
+                                <div class="icon-search icon-white-no-hover"></div>
+                            </button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -159,47 +197,11 @@
         <div class="innertube">
             <sage:header></sage:header>
             <div ng-controller="MenuController">
-                <p class="method-header active teal" ng-click="toggleView(1)">District Information</p>
-                <p class="method-header teal" ng-click="toggleView(2)">District Maps</p>
-                <p class="method-header teal" ng-click="toggleView(3)">Street Finder</p>
-                <div id="street-lookup-container" class="form-container">
-                    <form id="street-lookup-form" action="" method="post" ng-controller="StreetLookupController">
-                        <ol class="input-container">
-                            <li>
-                                <label>Zip5</label>
-                                <input ng-model="zip5" type="text" name="zip" maxlength="5">
-                            </li>
-                            <li>
-                                <button class="submit" ng-click="lookup();">
-                                    <div class="icon-search"></div>
-                                    <span>Find Streets</span>
-                                </button>
-                            </li>
-                        </ol>
-                    </form>
-                </div>
-                <p class="method-header teal">Reverse Geocode</p>
-                <div id="reverse-geocode-container" class="form-container" ng-controller="RevGeoController">
-                    <form id="revgeo-form" action="" method="post">
-                        <ol class="input-container">
-                            <li>
-                                <label>Latitude</label>
-                                <input type="text" ng-model="lat" name="lat">
-                            </li>
-                            <li>
-                                <label>Longitude</label>
-                                <input type="text" ng-model="lon" name="lon">
-                            </li>
-                            <li>
-                                <button class="submit" ng-click="lookup();">
-                                    <div class="icon-search"></div>
-                                    <span>Find Address</span>
-                                </button>
-                            </li>
-                        </ol>
-                    </form>
-                </div>
-                <p class="method-header teal" ng-click="toggleView(5)">City/State Lookup</p>
+                <p class="method-header active teal" ng-click="toggleMethod(1)">District Information</p>
+                <p class="method-header teal" ng-click="toggleMethod(2)">District Maps</p>
+                <p class="method-header teal" ng-click="toggleMethod(3)">Street Finder</p>
+                <p class="method-header teal" ng-click="toggleMethod(4)">Reverse Geocode</p>
+                <p class="method-header teal" ng-click="toggleMethod(5)">City/State Lookup</p>
                 <a href="${contextPath}/job"><p class="method-header teal">Batch Jobs</p></a>
                 <a href="https://sage-senate-address-geocoding-engine.readthedocs.org/en/latest/"><p class="method-header teal">API Reference</p></a>
             </div>

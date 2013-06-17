@@ -33,7 +33,7 @@ public class GeoCacheDao extends BaseDao
 
     public GeoCacheDao() {
         this.config = ApplicationFactory.getConfig();
-        BUFFER_SIZE = Integer.parseInt(this.config.getValue("cache.buffer.size", "100"));
+        BUFFER_SIZE = Integer.parseInt(this.config.getValue("geocache.buffer.size", "100"));
     }
 
     /**
