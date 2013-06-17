@@ -1,7 +1,93 @@
 /*-------------------------------------------------------
   Web Fonts
 --------------------------------------------------------*/
-@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro);
+@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600);
+
+.search-container {
+    position: absolute;
+    top: 60px;
+    left: 225px;
+    height: auto;
+    width: 350px;
+    background: #f9f9f9;
+    border: 1px solid #999;
+    box-shadow: 0px 0px 10px #999;
+    border-radius: 3px;
+    padding: 10px 0px 5px 5px;
+}
+
+.search-container.small {
+    width:240px;
+}
+
+.search-container label {
+    color: #0E4E5A;
+    font-size: 15px;
+}
+
+.search-container select {
+    background-color:white;
+    border:1px solid #ddd;
+}
+
+.search-container input {
+    outline: 0;
+    border: 1px solid #ddd;
+    width: 285px;
+    border-radius: 2px 0px 0px 2px;
+    height: 35px;
+    line-height:25px;
+    background:white;
+    padding-left:5px;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+.search-container table label {
+    font-size:14px;
+    color: #0E4E5A;
+}
+
+.search-container a.options-link {
+    font-size:13px;
+    position: relative;
+    top: 3px;
+    left: 5px;
+}
+
+.search-container label.menu-overhead {
+    display:block;
+    font-size:13px;
+}
+
+.search-container select.menu {
+    display:block;
+    margin-right:5px;
+    height:30px;
+    font-size:14px;
+}
+
+.search-container button.compact {
+    display:block;
+    height:30px !important;
+    padding:0 20px !important;
+}
+
+.info-container.clickable {
+    cursor:pointer;
+}
+
+div.info-container.clickable:hover {
+    box-shadow:1px 1px 2px 0 teal;
+    background-color:#f5f5f5;
+}
+
+.section {
+    border-top:1px solid #ddd;
+    margin-top:4px;
+    padding:5px;
+}
 
 /*-------------------------------------------------------
   Defaults
@@ -14,6 +100,7 @@ body{
     margin:0;
     padding:0;
     font-family:'Source Sans Pro', sans-serif;
+    font-weight:400;
     letter-spacing:-.2px;
     height:100%;
     background-color:#eee;
@@ -43,13 +130,14 @@ a:hover {
 }
 
 #contentcolumn {
-    margin: 0 0px 0 300px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
+    margin: 0 0px 0 180px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
     height:100%;
+    background-color:#f5f5f5;
 }
 
 #leftcolumn {
     float: left;
-    width: 300px; /*Width of left column*/
+    width: 180px; /*Width of left column*/
     margin-left: -100%;
     background: #eee;
     height:100%;
@@ -57,8 +145,8 @@ a:hover {
 
 #rightcolumn {
     float: left;
-    width: 360px; /*Width of right column*/
-    margin-left: -360px; /*Set left margin to -(RightColumnWidth)*/
+    width: 330px; /*Width of right column*/
+    margin-left: -330px; /*Set left margin to -(RightColumnWidth)*/
     background: #eee;
     height:100%;
     display:none;
@@ -129,6 +217,7 @@ a:hover {
 
 .method-header {
     cursor:pointer;
+    font-size:16px;
 }
 
 .method-header:hover{
@@ -138,7 +227,7 @@ a:hover {
 
 .method-header.active {
     color: white;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .input-container input, .input-container select {
@@ -217,22 +306,43 @@ ul.nav li:hover a{
 .method-header.active.purple{background-color:#632150;}
 .method-header.active.brown{background-color:#957732;}
 
-
 .form-container {
     display:none;
 }
 
 .form-container.active {
-    display:block;
+    display:none;
 }
 
-.info-container{
+#showResultsTab {
+    width:300px;
+    position:absolute;
+    top:0px;
+    right:0px;
+    cursor: pointer;
+    display:none;
+}
+
+#resultsTab {
+    cursor: pointer;
+    height:20px;
+}
+
+#showResultsTab:hover, #resultsTab:hover {
+    background-color:#799933 !important;
+}
+
+.info-container {
     box-shadow:1px 1px 2px 0 #b0b0b0;
-    width: 325px;
+    width: 300px;
     margin: 5px auto;
     background: white;
     height: auto;
     padding:10px;
+}
+
+.info-container.slim {
+    padding:5px 10px;
 }
 
 form ol{
@@ -281,6 +391,23 @@ button.submit {
     padding: 7px 20px;
     width: 264px;
     font-weight: bold;
+    border-radius: 2px;
+}
+
+button.submit.mini {
+    text-align: center;
+    background: #799933;
+    color: white;
+    border: 0;
+    outline: 0;
+    font-size: 14px;
+    font-family: 'Source Sans Pro';
+    height:35px;
+    padding: 7px 20px;
+    width: 52px;
+    font-weight: bold;
+    border-radius: 0px 2px 2px 0px;
+    box-sizing: border-box;
 }
 
 button.submit:hover{
@@ -292,7 +419,7 @@ button.submit[disabled] {
 }
 
 .info-container.senator {
-    height:90px;
+    height:70px;
 }
 
 hr.shadow {
@@ -305,12 +432,15 @@ hr.shadow {
 }
 
 div.mini-senator-pic-holder, div.senator-pic-holder {
-    height:90px;
-    max-width:90px;
     float:left;
     margin-right: 10px;
     margin-bottom: 5px;
     overflow:hidden;
+}
+
+div.senator-pic-holder {
+    height:80px;
+    max-width:90px;
 }
 
 div.mini-senator-pic-holder {
@@ -323,6 +453,17 @@ div.senator-pic-holder img.senator-pic {
     width:100%;
 }
 
+.options-table {
+    border-top:1px solid #ddd;
+    width:95%;
+    margin-top:5px;
+}
+
+.options-table tr td select {
+    font-size:13px;
+    color:#444;
+}
+
 /* Senator Info Card
 --------------------*/
 p {
@@ -331,7 +472,7 @@ p {
 
 .member-name.senator {
     color:#444;
-    font-size:20px;
+    font-size:18px;
 }
 
 .member-name {
@@ -409,30 +550,31 @@ table.dataTable tr.odd {
 }
 
 table.dataTable tr.odd td.sorting_1 {
-    background-color:#ddd !important;
+    background-color:transparent !important;
+    color:teal;
 }
 
 table.dataTable tr.even td.sorting_1 {
-    background-color:#eee !important;
+    background-color:transparent !important;
+    color:teal;
 }
 
 .dataTables_wrapper {
     margin-bottom: 40px !important;
 }
 
-.street-search-filter {
-    margin-bottom:10px;
+.dataTables_info {
+    color: #999 !important;
+    font-size: 14px !important;
+    margin-top: 10px !important;
 }
 
-.street-search-filter label {
-    color:#0E4E5A;
-    font-weight:bold;
+.dataTables_paginate.paging_two_button {
+    margin-top: 10px !important;
 }
 
-.street-search-filter input {
-    margin-left:10px;
-    background:white;
-    color:#333;
+.paginate_disabled_previous, .paginate_disabled_next {
+    color:#777 !important;
 }
 
 /* Street view data table */
@@ -447,7 +589,24 @@ table.dataTable tr.even td.sorting_1 {
     padding: 5px;
 }
 
+#streetLookupSearch {
+    position:inherit;
+    top:0px;
+    left:0px;
+    width:100%;
+    border:0;
+    box-shadow: 0px 2px 2px #eee;
+    border-radius:0;
+    margin:10px;
+}
 
+#streetLookupForm, #streetSearchFilter {
+    float:left;
+}
+
+#streetSearchFilter {
+    margin-left:20px;
+}
 /*-------------------------------------------------------
   Job Page
 --------------------------------------------------------*/
@@ -473,4 +632,42 @@ table.job-table {
     color: maroon;
     font-weight: bold;
     text-align: center;
+}
+
+/*-------------------------------------------------------
+  Admin Page
+--------------------------------------------------------*/
+#leftcolumn.admin {
+    width:250px;
+    border-right:1px solid #ddd;
+}
+
+#uptime-stats ul li {
+    display:inline;
+    list-style-type: none;
+    padding-right:20px;
+}
+
+.highlight-section {
+    border: 1px solid #ddd;
+    padding: 10px;
+    box-shadow: 0px 2px 1px #bbb;
+    background: white;
+    margin: 10px;
+}
+
+.highlight-section label {
+    color:teal;
+    font-weight:bold;
+}
+
+#geocoder-stats {
+    float:left;
+    width:29%;
+    height:300px;
+}
+
+#api-usage-stats {
+    width:63%;
+    float:left;
 }

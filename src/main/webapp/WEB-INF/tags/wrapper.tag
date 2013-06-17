@@ -1,11 +1,12 @@
 <%@tag description="Sage Base Template" pageEncoding="UTF-8"%>
 <%@attribute name="title" fragment="true" required="true" %>
+<%@attribute name="ngApp" fragment="true" required="true" %>
 <%@attribute name="jsIncludes" fragment="true" required="false" %>
 <%@attribute name="cssIncludes" fragment="true" required="false"%>
 <% request.setAttribute("contextPath", request.getContextPath());  %>
 
 <!doctype html>
-<html xmlns:ng="http://angularjs.org" ng-app="sage" id="ng-app">
+<html xmlns:ng="http://angularjs.org" ng-app='<jsp:invoke fragment="ngApp"/>' id="ng-app">
     <head>
         <base href="${pageContext.request.contextPath}"/>
         <title><jsp:invoke fragment="title"/></title>
@@ -20,7 +21,7 @@
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/common.js"></script>
         <jsp:invoke fragment="jsIncludes"/>
     </head>
     <body>

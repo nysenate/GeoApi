@@ -84,11 +84,21 @@ public class ApplicationFactory
         factoryInstance.initCache();
     }
 
-    /** Closes all data sources */
-    public static void close()
+    /**
+     * Closes all data connections
+     * @return true if succeeded, false if exception was thrown
+     */
+    public static boolean close()
     {
-        factoryInstance.baseDB.getDataSource().close();
-        factoryInstance.tigerDB.getDataSource().close();
+        try {
+            factoryInstance.baseDB.getDataSource().close();
+            factoryInstance.tigerDB.getDataSource().close();
+            return true;
+        }
+        catch (Exception ex) {
+            logger.error("Failed to close data connections!", ex);
+        }
+        return false;
     }
 
     /**
@@ -134,7 +144,7 @@ public class ApplicationFactory
             revGeocodeServiceProvider.registerDefaultProvider("yahoo", Yahoo.class);
             revGeocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
             revGeocodeServiceProvider.registerProvider("tiger", TigerGeocoder.class);
-            revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest, tiger"));
+            revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest", "tiger"));
 
             districtServiceProvider = new DistrictServiceProvider();
             districtServiceProvider.registerDefaultProvider("shapefile", DistrictShapefile.class);

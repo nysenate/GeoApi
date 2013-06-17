@@ -1,7 +1,7 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.ApiError;
-import gov.nysenate.sage.client.response.StreetResponse;
+import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.street.StreetResponse;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.api.ApiRequest;

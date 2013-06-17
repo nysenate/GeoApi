@@ -1,11 +1,7 @@
 package gov.nysenate.sage.service.map;
 
-import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * MapService is used to return district maps for state level districts.

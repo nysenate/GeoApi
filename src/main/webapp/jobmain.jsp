@@ -3,24 +3,22 @@
 <% request.setAttribute("contextPath", request.getContextPath()); %>
 
 <sage:wrapper>
+    <jsp:attribute name="ngApp">sage-job</jsp:attribute>
     <jsp:attribute name="title">SAGE - Batch Services Main</jsp:attribute>
     <jsp:attribute name="cssIncludes">
         <link href="${pageContext.request.contextPath}/css/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script src="${pageContext.request.contextPath}/js/fileuploader.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/vendor/fileuploader.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/job/job.js" type="text/javascript"></script>
         <script>
             downloadDir = "${downloadDir}";
         </script>
     </jsp:attribute>
     <jsp:body>
-        <div class="top-header">
-            <div class="icon-earth large-icon teal"></div>
-            <div id="sage-logo-text"><a style='color:white;' href="${pageContext.request.contextPath}">SAGE</a></div>
-        </div>
+        <sage:header></sage:header>
         <div id="contentwrapper">
-            <div id="contentcolumn" style="margin:0px 10px 0px 300px;padding-top:20px;">
+            <div id="contentcolumn" style="margin:0px 10px 0px 180px;padding-top:20px;background-color:#f5f5f5">
                 <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController" style="width:100%;height:100%;">
                     <form id="uploadForm" method="post" action="${contextPath}/job/submit" style="width:95%;margin:auto;">
                         <ol>
@@ -179,10 +177,10 @@
 
         <div id="leftcolumn" style="border-right:1px solid #ddd;" ng-controller="MenuController">
             <div class="innertube">
-                <p ng-click="toggleView(1)" class="method-header teal">Start new batch jobs</p>
-                <p ng-click="toggleView(2)" class="method-header active maroon">View current batch jobs</p>
-                <p ng-click="toggleView(3)" class="method-header purple">View batch job history</p>
-                <p ng-click="logout()" class="method-header purple">Log Out</p>
+                <p ng-click="toggleMethod(1)" class="method-header teal">Start new batch job</p>
+                <p ng-click="toggleMethod(2)" class="method-header active maroon">View current jobs</p>
+                <p ng-click="toggleMethod(3)" class="method-header purple">View job history</p>
+                <p ng-click="logout()" class="method-header purple">Exit</p>
             </div>
         </div>
 

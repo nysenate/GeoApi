@@ -1,11 +1,9 @@
 package gov.nysenate.sage.controller.job;
 
-import gov.nysenate.sage.client.response.JobStatusResponse;
-import gov.nysenate.sage.client.view.JobProcessStatusView;
+import gov.nysenate.sage.client.response.job.JobStatusResponse;
 import gov.nysenate.sage.dao.model.JobProcessDao;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.result.JobErrorResult;
-import gov.nysenate.sage.util.FormatUtil;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;

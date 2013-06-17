@@ -10,111 +10,378 @@
     margin-right: 5px !important;
 }
 
-.icon-mail,.icon-paperplane,.icon-pencil,.icon-drawer,.icon-user,.icon-location,.icon-map,.icon-compass,.icon-location2,.icon-target,.icon-house,.icon-search,.icon-hourglass,.icon-network,.icon-earth,.icon-database,.icon-bars,.icon-graph,.icon-cross,.icon-upload,.icon-arrow-down,.icon-arrow-up {
+.icon-earth.large-icon.teal {
+    background-image: url(../img/icons/entypo/22px/008080/earth.png);
+}
+
+.icon-map.large-icon.white {
+    background-image: url(../img/icons/entypo/22px/ffffff/map.png);
+}
+
+.icon-database.large-icon.white {
+    background-image: url(../img/icons/entypo/22px/ffffff/database.png);
+}
+
+.icon-phone,.icon-mobile,.icon-mouse,.icon-directions,.icon-mail,.icon-paperplane,.icon-pencil,.icon-feather,.icon-paperclip,.icon-drawer,.icon-reply,.icon-reply-all,.icon-forward,.icon-user,.icon-users,.icon-user-add,.icon-vcard,.icon-export,.icon-location,.icon-map,.icon-compass,.icon-location2,.icon-target,.icon-share,.icon-sharable,.icon-heart,.icon-heart2,.icon-star,.icon-star2,.icon-thumbs-up,.icon-thumbs-down,.icon-chat,.icon-comment,.icon-quote,.icon-house,.icon-popup,.icon-search,.icon-flashlight,.icon-printer,.icon-cog,.icon-tools,.icon-tag,.icon-moon,.icon-leaf,.icon-new,.icon-bag,.icon-clock,.icon-calendar,.icon-cd,.icon-air,.icon-hourglass,.icon-gauge,.icon-network,.icon-bucket,.icon-magnet,.icon-drive,.icon-cup,.icon-earth,.icon-browser,.icon-publish,.icon-sun,.icon-sun2,.icon-adjust,.icon-code,.icon-screen,.icon-infinity,.icon-light-bulb,.icon-database,.icon-clipboard,.icon-box,.icon-statistics,.icon-pie,.icon-bars,.icon-graph,.icon-checkmark,.icon-cross,.icon-cross2,.icon-erase,.icon-blocked,.icon-info,.icon-info2,.icon-question,.icon-help,.icon-list,.icon-trash,.icon-upload,.icon-download,.icon-arrow-left,.icon-arrow-down,.icon-arrow-up,.icon-arrow-right,.icon-arrow-left2,.icon-arrow-down2,.icon-arrow-up2,.icon-arrow-right2,.icon-arrow-left3,.icon-arrow-down3,.icon-arrow-up3,.icon-arrow-right3,.icon-arrow-left4,.icon-arrow-down4,.icon-arrow-up4,.icon-arrow-right4,.icon-arrow-left5,.icon-arrow-down5,.icon-arrow-up5,.icon-icon845,.icon-menu,.icon-ellipsis,.icon-cc,.icon-github,.icon-twitter,.icon-twitter2,.icon-facebook,.icon-facebook2 {
     display: inline-block;
     width: 16px;
     height: 16px;
-    background-image: url(../img/entypo-16/gray/sprites.png);
+    background-image: url(../img/icons/entypo/16px/cccccc/sprites.png);
     background-repeat: no-repeat;
     position:relative;
     top:3px;
 }
 
-.icon-upload.teal {
-    background-image: url(../img/entypo-16/teal/sprites.png) !important;
+.icon-white, .icon-hover-white:hover, .icon-white-no-hover {
+    background-image: url(../img/icons/entypo/16px/ffffff/sprites.png) !important;
 }
 
-.icon-earth.large-icon.teal {
-    background-image: url(../img/entypo-22/teal/earth.png);
+.icon-white:hover, .icon-teal, .icon-hover-teal:hover {
+    background-image: url(../img/icons/entypo/16px/008080/sprites.png);
 }
 
-.icon-map.large-icon.white {
-    background-image: url(../img/entypo-22/white/map.png);
-}
-
-.icon-database.large-icon.white {
-    background-image: url(../img/entypo-22/white/database.png);
-}
-
-.icon-mail {
-    background-image: url(../img/entypo-16/teal/sprites.png);
-}
-
-.icon-map:hover, .icon-location:hover {
-    background-image: url(../img/entypo-16/teal/sprites.png);
-}
-
-.icon-search, .icon-user {
-    background-image: url(../img/entypo-16/white/sprites.png) !important;
-}
-
-.icon-cross:hover {
-    background-image: url(../img/entypo-16/white/sprites.png) !important;
-}
-
-.icon-mail {
+.icon-phone {
     background-position: 0 0;
 }
-.icon-paperplane {
+.icon-mobile {
     background-position: -32px 0;
 }
-.icon-pencil {
+.icon-mouse {
     background-position: -64px 0;
 }
-.icon-drawer {
+.icon-directions {
     background-position: -96px 0;
 }
-.icon-user {
+.icon-mail {
     background-position: -128px 0;
 }
-.icon-location {
+.icon-paperplane {
     background-position: -160px 0;
 }
-.icon-map {
+.icon-pencil {
     background-position: -192px 0;
 }
-.icon-compass {
+.icon-feather {
     background-position: -224px 0;
 }
-.icon-location2 {
+.icon-paperclip {
     background-position: -256px 0;
 }
-.icon-target {
+.icon-drawer {
     background-position: -288px 0;
 }
-.icon-house {
+.icon-reply {
     background-position: -320px 0;
 }
-.icon-search {
+.icon-reply-all {
     background-position: -352px 0;
 }
-.icon-hourglass {
+.icon-forward {
     background-position: -384px 0;
 }
-.icon-network {
+.icon-user {
     background-position: -416px 0;
 }
-.icon-earth {
+.icon-users {
     background-position: -448px 0;
 }
-.icon-database {
+.icon-user-add {
     background-position: -480px 0;
 }
-.icon-bars {
+.icon-vcard {
     background-position: 0 -32px;
 }
-.icon-graph {
+.icon-export {
     background-position: -32px -32px;
 }
-.icon-cross {
+.icon-location {
     background-position: -64px -32px;
 }
-.icon-upload {
+.icon-map {
     background-position: -96px -32px;
 }
-.icon-arrow-down {
+.icon-compass {
     background-position: -128px -32px;
 }
-.icon-arrow-up {
+.icon-location2 {
     background-position: -160px -32px;
+}
+.icon-target {
+    background-position: -192px -32px;
+}
+.icon-share {
+    background-position: -224px -32px;
+}
+.icon-sharable {
+    background-position: -256px -32px;
+}
+.icon-heart {
+    background-position: -288px -32px;
+}
+.icon-heart2 {
+    background-position: -320px -32px;
+}
+.icon-star {
+    background-position: -352px -32px;
+}
+.icon-star2 {
+    background-position: -384px -32px;
+}
+.icon-thumbs-up {
+    background-position: -416px -32px;
+}
+.icon-thumbs-down {
+    background-position: -448px -32px;
+}
+.icon-chat {
+    background-position: -480px -32px;
+}
+.icon-comment {
+    background-position: 0 -64px;
+}
+.icon-quote {
+    background-position: -32px -64px;
+}
+.icon-house {
+    background-position: -64px -64px;
+}
+.icon-popup {
+    background-position: -96px -64px;
+}
+.icon-search {
+    background-position: -128px -64px;
+}
+.icon-flashlight {
+    background-position: -160px -64px;
+}
+.icon-printer {
+    background-position: -192px -64px;
+}
+.icon-cog {
+    background-position: -224px -64px;
+}
+.icon-tools {
+    background-position: -256px -64px;
+}
+.icon-tag {
+    background-position: -288px -64px;
+}
+.icon-moon {
+    background-position: -320px -64px;
+}
+.icon-leaf {
+    background-position: -352px -64px;
+}
+.icon-new {
+    background-position: -384px -64px;
+}
+.icon-bag {
+    background-position: -416px -64px;
+}
+.icon-clock {
+    background-position: -448px -64px;
+}
+.icon-calendar {
+    background-position: -480px -64px;
+}
+.icon-cd {
+    background-position: 0 -96px;
+}
+.icon-air {
+    background-position: -32px -96px;
+}
+.icon-hourglass {
+    background-position: -64px -96px;
+}
+.icon-gauge {
+    background-position: -96px -96px;
+}
+.icon-network {
+    background-position: -128px -96px;
+}
+.icon-bucket {
+    background-position: -160px -96px;
+}
+.icon-magnet {
+    background-position: -192px -96px;
+}
+.icon-drive {
+    background-position: -224px -96px;
+}
+.icon-cup {
+    background-position: -256px -96px;
+}
+.icon-earth {
+    background-position: -288px -96px;
+}
+.icon-browser {
+    background-position: -320px -96px;
+}
+.icon-publish {
+    background-position: -352px -96px;
+}
+.icon-sun {
+    background-position: -384px -96px;
+}
+.icon-sun2 {
+    background-position: -416px -96px;
+}
+.icon-adjust {
+    background-position: -448px -96px;
+}
+.icon-code {
+    background-position: -480px -96px;
+}
+.icon-screen {
+    background-position: 0 -128px;
+}
+.icon-infinity {
+    background-position: -32px -128px;
+}
+.icon-light-bulb {
+    background-position: -64px -128px;
+}
+.icon-database {
+    background-position: -96px -128px;
+}
+.icon-clipboard {
+    background-position: -128px -128px;
+}
+.icon-box {
+    background-position: -160px -128px;
+}
+.icon-statistics {
+    background-position: -192px -128px;
+}
+.icon-pie {
+    background-position: -224px -128px;
+}
+.icon-bars {
+    background-position: -256px -128px;
+}
+.icon-graph {
+    background-position: -288px -128px;
+}
+.icon-checkmark {
+    background-position: -320px -128px;
+}
+.icon-cross {
+    background-position: -352px -128px;
+}
+.icon-cross2 {
+    background-position: -384px -128px;
+}
+.icon-erase {
+    background-position: -416px -128px;
+}
+.icon-blocked {
+    background-position: -448px -128px;
+}
+.icon-info {
+    background-position: -480px -128px;
+}
+.icon-info2 {
+    background-position: 0 -160px;
+}
+.icon-question {
+    background-position: -32px -160px;
+}
+.icon-help {
+    background-position: -64px -160px;
+}
+.icon-list {
+    background-position: -96px -160px;
+}
+.icon-trash {
+    background-position: -128px -160px;
+}
+.icon-upload {
+    background-position: -160px -160px;
+}
+.icon-download {
+    background-position: -192px -160px;
+}
+.icon-arrow-left {
+    background-position: -224px -160px;
+}
+.icon-arrow-down {
+    background-position: -256px -160px;
+}
+.icon-arrow-up {
+    background-position: -288px -160px;
+}
+.icon-arrow-right {
+    background-position: -320px -160px;
+}
+.icon-arrow-left2 {
+    background-position: -352px -160px;
+}
+.icon-arrow-down2 {
+    background-position: -384px -160px;
+}
+.icon-arrow-up2 {
+    background-position: -416px -160px;
+}
+.icon-arrow-right2 {
+    background-position: -448px -160px;
+}
+.icon-arrow-left3 {
+    background-position: -480px -160px;
+}
+.icon-arrow-down3 {
+    background-position: 0 -192px;
+}
+.icon-arrow-up3 {
+    background-position: -32px -192px;
+}
+.icon-arrow-right3 {
+    background-position: -64px -192px;
+}
+.icon-arrow-left4 {
+    background-position: -96px -192px;
+}
+.icon-arrow-down4 {
+    background-position: -128px -192px;
+}
+.icon-arrow-up4 {
+    background-position: -160px -192px;
+}
+.icon-arrow-right4 {
+    background-position: -192px -192px;
+}
+.icon-arrow-left5 {
+    background-position: -224px -192px;
+}
+.icon-arrow-down5 {
+    background-position: -256px -192px;
+}
+.icon-arrow-up5 {
+    background-position: -288px -192px;
+}
+.icon-icon845 {
+    background-position: -320px -192px;
+}
+.icon-menu {
+    background-position: -352px -192px;
+}
+.icon-ellipsis {
+    background-position: -384px -192px;
+}
+.icon-cc {
+    background-position: -416px -192px;
+}
+.icon-github {
+    background-position: -448px -192px;
+}
+.icon-twitter {
+    background-position: -480px -192px;
+}
+.icon-twitter2 {
+    background-position: 0 -224px;
+}
+.icon-facebook {
+    background-position: -32px -224px;
+}
+.icon-facebook2 {
+    background-position: -64px -224px;
 }

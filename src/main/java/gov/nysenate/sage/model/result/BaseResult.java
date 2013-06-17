@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.result;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 /**
@@ -13,6 +14,7 @@ public abstract class BaseResult
     protected ArrayList<String> messages = new ArrayList<>();
     protected ResultStatus statusCode = ResultStatus.SUCCESS;
     protected String source = "";
+    protected Timestamp resultTime;
 
     public ArrayList<String> getMessages()
     {
@@ -61,5 +63,13 @@ public abstract class BaseResult
 
     public boolean isSuccess() {
         return (this.statusCode != null && this.statusCode.equals(ResultStatus.SUCCESS));
+    }
+
+    public Timestamp getResultTime() {
+        return resultTime;
+    }
+
+    public void setResultTime(Timestamp resultTime) {
+        this.resultTime = resultTime;
     }
 }

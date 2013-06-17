@@ -2,10 +2,11 @@
 <%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 
 <sage:wrapper>
+    <jsp:attribute name="ngApp">sage</jsp:attribute>
     <jsp:attribute name="title">SAGE Map Viewer</jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/blockui.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/app.js"></script>
     </jsp:attribute>
     <jsp:body>
         <div ng-controller="EmbeddedMapController">
@@ -28,8 +29,8 @@
                         <a ng-show="showInfo" ng-click="showInfo=false;">Senator Information</a>
                     </td>
                     <td class="right-icon-placeholder">
-                        <a ng-hide="showInfo" ng-click="showInfo=true;"><div class="icon-arrow-down"></div></a>
-                        <a ng-show="showInfo" ng-click="showInfo=false;"><div class="icon-arrow-up"></div></a>
+                        <a ng-hide="showInfo" ng-click="showInfo=true;"><div class="icon-arrow-down2"></div></a>
+                        <a ng-show="showInfo" ng-click="showInfo=false;"><div class="icon-arrow-up2"></div></a>
                     </td>
                 </tr>
                 </table>

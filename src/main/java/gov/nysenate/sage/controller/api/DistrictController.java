@@ -1,13 +1,19 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.ApiError;
-import gov.nysenate.sage.client.response.BatchDistrictResponse;
-import gov.nysenate.sage.client.response.DistrictResponse;
-import gov.nysenate.sage.client.response.MappedDistrictResponse;
+import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
+import gov.nysenate.sage.client.response.district.DistrictResponse;
+import gov.nysenate.sage.client.response.district.MappedDistrictResponse;
+import gov.nysenate.sage.dao.logger.DistrictRequestLogger;
+import gov.nysenate.sage.dao.logger.DistrictResultLogger;
+import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
+import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
+import gov.nysenate.sage.model.api.DistrictRequest;
+import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
@@ -33,16 +39,26 @@ import java.util.Observable;
 import java.util.Observer;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
+import static gov.nysenate.sage.service.district.DistrictServiceProvider.*;
 
 /** Handles District Api requests */
 public class DistrictController extends BaseApiController implements Observer
 {
     private static Logger logger = Logger.getLogger(DistrictController.class);
     private static Config appConfig = ApplicationFactory.getConfig();
+
+    /** Service Providers */
     private static AddressServiceProvider addressProvider = ApplicationFactory.getAddressServiceProvider();
     private static DistrictServiceProvider districtProvider = ApplicationFactory.getDistrictServiceProvider();
     private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
     private static RevGeocodeServiceProvider revGeocodeProvider = ApplicationFactory.getRevGeocodeServiceProvider();
+
+    /** Loggers */
+    private static GeocodeRequestLogger geocodeRequestLogger;
+    private static GeocodeResultLogger geocodeResultLogger;
+    private static DistrictRequestLogger districtRequestLogger;
+    private static DistrictResultLogger districtResultLogger;
+
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
     @Override
@@ -53,9 +69,12 @@ public class DistrictController extends BaseApiController implements Observer
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        logger.debug("Initialized " + this.getClass().getSimpleName());
         appConfig.notifyOnChange(this);
         update(null, null);
+        geocodeRequestLogger = new GeocodeRequestLogger();
+        geocodeResultLogger = new GeocodeResultLogger();
+        districtRequestLogger = new DistrictRequestLogger();
+        districtResultLogger = new DistrictResultLogger();
     }
 
     @Override
@@ -116,8 +135,8 @@ public class DistrictController extends BaseApiController implements Observer
                 if (!apiRequest.isBatch()) {
                     Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
-                        DistrictResult districtResult = districtAssign(address, provider, geoProvider, uspsValidate,
-                                !skipGeocode, showMembers, showMaps, districtStrategy);
+                        DistrictResult districtResult = districtAssign(
+                                apiRequest, address, provider, geoProvider, uspsValidate, !skipGeocode, showMembers, showMaps, districtStrategy);
                         districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
                     }
                     else {
@@ -154,7 +173,7 @@ public class DistrictController extends BaseApiController implements Observer
                     Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
                         districtResponse = new DistrictResponse(
-                                districtAssign(address, null, null, true, true, false, false, BLUEBIRD_DISTRICT_STRATEGY));
+                                districtAssign(apiRequest, address, null, null, true, true, false, false, BLUEBIRD_DISTRICT_STRATEGY));
                     }
                     else {
                         districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
@@ -187,7 +206,7 @@ public class DistrictController extends BaseApiController implements Observer
      * Utilizes the service providers to perform address validation, geo-coding, and district assignment for an address.
      * @return DistrictResult
      */
-    private DistrictResult districtAssign(Address address, String provider, String geoProvider, Boolean uspsValidate,
+    private DistrictResult districtAssign(ApiRequest apiRequest, Address address, String provider, String geoProvider, Boolean uspsValidate,
                                           Boolean performGeocode, Boolean showMembers, Boolean showMaps, String districtStrategy)
     {
         GeocodedAddress geocodedAddress = new GeocodedAddress(address);
@@ -195,6 +214,10 @@ public class DistrictController extends BaseApiController implements Observer
             GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
                                                                 : geocodeProvider.geocode(address);
             geocodedAddress = geocodeResult.getGeocodedAddress();
+
+            /** Log geocode request/result to database */
+            int requestId = geocodeRequestLogger.logGeocodeRequest(new GeocodeRequest(apiRequest, address, provider, (geoProvider == null), (geoProvider == null)));
+            geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
         }
 
         if (uspsValidate) {
@@ -204,16 +227,22 @@ public class DistrictController extends BaseApiController implements Observer
             }
         }
 
-        DistrictServiceProvider.DistrictStrategy strategy;
+        DistrictStrategy strategy;
         try {
-            strategy = DistrictServiceProvider.DistrictStrategy.valueOf(districtStrategy);
+            strategy = DistrictStrategy.valueOf(districtStrategy);
         }
         catch (Exception ex) {
             strategy = null;
         }
 
-        return districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
-                                                showMembers, showMaps, strategy);
+        /** Log district request to database */
+        int requestId = districtRequestLogger.logDistrictRequest(
+                new DistrictRequest(apiRequest, (geocodedAddress != null) ? geocodedAddress.getAddress() : null,
+                                    provider, geoProvider, showMembers, showMaps, uspsValidate, !performGeocode, strategy));
+        DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
+                                                                         showMembers, showMaps, strategy);
+        districtResultLogger.logDistrictResult(requestId, districtResult);
+        return districtResult;
     }
 
     /**
@@ -245,9 +274,9 @@ public class DistrictController extends BaseApiController implements Observer
             }
         }
 
-        DistrictServiceProvider.DistrictStrategy strategy;
+        DistrictStrategy strategy;
         try {
-            strategy = DistrictServiceProvider.DistrictStrategy.valueOf(districtStrategy);
+            strategy = DistrictStrategy.valueOf(districtStrategy);
         }
         catch (Exception ex) {
             strategy = null;
@@ -274,7 +303,7 @@ public class DistrictController extends BaseApiController implements Observer
                 Address revGeocodedAddress = geocodeResult.getAddress();
                 if (uspsValidate) {
                     AddressResult addressResult = addressProvider.newInstance("usps").validate(revGeocodedAddress);
-                    if (addressResult.isValidated() && geocodedAddress != null) {
+                    if (addressResult.isValidated()) {
                         revGeocodedAddress = addressResult.getAddress();
                     }
                 }
@@ -282,9 +311,9 @@ public class DistrictController extends BaseApiController implements Observer
             }
         }
 
-        DistrictServiceProvider.DistrictStrategy strategy;
+        DistrictStrategy strategy;
         try {
-            strategy = DistrictServiceProvider.DistrictStrategy.valueOf(districtStrategy);
+            strategy = DistrictStrategy.valueOf(districtStrategy);
         }
         catch (Exception ex) {
             strategy = null;

@@ -274,7 +274,7 @@ public abstract class StreetAddressParser
                                 break;
                             }
                         }
-                        if (loc > -1) {
+                        if (loc > -1 && loc != intList.size() - 1) {
                             if (single) {
                                 streetAddress.setInternal(StringUtils.join(intList.subList(0, loc + 1), " "));
                                 if (!isset(streetAddress.getLocation())) {

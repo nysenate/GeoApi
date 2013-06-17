@@ -4,13 +4,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import gov.nysenate.sage.client.response.ApiError;
+import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.Config;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.regex.Matcher;
@@ -42,6 +45,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public class ApiFilter implements Filter, Observer
 {
     private Logger logger = Logger.getLogger(ApiFilter.class);
+    private ApiRequestLogger apiRequestLogger;
     private Config config;
     private String ipFilter;
     private String defaultKey;
@@ -53,6 +57,7 @@ public class ApiFilter implements Filter, Observer
     private static final String responseObjectKey = "responseObject";
     private static final String formattedResponseKey = "formattedResponse";
     private static final String apiRequestKey = "apiRequest";
+    private static final String apiUserKey = "apiUser";
 
     /** Available format types */
     public enum FormatType { JSON, XML, JSONP }
@@ -60,14 +65,15 @@ public class ApiFilter implements Filter, Observer
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
     {
-        config = ApplicationFactory.getConfig();
+        this.config = ApplicationFactory.getConfig();
+        this.apiRequestLogger = new ApiRequestLogger();
         configure();
     }
 
     public void configure()
     {
-        ipFilter = config.getValue("user.ip_filter");
-        defaultKey = config.getValue("user.default");
+        this.ipFilter = config.getValue("user.ip_filter");
+        this.defaultKey = config.getValue("user.default");
         logger.trace(String.format("Allowing access on %s via default key %s", ipFilter, defaultKey));
     }
 
@@ -84,7 +90,7 @@ public class ApiFilter implements Filter, Observer
         String uri = ((HttpServletRequest)request).getRequestURI();
 
         /** Check that the url is formatted correctly */
-        if (validateRequest(uri, request)){
+        if (validateRequest(uri, remoteIp, request)){
             /** The filter will proceed to the next chain only if the user has a valid key or is the default user.
              *  Otherwise an error message will be sent. */
             if (authenticateUser(key, remoteIp, uri, request)) {
@@ -109,9 +115,9 @@ public class ApiFilter implements Filter, Observer
      * @return          true if authenticated, false otherwise
      * @throws IOException
      */
-    private boolean authenticateUser(String key, String remoteIp, String uri,
-                                     ServletRequest request) throws IOException
+    private boolean authenticateUser(String key, String remoteIp, String uri, ServletRequest request) throws IOException
     {
+        ApiRequest apiRequest = getApiRequest(request);
         if (key == null && remoteIp.matches(ipFilter)) {
             key = defaultKey;
             logger.trace(String.format("Default user: %s granted default key %s", remoteIp, key));
@@ -123,7 +129,15 @@ public class ApiFilter implements Filter, Observer
 
             if (apiUser != null) {
                 logger.trace(String.format("ApiUser %s has been authenticated successfully", apiUser.getName()));
-                request.setAttribute("apiUser", apiUser);
+                apiRequest.setApiUser(apiUser);
+
+                /** Log Api Request into the database */
+                int id = apiRequestLogger.logApiRequest(apiRequest);
+                apiRequest.setId(id);
+
+                /** Cache the current Api Request id */
+                request.setAttribute("apiRequestId", id);
+
                 return true;
             }
             else {
@@ -135,6 +149,7 @@ public class ApiFilter implements Filter, Observer
             setApiResponse(new ApiError(API_KEY_MISSING), request);
             logger.warn(String.format("No key supplied to access %s from %s", uri, remoteIp));
         }
+
         return false;
     }
 
@@ -146,7 +161,7 @@ public class ApiFilter implements Filter, Observer
      * @return  true if api parsed correctly
      *          false otherwise
      */
-    private boolean validateRequest(String uri, ServletRequest request) throws IOException
+    private boolean validateRequest(String uri, String remoteIp, ServletRequest request) throws IOException
     {
         Pattern validFormatPattern = Pattern.compile(validFormat);
         Matcher matcher = validFormatPattern.matcher(uri);
@@ -174,14 +189,24 @@ public class ApiFilter implements Filter, Observer
         /** If the url pattern matches, then obtain the parameters and propagate an ApiResult object as an
          *  attribute with the key 'apiRequest'. */
         if (matcher.find()) {
-
             int version = Integer.valueOf(matcher.group("version"));
             String service = matcher.group("service");
             String req = matcher.group("request");
             boolean batch = (matcher.group("batch") != null);
 
+            /** Resolve ip address into InetAddress */
+            InetAddress remoteInetAddress = null;
+            try {
+                remoteInetAddress = InetAddress.getByName(remoteIp);
+                logger.debug("Request from " + remoteInetAddress.getCanonicalHostName());
+            }
+            catch (UnknownHostException ex)
+            {
+                logger.warn("Unknown remote ip host!", ex);
+            }
+
             /** Construct an ApiRequest object */
-            ApiRequest apiRequest = new ApiRequest(version, service, req, batch);
+            ApiRequest apiRequest = new ApiRequest(version, service, req, batch, remoteInetAddress);
             apiRequest.setProvider(request.getParameter("provider"));
 
             setApiRequest(apiRequest, request);

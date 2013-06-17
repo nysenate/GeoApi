@@ -3,10 +3,7 @@ package gov.nysenate.sage.provider;
 import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictQuality;
-import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
@@ -147,6 +144,4 @@ public class DistrictShapefile implements DistrictService, MapService
         }
         return mapResult;
     }
-
-
 }

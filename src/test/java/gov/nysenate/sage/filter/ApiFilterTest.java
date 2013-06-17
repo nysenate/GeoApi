@@ -6,11 +6,15 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.Config;
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
