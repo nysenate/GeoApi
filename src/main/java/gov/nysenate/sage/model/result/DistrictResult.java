@@ -60,9 +60,10 @@ public class DistrictResult extends BaseResult
 
     public void setGeocodedAddress(GeocodedAddress geocodedAddress)
     {
-        if (this.districtedAddress != null) {
-            this.districtedAddress.setGeocodedAddress(geocodedAddress);
+        if (this.districtedAddress == null) {
+            this.districtedAddress = new DistrictedAddress();
         }
+        this.districtedAddress.setGeocodedAddress(geocodedAddress);
     }
 
     public GeocodedAddress getGeocodedAddress()

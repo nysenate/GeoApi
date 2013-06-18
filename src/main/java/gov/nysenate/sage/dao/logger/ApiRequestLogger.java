@@ -18,6 +18,8 @@ public class ApiRequestLogger extends BaseDao
 {
 
     private static Logger logger = Logger.getLogger(ApiRequestLogger.class);
+    private static String SCHEMA = "log";
+    private static String TABLE = "apiRequests";
     private QueryRunner run = getQueryRunner();
 
     /**
@@ -29,7 +31,7 @@ public class ApiRequestLogger extends BaseDao
     {
         if (apiRequest != null) {
             ApiUser apiUser = apiRequest.getApiUser();
-            String sql = "INSERT INTO log.apiRequests(ipAddress, apiUserId, version, requestTypeId, requestTime) \n" +
+            String sql = "INSERT INTO " + SCHEMA + "." + TABLE + "(ipAddress, apiUserId, version, requestTypeId, requestTime) \n" +
                     "SELECT inet '" + apiRequest.getIpAddress().getHostAddress() + "', ?, 2, rt.id, now() \n" +
                     "FROM log.requestTypes AS rt \n" +
                     "LEFT JOIN log.services ser ON rt.serviceId = ser.id \n" +
@@ -48,7 +50,7 @@ public class ApiRequestLogger extends BaseDao
     }
 
     /**
-     * Retrieve logged Api requests.
+     * Retrieve all logged Api requests.
      * @param apiKey         Api Key to search for. If null or blank, search for all Api keys.
      * @param method         Method to filter by. If null or blank, search for all methods.
      * @param limit          Limit results. If -1, return all results.
@@ -70,9 +72,22 @@ public class ApiRequestLogger extends BaseDao
      * @param orderByRecent  If true, sort by most recent first. Otherwise return least recent first.
      * @return
      */
-    public List<ApiRequest> getApiRequestsDuring(String apiKey, String method, Timestamp from, Timestamp to, int limit,
-                                                 boolean orderByRecent)
+    public List<ApiRequest> getApiRequestsDuring(String apiKey, String service, String method, Timestamp from, Timestamp to, int limit,
+                                                 int offset, boolean orderByRecent)
     {
+        String sql = "SELECT * FROM " + SCHEMA + "." + TABLE + "\n" +
+                     "LEFT JOIN " + SCHEMA + ".requestTypes rt ON requestTypeId = rt.id \n" +
+                     "LEFT JOIN " + SCHEMA + ".services serv  ON rt.serviceId = serv.id \n" +
+                     "WHERE requestTime >= ? AND requestTime <= ? \n" +
+                     "AND CASE WHEN ? IS NOT NULL THEN rt.name = ? ELSE true END\n" +
+                     "AND CASE WHEN ? IS NOT NULL THEN serv.name = ? ELSE true END\n" +
+                     "LIMIT ? OFFSET ?";
+        try {
+            run.query(sql, null, from, to, service, service, method, method, limit, offset);
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to retrieve logged api requests!", ex);
+        }
         return null;
     }
 }

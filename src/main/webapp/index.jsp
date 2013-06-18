@@ -74,7 +74,7 @@
                     <div class="icon-directions icon-teal"></div>
                     <label>Enter an address to district assign</label>
                     <div style='margin-top:2px'>
-                        <input type="text" ng-model="addr" placeholder="e.g. 200 State St, Albany NY"/>
+                        <input id="addressInput" type="text" ng-model="addr" placeholder="e.g. 200 State St, Albany NY"/>
                         <button ng-click="lookup()" class="submit mini">
                             <div class="icon-search icon-white-no-hover"></div>
                             <span></span>
@@ -412,6 +412,18 @@
                         <div class="info-container">
                             <p class="member-name" style="color:orangered;">No District Results</p>
                             <span>{{description}}</span>
+                        </div>
+                        <div class="info-container" ng-show="geocoded">
+                            <table style="width:100%">
+                                <tr>
+                                    <td><div class="icon-location icon-teal"></div></td>
+                                    <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressFormat"></p></td>
+                                </tr>
+                                <tr>
+                                    <td><div class="icon-target icon-teal"></div></td>
+                                    <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}}) <small style="float:right;">{{geocode.method | remove:'Dao'}}</small></p></td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,8 @@
 package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.controller.api.BaseApiController;
+import gov.nysenate.sage.dao.logger.ApiRequestLogger;
+import gov.nysenate.sage.dao.stats.ApiUserStatsDao;
 import gov.nysenate.sage.dao.stats.DeploymentStatsDao;
 import gov.nysenate.sage.model.stats.DeploymentStats;
 import gov.nysenate.sage.util.FormatUtil;
@@ -13,10 +15,14 @@ import java.io.IOException;
 
 public class AdminController extends BaseApiController
 {
+    private ApiRequestLogger apiRequestLogger;
+    private ApiUserStatsDao apiUserStatsDao;
     private DeploymentStatsDao deploymentStatsDao;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
+        apiRequestLogger = new ApiRequestLogger();
+        apiUserStatsDao = new ApiUserStatsDao();
         deploymentStatsDao = new DeploymentStatsDao();
     }
 

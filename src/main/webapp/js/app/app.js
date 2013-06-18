@@ -11,6 +11,8 @@ var map;
  ---------------------------------------------*/
 sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
+    google.maps.visualRefresh = true;
+
     /** Initialization */
     var mapService = {};
     mapService.el = $("#mapView");
@@ -404,7 +406,7 @@ sage.directive('myTable', function() {
 /**
  * Controller for handling the `District Information` function.
  */
-sage.controller('DistrictInfoController', function($scope, $http, dataBus, uiBlocker) {
+sage.controller('DistrictInfoController', function($scope, $http, mapService, dataBus, uiBlocker) {
     $scope.visible = true;
     $scope.id = 1;
     $scope.addr = "";
