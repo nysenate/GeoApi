@@ -73,7 +73,7 @@ public class YahooBossDao implements Observer
 
                 /** Take the first result */
                 JsonNode resultSet = bossResponse.get("placefinder").get("results");
-                if (resultSet.get(0) != null) {
+                if (resultSet != null && resultSet.size() > 0 && resultSet.get(0) != null) {
                     return getGeocodedAddressFromResultNode(resultSet.get(0));
                 }
             }
