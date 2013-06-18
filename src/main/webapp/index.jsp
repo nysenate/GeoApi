@@ -14,9 +14,23 @@
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">
+        <div style="width:100%" id="altHeader" ng-controller="MenuController">
+            <div class="icon-earth large-icon teal"></div>
+            <div id="sage-logo-text" style="float:left;width:80px;">
+                <a style="color:white" href="${pageContext.request.contextPath}">SAGE</a>
+            </div>
+            <ul class="top-method-header">
+                <li><a class="active" ng-click="toggleMethod(1)">District Assign</a></li>
+                <li><a ng-click="toggleMethod(2)">Maps</a></li>
+                <li><a ng-click="toggleMethod(3)">Street Finder</a></li>
+                <li ng-click="toggleMethod(4)"><a>Reverse Geocode</a></li>
+                <li ng-click="toggleMethod(5)"><a>City/State</a></li>
+            </ul>
+        </div>
+
         <div id="contentcolumn">
             <div id="mapView" ng-controller="EmbeddedMapViewController">
-                <div class="top-header">
+                <div class="top-header autohide">
                     <div class="large-icon icon-map white"></div>
                     <div class="text">{{mapTitle}}</div>
                 </div>
@@ -24,7 +38,7 @@
             </div>
             <div id="streetView" ng-show="visible" ng-controller="StreetLookupController">
                 <div style="height:100%;">
-                    <div class="top-header">
+                    <div class="top-header autohide">
                         <div class="large-icon icon-database white"></div>
                         <div class="text">Board of Elections Street Lookup</div>
                     </div>
