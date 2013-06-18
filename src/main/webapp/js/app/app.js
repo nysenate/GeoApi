@@ -438,6 +438,7 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, da
      */
     $scope.getDistUrl = function () {
         var url = contextPath + baseApi + "/district/assign?addr=" + this.addr;
+        url += (/\s(ny|new york)/i.test(this.addr)) ? "" : " NY";
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
         url += "&showMembers=true&showMaps=true";
@@ -644,12 +645,12 @@ sage.controller('ResultsViewController', function($scope, dataBus, mapService) {
     }
 
     $scope.closeResults = function() {
-        $scope.centercolumn.css("marginRight", 0);
+        $scope.centercolumn.removeClass("narrow");
         $scope.rightcolumn.hide();
     }
 
     $scope.openResults = function() {
-        $scope.centercolumn.css("marginRight", $scope.width);
+        $scope.centercolumn.addClass("narrow");
         $scope.rightcolumn.show();
     }
 });
