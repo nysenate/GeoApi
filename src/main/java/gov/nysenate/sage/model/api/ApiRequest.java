@@ -31,6 +31,8 @@ public class ApiRequest
     /** Timing information */
     protected Timestamp apiRequestTime;
 
+    public ApiRequest(){};
+
     public ApiRequest(int version, String service, String request, boolean batch, InetAddress ipAddress) {
         this.version = version;
         this.service = service;
@@ -62,6 +64,22 @@ public class ApiRequest
 
     public void setIpAddress(InetAddress ipAddress) {
         this.ipAddress = ipAddress;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public void setService(String service) {
+        this.service = service;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
+    }
+
+    public void setBatch(boolean batch) {
+        isBatch = batch;
     }
 
     public int getVersion() {
