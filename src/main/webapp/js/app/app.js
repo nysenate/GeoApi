@@ -11,6 +11,8 @@ var map;
  ---------------------------------------------*/
 sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
+    google.maps.visualRefresh = true;
+
     /** Initialization */
     var mapService = {};
     mapService.el = $("#mapView");
@@ -404,7 +406,7 @@ sage.directive('myTable', function() {
 /**
  * Controller for handling the `District Information` function.
  */
-sage.controller('DistrictInfoController', function($scope, $http, dataBus, uiBlocker) {
+sage.controller('DistrictInfoController', function($scope, $http, mapService, dataBus, uiBlocker) {
     $scope.visible = true;
     $scope.id = 1;
     $scope.addr = "";
@@ -436,6 +438,7 @@ sage.controller('DistrictInfoController', function($scope, $http, dataBus, uiBlo
      */
     $scope.getDistUrl = function () {
         var url = contextPath + baseApi + "/district/assign?addr=" + this.addr;
+        url += (/\s(ny|new york)/i.test(this.addr)) ? "" : " NY";
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
         url += "&showMembers=true&showMaps=true";
@@ -613,6 +616,7 @@ sage.controller('ResultsViewController', function($scope, dataBus, mapService) {
     $scope.centercolumn = $('#contentcolumn');
     $scope.rightcolumn = $("#rightcolumn");
     $scope.width = '330px';
+    $scope.toggleClass = "sidebar";
 
     $scope.$on('expandResults', function() {
         $scope.paneVisible = $scope.toggleResultPane(dataBus.data);
@@ -642,12 +646,12 @@ sage.controller('ResultsViewController', function($scope, dataBus, mapService) {
     }
 
     $scope.closeResults = function() {
-        $scope.centercolumn.css("marginRight", 0);
+        $scope.centercolumn.removeClass($scope.toggleClass);
         $scope.rightcolumn.hide();
     }
 
     $scope.openResults = function() {
-        $scope.centercolumn.css("marginRight", $scope.width);
+        $scope.centercolumn.addClass($scope.toggleClass);
         $scope.rightcolumn.show();
     }
 });

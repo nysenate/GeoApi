@@ -37,10 +37,11 @@ public enum ResultStatus
     INVALID_STATE(240, "The supplied state is invalid or is not supported."),
     INVALID_BATCH_ADDRESSES(250, "The supplied batch address list could not be parsed."),
     INVALID_BATCH_POINTS(260, "The supplied batch point list could not be parsed"),
+    NON_NY_STATE(270, "Only New York State addresses are supported"),
 
     INSUFFICIENT_INPUT_PARAMS(300, "One or more parameters are insufficient."),
     INSUFFICIENT_ADDRESS(310, "The supplied address is missing one or more parameters."),
-    INSUFFICIENT_GEOCODE(310, "The supplied geocoded is missing one or more parameters."),
+    INSUFFICIENT_GEOCODE(320, "The supplied geocoded is missing one or more parameters."),
 
     NO_DISTRICT_RESULT(400, "District assignment returned no results."),
     MULTIPLE_DISTRICT_RESULT(401, "Multiple matches were found for certain districts."),

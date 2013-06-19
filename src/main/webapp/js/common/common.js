@@ -20,7 +20,10 @@ sageCommon.factory('dataBus', function($rootScope) {
 });
 
 sageCommon.controller('MenuController', function($scope, dataBus){
+    $scope.index = 1;
+
     $scope.toggleView = function(index) {
+        this.index = index;
         dataBus.setBroadcast('toggleView', index);
     };
 
@@ -33,6 +36,12 @@ function initVerticalMenu() {
     $("p.method-header").click(function(event) {
         if (!$(this).hasClass("active")) {
             $("p.method-header.active").removeClass("active");
+            $(this).addClass("active");
+        }
+    });
+    $(".top-method-header li a").click(function(event) {
+        if (!$(this).hasClass("active")) {
+            $(".top-method-header li a.active").removeClass("active");
             $(this).addClass("active");
         }
     });

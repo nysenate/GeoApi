@@ -1,14 +1,17 @@
 package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
@@ -93,89 +96,95 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         DistrictResult districtResult = null, streetFileResult, shapeFileResult;
         ExecutorService districtExecutor = null;
 
-        if (this.isRegistered(distProvider)) {
-            DistrictService districtService = this.newInstance(distProvider);
-            districtService.fetchMaps(getMaps);
-            districtResult = districtService.assignDistricts(geocodedAddress, districtTypes);
+        /** Check that state is NY if set */
+        if (isValidNYAddress(geocodedAddress)) {
+            if (this.isRegistered(distProvider)) {
+                DistrictService districtService = this.newInstance(distProvider);
+                districtService.fetchMaps(getMaps);
+                districtResult = districtService.assignDistricts(geocodedAddress, districtTypes);
+            }
+            else {
+                try {
+                    DistrictService shapeFileService = this.newInstance("shapefile");
+                    DistrictService streetFileService = this.newInstance("streetfile");
+                    if (districtStrategy == null) {
+                        districtStrategy = SINGLE_DISTRICT_STRATEGY;
+                    }
+                    logger.info("Using district assign strategy: " + districtStrategy);
+
+                    switch (districtStrategy) {
+                        case neighborMatch:
+                            districtExecutor = Executors.newFixedThreadPool(2);
+
+                            Callable<DistrictResult> shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
+                            Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
+
+                            Future<DistrictResult> shapeFileFuture = districtExecutor.submit(shapeFileCall);
+                            Future<DistrictResult> streetFileFuture = districtExecutor.submit(streetFileCall);
+
+                            shapeFileResult = shapeFileFuture.get();
+                            districtResult = assignNeighbors(shapeFileService, shapeFileResult, getMaps);
+
+                            streetFileResult = streetFileFuture.get();
+                            districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
+                                    streetFileResult, DistrictStrategy.neighborMatch, getMaps);
+                            break;
+
+                        case streetFallback:
+                            districtExecutor = Executors.newFixedThreadPool(2);
+
+                            shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
+                            streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
+
+                            shapeFileFuture = districtExecutor.submit(shapeFileCall);
+                            streetFileFuture = districtExecutor.submit(streetFileCall);
+
+                            shapeFileResult = shapeFileFuture.get();
+                            streetFileResult = streetFileFuture.get();
+
+                            districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
+                                    streetFileResult, DistrictStrategy.streetFallback, getMaps);
+                            break;
+
+                        case shapeFallback:
+                            streetFileResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
+                            districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, null, streetFileResult,
+                                    DistrictStrategy.shapeFallback, getMaps);
+                            break;
+
+                        case streetOnly:
+                            districtResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
+                            break;
+
+                        default:
+                            logger.error("Incorrect batch district assignment strategy set. Cannot proceed with assignment!");
+                            break;
+                    }
+
+                    if (getMembers) {
+                        DistrictMemberProvider.assignDistrictMembers(districtResult);
+                    }
+                }
+                catch (InterruptedException ex) {
+                    logger.error("Failed to get district results from future!", ex);
+                }
+                catch (ExecutionException ex) {
+                    logger.error("Failed to get district results from future!", ex);
+                }
+                finally {
+                    if (districtExecutor != null) {
+                        districtExecutor.shutdownNow();
+                    }
+                }
+            }
+
+            if (getMembers) {
+                DistrictMemberProvider.assignDistrictMembers(districtResult);
+            }
         }
         else {
-            try {
-
-                DistrictService shapeFileService = this.newInstance("shapefile");
-                DistrictService streetFileService = this.newInstance("streetfile");
-                if (districtStrategy == null) {
-                    districtStrategy = SINGLE_DISTRICT_STRATEGY;
-                }
-                logger.info("Using district assign strategy: " + districtStrategy);
-
-                switch (districtStrategy) {
-                    case neighborMatch:
-                        districtExecutor = Executors.newFixedThreadPool(2);
-
-                        Callable<DistrictResult> shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
-                        Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
-
-                        Future<DistrictResult> shapeFileFuture = districtExecutor.submit(shapeFileCall);
-                        Future<DistrictResult> streetFileFuture = districtExecutor.submit(streetFileCall);
-
-                        shapeFileResult = shapeFileFuture.get();
-                        districtResult = assignNeighbors(shapeFileService, shapeFileResult, getMaps);
-
-                        streetFileResult = streetFileFuture.get();
-                        districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
-                                                                    streetFileResult, DistrictStrategy.neighborMatch, getMaps);
-                        break;
-
-                    case streetFallback:
-                        districtExecutor = Executors.newFixedThreadPool(2);
-
-                        shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
-                        streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
-
-                        shapeFileFuture = districtExecutor.submit(shapeFileCall);
-                        streetFileFuture = districtExecutor.submit(streetFileCall);
-
-                        shapeFileResult = shapeFileFuture.get();
-                        streetFileResult = streetFileFuture.get();
-
-                        districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
-                                                                    streetFileResult, DistrictStrategy.streetFallback, getMaps);
-                        break;
-
-                    case shapeFallback:
-                        streetFileResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
-                        districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, null, streetFileResult,
-                                                                    DistrictStrategy.shapeFallback, getMaps);
-                        break;
-
-                    case streetOnly:
-                        districtResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
-                        break;
-
-                    default:
-                        logger.error("Incorrect batch district assignment strategy set. Cannot proceed with assignment!");
-                        break;
-                }
-
-                if (getMembers) {
-                    DistrictMemberProvider.assignDistrictMembers(districtResult);
-                }
-            }
-            catch (InterruptedException ex) {
-                logger.error("Failed to get district results from future!", ex);
-            }
-            catch (ExecutionException ex) {
-                logger.error("Failed to get district results from future!", ex);
-            }
-            finally {
-                if (districtExecutor != null) {
-                    districtExecutor.shutdownNow();
-                }
-            }
-        }
-
-        if (getMembers) {
-            DistrictMemberProvider.assignDistrictMembers(districtResult);
+            districtResult = new DistrictResult(this.getClass());
+            districtResult.setStatusCode(ResultStatus.NON_NY_STATE);
         }
 
         districtResult.setGeocodedAddress(geocodedAddress);
@@ -532,5 +541,22 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
             }
         }
         return null;
+    }
+
+    /**
+     * Checks to see if address is set and that it is a possible NY address, i.e. `state` field doesn't specify otherwise
+     * @param geocodedAddress
+     * @return
+     */
+    private boolean isValidNYAddress(GeocodedAddress geocodedAddress) {
+        if (geocodedAddress != null && geocodedAddress.getAddress() != null) {
+            Address a = geocodedAddress.getAddress();
+            if (a.getState() != null && !a.getState().isEmpty() &&
+                    !a.getState().equalsIgnoreCase("NY") && !a.getState().equalsIgnoreCase("NEW YORK")) {
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 }

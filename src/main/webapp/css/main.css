@@ -3,17 +3,193 @@
 --------------------------------------------------------*/
 @import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600);
 
+/*-------------------------------------------------------
+  Defaults
+--------------------------------------------------------*/
+html, body {
+    height:100%;
+}
+
+body {
+    margin:0;
+    padding:0;
+    font-family:'Source Sans Pro', sans-serif;
+    font-weight:400;
+    letter-spacing:-.2px;
+    background-color:#eee;
+}
+
+p {
+    margin:0;
+}
+
+a {
+    color:#333;
+    text-decoration: none;
+    outline:0;
+}
+
+a:hover {
+    color:teal;
+    text-decoration:underline !important;
+}
+
+ol, ul {
+    list-style-type: none;
+}
+
+b {font-size: 110%;}
+em {color: red;}
+
+:focus {outline:none;}
+::-moz-focus-inner {border:0;}
+
+/*-------------------------------------------------------
+  3 Column Fluid Layout
+--------------------------------------------------------*/
+#maincontainer {
+    height:100%;
+}
+
+#header {
+    display:block;
+    height:40px;
+    background:#2a2a2a;
+    padding:0 15px;
+    margin:0;
+    font-size:16px;
+}
+
+#contentwrapper {
+    float: left;
+    width: 100%;
+    height:100%;
+}
+
+#contentcolumn {
+    margin: 0;
+    height:100%;
+    background-color:#f5f5f5;
+}
+
+#contentcolumn.sidebar {
+    margin-right:330px;
+}
+
+.innertube {
+    margin-top: 0;
+    height:100%;
+}
+
+
+#leftcolumn {
+    float: left;
+    width: 180px; /*Width of left column*/
+    margin-left: -100%;
+    background: #eee;
+    height:100%;
+}
+
+#rightcolumn {
+    float: left;
+    width: 330px; /*Width of right column*/
+    margin-left: -330px; /*Set left margin to -(RightColumnWidth)*/
+    background: #eee;
+    height:100%;
+    display:none;
+    position:absolute;
+    top:40px;
+    right:0;
+}
+
+#footer {
+    clear: left;
+    width: 100%;
+    background: #ababab;
+    color: #FFF;
+    text-align: center;
+    padding: 4px 0;
+    height:40px;
+}
+
+#footer a {
+    color: #FFFF80;
+}
+
+.top-header.autohide {
+    background:#444;
+    color:white;
+}
+
+/*-------------------------------------------------------
+  Top Headers
+--------------------------------------------------------*/
+#sageLogoText {
+    font-size: 150%;
+    padding: 0;
+    font-weight: bold;
+    line-height: 40px;
+}
+
+#header ul {
+    padding:0;
+    margin:0;
+}
+
+#header ul li {
+    display: inline;
+    list-style-type: none;
+    margin-right:5px;
+    font-size:14px;
+    line-height:40px;
+}
+
+#header ul li a {
+    color:#aaa;
+    padding:11px 9px;
+    outline:none;
+}
+
+#header ul li a:hover {
+    text-decoration: none !important;
+}
+
+#header ul li a.active {
+    color:white;
+    font-weight: 600;
+    background: #0E4E5A;
+}
+
+#header ul li a:hover {
+    color:white;
+}
+
+.top-header {
+    padding:0 15px;
+    margin:0;
+    font-size:16px;
+    background:#2a2a2a;
+    color:white;
+}
+
+.top-header .text {
+    padding:9px 0 11px 0;
+}
+
+/*-------------------------------------------------------
+  Search Container Styles
+--------------------------------------------------------*/
 .search-container {
     position: absolute;
-    top: 60px;
-    left: 225px;
+    top: 100px;
+    left: 40px;
     height: auto;
     width: 350px;
     background: #f9f9f9;
     border: 1px solid #999;
-    box-shadow: 0px 0px 10px #999;
+    box-shadow: 0 0 10px #999;
     border-radius: 3px;
-    padding: 10px 0px 5px 5px;
+    padding: 10px 0 5px 5px;
 }
 
 .search-container.small {
@@ -34,7 +210,7 @@
     outline: 0;
     border: 1px solid #ddd;
     width: 285px;
-    border-radius: 2px 0px 0px 2px;
+    border-radius: 2px 0 0 2px;
     height: 35px;
     line-height:25px;
     background:white;
@@ -74,142 +250,61 @@
     padding:0 20px !important;
 }
 
-.info-container.clickable {
-    cursor:pointer;
-}
-
-div.info-container.clickable:hover {
-    box-shadow:1px 1px 2px 0 teal;
-    background-color:#f5f5f5;
-}
-
-.section {
+.options-table {
     border-top:1px solid #ddd;
-    margin-top:4px;
-    padding:5px;
+    width:95%;
+    margin-top:5px;
+}
+
+.options-table tr td select {
+    font-size:13px;
+    color:#444;
 }
 
 /*-------------------------------------------------------
-  Defaults
+  Input Container Styles
 --------------------------------------------------------*/
-html {
-    height:100%;
+
+.input-container li {
+    margin-bottom:3px;
 }
 
-body{
-    margin:0;
-    padding:0;
-    font-family:'Source Sans Pro', sans-serif;
-    font-weight:400;
-    letter-spacing:-.2px;
-    height:100%;
-    background-color:#eee;
-}
-
-a {
-    color:#333;
-    text-decoration: none;
-    outline:0;
-}
-
-a:hover {
-    color:teal;
-    text-decoration:underline !important;
-}
-
-:focus {outline:none;}
-::-moz-focus-inner {border:0;}
-
-/*-------------------------------------------------------
-  3 Column Fluid Layout
---------------------------------------------------------*/
-#contentwrapper {
-    float: left;
-    width: 100%;
-    height:100%;
-}
-
-#contentcolumn {
-    margin: 0 0px 0 180px; /*Margins for content column. Should be "0 RightColumnWidth 0 LeftColumnWidth*/
-    height:100%;
-    background-color:#f5f5f5;
-}
-
-#leftcolumn {
-    float: left;
-    width: 180px; /*Width of left column*/
-    margin-left: -100%;
-    background: #eee;
-    height:100%;
-}
-
-#rightcolumn {
-    float: left;
-    width: 330px; /*Width of right column*/
-    margin-left: -330px; /*Set left margin to -(RightColumnWidth)*/
-    background: #eee;
-    height:100%;
-    display:none;
-}
-
-#footer {
-    clear: left;
-    width: 100%;
-    background: #ababab;
-    color: #FFF;
-    text-align: center;
-    padding: 4px 0;
-    height:40px;
-}
-
-#footer a {
-    color: #FFFF80;
-}
-
-.innertube {
-    margin-top: 0;
-    height:100%;
-}
-
-#maincontainer {
-    height:100%;
-}
-
-/*-------------------------------------------------------
-  Top Header Bar
---------------------------------------------------------*/
-#sage-logo-text {
-    font-size: 150%;
-    padding: 0;
-    font-weight: bold;
-    line-height: 40px;
-}
-
-.top-header {
-    padding:0px 15px;
-    margin:0px;
-    font-size:16px;
-    background:#2a2a2a;
-    color:white;
-}
-
-.top-header .icon {
-    margin-right:5px;
+.input-container li label {
     float:left;
-    font-family:'entypo';
-    font-size:40px;
-    line-height:100%;
+    text-align: right;
+    margin-right:10px;
+    width:55px;
+    line-height:29px;
+    font-size:13px;
 }
 
-.top-header .text {
-    padding:9px 0px 11px 0px;
+.input-container li input {
+    width:188px;
+    background:white;
+    border:1px solid #ccc;
+    padding:5px;
+    margin-bottom:2px;
+}
+
+.input-container li select {
+    padding:4px 2px;
+    outline:none;
+    border:1px solid #ccc;
+    width:200px;
+    background:white;
+    margin-bottom:2px;
+}
+
+.input-container input, .input-container select {
+    color:#111;
+    font-size:14px;
 }
 
 /*-------------------------------------------------------
   Left Nav
   ------------------------------------------------------*/
 .method-header, .result-header {
-    margin: 0px;
+    margin: 0;
     padding: 10px 15px;
     font-size: 100%;
     color:#777;
@@ -228,6 +323,7 @@ a:hover {
 .method-header.active {
     color: white;
     font-weight: 600;
+    background-color:#0E4E5A;
 }
 
 .input-container input, .input-container select {
@@ -235,90 +331,21 @@ a:hover {
     font-size:14px;
 }
 
-/* Icons */
-.small-right-icon {
-    float:right;
-    position:relative;
-    cursor:pointer;
-    top:3px;
-}
-
-b{font-size: 110%;}
-em{color: red;}
-
-#topsection{
-    background: #1a1a1a;
-    height: 39px; /*Height of top section*/
-    border-bottom:1px solid #333;
-    display:none;
-}
-
-h1.logo {
-    color:#ddd;
-    margin: 0px 15px 0px 10px;
-    float:left;
-    font-size:30px;
-}
-
-ul.nav{
-    padding-top:10px;
-    list-style-type: none;
-    margin:0px 0px 0px 100px;
-}
-
-ul.nav li{
-    float:left;
-    margin-right:30px;
-    cursor:pointer;
-}
-
-ul.nav li a{
-    color:#bbb;
-    margin:0px;
-    font-size:14px;
-}
-
-ul.nav li:hover a{
-    color:teal;
-}
-
+/*-------------------------------------------------------
+  Maps
+  ------------------------------------------------------*/
 #mapView, #map_canvas {
     height:100%;
 }
 
-.success {
-    color: white;
-    background-color:#477326;
-    font-weight: bold;
-}
-
-.result-header.error {
-    background-color: #8E2F2F;
-    font-weight: bold;
-}
-
-.method-header.active.teal {
-    background-color:#0E4E5A;
-}
-
-.method-header.active.maroon{ background-color:#632127;}
-.method-header.active.green{background-color:#477326;}
-.method-header.active.purple{background-color:#632150;}
-.method-header.active.brown{background-color:#957732;}
-
-.form-container {
-    display:none;
-}
-
-.form-container.active {
-    display:none;
-}
-
+/*-------------------------------------------------------
+  Generic Results Display
+  ------------------------------------------------------*/
 #showResultsTab {
-    width:300px;
+    width:120px;
     position:absolute;
-    top:0px;
-    right:0px;
+    top:40px;
+    right:0;
     cursor: pointer;
     display:none;
 }
@@ -330,6 +357,17 @@ ul.nav li:hover a{
 
 #showResultsTab:hover, #resultsTab:hover {
     background-color:#799933 !important;
+}
+
+.result-header.success {
+    color: white;
+    background-color:#477326;
+    font-weight: 600;
+}
+
+.result-header.error {
+    background-color: #8E2F2F;
+    font-weight: bold;
 }
 
 .info-container {
@@ -345,129 +383,54 @@ ul.nav li:hover a{
     padding:5px 10px;
 }
 
-form ol{
-    padding:0px 0px 0px 10px;
-    list-style-type: none;
+.info-container.clickable {
+    cursor:pointer;
 }
 
-ol.input-container li {
-    margin-bottom:3px;
+.info-container.clickable:hover {
+    box-shadow:1px 1px 2px 0 teal;
+    background-color:#f5f5f5;
 }
 
-ol.input-container li label {
-    float:left;
-    text-align: right;
-    margin-right:10px;
-    width:55px;
-    line-height:29px;
-    font-size:13px;
-}
-
-ol.input-container li input {
-    width:188px;
-    background:white;
-    border:1px solid #ccc;
+.section {
+    border-top:1px solid #ddd;
+    margin-top:4px;
     padding:5px;
-    margin-bottom:2px;
 }
 
-ol.input-container li select {
-    padding:4px 2px;
-    outline:none;
-    border:1px solid #ccc;
-    width:200px;
-    background:white;
-    margin-bottom:2px;
-}
-
-button.submit {
-    text-align: center;
-    background: #799933;
+.success {
     color: white;
-    border: 0;
-    outline: 0;
-    font-size: 14px;
-    font-family: 'Source Sans Pro';
-    padding: 7px 20px;
-    width: 264px;
-    font-weight: bold;
-    border-radius: 2px;
+    background-color:#477326;
+    font-weight: 600;
 }
 
-button.submit.mini {
-    text-align: center;
-    background: #799933;
-    color: white;
-    border: 0;
-    outline: 0;
-    font-size: 14px;
-    font-family: 'Source Sans Pro';
-    height:35px;
-    padding: 7px 20px;
-    width: 52px;
-    font-weight: bold;
-    border-radius: 0px 2px 2px 0px;
-    box-sizing: border-box;
-}
-
-button.submit:hover{
-    background: #7BA838;
-}
-
-button.submit[disabled] {
-    background: #aaa;
-}
-
+/*-------------------------------------------------------
+  Senator Results Display
+  ------------------------------------------------------*/
 .info-container.senator {
     height:70px;
 }
 
-hr.shadow {
-    color: #333;
-    border-style: none none solid none;
-    outline: none;
-    border-width: 1px;
-    border-color: #BBB;
-    box-shadow: #999 0px 1px 4px;
-}
-
-div.mini-senator-pic-holder, div.senator-pic-holder {
+.mini-senator-pic-holder, .senator-pic-holder {
     float:left;
     margin-right: 10px;
     margin-bottom: 5px;
     overflow:hidden;
 }
 
-div.senator-pic-holder {
+.senator-pic-holder {
     height:80px;
     max-width:90px;
 }
 
-div.mini-senator-pic-holder {
+.mini-senator-pic-holder {
     height:50px;
     max-width:50px;
 }
 
-div.senator-pic-holder img.senator-pic {
+.senator-pic-holder img.senator-pic {
     height:auto;
     width:100%;
-}
-
-.options-table {
-    border-top:1px solid #ddd;
-    width:95%;
-    margin-top:5px;
-}
-
-.options-table tr td select {
-    font-size:13px;
-    color:#444;
-}
-
-/* Senator Info Card
---------------------*/
-p {
-    margin:0px;
 }
 
 .member-name.senator {
@@ -485,19 +448,79 @@ p {
     font-size:14px;
 }
 
-.district.senate {
-    font-size:18px;
+.district {
+    font-size:16px;
     color: teal;
 }
 
-.district {
-    font-size:16px;
+.district.senate {
+    font-size:18px;
     color: teal;
 }
 
 .validated-address {
     color: #333;
     font-size:18px;
+}
+
+/*-------------------------------------------------------
+  Icons
+  ------------------------------------------------------*/
+.small-right-icon {
+    float:right;
+    position:relative;
+    cursor:pointer;
+    top:3px;
+}
+
+/*-------------------------------------------------------
+  Form Styles
+  ------------------------------------------------------*/
+.form-container {
+    display:none;
+}
+
+.form-container.active {
+    display:none;
+}
+
+button.submit, button.submit.mini {
+    text-align: center;
+    background: #799933;
+    color: white;
+    border: 0;
+    outline: 0;
+    font-size: 14px;
+    font-family: 'Source Sans Pro', sans-serif;
+    padding: 7px 20px;
+    width: 264px;
+    font-weight: bold;
+    border-radius: 2px;
+}
+
+button.submit.mini {
+    height:35px;
+    width: 52px;
+    font-weight: bold;
+    border-radius: 0 2px 2px 0;
+    box-sizing: border-box;
+}
+
+button.submit:hover{
+    background: #7BA838;
+}
+
+button.submit[disabled] {
+    background: #aaa;
+}
+
+hr.shadow {
+    color: #333;
+    border-style: none none solid none;
+    outline: none;
+    border-width: 1px;
+    border-color: #BBB;
+    box-shadow: #999 0 1px 4px;
 }
 
 .right-icon-placeholder {
@@ -507,44 +530,9 @@ p {
     text-align: right;
 }
 
-.small-icon {
-    font-family:'entypo';
-    font-size:30px;
-    color:#aaa;
-    line-height:23px;
-}
-
-.small-icon:hover {
-    color:teal;
-}
-
-.error-container {
-    width: 400px;
-    text-align: center;
-    margin: auto;
-    color: red;
-    padding: 10px;
-    box-shadow: 0px 2px 2px #BBB;
-    background-color: white;
-}
-
-.result-close {
-    font-family: entypo;
-    opacity:0.6;
-    color:white;
-    font-size: 34px;
-    font-weight: normal;
-    float: right;
-    cursor:pointer;
-    line-height: 22px;
-}
-
-a.result-close:hover {
-    opacity:1;
-}
-
-/** Data Table */
-
+/*-------------------------------------------------------
+  Street Finder Table
+--------------------------------------------------------*/
 table.dataTable tr.odd {
     background-color:transparent !important;
 }
@@ -577,7 +565,6 @@ table.dataTable tr.even td.sorting_1 {
     color:#777 !important;
 }
 
-/* Street view data table */
 #street-view-table_filter {
     display:none;
 }
@@ -591,11 +578,11 @@ table.dataTable tr.even td.sorting_1 {
 
 #streetLookupSearch {
     position:inherit;
-    top:0px;
-    left:0px;
+    top:0;
+    left:0;
     width:100%;
     border:0;
-    box-shadow: 0px 2px 2px #eee;
+    box-shadow: 0 2px 2px #eee;
     border-radius:0;
     margin:10px;
 }
@@ -607,6 +594,7 @@ table.dataTable tr.even td.sorting_1 {
 #streetSearchFilter {
     margin-left:20px;
 }
+
 /*-------------------------------------------------------
   Job Page
 --------------------------------------------------------*/
@@ -616,7 +604,7 @@ table.dataTable tr.even td.sorting_1 {
 
 .running-process-view {
     background: #fbfbfb;
-    box-shadow: 0px 2px 3px #DDD;
+    box-shadow: 0 2px 3px #DDD;
     width: 780px;
     margin: auto;
     padding: 10px;
@@ -651,7 +639,7 @@ table.job-table {
 .highlight-section {
     border: 1px solid #ddd;
     padding: 10px;
-    box-shadow: 0px 2px 1px #bbb;
+    box-shadow: 0 2px 1px #bbb;
     background: white;
     margin: 10px;
 }

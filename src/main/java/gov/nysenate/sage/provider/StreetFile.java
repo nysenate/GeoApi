@@ -56,9 +56,9 @@ public class StreetFile implements DistrictService, StreetLookupService
             return streetFileDao.getDistrictStreetRangesByZip(intZip5);
         }
         catch (NumberFormatException ex) {
-            logger.error("Zip5 must be parseable as an int!", ex);
+            logger.error("Zip5 was not valid. Possible non-NY entry.", ex);
+            return null;
         }
-        return null;
     }
 
     @Override

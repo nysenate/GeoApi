@@ -26,6 +26,7 @@ import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -209,6 +210,7 @@ public class DistrictController extends BaseApiController implements Observer
     private DistrictResult districtAssign(ApiRequest apiRequest, Address address, String provider, String geoProvider, Boolean uspsValidate,
                                           Boolean performGeocode, Boolean showMembers, Boolean showMaps, String districtStrategy)
     {
+        /** Perform geocoding if necessary */
         GeocodedAddress geocodedAddress = new GeocodedAddress(address);
         if (performGeocode) {
             GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
@@ -220,6 +222,7 @@ public class DistrictController extends BaseApiController implements Observer
             geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
         }
 
+        /** Perform USPS address correction if requested */
         if (uspsValidate) {
             AddressResult addressResult = addressProvider.newInstance("usps").validate(address);
             if (addressResult.isValidated() && geocodedAddress != null) {
@@ -239,8 +242,12 @@ public class DistrictController extends BaseApiController implements Observer
         int requestId = districtRequestLogger.logDistrictRequest(
                 new DistrictRequest(apiRequest, (geocodedAddress != null) ? geocodedAddress.getAddress() : null,
                                     provider, geoProvider, showMembers, showMaps, uspsValidate, !performGeocode, strategy));
+
+        /** Obtain district result */
         DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
                                                                          showMembers, showMaps, strategy);
+
+        /** Log district result to database */
         districtResultLogger.logDistrictResult(requestId, districtResult);
         return districtResult;
     }
