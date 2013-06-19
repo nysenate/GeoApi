@@ -8,23 +8,26 @@
         <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
+        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/app.js"></script>
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">
-        <div style="width:100%" id="altHeader" ng-controller="MenuController">
+        <div style="width:100%" id="header" ng-controller="MenuController">
             <div class="icon-earth large-icon teal"></div>
-            <div id="sage-logo-text" style="float:left;width:80px;">
+            <div id="sageLogoText" style="float:left;width:80px;">
                 <a style="color:white" href="${pageContext.request.contextPath}">SAGE</a>
             </div>
             <ul class="top-method-header">
                 <li><a class="active" ng-click="toggleMethod(1)">District Assign</a></li>
-                <li><a ng-click="toggleMethod(2)">Maps</a></li>
+                <li><a ng-click="toggleMethod(2)">District Maps</a></li>
                 <li><a ng-click="toggleMethod(3)">Street Finder</a></li>
                 <li ng-click="toggleMethod(4)"><a>Reverse Geocode</a></li>
                 <li ng-click="toggleMethod(5)"><a>City/State</a></li>
+                <li><a href="${contextPath}/job">Batch</a></li>
+                <li><a href="https://sage-senate-address-geocoding-engine.readthedocs.org/en/latest/">Developer API</a></li>
             </ul>
         </div>
 
@@ -56,7 +59,7 @@
                         </form>
                         <div id="streetSearchFilter" ng-show="showFilter">
                             <div class="icon-list icon-teal"></div>
-                            <label>Filter by street</label>
+                            <label for="street-search">Filter by street</label>
                             <div style='margin-top:2px'>
                                 <input id="street-search" type="text" style="width:175px"/>
                             </div>
@@ -86,7 +89,7 @@
             <div id="districtInfoSearch" class="search-container" ng-controller="DistrictInfoController" ng-show="visible">
                 <form id="districtsFormMini" action="" method="post">
                     <div class="icon-directions icon-teal"></div>
-                    <label>Enter an address to district assign</label>
+                    <label for="addressInput">Enter an address to district assign</label>
                     <div style='margin-top:2px'>
                         <input id="addressInput" type="text" ng-model="addr" placeholder="e.g. 200 State St, Albany NY"/>
                         <button ng-click="lookup()" class="submit mini">
@@ -100,9 +103,9 @@
                     <div id="districtInfoOptions" ng-show="showOptions">
                         <table class="options-table">
                             <tr>
-                                <td><label>District data source</label></td>
+                                <td><label for="dataSourceMenu">District data source</label></td>
                                 <td style="width:180px;">
-                                    <select style="width: 100%;" ng-model="provider">
+                                    <select id="dataSourceMenu" style="width: 100%;" ng-model="provider">
                                         <option value="default">Default (Recommended)</option>
                                         <option value="streetfile">Board of Elections</option>
                                         <option value="shapefile">Census TIGER/LINE</option>
@@ -110,9 +113,9 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><label>Geocoder</label></td>
+                                <td><label for="geocoderMenu">Geocoder</label></td>
                                 <td>
-                                    <select style="width: 100%;" ng-model="geoProvider">
+                                    <select id="geocoderMenu" style="width: 100%;" ng-model="geoProvider">
                                         <option value="default">Default (Recommended)</option>
                                         <option value="yahoo">Yahoo</option>
                                         <option value="yahooboss">Yahoo Boss</option>
@@ -137,7 +140,7 @@
                     <div ng-hide="minimized">
                         <div class="section">
                             <div style="float:left">
-                                <label class="menu-overhead">Type</label>
+                                <label for="districtTypeMenu" class="menu-overhead">Type</label>
                                 <select id="districtTypeMenu" class="menu" style="width:85px;" ng-model="type" ng-change="metaLookup();">
                                     <option value="senate">Senate</option>
                                     <option value="congressional">Congressional</option>
@@ -148,7 +151,7 @@
                                 </select>
                             </div>
                             <div style="float:left">
-                                <label class="menu-overhead">District</label>
+                                <label for="districtCodeMenu" class="menu-overhead">District</label>
                                 <select id="districtCodeMenu" class="menu" style="width:190px;" ng-model="selectedDistrict" ng-options="d.name for d in districtList"></select>
                             </div>
                             <div style="float:left">
@@ -162,8 +165,8 @@
                         <a ng-show="showMemberList" ng-click="showMemberList=false;showMemberOption=true;" class="options-link" ng-click="">Hide Senator/Member List</a>
                         <div style="border-top:1px solid #ddd;margin-top:4px;padding:5px;" ng-show="showMemberList">
                             <div style="float:left">
-                                <label class="menu-overhead">Member</label>
-                                <select class="menu" style="width:280px;" ng-model="selectedDistrict" ng-options="d.member.name for d in districtList"></select>
+                                <label for="districtMemberMenu" class="menu-overhead">Member</label>
+                                <select id="districtMemberMenu" class="menu" style="width:280px;" ng-model="selectedDistrict" ng-options="d.member.name for d in districtList"></select>
                             </div>
                         </div>
                     </div>
@@ -172,9 +175,9 @@
             <div id="cityStateSearch" class="search-container small" ng-show="visible" ng-controller="CityStateController">
                 <form id="cityStateForm" action="" method="post">
                     <div class="icon-location icon-teal"></div>
-                    <label>Enter a zipcode</label>
+                    <label for="cityStateInput">Enter a zipcode</label>
                     <div style='margin-top:2px'>
-                        <input type="text" ng-model="zip5" style="width:175px" maxlength="5" placeholder="e.g. 12210"/>
+                        <input id="cityStateInput" type="text" ng-model="zip5" style="width:175px" maxlength="5" placeholder="e.g. 12210"/>
                         <button ng-click="lookup()" class="submit mini">
                             <div class="icon-search icon-white-no-hover"></div>
                             <span></span>
@@ -188,12 +191,12 @@
                     <label>Enter geo-coordinate</label><br/>
                     <div class="section">
                         <div style="float:left">
-                            <label class="menu-overhead">Latitude</label>
-                            <input type="text" style="width:80px;margin-right:5px;" ng-model="lat" name="lat">
+                            <label for="revGeoLatInput" class="menu-overhead">Latitude</label>
+                            <input id="revGeoLatInput" type="text" style="width:80px;margin-right:5px;" ng-model="lat" name="lat">
                         </div>
                         <div style="float:left">
-                            <label class="menu-overhead">Longitude</label>
-                            <input type="text" style="width:80px;margin-right:5px;" ng-model="lon" name="lon">
+                            <label for="revGeoLonInput" class="menu-overhead">Longitude</label>
+                            <input id="revGeoLonInput" type="text" style="width:80px;margin-right:5px;" ng-model="lon" name="lon">
                         </div>
                         <div style="float:left">
                             <label class="menu-overhead">&nbsp;</label>
@@ -203,21 +206,6 @@
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <div id="leftcolumn">
-        <div class="innertube">
-            <sage:header></sage:header>
-            <div ng-controller="MenuController">
-                <p class="method-header active teal" ng-click="toggleMethod(1)">District Information</p>
-                <p class="method-header teal" ng-click="toggleMethod(2)">District Maps</p>
-                <p class="method-header teal" ng-click="toggleMethod(3)">Street Finder</p>
-                <p class="method-header teal" ng-click="toggleMethod(4)">Reverse Geocode</p>
-                <p class="method-header teal" ng-click="toggleMethod(5)">City/State Lookup</p>
-                <a href="${contextPath}/job"><p class="method-header teal">Batch Jobs</p></a>
-                <a href="https://sage-senate-address-geocoding-engine.readthedocs.org/en/latest/"><p class="method-header teal">API Reference</p></a>
             </div>
         </div>
     </div>
@@ -517,7 +505,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>

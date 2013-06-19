@@ -4,6 +4,9 @@
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage-admin</jsp:attribute>
     <jsp:attribute name="title">SAGE - Admin Console</jsp:attribute>
+    <jsp:attribute name="cssIncludes">
+        <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+    </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script src="http://cdnjs.cloudflare.com/ajax/libs/highcharts/3.0.2/highcharts.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/common/common.js" type="text/javascript"></script>

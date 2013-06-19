@@ -616,6 +616,7 @@ sage.controller('ResultsViewController', function($scope, dataBus, mapService) {
     $scope.centercolumn = $('#contentcolumn');
     $scope.rightcolumn = $("#rightcolumn");
     $scope.width = '330px';
+    $scope.toggleClass = "sidebar";
 
     $scope.$on('expandResults', function() {
         $scope.paneVisible = $scope.toggleResultPane(dataBus.data);
@@ -645,12 +646,12 @@ sage.controller('ResultsViewController', function($scope, dataBus, mapService) {
     }
 
     $scope.closeResults = function() {
-        $scope.centercolumn.removeClass("narrow");
+        $scope.centercolumn.removeClass($scope.toggleClass);
         $scope.rightcolumn.hide();
     }
 
     $scope.openResults = function() {
-        $scope.centercolumn.addClass("narrow");
+        $scope.centercolumn.addClass($scope.toggleClass);
         $scope.rightcolumn.show();
     }
 });
