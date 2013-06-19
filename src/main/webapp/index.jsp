@@ -16,10 +16,7 @@
     <jsp:body>
     <div id="contentwrapper">
         <div style="width:100%" id="header" ng-controller="MenuController">
-            <div class="icon-earth large-icon teal"></div>
-            <div id="sageLogoText" style="float:left;width:80px;">
-                <a style="color:white" href="${pageContext.request.contextPath}">SAGE</a>
-            </div>
+            <sage:logo></sage:logo>
             <ul class="top-method-header">
                 <li><a class="active" ng-click="toggleMethod(1)">District Assign</a></li>
                 <li><a ng-click="toggleMethod(2)">District Maps</a></li>

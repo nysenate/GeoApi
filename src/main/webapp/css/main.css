@@ -176,6 +176,10 @@ em {color: red;}
     padding:9px 0 11px 0;
 }
 
+.top-method-header {
+    white-space: nowrap;
+}
+
 /*-------------------------------------------------------
   Search Container Styles
 --------------------------------------------------------*/
@@ -646,7 +650,7 @@ table.job-table {
 
 .highlight-section label {
     color:teal;
-    font-weight:bold;
+    font-weight:600;
 }
 
 #geocoder-stats {
@@ -656,6 +660,5 @@ table.job-table {
 }
 
 #api-usage-stats {
-    width:63%;
-    float:left;
+    width:auto;
 }
