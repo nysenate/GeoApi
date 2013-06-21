@@ -16,10 +16,7 @@
     <jsp:body>
     <div id="contentwrapper">
         <div style="width:100%" id="header" ng-controller="MenuController">
-            <div class="icon-earth large-icon teal"></div>
-            <div id="sageLogoText" style="float:left;width:80px;">
-                <a style="color:white" href="${pageContext.request.contextPath}">SAGE</a>
-            </div>
+            <sage:logo></sage:logo>
             <ul class="top-method-header">
                 <li><a class="active" ng-click="toggleMethod(1)">District Assign</a></li>
                 <li><a ng-click="toggleMethod(2)">District Maps</a></li>
@@ -89,55 +86,62 @@
             <div id="districtInfoSearch" class="search-container" ng-controller="DistrictInfoController" ng-show="visible">
                 <form id="districtsFormMini" action="" method="post">
                     <div class="icon-directions icon-teal"></div>
-                    <label for="addressInput">Enter an address to district assign</label>
-                    <div style='margin-top:2px'>
-                        <input id="addressInput" type="text" ng-model="addr" placeholder="e.g. 200 State St, Albany NY"/>
-                        <button ng-click="lookup()" class="submit mini">
-                            <div class="icon-search icon-white-no-hover"></div>
-                            <span></span>
-                        </button>
-                    </div>
-                    <a id="showDistrictInfoOptions" class="options-link" ng-hide="showOptions" ng-click="showOptions=true">Show options</a>
-                    <a id="hideDistrictInfoOptions" class="options-link" ng-show="showOptions" ng-click="showOptions=false">Hide options</a>
+                    <label for="addressInput" ng-hide="minimized">Enter an address to district assign</label>
+                    <label ng-show="minimized" ng-click="minimized=false;" class="expand-search">Show search</label>
+                    <div ng-click="minimized=true;" ng-hide="minimized" class="collapse-search icon-arrow-up4 icon-hover-teal small-right-icon"></div>
+                    <div ng-click="minimized=false;" ng-show="minimized" class="expand-search icon-arrow-down4 icon-hover-teal small-right-icon"></div>
                     <br/>
-                    <div id="districtInfoOptions" ng-show="showOptions">
-                        <table class="options-table">
-                            <tr>
-                                <td><label for="dataSourceMenu">District data source</label></td>
-                                <td style="width:180px;">
-                                    <select id="dataSourceMenu" style="width: 100%;" ng-model="provider">
-                                        <option value="default">Default (Recommended)</option>
-                                        <option value="streetfile">Board of Elections</option>
-                                        <option value="shapefile">Census TIGER/LINE</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><label for="geocoderMenu">Geocoder</label></td>
-                                <td>
-                                    <select id="geocoderMenu" style="width: 100%;" ng-model="geoProvider">
-                                        <option value="default">Default (Recommended)</option>
-                                        <option value="yahoo">Yahoo</option>
-                                        <option value="yahooboss">Yahoo Boss</option>
-                                        <option value="tiger">Tiger</option>
-                                        <option value="mapquest">MapQuest</option>
-                                        <option value="ruby">Ruby</option>
-                                        <option value="osm">OSM</option>
-                                    </select>
-                                </td>
-                            </tr>
-                        </table>
+                    <div class="search-container-content">
+                        <div style='margin-top:5px'>
+                            <input id="addressInput" type="text" ng-model="addr" placeholder="e.g. 200 State St, Albany NY"/>
+                            <button ng-click="lookup()" class="submit mini">
+                                <div class="icon-search icon-white-no-hover"></div>
+                                <span></span>
+                            </button>
+                        </div>
+                        <a id="showDistrictInfoOptions" class="options-link" ng-hide="showOptions" ng-click="showOptions=true">Show options</a>
+                        <a id="hideDistrictInfoOptions" class="options-link" ng-show="showOptions" ng-click="showOptions=false">Hide options</a>
+                        <br/>
+                        <div id="districtInfoOptions" ng-show="showOptions">
+                            <table class="options-table">
+                                <tr>
+                                    <td><label for="dataSourceMenu">District data source</label></td>
+                                    <td style="width:180px;">
+                                        <select id="dataSourceMenu" style="width: 100%;" ng-model="provider">
+                                            <option value="default">Default (Recommended)</option>
+                                            <option value="streetfile">Board of Elections</option>
+                                            <option value="shapefile">Census TIGER/LINE</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><label for="geocoderMenu">Geocoder</label></td>
+                                    <td>
+                                        <select id="geocoderMenu" style="width: 100%;" ng-model="geoProvider">
+                                            <option value="default">Default (Recommended)</option>
+                                            <option value="yahoo">Yahoo</option>
+                                            <option value="yahooboss">Yahoo Boss</option>
+                                            <option value="tiger">Tiger</option>
+                                            <option value="mapquest">MapQuest</option>
+                                            <option value="ruby">Ruby</option>
+                                            <option value="osm">OSM</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
                 </form>
             </div>
             <div id="districtMapViewSearch" class="search-container" ng-show="visible" ng-controller="DistrictMapController">
                 <form id="districtMapFormMini" action="" method="post">
                     <div class="icon-list icon-teal"></div>
-                    <label>Select which district(s) to display</label>
-                    <div ng-click="minimized=true;" ng-hide="minimized" style="margin-right: 10px" class="icon-arrow-up2 icon-hover-teal small-right-icon"></div>
-                    <div ng-click="minimized=false;" ng-show="minimized" style="margin-right: 10px" class="icon-arrow-down2 icon-hover-teal small-right-icon"></div>
+                    <label ng-hide="minimized">Select which district(s) to display</label>
+                    <label ng-show="minimized" ng-click="minimized=false;" class="expand-search">Show search</label>
+                    <div ng-click="minimized=true;" ng-hide="minimized" class="collapse-search icon-arrow-up4 icon-hover-teal small-right-icon"></div>
+                    <div ng-click="minimized=false;" ng-show="minimized" class="expand-search icon-arrow-down4 icon-hover-teal small-right-icon"></div>
                     <br/>
-                    <div ng-hide="minimized">
+                    <div class="search-container-content">
                         <div class="section">
                             <div style="float:left">
                                 <label for="districtTypeMenu" class="menu-overhead">Type</label>
@@ -175,8 +179,11 @@
             <div id="cityStateSearch" class="search-container small" ng-show="visible" ng-controller="CityStateController">
                 <form id="cityStateForm" action="" method="post">
                     <div class="icon-location icon-teal"></div>
-                    <label for="cityStateInput">Enter a zipcode</label>
-                    <div style='margin-top:2px'>
+                    <label ng-hide="minimized" for="cityStateInput">Enter a zipcode</label>
+                    <label ng-show="minimized" ng-click="minimized=false;" class="expand-search">Show search</label>
+                    <div ng-click="minimized=true;" ng-hide="minimized" class="collapse-search icon-arrow-up4 icon-hover-teal small-right-icon"></div>
+                    <div ng-click="minimized=false;" ng-show="minimized" class="expand-search icon-arrow-down4 icon-hover-teal small-right-icon"></div>
+                    <div style='margin-top:2px' class="search-container-content">
                         <input id="cityStateInput" type="text" ng-model="zip5" style="width:175px" maxlength="5" placeholder="e.g. 12210"/>
                         <button ng-click="lookup()" class="submit mini">
                             <div class="icon-search icon-white-no-hover"></div>
@@ -188,8 +195,12 @@
             <div id="reverseGeocodeSearch" ng-show="visible" class="search-container small" ng-controller="RevGeoController">
                 <form id="revGeoForm" action="" method="post">
                     <div class="icon-target icon-teal"></div>
-                    <label>Enter geo-coordinate</label><br/>
-                    <div class="section">
+                    <label ng-hide="minimized">Enter geo-coordinate</label>
+                    <label ng-show="minimized" ng-click="minimized=false;" class="expand-search">Show search</label>
+                    <div ng-click="minimized=true;" ng-hide="minimized" class="collapse-search icon-arrow-up4 icon-hover-teal small-right-icon"></div>
+                    <div ng-click="minimized=false;" ng-show="minimized" class="expand-search icon-arrow-down4 icon-hover-teal small-right-icon"></div>
+                    <br/>
+                    <div class="section search-container-content">
                         <div style="float:left">
                             <label for="revGeoLatInput" class="menu-overhead">Latitude</label>
                             <input id="revGeoLatInput" type="text" style="width:80px;margin-right:5px;" ng-model="lat" name="lat">

@@ -17,9 +17,18 @@
         </script>
     </jsp:attribute>
     <jsp:body>
-        <sage:header></sage:header>
-        <div id="contentwrapper">
-            <div id="contentcolumn" style="margin:0px 10px 0px 180px;padding-top:20px;background-color:#f5f5f5">
+        <sage:header>
+            <jsp:attribute name="ngController">MenuController</jsp:attribute>
+            <jsp:attribute name="links">
+                <li><a ng-click="toggleMethod(1)" class="active">New batch job</a></li>
+                <li><a ng-click="toggleMethod(2)">Current jobs</a></li>
+                <li><a ng-click="toggleMethod(3)">History</a></li>
+                <li><a href="${pageContext.request.contextPath}/job/logout">Logout</a></li>
+            </jsp:attribute>
+        </sage:header>
+
+        <div id="contentwrapper" ng-controller="JobController">
+            <div id="contentcolumn" style="margin:0;padding-top:20px;background-color:#f5f5f5">
                 <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController" style="width:100%;height:100%;">
                     <form id="uploadForm" method="post" action="${contextPath}/job/submit" style="width:95%;margin:auto;">
                         <ol>
@@ -175,15 +184,5 @@
                 </div>
             </div>
         </div>
-
-        <div id="leftcolumn" style="border-right:1px solid #ddd;" ng-controller="MenuController">
-            <div class="innertube">
-                <p ng-click="toggleMethod(1)" class="method-header teal">Start new batch job</p>
-                <p ng-click="toggleMethod(2)" class="method-header active maroon">View current jobs</p>
-                <p ng-click="toggleMethod(3)" class="method-header purple">View job history</p>
-                <p ng-click="logout()" class="method-header purple">Exit</p>
-            </div>
-        </div>
-
     </jsp:body>
 </sage:wrapper>

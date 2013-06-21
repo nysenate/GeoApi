@@ -178,10 +178,10 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                 coords = [];
             }
 
-            /** Set the zoom level to the district bounds and move a step closer */
+            /** Set the zoom level to the district bounds */
             if (fitBounds) {
                 this.map.fitBounds(this.polygon.getBounds());
-                this.map.setZoom(this.map.getZoom() + 1);
+                this.map.setZoom(this.map.getZoom());
             }
 
             /** Text to display on the map header */
@@ -401,12 +401,12 @@ sage.directive('myTable', function() {
 });
 
 /**------------------------------------------------\
- * Controllers                                     |
+ * Methods                                         |
  *------------------------------------------------*/
 /**
  * Controller for handling the `District Information` function.
  */
-sage.controller('DistrictInfoController', function($scope, $http, mapService, dataBus, uiBlocker) {
+sage.controller('DistrictInfoController', function($scope, $http, mapService, menuService, dataBus, uiBlocker) {
     $scope.visible = true;
     $scope.id = 1;
     $scope.addr = "";
@@ -414,8 +414,8 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, da
     $scope.geoProvider = "default";
     $scope.provider = "default";
 
-    $scope.$on("toggleMethod", function() {
-        $scope.visible = ($scope.id === dataBus.data);
+    $scope.$on(menuService.menuToggleEvent, function() {
+        $scope.visible = menuService.isMethodActive($scope.id);
     });
 
     /**
@@ -450,7 +450,7 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, da
 /**
  * Controller for handling the `District Maps` function.
  */
-sage.controller("DistrictMapController", function($scope, $http, dataBus, uiBlocker){
+sage.controller("DistrictMapController", function($scope, $http, menuService, dataBus, uiBlocker){
     $scope.visible = false;
     $scope.id = 2;
     $scope.minimized = false;
@@ -460,8 +460,8 @@ sage.controller("DistrictMapController", function($scope, $http, dataBus, uiBloc
     $scope.districtList = [];
     $scope.selectedDistrict = "";
 
-    $scope.$on("toggleMethod", function() {
-        $scope.visible = ($scope.id === dataBus.data);
+    $scope.$on(menuService.menuToggleEvent, function() {
+        $scope.visible = menuService.isMethodActive($scope.id);
         if ($scope.visible) {
             $scope.minimized = false;
             $scope.showMemberList = false;
@@ -509,13 +509,13 @@ sage.controller("DistrictMapController", function($scope, $http, dataBus, uiBloc
     }
 });
 
-sage.controller('CityStateController', function($scope, $http, mapService, dataBus) {
+sage.controller('CityStateController', function($scope, $http, mapService, menuService, dataBus) {
     $scope.id = 5;
     $scope.visible = false;
     $scope.zip5 = "";
 
-    $scope.$on("toggleMethod", function() {
-        $scope.visible = ($scope.id === dataBus.data);
+    $scope.$on(menuService.menuToggleEvent, function() {
+        $scope.visible = menuService.isMethodActive($scope.id);
     });
 
     $scope.lookup = function() {
@@ -530,14 +530,14 @@ sage.controller('CityStateController', function($scope, $http, mapService, dataB
     }
 });
 
-sage.controller("StreetLookupController", function($scope, $http, dataBus, mapService, uiBlocker) {
+sage.controller("StreetLookupController", function($scope, $http, dataBus, mapService, menuService, uiBlocker) {
     $scope.id = 3;
     $scope.visible = false;
     $scope.showFilter = false;
     $scope.zip5 = "";
 
-    $scope.$on("toggleMethod", function() {
-        $scope.visible = ($scope.id === dataBus.data);
+    $scope.$on(menuService.menuToggleEvent, function() {
+        $scope.visible = menuService.isMethodActive($scope.id);
         if ($scope.visible) {
             mapService.toggleMap(false);
             dataBus.setBroadcast("hideResultTab", false);
@@ -563,14 +563,14 @@ sage.controller("StreetLookupController", function($scope, $http, dataBus, mapSe
     }
 });
 
-sage.controller("RevGeoController", function($scope, $http, dataBus) {
+sage.controller("RevGeoController", function($scope, $http, menuService, dataBus) {
     $scope.id = 4;
     $scope.visible = false;
     $scope.lat = "";
     $scope.lon = "";
 
-    $scope.$on("toggleMethod", function() {
-        $scope.visible = ($scope.id === dataBus.data);
+    $scope.$on(menuService.menuToggleEvent, function() {
+        $scope.visible = menuService.isMethodActive($scope.id);
     });
 
     $scope.lookup = function() {
@@ -696,24 +696,32 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     $scope.$on("districtMap", function() {
         var data = dataBus.data;
         if (data.statusCode == 0) {
+            /** Hide results tab and markers */
+            dataBus.setBroadcast("hideResultTab", false);
             mapService.clearMarkers();
+
             /** Show all the district map boundaries */
             if (data != null && data.districts != null) {
                 mapService.clearPolygons();
                 $.each(data.districts, function(i, v){
                     if (v.map != null) {
                         mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
-                            (v.type == "SENATE") ? function() {dataBus.setBroadcastAndView("member", v.member, "member");}
+                            (v.type == "SENATE") ? function() {dataBus.setBroadcastAndView("memberApply", v.member, "member");}
                                 : null
                         );
                     }
                 });
+                mapService.setCenter(42.440510, -76.495460); // Centers the map nicely over NY
+                mapService.setZoom(7);
             }
             /** Show the individual district map */
             else if (data.map != null) {
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
                 if (data.type == "SENATE") {
                     dataBus.setBroadcastAndView("member", data.member, "member");
+                }
+                else {
+                    dataBus.setBroadcast("hideResultTab");
                 }
             }
         }
@@ -822,15 +830,31 @@ sage.controller("StreetViewController", function($scope, dataBus, uiBlocker, map
 sage.controller("MemberViewController", function($scope, dataBus, mapService) {
     $scope.visible = false;
     $scope.viewId = "member";
-    $scope.member;
+    $scope.member = {};
 
     $scope.$on(dataBus.viewHandleEvent, function(){
         $scope.visible = ($scope.viewId == dataBus.viewId);
     });
 
-    $scope.$on("member", function() {
+    $scope.showMember = function() {
         $scope.member = dataBus.data;
         dataBus.setBroadcast("expandResults", true);
+    };
+
+    /** Used for individual district view */
+    $scope.$on("member", function() {
+        if (dataBus.data) {
+            $scope.showMember();
+        }
+    });
+
+    /** Used when clicking from multi-district map. Need to use $apply to propagate updates from map scope. */
+    $scope.$on("memberApply", function() {
+        if (dataBus.data) {
+            $scope.$apply(function(){
+                $scope.showMember();
+            });
+        }
     });
 
     $scope.setOfficeMarker = function(office) {
@@ -928,6 +952,8 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
                 $scope.district = data.district;
             });
             mapService.clearMarkers();
+
+            /** Clicking an office marker will open info pane with details */
             $.each(data.member.offices, function(i, office){
                 if (office && office.name != null && office.name != "") {
                     mapService.setMarker(office.latitude, office.longitude, office.name, false, false,
@@ -946,6 +972,26 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
 
 $(document).ready(function(){
     initVerticalMenu();
+
+    /** Expand/Collapse behavior for search containers
+     * TODO: Move to directive */
+    var activeSearchContainer = ".search-container:visible";
+    var activeSearchContent = ".search-container:visible .search-container-content";
+    $(".collapse-search").on("click", function(){
+        $(activeSearchContent).hide();
+        $(activeSearchContainer).animate({
+            width: '150px'
+        }, 100, function(){});
+    });
+
+    $(".expand-search").on("click", function() {
+        var width = $(activeSearchContainer).hasClass("small") ? "240px" : "350px";
+        $(activeSearchContainer).animate({
+            width: width
+        }, 100, function(){
+            $(activeSearchContent).fadeIn();
+        });
+    });
 
     /**
      * Google maps doesn't have a native get bounds method for polygons.

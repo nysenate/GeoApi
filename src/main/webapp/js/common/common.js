@@ -15,20 +15,30 @@ sageCommon.factory('dataBus', function($rootScope) {
             this.viewId = viewId;
             $rootScope.$broadcast(this.viewHandleEvent);
         }
-    }
+    };
     return dataBus;
 });
 
-sageCommon.controller('MenuController', function($scope, dataBus){
-    $scope.index = 1;
+sageCommon.factory('menuService', function(dataBus) {
+    var menuService = {
+        methodIndex : '',
+        menuToggleEvent : 'toggleMethod',
 
-    $scope.toggleView = function(index) {
-        this.index = index;
-        dataBus.setBroadcast('toggleView', index);
+        toggleMethod : function(methodIndex) {
+            this.methodIndex = methodIndex;
+            dataBus.setBroadcast(this.menuToggleEvent, methodIndex);
+        },
+
+        isMethodActive : function(methodIndex) {
+            return this.methodIndex == methodIndex;
+        }
     };
+    return menuService;
+});
 
+sageCommon.controller('MenuController', function($scope, menuService){
     $scope.toggleMethod = function(index) {
-        dataBus.setBroadcast('toggleMethod', index);
+        menuService.toggleMethod(index);
     }
 });
 

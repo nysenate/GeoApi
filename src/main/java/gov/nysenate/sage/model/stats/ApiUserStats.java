@@ -19,4 +19,28 @@ public class ApiUserStats
     public void setApiUser(ApiUser apiUser) {
         this.apiUser = apiUser;
     }
+
+    public int getDailyApiRequests() {
+        return dailyApiRequests;
+    }
+
+    public void setDailyApiRequests(int dailyApiRequests) {
+        this.dailyApiRequests = dailyApiRequests;
+    }
+
+    public int getMonthlyApiRequests() {
+        return monthlyApiRequests;
+    }
+
+    public void setMonthlyApiRequests(int monthlyApiRequests) {
+        this.monthlyApiRequests = monthlyApiRequests;
+    }
+
+    public int getLifetimeApiRequests() {
+        return lifetimeApiRequests;
+    }
+
+    public void setLifetimeApiRequests(int lifetimeApiRequests) {
+        this.lifetimeApiRequests = lifetimeApiRequests;
+    }
 }

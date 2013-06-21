@@ -22,6 +22,12 @@ public class ApiUser implements Serializable
 		this.description = description;
 	}
 
+    public ApiUser(int id, String apiKey, String name, String description)
+    {
+        this(apiKey, name, description);
+        this.id = id;
+    }
+
 	public int getId() {
 		return id;
 	}
