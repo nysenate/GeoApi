@@ -9,8 +9,9 @@ import org.apache.log4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import static gov.nysenate.sage.model.stats.ApiUsageStats.IntervalUsage;
 
 public class ApiUsageStatsDao extends BaseDao
 {
@@ -35,9 +36,10 @@ public class ApiUsageStatsDao extends BaseDao
         String sql = "SELECT date_trunc('" + requestInterval.field + "', requestTime) AS requestInterval, COUNT(*) AS requests \n" +
                      "FROM log.apiRequests AS ar \n" +
                      "WHERE ar.requestTime >= ? AND ar.requestTime <= ? \n" +
-                     "GROUP BY date_trunc('" + requestInterval.field + "', requestTime)\n";
+                     "GROUP BY date_trunc('" + requestInterval.field + "', requestTime)\n" +
+                     "ORDER BY requestInterval";
         try {
-            Map<Timestamp, Integer> intervalUsageCounts = run.query(sql, new ApiUsageCountsHandler(), from, to);
+            List<IntervalUsage> intervalUsageCounts = run.query(sql, new ApiIntervalUsageHandler(), from, to);
             apiUsageStats.setIntervalSizeInMinutes(requestInterval.minutes);
             apiUsageStats.setIntervalFrom(from);
             apiUsageStats.setIntervalTo(to);
@@ -50,13 +52,13 @@ public class ApiUsageStatsDao extends BaseDao
         return null;
     }
 
-    private class ApiUsageCountsHandler implements ResultSetHandler<Map<Timestamp, Integer>> {
+    private class ApiIntervalUsageHandler implements ResultSetHandler<List<IntervalUsage>> {
 
         @Override
-        public Map<Timestamp, Integer> handle(ResultSet rs) throws SQLException {
-            Map<Timestamp, Integer> usageCounts = new HashMap<>();
+        public List<IntervalUsage> handle(ResultSet rs) throws SQLException {
+            List<IntervalUsage> usageCounts = new ArrayList<>();
             while (rs.next()) {
-                usageCounts.put(rs.getTimestamp("requestInterval"), rs.getInt("requests"));
+                usageCounts.add(new IntervalUsage(rs.getTimestamp("requestInterval"), rs.getInt("requests")));
             }
             return usageCounts;
         }

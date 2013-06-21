@@ -973,6 +973,26 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
 $(document).ready(function(){
     initVerticalMenu();
 
+    /** Expand/Collapse behavior for search containers
+     * TODO: Move to directive */
+    var activeSearchContainer = ".search-container:visible";
+    var activeSearchContent = ".search-container:visible .search-container-content";
+    $(".collapse-search").on("click", function(){
+        $(activeSearchContent).hide();
+        $(activeSearchContainer).animate({
+            width: '150px'
+        }, 100, function(){});
+    });
+
+    $(".expand-search").on("click", function() {
+        var width = $(activeSearchContainer).hasClass("small") ? "240px" : "350px";
+        $(activeSearchContainer).animate({
+            width: width
+        }, 100, function(){
+            $(activeSearchContent).fadeIn();
+        });
+    });
+
     /**
      * Google maps doesn't have a native get bounds method for polygons.
      * @return {google.maps.LatLngBounds}

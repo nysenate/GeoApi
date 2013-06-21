@@ -1,14 +1,28 @@
 package gov.nysenate.sage.model.stats;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 
 public class ApiUsageStats
 {
+    /**
+     * Represents usage count at a given time slice
+     */
+    public static class IntervalUsage {
+        public Timestamp time;
+        public int count;
+
+        public IntervalUsage(Timestamp time, int count) {
+            this.time = time;
+            this.count = count;
+        }
+    }
+
     private int intervalSizeInMinutes;
     private Timestamp intervalFrom;
     private Timestamp intervalTo;
-    private Map<Timestamp, Integer> intervalUsageCounts;
+    private List<IntervalUsage> intervalUsageCounts;
 
     public ApiUsageStats() {}
 
@@ -36,11 +50,11 @@ public class ApiUsageStats
         this.intervalTo = intervalTo;
     }
 
-    public Map<Timestamp, Integer> getIntervalUsageCounts() {
+    public List<IntervalUsage> getIntervalUsageCounts() {
         return intervalUsageCounts;
     }
 
-    public void setIntervalUsageCounts(Map<Timestamp, Integer> intervalUsageCounts) {
+    public void setIntervalUsageCounts(List<IntervalUsage>intervalUsageCounts) {
         this.intervalUsageCounts = intervalUsageCounts;
     }
 }

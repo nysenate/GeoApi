@@ -254,6 +254,11 @@ em {color: red;}
     padding:0 20px !important;
 }
 
+.collapse-search, .expand-search {
+    margin-right:10px;
+    cursor: pointer;
+}
+
 .options-table {
     border-top:1px solid #ddd;
     width:95%;
