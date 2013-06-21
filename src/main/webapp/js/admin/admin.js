@@ -1,124 +1,127 @@
 var sageAdmin = angular.module('sage-admin', ['sage-common']);
+var baseAdminApi = contextPath + "/admin";
 
-sageAdmin.controller('DashboardController', function($scope, dataBus) {
+sageAdmin.controller('DashboardController', function($scope, $http, dataBus) {
     $scope.id = 1;
     $scope.visible = true;
     $scope.$on('toggleView', function(){
         $scope.visible = ($scope.id == dataBus.data);
     });
+
+    $scope.getDeploymentStats = function() {
+        $http.post(baseAdminApi + "/deployment")
+            .success(function(data){
+                $scope = angular.extend($scope, data);
+            })
+            .error(function(data){
+                console.log("Error retrieving deployment stats! " + data);
+            });
+    };
+
+    $scope.getUsageStats = function(startTime, endTime) {
+        $http.post(baseAdminApi + "/usage?interval=HOUR&from=" + startTime + "&to=" + endTime)
+            .success(function(data){
+                $scope = angular.extend($scope, data);
+                getSeriesData($scope.intervalFrom, $scope.intervalTo, $scope.intervalSizeInMinutes, $scope.intervalUsageCounts);
+            })
+            .error(function(data){
+                console.log("Error retrieving deployment stats! " + data);
+            });
+    };
+
+    var getSeriesData = function(startDate, endDate, interval, data) {
+        var seriesData = [];
+        var intervalMilli = interval * 60000;
+        var next = startDate;
+        console.log("Start: " + new Date(next));
+        $.each(data, function(i, v) {
+            while (next < v.time && next < endDate) {
+                console.log("-- " + new Date(next));
+                seriesData.push(0);
+                next += intervalMilli;
+            }
+            console.log("HIT " + new Date(v.time));
+            seriesData.push(v.count);
+            next += intervalMilli;
+        });
+        makeApiUsageChart(startDate, seriesData);
+    };
+
+    (function(){
+        var now = new Date();
+        var from = new Date(2013,4,19);
+        var toTimestamp = +(now);
+        var fromTimestamp = +(from);
+
+        $scope.getDeploymentStats();
+        $scope.getUsageStats(fromTimestamp, toTimestamp);
+    }());
 });
 
 $(document).ready(function() {
     initVerticalMenu();
 });
 
-$(function () {
-    $('#geocoder-stats-pie').highcharts({
-        colors: ['#058DC7', '#50B432', '#ED561B', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],
+function makeApiUsageChart(startDate, seriesData) {
+    $('#api-usage-stats').highcharts({
         chart: {
-            plotBackgroundColor: null,
-            plotBorderWidth: null,
-            plotShadow: false,
-            margin: [0,0,60,0],
-            spacing: [0,0,0,0],
-            height: 270
+            zoomType: 'x',
+            spacingRight: 20,
+            height: 300
         },
-        credits: { enabled: false },
-        title: { text: null },
+        credits: {
+            enabled: false
+        },
+        title: {
+            text: 'Api Hourly Usage'
+        },
+        subtitle: {
+            text: 'Highlight an area to zoom in'
+        },
+        xAxis: {
+            type: 'datetime',
+            maxZoom: 3600000, // 1 hour
+            title: {
+                text: null
+            },
+            tickColor: 'teal',
+            tickWidth: 3
+        },
+        yAxis: {
+            title: {
+                text: 'Requests per hour'
+            },
+            min: 0
+        },
         tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage}%</b>',
-            percentageDecimals: 1
+            shared: true
         },
         legend: {
-            backgroundColor: '#fefefe',
-            borderRadius: 0,
-            verticalAlign: 'bottom',
-            y: -10
+            enabled: false
         },
         plotOptions: {
-            pie: {
-                allowPointSelect: true,
-                cursor: 'pointer',
-                dataLabels: {
+            area: {
+                fillColor: 'orangered',
+                lineWidth: 1,
+                lineColor: 'orangered',
+                marker: {
                     enabled: false
                 },
-                showInLegend: true
+                shadow: true,
+                states: {
+                    hover: {
+                        lineWidth: 1
+                    }
+                },
+                threshold: null
             }
         },
         series: [{
-            type: 'pie',
-            name: 'Geocoder usage',
-            data: [
-                ['YahooDao',   60.0],
-                ['YahooBossDao',  32.0],
-                ['MapQuest',    2.0],
-                ['Tiger',     6.0]
-            ]
+            type: 'area',
+            name: 'Requests',
+            pointInterval: 3600 * 1000,
+            pointStart: startDate - (4 * 3600000), /* EST Time zone correction ~.~ */
+            data: seriesData
         }]
     });
-    $('#api-usage-stats').highcharts({
-            chart: {
-                zoomType: 'x',
-                spacingRight: 20,
-                height: 300
-            },
-            title: {
-                text: 'Api Requests Since Deployment'
-            },
-            subtitle: {
-                text: document.ontouchstart === undefined ?
-                    'Click and drag in the plot area to zoom in' :
-                    'Drag your finger over the plot to zoom in'
-            },
-            xAxis: {
-                type: 'datetime',
-                maxZoom: 3600000, // 1 hour
-                title: {
-                    text: null
-                }
-            },
-            yAxis: {
-                title: {
-                    text: 'Requests per hour'
-                }
-            },
-            tooltip: {
-                shared: true
-            },
-            legend: {
-                enabled: false
-            },
-            plotOptions: {
-                area: {
-                    fillColor: {
-                        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
-                        stops: [
-                            [0, Highcharts.getOptions().colors[0]],
-                            [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
-                        ]
-                    },
-                    lineWidth: 1,
-                    marker: {
-                        enabled: false
-                    },
-                    shadow: false,
-                    states: {
-                        hover: {
-                            lineWidth: 1
-                        }
-                    },
-                    threshold: null
-                }
-            },
-
-            series: [{
-                type: 'area',
-                name: 'Requests',
-                pointInterval: 3600 * 1000,
-                pointStart: Date.UTC(2013, 5, 11),
-                data: [12, 0, 2, 2, 5, 5, 0, 0, 0, 0 , 0, 0, 0, 18, 19, 20, 34]
-            }]
-        });
-
-
-});
+}

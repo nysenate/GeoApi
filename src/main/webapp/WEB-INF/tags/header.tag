@@ -1,5 +1,10 @@
 <%@tag description="Sage Header Template" pageEncoding="UTF-8"%>
-<div class="top-header">
-    <div class="icon-earth large-icon teal"></div>
-    <div id="sageLogoText"><a style="color:white" href="${pageContext.request.contextPath}">SAGE</a></div>
+<%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
+<%@attribute name="ngController" fragment="true" required="false" %>
+<%@attribute name="links" fragment="true" required="false" %>
+<div style="width:100%" id="header" ng-controller="<jsp:invoke fragment="ngController"/>">
+    <sage:logo></sage:logo>
+    <ul class="top-method-header">
+        <jsp:invoke fragment="links"/>
+    </ul>
 </div>

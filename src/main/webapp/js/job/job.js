@@ -8,23 +8,6 @@ sageJob.filter('yesno', function(){
     }
 });
 
-/**
- * The menu controller broadcasts a toggleMethod event containing
- * an index. The receiving controllers are preset with an id that
- * corresponds to its index. If the index matches the id then the
- * container for that controller will be visible.
- */
-sageJob.controller('MenuController', function($scope, $window, dataBus){
-    $scope.active = 2;
-    $scope.toggleMethod = function(index) {
-        dataBus.setBroadcast("toggleMethod", index);
-    }
-    $scope.logout = function() {
-        $window.location.href = contextPath + '/job/logout';
-    }
-    $scope.toggleMethod(2);
-});
-
 sageJob.controller('JobAuthController', function($scope, $http) {
     $scope.visible = true;
     $scope.email = "";
@@ -33,27 +16,29 @@ sageJob.controller('JobAuthController', function($scope, $http) {
     $scope.errorMessage = "";
 });
 
-sageJob.controller('JobUploadController', function($scope, $http, dataBus) {
+sageJob.controller('JobController', function($scope, menuService) {
+    (function(){menuService.toggleMethod(2);}());
+});
+
+sageJob.controller('JobUploadController', function($scope, $http, menuService, dataBus) {
     $scope.id = 1;
-    $scope.visible = false;
+    $scope.visible = true;
     $scope.empty = true;
     $scope.processes = [];
+
     $scope.addProcess = function(process) {
         this.empty = false;
         this.processes.push(process);
-    }
+    };
 
-    $scope.$on("toggleMethod", function(){
-        $scope.visible = ($scope.id == dataBus.data);
-        if ($scope.visible) {
-            console.log("initializing uploader!");
-            initUploader();
-        }
-
+    $scope.$on(menuService.menuToggleEvent, function(){
+        $scope.visible = menuService.isMethodActive($scope.id);
     });
+
+    initUploader();
 });
 
-sageJob.controller('JobStatusController', function($scope, $http, dataBus) {
+sageJob.controller('JobStatusController', function($scope, $http, menuService, dataBus) {
     $scope.id = 2;
     $scope.visible = false;
     $scope.rpInterval = 0;  // Running processes interval id
@@ -66,12 +51,12 @@ sageJob.controller('JobStatusController', function($scope, $http, dataBus) {
 
     $scope.showProcessQueue = function() {
         return (this.activeProcesses.length > 0);
-    }
+    };
 
     $scope.lastCompletedRecords = 0;
 
-    $scope.$on("toggleMethod", function(){
-        $scope.visible = ($scope.id == dataBus.data);
+    $scope.$on(menuService.menuToggleEvent, function(){
+        $scope.visible = menuService.isMethodActive($scope.id);
         if ($scope.visible) {
             $scope.getActiveProcesses();
             $scope.getRunningProcesses();
@@ -84,7 +69,6 @@ sageJob.controller('JobStatusController', function($scope, $http, dataBus) {
             $scope.cpInterval = setInterval(function() {$scope.getActiveProcesses()}, 6000);
             $scope.cpInterval = setInterval(function() {$scope.getCompletedProcesses()}, 6000);
             $scope.rpInterval = setInterval(function() {$scope.getRunningProcesses()}, 3000);
-
         }
         else {
             clearInterval($scope.intervalId);
@@ -102,8 +86,8 @@ sageJob.controller('JobStatusController', function($scope, $http, dataBus) {
                     $scope.runningProcesses = data.statuses;
                     $scope.computeProgress();
                 }
-            }).error(function(data, status, headers, config) {
-
+            }).error(function(data) {
+                console.log("Failed to retrieve running job processes " + data);
             });
     }
 
@@ -126,10 +110,10 @@ sageJob.controller('JobStatusController', function($scope, $http, dataBus) {
                 else {
                     console.log("Active processes: " + data);
                 }
-            }).error(function(data, status, headers, config) {
+            }).error(function(data) {
                 console.log("Error retrieving active processes. " + data);
             });
-    }
+    };
 
     $scope.getCompletedProcesses = function() {
         $http.get(contextPath + baseStatusApi + "/completed")
@@ -140,16 +124,16 @@ sageJob.controller('JobStatusController', function($scope, $http, dataBus) {
             }).error(function(data, status){
                 console.log("Error retrieving completed processes.");
             });
-    }
+    };
 });
 
-sageJob.controller('JobHistoryController', function($scope, $http, dataBus) {
+sageJob.controller('JobHistoryController', function($scope, $http, menuService, dataBus) {
     $scope.id = 3;
     $scope.visible = false;
     $scope.allProcesses = [];
 
-    $scope.$on("toggleMethod", function(){
-        $scope.visible = ($scope.id == dataBus.data);
+    $scope.$on(menuService.menuToggleEvent, function(){
+        $scope.visible = menuService.isMethodActive($scope.id);
         if ($scope.visible) {
             $scope.getAllProcesses();
         }

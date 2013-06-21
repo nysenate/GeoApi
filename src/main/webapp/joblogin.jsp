@@ -10,7 +10,13 @@
         <script src="${pageContext.request.contextPath}/js/job/job.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
-        <sage:header></sage:header>
+        <sage:header>
+            <jsp:attribute name="ngController">MenuController</jsp:attribute>
+            <jsp:attribute name="links">
+                <li><a class="active">Login</a></li>
+            </jsp:attribute>
+        </sage:header>
+
         <h1 style="text-align: center; color:#222;">SAGE Batch Services</h1>
         <div style="margin:auto;width:720px;text-align: center;">
             <p>SAGE provides batch geocoding and district assignment services to registered users.</p>

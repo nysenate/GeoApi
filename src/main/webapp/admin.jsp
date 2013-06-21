@@ -27,18 +27,12 @@
                     <h3>SAGE Dashboard</h3>
                     <div id="uptime-stats">
                         <ul class="highlight-section">
-                            <li><label>Last Deployed | </label> {{${lastDeployed} | date:'medium'}}</li>
-                            <li><label>Latest Uptime | </label>{{${latestUptime / 3600000} | number:3}} hours</li>
-                            <li><label>Api Requests Since Deployment | </label>${latestRequestsSince}</li>
+                            <li><label>Last Deployed | </label> {{lastDeployment.deployTime | date:'medium'}}</li>
+                            <li><label>Latest Uptime | </label>{{latestUptime / 3600000 | number:3}} hours</li>
+                            <li><label>Api Requests Since Deployment | </label>{{requestsSinceLatest}}</li>
                         </ul>
                     </div>
                     <div id="api-usage-stats" class="highlight-section"></div>
-                    <div id="geocoder-stats" class="highlight-section">
-                        <h4 style='margin:5px 0px'>Geocoder usage distribution</h4>
-                        <div id="geocoder-stats-pie">
-                            <!-- Highcharts pie here -->
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
