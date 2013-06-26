@@ -43,12 +43,6 @@ sageCommon.controller('MenuController', function($scope, menuService){
 });
 
 function initVerticalMenu() {
-    $("p.method-header").click(function(event) {
-        if (!$(this).hasClass("active")) {
-            $("p.method-header.active").removeClass("active");
-            $(this).addClass("active");
-        }
-    });
     $(".top-method-header li a").click(function(event) {
         if (!$(this).hasClass("active")) {
             $(".top-method-header li a.active").removeClass("active");

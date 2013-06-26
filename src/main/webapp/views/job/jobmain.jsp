@@ -29,7 +29,7 @@
 
         <div id="contentwrapper" ng-controller="JobController">
             <div id="contentcolumn" style="margin:0;padding-top:20px;background-color:#f5f5f5">
-                <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController">
+                <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController" style="width:100%;height:100%;">
                     <form id="uploadForm" method="post" action="${contextPath}/job/submit" style="width:95%;margin:auto;">
                         <ol>
                             <li>
@@ -54,14 +54,21 @@
                                                 <td>{{process.recordCount}}</td>
                                             </tr>
                                             <tr ng-show="empty">
-                                                <td><p style="color:#444;">Upload queue is empty</p></td>
+                                                <td><p style="color:#444;">The upload queue is empty. Use the Upload File button below to add files.</p></td>
                                             </tr>
                                         </table>
                                     </div>
+                                    <div style="margin-top:10px;">
+                                        <div id="fileUploaderBasic" class="qq-upload-button">
+                                            <div class="icon-upload icon-teal"></div> Upload a file
+                                        </div>
+                                        <div id="fileUploadProgress" style="">&nbsp;
+                                        </div>
+                                    </div>
                                 </div>
-                                <div id="fileuploader">
-                                    <noscript><p>Please enable Javascript to use the file uploader</p></noscript>
-                                </div>
+                                <noscript>
+                                    Please enable JavaScript in your browser.
+                                </noscript>
                             </li>
                             <li class="submit-li">
                                 <label>&nbsp;</label>
@@ -186,3 +193,5 @@
         </div>
     </jsp:body>
 </sage:wrapper>
+</body>
+</html>

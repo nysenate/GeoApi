@@ -11,14 +11,14 @@
         <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/app.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">
         <div style="width:100%" id="header" ng-controller="MenuController">
             <sage:logo></sage:logo>
             <ul class="top-method-header">
-                <li><a class="active" ng-click="toggleMethod(1)">District Assign</a></li>
+                <li><a class="active" ng-click="toggleMethod(1)">District Lookup</a></li>
                 <li><a ng-click="toggleMethod(2)">District Maps</a></li>
                 <li><a ng-click="toggleMethod(3)">Street Finder</a></li>
                 <li ng-click="toggleMethod(4)"><a>Reverse Geocode</a></li>
@@ -86,7 +86,7 @@
             <div id="districtInfoSearch" class="search-container" ng-controller="DistrictInfoController" ng-show="visible">
                 <form id="districtsFormMini" action="" method="post">
                     <div class="icon-directions icon-teal"></div>
-                    <label for="addressInput" ng-hide="minimized">Enter an address to district assign</label>
+                    <label for="addressInput" ng-hide="minimized">Enter an address for district lookup</label>
                     <label ng-show="minimized" ng-click="minimized=false;" class="expand-search">Show search</label>
                     <div ng-click="minimized=true;" ng-hide="minimized" class="collapse-search icon-arrow-up4 icon-hover-teal small-right-icon"></div>
                     <div ng-click="minimized=false;" ng-show="minimized" class="expand-search icon-arrow-down4 icon-hover-teal small-right-icon"></div>
@@ -123,8 +123,6 @@
                                             <option value="yahooboss">Yahoo Boss</option>
                                             <option value="tiger">Tiger</option>
                                             <option value="mapquest">MapQuest</option>
-                                            <option value="ruby">Ruby</option>
-                                            <option value="osm">OSM</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -145,7 +143,7 @@
                         <div class="section">
                             <div style="float:left">
                                 <label for="districtTypeMenu" class="menu-overhead">Type</label>
-                                <select id="districtTypeMenu" class="menu" style="width:85px;" ng-model="type" ng-change="metaLookup();">
+                                <select id="districtTypeMenu" class="menu" style="width:100px;" ng-model="type" ng-change="metaLookup();">
                                     <option value="senate">Senate</option>
                                     <option value="congressional">Congressional</option>
                                     <option value="assembly">Assembly</option>
@@ -156,13 +154,7 @@
                             </div>
                             <div style="float:left">
                                 <label for="districtCodeMenu" class="menu-overhead">District</label>
-                                <select id="districtCodeMenu" class="menu" style="width:190px;" ng-model="selectedDistrict" ng-options="d.name for d in districtList"></select>
-                            </div>
-                            <div style="float:left">
-                                <label class="menu-overhead">&nbsp;</label>
-                                <button class="submit mini compact" ng-click="lookup();">
-                                    <div class="icon-search icon-white-no-hover"></div>
-                                </button>
+                                <select id="districtCodeMenu" class="menu" ng-change="lookup()" style="width:220px;" ng-model="selectedDistrict" ng-options="d.name for d in districtList"></select>
                             </div>
                         </div>
                         <a ng-show="showMemberOption" ng-click="showMemberList=true;showMemberOption=false;" class="options-link" ng-click="">Show Senator/Member List</a>
@@ -170,7 +162,7 @@
                         <div style="border-top:1px solid #ddd;margin-top:4px;padding:5px;" ng-show="showMemberList">
                             <div style="float:left">
                                 <label for="districtMemberMenu" class="menu-overhead">Member</label>
-                                <select id="districtMemberMenu" class="menu" style="width:280px;" ng-model="selectedDistrict" ng-options="d.member.name for d in districtList"></select>
+                                <select id="districtMemberMenu" class="menu" style="width:280px;" ng-change="lookup()" ng-model="selectedDistrict" ng-options="d.member.name for d in sortedMemberList"></select>
                             </div>
                         </div>
                     </div>
@@ -232,8 +224,8 @@
                 <div style="float:left;">Results</div>
                 <div class="icon-arrow-up2 icon-hover-white small-right-icon"></div>
             </div>
-            <div id="district-results" ng-controller="DistrictsViewController">
-                <div ng-show="visible">
+            <div id="district-results" ng-show="visible" ng-controller="DistrictsViewController" class="scrollable-content">
+                <div>
                     <div id="success-district-results" ng-show="districtAssigned">
                         <div class="info-container clickable senator" title="Show Senate District Map" ng-click="showDistrict('senate');">
                             <div class="senator-pic-holder">

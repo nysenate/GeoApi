@@ -41,6 +41,13 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.districtData = null;
 
     /**
+     * Resize when window size changes
+     */
+    google.maps.event.addDomListener(window, 'resize', function() {
+        mapService.resizeMap();
+    });
+
+    /**
      * Triggers a map resize
      */
     mapService.resizeMap = function() {
@@ -141,7 +148,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                     strokeOpacity: 1,
                     strokeWeight: 2,
                     fillColor: (color) ? color : "teal",
-                    fillOpacity: 0.1
+                    fillOpacity: 0.05
                 });
 
                 /** On mouseover update the header title */
@@ -155,7 +162,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
                 /** On mouseout restore the opacity */
                 google.maps.event.addListener(polygon,"mouseout",function(){
-                    this.setOptions({fillOpacity: 0.2});
+                    this.setOptions({fillOpacity: 0.05});
                 });
 
                 /** Set up event handling for mouse click on polygon */
@@ -438,7 +445,7 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
      */
     $scope.getDistUrl = function () {
         var url = contextPath + baseApi + "/district/assign?addr=" + this.addr;
-        url += (/\s(ny|new york)/i.test(this.addr)) ? "" : " NY";
+        //url += (/\s(ny|new york)/i.test(this.addr)) ? "" : " NY"; (appends NY, not necessary)
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
         url += "&showMembers=true&showMaps=true";
@@ -457,6 +464,7 @@ sage.controller("DistrictMapController", function($scope, $http, menuService, da
     $scope.type = "";
     $scope.showMemberOption = false;
     $scope.showMemberList = false;
+    $scope.sortedMemberList = [];
     $scope.districtList = [];
     $scope.selectedDistrict = "";
 
@@ -475,9 +483,14 @@ sage.controller("DistrictMapController", function($scope, $http, menuService, da
         $http.get(this.getDistrictMapUrl(this.type, null, true))
             .success(function(data) {
                 $scope.showMemberOption = ($scope.type === 'senate' || $scope.type === 'congressional' || $scope.type === 'assembly');
+                if ($scope.showMemberOption) {
+                    $scope.sortedMemberList = data.districts.slice(0);
+                    $scope.sortedMemberList = $scope.sortedMemberList.sort(function(a, b){
+                        return a.member.name.localeCompare(b.member.name);
+                    });
+                }
                 $scope.showMemberList = false;
-                $scope.selectedDistrict = {district:null, name:'All districts'};
-                data.districts.unshift($scope.selectedDistrict);
+                data.districts.unshift({district:null, name:'All districts'});
                 $scope.districtList = data.districts;
             })
             .error(function(data){});
@@ -972,6 +985,7 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
 
 $(document).ready(function(){
     initVerticalMenu();
+    resizeContentColumn();
 
     /** Expand/Collapse behavior for search containers
      * TODO: Move to directive */
@@ -992,6 +1006,46 @@ $(document).ready(function(){
             $(activeSearchContent).fadeIn();
         });
     });
+
+    /**
+     * Debounced Resize() jQuery Plugin
+     */
+    (function($,sr){
+
+        // debouncing function from John Hann
+        // http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
+        var debounce = function (func, threshold, execAsap) {
+            var timeout;
+
+            return function debounced () {
+                var obj = this, args = arguments;
+                function delayed () {
+                    if (!execAsap)
+                        func.apply(obj, args);
+                    timeout = null;
+                };
+
+                if (timeout)
+                    clearTimeout(timeout);
+                else if (execAsap)
+                    func.apply(obj, args);
+
+                timeout = setTimeout(delayed, threshold || 100);
+            };
+        }
+        // smartresize
+        jQuery.fn[sr] = function(fn){  return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr); };
+
+    })(jQuery,'smartresize');
+
+    $(window).smartresize(function(e){
+        resizeContentColumn();
+    });
+
+    function resizeContentColumn() {
+        $('#contentcolumn').height($(window).height() - 81);
+        $('.scrollable-content').height($(window).height() - 80);
+    }
 
     /**
      * Google maps doesn't have a native get bounds method for polygons.

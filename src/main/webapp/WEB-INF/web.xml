@@ -117,6 +117,19 @@
         <url-pattern>/job/status/*</url-pattern>
     </servlet-mapping>
 
+    <!-- TEST -->
+    <servlet>
+        <display-name>JobController2</display-name>
+        <servlet-name>JobController2</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.job.JobController2</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>JobController2</servlet-name>
+        <url-pattern>/jobtest/*</url-pattern>
+    </servlet-mapping>
+
+
+
     <!-- Map v2 Controller mapping -->
     <servlet>
         <display-name>EmbeddedMapController</display-name>
@@ -130,16 +143,6 @@
 
     <!-- Admin v2 Controller mapping -->
     <servlet>
-        <display-name>AdminViewController</display-name>
-        <servlet-name>AdminViewController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.admin.AdminViewController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AdminViewController</servlet-name>
-        <url-pattern>/adminview/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
         <display-name>AdminController</display-name>
         <servlet-name>AdminController</servlet-name>
         <servlet-class>gov.nysenate.sage.controller.admin.AdminController</servlet-class>
@@ -148,7 +151,4 @@
         <servlet-name>AdminController</servlet-name>
         <url-pattern>/admin/*</url-pattern>
     </servlet-mapping>
-
-
-
 </web-app>

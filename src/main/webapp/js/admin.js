@@ -1,10 +1,10 @@
 var sageAdmin = angular.module('sage-admin', ['sage-common']);
 var baseAdminApi = contextPath + "/admin";
 
-sageAdmin.controller('DashboardController', function($scope, $http, dataBus) {
+sageAdmin.controller('DashboardController', function($scope, $http, menuService, dataBus) {
     $scope.id = 1;
     $scope.visible = true;
-    $scope.$on('toggleView', function(){
+    $scope.$on(menuService.menuToggleEvent, function(){
         $scope.visible = ($scope.id == dataBus.data);
     });
 
@@ -33,14 +33,12 @@ sageAdmin.controller('DashboardController', function($scope, $http, dataBus) {
         var seriesData = [];
         var intervalMilli = interval * 60000;
         var next = startDate;
-        console.log("Start: " + new Date(next));
         $.each(data, function(i, v) {
             while (next < v.time && next < endDate) {
                 console.log("-- " + new Date(next));
                 seriesData.push(0);
                 next += intervalMilli;
             }
-            console.log("HIT " + new Date(v.time));
             seriesData.push(v.count);
             next += intervalMilli;
         });
@@ -61,6 +59,8 @@ sageAdmin.controller('DashboardController', function($scope, $http, dataBus) {
 $(document).ready(function() {
     initVerticalMenu();
 });
+
+
 
 function makeApiUsageChart(startDate, seriesData) {
     $('#api-usage-stats').highcharts({
@@ -100,14 +100,14 @@ function makeApiUsageChart(startDate, seriesData) {
             enabled: false
         },
         plotOptions: {
-            area: {
-                fillColor: 'orangered',
+            areaspline : {
+                fillColor: 'teal',
                 lineWidth: 1,
-                lineColor: 'orangered',
+                lineColor: 'teal',
                 marker: {
                     enabled: false
                 },
-                shadow: true,
+                shadow: false,
                 states: {
                     hover: {
                         lineWidth: 1
@@ -117,7 +117,7 @@ function makeApiUsageChart(startDate, seriesData) {
             }
         },
         series: [{
-            type: 'area',
+            type: 'areaspline',
             name: 'Requests',
             pointInterval: 3600 * 1000,
             pointStart: startDate - (4 * 3600000), /* EST Time zone correction ~.~ */
