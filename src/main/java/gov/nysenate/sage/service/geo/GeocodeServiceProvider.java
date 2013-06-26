@@ -140,7 +140,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             }
         }
         /** If attempt failed, use the fallback providers if allowed */
-        if (!geocodeResult.isSuccess() && useFallback) {
+        if (geocodeResult != null && !geocodeResult.isSuccess() && useFallback) {
             Iterator<String> fallbackIterator = fallback.iterator();
             while (!geocodeResult.isSuccess() && fallbackIterator.hasNext()) {
                 provider = fallbackIterator.next();

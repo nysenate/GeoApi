@@ -10,6 +10,7 @@ import gov.nysenate.sage.dao.stats.DeploymentStatsDao;
 import gov.nysenate.sage.model.stats.ApiUsageStats;
 import gov.nysenate.sage.model.stats.ApiUserStats;
 import gov.nysenate.sage.model.stats.DeploymentStats;
+import gov.nysenate.sage.model.stats.ExceptionStats;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class AdminController extends BaseAdminController
 {
@@ -52,6 +54,10 @@ public class AdminController extends BaseAdminController
                 }
                 case "/deployment" : {
                     adminResponse = getDeploymentStats(request);
+                    break;
+                }
+                case "/exception" : {
+
                     break;
                 }
                 default : {
@@ -100,5 +106,9 @@ public class AdminController extends BaseAdminController
         }
 
         return apiUsageStatsDao.getApiUsageStats(from, to, requestInterval);
+    }
+
+    private ExceptionStats getExceptionStats(HttpServletRequest request) {
+        return null;
     }
 }

@@ -1,17 +1,17 @@
 package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
+import gov.nysenate.sage.service.map.MapService;
+import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
@@ -32,13 +32,20 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     }
 
     private final Logger logger = Logger.getLogger(DistrictServiceProvider.class);
-    private Config config = ApplicationFactory.getConfig();
+    private final Config config = ApplicationFactory.getConfig();
 
     private static DistrictStrategy SINGLE_DISTRICT_STRATEGY;
     private static DistrictStrategy BATCH_DISTRICT_STRATEGY;
 
     /** Specifies the distance to a district boundary in which the accuracy of shapefiles is uncertain */
     private static Double PROXIMITY_THRESHOLD = 0.001;
+
+    /** Specifies the set of districts that are allowed to obtain nearby neighbor info. The reason every
+     * district that has shape files can't do this is because the query can be rather slow. */
+    private static final Set<DistrictType> allowNeighborAssignSet = new HashSet<>();
+    static {
+        allowNeighborAssignSet.add(DistrictType.SENATE);
+    }
 
     public DistrictServiceProvider()
     {
@@ -96,95 +103,88 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         DistrictResult districtResult = null, streetFileResult, shapeFileResult;
         ExecutorService districtExecutor = null;
 
-        /** Check that state is NY if set */
-        if (isValidNYAddress(geocodedAddress)) {
-            if (this.isRegistered(distProvider)) {
-                DistrictService districtService = this.newInstance(distProvider);
-                districtService.fetchMaps(getMaps);
-                districtResult = districtService.assignDistricts(geocodedAddress, districtTypes);
-            }
-            else {
-                try {
-                    DistrictService shapeFileService = this.newInstance("shapefile");
-                    DistrictService streetFileService = this.newInstance("streetfile");
-                    if (districtStrategy == null) {
-                        districtStrategy = SINGLE_DISTRICT_STRATEGY;
-                    }
-                    logger.info("Using district assign strategy: " + districtStrategy);
-
-                    switch (districtStrategy) {
-                        case neighborMatch:
-                            districtExecutor = Executors.newFixedThreadPool(2);
-
-                            Callable<DistrictResult> shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
-                            Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
-
-                            Future<DistrictResult> shapeFileFuture = districtExecutor.submit(shapeFileCall);
-                            Future<DistrictResult> streetFileFuture = districtExecutor.submit(streetFileCall);
-
-                            shapeFileResult = shapeFileFuture.get();
-                            districtResult = assignNeighbors(shapeFileService, shapeFileResult, getMaps);
-
-                            streetFileResult = streetFileFuture.get();
-                            districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
-                                    streetFileResult, DistrictStrategy.neighborMatch, getMaps);
-                            break;
-
-                        case streetFallback:
-                            districtExecutor = Executors.newFixedThreadPool(2);
-
-                            shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
-                            streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
-
-                            shapeFileFuture = districtExecutor.submit(shapeFileCall);
-                            streetFileFuture = districtExecutor.submit(streetFileCall);
-
-                            shapeFileResult = shapeFileFuture.get();
-                            streetFileResult = streetFileFuture.get();
-
-                            districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
-                                    streetFileResult, DistrictStrategy.streetFallback, getMaps);
-                            break;
-
-                        case shapeFallback:
-                            streetFileResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
-                            districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, null, streetFileResult,
-                                    DistrictStrategy.shapeFallback, getMaps);
-                            break;
-
-                        case streetOnly:
-                            districtResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
-                            break;
-
-                        default:
-                            logger.error("Incorrect batch district assignment strategy set. Cannot proceed with assignment!");
-                            break;
-                    }
-
-                    if (getMembers) {
-                        DistrictMemberProvider.assignDistrictMembers(districtResult);
-                    }
-                }
-                catch (InterruptedException ex) {
-                    logger.error("Failed to get district results from future!", ex);
-                }
-                catch (ExecutionException ex) {
-                    logger.error("Failed to get district results from future!", ex);
-                }
-                finally {
-                    if (districtExecutor != null) {
-                        districtExecutor.shutdownNow();
-                    }
-                }
-            }
-
-            if (getMembers) {
-                DistrictMemberProvider.assignDistrictMembers(districtResult);
-            }
+        if (this.isRegistered(distProvider)) {
+            DistrictService districtService = this.newInstance(distProvider);
+            districtService.fetchMaps(getMaps);
+            districtResult = districtService.assignDistricts(geocodedAddress, districtTypes);
         }
         else {
-            districtResult = new DistrictResult(this.getClass());
-            districtResult.setStatusCode(ResultStatus.NON_NY_STATE);
+            try {
+                DistrictService shapeFileService = this.newInstance("shapefile");
+                DistrictService streetFileService = this.newInstance("streetfile");
+                if (districtStrategy == null) {
+                    districtStrategy = SINGLE_DISTRICT_STRATEGY;
+                }
+                logger.info("Using district assign strategy: " + districtStrategy);
+
+                switch (districtStrategy) {
+                    case neighborMatch:
+                        districtExecutor = Executors.newFixedThreadPool(2);
+
+                        Callable<DistrictResult> shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
+                        Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
+
+                        Future<DistrictResult> shapeFileFuture = districtExecutor.submit(shapeFileCall);
+                        Future<DistrictResult> streetFileFuture = districtExecutor.submit(streetFileCall);
+
+                        shapeFileResult = shapeFileFuture.get();
+                        districtResult = assignNeighbors(shapeFileService, shapeFileResult, getMaps);
+
+                        streetFileResult = streetFileFuture.get();
+                        districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
+                                streetFileResult, DistrictStrategy.neighborMatch, getMaps);
+                        break;
+
+                    case streetFallback:
+                        districtExecutor = Executors.newFixedThreadPool(2);
+
+                        shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes, getMaps);
+                        streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes, false);
+
+                        shapeFileFuture = districtExecutor.submit(shapeFileCall);
+                        streetFileFuture = districtExecutor.submit(streetFileCall);
+
+                        shapeFileResult = shapeFileFuture.get();
+                        streetFileResult = streetFileFuture.get();
+
+                        districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
+                                streetFileResult, DistrictStrategy.streetFallback, getMaps);
+                        break;
+
+                    case shapeFallback:
+                        streetFileResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
+                        districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, null, streetFileResult,
+                                DistrictStrategy.shapeFallback, getMaps);
+                        break;
+
+                    case streetOnly:
+                        districtResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
+                        break;
+
+                    default:
+                        logger.error("Incorrect batch district assignment strategy set. Cannot proceed with assignment!");
+                        break;
+                }
+
+                if (getMembers) {
+                    DistrictMemberProvider.assignDistrictMembers(districtResult);
+                }
+            }
+            catch (InterruptedException ex) {
+                logger.error("Failed to get district results from future!", ex);
+            }
+            catch (ExecutionException ex) {
+                logger.error("Failed to get district results from future!", ex);
+            }
+            finally {
+                if (districtExecutor != null) {
+                    districtExecutor.shutdownNow();
+                }
+            }
+        }
+
+        if (getMembers) {
+            DistrictMemberProvider.assignDistrictMembers(districtResult);
         }
 
         districtResult.setGeocodedAddress(geocodedAddress);
@@ -387,35 +387,44 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                             /** If the street/shape files don't agree */
                             if (fallbackSet.contains(assignedType) && !shapeCode.equalsIgnoreCase(streetCode)) {
 
-                                /** Check the neighbor districts to see if one of them is the district found in the street result */
-                                List<DistrictMap> neighborMaps = shapeInfo.getNeighborMaps(assignedType);
-                                DistrictMap neighborMap = getNeighborMapByCode(neighborMaps, streetCode);
+                                /** Use neighbor matching only on the allowed districts (for performance) */
+                                if (allowNeighborAssignSet.contains(assignedType)) {
+                                    /** Check the neighbor districts to see if one of them is the district found in the street result */
+                                    List<DistrictMap> neighborMaps = shapeInfo.getNeighborMaps(assignedType);
+                                    DistrictMap neighborMap = getNeighborMapByCode(neighborMaps, streetCode);
 
-                                /** If there is a match in the neighboring districts, set the neighbor district as the actual one */
-                                if (neighborMap != null) {
-                                    logger.debug("Consolidating " + assignedType + " district from " + shapeCode + " to " + streetCode + " for " + address);
+                                    /** If there is a match in the neighboring districts, set the neighbor district as the actual one */
+                                    if (neighborMap != null) {
+                                        logger.debug("Consolidating " + assignedType + " district from " + shapeCode + " to " + streetCode + " for " + address);
 
-                                    /** Preserve the original result as it will become the neighbor district */
-                                    DistrictMap original = new DistrictMap();
-                                    original.setDistrictType(assignedType);
-                                    original.setDistrictCode(shapeInfo.getDistCode(assignedType));
-                                    original.setDistrictName(shapeInfo.getDistName(assignedType));
-                                    original.setPolygons((shapeInfo.getDistMap(assignedType) != null) ? shapeInfo.getDistMap(assignedType).getPolygons()
-                                            : new ArrayList<Polygon>());
+                                        /** Preserve the original result as it will become the neighbor district */
+                                        DistrictMap original = new DistrictMap();
+                                        original.setDistrictType(assignedType);
+                                        original.setDistrictCode(shapeInfo.getDistCode(assignedType));
+                                        original.setDistrictName(shapeInfo.getDistName(assignedType));
+                                        original.setPolygons((shapeInfo.getDistMap(assignedType) != null) ? shapeInfo.getDistMap(assignedType).getPolygons()
+                                                : new ArrayList<Polygon>());
 
-                                    /** Apply the new info */
-                                    shapeInfo.setDistCode(assignedType, neighborMap.getDistrictCode());
-                                    shapeInfo.setDistName(assignedType, neighborMap.getDistrictName());
-                                    shapeInfo.setDistMap(assignedType, neighborMap);
+                                        /** Apply the new info */
+                                        shapeInfo.setDistCode(assignedType, neighborMap.getDistrictCode());
+                                        shapeInfo.setDistName(assignedType, neighborMap.getDistrictName());
+                                        shapeInfo.setDistMap(assignedType, neighborMap);
 
-                                    /** Replace the neighbor */
-                                    int index = shapeInfo.getNeighborMaps(assignedType).indexOf(neighborMap);
-                                    shapeInfo.getNeighborMaps(assignedType).remove(index);
-                                    shapeInfo.getNeighborMaps(assignedType).set(0, original);
+                                        /** Replace the neighbor */
+                                        int index = shapeInfo.getNeighborMaps(assignedType).indexOf(neighborMap);
+                                        shapeInfo.getNeighborMaps(assignedType).remove(index);
+                                        shapeInfo.getNeighborMaps(assignedType).set(0, original);
+                                    }
+                                    /** Otherwise there was a mismatch between the street and shape files that can't be corrected */
+                                    else {
+                                        logger.warn("Shapefile/Streetfile mismatch for district " + assignedType + " for address " + address);
+                                    }
                                 }
-                                /** Otherwise there was a mismatch between the street and shape files that can't be corrected */
+                                /** Since neighbor matching is not allowed for this district, just assume street file is correct */
                                 else {
-                                    logger.warn("Shapefile/Streetfile mismatch for district " + assignedType + " for address " + address);
+                                    /** Apply the street file data */
+                                    logger.debug("Replacing " + assignedType + " district from " + shapeCode + " to " + streetCode + " for " + address);
+                                    replaceShapeWithStreet(assignedType, (MapService) shapeService, shapeInfo, streetInfo, getMaps);
                                 }
                             }
                             /** No comparison available. */
@@ -456,10 +465,10 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                             if (!shapeInfo.getAssignedDistricts().contains(assignedType) ||
                                 !shapeInfo.getDistCode(assignedType).equalsIgnoreCase(streetCode)) {
 
-                                    /** Apply the street file data */
-                                    shapeInfo.setDistCode(assignedType, streetInfo.getDistCode(assignedType));
-                                    shapeInfo.setDistName(assignedType, streetInfo.getDistName(assignedType));
-                                    shapeInfo.setDistMap(assignedType, null);
+                                /** Apply the street file data */
+                                shapeInfo.setDistCode(assignedType, streetInfo.getDistCode(assignedType));
+                                shapeInfo.setDistName(assignedType, streetInfo.getDistName(assignedType));
+                                shapeInfo.setDistMap(assignedType, null);
                             }
                         }
                     }
@@ -488,6 +497,33 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     }
 
     /**
+     *
+     * @param districtType
+     * @param shapeService
+     * @param shapeInfo
+     * @param streetInfo
+     * @param getMaps
+     * @return
+     */
+    private DistrictInfo replaceShapeWithStreet(DistrictType districtType, MapService shapeService, DistrictInfo shapeInfo,
+                                                  DistrictInfo streetInfo, boolean getMaps)
+    {
+        shapeInfo.setDistCode(districtType, streetInfo.getDistCode(districtType));
+        shapeInfo.setDistName(districtType, streetInfo.getDistName(districtType));
+
+        if (getMaps) {
+            MapResult mapResult = shapeService.getDistrictMap(districtType, streetInfo.getDistCode(districtType));
+            if (mapResult.isSuccess()) {
+                shapeInfo.setDistMap(districtType, mapResult.getDistrictMap());
+            }
+            else {
+                shapeInfo.setDistMap(districtType, null);
+            }
+        }
+        return shapeInfo;
+    }
+
+    /**
      * Assign nearest neighbor districts for any district that meets the proximity condition.
      * @param shapeService  Reference to a shape file lookup instance
      * @param shapeResult   The shape file DistrictResult
@@ -507,20 +543,22 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                     /** Designate that the district lines are close */
                     shapeInfo.addNearBorderDistrict(districtType);
 
-                    /** Fetch the neighbors and add them to the district info */
-                    Map<String, DistrictMap> neighborDistricts = shapeService.nearbyDistricts(geocodedAddress, districtType);
-                    if (neighborDistricts != null && neighborDistricts.size() > 0) {
-                        List neighborList = new ArrayList<DistrictMap>();
-                        for (DistrictMap neighborMap : neighborDistricts.values()) {
+                    /** Fetch the neighbors and add them to the district info if it is allowed. */
+                    if (allowNeighborAssignSet.contains(districtType)) {
+                        Map<String, DistrictMap> neighborDistricts = shapeService.nearbyDistricts(geocodedAddress, districtType);
+                        if (neighborDistricts != null && neighborDistricts.size() > 0) {
+                            List<DistrictMap> neighborList = new ArrayList<>();
+                            for (DistrictMap neighborMap : neighborDistricts.values()) {
 
-                            /** Clear out polygons if map data is not requested */
-                            if (!getMaps) {
-                                neighborMap.setPolygons(new ArrayList<Polygon>());
+                                /** Clear out polygons if map data is not requested */
+                                if (!getMaps) {
+                                    neighborMap.setPolygons(new ArrayList<Polygon>());
+                                }
+                                logger.trace("Adding " + districtType + " neighbor: " + neighborMap.getDistrictCode());
+                                neighborList.add(neighborMap);
                             }
-                            logger.trace("Adding " + districtType + " neighbor: " + neighborMap.getDistrictCode());
-                            neighborList.add(neighborMap);
+                            shapeInfo.addNeighborMaps(districtType, neighborList);
                         }
-                        shapeInfo.addNeighborMaps(districtType, neighborList);
                     }
                 }
             }
@@ -541,22 +579,5 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
             }
         }
         return null;
-    }
-
-    /**
-     * Checks to see if address is set and that it is a possible NY address, i.e. `state` field doesn't specify otherwise
-     * @param geocodedAddress
-     * @return
-     */
-    private boolean isValidNYAddress(GeocodedAddress geocodedAddress) {
-        if (geocodedAddress != null && geocodedAddress.getAddress() != null) {
-            Address a = geocodedAddress.getAddress();
-            if (a.getState() != null && !a.getState().isEmpty() &&
-                    !a.getState().equalsIgnoreCase("NY") && !a.getState().equalsIgnoreCase("NEW YORK")) {
-                return false;
-            }
-            return true;
-        }
-        return false;
     }
 }

@@ -16,6 +16,7 @@ public class DistrictsView
     protected DistrictView election;
     protected DistrictView school;
     protected DistrictView town;
+    protected DistrictView zip;
     protected DistrictView cleg;
     protected DistrictView ward;
     protected DistrictView village;
@@ -30,6 +31,7 @@ public class DistrictsView
             this.election = new DistrictView(ELECTION, dInfo);
             this.school = new DistrictView(SCHOOL, dInfo);
             this.town = new DistrictView(TOWN, dInfo);
+            this.zip = new DistrictView(ZIP, dInfo);
             this.cleg = new DistrictView(CLEG, dInfo);
             this.ward = new DistrictView(WARD, dInfo);
             this.village = new DistrictView(VILLAGE, dInfo);
@@ -61,30 +63,22 @@ public class DistrictsView
     }
 
     public DistrictView getTown() {
-        return (town != null && school.district != null) ? town : null;
+        return (town != null && town.district != null) ? town : null;
+    }
+
+    public DistrictView getZip() {
+        return (zip != null && zip.district != null) ? zip : null;
     }
 
     public DistrictView getCleg() {
         return (cleg != null && cleg.district != null) ? cleg : null;
     }
 
-    public void setCleg(DistrictView cleg) {
-        this.cleg = cleg;
-    }
-
     public DistrictView getWard() {
         return (ward != null && ward.district != null) ? ward : null;
     }
 
-    public void setWard(DistrictView ward) {
-        this.ward = ward;
-    }
-
     public DistrictView getVillage() {
         return (village != null && village.district != null) ? village : null;
-    }
-
-    public void setVillage(DistrictView village) {
-        this.village = village;
     }
 }

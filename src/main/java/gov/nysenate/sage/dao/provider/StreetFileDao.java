@@ -283,6 +283,7 @@ public class StreetFileDao extends BaseDao
                 dInfo.setDistCode(SENATE, rs.getString("senate_code"));
                 dInfo.setDistCode(CONGRESSIONAL, rs.getString("congressional_code"));
                 dInfo.setDistCode(TOWN, rs.getString("town_code"));
+                dInfo.setDistCode(ZIP, rs.getString("zip5"));
                 dInfo.setDistCode(WARD, rs.getString("ward_code"));
                 dInfo.setDistCode(SCHOOL, rs.getString("school_code"));
                 dInfo.setDistCode(CLEG, rs.getString("cleg_code"));

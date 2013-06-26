@@ -108,6 +108,9 @@ public class DistrictController extends BaseApiController implements Observer
         /** Specify whether or not to geocode (Warning: If false, district assignment will be impaired) */
         Boolean skipGeocode = Boolean.parseBoolean(request.getParameter("skipGeocode"));
 
+        /** Indicates whether info for multiple possible districts should be shown. */
+        Boolean multiMatch = Boolean.parseBoolean(request.getParameter("multiMatch"));
+
         /** Specify district strategy */
         String districtStrategy = request.getParameter("districtStrategy");
 
@@ -222,10 +225,13 @@ public class DistrictController extends BaseApiController implements Observer
             geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
         }
 
-        /** Perform USPS address correction if requested */
+        /** Perform USPS address correction if requested on either the geocoded address or the input address. */
         if (uspsValidate) {
-            AddressResult addressResult = addressProvider.newInstance("usps").validate(address);
+            Address addressToCorrect = (geocodedAddress != null && geocodedAddress.getAddress() != null)
+                                       ? geocodedAddress.getAddress() : address;
+            AddressResult addressResult = addressProvider.newInstance("usps").validate(addressToCorrect);
             if (addressResult.isValidated() && geocodedAddress != null) {
+                logger.debug("Setting USPS corrected address: " + addressResult.getAddress());
                 geocodedAddress.setAddress(addressResult.getAddress());
             }
         }

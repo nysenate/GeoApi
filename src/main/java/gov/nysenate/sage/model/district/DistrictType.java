@@ -7,8 +7,8 @@ import java.util.Map;
 
 public enum DistrictType
 {
-    ASSEMBLY,CONGRESSIONAL,COUNTY, SENATE,SCHOOL,TOWN,    // Standard Districts (Available in shapefiles)
-    ELECTION, WARD, CLEG, CITY, FIRE, VILLAGE;            // Extended Districts (Available only in streetfiles)
+    ASSEMBLY, CONGRESSIONAL, COUNTY, SENATE, SCHOOL, TOWN, ZIP,  // Available as shape files
+    ELECTION, WARD, CLEG, CITY, FIRE, VILLAGE;                   // Available only in street files
 
     /** A Map container is used to associate type names with the enum type */
     private static Map<String, DistrictType> resolveMap = new HashMap<>();
@@ -20,7 +20,7 @@ public enum DistrictType
 
     public static List<DistrictType> getStandardTypes()
     {
-        return Arrays.asList(ASSEMBLY, CONGRESSIONAL, COUNTY, SENATE, SCHOOL, TOWN);
+        return Arrays.asList(ASSEMBLY, CONGRESSIONAL, COUNTY, SENATE, SCHOOL, TOWN, ZIP);
     }
 
     public static List<DistrictType> getExtendedTypes()

@@ -39,6 +39,15 @@ public abstract class DistrictServiceValidator
             else if (requireGeocode && !geoAddress.isGeocoded()) {
                 districtResult.setStatusCode(MISSING_GEOCODE);
             }
+            else if (geoAddress.getAddress() != null) {
+                String state = geoAddress.getAddress().getState();
+                if (state != null && !state.isEmpty() && !state.matches("(?i)(NY|NEW YORK)")) {
+                    districtResult.setStatusCode(NON_NY_STATE);
+                }
+                else {
+                    return true;
+                }
+            }
             else {
                 return true;
             }

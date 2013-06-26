@@ -2,18 +2,29 @@ package gov.nysenate.sage.util;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.supercsv.prefs.CsvPreference;
 
 import java.io.*;
 
 public class JobFileUtil
 {
-    private CsvPreference getCsvPreference(File file)
+    private static Logger logger = Logger.getLogger(JobFileUtil.class);
+
+    /**
+     * Determines the CsvPreference based on the delimiter used in the header.
+     * The delimiter is assumed to be the character (`\t', `,`, `:`) that occurs most often in the header.
+     * It is also assumed that the header is the first line of the file.
+     * @param file
+     * @return
+     */
+    public static CsvPreference getCsvPreference(File file)
     {
         try {
             BufferedReader sourceReader = new BufferedReader(new FileReader(file));
             String firstLine = sourceReader.readLine();
 
+            IOUtils.closeQuietly(sourceReader);
             IOUtils.closeQuietly(sourceReader);
             int [] delimiterCounts = new int[3];
             delimiterCounts[0] = StringUtils.countMatches(firstLine, "\t");
