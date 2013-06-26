@@ -148,7 +148,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                     strokeOpacity: 1,
                     strokeWeight: 2,
                     fillColor: (color) ? color : "teal",
-                    fillOpacity: 0.05
+                    fillOpacity: 0.075
                 });
 
                 /** On mouseover update the header title */
@@ -420,6 +420,7 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
     $scope.showOptions = false;
     $scope.geoProvider = "default";
     $scope.provider = "default";
+    $scope.uspsValidate = "false";
 
     $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
@@ -448,6 +449,7 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
         //url += (/\s(ny|new york)/i.test(this.addr)) ? "" : " NY"; (appends NY, not necessary)
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
+        url += (this.uspsValidate != "false" && this.uspsValidate != "") ? "&uspsValidate=true" : "";
         url += "&showMembers=true&showMaps=true";
         url = url.replace(/#/g, ""); // Pound marks mess up the query string
         return url;
@@ -672,6 +674,7 @@ sage.controller('ResultsViewController', function($scope, dataBus, mapService) {
 sage.controller('DistrictsViewController', function($scope, $http, $filter, dataBus, mapService, uiBlocker) {
     $scope.visible = false;
     $scope.viewId = "districtsView";
+    $scope.showFacebook = false;
     $scope.showOffices = false;
     $scope.showNeighbors = false;
     $scope.neighborPolygons = [];
@@ -692,6 +695,9 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             if ($scope.districts.senate.map) {
                 mapService.setOverlay($scope.districts.senate.map.geom,
                     formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
+            }
+            if ($scope.districts.senate.senator.social.facebook != '') {
+                $scope.showFacebook = true;
             }
         }
         /** Update the marker location to point to the geocode */

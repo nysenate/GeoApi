@@ -93,14 +93,27 @@
                     <br/>
                     <div class="search-container-content">
                         <div style='margin-top:5px'>
-                            <input id="addressInput" type="text" ng-model="addr" placeholder="e.g. 200 State St, Albany NY"/>
+                            <input id="addressInput" type="text" ng-model="addr" placeholder="e.g. 200 State St, Albany NY 12210"/>
                             <button ng-click="lookup()" class="submit mini">
                                 <div class="icon-search icon-white-no-hover"></div>
                                 <span></span>
                             </button>
                         </div>
-                        <a id="showDistrictInfoOptions" class="options-link" ng-hide="showOptions" ng-click="showOptions=true">Show options</a>
-                        <a id="hideDistrictInfoOptions" class="options-link" ng-show="showOptions" ng-click="showOptions=false">Hide options</a>
+
+                        <div class="options-link-container" ng-hide="showOptions" ng-click="showOptions=true" style="padding-left:5px;border-right:1px solid #ddd">
+                            <a class="options-link">Options</a>
+                        </div>
+                        <div class="options-link-container" ng-show="showOptions" ng-click="showOptions=false" style="padding-left:5px;border-right:1px solid #ddd">
+                            <a class="options-link">Hide options</a>
+                        </div>
+
+                        <div class="options-link-container" ng-hide="showHelp" ng-click="showHelp=true" style="padding-left:10px;">
+                            <a class="options-link">Help</a>
+                        </div>
+                        <div class="options-link-container" ng-show="showHelp" ng-click="showHelp=false" style="padding-left:10px;">
+                            <a class="options-link">Hide help</a>
+                        </div>
+
                         <br/>
                         <div id="districtInfoOptions" ng-show="showOptions">
                             <table class="options-table">
@@ -108,7 +121,7 @@
                                     <td><label for="dataSourceMenu">District data source</label></td>
                                     <td style="width:180px;">
                                         <select id="dataSourceMenu" style="width: 100%;" ng-model="provider">
-                                            <option value="default">Default (Recommended)</option>
+                                            <option value="default">Default</option>
                                             <option value="streetfile">Board of Elections</option>
                                             <option value="shapefile">Census TIGER/LINE</option>
                                         </select>
@@ -118,7 +131,7 @@
                                     <td><label for="geocoderMenu">Geocoder</label></td>
                                     <td>
                                         <select id="geocoderMenu" style="width: 100%;" ng-model="geoProvider">
-                                            <option value="default">Default (Recommended)</option>
+                                            <option value="default">Default</option>
                                             <option value="yahoo">Yahoo</option>
                                             <option value="yahooboss">Yahoo Boss</option>
                                             <option value="tiger">Tiger</option>
@@ -126,7 +139,33 @@
                                         </select>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td><label for="uspsValidateMenu">USPS Validate</label></td>
+                                    <td>
+                                        <select id="uspsValidateMenu" style="width: 100%;" ng-model="uspsValidate">
+                                            <option value="false">No</option>
+                                            <option value="true">Yes</option>
+                                        </select>
+                                    </td>
+                                </tr>
                             </table>
+                        </div>
+                        <div id="districtInfoHelp" ng-show="showHelp">
+                            <p>District lookup utilizes Census and Board of Elections data sets to provide accurate
+                            district information given an address as input. To obtain the best results, the address
+                            input should be as specific as possible. It also helps to write the address in a standardized
+                            format so it's easier to search using it. </p>
+                            <br/>
+
+                            <p>Examples of good address input:</p>
+                            <p style='color:teal'>200 State St, Albany NY 12203</p>
+                            <p style='color:teal'>1222 East 96th St, Brooklyn, NY 11236</p>
+                            <br/>
+
+                            <p>While it is possible to leave out the zipcode, including it
+                            will eliminate some ambiguity in the search and produce more accurate results. You will be notified
+                            in the results pane in the case of such ambiguity.
+                            </p>
                         </div>
                     </div>
                 </form>
@@ -162,7 +201,7 @@
                         <div style="border-top:1px solid #ddd;margin-top:4px;padding:5px;" ng-show="showMemberList">
                             <div style="float:left">
                                 <label for="districtMemberMenu" class="menu-overhead">Member</label>
-                                <select id="districtMemberMenu" class="menu" style="width:280px;" ng-change="lookup()" ng-model="selectedDistrict" ng-options="d.member.name for d in sortedMemberList"></select>
+                                <select id="districtMemberMenu" class="menu" style="width:325px;" ng-change="lookup()" ng-model="selectedDistrict" ng-options="d.member.name for d in sortedMemberList"></select>
                             </div>
                         </div>
                     </div>
@@ -260,9 +299,17 @@
                             </p>
                         </div>
 
+                        <div class="info-container slim" ng-show="districts.senate.senator.social.facebook">
+                            <p class="member-facebook">
+                            <div class="icon-facebook2 icon-teal" style="margin-right: 5px;"></div>
+                            <a ng-href="{{districts.senate.senator.social.facebook}}" target="_blank" style='font-size:15px'>Facebook Page</a>
+                            </p>
+                        </div>
+
                         <div class="info-container slim">
                             <table style="width:100%">
                                 <tr>
+                                    <td><div class="icon-house icon-teal"></div></td>
                                     <td>
                                         <a ng-hide="showOffices" ng-click="showOffices=true;">Senator Office Locations</a>
                                         <a ng-show="showOffices" ng-click="showOffices=false;">Senator Office Locations</a>

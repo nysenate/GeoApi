@@ -233,10 +233,20 @@ em {color: red;}
     color: #0E4E5A;
 }
 
+.search-container .options-link-container {
+    float:left;
+    padding-top:3px;
+    line-height:25px;
+    padding-right:  10px;
+    cursor: pointer;
+}
+
+.search-container .options-link-container:hover {
+    background:#fff;
+}
+
 .search-container a.options-link {
     font-size:13px;
-    position: relative;
-    top: 3px;
     left: 5px;
 }
 
@@ -272,6 +282,16 @@ em {color: red;}
 .options-table tr td select {
     font-size:13px;
     color:#444;
+}
+
+#districtInfoHelp {
+    margin-top: 10px;
+    border-top: 1px solid #ddd;
+    max-height: 400px;
+    overflow-y: auto;
+    font-size: 13px;
+    color: #333;
+    padding: 5px;
 }
 
 /*-------------------------------------------------------
