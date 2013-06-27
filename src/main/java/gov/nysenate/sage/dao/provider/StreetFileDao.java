@@ -9,6 +9,8 @@ import static gov.nysenate.sage.model.district.DistrictQuality.*;
 import gov.nysenate.sage.model.district.DistrictType;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;
@@ -20,10 +22,27 @@ public class StreetFileDao extends BaseDao
     private Logger logger = Logger.getLogger(StreetFileDao.class);
     private QueryRunner run = getQueryRunner();
 
+    private static Map<DistrictType, String> distColMap = new HashMap<>();
+    static {
+        distColMap.put(SENATE, "senate_code");
+        distColMap.put(ASSEMBLY, "assembly_code");
+        distColMap.put(CONGRESSIONAL, "congressional_code");
+        distColMap.put(COUNTY, "county_code");
+        distColMap.put(SCHOOL, "school_code");
+        distColMap.put(TOWN, "town_code");
+        distColMap.put(ELECTION, "election_code");
+        distColMap.put(CLEG, "cleg_code");
+        distColMap.put(CITY, "city_code");
+        distColMap.put(FIRE, "fire_code");
+        distColMap.put(VILLAGE, "vill_code");
+        distColMap.put(WARD, "ward_code");
+        distColMap.put(ZIP, "zip5");
+    }
+
     public StreetFileDao() {}
 
     /**
-     * Performs a street file lookup
+     * Performs a street file lookup.
      * @param streetAddr     The StreetAddress to base the search on
      * @param useStreet      Use the street name as a criteria for the search
      * @param fuzzy          Use a wildcard on the street name to expand the search space
@@ -117,11 +136,16 @@ public class StreetFileDao extends BaseDao
             return run.query(sql, new DistrictStreetRangeMapHandler(), params.toArray());
         }
         else {
-            logger.warn("Skipping address: no identifying information " + streetAddr);
+            logger.debug("Skipping address: no identifying information " + streetAddr);
             return null;
         }
     }
 
+    /**
+     * Returns a list of street ranges with district information for a given zip5.
+     * @param zip5
+     * @return List of DistrictedStreetRange
+     */
     public List<DistrictedStreetRange> getDistrictStreetRangesByZip(int zip5)
     {
         String sql = "SELECT * FROM streetfile WHERE zip5 = ? ORDER BY street, bldg_lo_num";
@@ -138,6 +162,52 @@ public class StreetFileDao extends BaseDao
         catch (SQLException ex) {
             logger.error("Failed to get district street range lookup!", ex);
         }
+        return null;
+    }
+
+    /**
+     * Finds state district codes that overlap a given street/zip range.
+     * @param street Optional street name
+     * @param zip5   Zip5 to match against
+     * @return       A map of district types to a set of matched district codes.
+     */
+    public Map<DistrictType, Set<String>> getAllStateDistrictMatches(String street, String zip5)
+    {
+        street = (street == null) ? "" : StringEscapeUtils.escapeSql(street);
+        zip5 = (zip5 == null ? "" : StringEscapeUtils.escapeSql(zip5));
+        if (zip5.isEmpty()) return null;  // Short circuit on missing input
+        String sqlTmpl = "SELECT DISTINCT %s AS code, '%s' AS type\n" +
+                         "FROM streetfile\n" +
+                         "WHERE zip5 = '%s' AND \n" +
+                         "CASE WHEN '%s' != '' THEN street LIKE '%s%%' ELSE TRUE END";
+        List<String> queryList = new ArrayList<>();
+        for (DistrictType dType : DistrictType.getStateBasedTypes()) {
+            String column = distColMap.get(dType);
+            String type = dType.name();
+            queryList.add(String.format(sqlTmpl, column, type, zip5, street, street));
+        }
+        String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
+        try {
+            return run.query(sqlQuery, new ResultSetHandler<Map<DistrictType, Set<String>>>() {
+                @Override
+                public Map<DistrictType, Set<String>> handle(ResultSet rs) throws SQLException {
+                    Map<DistrictType, Set<String>> resultMap = new HashMap<>();
+                    while (rs.next()) {
+                        DistrictType type = DistrictType.resolveType(rs.getString("type"));
+                        String code = rs.getString("code");
+                        if (!resultMap.containsKey(type)) {
+                            resultMap.put(type, new HashSet<String>());
+                        }
+                        resultMap.get(type).add(code);
+                    }
+                    return resultMap;
+                }
+            });
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to get all possible state districts!", ex);
+        }
+        logger.info(sqlQuery);
         return null;
     }
 
@@ -219,6 +289,13 @@ public class StreetFileDao extends BaseDao
         }
     }
 
+    /**
+     * Iterates over a list of DistrictInfo and returns a single DistrictInfo that represents the districts
+     * that were common amongst every entry.
+     * @param districtInfoList
+     * @return DistrictInfo containing the districts that were common.
+     *         If the senate code is not common, the return value will be null.
+     */
     public DistrictInfo consolidateDistrictInfo(List<DistrictInfo> districtInfoList)
     {
         if (districtInfoList.size() == 0) return null;
@@ -277,19 +354,19 @@ public class StreetFileDao extends BaseDao
                 sar.setZip5(rs.getString("zip5"));
                 sar.setBldgParity(rs.getString("bldg_parity"));
 
-                dInfo.setDistCode(ELECTION, rs.getString("election_code"));
-                dInfo.setDistCode(COUNTY, rs.getString("county_code"));
-                dInfo.setDistCode(ASSEMBLY, rs.getString("assembly_code"));
-                dInfo.setDistCode(SENATE, rs.getString("senate_code"));
-                dInfo.setDistCode(CONGRESSIONAL, rs.getString("congressional_code"));
-                dInfo.setDistCode(TOWN, rs.getString("town_code"));
-                dInfo.setDistCode(ZIP, rs.getString("zip5"));
-                dInfo.setDistCode(WARD, rs.getString("ward_code"));
-                dInfo.setDistCode(SCHOOL, rs.getString("school_code"));
-                dInfo.setDistCode(CLEG, rs.getString("cleg_code"));
-                dInfo.setDistCode(CITY, rs.getString("city_code"));
-                dInfo.setDistCode(VILLAGE, rs.getString("vill_code"));
-                dInfo.setDistCode(FIRE, rs.getString("fire_code"));
+                dInfo.setDistCode(ELECTION, rs.getString(distColMap.get(ELECTION)));
+                dInfo.setDistCode(COUNTY, rs.getString(distColMap.get(COUNTY)));
+                dInfo.setDistCode(ASSEMBLY, rs.getString(distColMap.get(ASSEMBLY)));
+                dInfo.setDistCode(SENATE, rs.getString(distColMap.get(SENATE)));
+                dInfo.setDistCode(CONGRESSIONAL, rs.getString(distColMap.get(CONGRESSIONAL)));
+                dInfo.setDistCode(TOWN, rs.getString(distColMap.get(TOWN)));
+                dInfo.setDistCode(ZIP, rs.getString(distColMap.get(ZIP)));
+                dInfo.setDistCode(WARD, rs.getString(distColMap.get(WARD)));
+                dInfo.setDistCode(SCHOOL, rs.getString(distColMap.get(SCHOOL)));
+                dInfo.setDistCode(CLEG, rs.getString(distColMap.get(CLEG)));
+                dInfo.setDistCode(CITY, rs.getString(distColMap.get(CITY)));
+                dInfo.setDistCode(VILLAGE, rs.getString(distColMap.get(VILLAGE)));
+                dInfo.setDistCode(FIRE, rs.getString(distColMap.get(FIRE)));
 
                 streetRangeMap.put(sar, dInfo);
             }

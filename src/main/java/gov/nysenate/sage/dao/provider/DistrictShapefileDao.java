@@ -124,7 +124,7 @@ public class DistrictShapefileDao extends BaseDao
 
         try {
             run.query(sqlQuery, new DistrictMapsHandler());
-            logger.info("Cached state based maps");
+            logger.info("Cached standard district maps");
             return true;
         }
         catch (SQLException ex) {
