@@ -59,6 +59,10 @@ public class ApiFilter implements Filter, Observer
     private static final String apiRequestKey = "apiRequest";
     private static final String apiUserKey = "apiUser";
 
+    /** Serializers */
+    private static ObjectMapper jsonMapper = new ObjectMapper();
+    private static XmlMapper xmlMapper = new XmlMapper();
+
     /** Available format types */
     public enum FormatType { JSON, XML, JSONP }
 
@@ -67,6 +71,8 @@ public class ApiFilter implements Filter, Observer
     {
         this.config = ApplicationFactory.getConfig();
         this.apiRequestLogger = new ApiRequestLogger();
+        jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
         configure();
     }
 
@@ -74,7 +80,7 @@ public class ApiFilter implements Filter, Observer
     {
         this.ipFilter = config.getValue("user.ip_filter");
         this.defaultKey = config.getValue("user.default");
-        logger.trace(String.format("Allowing access on %s via default key %s", ipFilter, defaultKey));
+        logger.info(String.format("Configured default access on %s via key %s", ipFilter, defaultKey));
     }
 
     public void update(Observable o, Object arg)
@@ -253,6 +259,8 @@ public class ApiFilter implements Filter, Observer
             format = FormatType.JSON.name();
         }
 
+        logger.trace("Serializing response as " + format);
+
         Object responseObj = request.getAttribute(responseObjectKey);
 
         /** Set a response error if the response object attribute is not set */
@@ -260,13 +268,9 @@ public class ApiFilter implements Filter, Observer
             responseObj = new ApiError(RESPONSE_ERROR);
         }
 
-        ObjectMapper jsonMapper = new ObjectMapper();
-        jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
         try {
             if (format.equalsIgnoreCase(FormatType.XML.name())) {
-                XmlMapper xmlMapper = new XmlMapper();
-                xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
                 String xml = xmlMapper.writeValueAsString(responseObj);
                 request.setAttribute(formattedResponseKey, xml);
                 response.setContentType("application/xml");
@@ -286,6 +290,8 @@ public class ApiFilter implements Filter, Observer
                 response.setContentType("application/json");
                 response.setContentLength(json.length());
             }
+
+            logger.trace("Completed serialization");
         }
         catch (JsonProcessingException ex) {
             logger.fatal("Failed to serialize response!", ex);

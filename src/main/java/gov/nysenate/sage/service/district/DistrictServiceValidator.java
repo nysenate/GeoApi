@@ -1,12 +1,10 @@
 package gov.nysenate.sage.service.district;
 
-import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -36,7 +34,7 @@ public abstract class DistrictServiceValidator
                                                      && geoAddress.getGeocode() == null) {
                 districtResult.setStatusCode(INSUFFICIENT_ADDRESS);
             }
-            else if (requireGeocode && !geoAddress.isGeocoded()) {
+            else if (requireGeocode && !geoAddress.isValidGeocode()) {
                 districtResult.setStatusCode(MISSING_GEOCODE);
             }
             else if (geoAddress.getAddress() != null) {

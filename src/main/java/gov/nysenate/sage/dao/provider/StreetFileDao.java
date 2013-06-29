@@ -165,26 +165,63 @@ public class StreetFileDao extends BaseDao
         return null;
     }
 
+    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(String zip5)
+    {
+        return getAllStandardDistrictMatches(null, Arrays.asList(zip5));
+    }
+
+    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(String street, String zip5)
+    {
+        return getAllStandardDistrictMatches(Arrays.asList(street), Arrays.asList(zip5));
+    }
+
+    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> zip5)
+    {
+        return getAllStandardDistrictMatches(null, zip5);
+    }
+
     /**
      * Finds state district codes that overlap a given street/zip range.
-     * @param street Optional street name
-     * @param zip5   Zip5 to match against
+     * @param streetList Optional street name
+     * @param zip5List   Zip5 to match against
      * @return       A map of district types to a set of matched district codes.
      */
-    public Map<DistrictType, Set<String>> getAllStateDistrictMatches(String street, String zip5)
+    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List)
     {
-        street = (street == null) ? "" : StringEscapeUtils.escapeSql(street);
-        zip5 = (zip5 == null ? "" : StringEscapeUtils.escapeSql(zip5));
-        if (zip5.isEmpty()) return null;  // Short circuit on missing input
-        String sqlTmpl = "SELECT DISTINCT %s AS code, '%s' AS type\n" +
+        if (zip5List.isEmpty() && streetList.isEmpty()) return null;  // Short circuit on missing input
+        String sqlTmpl = "SELECT DISTINCT %s::character varying AS code, '%s' AS type\n" +
                          "FROM streetfile\n" +
-                         "WHERE zip5 = '%s' AND \n" +
-                         "CASE WHEN '%s' != '' THEN street LIKE '%s%%' ELSE TRUE END";
+                         "WHERE (%s) AND (%s)";
+        /** Create where clause for zip5 codes */
+        String zip5WhereSql = "TRUE";
+        if (zip5List != null && !zip5List.isEmpty()) {
+            List<String> zip5WhereList = new ArrayList<>();
+            for (String zip5 : zip5List) {
+                if (zip5 != null && !zip5.isEmpty()) {
+                    zip5WhereList.add(String.format("zip5 = '%s'", StringEscapeUtils.escapeSql(zip5)));
+                }
+            }
+            zip5WhereSql = StringUtils.join(zip5WhereList, " OR ");
+        }
+
+        /** Create where clause for street names */
+        String streetWhereSql = "TRUE";
+        if (streetList != null && !streetList.isEmpty()) {
+            List<String> streetWhereList = new ArrayList<>();
+            for (String st : streetList) {
+                if (st != null && !st.isEmpty()) {
+                    streetWhereList.add(String.format("street LIKE '%s%%'", StringEscapeUtils.escapeSql(st)));
+                }
+            }
+            streetWhereSql = StringUtils.join(streetWhereList, " OR ");
+        }
+
+        /** Format final query */
         List<String> queryList = new ArrayList<>();
-        for (DistrictType dType : DistrictType.getStateBasedTypes()) {
+        for (DistrictType dType : DistrictType.getStandardTypes()) {
             String column = distColMap.get(dType);
             String type = dType.name();
-            queryList.add(String.format(sqlTmpl, column, type, zip5, street, street));
+            queryList.add(String.format(sqlTmpl, column, type, zip5WhereSql, streetWhereSql));
         }
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
         try {
@@ -195,10 +232,13 @@ public class StreetFileDao extends BaseDao
                     while (rs.next()) {
                         DistrictType type = DistrictType.resolveType(rs.getString("type"));
                         String code = rs.getString("code");
-                        if (!resultMap.containsKey(type)) {
-                            resultMap.put(type, new HashSet<String>());
+                        if (code != null && code != "null") {
+                            if (!resultMap.containsKey(type)) {
+                                resultMap.put(type, new HashSet<String>());
+                            }
+                            resultMap.get(type).add(code);
                         }
-                        resultMap.get(type).add(code);
+
                     }
                     return resultMap;
                 }

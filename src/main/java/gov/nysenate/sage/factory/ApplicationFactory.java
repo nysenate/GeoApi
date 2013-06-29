@@ -5,6 +5,7 @@ import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.provider.*;
 import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.service.address.CityZipServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
@@ -16,6 +17,7 @@ import gov.nysenate.services.model.Senator;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
+import sun.applet.AppletListener;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,9 +41,9 @@ public class ApplicationFactory
 
     /** Static factory instance */
     private static final ApplicationFactory factoryInstance = new ApplicationFactory();
+    private ApplicationFactory() {}
 
     /** Dependency instances */
-    private SageConfigurationListener configurationListener;
     private Config config;
     private DB baseDB;
     private DB tigerDB;
@@ -53,6 +55,7 @@ public class ApplicationFactory
     private RevGeocodeServiceProvider revGeocodeServiceProvider;
     private MapServiceProvider mapServiceProvider;
     private StreetLookupServiceProvider streetLookupServiceProvider;
+    private CityZipServiceProvider cityZipServiceProvider;
 
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
@@ -111,17 +114,17 @@ public class ApplicationFactory
     {
         try
         {
-            System.out.println("------------------------------");
-            System.out.println("       INITIALIZING SAGE      ");
-            System.out.println("------------------------------");
+            logger.info("------------------------------");
+            logger.info("       INITIALIZING SAGE      ");
+            logger.info("------------------------------");
 
             /** Setup application config */
-            this.configurationListener = new SageConfigurationListener();
-            this.config = new Config(propertyFileName, this.configurationListener);
+            SageConfigurationListener configurationListener = new SageConfigurationListener();
+            this.config = new Config(propertyFileName, configurationListener);
             this.baseDB = new DB(this.config, "db");
             this.tigerDB = new DB(this.config, "tiger.db");
 
-            /** Setup service providers ( MOVE INTO CONFIG ) */
+            /** Setup service providers */
             addressServiceProvider = new AddressServiceProvider();
             addressServiceProvider.registerDefaultProvider("usps", USPS.class);
             addressServiceProvider.registerProvider("mapquest", MapQuest.class);
@@ -158,9 +161,12 @@ public class ApplicationFactory
             streetLookupServiceProvider = new StreetLookupServiceProvider();
             streetLookupServiceProvider.registerDefaultProvider("streetfile", StreetFile.class);
 
-            System.out.println("------------------------------");
-            System.out.println("       INITIALIZED SAGE       ");
-            System.out.println("------------------------------");
+            cityZipServiceProvider = new CityZipServiceProvider();
+            cityZipServiceProvider.registerDefaultProvider("cityZipDB", CityZipDB.class);
+
+            logger.info("------------------------------");
+            logger.info("            READY             ");
+            logger.info("------------------------------");
 
             return true;
         }
@@ -179,9 +185,7 @@ public class ApplicationFactory
 
     private boolean initCache()
     {
-        System.out.println("------------------------------");
-        System.out.println("        LOADING CACHES        ");
-        System.out.println("------------------------------");
+        logger.info("Loading Map and Senator Caches...");
 
         /** Initialize district map cache */
         DistrictShapefileDao dso = new DistrictShapefileDao();
@@ -197,10 +201,6 @@ public class ApplicationFactory
             logger.fatal("Failed to cache senators!");
             return false;
         }
-
-        System.out.println("------------------------------");
-        System.out.println("         CACHES LOADED        ");
-        System.out.println("------------------------------");
 
         return true;
     }
@@ -242,4 +242,7 @@ public class ApplicationFactory
         return factoryInstance.streetLookupServiceProvider;
     }
 
+    public static CityZipServiceProvider getCityZipServiceProvider() {
+        return factoryInstance.cityZipServiceProvider;
+    }
 }

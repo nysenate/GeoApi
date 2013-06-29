@@ -45,11 +45,10 @@ public class YahooDao implements Observer
 
     private Logger logger = Logger.getLogger(YahooDao.class);
     private String baseUrl;
-    private ObjectMapper objectMapper;
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     public YahooDao()
     {
-        this.objectMapper = new ObjectMapper();
         this.update(null, null);
     }
 
@@ -128,7 +127,7 @@ public class YahooDao implements Observer
                 /** A successful response will have the same size */
                 if (batchResults.size() == locations.size()) {
                     for (int j = 0; j < locations.size(); j++) {
-                        if (batchResults.get(j) != null && batchResults.get(j).isGeocoded()) {
+                        if (batchResults.get(j) != null && batchResults.get(j).isValidGeocode()) {
                             geocodedAddresses.set(j + batchOffset, batchResults.get(j));
                         }
                     }

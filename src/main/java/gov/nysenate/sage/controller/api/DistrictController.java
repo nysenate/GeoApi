@@ -21,12 +21,15 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.service.address.CityZipServiceProvider;
+import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
+import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -34,10 +37,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.sql.Timestamp;
+import java.util.*;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.service.district.DistrictServiceProvider.*;
@@ -46,13 +47,15 @@ import static gov.nysenate.sage.service.district.DistrictServiceProvider.*;
 public class DistrictController extends BaseApiController implements Observer
 {
     private static Logger logger = Logger.getLogger(DistrictController.class);
-    private static Config appConfig = ApplicationFactory.getConfig();
+    private static Config config = ApplicationFactory.getConfig();
 
     /** Service Providers */
     private static AddressServiceProvider addressProvider = ApplicationFactory.getAddressServiceProvider();
     private static DistrictServiceProvider districtProvider = ApplicationFactory.getDistrictServiceProvider();
     private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
     private static RevGeocodeServiceProvider revGeocodeProvider = ApplicationFactory.getRevGeocodeServiceProvider();
+    private static MapServiceProvider mapProvider = ApplicationFactory.getMapServiceProvider();
+    private static CityZipServiceProvider cityZipProvider = ApplicationFactory.getCityZipServiceProvider();
 
     /** Loggers */
     private static GeocodeRequestLogger geocodeRequestLogger;
@@ -62,15 +65,17 @@ public class DistrictController extends BaseApiController implements Observer
 
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
+    private static Boolean LOGGING_ENABLED = false;
+
     @Override
     public void update(Observable o, Object arg) {
-        BLUEBIRD_DISTRICT_STRATEGY = appConfig.getValue("district.strategy.bluebird");
+        BLUEBIRD_DISTRICT_STRATEGY = config.getValue("district.strategy.bluebird");
     }
 
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        appConfig.notifyOnChange(this);
+        DistrictController.config.notifyOnChange(this);
         update(null, null);
         geocodeRequestLogger = new GeocodeRequestLogger();
         geocodeResultLogger = new GeocodeResultLogger();
@@ -114,6 +119,18 @@ public class DistrictController extends BaseApiController implements Observer
         /** Specify district strategy */
         String districtStrategy = request.getParameter("districtStrategy");
 
+        DistrictRequest districtRequest = new DistrictRequest();
+        districtRequest.setApiRequest(apiRequest);
+        districtRequest.setAddress(getAddressFromParams(request));
+        districtRequest.setProvider(provider);
+        districtRequest.setGeoProvider(geoProvider);
+        districtRequest.setShowMembers(showMembers);
+        districtRequest.setShowMaps(showMaps);
+        districtRequest.setUspsValidate(uspsValidate);
+        districtRequest.setSkipGeocode(skipGeocode);
+        districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
+        districtRequest.setDistrictStrategy(config.getValue("district.strategy.single", "neighborMatch"));
+
         logger.info("--------------------------------------");
         logger.info(String.format("District Request | Mode: %s", apiRequest.getRequest()));
         logger.info("--------------------------------------");
@@ -133,14 +150,13 @@ public class DistrictController extends BaseApiController implements Observer
 
         switch (apiRequest.getRequest())
         {
-            case "assign":
-            {
-                /** Handle single assign request */
+            case "assign": {
+                /**
+                * Handle single assign request using the supplied optional query parameters.
+                */
                 if (!apiRequest.isBatch()) {
-                    Address address = getAddressFromParams(request);
-                    if (address != null && !address.isEmpty()) {
-                        DistrictResult districtResult = districtAssign(
-                                apiRequest, address, provider, geoProvider, uspsValidate, !skipGeocode, showMembers, showMaps, districtStrategy);
+                    if (districtRequest.hasValidAddress()) {
+                        DistrictResult districtResult = handleDistrictRequest(districtRequest);
                         districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
                     }
                     else {
@@ -176,8 +192,10 @@ public class DistrictController extends BaseApiController implements Observer
                 if (!apiRequest.isBatch()) {
                     Address address = getAddressFromParams(request);
                     if (address != null && !address.isEmpty()) {
-                        districtResponse = new DistrictResponse(
-                                districtAssign(apiRequest, address, null, null, true, true, false, false, BLUEBIRD_DISTRICT_STRATEGY));
+                        DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(apiRequest, address,
+                                                                                               BLUEBIRD_DISTRICT_STRATEGY);
+                        DistrictResult districtResult = handleDistrictRequest(bluebirdRequest);
+                        districtResponse = new DistrictResponse(districtResult);
                     }
                     else {
                         districtResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
@@ -202,8 +220,129 @@ public class DistrictController extends BaseApiController implements Observer
                 districtResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
             }
         }
-
         setApiResponse(districtResponse, request);
+    }
+
+    /**
+     *
+     * @param distRequest
+     * @return
+     */
+    private DistrictResult handleDistrictRequest(DistrictRequest distRequest)
+    {
+        logger.debug("Entering handleDistrictRequest");
+        Address address = distRequest.getAddress();
+        GeocodedAddress geocodedAddress = new GeocodedAddress(address);
+
+        /** Geocode address unless opted out */
+        if (!distRequest.isSkipGeocode()) {
+            GeocodeRequest geocodeRequest = new GeocodeRequest(distRequest.getApiRequest(), address,
+                                                               distRequest.getGeoProvider(), true, true);
+            geocodedAddress = performGeocode(geocodeRequest);
+            logger.debug("Geocoded");
+        }
+
+        /** Obtain district result */
+        DistrictResult districtResult = performDistrictAssign(distRequest, geocodedAddress);
+        logger.debug("Obtained district result");
+
+        /** Perform usps address correction if requested */
+        if (distRequest.isUspsValidate()) {
+            performAddressCorrection(address, geocodedAddress);
+            logger.debug("Performed address correction");
+        }
+
+        /** Ensure all maps are presented if requested */
+        if (distRequest.isShowMaps() && (districtResult.isSuccess() || districtResult.isPartialSuccess())) {
+            mapProvider.assignMapsToDistrictInfo(districtResult.getDistrictInfo(), false);
+        }
+
+        /** Ensure all members (senators,assemblyman, etc) are presented if requested */
+        if (distRequest.isShowMembers() && (districtResult.isSuccess() || districtResult.isPartialSuccess())) {
+            DistrictMemberProvider.assignDistrictMembers(districtResult);
+        }
+
+        if (LOGGING_ENABLED) {
+            int requestId = districtRequestLogger.logDistrictRequest(distRequest);
+            districtResultLogger.logDistrictResult(requestId, districtResult);
+            logger.debug("logged it");
+        }
+
+        return districtResult;
+    }
+
+    /**
+     * Performs geocoding using the default geocode service provider.
+     * @param geoRequest The GeocodeRequest to handle.
+     * @return GeocodedAddress
+     */
+    private GeocodedAddress performGeocode(GeocodeRequest geoRequest)
+    {
+        Address address = geoRequest.getAddress();
+        String geoProvider = geoRequest.getProvider();
+
+        GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
+                                                            : geocodeProvider.geocode(address);
+        /** Log geocode request/result to database */
+        if (LOGGING_ENABLED) {
+            int requestId = geocodeRequestLogger.logGeocodeRequest(geoRequest);
+            geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
+        }
+
+        return (geocodeResult != null) ? geocodeResult.getGeocodedAddress() : null;
+    }
+
+    /** Perform USPS address correction on either the geocoded address or the input address.
+     * If the geocoded address is invalid, the original address will be corrected and set as the address
+     * on the supplied geocodedAddress parameter.
+     * @return GeocodedAddress the address corrected geocodedAddress.
+     */
+    private GeocodedAddress performAddressCorrection(Address address, GeocodedAddress geocodedAddress)
+    {
+        Address addressToCorrect = (geocodedAddress != null && geocodedAddress.isValidAddress())
+                                   ? geocodedAddress.getAddress() : address;
+        AddressResult addressResult = addressProvider.newInstance("usps").validate(addressToCorrect);
+        if (addressResult.isValidated() && geocodedAddress != null) {
+            logger.debug("USPS Validated Address: " + addressResult.getAddress());
+            geocodedAddress.setAddress(addressResult.getAddress());
+        }
+        return geocodedAddress;
+    }
+
+    /**
+     *
+     * @param dr
+     * @param geocodedAddress
+     * @return
+     */
+    private DistrictResult performDistrictAssign(DistrictRequest dr, GeocodedAddress geocodedAddress)
+    {
+        DistrictResult districtResult = new DistrictResult(this.getClass());
+        districtResult.setStatusCode(NO_DISTRICT_RESULT);
+
+        if (geocodedAddress != null) {
+            Boolean multiMatch = false;
+
+            /** If geocode is set, determine based on the quality if it is specific enough to district assign */
+            if (geocodedAddress.isValidGeocode()) {
+                GeocodeQuality level = geocodedAddress.getGeocode().getQuality();
+                Address address = geocodedAddress.getAddress();
+
+                /** House level matches and above can utilize default district assignment behaviour */
+                if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
+                    districtResult = districtProvider.assignDistricts(geocodedAddress, dr.getProvider(),
+                                                                      DistrictType.getStandardTypes(), dr.getDistrictStrategy());
+                }
+                else {
+                    districtResult = districtProvider.assignOverlapDistricts(geocodedAddress);
+                }
+            }
+            else {
+                districtResult.setStatusCode(ResultStatus.INVALID_GEOCODE);
+            }
+        }
+
+        return districtResult;
     }
 
     /**
@@ -227,13 +366,7 @@ public class DistrictController extends BaseApiController implements Observer
 
         /** Perform USPS address correction if requested on either the geocoded address or the input address. */
         if (uspsValidate) {
-            Address addressToCorrect = (geocodedAddress != null && geocodedAddress.getAddress() != null)
-                                       ? geocodedAddress.getAddress() : address;
-            AddressResult addressResult = addressProvider.newInstance("usps").validate(addressToCorrect);
-            if (addressResult.isValidated() && geocodedAddress != null) {
-                logger.debug("Setting USPS corrected address: " + addressResult.getAddress());
-                geocodedAddress.setAddress(addressResult.getAddress());
-            }
+            performAddressCorrection(address, geocodedAddress);
         }
 
         DistrictStrategy strategy;
@@ -250,9 +383,12 @@ public class DistrictController extends BaseApiController implements Observer
                                     provider, geoProvider, showMembers, showMaps, uspsValidate, !performGeocode, strategy));
 
         /** Obtain district result */
-        DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
-                                                                         showMembers, showMaps, strategy);
+        DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(), strategy);
 
+        /** Last ditch effort to make sure maps are presented if requested but were not set by the district provider */
+        if (showMaps && (districtResult.isSuccess() || districtResult.isPartialSuccess())) {
+            mapProvider.assignMapsToDistrictInfo(districtResult.getDistrictInfo(), false);
+        }
         /** Log district result to database */
         districtResultLogger.logDistrictResult(requestId, districtResult);
         return districtResult;
@@ -295,8 +431,7 @@ public class DistrictController extends BaseApiController implements Observer
             strategy = null;
         }
 
-        return districtProvider.assignDistricts(geocodedAddresses, provider, DistrictType.getStandardTypes(),
-                                                showMembers, showMaps, strategy);
+        return districtProvider.assignDistricts(geocodedAddresses, provider, DistrictType.getStandardTypes(), strategy);
     }
 
     /**
@@ -332,7 +467,6 @@ public class DistrictController extends BaseApiController implements Observer
             strategy = null;
         }
 
-        return districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(),
-                                                showMembers, showMaps, strategy);
+        return districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(), strategy);
     }
 }

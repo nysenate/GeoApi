@@ -10,10 +10,12 @@ import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -29,9 +31,13 @@ public class DistrictShapefileDao extends BaseDao
     private final Logger logger = Logger.getLogger(DistrictShapefileDao.class);
     private QueryRunner run = getQueryRunner();
 
+    private static CountyDao countyDao = new CountyDao();
+
     /** Memory Cached District Maps */
     private static Map<DistrictType, List<DistrictMap>> districtMapCache;
     private static Map<DistrictType, Map<String, DistrictMap>> districtMapLookup;
+
+    private static Boolean FETCH_MAPS_DURING_LOOKUP = false;
 
     public DistrictShapefileDao() {}
 
@@ -46,7 +52,8 @@ public class DistrictShapefileDao extends BaseDao
     {
         /** Template SQL for looking up district given a point */
         String sqlTmpl =
-                "SELECT '%s' AS type, %s AS name, %s as code " + ((getMaps) ? ", ST_AsGeoJson(geom) AS map, " : ", null as map, ") +
+                "SELECT '%s' AS type, %s AS name, %s as code " +
+                        ((getMaps && FETCH_MAPS_DURING_LOOKUP) ? ", ST_AsGeoJson(geom) AS map, " : ", null as map, ") +
                 "       ST_Distance(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity " +
                 "FROM " + SCHEMA + ".%s " +
                 "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)' , " + "%s" + "))";
@@ -77,7 +84,55 @@ public class DistrictShapefileDao extends BaseDao
     }
 
     /**
-     * Retrieves a mapped collection of district code to DistrictMap that's grouped by DistrictType.     *
+     *
+     * @param targetDistrictType
+     * @param targetCodes
+     * @param refDistrictType
+     * @param refCodes
+     */
+    public DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType, Set<String> targetCodes,
+                      DistrictType refDistrictType, Set<String> refCodes)
+    {
+        if (targetCodes == null) targetCodes = new HashSet<>();
+        String intersectSql = "ST_Area(" +
+                                  "ST_Transform(" +
+                                      "ST_Intersection(ST_Transform(target.geom, %s), ST_Transform(source.geom, %s)), utmzone(ST_Centroid(target.geom))" +
+                                  ")" +
+                              ")";
+        intersectSql = String.format(intersectSql, resolveSRID(refDistrictType), resolveSRID(refDistrictType));
+        String sqlTmpl =
+                "SELECT target.%s AS code, '%s' as type, \n" +
+                 intersectSql + " AS intersected_area, \n" +
+                "    ST_Area( \n" +
+                "        ST_Transform(source.geom, utmzone(ST_Centroid(source.geom)))\n" +
+                "    ) AS source_area\n" +
+                "FROM " + SCHEMA + ".%s target, " +
+                "     (SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s WHERE %s) AS source\n" +
+                "WHERE %s";
+        List<String> refWhereList = new ArrayList<>();
+        for (String refCode : refCodes) {
+            refWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", resolveCodeColumn(refDistrictType), StringEscapeUtils.escapeSql(refCode)));
+        }
+        List<String> targetWhereList = new ArrayList<>();
+        for (String targetCode : targetCodes) {
+            targetWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", resolveCodeColumn(targetDistrictType), StringEscapeUtils.escapeSql(targetCode)));
+        }
+        String refWhereSql = StringUtils.join(refWhereList, " OR ");
+        String targetWhereSql = (targetWhereList.size() > 0) ? StringUtils.join(targetWhereList, " OR ") : intersectSql + " > 0";
+        String sqlQuery = String.format(sqlTmpl, resolveCodeColumn(targetDistrictType), targetDistrictType.name(), targetDistrictType.name(), refDistrictType.name(),
+                                                 refWhereSql, targetWhereSql);
+        try {
+            DistrictOverlap overlap = new DistrictOverlap(refDistrictType, targetDistrictType, refCodes, DistrictOverlap.AreaUnit.SQ_METERS);
+            return run.query(sqlQuery, new DistrictOverlapHandler(overlap));
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to determine district overlap!", ex);
+        }
+        return null;
+    }
+
+    /**
+     * Retrieves a mapped collection of district code to DistrictMap that's grouped by DistrictType.
      * @return Map<DistrictType, Map<String, DistrictMap>>
      */
     public Map<DistrictType, Map<String, DistrictMap>> getDistrictMapLookup()
@@ -123,7 +178,7 @@ public class DistrictShapefileDao extends BaseDao
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ") + " ORDER BY type, code";
 
         try {
-            run.query(sqlQuery, new DistrictMapsHandler());
+            run.query(sqlQuery, new DistrictMapsCacheHandler());
             logger.info("Cached standard district maps");
             return true;
         }
@@ -145,11 +200,11 @@ public class DistrictShapefileDao extends BaseDao
         if (DistrictShapeCode.contains(districtType)) {
             String srid = resolveSRID(districtType);
             String tmpl =
-                    "SELECT '%s' AS type, %s as name, %s AS code, " + ((getMaps) ? "ST_AsGeoJson(geom) AS map " : "null as map \n") +
-                            "FROM " + SCHEMA +".%s \n" +
-                            "WHERE ST_Contains(geom, %s) = false \n" +
-                            "ORDER BY ST_ClosestPoint(geom, %s) <-> %s \n" +
-                            "LIMIT %d;";
+                "SELECT '%s' AS type, %s as name, %s AS code, " + ((getMaps && FETCH_MAPS_DURING_LOOKUP) ? "ST_AsGeoJson(geom) AS map " : "null as map \n") +
+                "FROM " + SCHEMA +".%s \n" +
+                "WHERE ST_Contains(geom, %s) = false \n" +
+                "ORDER BY ST_ClosestPoint(geom, %s) <-> %s \n" +
+                "LIMIT %d;";
 
            String pointText = String.format("ST_PointFromText('POINT(%s %s)', %s)", point.getLon(), point.getLat(), srid);
 
@@ -219,7 +274,7 @@ public class DistrictShapefileDao extends BaseDao
      * data based on district type and code:
      * { DistrictType:type -> { String:code -> DistrictMap:map} }
      */
-    private class DistrictMapsHandler implements ResultSetHandler<Map<DistrictType, Map<String, DistrictMap>>>
+    private class DistrictMapsCacheHandler implements ResultSetHandler<Map<DistrictType, Map<String, DistrictMap>>>
     {
         @Override
         public Map<DistrictType, Map<String, DistrictMap>> handle(ResultSet rs) throws SQLException
@@ -275,8 +330,34 @@ public class DistrictShapefileDao extends BaseDao
         }
     }
 
+    private class DistrictOverlapHandler implements ResultSetHandler<DistrictOverlap>
+    {
+        private DistrictOverlap districtOverlap;
+
+        public DistrictOverlapHandler(DistrictOverlap districtOverlap) {
+            this.districtOverlap = districtOverlap;
+        }
+
+        @Override
+        public DistrictOverlap handle(ResultSet rs) throws SQLException {
+            while (rs.next()) {
+                String code = getDistrictCode(rs);
+                BigDecimal area = rs.getBigDecimal("intersected_area");
+                /** Only add districts that actually intersect */
+                if (area.compareTo(BigDecimal.ZERO) == 1) {
+                    this.districtOverlap.getTargetOverlap().put(code, area);
+                }
+                if (this.districtOverlap.getTotalArea() == null) {
+                    this.districtOverlap.setTotalArea(rs.getBigDecimal("source_area"));
+                }
+            }
+            return districtOverlap;
+        }
+    }
+
     /**
      * Retrieves the district code from the result set and performs any necessary corrections.
+     * Requires that the result set contain 'type' and 'code' columns.
      * @param rs
      * @return
      * @throws SQLException
@@ -289,7 +370,7 @@ public class DistrictShapefileDao extends BaseDao
 
             /** County codes need to be mapped from FIPS code */
             if (type == DistrictType.COUNTY){
-                code = Integer.toString(new CountyDao().getFipsCountyMap().get(rs.getInt("code")).getId());
+                code = Integer.toString(countyDao.getFipsCountyMap().get(rs.getInt("code")).getId());
             }
             /** Normal district code */
             else {

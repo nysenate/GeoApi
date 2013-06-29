@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.district;
 
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.services.model.Senator;
 
 import java.util.*;
@@ -34,6 +35,10 @@ public class DistrictInfo
     /** Neighboring District Maps */
     protected Map<DistrictType, List<DistrictMap>> neighborMaps = new HashMap<>();
 
+    /** Multi District Overlap/Map data */
+    protected Map<DistrictType, DistrictOverlap> districtOverlaps = new HashMap<>();
+    protected Map<DistrictType, Set<DistrictMap>> multiDistrictMaps = new HashMap<>();
+
     public DistrictInfo() {}
 
     public DistrictInfo(String congressionalCode, String countyCode, String senateCode,
@@ -55,21 +60,24 @@ public class DistrictInfo
         this.senator = senator;
     }
 
-    public String getDistName(DistrictType districtType)
-    {
+    public String getDistName(DistrictType districtType){
         return this.districtNames.get(districtType);
     }
 
-    public void setDistName(DistrictType districtType, String name)
-    {
+    public void setDistName(DistrictType districtType, String name) {
         this.districtNames.put(districtType, name);
     }
 
-    public String getDistCode(DistrictType districtType)
-    {
+    public String getDistCode(DistrictType districtType) {
         return this.districtCodes.get(districtType);
     }
 
+    /**
+     * Sets a district code for a given type. A district is marked as assigned if the code is set through
+     * this method. Also if its a senate, congressional, or assembly district, a default name is set for it.
+     * @param districtType
+     * @param code
+     */
     public void setDistCode(DistrictType districtType, String code)
     {
         this.districtCodes.put(districtType, code);
@@ -92,33 +100,27 @@ public class DistrictInfo
         }
     }
 
-    public DistrictMap getDistMap(DistrictType districtType)
-    {
+    public DistrictMap getDistMap(DistrictType districtType) {
         return this.districtMaps.get(districtType);
     }
 
-    public void setDistMap(DistrictType districtType, DistrictMap districtMap)
-    {
+    public void setDistMap(DistrictType districtType, DistrictMap districtMap) {
         this.districtMaps.put(districtType, districtMap);
     }
 
-    public DistrictMember getDistrictMember(DistrictType districtType)
-    {
+    public DistrictMember getDistrictMember(DistrictType districtType) {
         return this.districtMembers.get(districtType);
     }
 
-    public void setDistrictMember(DistrictType districtType, DistrictMember districtMember)
-    {
+    public void setDistrictMember(DistrictType districtType, DistrictMember districtMember) {
         this.districtMembers.put(districtType, districtMember);
     }
 
-    public Double getDistProximity(DistrictType districtType)
-    {
+    public Double getDistProximity(DistrictType districtType) {
         return districtProximities.get(districtType);
     }
 
-    public void setDistProximity(DistrictType districtType, Double districtProximity)
-    {
+    public void setDistProximity(DistrictType districtType, Double districtProximity) {
         this.districtProximities.put(districtType, districtProximity);
     }
 
@@ -167,8 +169,67 @@ public class DistrictInfo
         this.neighborMaps = neighborMaps;
     }
 
+    /**
+     * Links a list of district maps (which represent the neighbor districts) to a district type.
+     * @param districtType
+     * @param neighborMaps
+     */
     public void addNeighborMaps(DistrictType districtType, List<DistrictMap> neighborMaps) {
         this.neighborMaps.put(districtType, neighborMaps);
+    }
+
+    /**
+    * Multi Districts
+    */
+    public Map<DistrictType, DistrictOverlap> getDistrictOverlaps() {
+        return districtOverlaps;
+    }
+
+    public void setDistrictOverlaps(Map<DistrictType, DistrictOverlap> districtOverlaps) {
+        this.districtOverlaps = districtOverlaps;
+    }
+
+    public Map<DistrictType, Set<DistrictMap>> getMultiDistrictMaps() {
+        return multiDistrictMaps;
+    }
+
+    public void setMultiDistrictMaps(Map<DistrictType, Set<DistrictMap>> multiDistrictMaps) {
+        this.multiDistrictMaps = multiDistrictMaps;
+    }
+
+    public void addDistrictOverlap(DistrictType districtType, DistrictOverlap districtOverlap)
+    {
+        this.districtOverlaps.put(districtType, districtOverlap);
+    }
+
+    public void addMultiDistrictMaps(DistrictType districtType, Set<DistrictMap> districtMaps)
+    {
+        this.multiDistrictMaps.put(districtType, districtMaps);
+    }
+
+    /**
+     * Checks the district code map to see if a valid code exists for the given districtType.
+     * @param districtType
+     * @return true if it has a valid code, false otherwise
+     */
+    public boolean hasDistrictCode(DistrictType districtType)
+    {
+        return isValidDistCode(this.districtCodes.get(districtType));
+    }
+
+    /**
+     * Determines if code is valid or not by ensuring that the trimmed code does not equal '', 0, or null.
+     * @param code
+     * @return
+     */
+    private boolean isValidDistCode(String code){
+        if (code != null) {
+            String c = FormatUtil.trimLeadingZeroes(code.trim());
+            if ( !c.isEmpty() && !c.equalsIgnoreCase("null") && !c.equals("0") && !c.equals("000")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String toString()
@@ -176,23 +237,8 @@ public class DistrictInfo
         String out = "";
         for (DistrictType t : assignedDistricts){
             out += t + ": name = " + getDistName(t)
-                     +  " code = " + getDistCode(t) + " map = " + getDistMap(t) + "\n";
+                    +  " code = " + getDistCode(t) + " map = " + getDistMap(t) + "\n";
         }
         return out;
-    }
-
-    public boolean hasDistrictCode(DistrictType districtType)
-    {
-        return isValidDistCode(this.districtCodes.get(districtType));
-    }
-
-    private boolean isValidDistCode(String code){
-        if (code != null) {
-            String c = code.trim().replaceFirst("^0+(?!$)", "");
-            if ( !c.isEmpty() && !c.equalsIgnoreCase("null") && !c.equals("0") && !c.equals("000")) {
-                return true;
-            }
-        }
-        return false;
     }
 }

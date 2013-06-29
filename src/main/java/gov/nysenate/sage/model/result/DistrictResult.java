@@ -4,6 +4,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictOverlap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.services.model.Senator;
@@ -15,7 +16,11 @@ import java.util.*;
  */
 public class DistrictResult extends BaseResult
 {
+    /** Contains the geocoded address and district information */
     protected DistrictedAddress districtedAddress;
+
+    /** Is set when a multi match condition arises (typically with a CITY or ZIP level geocode) */
+    protected DistrictOverlap districtOverlap;
 
     public DistrictResult()
     {
@@ -79,6 +84,14 @@ public class DistrictResult extends BaseResult
     public void setDistrictedAddress(DistrictedAddress districtedAddress)
     {
         this.districtedAddress = districtedAddress;
+    }
+
+    public DistrictOverlap getDistrictOverlap() {
+        return districtOverlap;
+    }
+
+    public void setDistrictOverlap(DistrictOverlap districtOverlap) {
+        this.districtOverlap = districtOverlap;
     }
 
     /** Accessor method to the set of assigned districts stored in DistrictInfo */

@@ -4,6 +4,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -46,10 +47,11 @@ public abstract class GeocodeServiceValidator
      */
     public static boolean validateGeocodeResult(GeocodedAddress geocodedAddress, GeocodeResult geocodeResult)
     {
-        if (geocodedAddress != null){
+        if (geocodedAddress != null) {
             geocodeResult.setGeocodedAddress(geocodedAddress);
-            if (!geocodedAddress.isGeocoded()){
+            if (!geocodedAddress.isValidGeocode()){
                 geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
+                logger.debug("Geocode Response Quality: " + FormatUtil.toJsonString(geocodedAddress.getGeocode()));
                 return false;
             }
             geocodeResult.setStatusCode(SUCCESS);

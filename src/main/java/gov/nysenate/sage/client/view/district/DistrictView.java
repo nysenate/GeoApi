@@ -15,7 +15,8 @@ public class DistrictView
     public DistrictView(DistrictType districtType, DistrictInfo districtInfo)
     {
         if (districtInfo != null) {
-            this.name = districtInfo.getDistName(districtType);
+            DistrictMap map = districtInfo.getDistMap(districtType);
+            this.name = (map != null && map.getDistrictName() != null) ? map.getDistrictName() : districtInfo.getDistName(districtType);
             this.district = districtInfo.getDistCode(districtType);
         }
     }

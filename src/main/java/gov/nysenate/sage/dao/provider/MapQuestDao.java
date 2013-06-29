@@ -1,6 +1,5 @@
 package gov.nysenate.sage.dao.provider;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.model.address.Address;
@@ -117,7 +116,7 @@ public class MapQuestDao
                 ArrayList<GeocodedAddress> batchResults = getGeocodedAddresses(baseUrl + locations);
                 if (batchResults.size() == batchCount) {
                     for (int j = 0; j < batchCount; j++) {
-                        if (batchResults.get(j) != null && batchResults.get(j).isGeocoded()) {
+                        if (batchResults.get(j) != null && batchResults.get(j).isValidGeocode()) {
                             geocodedAddresses.set(j + batchOffset, batchResults.get(j));
                         }
                     }

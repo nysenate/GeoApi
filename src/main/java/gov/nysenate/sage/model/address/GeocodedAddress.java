@@ -47,13 +47,13 @@ public class GeocodedAddress implements Serializable, Cloneable
     }
 
     /** Basic check on the address */
-    public boolean isAddressValid()
+    public boolean isValidAddress()
     {
         return isReverseGeocoded();
     }
 
     /** A valid geocode should have a quality code level of CITY or greater */
-    public boolean isGeocoded()
+    public boolean isValidGeocode()
     {
         return (this.geocode != null && this.geocode.getQuality() != null
                 && this.geocode.getQuality().compareTo(GeocodeQuality.CITY) >= 0);

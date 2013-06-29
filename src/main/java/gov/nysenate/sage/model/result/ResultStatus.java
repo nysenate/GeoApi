@@ -32,16 +32,17 @@ public enum ResultStatus
 
     INVALID_INPUT_PARAMS(200, "One or more parameters are invalid."),
     INVALID_ADDRESS(210, "The supplied address is invalid."),
-    INVALID_GEOCODE(220, "The supplied geocoded coordinate pair is invalid."),
+    INVALID_GEOCODE(220, "The geocoding process did not yield a successful response. Please ensure that you have entered a valid address or try a different geocoder."),
     INVALID_ZIPCODE(230, "The supplied zipcode is invalid."),
     INVALID_STATE(240, "The supplied state is invalid or is not supported."),
     INVALID_BATCH_ADDRESSES(250, "The supplied batch address list could not be parsed."),
     INVALID_BATCH_POINTS(260, "The supplied batch point list could not be parsed"),
-    NON_NY_STATE(270, "Only New York State addresses are supported"),
+    NON_NY_STATE(270, "Only New York State addresses are supported at this time. If you are searching for a NY address, please " +
+                      "provide a complete street address with city and zip for best results."),
 
     INSUFFICIENT_INPUT_PARAMS(300, "One or more parameters are insufficient."),
-    INSUFFICIENT_ADDRESS(310, "The supplied address is missing one or more parameters."),
-    INSUFFICIENT_GEOCODE(320, "The supplied geocoded is missing one or more parameters."),
+    INSUFFICIENT_ADDRESS(310, "The supplied address does not contain enough information to continue processing. Enter complete addresses for best results."),
+    INSUFFICIENT_GEOCODE(320, "The supplied geocoded does not contain enough information to continue processing."),
 
     NO_DISTRICT_RESULT(400, "District assignment returned no results."),
     MULTIPLE_DISTRICT_RESULT(401, "Multiple matches were found for certain districts."),
