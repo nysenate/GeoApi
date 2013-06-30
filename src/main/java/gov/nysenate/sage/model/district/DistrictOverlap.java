@@ -1,10 +1,10 @@
 package gov.nysenate.sage.model.district;
 
+import gov.nysenate.sage.model.geo.Polygon;
+import gov.nysenate.services.model.Senator;
+
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a mapping of districts that overlap a given reference area. Typically this is used
@@ -27,17 +27,25 @@ public class DistrictOverlap
      * could be a list of zip codes that represent a city. */
     protected Set<String> referenceCodes = new HashSet<>();
 
+    /** A map of `targetType` district codes along with the area of intersection in `areaUnit`s */
+    protected Map<String, BigDecimal> targetOverlap = new HashMap<>();
+
     /** Associates target district code to district maps */
     protected Map<String, DistrictMap> targetDistrictMaps = new HashMap<>();
 
-    /** A map of `targetType` district codes along with the area of intersection in `areaUnit`s */
-    protected Map<String, BigDecimal> targetOverlap = new HashMap<>();
+    /** Associates district members by target district code if applicable */
+    protected Map<String, DistrictMember> targetDistrictMembers = new HashMap<>();
+
+    /** Associates senators by target district code if applicable */
+    protected Map<String, Senator> targetSenators = new HashMap<>();
 
     /** The unit of measurement for the totalArea */
     protected AreaUnit areaUnit;
 
     /** The number of `areaUnits` that encompass the union of the areas of all the reference codes */
     protected BigDecimal totalArea;
+
+    protected DistrictMap referenceMap;
 
     public DistrictOverlap() {}
 
@@ -73,6 +81,10 @@ public class DistrictOverlap
         this.referenceCodes = referenceCodes;
     }
 
+    public Set<String> getTargetDistricts() {
+        return this.targetOverlap.keySet();
+    }
+
     public Map<String, DistrictMap> getTargetDistrictMaps() {
         return targetDistrictMaps;
     }
@@ -81,12 +93,29 @@ public class DistrictOverlap
         this.targetDistrictMaps = targetDistrictMaps;
     }
 
+    /**
+     * Retrieve district maps associated with the overlaps.
+     * @param district The code as in '46' for senate district 46.
+     * @return DistrictMap
+     */
+    public DistrictMap getTargetDistrictMap(String district) {
+        return this.targetDistrictMaps.get(district);
+    }
+
+    public void setTargetDistrictMap(String district, DistrictMap districtMap) {
+        this.targetDistrictMaps.put(district, districtMap);
+    }
+
     public Map<String, BigDecimal> getTargetOverlap() {
         return targetOverlap;
     }
 
     public void setTargetOverlap(Map<String, BigDecimal> targetOverlap) {
         this.targetOverlap = targetOverlap;
+    }
+
+    public BigDecimal getTargetOverlap(String district) {
+        return this.targetOverlap.get(district);
     }
 
     public AreaUnit getAreaUnit() {
@@ -103,5 +132,33 @@ public class DistrictOverlap
 
     public void setTotalArea(BigDecimal totalArea) {
         this.totalArea = totalArea;
+    }
+
+    public Map<String, Senator> getTargetSenators() {
+        return targetSenators;
+    }
+
+    public void setTargetSenators(Map<String, Senator> targetSenators) {
+        this.targetSenators = targetSenators;
+    }
+
+    public Map<String, DistrictMember> getTargetDistrictMembers() {
+        return targetDistrictMembers;
+    }
+
+    public void setTargetDistrictMembers(Map<String, DistrictMember> targetDistrictMembers) {
+        this.targetDistrictMembers = targetDistrictMembers;
+    }
+
+    public DistrictMember getTargetDistrictMember(String district) {
+        return this.targetDistrictMembers.get(district);
+    }
+
+    public DistrictMap getReferenceMap() {
+        return referenceMap;
+    }
+
+    public void setReferenceMap(DistrictMap referenceMap) {
+        this.referenceMap = referenceMap;
     }
 }

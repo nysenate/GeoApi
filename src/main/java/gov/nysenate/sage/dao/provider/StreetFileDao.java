@@ -5,7 +5,7 @@ import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
-import static gov.nysenate.sage.model.district.DistrictQuality.*;
+import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -188,7 +188,7 @@ public class StreetFileDao extends BaseDao
      */
     public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List)
     {
-        if (zip5List.isEmpty() && streetList.isEmpty()) return null;  // Short circuit on missing input
+        if ((zip5List == null || zip5List.isEmpty()) && (streetList == null || streetList.isEmpty())) return null;  // Short circuit on missing input
         String sqlTmpl = "SELECT DISTINCT %s::character varying AS code, '%s' AS type\n" +
                          "FROM streetfile\n" +
                          "WHERE (%s) AND (%s)";
@@ -282,7 +282,7 @@ public class StreetFileDao extends BaseDao
             }
         }
         else {
-            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, HOUSE);
+            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, DistrictMatchLevel.HOUSE);
         }
     }
 
@@ -307,7 +307,7 @@ public class StreetFileDao extends BaseDao
             }
         }
         else {
-            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, STREET);
+            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, DistrictMatchLevel.STREET);
         }
     }
 
@@ -322,7 +322,7 @@ public class StreetFileDao extends BaseDao
         List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
         DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
         if (consolidatedDist != null){
-            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, ZIP5);
+            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, DistrictMatchLevel.ZIP5);
         }
         else {
             return null;

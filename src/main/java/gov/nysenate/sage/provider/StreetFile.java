@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.service.street.StreetLookupService;
@@ -42,13 +43,6 @@ public class StreetFile implements DistrictService, StreetLookupService
     public boolean requiresGeocode() { return false; }
 
     @Override
-    public boolean providesMaps() { return false; }
-
-    /** No map functionality */
-    @Override
-    public void fetchMaps(boolean fetch) {}
-
-    @Override
     public List<DistrictedStreetRange> streetLookup(String zip5)
     {
         try {
@@ -73,7 +67,7 @@ public class StreetFile implements DistrictService, StreetLookupService
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
-        if (!validateInput(geocodedAddress, districtResult, false)) {
+        if (!validateInput(geocodedAddress, districtResult, false, true)) {
             return districtResult;
         }
         /** Parse the address */
@@ -82,6 +76,7 @@ public class StreetFile implements DistrictService, StreetLookupService
 
         try {
             DistrictedAddress match = null;
+
             if (!streetAddr.isStreetEmpty()) {
                 /** Try a House level match */
                 match = streetFileDao.getDistAddressByHouse(streetAddr);
@@ -112,7 +107,7 @@ public class StreetFile implements DistrictService, StreetLookupService
             districtResult.setStatusCode(INTERNAL_ERROR);
             logger.error(ex);
         }
-        logger.debug("Done with street lookup");
+
         return districtResult;
     }
 

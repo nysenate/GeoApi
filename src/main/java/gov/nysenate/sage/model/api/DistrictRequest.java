@@ -1,6 +1,7 @@
 package gov.nysenate.sage.model.api;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ public class DistrictRequest
 
     private ApiRequest apiRequest;
     private Address address;
+    private Point point;
     private String provider = null;
     private String geoProvider = null;
     private boolean showMembers = false;
@@ -26,10 +28,6 @@ public class DistrictRequest
     private Timestamp requestTime;
 
     public DistrictRequest() {}
-
-    public static DistrictRequest buildFromRequest(HttpServletRequest request) {
-        return null;
-    }
 
     public static DistrictRequest buildBluebirdRequest(ApiRequest apiRequest, Address address, String bluebirdStrategy)
     {
@@ -91,6 +89,14 @@ public class DistrictRequest
 
     public void setAddress(Address address) {
         this.address = address;
+    }
+
+    public Point getPoint() {
+        return point;
+    }
+
+    public void setPoint(Point point) {
+        this.point = point;
     }
 
     public String getProvider() {

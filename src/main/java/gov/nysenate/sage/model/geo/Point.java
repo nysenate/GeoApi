@@ -54,6 +54,11 @@ public class Point
         this.lon = lon;
     }
 
+    public boolean isSet()
+    {
+        return (this.lat != 0.0 || this.lon != 0.0);
+    }
+
     /**
      * Get the string representation of this Point.  The string representation
      * is of the form <latitude>,<longitude>

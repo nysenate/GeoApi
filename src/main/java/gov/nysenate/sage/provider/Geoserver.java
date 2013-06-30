@@ -6,13 +6,12 @@ import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictQuality;
+import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
-import gov.nysenate.sage.service.district.DistrictServiceValidator;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
@@ -60,12 +59,6 @@ public class Geoserver implements DistrictService, Observer
     public boolean requiresGeocode() { return true; }
 
     @Override
-    public boolean providesMaps() { return true; }
-
-    @Override
-    public void fetchMaps(boolean fetch) { this.fetchMaps = fetch; }
-
-    @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
     {
         return assignDistricts(geocodedAddress, DistrictType.getStandardTypes());
@@ -83,7 +76,7 @@ public class Geoserver implements DistrictService, Observer
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
-        if (!validateInput(geocodedAddress, districtResult, true)) {
+        if (!validateInput(geocodedAddress, districtResult, true, false)) {
             return districtResult;
         }
         try {
@@ -95,7 +88,7 @@ public class Geoserver implements DistrictService, Observer
                 return districtResult;
             }
             /** Set the result. The quality here is always point since it's based of a geocode */
-            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictQuality.POINT));
+            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.POINT));
         }
         catch (Exception ex) {
             districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);

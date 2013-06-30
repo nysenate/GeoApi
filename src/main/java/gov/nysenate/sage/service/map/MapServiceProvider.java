@@ -3,11 +3,13 @@ package gov.nysenate.sage.service.map;
 import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictOverlap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import org.apache.log4j.Logger;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,6 +46,19 @@ public class MapServiceProvider extends ServiceProviders<MapService>
                         replaceMaps.add((mapResult.isSuccess() ? mapResult.getDistrictMap() : map));
                     }
                     districtInfo.addNeighborMaps(districtType, replaceMaps);
+                }
+            }
+            /** Fill in senate overlap maps as well */
+            if (!districtInfo.getDistrictOverlaps().isEmpty()) {
+                logger.debug("Getting overlap maps too!");
+                if (districtInfo.getDistrictOverlap(DistrictType.SENATE) != null) {
+                    DistrictOverlap senateOverlap = districtInfo.getDistrictOverlap(DistrictType.SENATE);
+                    for (String code : senateOverlap.getTargetOverlap().keySet()) {
+                        MapResult mapResult = mapService.getDistrictMap(DistrictType.SENATE, code);
+                        if (mapResult.isSuccess()) {
+                            senateOverlap.setTargetDistrictMap(code, mapResult.getDistrictMap());
+                        }
+                    }
                 }
             }
         }

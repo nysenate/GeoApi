@@ -1,7 +1,7 @@
 package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictQuality;
+import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.geo.Geocode;
 
 import java.io.Serializable;
@@ -13,20 +13,20 @@ public class DistrictedAddress implements Serializable, Cloneable
 {
     protected GeocodedAddress geocodedAddress;
     protected DistrictInfo districtInfo;
-    protected DistrictQuality districtQuality = DistrictQuality.NOMATCH;
+    protected DistrictMatchLevel districtMatchLevel = DistrictMatchLevel.NOMATCH;
 
     public DistrictedAddress() {}
 
     public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo)
     {
-        this(geocodedAddress, districtInfo, DistrictQuality.NOMATCH);
+        this(geocodedAddress, districtInfo, DistrictMatchLevel.NOMATCH);
     }
 
-    public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo, DistrictQuality districtQuality)
+    public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo, DistrictMatchLevel districtMatchLevel)
     {
         this.geocodedAddress = geocodedAddress;
         this.districtInfo = districtInfo;
-        this.districtQuality = districtQuality;
+        this.districtMatchLevel = districtMatchLevel;
     }
 
     public GeocodedAddress getGeocodedAddress()
@@ -86,11 +86,11 @@ public class DistrictedAddress implements Serializable, Cloneable
         this.districtInfo = districtInfo;
     }
 
-    public DistrictQuality getDistrictQuality() {
-        return districtQuality;
+    public DistrictMatchLevel getDistrictMatchLevel() {
+        return districtMatchLevel;
     }
 
-    public void setDistrictQuality(DistrictQuality districtQuality) {
-        this.districtQuality = districtQuality;
+    public void setDistrictMatchLevel(DistrictMatchLevel districtMatchLevel) {
+        this.districtMatchLevel = districtMatchLevel;
     }
 }

@@ -105,7 +105,8 @@ public class DistrictShapefileDao extends BaseDao
                  intersectSql + " AS intersected_area, \n" +
                 "    ST_Area( \n" +
                 "        ST_Transform(source.geom, utmzone(ST_Centroid(source.geom)))\n" +
-                "    ) AS source_area\n" +
+                "    ) AS source_area, " +
+                "    ST_AsGeoJson(ST_ConcaveHull(source.geom, 0.98)) AS source_map \n" +
                 "FROM " + SCHEMA + ".%s target, " +
                 "     (SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s WHERE %s) AS source\n" +
                 "WHERE %s";
@@ -256,7 +257,7 @@ public class DistrictShapefileDao extends BaseDao
                     districtInfo.setDistCode(type, getDistrictCode(rs));
 
                     /** District map */
-                    districtInfo.setDistMap(type, getDistrictMapFromJson(rs.getString("map")));
+                    districtInfo.setDistMap(type, getDistrictMapFromJson(rs.getString("map"), true));
 
                     /** District proximity */
                     districtInfo.setDistProximity(type, rs.getDouble("proximity"));
@@ -294,7 +295,7 @@ public class DistrictShapefileDao extends BaseDao
                     String code = getDistrictCode(rs);
                     DistrictMetadata metadata = new DistrictMetadata(type, rs.getString("name"), code);
 
-                    DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
+                    DistrictMap map = getDistrictMapFromJson(rs.getString("map"), true);
                     map.setDistrictMetadata(metadata);
 
                     /** Set values in the lookup HashMap */
@@ -317,7 +318,7 @@ public class DistrictShapefileDao extends BaseDao
             while (rs.next()) {
                 DistrictType type = DistrictType.resolveType(rs.getString("type"));
                 String code = getDistrictCode(rs);
-                DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
+                DistrictMap map = getDistrictMapFromJson(rs.getString("map"), true);
                 if (map == null) {
                     map = new DistrictMap();
                 }
@@ -344,11 +345,13 @@ public class DistrictShapefileDao extends BaseDao
                 String code = getDistrictCode(rs);
                 BigDecimal area = rs.getBigDecimal("intersected_area");
                 /** Only add districts that actually intersect */
-                if (area.compareTo(BigDecimal.ZERO) == 1) {
+                if (area != null && area.compareTo(BigDecimal.ZERO) == 1) {
                     this.districtOverlap.getTargetOverlap().put(code, area);
                 }
                 if (this.districtOverlap.getTotalArea() == null) {
                     this.districtOverlap.setTotalArea(rs.getBigDecimal("source_area"));
+                    DistrictMap sourceMap = getDistrictMapFromJson(rs.getString("source_map"),false);
+                    this.districtOverlap.setReferenceMap(sourceMap);
                 }
             }
             return districtOverlap;
@@ -384,11 +387,12 @@ public class DistrictShapefileDao extends BaseDao
 
     /**
      * Parses JSON map response and creates a DistrictMap object containing the district geometry.
+     * This method does not set any other fields on the DistrictMap object.
      * @param jsonMap   GeoJson string containing the district geometry
      * @return          DistrictMap containing the geometry.
      *                  null if map string not present or error
      */
-    private DistrictMap getDistrictMapFromJson(String jsonMap)
+    private DistrictMap getDistrictMapFromJson(String jsonMap, boolean multiPolygon)
     {
         if (jsonMap != null && !jsonMap.isEmpty() && jsonMap != "null") {
             DistrictMap districtMap = new DistrictMap();
@@ -398,7 +402,7 @@ public class DistrictShapefileDao extends BaseDao
                 JsonNode coordinates = mapNode.get("coordinates");
                 for (int i = 0; i < coordinates.size(); i++) {
                     List<Point> points = new ArrayList<>();
-                    JsonNode polygon = coordinates.get(i).get(0);
+                    JsonNode polygon = (multiPolygon) ? coordinates.get(i).get(0) : coordinates.get(i);
                     for (int j = 0; j < polygon.size(); j++){
                         points.add(new Point(polygon.get(j).get(1).asDouble(), polygon.get(j).get(0).asDouble()));
                     }

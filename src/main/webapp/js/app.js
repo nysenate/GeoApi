@@ -34,6 +34,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     };
     mapService.map = new google.maps.Map(document.getElementById("map_canvas"), mapService.mapOptions);
     mapService.polygons = [];
+    mapService.line = null;
     mapService.polygon = null;
     mapService.markers = [];
     mapService.activeMarker = null;
@@ -199,14 +200,52 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             this.clearPolygons();
         }
         return null;
-    }
+    };
+
+    mapService.setLine = function(geom, fitBounds) {
+        var lineCoordinates = [];
+        $.each(geom[0], function(i,v){
+            lineCoordinates.push(new google.maps.LatLng(v[0], v[1]));
+        });
+
+        if (this.line) {
+            this.line.setMap(null);
+            this.line = null;
+        }
+
+        var lineSymbol = {
+            path: 'M 0,-0.5 0,0.5',
+            strokeWeight: 3,
+            strokeOpacity: 1,
+            scale: 1
+        };
+
+        var line = new google.maps.Polyline({
+            path: lineCoordinates,
+            strokeColor: "#333",
+            strokeOpacity: 0,
+            icons: [{
+                icon: lineSymbol,
+                offset: '100%',
+                repeat: '8px'}],
+            map: this.map
+        });
+
+        this.line = line;
+
+        /** Set the zoom level to the district bounds */
+        if (fitBounds) {
+            this.map.fitBounds(line.getBounds());
+            this.map.setZoom(this.map.getZoom());
+        }
+    };
 
     mapService.clearPolygon = function(polygon) {
         if (polygon) {
             try { polygon.setMap(null);}
             catch (ex) {}
         }
-    }
+    };
 
     /**
      * Removes all polygon overlays
@@ -216,7 +255,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             v.setMap(null);
         });
         this.polygons = [];
-    }
+    };
 
     /**
      * Removes all markers
@@ -226,7 +265,16 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             v.setMap(null);
         });
         this.markers = [];
-    }
+    };
+
+    /**
+     * Clears markers and overlays
+     */
+    mapService.clearAll = function() {
+        this.clearMarkers();
+        this.clearPolygons();
+    };
+
 
     /**--------------------------------------------
      * Client Geocoder
@@ -421,6 +469,7 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
     $scope.geoProvider = "default";
     $scope.provider = "default";
     $scope.uspsValidate = "false";
+    $scope.showMaps = "true";
 
     $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
@@ -430,15 +479,26 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
      * Performs request to District Assign API and delegates to the `districtInfo` handler.
      */
     $scope.lookup = function() {
-        uiBlocker.block("Looking up districts");
-        $http.get(this.getDistUrl())
-            .success(function(data) {
-                dataBus.setBroadcastAndView("districtInfo", data, "districtsView");
-            }).error(function(data, status, headers, config) {
-                uiBlocker.unBlock();
-                alert("Failed to lookup districts. The application did not return a response.");
-            });
-    }
+        if (this.validateSearch()) {
+            uiBlocker.block("Looking up districts for " + this.addr);
+            mapService.clearAll();
+            $http.get(this.getDistUrl())
+                .success(function(data) {
+                    dataBus.setBroadcastAndView("districtInfo", data, "districtsView");
+                }).error(function(data, status, headers, config) {
+                    uiBlocker.unBlock();
+                    alert("Failed to lookup districts. The application did not return a response.");
+                });
+        }
+        else {
+            alert("Your address search should be at least 5 characters long. Please try to be as specific " +
+                "as possible.");
+        }
+    };
+
+    $scope.validateSearch = function() {
+        return (this.addr != '' && this.addr.length >= 5);
+    };
 
     /**
      * Returns the url for accessing the district assignment API.
@@ -450,7 +510,8 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
         url += (this.uspsValidate != "false" && this.uspsValidate != "") ? "&uspsValidate=true" : "";
-        url += "&showMembers=true&showMaps=true";
+        url += (this.showMaps != "false" && this.showMaps != "") ? "&showMaps=true" : "";
+        url += "&showMembers=true";
         url = url.replace(/#/g, ""); // Pound marks mess up the query string
         return url;
     }
@@ -674,7 +735,6 @@ sage.controller('ResultsViewController', function($scope, dataBus, mapService) {
 sage.controller('DistrictsViewController', function($scope, $http, $filter, dataBus, mapService, uiBlocker) {
     $scope.visible = false;
     $scope.viewId = "districtsView";
-    $scope.showFacebook = false;
     $scope.showOffices = false;
     $scope.showNeighbors = false;
     $scope.neighborPolygons = [];
@@ -691,15 +751,19 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         mapService.toggleMap(true);
 
         /** If the districts were assigned, initially set the map to display the senate boundary */
-        if ($scope.districtAssigned) {
-            if ($scope.districts.senate.map) {
-                mapService.setOverlay($scope.districts.senate.map.geom,
-                    formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
+        try {
+            if ($scope.districtAssigned) {
+                if ($scope.districts.senate.map) {
+                    mapService.setOverlay($scope.districts.senate.map.geom,
+                        formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
+                }
             }
-            if ($scope.districts.senate.senator.social.facebook != '') {
-                $scope.showFacebook = true;
+            if ($scope.multiMatch) {
+                mapService.setLine($scope.referenceMap.geom, true);
             }
         }
+        catch (ex) { console.log(ex); }
+
         /** Update the marker location to point to the geocode */
         if ($scope.geocoded) {
             mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
@@ -1068,5 +1132,13 @@ $(document).ready(function(){
             }
         }
         return bounds;
-    }
+    };
+
+    google.maps.Polyline.prototype.getBounds = function() {
+        var bounds = new google.maps.LatLngBounds();
+        this.getPath().forEach(function(e) {
+            bounds.extend(e);
+        });
+        return bounds;
+    };
 });

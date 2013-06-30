@@ -4,6 +4,7 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.district.DistrictResponse;
 import gov.nysenate.sage.client.response.district.MappedDistrictResponse;
+import gov.nysenate.sage.client.response.district.MappedMultiDistrictResponse;
 import gov.nysenate.sage.dao.logger.DistrictRequestLogger;
 import gov.nysenate.sage.dao.logger.DistrictResultLogger;
 import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
@@ -157,7 +158,12 @@ public class DistrictController extends BaseApiController implements Observer
                 if (!apiRequest.isBatch()) {
                     if (districtRequest.hasValidAddress()) {
                         DistrictResult districtResult = handleDistrictRequest(districtRequest);
-                        districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
+                        if (districtResult.isMultiMatch()) {
+                            districtResponse = new MappedMultiDistrictResponse(districtResult);
+                        }
+                        else {
+                            districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
+                        }
                     }
                     else {
                         Point point = getPointFromParams(request);
@@ -176,8 +182,8 @@ public class DistrictController extends BaseApiController implements Observer
                     List<Address> addresses = getAddressesFromJsonBody(request);
                     if (addresses.size() > 0) {
                         List<DistrictResult> districtResults =
-                                districtAssign(addresses, provider, geoProvider, uspsValidate, !skipGeocode, showMembers,
-                                               false, districtStrategy);
+                                handleBatchDistrictRequest(addresses, provider, geoProvider, uspsValidate, !skipGeocode, showMembers,
+                                        false, districtStrategy);
                         districtResponse = new BatchDistrictResponse(districtResults);
                     }
                     else {
@@ -207,7 +213,7 @@ public class DistrictController extends BaseApiController implements Observer
                     List<Address> addresses = getAddressesFromJsonBody(request);
                     if (addresses.size() > 0) {
                         List<DistrictResult> districtResults =
-                                districtAssign(addresses, null, null, true, true, false, false, BLUEBIRD_DISTRICT_STRATEGY);
+                                handleBatchDistrictRequest(addresses, null, null, true, true, false, false, BLUEBIRD_DISTRICT_STRATEGY);
                         districtResponse = new BatchDistrictResponse(districtResults);
                     }
                     else {
@@ -232,12 +238,13 @@ public class DistrictController extends BaseApiController implements Observer
     {
         logger.debug("Entering handleDistrictRequest");
         Address address = distRequest.getAddress();
+        Point point = distRequest.getPoint();
         GeocodedAddress geocodedAddress = new GeocodedAddress(address);
 
         /** Geocode address unless opted out */
+        GeocodeRequest geocodeRequest;
         if (!distRequest.isSkipGeocode()) {
-            GeocodeRequest geocodeRequest = new GeocodeRequest(distRequest.getApiRequest(), address,
-                                                               distRequest.getGeoProvider(), true, true);
+            geocodeRequest = new GeocodeRequest(distRequest.getApiRequest(), address, distRequest.getGeoProvider(), true, true);
             geocodedAddress = performGeocode(geocodeRequest);
             logger.debug("Geocoded");
         }
@@ -321,76 +328,33 @@ public class DistrictController extends BaseApiController implements Observer
         districtResult.setStatusCode(NO_DISTRICT_RESULT);
 
         if (geocodedAddress != null) {
-            Boolean multiMatch = false;
+            if (geocodedAddress.isValidAddress()) {
+                if (geocodedAddress.isValidGeocode()) {
+                    GeocodeQuality level = geocodedAddress.getGeocode().getQuality();
+                    Address address = geocodedAddress.getAddress();
 
-            /** If geocode is set, determine based on the quality if it is specific enough to district assign */
-            if (geocodedAddress.isValidGeocode()) {
-                GeocodeQuality level = geocodedAddress.getGeocode().getQuality();
-                Address address = geocodedAddress.getAddress();
-
-                /** House level matches and above can utilize default district assignment behaviour */
-                if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
-                    districtResult = districtProvider.assignDistricts(geocodedAddress, dr.getProvider(),
-                                                                      DistrictType.getStandardTypes(), dr.getDistrictStrategy());
+                    /** House level matches and above can utilize default district assignment behaviour */
+                    if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
+                        districtResult = districtProvider.assignDistricts(geocodedAddress, dr.getProvider(),
+                                DistrictType.getStandardTypes(), dr.getDistrictStrategy());
+                    }
+                    /** All other level matches are routed to the overlap assignment method */
+                    else {
+                        districtResult = districtProvider.assignOverlapDistricts(geocodedAddress);
+                    }
                 }
                 else {
-                    districtResult = districtProvider.assignOverlapDistricts(geocodedAddress);
+                    districtResult.setStatusCode(ResultStatus.INVALID_GEOCODE);
                 }
             }
             else {
-                districtResult.setStatusCode(ResultStatus.INVALID_GEOCODE);
+                districtResult.setStatusCode(ResultStatus.INSUFFICIENT_ADDRESS);
             }
         }
-
-        return districtResult;
-    }
-
-    /**
-     * Utilizes the service providers to perform address validation, geo-coding, and district assignment for an address.
-     * @return DistrictResult
-     */
-    private DistrictResult districtAssign(ApiRequest apiRequest, Address address, String provider, String geoProvider, Boolean uspsValidate,
-                                          Boolean performGeocode, Boolean showMembers, Boolean showMaps, String districtStrategy)
-    {
-        /** Perform geocoding if necessary */
-        GeocodedAddress geocodedAddress = new GeocodedAddress(address);
-        if (performGeocode) {
-            GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
-                                                                : geocodeProvider.geocode(address);
-            geocodedAddress = geocodeResult.getGeocodedAddress();
-
-            /** Log geocode request/result to database */
-            int requestId = geocodeRequestLogger.logGeocodeRequest(new GeocodeRequest(apiRequest, address, provider, (geoProvider == null), (geoProvider == null)));
-            geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
+        else {
+            districtResult.setStatusCode(ResultStatus.MISSING_GEOCODED_ADDRESS);
         }
 
-        /** Perform USPS address correction if requested on either the geocoded address or the input address. */
-        if (uspsValidate) {
-            performAddressCorrection(address, geocodedAddress);
-        }
-
-        DistrictStrategy strategy;
-        try {
-            strategy = DistrictStrategy.valueOf(districtStrategy);
-        }
-        catch (Exception ex) {
-            strategy = null;
-        }
-
-        /** Log district request to database */
-        int requestId = districtRequestLogger.logDistrictRequest(
-                new DistrictRequest(apiRequest, (geocodedAddress != null) ? geocodedAddress.getAddress() : null,
-                                    provider, geoProvider, showMembers, showMaps, uspsValidate, !performGeocode, strategy));
-
-        /** Obtain district result */
-        DistrictResult districtResult = districtProvider.assignDistricts(geocodedAddress, provider, DistrictType.getStandardTypes(), strategy);
-
-        /** Last ditch effort to make sure maps are presented if requested but were not set by the district provider */
-        if (showMaps && (districtResult.isSuccess() || districtResult.isPartialSuccess())) {
-            mapProvider.assignMapsToDistrictInfo(districtResult.getDistrictInfo(), false);
-        }
-        /** Log district result to database */
-        districtResultLogger.logDistrictResult(requestId, districtResult);
         return districtResult;
     }
 
@@ -398,8 +362,8 @@ public class DistrictController extends BaseApiController implements Observer
      * Utilizes the service providers to perform batch address validation, geo-coding, and district assignment for an address.
      * @return List<DistrictResult>
      */
-    private List<DistrictResult> districtAssign(List<Address> addresses, String provider, String geoProvider, Boolean uspsValidate,
-                                          Boolean performGeocode, Boolean showMembers, Boolean showMaps, String districtStrategy)
+    private List<DistrictResult> handleBatchDistrictRequest(List<Address> addresses, String provider, String geoProvider, Boolean uspsValidate,
+                                                            Boolean performGeocode, Boolean showMembers, Boolean showMaps, String districtStrategy)
     {
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
         for (Address address : addresses) {

@@ -42,7 +42,7 @@ public class GeoCacheDao extends BaseDao
      */
     public GeocodedStreetAddress getCacheHit(StreetAddress sa)
     {
-        logger.debug("Looking up " + sa.toStringParsed() + " in cache..");
+        logger.trace("Looking up " + sa.toStringParsed() + " in cache..");
         if (isStreetAddressRetrievable(sa)) {
             String sql = "SELECT gc.*, ST_Y(latlon) AS lat, ST_X(latlon) AS lon\n" +
                          "FROM cache.geocache AS gc \n";
@@ -65,7 +65,7 @@ public class GeoCacheDao extends BaseDao
             }
             /** PO BOX addresses can be looked up by just the location/zip */
             else {
-                logger.debug("Cache lookup without street");
+                logger.trace("Cache lookup without street");
                 sql += "WHERE gc.state = ? \n" +
                        "AND gc.street = '' \n" +
                        "AND ((gc.zip5 = ? AND gc.zip5 != '') OR (? = '' AND gc.location = ? AND gc.location != ''))";
@@ -129,7 +129,7 @@ public class GeoCacheDao extends BaseDao
                                     sa.getPreDir(), sa.getStreetName(), sa.getStreetType(), sa.getPostDir(), sa.getLocation(),
                                     sa.getState(), sa.getZip5(), "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
                                     gc.getMethod(), gc.getQuality().name(), sa.getZip4());
-                            logger.info("Saved " + sa.toString() + " in cache.");
+                            logger.trace("Saved " + sa.toString() + " in cache.");
                         }
                         catch(SQLException ex) {
                             logger.trace(ex); // Most likely a duplicate row warning

@@ -3,6 +3,21 @@
 
     <display-name>GeoApi</display-name>
 
+    <!-- Monitoring Security -->
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>Monitoring</realm-name>
+    </login-config>
+    <security-role>
+        <role-name>monitoring</role-name>
+    </security-role>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Monitoring</web-resource-name>
+            <url-pattern>/monitoring</url-pattern>
+        </web-resource-collection>
+    </security-constraint>
+
     <!-- Exceptions -->
     <servlet>
         <servlet-name>ExceptionController</servlet-name>

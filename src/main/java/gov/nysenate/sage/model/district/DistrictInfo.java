@@ -3,6 +3,7 @@ package gov.nysenate.sage.model.district;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.services.model.Senator;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
@@ -13,8 +14,6 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  */
 public class DistrictInfo
 {
-    protected Senator senator;
-
     /** A set of DistrictTypes that were actually district assigned. */
     protected Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
 
@@ -25,7 +24,8 @@ public class DistrictInfo
     protected Map<DistrictType, String> districtNames = new HashMap<>();
     protected Map<DistrictType, String> districtCodes = new HashMap<>();
 
-    /** Names of assembly/congressional members */
+    /** Names of senate/assembly/congressional members */
+    protected Senator senator;
     protected Map<DistrictType, DistrictMember> districtMembers = new HashMap<>();
 
     /** District Maps and proximity values */
@@ -37,7 +37,6 @@ public class DistrictInfo
 
     /** Multi District Overlap/Map data */
     protected Map<DistrictType, DistrictOverlap> districtOverlaps = new HashMap<>();
-    protected Map<DistrictType, Set<DistrictMap>> multiDistrictMaps = new HashMap<>();
 
     public DistrictInfo() {}
 
@@ -189,22 +188,14 @@ public class DistrictInfo
         this.districtOverlaps = districtOverlaps;
     }
 
-    public Map<DistrictType, Set<DistrictMap>> getMultiDistrictMaps() {
-        return multiDistrictMaps;
-    }
-
-    public void setMultiDistrictMaps(Map<DistrictType, Set<DistrictMap>> multiDistrictMaps) {
-        this.multiDistrictMaps = multiDistrictMaps;
-    }
-
     public void addDistrictOverlap(DistrictType districtType, DistrictOverlap districtOverlap)
     {
         this.districtOverlaps.put(districtType, districtOverlap);
     }
 
-    public void addMultiDistrictMaps(DistrictType districtType, Set<DistrictMap> districtMaps)
+    public DistrictOverlap getDistrictOverlap(DistrictType districtType)
     {
-        this.multiDistrictMaps.put(districtType, districtMaps);
+        return this.districtOverlaps.get(districtType);
     }
 
     /**

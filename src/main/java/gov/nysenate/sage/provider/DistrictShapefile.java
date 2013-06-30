@@ -25,7 +25,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 
 public class DistrictShapefile implements DistrictService, MapService
 {
-    private static Logger logger = Logger.getLogger(Geoserver.class);
+    private static Logger logger = Logger.getLogger(DistrictShapefile.class);
     private DistrictShapefileDao districtShapefileDao;
     private boolean fetchMaps = false;
 
@@ -44,12 +44,6 @@ public class DistrictShapefile implements DistrictService, MapService
     public boolean requiresGeocode() { return true; }
 
     @Override
-    public boolean providesMaps() { return true; }
-
-    @Override
-    public void fetchMaps(boolean fetch) { this.fetchMaps = fetch; }
-
-    @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
     {
         return assignDistricts(geocodedAddress, DistrictType.getStateBasedTypes());
@@ -61,7 +55,7 @@ public class DistrictShapefile implements DistrictService, MapService
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
-        if (!validateInput(geocodedAddress, districtResult, true)) {
+        if (!validateInput(geocodedAddress, districtResult, true, false)) {
             return districtResult;
         }
         try {
@@ -73,7 +67,7 @@ public class DistrictShapefile implements DistrictService, MapService
                 return districtResult;
             }
             /** Set the result. The quality here is always point since it's based of a geocode */
-            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictQuality.POINT));
+            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.POINT));
         }
         catch (Exception ex) {
             districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
@@ -161,55 +155,62 @@ public class DistrictShapefile implements DistrictService, MapService
     public DistrictResult getOverlapDistrictResult(GeocodedAddress geocodedAddress)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
+        DistrictedAddress districtedAddress = new DistrictedAddress(geocodedAddress, null, DistrictMatchLevel.NOMATCH);
         DistrictInfo districtInfo = new DistrictInfo();
 
-        if (geocodedAddress != null && geocodedAddress.isValidGeocode() && geocodedAddress.isValidAddress()) {
-            Address address = geocodedAddress.getAddress();
-            GeocodeQuality geocodeQuality = geocodedAddress.getGeocode().getQuality();
+        /** Validate the geocoded address before proceeding */
+        if (!validateInput(geocodedAddress, districtResult, true, true)) {
+            return districtResult;
+        }
 
-            if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) {
-                logger.debug("Determining street level district overlap");
-                return districtResult;
+        Address address = geocodedAddress.getAddress();
+        GeocodeQuality geocodeQuality = geocodedAddress.getGeocode().getQuality();
+
+        if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) {
+            logger.debug("Determining street level district overlap");
+            districtedAddress.setDistrictMatchLevel(DistrictMatchLevel.STREET);
+            return districtResult;
+        }
+        else if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) {
+            Map<DistrictType, Set<String>> matches = new HashMap<>();
+            List<String> zip5List = new ArrayList<>();
+
+            if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 &&!address.getZip5().isEmpty()) {
+                logger.debug("Determining zip level district overlap");
+                districtedAddress.setDistrictMatchLevel(DistrictMatchLevel.ZIP5);
+                zip5List = Arrays.asList(address.getZip5());
+            }
+            else if (!address.getCity().isEmpty()) {
+                logger.debug("Determining city level district overlap");
+                districtedAddress.setDistrictMatchLevel(DistrictMatchLevel.CITY);
+                zip5List = cityZipDBDao.getZipsByCity(address.getCity());
             }
 
-            else if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) {
-                Map<DistrictType, Set<String>> matches = new HashMap<>();
-                List<String> zip5List = new ArrayList<>();
+            if (!zip5List.isEmpty()) {
+                matches = streetFileDao.getAllStandardDistrictMatches(zip5List);
+                if (matches != null && !matches.isEmpty()) {
 
-                if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 &&!address.getZip5().isEmpty()) {
-                    logger.debug("Determining zip level district overlap");
-                    zip5List = Arrays.asList(address.getZip5());
-                }
-                else if (!address.getCity().isEmpty()) {
-                    logger.debug("Determining city level district overlap");
-                    zip5List = cityZipDBDao.getZipsByCity(address.getCity());
-                }
-
-                if (!zip5List.isEmpty()) {
-                    matches = streetFileDao.getAllStandardDistrictMatches(zip5List);
-                    if (matches != null && !matches.isEmpty()) {
-
-                        for (DistrictType matchType : matches.keySet()) {
-                            if (matches.get(matchType) != null && !matches.get(matchType).isEmpty()) {
-                                Set<String> distCodeSet = matches.get(matchType);
-                                logger.debug("Matches for " + matchType + " " + distCodeSet);
-                                if (distCodeSet.size() == 1) {
-                                    logger.debug("Setting as district");
-                                    districtInfo.setDistCode(matchType, distCodeSet.iterator().next());
-                                }
-                                else {
-                                    logger.debug("Setting as overlap");
-                                    DistrictOverlap overlap = districtShapefileDao.getDistrictOverlap(matchType, matches.get(matchType),
-                                            DistrictType.ZIP, new HashSet<String>(zip5List));
-                                    logger.debug("Overlap for " + matchType + " " + FormatUtil.toJsonString(overlap));
-                                    districtInfo.addDistrictOverlap(matchType, overlap);
-                                }
+                    for (DistrictType matchType : matches.keySet()) {
+                        if (matches.get(matchType) != null && !matches.get(matchType).isEmpty() && !matchType.equals(DistrictType.ZIP)) {
+                            Set<String> distCodeSet = matches.get(matchType);
+                            logger.debug("Matches for " + matchType + " " + distCodeSet);
+                            if (distCodeSet.size() == 1) {
+                                logger.debug("Setting as district");
+                                districtInfo.setDistCode(matchType, distCodeSet.iterator().next());
+                            }
+                            else {
+                                logger.debug("Setting as overlap");
+                                DistrictOverlap overlap = districtShapefileDao.getDistrictOverlap(matchType, matches.get(matchType),
+                                        DistrictType.ZIP, new HashSet<String>(zip5List));
+                                //logger.debug("Overlap for " + matchType + " " + FormatUtil.toJsonString(overlap));
+                                districtInfo.addDistrictOverlap(matchType, overlap);
                             }
                         }
-                        districtResult.setStatusCode(ResultStatus.PARTIAL_DISTRICT_RESULT);
-                        districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo));
-                        return districtResult;
                     }
+                    districtResult.setStatusCode(ResultStatus.MULTIPLE_DISTRICT_RESULT);
+                    districtedAddress.setDistrictInfo(districtInfo);
+                    districtResult.setDistrictedAddress(districtedAddress);
+                    return districtResult;
                 }
             }
         }

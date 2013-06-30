@@ -416,6 +416,16 @@ em {color: red;}
     padding:5px 10px;
 }
 
+.info-container.title {
+    padding:5px 10px;
+    margin: 0 auto;
+    border-bottom:1px solid #eee;
+}
+
+.info-container.connected {
+    margin: 0 auto;
+}
+
 .info-container.clickable {
     cursor:pointer;
 }
@@ -423,6 +433,17 @@ em {color: red;}
 .info-container.clickable:hover {
     box-shadow:1px 1px 2px 0 teal;
     background-color:#f5f5f5;
+}
+
+.info-container hr {
+    outline: 0;
+    border-color:#ddd;
+    border-width:0 0 1px 0;
+    margin:2px 0 5px 0;
+}
+
+.info-container .message {
+    font-size:14px;
 }
 
 .section {
@@ -437,11 +458,16 @@ em {color: red;}
     font-weight: 600;
 }
 
+.success-color {
+    color:#477326 !important;
+}
+
 /*-------------------------------------------------------
   Senator Results Display
   ------------------------------------------------------*/
 .info-container.senator {
     height:70px;
+    border-bottom:1px solid #ddd;
 }
 
 .mini-senator-pic-holder, .senator-pic-holder {

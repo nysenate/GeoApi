@@ -2,6 +2,7 @@ package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -20,24 +21,20 @@ public abstract class DistrictServiceValidator
      * @return true if all required objects are set, false otherwise and sets status in districtResult
      */
     public static boolean validateInput(final GeocodedAddress geoAddress, final DistrictResult districtResult,
-                                        boolean requireGeocode)
+                                        boolean requireGeocode, boolean requiresValidAddress)
     {
         if (geoAddress == null) {
             districtResult.setStatusCode(MISSING_GEOCODED_ADDRESS);
         }
         else
         {
-            if (geoAddress.getAddress() == null && geoAddress.getGeocode() == null) {
+            if (!geoAddress.isValidAddress() && requiresValidAddress) {
                 districtResult.setStatusCode(MISSING_ADDRESS);
             }
-            else if (geoAddress.getAddress() != null && geoAddress.getAddress().isEmpty()
-                                                     && geoAddress.getGeocode() == null) {
-                districtResult.setStatusCode(INSUFFICIENT_ADDRESS);
-            }
-            else if (requireGeocode && !geoAddress.isValidGeocode()) {
+            else if (!geoAddress.isValidGeocode() && requireGeocode) {
                 districtResult.setStatusCode(MISSING_GEOCODE);
             }
-            else if (geoAddress.getAddress() != null) {
+            else if (geoAddress.isValidAddress()) {
                 String state = geoAddress.getAddress().getState();
                 if (state != null && !state.isEmpty() && !state.matches("(?i)(NY|NEW YORK)")) {
                     districtResult.setStatusCode(NON_NY_STATE);
@@ -50,6 +47,7 @@ public abstract class DistrictServiceValidator
                 return true;
             }
         }
+        districtResult.setGeocodedAddress(geoAddress);
         return false;
     }
 
@@ -63,6 +61,7 @@ public abstract class DistrictServiceValidator
         /** An empty district info is an invalid response so we return false */
         if (districtInfo == null || districtInfo.getAssignedDistricts().size() == 0) {
             districtResult.setStatusCode(ResultStatus.NO_DISTRICT_RESULT);
+            districtResult.setDistrictMatchLevel(DistrictMatchLevel.NOMATCH);
             return false;
         }
         /** If the result is only partial it still has some value so we don't want to return false here */
