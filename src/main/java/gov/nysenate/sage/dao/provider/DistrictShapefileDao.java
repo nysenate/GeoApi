@@ -39,6 +39,14 @@ public class DistrictShapefileDao extends BaseDao
 
     private static Boolean FETCH_MAPS_DURING_LOOKUP = false;
 
+    private enum GeometryTypes {
+        POLYGON("Polygon"), MULTIPOLYGON("MultiPolygon");
+        public String type;
+        GeometryTypes(String type) {
+            this.type = type;
+        }
+    }
+
     public DistrictShapefileDao() {}
 
     /**
@@ -94,22 +102,26 @@ public class DistrictShapefileDao extends BaseDao
                       DistrictType refDistrictType, Set<String> refCodes)
     {
         if (targetCodes == null) targetCodes = new HashSet<>();
-        String intersectSql = "ST_Area(" +
-                                  "ST_Transform(" +
-                                      "ST_Intersection(ST_Transform(target.geom, %s), ST_Transform(source.geom, %s)), utmzone(ST_Centroid(target.geom))" +
-                                  ")" +
-                              ")";
+
+        String intersectSql = "ST_Intersection(ST_Transform(target.geom, %s), ST_Transform(source.geom, %s))";
         intersectSql = String.format(intersectSql, resolveSRID(refDistrictType), resolveSRID(refDistrictType));
+        String intersectAreaSql = String.format(
+                "ST_Area(" +
+                    "ST_Transform(%s , utmzone(ST_Centroid(target.geom)))" +
+                ")", intersectSql);
         String sqlTmpl =
-                "SELECT target.%s AS code, '%s' as type, \n" +
-                 intersectSql + " AS intersected_area, \n" +
-                "    ST_Area( \n" +
-                "        ST_Transform(source.geom, utmzone(ST_Centroid(source.geom)))\n" +
-                "    ) AS source_area, " +
-                "    ST_AsGeoJson(ST_ConcaveHull(source.geom, 0.98)) AS source_map \n" +
-                "FROM " + SCHEMA + ".%s target, " +
-                "     (SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s WHERE %s) AS source\n" +
-                "WHERE %s";
+            "SELECT target.%s AS code, '%s' as type, \n" +
+             intersectAreaSql + " AS intersected_area, \n" +
+            "    ST_Area( \n" +
+            "        ST_Transform(source.geom, utmzone(ST_Centroid(source.geom)))\n" +
+            "    ) AS source_area \n" +
+            /** Get intersection polygon for senate districts */
+            (targetDistrictType.equals(DistrictType.SENATE) ? "" +
+                    String.format(", ST_AsGeoJson(ST_CollectionExtract(%s, 3)) AS intersect_geom \n", intersectSql) : "") +
+            "FROM " + SCHEMA + ".%s target, " +
+            "     (SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s WHERE %s) AS source\n" +
+            "WHERE %s \n" +
+            "ORDER BY intersected_area ASC";
         List<String> refWhereList = new ArrayList<>();
         for (String refCode : refCodes) {
             refWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", resolveCodeColumn(refDistrictType), StringEscapeUtils.escapeSql(refCode)));
@@ -123,11 +135,47 @@ public class DistrictShapefileDao extends BaseDao
         String sqlQuery = String.format(sqlTmpl, resolveCodeColumn(targetDistrictType), targetDistrictType.name(), targetDistrictType.name(), refDistrictType.name(),
                                                  refWhereSql, targetWhereSql);
         try {
+            logger.debug(sqlQuery);
             DistrictOverlap overlap = new DistrictOverlap(refDistrictType, targetDistrictType, refCodes, DistrictOverlap.AreaUnit.SQ_METERS);
             return run.query(sqlQuery, new DistrictOverlapHandler(overlap));
         }
         catch (SQLException ex) {
             logger.error("Failed to determine district overlap!", ex);
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param refDistrictType
+     * @param refCodes
+     * @return
+     */
+    public DistrictMap getOverlapReferenceBoundary(DistrictType refDistrictType, Set<String> refCodes)
+    {
+        String sql = "SELECT ST_AsGeoJson(ST_ConcaveHull(source.geom, 0.98)) AS source_map \n" +
+                     "FROM \n" +
+                     "(SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s WHERE (%s)) AS source";
+        List<String> refWhereList = new ArrayList<>();
+        for (String refCode : refCodes) {
+            refWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", resolveCodeColumn(refDistrictType), StringEscapeUtils.escapeSql(refCode)));
+        }
+        String refWhereSql = StringUtils.join(refWhereList, " OR ");
+        String sqlQuery = String.format(sql, refDistrictType.name(), refWhereSql);
+
+        try {
+            return run.query(sqlQuery, new ResultSetHandler<DistrictMap>(){
+                @Override
+                public DistrictMap handle(ResultSet rs) throws SQLException {
+                    if (rs.next()) {
+                        return getDistrictMapFromJson(rs.getString("source_map"));
+                    }
+                    return null;
+                }
+            });
+        }
+        catch (SQLException ex) {
+            logger.debug("Failed to get overlap reference boundary!", ex);
         }
         return null;
     }
@@ -257,7 +305,7 @@ public class DistrictShapefileDao extends BaseDao
                     districtInfo.setDistCode(type, getDistrictCode(rs));
 
                     /** District map */
-                    districtInfo.setDistMap(type, getDistrictMapFromJson(rs.getString("map"), true));
+                    districtInfo.setDistMap(type, getDistrictMapFromJson(rs.getString("map")));
 
                     /** District proximity */
                     districtInfo.setDistProximity(type, rs.getDouble("proximity"));
@@ -295,7 +343,7 @@ public class DistrictShapefileDao extends BaseDao
                     String code = getDistrictCode(rs);
                     DistrictMetadata metadata = new DistrictMetadata(type, rs.getString("name"), code);
 
-                    DistrictMap map = getDistrictMapFromJson(rs.getString("map"), true);
+                    DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
                     map.setDistrictMetadata(metadata);
 
                     /** Set values in the lookup HashMap */
@@ -318,7 +366,7 @@ public class DistrictShapefileDao extends BaseDao
             while (rs.next()) {
                 DistrictType type = DistrictType.resolveType(rs.getString("type"));
                 String code = getDistrictCode(rs);
-                DistrictMap map = getDistrictMapFromJson(rs.getString("map"), true);
+                DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
                 if (map == null) {
                     map = new DistrictMap();
                 }
@@ -344,14 +392,16 @@ public class DistrictShapefileDao extends BaseDao
             while (rs.next()) {
                 String code = getDistrictCode(rs);
                 BigDecimal area = rs.getBigDecimal("intersected_area");
+                if (rs.getString("type") != null && rs.getString("type").equalsIgnoreCase("SENATE")) {
+                    DistrictMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geom"));
+                    this.districtOverlap.addIntersectionMap(code, intersectMap);
+                }
                 /** Only add districts that actually intersect */
                 if (area != null && area.compareTo(BigDecimal.ZERO) == 1) {
                     this.districtOverlap.getTargetOverlap().put(code, area);
                 }
                 if (this.districtOverlap.getTotalArea() == null) {
                     this.districtOverlap.setTotalArea(rs.getBigDecimal("source_area"));
-                    DistrictMap sourceMap = getDistrictMapFromJson(rs.getString("source_map"),false);
-                    this.districtOverlap.setReferenceMap(sourceMap);
                 }
             }
             return districtOverlap;
@@ -392,17 +442,26 @@ public class DistrictShapefileDao extends BaseDao
      * @return          DistrictMap containing the geometry.
      *                  null if map string not present or error
      */
-    private DistrictMap getDistrictMapFromJson(String jsonMap, boolean multiPolygon)
+    private DistrictMap getDistrictMapFromJson(String jsonMap)
     {
         if (jsonMap != null && !jsonMap.isEmpty() && jsonMap != "null") {
             DistrictMap districtMap = new DistrictMap();
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 JsonNode mapNode = objectMapper.readTree(jsonMap);
+                String type = mapNode.get("type").asText();
+                GeometryTypes geoType;
+                try {
+                    geoType = GeometryTypes.valueOf(type.toUpperCase());
+                }
+                catch (Exception ex) {
+                    logger.debug("Geometry type " + type + " is not supported by this method!");
+                    return null;
+                }
                 JsonNode coordinates = mapNode.get("coordinates");
                 for (int i = 0; i < coordinates.size(); i++) {
                     List<Point> points = new ArrayList<>();
-                    JsonNode polygon = (multiPolygon) ? coordinates.get(i).get(0) : coordinates.get(i);
+                    JsonNode polygon = (geoType.equals(GeometryTypes.MULTIPOLYGON)) ? coordinates.get(i).get(0) : coordinates.get(i);
                     for (int j = 0; j < polygon.size(); j++){
                         points.add(new Point(polygon.get(j).get(1).asDouble(), polygon.get(j).get(0).asDouble()));
                     }

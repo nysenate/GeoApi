@@ -27,6 +27,8 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
         DistrictInfo districtInfo = districtResult.getDistrictInfo();
         if (districtInfo != null && !districtInfo.getDistrictOverlaps().isEmpty()) {
             this.isMultiMatch = true;
+            this.referenceMap = new MapView(districtInfo.getReferenceMap());
+
             Map<DistrictType, DistrictOverlap> overlapsByDistrict = districtInfo.getDistrictOverlaps();
             for (DistrictType districtType : overlapsByDistrict.keySet()) {
                 DistrictOverlap overlap = overlapsByDistrict.get(districtType);
@@ -35,7 +37,6 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
                 if (this.totalReferenceArea == null) {
                     this.totalReferenceArea = overlap.getTotalArea();
                     this.areaUnit = overlap.getAreaUnit().name();
-                    this.referenceMap = new MapView(overlap.getReferenceMap());
                 }
 
                 if (overlap != null) {

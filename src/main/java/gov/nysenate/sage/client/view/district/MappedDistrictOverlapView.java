@@ -21,11 +21,16 @@ public class MappedDistrictOverlapView
     {
         if (districtOverlap != null && district != null) {
             this.district = district;
+            DistrictMap intersectionMap = districtOverlap.getIntersectionMap(district);
             DistrictMap districtMap = districtOverlap.getTargetDistrictMap(district);
-            if (districtMap != null) {
+            if (intersectionMap != null) {
+                this.map = new MapView(intersectionMap);
+            }
+            else if (districtMap != null) {
                 this.name = districtMap.getDistrictName();
                 this.map = new MapView(districtMap);
             }
+
             this.intersectionArea = districtOverlap.getTargetOverlap(district);
             BigDecimal totalArea = districtOverlap.getTotalArea();
             areaPercentage = this.intersectionArea.divide(totalArea, 2, RoundingMode.HALF_UP);

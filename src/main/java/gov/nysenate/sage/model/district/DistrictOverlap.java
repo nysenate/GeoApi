@@ -30,6 +30,9 @@ public class DistrictOverlap
     /** A map of `targetType` district codes along with the area of intersection in `areaUnit`s */
     protected Map<String, BigDecimal> targetOverlap = new HashMap<>();
 
+    /** A map of `targetType` district codes along with the intersection geometry */
+    protected Map<String, DistrictMap> intersectionMaps = new HashMap<>();
+
     /** Associates target district code to district maps */
     protected Map<String, DistrictMap> targetDistrictMaps = new HashMap<>();
 
@@ -44,8 +47,6 @@ public class DistrictOverlap
 
     /** The number of `areaUnits` that encompass the union of the areas of all the reference codes */
     protected BigDecimal totalArea;
-
-    protected DistrictMap referenceMap;
 
     public DistrictOverlap() {}
 
@@ -154,11 +155,19 @@ public class DistrictOverlap
         return this.targetDistrictMembers.get(district);
     }
 
-    public DistrictMap getReferenceMap() {
-        return referenceMap;
+    public Map<String, DistrictMap> getIntersectionMaps() {
+        return intersectionMaps;
     }
 
-    public void setReferenceMap(DistrictMap referenceMap) {
-        this.referenceMap = referenceMap;
+    public void setIntersectionMaps(Map<String, DistrictMap> intersectionMaps) {
+        this.intersectionMaps = intersectionMaps;
+    }
+
+    public DistrictMap getIntersectionMap(String district) {
+        return this.intersectionMaps.get(district);
+    }
+
+    public void addIntersectionMap(String district, DistrictMap intersectionMap) {
+        this.intersectionMaps.put(district, intersectionMap);
     }
 }

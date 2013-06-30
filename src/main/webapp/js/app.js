@@ -147,9 +147,9 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                     paths: coords,
                     strokeColor: (color) ? color : "teal",
                     strokeOpacity: 1,
-                    strokeWeight: 2,
+                    strokeWeight: 1,
                     fillColor: (color) ? color : "teal",
-                    fillOpacity: 0.075
+                    fillOpacity: 0.08
                 });
 
                 /** On mouseover update the header title */
@@ -759,7 +759,15 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                 }
             }
             if ($scope.multiMatch) {
+                /** Set region (city / zip) dashed line boundary for multi-matches */
                 mapService.setLine($scope.referenceMap.geom, true);
+                if ($scope.overlaps.senate) {
+                    $.each($scope.overlaps.senate, function(i,v){
+                        if (v.map != null){
+                            mapService.setOverlay(v.map.geom, "Overlap for District " + v.district, false, false, null, "green");
+                        }
+                    });
+                }
             }
         }
         catch (ex) { console.log(ex); }

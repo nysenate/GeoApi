@@ -36,6 +36,7 @@ public class DistrictInfo
     protected Map<DistrictType, List<DistrictMap>> neighborMaps = new HashMap<>();
 
     /** Multi District Overlap/Map data */
+    protected DistrictMap referenceMap;
     protected Map<DistrictType, DistrictOverlap> districtOverlaps = new HashMap<>();
 
     public DistrictInfo() {}
@@ -196,6 +197,14 @@ public class DistrictInfo
     public DistrictOverlap getDistrictOverlap(DistrictType districtType)
     {
         return this.districtOverlaps.get(districtType);
+    }
+
+    public DistrictMap getReferenceMap() {
+        return referenceMap;
+    }
+
+    public void setReferenceMap(DistrictMap referenceMap) {
+        this.referenceMap = referenceMap;
     }
 
     /**

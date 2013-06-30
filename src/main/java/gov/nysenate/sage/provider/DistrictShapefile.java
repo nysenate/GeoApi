@@ -189,6 +189,9 @@ public class DistrictShapefile implements DistrictService, MapService
             if (!zip5List.isEmpty()) {
                 matches = streetFileDao.getAllStandardDistrictMatches(zip5List);
                 if (matches != null && !matches.isEmpty()) {
+                    /** Retrieve source map */
+                    DistrictMap sourceMap = districtShapefileDao.getOverlapReferenceBoundary(DistrictType.ZIP, new HashSet<String>(zip5List));
+                    districtInfo.setReferenceMap(sourceMap);
 
                     for (DistrictType matchType : matches.keySet()) {
                         if (matches.get(matchType) != null && !matches.get(matchType).isEmpty() && !matchType.equals(DistrictType.ZIP)) {
@@ -202,7 +205,6 @@ public class DistrictShapefile implements DistrictService, MapService
                                 logger.debug("Setting as overlap");
                                 DistrictOverlap overlap = districtShapefileDao.getDistrictOverlap(matchType, matches.get(matchType),
                                         DistrictType.ZIP, new HashSet<String>(zip5List));
-                                //logger.debug("Overlap for " + matchType + " " + FormatUtil.toJsonString(overlap));
                                 districtInfo.addDistrictOverlap(matchType, overlap);
                             }
                         }

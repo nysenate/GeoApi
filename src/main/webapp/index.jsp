@@ -293,6 +293,17 @@
                         </tr>
                     </table>
                 </div>
+                <div id="multi-senate-results" ng-show="multiMatch && overlaps.senate">
+                    <div class="info-container">
+                        <p class="member-name" style="color:orangered;">{{overlaps.senate.length}} Senate District Matches</p>
+                        <hr/>
+                        <span style="font-size:14px;">The indicated region contains more than one State Senate District.</span>
+
+                        <div ng-repeat="d in overlaps.senate">
+                            <span>{{d.district}}</span>
+                        </div>
+                    </div>
+                </div>
                 <div id="multi-district-results" ng-show="multiMatch">
                     <div class="info-container">
                         <p class="member-name" style="color:orangered;">Multiple Possible Districts</p>
