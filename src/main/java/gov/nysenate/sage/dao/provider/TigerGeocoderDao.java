@@ -34,6 +34,13 @@ public class TigerGeocoderDao extends BaseDao
     private QueryRunner run = getTigerQueryRunner();
     private int GEOCODER_TIMEOUT = 1000; //ms
 
+    /**
+     * Performs geocoding and returns a GeocodedStreetAddress. A timeout is also enabled because some queries
+     * can just go on indefinitely.
+     * @param conn
+     * @param address
+     * @return
+     */
     public GeocodedStreetAddress getGeocodedStreetAddress(Connection conn, Address address)
     {
         GeocodedStreetAddress geoStreetAddress = null;
@@ -57,6 +64,8 @@ public class TigerGeocoderDao extends BaseDao
     {
         return getGeocodedStreetAddress(this.getTigerConnection(), address);
     }
+
+
 
     /**
      * This method may be used to parse an Address into it's street address components using
@@ -100,6 +109,11 @@ public class TigerGeocoderDao extends BaseDao
         return null;
     }
 
+    /**
+     * Retrieves a list of street names that are contained within the supplied zipcode
+     * @param zip5
+     * @return List<String>
+     */
     public List<String> getStreetsInZip(String zip5)
     {
         String sql =

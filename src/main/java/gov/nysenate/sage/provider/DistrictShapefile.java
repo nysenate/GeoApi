@@ -201,7 +201,6 @@ public class DistrictShapefile implements DistrictService, MapService
                                 districtInfo.setDistCode(matchType, distCodeSet.iterator().next());
                             }
                             else {
-
                                 DistrictOverlap overlap = districtShapefileDao.getDistrictOverlap(matchType, matches.get(matchType),
                                         DistrictType.ZIP, new HashSet<String>(zip5List));
                                 if (overlap.getTargetOverlap().size() == 1) {

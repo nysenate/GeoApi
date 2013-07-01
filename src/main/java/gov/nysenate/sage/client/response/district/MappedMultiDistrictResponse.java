@@ -41,7 +41,7 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
 
                 if (overlap != null) {
                     List<MappedDistrictOverlapView> mappedOverlaps = new ArrayList<>();
-                    for (String district : overlap.getTargetDistricts()) {
+                    for (String district : overlap.getOverlapDistrictCodes()) {
                         mappedOverlaps.add(new MappedDistrictOverlapView(overlap, district));
                     }
                     overlaps.put(districtType.name().toLowerCase(), mappedOverlaps);
