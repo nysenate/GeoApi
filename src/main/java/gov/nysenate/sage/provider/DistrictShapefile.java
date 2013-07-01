@@ -27,7 +27,6 @@ public class DistrictShapefile implements DistrictService, MapService
 {
     private static Logger logger = Logger.getLogger(DistrictShapefile.class);
     private DistrictShapefileDao districtShapefileDao;
-    private boolean fetchMaps = false;
 
     /** The street file and cityzip daos are needed to determine overlap */
     private StreetFileDao streetFileDao;
@@ -60,7 +59,7 @@ public class DistrictShapefile implements DistrictService, MapService
         }
         try {
             Geocode geocode = geocodedAddress.getGeocode();
-            DistrictInfo districtInfo = this.districtShapefileDao.getDistrictInfo(geocode.getLatLon(), reqTypes, this.fetchMaps);
+            DistrictInfo districtInfo = this.districtShapefileDao.getDistrictInfo(geocode.getLatLon(), reqTypes, true);
 
             /** Validate response */
             if (!validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
@@ -100,7 +99,7 @@ public class DistrictShapefile implements DistrictService, MapService
     {
         if (geocodedAddress != null && geocodedAddress.isValidGeocode()) {
             Point point = geocodedAddress.getGeocode().getLatLon();
-            return this.districtShapefileDao.getNearbyDistricts(districtType, point, this.fetchMaps, count);
+            return this.districtShapefileDao.getNearbyDistricts(districtType, point, true, count);
         }
         return null;
     }
@@ -202,10 +201,16 @@ public class DistrictShapefile implements DistrictService, MapService
                                 districtInfo.setDistCode(matchType, distCodeSet.iterator().next());
                             }
                             else {
-                                logger.debug("Setting as overlap");
+
                                 DistrictOverlap overlap = districtShapefileDao.getDistrictOverlap(matchType, matches.get(matchType),
                                         DistrictType.ZIP, new HashSet<String>(zip5List));
-                                districtInfo.addDistrictOverlap(matchType, overlap);
+                                if (overlap.getTargetOverlap().size() == 1) {
+                                    districtInfo.setDistCode(matchType, overlap.getOverlapDistrictCodes().get(0));
+                                }
+                                else {
+                                    logger.debug("Setting as overlap");
+                                    districtInfo.addDistrictOverlap(matchType, overlap);
+                                }
                             }
                         }
                     }

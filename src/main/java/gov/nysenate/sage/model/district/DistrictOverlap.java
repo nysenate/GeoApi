@@ -119,6 +119,10 @@ public class DistrictOverlap
         return this.targetOverlap.get(district);
     }
 
+    public List<String> getOverlapDistrictCodes() {
+        return new ArrayList<>(this.targetOverlap.keySet());
+    }
+
     public AreaUnit getAreaUnit() {
         return areaUnit;
     }

@@ -14,6 +14,7 @@ public class MappedDistrictOverlapView
     protected String name;
     protected String district;
     protected MapView map;
+    protected Object member;
     protected BigDecimal intersectionArea;
     protected BigDecimal areaPercentage;
 
@@ -29,6 +30,10 @@ public class MappedDistrictOverlapView
             else if (districtMap != null) {
                 this.name = districtMap.getDistrictName();
                 this.map = new MapView(districtMap);
+            }
+
+            if (!districtOverlap.getTargetSenators().isEmpty()) {
+                this.member = districtOverlap.getTargetSenators().get(district);
             }
 
             this.intersectionArea = districtOverlap.getTargetOverlap(district);
@@ -47,6 +52,10 @@ public class MappedDistrictOverlapView
 
     public MapView getMap() {
         return map;
+    }
+
+    public Object getMember() {
+        return member;
     }
 
     public BigDecimal getIntersectionArea() {

@@ -11,6 +11,7 @@ import java.util.List;
 public class DistrictMap extends DistrictMetadata
 {
     private List<Polygon> polygons = new ArrayList<>();
+    private String geometryType = "";
 
     public DistrictMap() {}
 
@@ -34,6 +35,14 @@ public class DistrictMap extends DistrictMetadata
 
     public void addPolygon(Polygon polygon) {
         this.polygons.add(polygon);
+    }
+
+    public String getGeometryType() {
+        return geometryType;
+    }
+
+    public void setGeometryType(String geometryType) {
+        this.geometryType = geometryType;
     }
 
     public String toString()

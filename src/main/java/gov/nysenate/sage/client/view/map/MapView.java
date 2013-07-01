@@ -13,11 +13,13 @@ public class MapView
 {
     protected int precision = 8;
     protected List<List<Double[]>> geom;
+    protected String type = "";
 
     public MapView(DistrictMap districtMap)
     {
         if (districtMap != null && districtMap.getPolygons() != null) {
-            geom = new ArrayList<>();
+            this.type = districtMap.getGeometryType();
+            this.geom = new ArrayList<>();
             for (Polygon polygon : districtMap.getPolygons()) {
                 if (polygon.getPoints() != null) {
                     List<Double[]> geomPoly = new ArrayList<>();
@@ -25,11 +27,11 @@ public class MapView
                         Double[] p = new Double[2];
                         BigDecimal lat = new BigDecimal(point.getLat());
                         BigDecimal lon = new BigDecimal(point.getLon());
-                        p[0] = lat.setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
-                        p[1] = lon.setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+                        p[0] = lat.setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+                        p[1] = lon.setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
                         geomPoly.add(p);
                     }
-                    geom.add(geomPoly);
+                    this.geom.add(geomPoly);
                 }
             }
         }
@@ -38,5 +40,9 @@ public class MapView
     public List<List<Double[]>> getGeom()
     {
         return geom;
+    }
+
+    public String getType() {
+        return type;
     }
 }

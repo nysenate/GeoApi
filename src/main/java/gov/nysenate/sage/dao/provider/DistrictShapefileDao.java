@@ -37,7 +37,10 @@ public class DistrictShapefileDao extends BaseDao
     private static Map<DistrictType, List<DistrictMap>> districtMapCache;
     private static Map<DistrictType, Map<String, DistrictMap>> districtMapLookup;
 
-    private static Boolean FETCH_MAPS_DURING_LOOKUP = false;
+    private static Set<DistrictType> retrieveMapSet = new HashSet<>();
+    static {
+        retrieveMapSet.add(DistrictType.SCHOOL);
+    }
 
     private enum GeometryTypes {
         POLYGON("Polygon"), MULTIPOLYGON("MultiPolygon");
@@ -61,7 +64,7 @@ public class DistrictShapefileDao extends BaseDao
         /** Template SQL for looking up district given a point */
         String sqlTmpl =
                 "SELECT '%s' AS type, %s AS name, %s as code " +
-                        ((getMaps && FETCH_MAPS_DURING_LOOKUP) ? ", ST_AsGeoJson(geom) AS map, " : ", null as map, ") +
+                        "%s" + // <- mapQuery
                 "       ST_Distance(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity " +
                 "FROM " + SCHEMA + ".%s " +
                 "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)' , " + "%s" + "))";
@@ -73,8 +76,9 @@ public class DistrictShapefileDao extends BaseDao
                 String nameColumn = DistrictShapeCode.getNameColumn(districtType);
                 String codeColumn = resolveCodeColumn(districtType);
                 String srid = resolveSRID(districtType);
-
-                queryList.add(String.format(sqlTmpl, districtType, nameColumn, codeColumn, point.getLon(), point.getLat(),
+                String mapQuery = ((getMaps && retrieveMapSet.contains(districtType)) ? ", ST_AsGeoJson(geom) AS map, "
+                                                                                             : ", null as map, ");
+                queryList.add(String.format(sqlTmpl, districtType, nameColumn, codeColumn, mapQuery, point.getLon(), point.getLat(),
                         srid, districtType, point.getLon(), point.getLat(), srid)); // lon,lat is correct order
             }
         }
@@ -121,7 +125,7 @@ public class DistrictShapefileDao extends BaseDao
             "FROM " + SCHEMA + ".%s target, " +
             "     (SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s WHERE %s) AS source\n" +
             "WHERE %s \n" +
-            "ORDER BY intersected_area ASC";
+            "ORDER BY intersected_area DESC";
         List<String> refWhereList = new ArrayList<>();
         for (String refCode : refCodes) {
             refWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", resolveCodeColumn(refDistrictType), StringEscapeUtils.escapeSql(refCode)));
@@ -153,7 +157,7 @@ public class DistrictShapefileDao extends BaseDao
      */
     public DistrictMap getOverlapReferenceBoundary(DistrictType refDistrictType, Set<String> refCodes)
     {
-        String sql = "SELECT ST_AsGeoJson(ST_ConcaveHull(source.geom, 0.98)) AS source_map \n" +
+        String sql = "SELECT ST_AsGeoJson(ST_CollectionExtract(source.geom, 3)) AS source_map \n" +
                      "FROM \n" +
                      "(SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s WHERE (%s)) AS source";
         List<String> refWhereList = new ArrayList<>();
@@ -249,7 +253,7 @@ public class DistrictShapefileDao extends BaseDao
         if (DistrictShapeCode.contains(districtType)) {
             String srid = resolveSRID(districtType);
             String tmpl =
-                "SELECT '%s' AS type, %s as name, %s AS code, " + ((getMaps && FETCH_MAPS_DURING_LOOKUP) ? "ST_AsGeoJson(geom) AS map " : "null as map \n") +
+                "SELECT '%s' AS type, %s as name, %s AS code, " + ((getMaps) ? "ST_AsGeoJson(geom) AS map " : "null as map \n") +
                 "FROM " + SCHEMA +".%s \n" +
                 "WHERE ST_Contains(geom, %s) = false \n" +
                 "ORDER BY ST_ClosestPoint(geom, %s) <-> %s \n" +
@@ -353,6 +357,10 @@ public class DistrictShapefileDao extends BaseDao
                     }
                 }
             }
+            logger.debug("Cache size: " + districtMapCache.get(DistrictType.SCHOOL).size());
+            int lookupSize = 0;
+            lookupSize = districtMapLookup.get(DistrictType.SCHOOL).size();
+            logger.debug("Lookup cache size: " + lookupSize);
             return districtMapLookup;
         }
     }
@@ -453,6 +461,7 @@ public class DistrictShapefileDao extends BaseDao
                 GeometryTypes geoType;
                 try {
                     geoType = GeometryTypes.valueOf(type.toUpperCase());
+                    districtMap.setGeometryType(geoType.type);
                 }
                 catch (Exception ex) {
                     logger.debug("Geometry type " + type + " is not supported by this method!");

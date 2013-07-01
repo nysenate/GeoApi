@@ -34,12 +34,14 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     };
     mapService.map = new google.maps.Map(document.getElementById("map_canvas"), mapService.mapOptions);
     mapService.polygons = [];
-    mapService.line = null;
+    mapService.lines = [];
     mapService.polygon = null;
     mapService.markers = [];
     mapService.activeMarker = null;
     mapService.mapTitle = "Map";
     mapService.districtData = null;
+    //                    teal      orangered    green      red        yellow     darkblue    pink      purple
+    mapService.colors = ["#008080", "#ff4500", "#639A00", "#CC333F", "#EDC951", "#547980", "#F56991", "#351330"];
 
     /**
      * Resize when window size changes
@@ -132,9 +134,25 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
      * @param clear         If true then map will be cleared of all overlays
      * @param clickHandler  If a callback is supplied it will be called when the polygon is clicked
      * @param color         Color of the polygon (default is teal)
+     * @param style         Override style properties for the polygon e.g. {'fillOpacity': 0.5}
      */
-    mapService.setOverlay = function(geom, name, fitBounds, clear, clickHandler, color) {
+    mapService.setOverlay = function(geom, name, fitBounds, clear, clickHandler, color, style) {
         if (geom != null) {
+            console.log(style);
+
+            if (style === null || typeof style === 'undefined') {
+                style = {};
+            }
+            style = $.extend({
+                strokeColor: (color) ? color : "teal",
+                strokeOpacity: 1,
+                strokeWeight: 1.5,
+                fillColor: (color) ? color : "teal",
+                fillOpacity: 0.3
+            }, style);
+
+            console.log(style);
+
             if (clear == true) {
                 this.clearPolygons();
             }
@@ -143,18 +161,16 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                 for (var j in geom[i]) {
                     coords.push(new google.maps.LatLng(geom[i][j][0], geom[i][j][1]));
                 }
-                var polygon = new google.maps.Polygon({
-                    paths: coords,
-                    strokeColor: (color) ? color : "teal",
-                    strokeOpacity: 1,
-                    strokeWeight: 1,
-                    fillColor: (color) ? color : "teal",
-                    fillOpacity: 0.08
+
+                var overlayProps = $.extend({}, style, {
+                    paths: coords
                 });
+
+                var polygon = new google.maps.Polygon(overlayProps);
 
                 /** On mouseover update the header title */
                 google.maps.event.addListener(polygon,"mouseover",function() {
-                    this.setOptions({fillOpacity: 0.4});
+                    this.setOptions({fillOpacity: style.fillOpacity - 0.2});
                     var scope = angular.element(mapService.el).scope();
                     scope.$apply(function() {
                         scope.mapTitle = name;
@@ -163,18 +179,18 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
                 /** On mouseout restore the opacity */
                 google.maps.event.addListener(polygon,"mouseout",function(){
-                    this.setOptions({fillOpacity: 0.05});
+                    this.setOptions({fillOpacity: style.fillOpacity});
                 });
 
                 /** Set up event handling for mouse click on polygon */
                 if(clickHandler) {
                     google.maps.event.addListener(polygon,"click", function() {
                         if (mapService.polygon) {
-                            mapService.polygon.setOptions({fillColor: "teal"});
-                            mapService.polygon.setOptions({fillOpacity: 0.2});
+                            mapService.polygon.setOptions({fillColor: style.fillColor});
+                            mapService.polygon.setOptions({fillOpacity: style.fillOpacity});
                         }
                         this.setOptions({fillColor: "#ffcc00"});
-                        this.setOptions({fillOpacity: 0.5});
+                        this.setOptions({fillOpacity: 0.6});
                         mapService.polygon = this;
                         clickHandler();
                     });
@@ -202,41 +218,43 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         return null;
     };
 
-    mapService.setLine = function(geom, fitBounds) {
-        var lineCoordinates = [];
-        $.each(geom[0], function(i,v){
-            lineCoordinates.push(new google.maps.LatLng(v[0], v[1]));
-        });
-
-        if (this.line) {
-            this.line.setMap(null);
-            this.line = null;
+    mapService.setLines = function(geom, fitBounds, clear, style) {
+        var coords = [];
+        if (clear) {
+            this.clearPolyLines();
         }
 
-        var lineSymbol = {
-            path: 'M 0,-0.5 0,0.5',
-            strokeWeight: 3,
-            strokeOpacity: 1,
-            scale: 1
-        };
+        for (var i in geom) {
+            for (var j in geom[i]) {
+                coords.push(new google.maps.LatLng(geom[i][j][0], geom[i][j][1]));
+            }
 
-        var line = new google.maps.Polyline({
-            path: lineCoordinates,
-            strokeColor: "#333",
-            strokeOpacity: 0,
-            icons: [{
-                icon: lineSymbol,
-                offset: '100%',
-                repeat: '8px'}],
-            map: this.map
-        });
+            var lineSymbol = {
+                path: 'M 0,-0.5 0,0.5',
+                strokeWeight: 3,
+                strokeOpacity: 1,
+                scale: 1
+            };
 
-        this.line = line;
+            var line = new google.maps.Polyline({
+                path: coords,
+                strokeColor: "#333",
+                strokeOpacity: 0,
+                icons: [{
+                    icon: lineSymbol,
+                    offset: '100%',
+                    repeat: '8px'}],
+                map: this.map
+            });
 
-        /** Set the zoom level to the district bounds */
-        if (fitBounds) {
-            this.map.fitBounds(line.getBounds());
-            this.map.setZoom(this.map.getZoom());
+            this.lines.push(line);
+
+            /** Set the zoom level to the district bounds for the first polyline */
+            if (fitBounds && i == 0) {
+                this.map.fitBounds(line.getBounds());
+                this.map.setZoom(this.map.getZoom());
+            }
+            coords = [];
         }
     };
 
@@ -245,6 +263,16 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             try { polygon.setMap(null);}
             catch (ex) {}
         }
+    };
+
+    /**
+     * Removes all polylines
+     */
+    mapService.clearPolyLines = function() {
+        $.each(this.lines, function (i, v){
+            v.setMap(null);
+        });
+        this.lines = [];
     };
 
     /**
@@ -273,6 +301,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.clearAll = function() {
         this.clearMarkers();
         this.clearPolygons();
+        this.clearPolyLines();
     };
 
 
@@ -738,6 +767,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     $scope.showOffices = false;
     $scope.showNeighbors = false;
     $scope.neighborPolygons = [];
+    $scope.colors = mapService.colors;
     $scope.neighborColors = ["#FF4500", "#639A00"];
 
     $scope.$on(dataBus.viewHandleEvent, function(){
@@ -759,24 +789,32 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                 }
             }
             if ($scope.multiMatch) {
-                /** Set region (city / zip) dashed line boundary for multi-matches */
-                mapService.setLine($scope.referenceMap.geom, true);
+                /** Draw the intersected senate maps */
                 if ($scope.overlaps.senate) {
+                    /** Sort the senate maps by greatest percentage first */
+                    $scope.overlaps.senate = $scope.overlaps.senate.sort(function(a, b) {
+                        return b.areaPercentage - a.areaPercentage;
+                    });
                     $.each($scope.overlaps.senate, function(i,v){
                         if (v.map != null){
-                            mapService.setOverlay(v.map.geom, "Overlap for District " + v.district, false, false, null, "green");
+                            mapService.setOverlay(v.map.geom, "Overlap for Senate District " + v.district, false, false, null, mapService.colors[i], {fillOpacity:0.5});
                         }
                     });
+                }
+                /** Set region (city / zip) dashed line boundary for multi-matches */
+                mapService.setLines($scope.referenceMap.geom, true, true);
+            }
+            else {
+                /** Update the marker location to point to the geocode */
+                if ($scope.geocoded) {
+                    mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
+                        $filter('addressFormat')($scope.address, ''), true, true, null);
+                    mapService.setZoom(15);
                 }
             }
         }
         catch (ex) { console.log(ex); }
 
-        /** Update the marker location to point to the geocode */
-        if ($scope.geocoded) {
-            mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
-                                 $filter('addressFormat')($scope.address, ''), true, true, null);
-        }
         /** Hide neighbors initially */
         $scope.showNeighbors = false;
         uiBlocker.unBlock();
@@ -837,20 +875,25 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             $scope.neighborPolygons.push(mapService.setOverlay(neighbor.map.geom, formatDistrictName(neighbor, "Senate"),
                                                                false, false, null, neighbor.style['color']));
         });
-    }
+    };
 
     $scope.hideNeighborDistricts = function()  {
         this.showNeighbors = false;
         $.each($scope.neighborPolygons, function(i, neighborPolygon){
             mapService.clearPolygon(neighborPolygon);
         });
-    }
+    };
 
     $scope.setOfficeMarker = function(office) {
         if (office != null) {
             mapService.setMarker(office.latitude, office.longitude, office.name, false, true, null);
         }
+    };
+
+    $scope.getBgStyle = function(i) {
+        return {"background-color" : this.colors[i]};
     }
+
 });
 
 sage.controller("CityStateView", function($scope, dataBus, mapService) {
@@ -1149,4 +1192,14 @@ $(document).ready(function(){
         });
         return bounds;
     };
+
+    function getBoundsForMultiPolyLine(lines) {
+        var bounds = new google.maps.LatLngBounds();
+        $.each(lines, function(i,v) {
+            v.getPath().forEach(function(e) {
+                bounds.extend(e);
+            });
+        });
+        return bounds;
+    }
 });

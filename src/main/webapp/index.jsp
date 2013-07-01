@@ -293,18 +293,91 @@
                         </tr>
                     </table>
                 </div>
+                <div class="info-container title" ng-show="districts.senate.district">
+                    <p class="member-name success-color">New York State Senator</p>
+                </div>
+                <div ng-show="districts.senate.district">
+                    <div class="info-container clickable connected senator" title="Show Senate District Map" ng-click="showDistrict('senate');">
+                        <div class="senator-pic-holder">
+                            <a target="_blank" ng-href="{{districts.senate.senator.url}}">
+                                <img ng-src="{{districts.senate.senator.imageUrl | senatorPic}}" class="senator-pic">
+                            </a>
+                        </div>
+                        <div style='margin-top:10px'>
+                            <table style="width:230px;">
+                                <tr>
+                                    <td>
+                                        <p class="senator member-name">
+                                            <a target="_blank" ng-href="{{districts.senate.senator.url}}">{{districts.senate.senator.name}}</a>
+                                        </p>
+                                        <p class="senate district">Senate District {{districts.senate.district}}</p>
+                                    </td>
+                                    <td class="right-icon-placeholder">
+                                        <a title="Show Map" ng-show="districts.senate.map" ng-click="showDistrict('senate');">
+                                            <div class="icon-map"></div>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <br/>
+                        </div>
+                    </div>
+
+                    <div class="info-container connected slim" style="border-bottom:1px solid #ddd;">
+                        <p class="member-email">
+                        <div class="icon-mail icon-teal" style="margin-right: 5px;"></div>
+                        <span style='font-size:15px'>{{districts.senate.senator.email}}</span>
+                        </p>
+                    </div>
+
+                    <div class="info-container connected slim">
+                        <table style="width:100%">
+                            <tr>
+                                <td>
+                                    <a ng-hide="showOffices" ng-click="showOffices=true;">Senator Office Locations</a>
+                                    <a ng-show="showOffices" ng-click="showOffices=false;">Senator Office Locations</a>
+                                </td>
+                                <td class="right-icon-placeholder">
+                                    <a ng-hide="showOffices" ng-click="showOffices=true;"><div class="icon-arrow-down4 icon-hover-teal"></div></a>
+                                    <a ng-show="showOffices" ng-click="showOffices=false;"><div class="icon-arrow-up4 icon-hover-teal"></div></a>
+                                </td>
+                            </tr>
+                        </table>
+                        <div ng-show="showOffices" ng-repeat="office in districts.senate.senator.offices">
+                            <div style="padding:5px;border-top:1px solid #ddd;font-size:14px;" ng-show="office.name">
+                                <table style="width:100%">
+                                    <tr>
+                                        <td><p style="font-size:16px;color:teal;">{{office.name}}</p></td>
+                                        <td class="right-icon-placeholder">
+                                            <a title="Locate office" ng-click="setOfficeMarker(office);">
+                                                <div class="icon-location icon-hover-teal"></div>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <p>{{office.street}}</p>
+                                <p>{{office.additional}}</p>
+                                <p>{{office.city}}, {{office.province}} {{office.postalCode}}</p>
+                                <p>Phone {{office.phone}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="multi-senate-results" ng-show="multiMatch && overlaps.senate">
                     <div class="info-container">
                         <p class="member-name" style="color:orangered;">{{overlaps.senate.length}} Senate District Matches</p>
                         <hr/>
-                        <span style="font-size:14px;">The indicated region contains more than one State Senate District.</span>
-
-                        <div ng-repeat="d in overlaps.senate">
-                            <span>{{d.district}}</span>
+                        <span style="font-size:14px;">The indicated region contains multiple Senate Districts. The percentage represents
+                            how much of the geographical region it occupies.</span>
+                        <hr/>
+                        <div ng-repeat="(i, d) in overlaps.senate" style="margin-top:5px;">
+                            <div style="font-weight:600;padding: 4px 5px 4px 6px;height:20px;width:30px;float:left;margin-right:10px;color:white;" ng-style="getBgStyle(i)">{{d.areaPercentage*100}}%</div>
+                            <div style="line-height:28px;">District {{d.district}} - {{d.member.name}}</div>
                         </div>
                     </div>
                 </div>
-                <div id="multi-district-results" ng-show="multiMatch">
+                <div id="multi-district-results" ng-show="false">
                     <div class="info-container">
                         <p class="member-name" style="color:orangered;">Multiple Possible Districts</p>
                         <hr/>
@@ -324,83 +397,13 @@
                 <div id="success-district-results" ng-show="districtAssigned">
                     <div ng-show="multiMatch">
                         <div class="info-container">
-                            <p class="member-name success-color">Confirmed districts</p>
+                            <p class="member-name success-color">Matched districts</p>
                             <hr/>
                             <span class="message">The district assignments below are confirmed since there are no other overlapping districts within the outlined
                             geographic area.</span>
                         </div>
                     </div>
-                    <div class="info-container title">
-                        <p class="member-name success-color">New York State Senator</p>
-                    </div>
-                    <div ng-show="districts.senate.district">
-                        <div class="info-container clickable connected senator" title="Show Senate District Map" ng-click="showDistrict('senate');">
-                            <div class="senator-pic-holder">
-                                <a target="_blank" ng-href="{{districts.senate.senator.url}}">
-                                    <img ng-src="{{districts.senate.senator.imageUrl | senatorPic}}" class="senator-pic">
-                                </a>
-                            </div>
-                            <div style='margin-top:10px'>
-                                <table style="width:230px;">
-                                    <tr>
-                                        <td>
-                                            <p class="senator member-name">
-                                                <a target="_blank" ng-href="{{districts.senate.senator.url}}">{{districts.senate.senator.name}}</a>
-                                            </p>
-                                            <p class="senate district">Senate District {{districts.senate.district}}</p>
-                                        </td>
-                                        <td class="right-icon-placeholder">
-                                            <a title="Show Map" ng-show="districts.senate.map" ng-click="showDistrict('senate');">
-                                                <div class="icon-map"></div>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </table>
-                                <br/>
-                            </div>
-                        </div>
 
-                        <div class="info-container connected slim" style="border-bottom:1px solid #ddd;">
-                            <p class="member-email">
-                            <div class="icon-mail icon-teal" style="margin-right: 5px;"></div>
-                            <span style='font-size:15px'>{{districts.senate.senator.email}}</span>
-                            </p>
-                        </div>
-
-                        <div class="info-container connected slim">
-                            <table style="width:100%">
-                                <tr>
-                                    <td>
-                                        <a ng-hide="showOffices" ng-click="showOffices=true;">Senator Office Locations</a>
-                                        <a ng-show="showOffices" ng-click="showOffices=false;">Senator Office Locations</a>
-                                    </td>
-                                    <td class="right-icon-placeholder">
-                                        <a ng-hide="showOffices" ng-click="showOffices=true;"><div class="icon-arrow-down4 icon-hover-teal"></div></a>
-                                        <a ng-show="showOffices" ng-click="showOffices=false;"><div class="icon-arrow-up4 icon-hover-teal"></div></a>
-                                    </td>
-                                </tr>
-                            </table>
-                            <div ng-show="showOffices" ng-repeat="office in districts.senate.senator.offices">
-                                <div style="padding:5px;border-top:1px solid #ddd;font-size:14px;" ng-show="office.name">
-                                    <table style="width:100%">
-                                        <tr>
-                                            <td><p style="font-size:16px;color:teal;">{{office.name}}</p></td>
-                                            <td class="right-icon-placeholder">
-                                                <a title="Locate office" ng-click="setOfficeMarker(office);">
-                                                    <div class="icon-location icon-hover-teal"></div>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    </table>
-
-                                    <p>{{office.street}}</p>
-                                    <p>{{office.additional}}</p>
-                                    <p>{{office.city}}, {{office.province}} {{office.postalCode}}</p>
-                                    <p>Phone {{office.phone}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div class="info-container slim connected" ng-show="districts.senate.nearBorder">
                         <table style="width:100%">
                             <tr>
