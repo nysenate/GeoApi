@@ -7,7 +7,7 @@
         <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false"></script>
+        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false&libraries=places"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
@@ -83,7 +83,7 @@
                 </div>
             </div>
             <div id="districtInfoSearch" class="search-container" ng-controller="DistrictInfoController" ng-show="visible">
-                <form id="districtsFormMini" action="" method="post">
+                <form id="districtsFormMini" method="post" ng-submit="lookup()">
                     <div class="icon-directions icon-teal"></div>
                     <label for="addressInput" ng-hide="minimized">Enter an address for district lookup</label>
                     <label ng-show="minimized" ng-click="minimized=false;" class="expand-search">Show search</label>
@@ -372,7 +372,7 @@
                             how much of the geographical region it occupies.</span>
                         <hr/>
                         <div ng-repeat="(i, d) in overlaps.senate" style="margin-top:5px;">
-                            <div style="font-weight:600;padding: 4px 5px 4px 6px;height:20px;width:30px;float:left;margin-right:10px;color:white;" ng-style="getBgStyle(i)">{{d.areaPercentage*100}}%</div>
+                            <div style="font-weight:600;padding: 4px 5px 4px 6px;height:20px;width:30px;float:left;margin-right:10px;color:white;" ng-style="getBgStyle(i)">{{(d.areaPercentage*100) || '<1'}}%</div>
                             <div style="line-height:28px;">District {{d.district}} - {{d.member.name}}</div>
                         </div>
                     </div>

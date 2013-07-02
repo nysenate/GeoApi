@@ -750,3 +750,13 @@ ul.horizontal li {
 #api-usage-stats {
     width:auto;
 }
+
+/** Google Autocomplete */
+.pac-container {
+    font-size: 14px;
+}
+
+.pac-item b {
+    font-weight: 600;
+    color:teal;
+}
