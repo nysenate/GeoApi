@@ -38,8 +38,7 @@ public enum ResultStatus
     INVALID_STATE(240, "The supplied state is invalid or is not supported."),
     INVALID_BATCH_ADDRESSES(250, "The supplied batch address list could not be parsed."),
     INVALID_BATCH_POINTS(260, "The supplied batch point list could not be parsed"),
-    NON_NY_STATE(270, "Only New York State districts are supported at this time. If you are searching for a NY address, please " +
-                      "provide a complete street address with city and zip for best results."),
+    NON_NY_STATE(270, "The address you have supplied is not a valid New York address. Only NY addresses are supported at this time."),
 
     INSUFFICIENT_INPUT_PARAMS(300, "One or more parameters are insufficient."),
     INSUFFICIENT_ADDRESS(310, "The supplied address does not contain enough information to continue processing. Try adding a city, state, or zip."),

@@ -2,12 +2,14 @@ package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.dao.provider.StreetFileDao;
+import gov.nysenate.sage.dao.provider.TigerGeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
+import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.MapResult;
@@ -31,12 +33,14 @@ public class DistrictShapefile implements DistrictService, MapService
     /** The street file and cityzip daos are needed to determine overlap */
     private StreetFileDao streetFileDao;
     private CityZipDB cityZipDBDao;
+    private TigerGeocoderDao tigerGeocoderDao;
 
     public DistrictShapefile()
     {
         this.districtShapefileDao = new DistrictShapefileDao();
         this.streetFileDao = new StreetFileDao();
         this.cityZipDBDao = new CityZipDB();
+        this.tigerGeocoderDao = new TigerGeocoderDao();
     }
 
     @Override
@@ -151,7 +155,7 @@ public class DistrictShapefile implements DistrictService, MapService
      * @param geocodedAddress
      * @return
      */
-    public DistrictResult getOverlapDistrictResult(GeocodedAddress geocodedAddress)
+    public DistrictResult getOverlapDistrictResult(GeocodedAddress geocodedAddress, Boolean zipProvided)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
         DistrictedAddress districtedAddress = new DistrictedAddress(geocodedAddress, null, DistrictMatchLevel.NOMATCH);
@@ -164,19 +168,25 @@ public class DistrictShapefile implements DistrictService, MapService
 
         Address address = geocodedAddress.getAddress();
         GeocodeQuality geocodeQuality = geocodedAddress.getGeocode().getQuality();
+        Map<DistrictType, Set<String>> matches = new HashMap<>();
+        List<String> zip5List = new ArrayList<>();
+        List<String> streetList = new ArrayList<>();
 
-        if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) {
-            logger.debug("Determining street level district overlap");
-            districtedAddress.setDistrictMatchLevel(DistrictMatchLevel.STREET);
-            return districtResult;
-        }
-        else if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) {
-            Map<DistrictType, Set<String>> matches = new HashMap<>();
-            List<String> zip5List = new ArrayList<>();
+        logger.debug("Zip Provided: " + zipProvided);
 
+        if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) {
             if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 &&!address.getZip5().isEmpty()) {
-                logger.debug("Determining zip level district overlap");
-                districtedAddress.setDistrictMatchLevel(DistrictMatchLevel.ZIP5);
+                if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) {
+                    logger.debug("Determining street level district overlap");
+                    streetList.add(address.getAddr1());
+                    districtedAddress.setDistrictMatchLevel(DistrictMatchLevel.STREET);
+                    zip5List = (zipProvided) ? Arrays.asList(address.getZip5()) : cityZipDBDao.getZipsByCity(address.getCity());
+                    districtInfo.setStreetLineReference(tigerGeocoderDao.getStreetLineGeometry(address.getAddr1(), zip5List));
+                }
+                else {
+                    logger.debug("Determining zip level district overlap");
+                    districtedAddress.setDistrictMatchLevel(DistrictMatchLevel.ZIP5);
+                }
                 zip5List = Arrays.asList(address.getZip5());
             }
             else if (!address.getCity().isEmpty()) {
@@ -186,7 +196,7 @@ public class DistrictShapefile implements DistrictService, MapService
             }
 
             if (!zip5List.isEmpty()) {
-                matches = streetFileDao.getAllStandardDistrictMatches(zip5List);
+                matches = streetFileDao.getAllStandardDistrictMatches(streetList, zip5List);
                 if (matches != null && !matches.isEmpty()) {
                     /** Retrieve source map */
                     DistrictMap sourceMap = districtShapefileDao.getOverlapReferenceBoundary(DistrictType.ZIP, new HashSet<String>(zip5List));

@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.district;
 
+import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.services.model.Senator;
 
@@ -37,6 +38,7 @@ public class DistrictInfo
 
     /** Multi District Overlap/Map data */
     protected DistrictMap referenceMap;
+    protected List<Line> streetLineReference;
     protected Map<DistrictType, DistrictOverlap> districtOverlaps = new HashMap<>();
 
     public DistrictInfo() {}
@@ -205,6 +207,14 @@ public class DistrictInfo
 
     public void setReferenceMap(DistrictMap referenceMap) {
         this.referenceMap = referenceMap;
+    }
+
+    public List<Line> getStreetLineReference() {
+        return streetLineReference;
+    }
+
+    public void setStreetLineReference(List<Line> streetLineReference) {
+        this.streetLineReference = streetLineReference;
     }
 
     /**

@@ -12,6 +12,7 @@ import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
@@ -31,6 +32,8 @@ import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -241,6 +244,15 @@ public class DistrictController extends BaseApiController implements Observer
         Point point = distRequest.getPoint();
         GeocodedAddress geocodedAddress = new GeocodedAddress(address);
 
+        Boolean zipProvided = false;
+        try {
+            String zip5 = StreetAddressParser.parseAddress(address).getZip5();
+            zipProvided = (!zip5.isEmpty() && zip5.length() == 5);
+        }
+        catch (Exception ex) {
+            logger.debug("Error trying to initially parse address input");
+        }
+
         /** Geocode address unless opted out */
         GeocodeRequest geocodeRequest;
         if (!distRequest.isSkipGeocode()) {
@@ -250,7 +262,7 @@ public class DistrictController extends BaseApiController implements Observer
         }
 
         /** Obtain district result */
-        DistrictResult districtResult = performDistrictAssign(distRequest, geocodedAddress);
+        DistrictResult districtResult = performDistrictAssign(distRequest, geocodedAddress, zipProvided);
         logger.debug("Obtained district result");
 
         /** Perform usps address correction if requested */
@@ -322,7 +334,7 @@ public class DistrictController extends BaseApiController implements Observer
      * @param geocodedAddress
      * @return
      */
-    private DistrictResult performDistrictAssign(DistrictRequest dr, GeocodedAddress geocodedAddress)
+    private DistrictResult performDistrictAssign(DistrictRequest dr, GeocodedAddress geocodedAddress, Boolean zipProvided)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
         districtResult.setStatusCode(NO_DISTRICT_RESULT);
@@ -332,7 +344,7 @@ public class DistrictController extends BaseApiController implements Observer
                 if (geocodedAddress.isValidGeocode()) {
                     GeocodeQuality level = geocodedAddress.getGeocode().getQuality();
                     Address address = geocodedAddress.getAddress();
-
+                    logger.debug(FormatUtil.toJsonString(geocodedAddress));
                     /** House level matches and above can utilize default district assignment behaviour */
                     if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
                         districtResult = districtProvider.assignDistricts(geocodedAddress, dr.getProvider(),
@@ -340,7 +352,7 @@ public class DistrictController extends BaseApiController implements Observer
                     }
                     /** All other level matches are routed to the overlap assignment method */
                     else {
-                        districtResult = districtProvider.assignOverlapDistricts(geocodedAddress);
+                        districtResult = districtProvider.assignOverlapDistricts(geocodedAddress, zipProvided);
                     }
                 }
                 else {

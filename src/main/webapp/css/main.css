@@ -418,8 +418,21 @@ em {color: red;}
 
 .info-container.title {
     padding:5px 10px;
-    margin: 0 auto;
+    margin: 5px auto 0 auto;
     border-bottom:1px solid #eee;
+}
+
+.info-container.title p {
+    font-size:17px;
+    color:teal;
+}
+
+.info-container.connected-top {
+    margin: 0 auto 5px auto;
+}
+
+.info-container.connected-bottom {
+    margin: 5px auto 0 auto;
 }
 
 .info-container.connected {

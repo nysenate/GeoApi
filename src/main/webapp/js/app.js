@@ -100,10 +100,9 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             });
     };
 
-    mapService.getPlacePredictions = function(input) {
-        this.autoComplete.getPlacePredictions({input: input, bounds: nyLatLngBounds}, function(a,p) {
-            console.log(a);
-            console.log(p);
+    mapService.getPlacePredictions = function(input, handle) {
+        this.autoComplete.getPlacePredictions({componentRestrictions: {country: 'us'}, input: input, bounds: nyLatLngBounds, types: ['geocode']}, function(a,b) {
+            dataBus.setBroadcast(handle, {'status': b, 'data' :a});
         });
     };
 
@@ -242,6 +241,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         if (clear) {
             this.clearPolyLines();
         }
+        var latLngBounds = new google.maps.LatLngBounds();
 
         var lineSymbol = {
             path: 'M 0,-0.5 0,0.5',
@@ -264,7 +264,9 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
         for (var i in geom) {
             for (var j in geom[i]) {
-                coords.push(new google.maps.LatLng(geom[i][j][0], geom[i][j][1]));
+                var latLng = new google.maps.LatLng(geom[i][j][0], geom[i][j][1]);
+                latLngBounds.extend(latLng);
+                coords.push(latLng);
             }
 
             var line = new google.maps.Polyline($.extend({}, style, {path: coords}));
@@ -272,11 +274,12 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             this.lines.push(line);
 
             /** Set the zoom level to the district bounds for the first polyline */
-            if (fitBounds && i == 0) {
-                this.map.fitBounds(line.getBounds());
-                this.map.setZoom(this.map.getZoom());
-            }
             coords = [];
+        }
+
+        if (fitBounds) {
+            this.map.fitBounds(latLngBounds);
+            this.map.setZoom(this.map.getZoom());
         }
     };
 
@@ -529,12 +532,18 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
         $scope.visible = menuService.isMethodActive($scope.id);
     });
 
+    /** Listens for requests to perform lookup */
+    $scope.$on("requestDistrictInfo", function() {
+        $scope.addr = dataBus.data;
+        $scope.lookup(true);
+    });
+
     /**
      * Performs request to District Assign API and delegates to the `districtInfo` handler.
      */
-    $scope.lookup = function() {
-        if (this.validateSearch()) {
-            mapService.getPlacePredictions(this.addr);
+    $scope.lookup = function(skipValidate) {
+        if (skipValidate || this.validateSearch()) {
+            mapService.getPlacePredictions(this.addr, "placeSuggestions");
             uiBlocker.block("Looking up districts for " + this.addr);
             mapService.clearAll();
             $http.get(this.getDistUrl())
@@ -544,15 +553,18 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
                     uiBlocker.unBlock();
                     alert("Failed to lookup districts. The application did not return a response.");
                 });
+            return true;
         }
         else {
             alert("Your address search should be at least 5 characters long. Please try to be as specific " +
                 "as possible.");
+            return false;
         }
     };
 
+    /** Validates the address input. Also updates the model entry by fetching value manually since
+        it's tricky to auto-bind properly with autocomplete widgets */
     $scope.validateSearch = function() {
-        /* Need this because angular's model bindings don't work well with autocomplete use */
         this.addr = $("#" + this.inputId).val();
         return (this.addr != '' && this.addr.length >= 5);
     };
@@ -797,6 +809,8 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     $scope.neighborPolygons = [];
     $scope.colors = mapService.colors;
     $scope.neighborColors = ["#FF4500", "#639A00"];
+    $scope.placeSuggestions = {};
+    $scope.viewSuggestions = false;
 
     $scope.$on(dataBus.viewHandleEvent, function(){
         $scope.visible = ($scope.viewId == dataBus.viewId);
@@ -805,6 +819,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     /** Handle results of district info query */
     $scope.$on("districtInfo", function() {
         $scope = angular.extend($scope, dataBus.data);
+        $scope.viewSuggestions = (!$scope.districtAssigned && !$scope.multiMatch);
         dataBus.setBroadcast("expandResults", true);
         mapService.toggleMap(true);
 
@@ -818,7 +833,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             }
             /** Display street lines */
             if ($scope.streetLine) {
-                mapService.setLines($scope.streetLine.geom, true, false, {strokeColor:"#444"});
+                mapService.setLines($scope.streetLine.geom, true, true, {strokeColor:"#333"});
             }
             if ($scope.multiMatch) {
                 /** Draw the intersected senate maps */
@@ -834,7 +849,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                     });
                 }
                 /** Set region (city / zip) dashed line boundary for multi-matches */
-                mapService.setLines($scope.referenceMap.geom, true, true);
+                mapService.setLines($scope.referenceMap.geom, true, false, {});
             }
             else {
                 /** Update the marker location to point to the geocode */
@@ -890,6 +905,16 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         uiBlocker.unBlock();
     });
 
+    $scope.$on("placeSuggestions", function(){
+        var sugg = dataBus.data;
+        if (sugg != null && sugg.status == 'OK') {
+            $scope.placeSuggestions = sugg.data;
+        }
+        else {
+            $scope.placeSuggestions = {};
+        }
+    });
+
     /** Show the specified district map */
     $scope.showDistrict = function(districtType) {
         if ($scope.districts[districtType] != null && typeof $scope.districts[districtType] != "undefined") {
@@ -920,6 +945,10 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         if (office != null) {
             mapService.setMarker(office.latitude, office.longitude, office.name, false, true, null);
         }
+    };
+
+    $scope.requestDistrictInfo = function(addr) {
+        dataBus.setBroadcast("requestDistrictInfo", addr);
     };
 
     $scope.getBgStyle = function(i) {

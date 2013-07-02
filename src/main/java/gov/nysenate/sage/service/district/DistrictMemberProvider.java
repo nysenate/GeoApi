@@ -36,38 +36,39 @@ public abstract class DistrictMemberProvider
         /** Proceed on either a success or partial result */
         if (districtResult.isSuccess() || districtResult.isPartialSuccess()) {
             DistrictInfo districtInfo = districtResult.getDistrictInfo();
-
-            /** Set the Senate, Congressional, and Assembly data using the respective daos */
-            if (districtInfo.hasDistrictCode(SENATE)) {
-                int senateCode = Integer.parseInt(districtInfo.getDistCode(SENATE));
-                districtInfo.setSenator(senateDao.getSenatorByDistrict(senateCode));
-            }
-            if (districtInfo.hasDistrictCode(CONGRESSIONAL)) {
-                int congressionalCode = Integer.parseInt(districtInfo.getDistCode(CONGRESSIONAL));
-                districtInfo.setDistrictMember(CONGRESSIONAL, new CongressionalDao().getCongressionalByDistrict(congressionalCode));
-            }
-            if (districtInfo.hasDistrictCode(ASSEMBLY)) {
-                int assemblyCode = Integer.parseInt(districtInfo.getDistCode(ASSEMBLY));
-                districtInfo.setDistrictMember(ASSEMBLY, new AssemblyDao().getAssemblyByDistrict(assemblyCode));
-            }
-
-            /** Fill in neighbor district senator info */
-            for (DistrictMap districtMap : districtInfo.getNeighborMaps(SENATE)) {
-                districtMap.setSenator(senateDao.getSenatorByDistrict(Integer.parseInt(districtMap.getDistrictCode())));
-            }
-
-            /** Fill in senator members if overlap exists */
-            DistrictOverlap senateOverlap = districtInfo.getDistrictOverlap(SENATE);
-            if (senateOverlap != null) {
-                Map<String, Senator> senatorMap = new HashMap<>();
-                for (String district : senateOverlap.getTargetDistricts()) {
-                    Senator senator = senateDao.getSenatorByDistrict(Integer.parseInt(district));
-                    senatorMap.put(district, senator);
+            if (districtInfo != null) {
+                /** Set the Senate, Congressional, and Assembly data using the respective daos */
+                if (districtInfo.hasDistrictCode(SENATE)) {
+                    int senateCode = Integer.parseInt(districtInfo.getDistCode(SENATE));
+                    districtInfo.setSenator(senateDao.getSenatorByDistrict(senateCode));
                 }
-                senateOverlap.setTargetSenators(senatorMap);
-            }
+                if (districtInfo.hasDistrictCode(CONGRESSIONAL)) {
+                    int congressionalCode = Integer.parseInt(districtInfo.getDistCode(CONGRESSIONAL));
+                    districtInfo.setDistrictMember(CONGRESSIONAL, new CongressionalDao().getCongressionalByDistrict(congressionalCode));
+                }
+                if (districtInfo.hasDistrictCode(ASSEMBLY)) {
+                    int assemblyCode = Integer.parseInt(districtInfo.getDistCode(ASSEMBLY));
+                    districtInfo.setDistrictMember(ASSEMBLY, new AssemblyDao().getAssemblyByDistrict(assemblyCode));
+                }
 
-            districtResult.setDistrictInfo(districtInfo);
+                /** Fill in neighbor district senator info */
+                for (DistrictMap districtMap : districtInfo.getNeighborMaps(SENATE)) {
+                    districtMap.setSenator(senateDao.getSenatorByDistrict(Integer.parseInt(districtMap.getDistrictCode())));
+                }
+
+                /** Fill in senator members if overlap exists */
+                DistrictOverlap senateOverlap = districtInfo.getDistrictOverlap(SENATE);
+                if (senateOverlap != null) {
+                    Map<String, Senator> senatorMap = new HashMap<>();
+                    for (String district : senateOverlap.getTargetDistricts()) {
+                        Senator senator = senateDao.getSenatorByDistrict(Integer.parseInt(district));
+                        senatorMap.put(district, senator);
+                    }
+                    senateOverlap.setTargetSenators(senatorMap);
+                }
+
+                districtResult.setDistrictInfo(districtInfo);
+            }
         }
     }
 

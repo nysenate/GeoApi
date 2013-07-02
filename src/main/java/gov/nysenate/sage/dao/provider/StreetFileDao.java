@@ -7,6 +7,7 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -73,7 +74,6 @@ public class StreetFileDao extends BaseDao
         }
 
         if (whereStreet) {
-
             String street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
             street += streetAddr.getStreet();
             street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
@@ -208,12 +208,16 @@ public class StreetFileDao extends BaseDao
         String streetWhereSql = "TRUE";
         if (streetList != null && !streetList.isEmpty()) {
             List<String> streetWhereList = new ArrayList<>();
-            for (String st : streetList) {
-                if (st != null && !st.isEmpty()) {
-                    streetWhereList.add(String.format("street LIKE '%s%%'", StringEscapeUtils.escapeSql(st)));
+            for (String stRaw : streetList) {
+                StreetAddress sa = StreetAddressParser.parseAddress(stRaw);
+                String street = getFormattedStreet(sa);
+                if (!street.isEmpty()) {
+                    streetWhereList.add(String.format("street LIKE '%s%%'", StringEscapeUtils.escapeSql(street)));
                 }
             }
-            streetWhereSql = StringUtils.join(streetWhereList, " OR ");
+            if (!streetWhereList.isEmpty()) {
+                streetWhereSql = StringUtils.join(streetWhereList, " OR ");
+            }
         }
 
         /** Format final query */
@@ -374,6 +378,17 @@ public class StreetFileDao extends BaseDao
         else {
             return null;
         }
+    }
+
+    private String getFormattedStreet(StreetAddress streetAddr) {
+        if (streetAddr != null) {
+            String street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
+            street += streetAddr.getStreet();
+            street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
+            street = street.toUpperCase();
+            return street;
+        }
+        return "";
     }
 
     public static class DistrictStreetRangeMapHandler implements ResultSetHandler<Map<StreetAddressRange,DistrictInfo>>

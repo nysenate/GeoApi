@@ -19,35 +19,41 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
     protected Map<String, List<MappedDistrictOverlapView>> overlaps = new HashMap<>();
     protected String referenceDistrictType;
     protected MapView referenceMap;
+    protected MapView streetLine;
     protected BigDecimal totalReferenceArea;
     protected String areaUnit;
 
     public MappedMultiDistrictResponse(DistrictResult districtResult) {
         super(districtResult);
         DistrictInfo districtInfo = districtResult.getDistrictInfo();
-        if (districtInfo != null && !districtInfo.getDistrictOverlaps().isEmpty()) {
-            this.isMultiMatch = true;
-            this.referenceMap = new MapView(districtInfo.getReferenceMap());
+        if (districtInfo != null) {
+            if (!districtInfo.getDistrictOverlaps().isEmpty()) {
+                this.isMultiMatch = true;
+                this.referenceMap = new MapView(districtInfo.getReferenceMap());
 
-            Map<DistrictType, DistrictOverlap> overlapsByDistrict = districtInfo.getDistrictOverlaps();
-            for (DistrictType districtType : overlapsByDistrict.keySet()) {
-                DistrictOverlap overlap = overlapsByDistrict.get(districtType);
+                Map<DistrictType, DistrictOverlap> overlapsByDistrict = districtInfo.getDistrictOverlaps();
+                for (DistrictType districtType : overlapsByDistrict.keySet()) {
+                    DistrictOverlap overlap = overlapsByDistrict.get(districtType);
 
-                /** Get the total reference area since they should all be the same for each overlap */
-                if (this.totalReferenceArea == null) {
-                    this.totalReferenceArea = overlap.getTotalArea();
-                    this.areaUnit = overlap.getAreaUnit().name();
-                }
-
-                if (overlap != null) {
-                    List<MappedDistrictOverlapView> mappedOverlaps = new ArrayList<>();
-                    for (String district : overlap.getOverlapDistrictCodes()) {
-                        mappedOverlaps.add(new MappedDistrictOverlapView(overlap, district));
+                    /** Get the total reference area since they should all be the same for each overlap */
+                    if (this.totalReferenceArea == null) {
+                        this.totalReferenceArea = overlap.getTotalArea();
+                        this.areaUnit = overlap.getAreaUnit().name();
                     }
-                    overlaps.put(districtType.name().toLowerCase(), mappedOverlaps);
+
+                    if (overlap != null) {
+                        List<MappedDistrictOverlapView> mappedOverlaps = new ArrayList<>();
+                        for (String district : overlap.getOverlapDistrictCodes()) {
+                            mappedOverlaps.add(new MappedDistrictOverlapView(overlap, district));
+                        }
+                        overlaps.put(districtType.name().toLowerCase(), mappedOverlaps);
+                    }
                 }
             }
+            /** Handle street line matches */
+            this.streetLine = new MapView(districtInfo.getStreetLineReference());
         }
+
     }
 
     public Map<String, List<MappedDistrictOverlapView>> getOverlaps() {
@@ -68,5 +74,9 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
 
     public String getAreaUnit() {
         return areaUnit;
+    }
+
+    public MapView getStreetLine() {
+        return streetLine;
     }
 }

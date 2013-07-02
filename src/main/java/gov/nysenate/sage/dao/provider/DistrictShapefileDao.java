@@ -139,7 +139,6 @@ public class DistrictShapefileDao extends BaseDao
         String sqlQuery = String.format(sqlTmpl, resolveCodeColumn(targetDistrictType), targetDistrictType.name(), targetDistrictType.name(), refDistrictType.name(),
                                                  refWhereSql, targetWhereSql);
         try {
-            logger.debug(sqlQuery);
             DistrictOverlap overlap = new DistrictOverlap(refDistrictType, targetDistrictType, refCodes, DistrictOverlap.AreaUnit.SQ_METERS);
             return run.query(sqlQuery, new DistrictOverlapHandler(overlap));
         }

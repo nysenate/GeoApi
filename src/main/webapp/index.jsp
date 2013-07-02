@@ -93,7 +93,7 @@
                     <div class="search-container-content">
                         <div style='margin-top:5px'>
                             <input id="addressInput" type="text" ng-model="addr" placeholder="e.g. 200 State St, Albany NY 12210"/>
-                            <button ng-click="lookup()" class="submit mini">
+                            <button class="submit mini">
                                 <div class="icon-search icon-white-no-hover"></div>
                                 <span></span>
                             </button>
@@ -281,7 +281,14 @@
                         <span class="message">{{description}}</span>
                     </div>
                 </div>
-                <div class="info-container" ng-show="geocoded">
+                <!-- Geocoded location information -->
+                <div class="info-container title" ng-switch="matchLevel" ng-show="geocoded && (districtAssigned || multiMatch)">
+                    <p ng-switch-when="POINT">Showing matching results for address</p>
+                    <p ng-switch-when="STREET">Showing matching results for street</p>
+                    <p ng-switch-when="CITY">Showing matching results for city</p>
+                    <p ng-switch-when="ZIP5">Showing matching results for zip code</p>
+                </div>
+                <div style="border-bottom:1px solid #ddd" class="info-container connected" ng-show="geocoded">
                     <table style="width:100%">
                         <tr>
                             <td><div class="icon-location icon-teal"></div></td>
@@ -293,6 +300,17 @@
                         </tr>
                     </table>
                 </div>
+                <div class="info-container connected-top slim">
+                    <a style="font-size:13px;" ng-hide="viewSuggestions" ng-click="viewSuggestions=true">Not what you meant?</a>
+                    <div ng-show="viewSuggestions">
+                        <span style="color:#333;font-size:13px;">If the returned location is incorrect, try entering more information
+                        such as the city and zip code. <span ng-show="placeSuggestions.length">You can also try some suggestions listed below: </span></span>
+                        <ul style="padding: 5px;margin: 5px auto;" ng-repeat="ps in placeSuggestions">
+                            <li style="font-size:14px;"><a ng-click="requestDistrictInfo(ps.description);">{{ps.description}}</a></li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="info-container title" ng-show="districts.senate.district">
                     <p class="member-name success-color">New York State Senator</p>
                 </div>

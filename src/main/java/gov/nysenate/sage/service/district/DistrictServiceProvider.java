@@ -313,10 +313,10 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
 
     /** Multi District Overlap ---------------------------------------------------------------------------------------*/
 
-    public DistrictResult assignOverlapDistricts(GeocodedAddress geocodedAddress)
+    public DistrictResult assignOverlapDistricts(GeocodedAddress geocodedAddress, Boolean zipProvided)
     {
         DistrictShapefile districtShapeFile = new DistrictShapefile();
-        return districtShapeFile.getOverlapDistrictResult(geocodedAddress);
+        return districtShapeFile.getOverlapDistrictResult(geocodedAddress, zipProvided);
     }
 
     /** Callables ----------------------------------------------------------------------------------------------------*/
