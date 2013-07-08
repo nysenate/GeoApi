@@ -638,8 +638,14 @@ sage.controller("DistrictMapController", function($scope, $http, menuService, da
                 if ($scope.showMemberOption) {
                     $scope.sortedMemberList = data.districts.slice(0);
                     $scope.sortedMemberList = $scope.sortedMemberList.sort(function(a, b){
-                        return a.member.name.localeCompare(b.member.name);
+                        return (a.type == "SENATE") ? a.member.shortName.localeCompare(b.member.shortName)
+                                                    : a.member.name.localeCompare(b.member.name);
                     });
+                    if ($scope.type == "senate") {
+                        $.each($scope.sortedMemberList, function(i,v) {
+                            v.member.name = v.member.lastName + ", " + v.member.name.replace(v.member.lastName, '');
+                        });
+                    }
                 }
                 $scope.showMemberList = false;
                 data.districts.unshift({district:null, name:'All districts'});
