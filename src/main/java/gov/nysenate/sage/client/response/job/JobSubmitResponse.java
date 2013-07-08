@@ -1,8 +1,9 @@
-package gov.nysenate.sage.model.job;
+package gov.nysenate.sage.client.response.job;
 
-public class JobRequestStatus
+public class JobSubmitResponse
 {
     protected boolean success;
+    protected String message;
 
     public boolean isSuccess() {
         return success;

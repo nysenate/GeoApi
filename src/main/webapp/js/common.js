@@ -36,10 +36,17 @@ sageCommon.factory('menuService', function(dataBus) {
     return menuService;
 });
 
-sageCommon.controller('MenuController', function($scope, menuService){
+sageCommon.controller('MenuController', function($scope, menuService, dataBus){
+    $scope.index = 1;
+
     $scope.toggleMethod = function(index) {
+        this.index = index;
         menuService.toggleMethod(index);
-    }
+    };
+
+    $scope.getMethodClass = function(index) {
+        return (this.index === index) ? "active" : "";
+    };
 });
 
 function initVerticalMenu() {

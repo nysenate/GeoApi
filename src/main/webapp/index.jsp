@@ -67,6 +67,7 @@
                             <th>From Bldg</th>
                             <th>To Bldg</th>
                             <th style="width:250px;">Street</th>
+                            <th>E/O</th>
                             <th>Location</th>
                             <th>Zip</th>
                             <th>Senate</th>
@@ -112,7 +113,7 @@
                         </div>
 
                         <br/>
-                        <div id="districtInfoOptions" ng-show="showOptions">
+                        <div id="districtInfoOptions" style="margin-top:10px;" ng-show="showOptions">
                             <table class="options-table">
                                 <tr>
                                     <td><label for="dataSourceMenu">District data source</label></td>
@@ -386,13 +387,18 @@
                     </div>
                 </div>
                 <div id="multi-senate-results" ng-show="multiMatch && overlaps.senate.length > 1">
-                    <div class="info-container">
+                    <div class="info-container title connected-bottom">
                         <p class="member-name" style="color:orangered;">{{overlaps.senate.length}} Senate District Matches</p>
-                        <hr/>
-                        <span style="font-size:13px;color:#333;">The indicated region contains multiple Senate Districts. The percentage represents
-                            how much of the geographical region it occupies.</span>
-                        <hr style="margin-top:5px;"/>
-                        <div ng-repeat="(i, d) in overlaps.senate" style="margin-top:5px;">
+                    </div>
+                    <div class="info-container title connected">
+                        <span class="message" ng-switch="matchLevel">
+                            <span ng-switch-when="ZIP5">This zipcode area contains multiple Senate Districts.</span>
+                            <span ng-switch-when="CITY">This approximated city area contains multiple Senate Districts.</span>
+                            <span ng-switch-when="STREET">The indicated street contains multiple Senate Districts.</span>
+                        </span>
+                    </div>
+                    <div class="info-container connected-top">
+                        <div ng-repeat="(i, d) in overlaps.senate">
                             <div ng-show="matchLevel != 'STREET'" class="small-box" ng-style="getBgStyle(i)">{{(d.areaPercentage*100).toFixed(0) || '<1'}}%</div>
                             <div style="line-height:28px;"><a target="_blank" ng-href="{{overlaps.senate[i].member.url}}"><span ng-style="getColorStyle(d.district)">District {{d.district}}</span> | {{d.member.name}}</a></div>
                         </div>
@@ -414,8 +420,7 @@
                         <tr ng-repeat="(i,v) in streets">
                             <td>{{v.bldgLoNum}}</td>
                             <td>{{v.bldgHiNum}}</td>
-                            <td ng-hide="v.bldgLoNum % 2">E</td>
-                            <td ng-show="v.bldgLoNum % 2">O</td>
+                            <td>{{v.parity | parityFilter}}</td>
                             <td>{{v.zip5}}</td>
                             <td ng-style="getColorStyle(v.senate)">{{v.senate}}</td>
                         </tr>

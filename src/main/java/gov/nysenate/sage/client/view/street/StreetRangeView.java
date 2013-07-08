@@ -16,6 +16,7 @@ public class StreetRangeView
     protected String street;
     protected String location;
     protected String zip5;
+    protected String parity;
     protected Map<String, String> districts;
 
     public StreetRangeView(DistrictedStreetRange districtedStreetRange)
@@ -26,6 +27,7 @@ public class StreetRangeView
             if (sar != null) {
                 this.bldgLoNum = sar.getBldgLoNum();
                 this.bldgHiNum = sar.getBldgHiNum();
+                this.parity = sar.getBldgParity();
                 this.street = sar.getStreet();
                 this.location = sar.getLocation();
                 this.zip5 = sar.getZip5();
@@ -84,5 +86,9 @@ public class StreetRangeView
 
     public String getElection() {
         return districts.get("election");
+    }
+
+    public String getParity() {
+        return parity;
     }
 }

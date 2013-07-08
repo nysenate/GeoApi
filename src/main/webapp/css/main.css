@@ -730,7 +730,6 @@ table.dataTable tr.even td.sorting_1 {
 }
 
 #fileUploadProgress {
-    visibility: collapse;
     height:30px;
     width:100%;
     background:#7BA838;

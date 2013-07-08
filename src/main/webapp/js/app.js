@@ -417,6 +417,18 @@ sage.filter("addressLevel", function(){
     }
 });
 
+
+sage.filter("parityFilter", function(){
+    return function(parity) {
+        switch (parity) {
+            case "EVENS" : return "E";
+            case "ODDS" : return "O";
+            case "ALL" : return "EO";
+            default : return "-";
+        }
+    };
+});
+
 /** Formats an address properly */
 sage.filter('addressFormat', function(){
     return function(address, delim) {
@@ -1029,14 +1041,15 @@ sage.controller("StreetViewController", function($scope, dataBus, uiBlocker, map
         { "mDataProp": "bldgLoNum", "aTargets":[0]},
         { "mDataProp": "bldgHiNum", "aTargets":[1]},
         { "mDataProp": "street", "aTargets":[2]},
-        { "mDataProp": "location", "aTargets":[3]},
-        { "mDataProp": "zip5", "aTargets":[4]},
-        { "mDataProp": "senate", "aTargets":[5]},
-        { "mDataProp": "congressional", "aTargets":[6]},
-        { "mDataProp": "assembly", "aTargets":[7]},
-        { "mDataProp": "county", "aTargets":[8]},
-        { "mDataProp": "town", "aTargets":[9]},
-        { "mDataProp": "election", "aTargets":[10]}
+        { "mDataProp": "parity", "aTargets":[3]},
+        { "mDataProp": "location", "aTargets":[4]},
+        { "mDataProp": "zip5", "aTargets":[5]},
+        { "mDataProp": "senate", "aTargets":[6]},
+        { "mDataProp": "congressional", "aTargets":[7]},
+        { "mDataProp": "assembly", "aTargets":[8]},
+        { "mDataProp": "county", "aTargets":[9]},
+        { "mDataProp": "town", "aTargets":[10]},
+        { "mDataProp": "election", "aTargets":[11]}
     ];
 
     $scope.overrideOptions = {
