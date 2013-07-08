@@ -18,12 +18,6 @@ public interface DistrictService
     /** Indicates whether the service needs a geocode to perform district assignment */
     public boolean requiresGeocode();
 
-    /** Indicates whether the service provides district map data */
-    public boolean providesMaps();
-
-    /** If true is passed, then the service will retrieve map data if possible */
-    public void fetchMaps(boolean fetch);
-
     /** District Assignment */
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress);
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes);

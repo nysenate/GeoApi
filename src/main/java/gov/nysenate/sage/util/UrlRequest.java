@@ -5,6 +5,10 @@ import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.http.HttpRequest;
+import oauth.signpost.signature.AuthorizationHeaderSigningStrategy;
+import oauth.signpost.signature.HmacSha1MessageSigner;
+import oauth.signpost.signature.SigningStrategy;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
@@ -56,7 +60,6 @@ public abstract class UrlRequest
     {
         URL u = new URL(url);
         logger.debug("Requesting connection to " + url.toString());
-
         HttpURLConnection uc = (HttpURLConnection)u.openConnection();
         int responseCode = uc.getResponseCode();
         logger.debug("Connection replied with response code: " + responseCode);
@@ -99,13 +102,13 @@ public abstract class UrlRequest
         try {
             logger.debug("Requesting connection to: " + url);
             URL u = new URL(url);
-            HttpURLConnection uc = (HttpURLConnection)u.openConnection();
+            HttpURLConnection uc = (HttpURLConnection) u.openConnection();
             OAuthConsumer consumer = new DefaultOAuthConsumer(consumerKey, consumerSecret);
             consumer.sign(uc);
 
             int responseCode = uc.getResponseCode();
             if (responseCode >= 400) {
-                logger.error("Failed to get a successful response. (Response " + responseCode + "). Returning null input stream.");
+                logger.error("Service responded with error code (" + responseCode + "): " + uc.getResponseMessage() + ". " + IOUtils.toString(uc.getErrorStream()));
                 return null;
             }
 

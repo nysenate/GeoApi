@@ -4,9 +4,9 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.services.model.Senator;
 
 import java.util.*;
 
@@ -15,6 +15,7 @@ import java.util.*;
  */
 public class DistrictResult extends BaseResult
 {
+    /** Contains the geocoded address and district information */
     protected DistrictedAddress districtedAddress;
 
     public DistrictResult()
@@ -81,6 +82,20 @@ public class DistrictResult extends BaseResult
         this.districtedAddress = districtedAddress;
     }
 
+    public DistrictMatchLevel getDistrictMatchLevel() {
+        if (this.districtedAddress != null) {
+            return this.districtedAddress.getDistrictMatchLevel();
+        }
+        return DistrictMatchLevel.NOMATCH;
+    }
+
+    public void setDistrictMatchLevel(DistrictMatchLevel quality) {
+        if (this.districtedAddress == null) {
+            this.districtedAddress = new DistrictedAddress();
+        }
+        this.districtedAddress.setDistrictMatchLevel(quality);
+    }
+
     /** Accessor method to the set of assigned districts stored in DistrictInfo */
     public Set<DistrictType> getAssignedDistricts()
     {
@@ -90,7 +105,22 @@ public class DistrictResult extends BaseResult
         return new HashSet<>();
     }
 
+    /**
+     * Determines if result assigned only a subset of the districts requested were assigned as in the
+     * case when returning street file results with missing data or during multi district matching.
+     * @return
+     */
     public boolean isPartialSuccess() {
-        return (this.statusCode != null && this.statusCode.equals(ResultStatus.PARTIAL_DISTRICT_RESULT));
+        return (this.statusCode != null &&
+               (this.statusCode.equals(ResultStatus.PARTIAL_DISTRICT_RESULT) ||
+                this.statusCode.equals(ResultStatus.MULTIPLE_DISTRICT_RESULT)));
+    }
+
+    /**
+     * Determines if result has a multi district overlap condition.
+     * @return true if multi match, false otherwise
+     */
+    public boolean isMultiMatch() {
+        return (this.statusCode != null && this.statusCode.equals(ResultStatus.MULTIPLE_DISTRICT_RESULT));
     }
 }

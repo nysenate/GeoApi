@@ -195,7 +195,7 @@ public abstract class StreetAddressParser
     * Despite the name, this method actually extracts the streetName, streetType, internal, location,
     * pre/post directionals, and possible PO Boxes.
     */
-    private static String extractStreet(String addressStr, StreetAddress streetAddress)
+    public static String extractStreet(String addressStr, StreetAddress streetAddress)
     {
         String[] addrParts = addressStr.split(",");
         if (addrParts.length >= 1) {

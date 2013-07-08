@@ -12,6 +12,7 @@ import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.Config;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Observable;
@@ -54,10 +55,14 @@ public class ApiFilter implements Filter, Observer
     private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map|street))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
 
     /** String keys used for setting key value attributes in the request object */
-    private static final String responseObjectKey = "responseObject";
-    private static final String formattedResponseKey = "formattedResponse";
-    private static final String apiRequestKey = "apiRequest";
-    private static final String apiUserKey = "apiUser";
+    private static final String RESPONSE_OBJECT_KEY = "responseObject";
+    private static final String FORMATTED_RESPONSE_KEY = "formattedResponse";
+    private static final String API_REQUEST_KEY = "apiRequest";
+    private static final String API_USER_KEY = "apiUser";
+
+    /** Serializers */
+    private static ObjectMapper jsonMapper = new ObjectMapper();
+    private static XmlMapper xmlMapper = new XmlMapper();
 
     /** Available format types */
     public enum FormatType { JSON, XML, JSONP }
@@ -67,6 +72,8 @@ public class ApiFilter implements Filter, Observer
     {
         this.config = ApplicationFactory.getConfig();
         this.apiRequestLogger = new ApiRequestLogger();
+        jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
         configure();
     }
 
@@ -74,7 +81,7 @@ public class ApiFilter implements Filter, Observer
     {
         this.ipFilter = config.getValue("user.ip_filter");
         this.defaultKey = config.getValue("user.default");
-        logger.trace(String.format("Allowing access on %s via default key %s", ipFilter, defaultKey));
+        logger.info(String.format("Configured default access on %s via key %s", ipFilter, defaultKey));
     }
 
     public void update(Observable o, Object arg)
@@ -220,13 +227,13 @@ public class ApiFilter implements Filter, Observer
 
     private static void setApiRequest(ApiRequest apiRequest, ServletRequest request)
     {
-        request.setAttribute(apiRequestKey, apiRequest);
+        request.setAttribute(API_REQUEST_KEY, apiRequest);
     }
 
     /** Accessor to ApiRequest object stored in ServletRequest */
     public static ApiRequest getApiRequest(ServletRequest request)
     {
-        return (ApiRequest) request.getAttribute(apiRequestKey);
+        return (ApiRequest) request.getAttribute(API_REQUEST_KEY);
     }
 
     /**
@@ -237,7 +244,7 @@ public class ApiFilter implements Filter, Observer
      */
     public static void setApiResponse(Object response, ServletRequest request)
     {
-        request.setAttribute(responseObjectKey, response);
+        request.setAttribute(RESPONSE_OBJECT_KEY, response);
     }
 
     /** Obtains the response object and serializes it using the format specified in the request parameters.
@@ -253,22 +260,20 @@ public class ApiFilter implements Filter, Observer
             format = FormatType.JSON.name();
         }
 
-        Object responseObj = request.getAttribute(responseObjectKey);
+        logger.trace("Serializing response as " + format);
+
+        Object responseObj = request.getAttribute(RESPONSE_OBJECT_KEY);
 
         /** Set a response error if the response object attribute is not set */
         if (responseObj == null) {
             responseObj = new ApiError(RESPONSE_ERROR);
         }
 
-        ObjectMapper jsonMapper = new ObjectMapper();
-        jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
         try {
             if (format.equalsIgnoreCase(FormatType.XML.name())) {
-                XmlMapper xmlMapper = new XmlMapper();
-                xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
                 String xml = xmlMapper.writeValueAsString(responseObj);
-                request.setAttribute(formattedResponseKey, xml);
+                request.setAttribute(FORMATTED_RESPONSE_KEY, xml);
                 response.setContentType("application/xml");
                 response.setContentLength(xml.length());
             }
@@ -276,20 +281,22 @@ public class ApiFilter implements Filter, Observer
                 String callback = request.getParameter("callback");
                 String json = jsonMapper.writeValueAsString(responseObj);
                 String jsonp = String.format("%s(%s);", callback, json);
-                request.setAttribute(formattedResponseKey, jsonp);
+                request.setAttribute(FORMATTED_RESPONSE_KEY, jsonp);
                 response.setContentType("application/javascript");
                 response.setContentLength(jsonp.length());
             }
             else {
                 String json = jsonMapper.writeValueAsString(responseObj);
-                request.setAttribute(formattedResponseKey, json);
+                request.setAttribute(FORMATTED_RESPONSE_KEY, json);
                 response.setContentType("application/json");
                 response.setContentLength(json.length());
             }
+
+            logger.trace("Completed serialization");
         }
         catch (JsonProcessingException ex) {
             logger.fatal("Failed to serialize response!", ex);
-            request.setAttribute(formattedResponseKey, RESPONSE_SERIALIZATION_ERROR);
+            request.setAttribute(FORMATTED_RESPONSE_KEY, RESPONSE_SERIALIZATION_ERROR);
         }
     }
 
@@ -300,7 +307,7 @@ public class ApiFilter implements Filter, Observer
      */
     private void sendResponse(ServletRequest request, ServletResponse response)
     {
-        Object formattedResponse = request.getAttribute(formattedResponseKey);
+        Object formattedResponse = request.getAttribute(FORMATTED_RESPONSE_KEY);
         logger.info("Sending Api response...");
         try {
             if (formattedResponse != null) {

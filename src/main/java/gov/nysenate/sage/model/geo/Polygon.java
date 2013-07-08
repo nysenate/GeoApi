@@ -6,77 +6,15 @@ import java.util.List;
 
 /**
  * Simple polygon representation
- * @author Ken Zalewski
  */
-public class Polygon
+public class Polygon extends Line
 {
-    private List<Point> points;
-
     /**
-     * Construct an empty polygon object.
-     */
-    public Polygon()
-    {
-        points = new ArrayList<>();
-    }
-
-    /**
-     * Construct a polygon object with the provided list of points.
-     *
+     * Construct a Polygon object with the provided list of points.*
      * @param points list of points
-     */
-    public Polygon(List<Point> points)
-    {
-        this.points = points;
-    }
-
-    /**
-     * Return the list of points that comprise this polygon.
-     *
-     * @return list of points that represent the polygon
-     */
-    public List<Point> getPoints()
-    {
-        return points;
-    }
-
-    /**
-     * Sets the polygon to the provided list of points.
-     *
-     * @param points list of points
-     */
-    public void setPoints(List<Point> points)
-    {
-        this.points = points;
-    }
-
-    /**
-     * Append a Point to the end of the polygon.
-     *
-     * @param point the point to append
-     */
-    public void appendPoint(Point point)
-    {
-        points.add(point);
-    }
-
-
-    /**
-     * Clear out the points for this polygon.
-     */
-    public void clearPoints()
-    {
-        points.clear();
-    }
-
-    /**
-     * Get the number of points that comprise this polygon.
-     *
-     * @return number of points in this polygon
-     */
-    public int size()
-    {
-        return points.size();
+    */
+    public Polygon(List<Point> points) {
+        super(points);
     }
 
     /**

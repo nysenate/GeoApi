@@ -12,8 +12,9 @@ public class DistrictResponse extends BaseResponse
     protected AddressView address;
     protected GeocodeView geocode;
     protected DistrictsView districts;
-    protected boolean geocoded;
-    protected boolean districtAssigned;
+    protected boolean geocoded = false;
+    protected boolean districtAssigned = false;
+    protected boolean multiMatches = false;
 
     public DistrictResponse(DistrictResult districtResult)
     {

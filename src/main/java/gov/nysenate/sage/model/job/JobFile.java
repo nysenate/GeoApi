@@ -164,25 +164,29 @@ public class JobFile extends BaseJobFile<JobRecord>
      */
     public String[] processHeader(String[] header)
     {
-        this.header = header.clone();
-        for (int i = 0; i < header.length; i++ ) {
+        if (header != null && header.length > 0) {
+            this.header = header.clone();
+            for (int i = 0; i < header.length; i++ ) {
+                /** Try to match column name to a Column */
+                if (header[i] != null && !header[i].isEmpty()) {
+                    String columnAlias = FormatUtil.toCamelCase(header[i]);
+                    Column headerColumn = Column.resolveColumn(columnAlias);
+                    if (headerColumn != null) {
 
-            /** Try to match column name to a Column */
-            if (header[i] != null && !header[i].isEmpty()) {
-                String columnAlias = FormatUtil.toCamelCase(header[i]);
-                Column headerColumn = Column.resolveColumn(columnAlias);
-                if (headerColumn != null) {
+                        /** Record the index for the column */
+                        columns.add(headerColumn);
+                        columnIndexMap.put(headerColumn, i);
 
-                    /** Record the index for the column */
-                    columns.add(headerColumn);
-                    columnIndexMap.put(headerColumn, i);
-
-                    /** Tell the processors to use the correct types */
-                    if (headerColumn.type.equals(Type.doubleType)) {
-                        this.processors.add(new Optional(new ParseDouble()));
-                    }
-                    else if (headerColumn.type.equals(Type.intType)) {
-                        this.processors.add(new Optional(new ParseInt()));
+                        /** Tell the processors to use the correct types */
+                        if (headerColumn.type.equals(Type.doubleType)) {
+                            this.processors.add(new Optional(new ParseDouble()));
+                        }
+                        else if (headerColumn.type.equals(Type.intType)) {
+                            this.processors.add(new Optional(new ParseInt()));
+                        }
+                        else {
+                            this.processors.add(new Optional());
+                        }
                     }
                     else {
                         this.processors.add(new Optional());
@@ -192,10 +196,7 @@ public class JobFile extends BaseJobFile<JobRecord>
                     this.processors.add(new Optional());
                 }
             }
-            else {
-                this.processors.add(new Optional());
-            }
         }
-        return this.header;
+        return header;
     }
 }

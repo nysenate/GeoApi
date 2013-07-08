@@ -15,6 +15,7 @@ public class MappedDistrictsView
     protected MappedDistrictView election;
     protected MappedDistrictView school;
     protected MappedDistrictView town;
+    protected MappedDistrictView zip;
     protected MappedDistrictView cleg;
     protected MappedDistrictView ward;
     protected MappedDistrictView village;
@@ -29,6 +30,7 @@ public class MappedDistrictsView
             this.election = new MappedDistrictView(ELECTION, dInfo);
             this.school = new MappedDistrictView(SCHOOL, dInfo);
             this.town = new MappedDistrictView(TOWN, dInfo);
+            this.zip = new MappedDistrictView(ZIP, dInfo);
             this.cleg = new MappedDistrictView(CLEG, dInfo);
             this.ward = new MappedDistrictView(WARD, dInfo);
             this.village = new MappedDistrictView(VILLAGE, dInfo);
@@ -61,6 +63,10 @@ public class MappedDistrictsView
 
     public MappedDistrictView getTown() {
         return town;
+    }
+
+    public MappedDistrictView getZip() {
+        return zip;
     }
 
     public MappedDistrictView getCleg() {

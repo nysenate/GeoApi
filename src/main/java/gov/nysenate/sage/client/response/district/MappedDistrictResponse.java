@@ -12,24 +12,31 @@ public class MappedDistrictResponse extends BaseResponse
     protected AddressView address;
     protected GeocodeView geocode;
     protected MappedDistrictsView districts;
-    protected boolean geocoded;
-    protected boolean districtAssigned;
+    protected boolean geocoded = false;
+    protected boolean districtAssigned = false;
+    protected Boolean isMultiMatch = false;
+    protected String matchLevel;
 
     public MappedDistrictResponse(DistrictResult districtResult) {
         super(districtResult);
         if (districtResult != null) {
             if (districtResult.isSuccess() || districtResult.isPartialSuccess()) {
                 this.districts = new MappedDistrictsView(districtResult.getDistrictInfo());
-                this.districtAssigned = true;
+                if (!districtResult.getAssignedDistricts().isEmpty()) {
+                    this.districtAssigned = true;
+                }
             }
             if (districtResult.getAddress() != null) {
                 this.address = new AddressView(districtResult.getAddress());
             }
             if (districtResult.getGeocode() != null) {
                 this.geocode = new GeocodeView(districtResult.getGeocode());
-                if (this.geocode != null) {
+                if (districtResult.getGeocodedAddress().isValidGeocode()) {
                     this.geocoded = true;
                 }
+            }
+            if (districtResult.getDistrictMatchLevel() != null) {
+                this.matchLevel = districtResult.getDistrictMatchLevel().name();
             }
         }
     }
@@ -52,5 +59,13 @@ public class MappedDistrictResponse extends BaseResponse
 
     public boolean isDistrictAssigned() {
         return districtAssigned;
+    }
+
+    public String getMatchLevel() {
+        return matchLevel;
+    }
+
+    public Boolean getMultiMatch() {
+        return isMultiMatch;
     }
 }

@@ -9,8 +9,8 @@
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script src="http://cdnjs.cloudflare.com/ajax/libs/highcharts/3.0.2/highcharts.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/common/common.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/admin.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/common.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/admin.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
         <div style="width:100%" id="header" ng-controller="MenuController">
@@ -25,11 +25,16 @@
             <div id="contentcolumn" style="text-align:center;padding-top:20px;background-color:#f5f5f5">
                 <div ng-controller='DashboardController' ng-show='visible'>
                     <h3>SAGE Dashboard</h3>
-                    <div id="uptime-stats">
-                        <ul class="highlight-section">
+                    <div id="uptime-stats" class="highlight-section">
+                        <ul class="horizontal">
                             <li><label>Last Deployed | </label> {{lastDeployment.deployTime | date:'medium'}}</li>
                             <li><label>Latest Uptime | </label>{{latestUptime / 3600000 | number:3}} hours</li>
                             <li><label>Api Requests Since Deployment | </label>{{requestsSinceLatest}}</li>
+                        </ul>
+                    </div>
+                    <div id="exceptions-view" class="highlight-section">
+                        <ul class="horizontal">
+                            <li><label>Application Exceptions | </label>3</li>
                         </ul>
                     </div>
                     <div id="api-usage-stats" class="highlight-section"></div>

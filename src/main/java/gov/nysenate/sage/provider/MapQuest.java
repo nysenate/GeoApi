@@ -149,7 +149,7 @@ public class MapQuest implements AddressService, GeocodeService, RevGeocodeServi
             boolean valid = false;
             if (geocodeResult.getStatusCode().equals(SUCCESS)){
                 GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
-                if (geocodedAddress.isAddressValid() && geocodedAddress.isGeocoded()) {
+                if (geocodedAddress.isValidAddress() && geocodedAddress.isValidGeocode()) {
                     valid = true;
                 }
                 addressResult.setAddress(geocodedAddress.getAddress());

@@ -3,6 +3,7 @@ package gov.nysenate.sage.model.job;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 public class JobRequest
@@ -12,6 +13,7 @@ public class JobRequest
 
     public JobRequest(JobUser requestor) {
         this.requestor = requestor;
+        this.processes = new LinkedList<>();
     }
 
     public void clear()

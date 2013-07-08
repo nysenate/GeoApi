@@ -22,6 +22,7 @@ public enum DistrictShapeCode
         nameColumn.put(DistrictType.COUNTY, "NAMELSAD");
         nameColumn.put(DistrictType.SCHOOL, "EANAME1");
         nameColumn.put(DistrictType.TOWN, "NAME");
+        nameColumn.put(DistrictType.ZIP, "ZCTA5CE10");
 
         codeColumn.put(DistrictType.SENATE, "SD_CODE");
         codeColumn.put(DistrictType.CONGRESSIONAL, "DISTRICT");
@@ -29,6 +30,7 @@ public enum DistrictShapeCode
         codeColumn.put(DistrictType.COUNTY, "COUNTYFP");
         codeColumn.put(DistrictType.SCHOOL, "TFCODE");
         codeColumn.put(DistrictType.TOWN, "ABBREV");
+        codeColumn.put(DistrictType.ZIP, "ZCTA5CE10");
 
         sridColumn.put(DistrictType.SENATE, "4269");
         sridColumn.put(DistrictType.CONGRESSIONAL, "4326");
@@ -36,6 +38,7 @@ public enum DistrictShapeCode
         sridColumn.put(DistrictType.COUNTY, "4326");
         sridColumn.put(DistrictType.SCHOOL, "4326");
         sridColumn.put(DistrictType.TOWN, "4326");
+        sridColumn.put(DistrictType.ZIP, "4269");
     }
 
     public static boolean contains(DistrictType districtType)

@@ -11,7 +11,7 @@
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script src="${pageContext.request.contextPath}/js/vendor/fileuploader.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/job/job.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
         <script>
             downloadDir = "${downloadDir}";
         </script>
@@ -29,7 +29,7 @@
 
         <div id="contentwrapper" ng-controller="JobController">
             <div id="contentcolumn" style="margin:0;padding-top:20px;background-color:#f5f5f5">
-                <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController" style="width:100%;height:100%;">
+                <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController">
                     <form id="uploadForm" method="post" action="${contextPath}/job/submit" style="width:95%;margin:auto;">
                         <ol>
                             <li>

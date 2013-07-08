@@ -45,10 +45,11 @@ public class JobController extends BaseJobController
         else {
             if (isAuthenticated(request)) {
                 logger.debug("Authenticated! Sending to main job page");
+
                 /** Clear out previous info */
                 getJobRequest(request).clear();
                 request.setAttribute("downloadDir", config.getValue("job.user.download.dir"));
-                request.getRequestDispatcher("/jobmain.jsp").forward(request, response);
+                request.getRequestDispatcher("/views/job/jobmain.jsp").forward(request, response);
             }
             else {
                 logger.info("Authentication failed! Sending to login page");
@@ -200,11 +201,6 @@ public class JobController extends BaseJobController
         logger.info("Processing Job Request Submission.");
         JobProcessDao jobProcessDao = new JobProcessDao();
         JobRequest jobRequest = getJobRequest(request);
-
-        FormatUtil.printObject(jobRequest);
-        FormatUtil.printObject(request.getSession().getAttribute("authenticated"));
-        FormatUtil.printObject(request.getSession().getAttribute("jobuser"));
-        FormatUtil.printObject(request.getSession().getAttribute("jobrequest"));
 
         for (JobProcess jobProcess : jobRequest.getProcesses()) {
             /** Store the job process and status */

@@ -55,7 +55,7 @@ em {color: red;}
     display:block;
     height:40px;
     background:#2a2a2a;
-    padding:0 15px;
+    padding:0;
     margin:0;
     font-size:16px;
 }
@@ -73,7 +73,7 @@ em {color: red;}
 }
 
 #contentcolumn.sidebar {
-    margin-right:330px;
+    margin-right:340px;
 }
 
 .innertube {
@@ -81,6 +81,10 @@ em {color: red;}
     height:100%;
 }
 
+.scrollable-content {
+    overflow-x: inherit;
+    overflow-y: auto;
+}
 
 #leftcolumn {
     float: left;
@@ -92,10 +96,10 @@ em {color: red;}
 
 #rightcolumn {
     float: left;
-    width: 330px; /*Width of right column*/
-    margin-left: -330px; /*Set left margin to -(RightColumnWidth)*/
-    background: #eee;
-    height:100%;
+    width: 340px; /*Width of right column*/
+    margin-left: -340px; /*Set left margin to -(RightColumnWidth)*/
+    background: transparent;
+    height:auto;
     display:none;
     position:absolute;
     top:40px;
@@ -117,8 +121,7 @@ em {color: red;}
 }
 
 .top-header.autohide {
-    background:#444;
-    color:white;
+    border-top:1px solid #0E4E5A;
 }
 
 /*-------------------------------------------------------
@@ -192,7 +195,7 @@ em {color: red;}
     background: #f9f9f9;
     border: 1px solid #999;
     box-shadow: 0 0 10px #999;
-    border-radius: 3px;
+    border-radius: 1px;
     padding: 10px 0 5px 5px;
 }
 
@@ -229,10 +232,20 @@ em {color: red;}
     color: #0E4E5A;
 }
 
+.search-container .options-link-container {
+    float:left;
+    padding-top:3px;
+    line-height:25px;
+    padding-right:  10px;
+    cursor: pointer;
+}
+
+.search-container .options-link-container:hover {
+    background:#fff;
+}
+
 .search-container a.options-link {
     font-size:13px;
-    position: relative;
-    top: 3px;
     left: 5px;
 }
 
@@ -268,6 +281,16 @@ em {color: red;}
 .options-table tr td select {
     font-size:13px;
     color:#444;
+}
+
+#districtInfoHelp {
+    margin-top: 10px;
+    border-top: 1px solid #ddd;
+    max-height: 400px;
+    overflow-y: auto;
+    font-size: 13px;
+    color: #333;
+    padding: 5px;
 }
 
 /*-------------------------------------------------------
@@ -362,6 +385,7 @@ em {color: red;}
 #resultsTab {
     cursor: pointer;
     height:20px;
+    border-top:1px solid #799933;
 }
 
 #showResultsTab:hover, #resultsTab:hover {
@@ -392,6 +416,29 @@ em {color: red;}
     padding:5px 10px;
 }
 
+.info-container.title {
+    padding:8px 10px;
+    margin: 5px auto 0 auto;
+    border-bottom:1px solid #eee;
+}
+
+.info-container.title p {
+    font-size:17px;
+    color:teal;
+}
+
+.info-container.connected-top {
+    margin: 0 auto 5px auto;
+}
+
+.info-container.connected-bottom {
+    margin: 5px auto 0 auto;
+}
+
+.info-container.connected {
+    margin: 0 auto;
+}
+
 .info-container.clickable {
     cursor:pointer;
 }
@@ -399,6 +446,17 @@ em {color: red;}
 .info-container.clickable:hover {
     box-shadow:1px 1px 2px 0 teal;
     background-color:#f5f5f5;
+}
+
+.info-container hr {
+    outline: 0;
+    border-color:#ddd;
+    border-width:0 0 1px 0;
+    margin:2px 0 5px 0;
+}
+
+.info-container .message {
+    font-size:14px;
 }
 
 .section {
@@ -413,11 +471,31 @@ em {color: red;}
     font-weight: 600;
 }
 
+.success-color {
+    color:#477326 !important;
+}
+
+/*-------------------------------------------------------
+  Lightly Styled Tables
+  ------------------------------------------------------*/
+table.light-table {
+    text-align:center;
+    width:100%;
+    font-size:14px;
+    color:#333;
+}
+
+table.light-table tr {
+    border-bottom:1px solid #ddd;
+}
+
+
 /*-------------------------------------------------------
   Senator Results Display
   ------------------------------------------------------*/
 .info-container.senator {
     height:70px;
+    border-bottom:1px solid #ddd;
 }
 
 .mini-senator-pic-holder, .senator-pic-holder {
@@ -470,6 +548,17 @@ em {color: red;}
 .validated-address {
     color: #333;
     font-size:18px;
+}
+
+.small-box {
+    font-weight:600;
+    padding: 4px 5px 4px 6px;
+    height:20px;
+    width:30px;
+    float:left;
+    margin-right:10px;
+    color:white;
+    overflow: hidden;
 }
 
 /*-------------------------------------------------------
@@ -604,11 +693,48 @@ table.dataTable tr.even td.sorting_1 {
     margin-left:20px;
 }
 
+#street-view-table_paginate {
+    margin-top:10px !important;
+}
+
+#street-view-table_paginate a {
+    border-radius: 2px !important;
+    font-size: 14px !important;
+}
+
 /*-------------------------------------------------------
   Job Page
 --------------------------------------------------------*/
 #upload-container {
-    width:650px;margin:auto;text-align: center;
+    width:100%;
+    height:100%;
+    margin:auto;
+    text-align: center;
+}
+
+#fileUploaderBasic {
+    position: relative;
+    overflow: hidden;
+    float:left;
+    direction: ltr;
+    background: #eee;
+    border:1px solid #aaa;
+    padding:5px;
+    font-size:14px;
+    color:teal;
+    font-weight:600;
+}
+
+#fileUploaderBasic:hover {
+    background: #fafafa;
+}
+
+#fileUploadProgress {
+    visibility: collapse;
+    height:30px;
+    width:100%;
+    background:#7BA838;
+    border:1px solid #aaa;
 }
 
 .running-process-view {
@@ -639,10 +765,15 @@ table.job-table {
     border-right:1px solid #ddd;
 }
 
-#uptime-stats ul li {
+ul.horizontal {
+    margin:0;
+}
+
+
+ul.horizontal li {
     display:inline;
     list-style-type: none;
-    padding-right:20px;
+    padding:0 20px 0 0;
 }
 
 .highlight-section {
@@ -666,4 +797,14 @@ table.job-table {
 
 #api-usage-stats {
     width:auto;
+}
+
+/** Google Autocomplete */
+.pac-container {
+    font-size: 14px;
+}
+
+.pac-item b {
+    font-weight: 600;
+    color:teal;
 }

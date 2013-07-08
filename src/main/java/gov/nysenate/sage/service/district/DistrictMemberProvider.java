@@ -5,8 +5,13 @@ import gov.nysenate.sage.dao.model.CongressionalDao;
 import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictOverlap;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.MapResult;
+import gov.nysenate.services.model.Senator;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static gov.nysenate.sage.model.district.DistrictType.ASSEMBLY;
 import static gov.nysenate.sage.model.district.DistrictType.CONGRESSIONAL;
@@ -26,30 +31,44 @@ public abstract class DistrictMemberProvider
      */
     public static void assignDistrictMembers(DistrictResult districtResult)
     {
+        SenateDao senateDao = new SenateDao();
+
         /** Proceed on either a success or partial result */
         if (districtResult.isSuccess() || districtResult.isPartialSuccess()) {
             DistrictInfo districtInfo = districtResult.getDistrictInfo();
+            if (districtInfo != null) {
+                /** Set the Senate, Congressional, and Assembly data using the respective daos */
+                if (districtInfo.hasDistrictCode(SENATE)) {
+                    int senateCode = Integer.parseInt(districtInfo.getDistCode(SENATE));
+                    districtInfo.setSenator(senateDao.getSenatorByDistrict(senateCode));
+                }
+                if (districtInfo.hasDistrictCode(CONGRESSIONAL)) {
+                    int congressionalCode = Integer.parseInt(districtInfo.getDistCode(CONGRESSIONAL));
+                    districtInfo.setDistrictMember(CONGRESSIONAL, new CongressionalDao().getCongressionalByDistrict(congressionalCode));
+                }
+                if (districtInfo.hasDistrictCode(ASSEMBLY)) {
+                    int assemblyCode = Integer.parseInt(districtInfo.getDistCode(ASSEMBLY));
+                    districtInfo.setDistrictMember(ASSEMBLY, new AssemblyDao().getAssemblyByDistrict(assemblyCode));
+                }
 
-            /** Set the Senate, Congressional, and Assembly data using the respective daos */
-            if (districtInfo.hasDistrictCode(SENATE)) {
-                int senateCode = Integer.parseInt(districtInfo.getDistCode(SENATE));
-                districtInfo.setSenator(new SenateDao().getSenatorByDistrict(senateCode));
-            }
-            if (districtInfo.hasDistrictCode(CONGRESSIONAL)) {
-                int congressionalCode = Integer.parseInt(districtInfo.getDistCode(CONGRESSIONAL));
-                districtInfo.setDistrictMember(CONGRESSIONAL, new CongressionalDao().getCongressionalByDistrict(congressionalCode));
-            }
-            if (districtInfo.hasDistrictCode(ASSEMBLY)) {
-                int assemblyCode = Integer.parseInt(districtInfo.getDistCode(ASSEMBLY));
-                districtInfo.setDistrictMember(ASSEMBLY, new AssemblyDao().getAssemblyByDistrict(assemblyCode));
-            }
+                /** Fill in neighbor district senator info */
+                for (DistrictMap districtMap : districtInfo.getNeighborMaps(SENATE)) {
+                    districtMap.setSenator(senateDao.getSenatorByDistrict(Integer.parseInt(districtMap.getDistrictCode())));
+                }
 
-            /** Fill in neighbor district senator info */
-            for (DistrictMap districtMap : districtInfo.getNeighborMaps(SENATE)) {
-                districtMap.setSenator(new SenateDao().getSenatorByDistrict(Integer.parseInt(districtMap.getDistrictCode())));
-            }
+                /** Fill in senator members if overlap exists */
+                DistrictOverlap senateOverlap = districtInfo.getDistrictOverlap(SENATE);
+                if (senateOverlap != null) {
+                    Map<String, Senator> senatorMap = new HashMap<>();
+                    for (String district : senateOverlap.getTargetDistricts()) {
+                        Senator senator = senateDao.getSenatorByDistrict(Integer.parseInt(district));
+                        senatorMap.put(district, senator);
+                    }
+                    senateOverlap.setTargetSenators(senatorMap);
+                }
 
-            districtResult.setDistrictInfo(districtInfo);
+                districtResult.setDistrictInfo(districtInfo);
+            }
         }
     }
 

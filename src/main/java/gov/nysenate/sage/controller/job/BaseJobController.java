@@ -80,7 +80,7 @@ public abstract class BaseJobController extends HttpServlet
         String json;
         try {
             json = jsonMapper.writeValueAsString(responseObj);
-            response.setContentType("application/json");
+            response.setContentType("text/plain");
             response.setContentLength(json.length());
             response.getWriter().write(json);
         }

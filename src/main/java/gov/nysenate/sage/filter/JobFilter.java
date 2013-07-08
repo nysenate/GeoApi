@@ -12,7 +12,7 @@ public class JobFilter implements Filter
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        //To change body of implemented methods use File | Settings | File Templates.
+
     }
 
     @Override

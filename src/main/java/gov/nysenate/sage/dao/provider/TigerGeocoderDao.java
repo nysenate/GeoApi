@@ -1,11 +1,16 @@
 package gov.nysenate.sage.dao.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
+import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.BeanProcessor;
@@ -15,6 +20,7 @@ import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,6 +40,13 @@ public class TigerGeocoderDao extends BaseDao
     private QueryRunner run = getTigerQueryRunner();
     private int GEOCODER_TIMEOUT = 1000; //ms
 
+    /**
+     * Performs geocoding and returns a GeocodedStreetAddress. A timeout is also enabled because some queries
+     * can just go on indefinitely.
+     * @param conn
+     * @param address
+     * @return
+     */
     public GeocodedStreetAddress getGeocodedStreetAddress(Connection conn, Address address)
     {
         GeocodedStreetAddress geoStreetAddress = null;
@@ -100,6 +113,11 @@ public class TigerGeocoderDao extends BaseDao
         return null;
     }
 
+    /**
+     * Retrieves a list of street names that are contained within the supplied zipcode
+     * @param zip5
+     * @return List<String>
+     */
     public List<String> getStreetsInZip(String zip5)
     {
         String sql =
@@ -112,6 +130,65 @@ public class TigerGeocoderDao extends BaseDao
         }
         catch (SQLException ex){
             logger.error(ex.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param streetName
+     * @param zip5List
+     * @return
+     */
+    public String getStreetLineGeometryAsJson(String streetName, List<String> zip5List) {
+        if (zip5List == null || zip5List.isEmpty()) return null; // short circuit
+        String sql =
+                "WITH streets AS (\n" +
+                "  SELECT * FROM tiger_data.ny_edges edges\n" +
+                "  WHERE fullname ILIKE ? AND (%s)\n" +
+                ")\n" +
+                "SELECT fullname, " +
+                    "ST_AsGeoJson(\n" +
+                        "ST_LineMerge(\n" +
+                            "(SELECT ST_Union(the_geom) FROM streets)\n" +
+                        ")\n" +
+                    ") AS lines \n" +
+                "FROM streets\n" +
+                "GROUP BY fullname";
+        List<String> zip5WhereList = new ArrayList<>();
+        for (String zip5 : zip5List) {
+            zip5WhereList.add(String.format("(zipl = '%s' OR zipr = '%s')", zip5, zip5));
+        }
+        String zip5Where = (!zip5WhereList.isEmpty()) ? StringUtils.join(zip5WhereList, " OR ") : "FALSE";
+        sql = String.format(sql, zip5Where);
+        try {
+            return run.query(sql, new ResultSetHandler<String>(){
+                @Override
+                public String handle(ResultSet rs) throws SQLException {
+                    if (rs.next()) {
+                        return rs.getString("lines");
+                    }
+                    return null;
+                }
+            }, streetName);
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to retrieve street line geometry!", ex);
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param streetName
+     * @param zip5List
+     * @return
+     */
+    public List<Line> getStreetLineGeometry(String streetName, List<String> zip5List)
+    {
+        String streetLineJson = getStreetLineGeometryAsJson(streetName, zip5List);
+        if (streetLineJson != null) {
+            return getLinesFromJson(streetLineJson);
         }
         return null;
     }

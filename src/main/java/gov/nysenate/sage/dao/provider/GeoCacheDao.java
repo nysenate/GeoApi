@@ -9,7 +9,6 @@ import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -43,7 +42,7 @@ public class GeoCacheDao extends BaseDao
      */
     public GeocodedStreetAddress getCacheHit(StreetAddress sa)
     {
-        logger.debug("Looking up " + sa.toStringParsed() + " in cache..");
+        logger.trace("Looking up " + sa.toStringParsed() + " in cache..");
         if (isStreetAddressRetrievable(sa)) {
             String sql = "SELECT gc.*, ST_Y(latlon) AS lat, ST_X(latlon) AS lon\n" +
                          "FROM cache.geocache AS gc \n";
@@ -66,7 +65,7 @@ public class GeoCacheDao extends BaseDao
             }
             /** PO BOX addresses can be looked up by just the location/zip */
             else {
-                logger.debug("Cache lookup without street");
+                logger.trace("Cache lookup without street");
                 sql += "WHERE gc.state = ? \n" +
                        "AND gc.street = '' \n" +
                        "AND ((gc.zip5 = ? AND gc.zip5 != '') OR (? = '' AND gc.location = ? AND gc.location != ''))";
@@ -119,7 +118,7 @@ public class GeoCacheDao extends BaseDao
         while (!cacheBuffer.isEmpty()) {
             GeocodedAddress geocodedAddress = cacheBuffer.remove();
 
-            if (geocodedAddress != null && geocodedAddress.isAddressValid() && geocodedAddress.isGeocoded()) {
+            if (geocodedAddress != null && geocodedAddress.isValidAddress() && geocodedAddress.isValidGeocode()) {
                 Address address = geocodedAddress.getAddress();
                 Geocode gc = geocodedAddress.getGeocode();
                 StreetAddress sa = StreetAddressParser.parseAddress(address);
@@ -130,7 +129,7 @@ public class GeoCacheDao extends BaseDao
                                     sa.getPreDir(), sa.getStreetName(), sa.getStreetType(), sa.getPostDir(), sa.getLocation(),
                                     sa.getState(), sa.getZip5(), "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
                                     gc.getMethod(), gc.getQuality().name(), sa.getZip4());
-                            logger.info("Saved " + sa.toString() + " in cache.");
+                            logger.trace("Saved " + sa.toString() + " in cache.");
                         }
                         catch(SQLException ex) {
                             logger.trace(ex); // Most likely a duplicate row warning
@@ -166,6 +165,9 @@ public class GeoCacheDao extends BaseDao
                 sa.setZip5(rs.getString("zip5"));
                 sa.setZip4(rs.getString("zip4"));
                 Geocode gc = getGeocodeFromResultSet(rs);
+                if (gc == null || gc.getQuality() == null || gc.getQuality().compareTo(GeocodeQuality.HOUSE) < 0) {
+                    return null;
+                }
                 return new GeocodedStreetAddress(sa, gc);
             }
             return null;

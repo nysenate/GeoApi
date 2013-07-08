@@ -1,16 +1,16 @@
 package gov.nysenate.sage.model.district;
 
 /**
- * DistrictQuality is a simplified accuracy measure of the district assignment result. The
+ * DistrictMatchLevel is a simplified accuracy measure of the district assignment result. The
  * numerical values are chosen somewhat arbitrarily to instill a ranking.
  */
-public enum DistrictQuality
+public enum DistrictMatchLevel
 {
-    NOMATCH(0), ZIP5(59), STREET(79), HOUSE(95), POINT(99);
+    NOMATCH(0), STATE(10), CITY(50), ZIP5(70), STREET(80), HOUSE(90), POINT(100);
 
     private int value;
 
-    DistrictQuality(int value)
+    DistrictMatchLevel(int value)
     {
         this.value = value;
     }

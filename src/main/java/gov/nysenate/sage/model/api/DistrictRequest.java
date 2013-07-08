@@ -1,8 +1,10 @@
 package gov.nysenate.sage.model.api;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 
+import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -15,14 +17,32 @@ public class DistrictRequest
 
     private ApiRequest apiRequest;
     private Address address;
-    private String provider;
-    private String geoProvider;
-    private boolean showMembers;
-    private boolean showMaps;
-    private boolean uspsValidate;
-    private boolean skipGeocode;
-    private DistrictStrategy districtStrategy;
+    private Point point;
+    private String provider = null;
+    private String geoProvider = null;
+    private boolean showMembers = false;
+    private boolean showMaps = false;
+    private boolean uspsValidate = false;
+    private boolean skipGeocode = false;
+    private DistrictStrategy districtStrategy = DistrictStrategy.neighborMatch;
     private Timestamp requestTime;
+
+    public DistrictRequest() {}
+
+    public static DistrictRequest buildBluebirdRequest(ApiRequest apiRequest, Address address, String bluebirdStrategy)
+    {
+        DistrictRequest dr = new DistrictRequest();
+        dr.setApiRequest(apiRequest);
+        dr.setAddress(address);
+        dr.setProvider(null);
+        dr.setGeoProvider(null);
+        dr.setShowMaps(false);
+        dr.setShowMembers(false);
+        dr.setUspsValidate(true);
+        dr.setSkipGeocode(false);
+        dr.setDistrictStrategy(bluebirdStrategy);
+        return dr;
+    }
 
     public DistrictRequest(ApiRequest apiRequest, Address address, String provider, String geoProvider, boolean showMembers,
                            boolean showMaps, boolean uspsValidate, boolean skipGeocode, DistrictStrategy districtStrategy)
@@ -69,6 +89,14 @@ public class DistrictRequest
 
     public void setAddress(Address address) {
         this.address = address;
+    }
+
+    public Point getPoint() {
+        return point;
+    }
+
+    public void setPoint(Point point) {
+        this.point = point;
     }
 
     public String getProvider() {
@@ -127,11 +155,25 @@ public class DistrictRequest
         this.districtStrategy = districtStrategy;
     }
 
+    public void setDistrictStrategy(String districtStrategy) {
+        try {
+            this.districtStrategy = DistrictStrategy.valueOf(districtStrategy);
+        }
+        catch (Exception ex) {
+            this.districtStrategy = null;
+        }
+    }
+
     public Timestamp getRequestTime() {
         return requestTime;
     }
 
     public void setRequestTime(Timestamp requestTime) {
         this.requestTime = requestTime;
+    }
+
+    public boolean hasValidAddress()
+    {
+        return this.address != null && !this.address.isEmpty();
     }
 }

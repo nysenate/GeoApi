@@ -13,6 +13,12 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
     google.maps.visualRefresh = true;
 
+    var nyBounds = [[40.488737, -74.264832],[40.955011, -71.762695],[41.294317, -71.932983],[40.955011, -73.641357],[41.100052, -73.721008],[41.215854, -73.487549],[41.298444, -73.550720],[42.085994, -73.504028],[42.747012, -73.267822],[43.612217, -73.289795],[45.003651, -73.300781],[45.011419, -74.959717], [43.612217, -77.189941],[43.269206, -79.112549],[42.843751, -78.936768],[42.536892, -79.782715],[42.000325, -79.749756],[41.983994, -75.366211],[41.327326, -74.783936],[40.996484, -73.907776],[40.653555, -74.058838],[40.640009, -74.200287]];
+    var nyLatLngBounds = new google.maps.LatLngBounds();
+    $.each(nyBounds, function(i,v){
+        nyLatLngBounds.extend(new google.maps.LatLng(v[0], v[1]));
+    });
+
     /** Initialization */
     var mapService = {};
     mapService.el = $("#mapView");
@@ -33,19 +39,30 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         ]
     };
     mapService.map = new google.maps.Map(document.getElementById("map_canvas"), mapService.mapOptions);
+    mapService.autoComplete = new google.maps.places.AutocompleteService();
     mapService.polygons = [];
+    mapService.lines = [];
     mapService.polygon = null;
     mapService.markers = [];
     mapService.activeMarker = null;
     mapService.mapTitle = "Map";
     mapService.districtData = null;
+    //                    teal      orangered    green      red        yellow     darkblue    pink      purple
+    mapService.colors = ["#008080", "#ff4500", "#639A00", "#CC333F", "#EDC951", "#547980", "#F56991", "#351330"];
+
+    /**
+     * Resize when window size changes
+     */
+    google.maps.event.addDomListener(window, 'resize', function() {
+        mapService.resizeMap();
+    });
 
     /**
      * Triggers a map resize
      */
     mapService.resizeMap = function() {
         google.maps.event.trigger(mapService.map, 'resize');
-    }
+    };
 
     /**
      * Toggle the visibility of the map
@@ -59,20 +76,35 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         } else {
             $(this.el).hide();
         }
-    }
+    };
 
     /** Set the zoom level of the map */
     mapService.setZoom = function(level) {
         this.map.setZoom(level);
-    }
+    };
 
     mapService.setCenter = function(lat, lon) {
         this.map.setCenter(new google.maps.LatLng(lat, lon));
-    }
+    };
 
     mapService.setTitle = function(title) {
         dataBus.setBroadcast('mapTitle', title);
-    }
+    };
+
+    mapService.makeAutocomplete = function(inputId) {
+        new google.maps.places.Autocomplete(
+            document.getElementById(inputId), {
+                bounds: nyLatLngBounds,
+                types: ['geocode'],
+                componentRestrictions: {country:'us'}
+            });
+    };
+
+    mapService.getPlacePredictions = function(input, handle) {
+        this.autoComplete.getPlacePredictions({componentRestrictions: {country: 'us'}, input: input, bounds: nyLatLngBounds, types: ['geocode']}, function(a,b) {
+            dataBus.setBroadcast(handle, {'status': b, 'data' :a});
+        });
+    };
 
     /**
      * Place a marker on the map.
@@ -114,7 +146,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         if (center) {
             this.map.setCenter(this.activeMarker.position);
         }
-    }
+    };
 
     /**
      * Sets a polygon overlay on the map with hover and click functionality
@@ -124,9 +156,21 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
      * @param clear         If true then map will be cleared of all overlays
      * @param clickHandler  If a callback is supplied it will be called when the polygon is clicked
      * @param color         Color of the polygon (default is teal)
+     * @param style         Override style properties for the polygon e.g. {'fillOpacity': 0.5}
      */
-    mapService.setOverlay = function(geom, name, fitBounds, clear, clickHandler, color) {
+    mapService.setOverlay = function(geom, name, fitBounds, clear, clickHandler, color, style) {
         if (geom != null) {
+            if (style === null || typeof style === 'undefined') {
+                style = {};
+            }
+            style = $.extend({
+                strokeColor: (color) ? color : "teal",
+                strokeOpacity: 1,
+                strokeWeight: 1.5,
+                fillColor: (color) ? color : "teal",
+                fillOpacity: 0.3
+            }, style);
+
             if (clear == true) {
                 this.clearPolygons();
             }
@@ -135,18 +179,16 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                 for (var j in geom[i]) {
                     coords.push(new google.maps.LatLng(geom[i][j][0], geom[i][j][1]));
                 }
-                var polygon = new google.maps.Polygon({
-                    paths: coords,
-                    strokeColor: (color) ? color : "teal",
-                    strokeOpacity: 1,
-                    strokeWeight: 2,
-                    fillColor: (color) ? color : "teal",
-                    fillOpacity: 0.1
+
+                var overlayProps = $.extend({}, style, {
+                    paths: coords
                 });
+
+                var polygon = new google.maps.Polygon(overlayProps);
 
                 /** On mouseover update the header title */
                 google.maps.event.addListener(polygon,"mouseover",function() {
-                    this.setOptions({fillOpacity: 0.4});
+                    this.setOptions({fillOpacity: style.fillOpacity - 0.2});
                     var scope = angular.element(mapService.el).scope();
                     scope.$apply(function() {
                         scope.mapTitle = name;
@@ -155,18 +197,18 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
                 /** On mouseout restore the opacity */
                 google.maps.event.addListener(polygon,"mouseout",function(){
-                    this.setOptions({fillOpacity: 0.2});
+                    this.setOptions({fillOpacity: style.fillOpacity});
                 });
 
                 /** Set up event handling for mouse click on polygon */
                 if(clickHandler) {
                     google.maps.event.addListener(polygon,"click", function() {
                         if (mapService.polygon) {
-                            mapService.polygon.setOptions({fillColor: "teal"});
-                            mapService.polygon.setOptions({fillOpacity: 0.2});
+                            mapService.polygon.setOptions({fillColor: style.fillColor});
+                            mapService.polygon.setOptions({fillOpacity: style.fillOpacity});
                         }
                         this.setOptions({fillColor: "#ffcc00"});
-                        this.setOptions({fillOpacity: 0.5});
+                        this.setOptions({fillOpacity: 0.6});
                         mapService.polygon = this;
                         clickHandler();
                     });
@@ -192,14 +234,72 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             this.clearPolygons();
         }
         return null;
-    }
+    };
+
+    mapService.setLines = function(geom, fitBounds, clear, style, lineSymbolStyle) {
+        var coords = [];
+        if (clear) {
+            this.clearPolyLines();
+        }
+        var latLngBounds = new google.maps.LatLngBounds();
+
+        var lineSymbol = $.extend({
+            path: 'M 0,-0.5 0,0.5',
+            strokeWeight: 3,
+            strokeOpacity: 1,
+            scale: 1
+        }, lineSymbolStyle);
+
+        if (style === null || typeof style === 'undefined') {
+            style = {};
+        }
+        style = $.extend({
+            strokeColor: "#333",
+            strokeOpacity: 0,
+            icons: [{
+                icon: lineSymbol,
+                offset: '100%',
+                repeat: '8px'
+            }]
+        }, style);
+
+        for (var i in geom) {
+            for (var j in geom[i]) {
+                var latLng = new google.maps.LatLng(geom[i][j][0], geom[i][j][1]);
+                latLngBounds.extend(latLng);
+                coords.push(latLng);
+            }
+
+            var line = new google.maps.Polyline($.extend({}, style, {path: coords}));
+            line.setMap(this.map);
+            this.lines.push(line);
+
+            /** Set the zoom level to the district bounds for the first polyline */
+            coords = [];
+        }
+
+        if (fitBounds) {
+            this.map.fitBounds(latLngBounds);
+            this.map.setZoom(this.map.getZoom());
+        }
+    };
 
     mapService.clearPolygon = function(polygon) {
         if (polygon) {
             try { polygon.setMap(null);}
             catch (ex) {}
         }
-    }
+    };
+
+    /**
+     * Removes all polylines
+     */
+    mapService.clearPolyLines = function() {
+        $.each(this.lines, function (i, v){
+            v.setMap(null);
+        });
+        this.lines = [];
+    };
 
     /**
      * Removes all polygon overlays
@@ -209,7 +309,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             v.setMap(null);
         });
         this.polygons = [];
-    }
+    };
 
     /**
      * Removes all markers
@@ -219,7 +319,16 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             v.setMap(null);
         });
         this.markers = [];
-    }
+    };
+
+    /**
+     * Clears markers and overlays
+     */
+    mapService.clearAll = function() {
+        this.clearMarkers();
+        this.clearPolygons();
+        this.clearPolyLines();
+    };
 
     /**--------------------------------------------
      * Client Geocoder
@@ -232,13 +341,13 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             }
             return null;
         });
-    }
+    };
 
     mapService.formatDistrictName = function(dist) {
         return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district +
             ((dist.member) ? " - " + dist.member.name : "") +
             ((dist.senator) ? " - " + dist.senator.name : "");
-    }
+    };
 
     return mapService;
 });
@@ -247,10 +356,10 @@ sage.factory("uiBlocker", function($rootScope) {
     var uiBlocker = {};
     uiBlocker.block = function(msg) {
         $.blockUI({css:{border:'1px solid #ddd'}, overlayCSS: { backgroundColor: '#eee', opacity:0.5 }, message: msg});
-    }
+    };
     uiBlocker.unBlock = function() {
         $.unblockUI();
-    }
+    };
     return uiBlocker;
 });
 
@@ -284,6 +393,26 @@ sage.filter("senatorPic", function() {
     return function(input) {
         if (input) {
             return "http://www.nysenate.gov/files/imagecache/senator_teaser/" + input.substring(30) ;
+        }
+    }
+});
+
+sage.filter("addressLevel", function(){
+    return function(address, level) {
+        switch (level) {
+            case "POINT" :
+            case "HOUSE" :
+            case "STREET" :
+                return address;
+                break;
+            case "CITY" :
+                return {city: address.city, state: address.state};
+                break;
+            case "ZIP5" :
+                return {state: address.state, zip5: address.zip5};
+                break;
+            default:
+                return address;
         }
     }
 });
@@ -347,8 +476,8 @@ sage.directive('myTable', function() {
                 "bStateSave": true,
                 "iCookieDuration": 2419200, /* 1 month */
                 "bJQueryUI": true,
-                "bPaginate": false,
-                "bLengthChange": false,
+                "bPaginate": true,
+                "bLengthChange": true,
                 "bFilter": false,
                 "bInfo": false,
                 "bDestroy": true
@@ -409,28 +538,56 @@ sage.directive('myTable', function() {
 sage.controller('DistrictInfoController', function($scope, $http, mapService, menuService, dataBus, uiBlocker) {
     $scope.visible = true;
     $scope.id = 1;
+    $scope.inputId = "addressInput";
     $scope.addr = "";
     $scope.showOptions = false;
     $scope.geoProvider = "default";
     $scope.provider = "default";
+    $scope.uspsValidate = "false";
+    $scope.showMaps = "true";
+
+    mapService.makeAutocomplete($scope.inputId);
 
     $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
     });
 
+    /** Listens for requests to perform lookup */
+    $scope.$on("requestDistrictInfo", function() {
+        $scope.addr = dataBus.data;
+        $scope.lookup(true);
+    });
+
     /**
      * Performs request to District Assign API and delegates to the `districtInfo` handler.
      */
-    $scope.lookup = function() {
-        uiBlocker.block("Looking up districts");
-        $http.get(this.getDistUrl())
-            .success(function(data) {
-                dataBus.setBroadcastAndView("districtInfo", data, "districtsView");
-            }).error(function(data, status, headers, config) {
-                uiBlocker.unBlock();
-                alert("Failed to lookup districts. The application did not return a response.");
-            });
-    }
+    $scope.lookup = function(skipValidate) {
+        if (skipValidate || this.validateSearch()) {
+            mapService.getPlacePredictions(this.addr, "placeSuggestions");
+            uiBlocker.block("Looking up districts for " + this.addr);
+            mapService.clearAll();
+            $http.get(this.getDistUrl())
+                .success(function(data) {
+                    dataBus.setBroadcastAndView("districtInfo", data, "districtsView");
+                }).error(function(data, status, headers, config) {
+                    uiBlocker.unBlock();
+                    alert("Failed to lookup districts. The application did not return a response.");
+                });
+            return true;
+        }
+        else {
+            alert("Your address search should be at least 5 characters long. Please try to be as specific " +
+                "as possible.");
+            return false;
+        }
+    };
+
+    /** Validates the address input. Also updates the model entry by fetching value manually since
+        it's tricky to auto-bind properly with autocomplete widgets */
+    $scope.validateSearch = function() {
+        this.addr = $("#" + this.inputId).val();
+        return (this.addr != '' && this.addr.length >= 5);
+    };
 
     /**
      * Returns the url for accessing the district assignment API.
@@ -438,13 +595,15 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
      */
     $scope.getDistUrl = function () {
         var url = contextPath + baseApi + "/district/assign?addr=" + this.addr;
-        url += (/\s(ny|new york)/i.test(this.addr)) ? "" : " NY";
+        //url += (/\s(ny|new york)/i.test(this.addr)) ? "" : " NY"; (appends NY, not necessary)
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
-        url += "&showMembers=true&showMaps=true";
+        url += (this.uspsValidate != "false" && this.uspsValidate != "") ? "&uspsValidate=true" : "";
+        url += (this.showMaps != "false" && this.showMaps != "") ? "&showMaps=true" : "";
+        url += "&showMembers=true";
         url = url.replace(/#/g, ""); // Pound marks mess up the query string
         return url;
-    }
+    };
 });
 
 /**
@@ -457,6 +616,7 @@ sage.controller("DistrictMapController", function($scope, $http, menuService, da
     $scope.type = "";
     $scope.showMemberOption = false;
     $scope.showMemberList = false;
+    $scope.sortedMemberList = [];
     $scope.districtList = [];
     $scope.selectedDistrict = "";
 
@@ -475,9 +635,14 @@ sage.controller("DistrictMapController", function($scope, $http, menuService, da
         $http.get(this.getDistrictMapUrl(this.type, null, true))
             .success(function(data) {
                 $scope.showMemberOption = ($scope.type === 'senate' || $scope.type === 'congressional' || $scope.type === 'assembly');
+                if ($scope.showMemberOption) {
+                    $scope.sortedMemberList = data.districts.slice(0);
+                    $scope.sortedMemberList = $scope.sortedMemberList.sort(function(a, b){
+                        return a.member.name.localeCompare(b.member.name);
+                    });
+                }
                 $scope.showMemberList = false;
-                $scope.selectedDistrict = {district:null, name:'All districts'};
-                data.districts.unshift($scope.selectedDistrict);
+                data.districts.unshift({district:null, name:'All districts'});
                 $scope.districtList = data.districts;
             })
             .error(function(data){});
@@ -662,7 +827,11 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     $scope.showOffices = false;
     $scope.showNeighbors = false;
     $scope.neighborPolygons = [];
+    $scope.colors = mapService.colors;
     $scope.neighborColors = ["#FF4500", "#639A00"];
+    $scope.senateColors = {};
+    $scope.placeSuggestions = {};
+    $scope.viewSuggestions = false;
 
     $scope.$on(dataBus.viewHandleEvent, function(){
         $scope.visible = ($scope.viewId == dataBus.viewId);
@@ -671,21 +840,59 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     /** Handle results of district info query */
     $scope.$on("districtInfo", function() {
         $scope = angular.extend($scope, dataBus.data);
+        $scope.viewSuggestions = (!$scope.districtAssigned && !$scope.multiMatch);
         dataBus.setBroadcast("expandResults", true);
         mapService.toggleMap(true);
 
-        /** If the districts were assigned, initially set the map to display the senate boundary */
-        if ($scope.districtAssigned) {
-            if ($scope.districts.senate.map) {
-                mapService.setOverlay($scope.districts.senate.map.geom,
-                    formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
+        if ($scope.multiMatch) {
+            var fillOpacity = 0.5;
+            /** Draw the intersected senate maps */
+            if ($scope.overlaps.senate) {
+                /** Sort the senate maps by greatest percentage first */
+                $scope.overlaps.senate = $scope.overlaps.senate.sort(function(a, b) {
+                    return b.areaPercentage - a.areaPercentage;
+                });
+                /** Assign a unique color to each senate district */
+                $.each($scope.overlaps.senate, function(i,v){
+                    $scope.senateColors[v.district] = $scope.colors[i];
+                    if (v.map != null) {
+                        mapService.setOverlay(v.map.geom, "Overlap for Senate District " + v.district, false, false, null, $scope.colors[i], {fillOpacity:fillOpacity});
+                    }
+                });
+            }
+            /** Display senate street lines if available */
+            if ($scope.matchLevel == "STREET") {
+                fillOpacity = 0.2;
+                if ($scope.streetLine && $scope.streetLine.geom) {
+                    mapService.setLines($scope.streetLine.geom, true, false, "#555", {
+                        path: 'M 0 0 L 0 1 L 1 1 L 1 0 z', strokeWeight: 1, strokeOpacity: 0,
+                        scale: 9, fillOpacity: 0.5, fillColor: "yellow"
+                    });
+                }
+                else {
+                    mapService.setMarker($scope.geocode.lat, $scope.geocode.lon, '', true, true);
+                }
+            }
+            else {
+                /** Set region (city / zip) dashed line boundary for multi-matches */
+                mapService.setLines($scope.referenceMap.geom, true, false, {});
             }
         }
-        /** Update the marker location to point to the geocode */
-        if ($scope.geocoded) {
-            mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
-                                 $filter('addressFormat')($scope.address, ''), true, true, null);
+        else {
+            /** Update the marker location to point to the geocode */
+            if ($scope.districtAssigned) {
+                if ($scope.districts.senate.map) {
+                    mapService.setOverlay($scope.districts.senate.map.geom,
+                        formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
+                }
+            }
+            if ($scope.geocoded) {
+                mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
+                    $filter('addressFormat')($scope.address, ''), true, true, null);
+                mapService.setZoom(15);
+            }
         }
+
         /** Hide neighbors initially */
         $scope.showNeighbors = false;
         uiBlocker.unBlock();
@@ -729,6 +936,16 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         uiBlocker.unBlock();
     });
 
+    $scope.$on("placeSuggestions", function(){
+        var sugg = dataBus.data;
+        if (sugg != null && sugg.status == 'OK') {
+            $scope.placeSuggestions = sugg.data;
+        }
+        else {
+            $scope.placeSuggestions = {};
+        }
+    });
+
     /** Show the specified district map */
     $scope.showDistrict = function(districtType) {
         if ($scope.districts[districtType] != null && typeof $scope.districts[districtType] != "undefined") {
@@ -746,20 +963,34 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             $scope.neighborPolygons.push(mapService.setOverlay(neighbor.map.geom, formatDistrictName(neighbor, "Senate"),
                                                                false, false, null, neighbor.style['color']));
         });
-    }
+    };
 
     $scope.hideNeighborDistricts = function()  {
         this.showNeighbors = false;
         $.each($scope.neighborPolygons, function(i, neighborPolygon){
             mapService.clearPolygon(neighborPolygon);
         });
-    }
+    };
 
     $scope.setOfficeMarker = function(office) {
         if (office != null) {
             mapService.setMarker(office.latitude, office.longitude, office.name, false, true, null);
         }
-    }
+    };
+
+    $scope.requestDistrictInfo = function(addr) {
+        dataBus.setBroadcast("requestDistrictInfo", addr);
+    };
+
+    $scope.getBgStyle = function(i) {
+        return {"background-color" : this.colors[i]};
+    };
+
+    $scope.getColorStyle = function(senateDistrict) {
+        return {"color": this.senateColors[senateDistrict]};
+    };
+
+
 });
 
 sage.controller("CityStateView", function($scope, dataBus, mapService) {
@@ -807,11 +1038,12 @@ sage.controller("StreetViewController", function($scope, dataBus, uiBlocker, map
         "iCookieDuration": 2419200, /* 1 month */
         "bJQueryUI": false,
         "bPaginate": true,
-        "bLengthChange": false,
+        "bLengthChange": true,
         "bFilter": true,
         "bInfo": true,
         "bDestroy": true,
-        "iDisplayLength": 20
+        "iDisplayLength": 20,
+        "sPaginationType" : "full_numbers"
     };
 
     // Sort by street ( column index 2 )
@@ -874,7 +1106,6 @@ sage.controller("RevGeoViewController", function($scope, $filter, dataBus, mapSe
         $scope.revGeocoded = ($scope.statusCode == 0);
         if ($scope.revGeocoded) {
             var markerTitle = $filter('addressFormat')($scope.address, '');
-            console.log(markerTitle);
             mapService.setMarker($scope.geocode.lat, $scope.geocode.lon, markerTitle , false, true, null);
         }
         dataBus.setBroadcast("expandResults", true);
@@ -972,6 +1203,7 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
 
 $(document).ready(function(){
     initVerticalMenu();
+    resizeContentColumn();
 
     /** Expand/Collapse behavior for search containers
      * TODO: Move to directive */
@@ -994,6 +1226,46 @@ $(document).ready(function(){
     });
 
     /**
+     * Debounced Resize() jQuery Plugin
+     */
+    (function($,sr){
+
+        // debouncing function from John Hann
+        // http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
+        var debounce = function (func, threshold, execAsap) {
+            var timeout;
+
+            return function debounced () {
+                var obj = this, args = arguments;
+                function delayed () {
+                    if (!execAsap)
+                        func.apply(obj, args);
+                    timeout = null;
+                };
+
+                if (timeout)
+                    clearTimeout(timeout);
+                else if (execAsap)
+                    func.apply(obj, args);
+
+                timeout = setTimeout(delayed, threshold || 100);
+            };
+        }
+        // smartresize
+        jQuery.fn[sr] = function(fn){  return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr); };
+
+    })(jQuery,'smartresize');
+
+    $(window).smartresize(function(e){
+        resizeContentColumn();
+    });
+
+    function resizeContentColumn() {
+        $('#contentcolumn').height($(window).height() - 82);
+        $('.scrollable-content').height($(window).height() - 81);
+    }
+
+    /**
      * Google maps doesn't have a native get bounds method for polygons.
      * @return {google.maps.LatLngBounds}
      */
@@ -1007,6 +1279,24 @@ $(document).ready(function(){
                 bounds.extend(path.getAt(ii));
             }
         }
+        return bounds;
+    };
+
+    google.maps.Polyline.prototype.getBounds = function() {
+        var bounds = new google.maps.LatLngBounds();
+        this.getPath().forEach(function(e) {
+            bounds.extend(e);
+        });
+        return bounds;
+    };
+
+    function getBoundsForMultiPolyLine(lines) {
+        var bounds = new google.maps.LatLngBounds();
+        $.each(lines, function(i,v) {
+            v.getPath().forEach(function(e) {
+                bounds.extend(e);
+            });
+        });
         return bounds;
     }
 });

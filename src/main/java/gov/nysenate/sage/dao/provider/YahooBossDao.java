@@ -46,7 +46,7 @@ public class YahooBossDao implements Observer
     public GeocodedAddress getGeocodedAddress(Address address)
     {
         try {
-            String url = this.baseUrl +"?flags=J&format=json&location="+ URLEncoder.encode(address.toString(), "UTF-8").replace("+", "%20");
+            String url = this.baseUrl +"?flags=J&location="+ URLEncoder.encode(address.toString(), "UTF-8").replace("+", "%2B");
             return getGeocodedAddress(url);
         }
         catch (UnsupportedEncodingException ex) {

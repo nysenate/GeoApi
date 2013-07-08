@@ -14,11 +14,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class ApiRequestLogger extends BaseDao
 {
-
     private static Logger logger = Logger.getLogger(ApiRequestLogger.class);
     private static String SCHEMA = "log";
     private static String TABLE = "apiRequests";
@@ -52,16 +52,42 @@ public class ApiRequestLogger extends BaseDao
     }
 
     /**
+     * Retrieve a logged ApiRequest by id
+     * @param apiRequestId
+     * @return ApiRequest
+     */
+    public ApiRequest getApiRequest(int apiRequestId) {
+        String sql = "SELECT " + SCHEMA + "." + TABLE + ".id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, requestTime, \n" +
+                             "au.id AS apiUserId, au.name AS apiUserName, au.apiKey AS apiKey, au.description AS apiUserDesc " +
+                     "FROM " + SCHEMA + "." + TABLE + "\n" +
+                     "LEFT JOIN " + "public.apiUser au ON apiUserId = au.id \n" +
+                     "LEFT JOIN " + SCHEMA + ".requestTypes rt ON requestTypeId = rt.id \n" +
+                     "LEFT JOIN " + SCHEMA + ".services serv ON rt.serviceId = serv.id \n" +
+                     "WHERE " + SCHEMA + "." + TABLE + ".id = ?";
+        try {
+            List<ApiRequest> apiRequestList = run.query(sql, new ListApiRequestResultHandler(), apiRequestId);
+            if (!apiRequestList.isEmpty()) {
+                return apiRequestList.get(0);
+            }
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to retrieve ApiRequest by id!", ex);
+        }
+        return null;
+    }
+
+    /**
      * Retrieve all logged Api requests.
      * @param apiKey         Api Key to search for. If null or blank, search for all Api keys.
      * @param method         Method to filter by. If null or blank, search for all methods.
-     * @param limit          Limit results. If -1, return all results.
      * @param orderByRecent  If true, sort by most recent first. Otherwise return least recent first.
      * @return
      */
-    public List<ApiRequest> getApiRequests(String apiKey, String method, int limit, boolean orderByRecent)
+    public List<ApiRequest> getApiRequests(String apiKey, String service, String method, boolean orderByRecent)
     {
-        return null;
+        Timestamp from = new Timestamp(0);
+        Timestamp to = new Timestamp(new Date().getTime());
+        return getApiRequestsDuring(apiKey, service, method, from, to, -1, 0, orderByRecent);
     }
 
     /**
@@ -70,9 +96,10 @@ public class ApiRequestLogger extends BaseDao
      * @param method         Method to filter by. If null or blank, search for all methods.
      * @param from           Inclusive start date/time.
      * @param to             Inclusive end date/time.
-     * @param limit          Limit results. If -1, return all results.
+     * @param limit          Limit results. If <= 0, return all results.
+     * @param offset         Row number to start from
      * @param orderByRecent  If true, sort by most recent first. Otherwise return least recent first.
-     * @return
+     * @return               List of ApiRequest
      */
     public List<ApiRequest> getApiRequestsDuring(String apiKey, String service, String method, Timestamp from, Timestamp to, int limit,
                                                  int offset, boolean orderByRecent)
@@ -86,7 +113,7 @@ public class ApiRequestLogger extends BaseDao
                      "WHERE requestTime >= ? AND requestTime <= ? \n" +
                      "AND CASE WHEN ? != '' THEN rt.name = ? ELSE true END\n" +
                      "AND CASE WHEN ? != '' THEN serv.name = ? ELSE true END\n" +
-                     "LIMIT ? OFFSET ?";
+                     ((limit > 0) ? "LIMIT ? OFFSET ?" : "");
         try {
             return run.query(sql, new ListApiRequestResultHandler(), from, to, service, service, method, method, limit, offset);
         }
