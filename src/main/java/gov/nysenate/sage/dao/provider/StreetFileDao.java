@@ -262,7 +262,7 @@ public class StreetFileDao extends BaseDao
         }
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
         try {
-            logger.info("Match Query: " + sqlQuery);
+            //logger.trace("Match Query: " + sqlQuery);
             return run.query(sqlQuery, new ResultSetHandler<Map<DistrictType, Set<String>>>() {
                 @Override
                 public Map<DistrictType, Set<String>> handle(ResultSet rs) throws SQLException {
