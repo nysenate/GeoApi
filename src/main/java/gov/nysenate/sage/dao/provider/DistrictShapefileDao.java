@@ -5,11 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.CountyDao;
 import gov.nysenate.sage.model.district.*;
+import gov.nysenate.sage.model.geo.GeometryTypes;
+import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
+import org.apache.commons.dbutils.handlers.ArrayListHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -40,14 +43,6 @@ public class DistrictShapefileDao extends BaseDao
     private static Set<DistrictType> retrieveMapSet = new HashSet<>();
     static {
         retrieveMapSet.add(DistrictType.SCHOOL);
-    }
-
-    private enum GeometryTypes {
-        POLYGON("Polygon"), MULTIPOLYGON("MultiPolygon");
-        public String type;
-        GeometryTypes(String type) {
-            this.type = type;
-        }
     }
 
     public DistrictShapefileDao() {}
@@ -144,6 +139,32 @@ public class DistrictShapefileDao extends BaseDao
         }
         catch (SQLException ex) {
             logger.error("Failed to determine district overlap!", ex);
+        }
+        return null;
+    }
+
+    public Map<String, List<Line>> getIntersectingStreetLine(DistrictType districtType, Set<String> codes, String jsonGeom)
+    {
+        String sqlTmpl =
+            "SELECT %s AS code, '%s' AS type, ST_AsGeoJson(" +
+                "ST_CollectionExtract(" +
+                    "ST_Intersection(geom, ST_SetSRID(ST_GeomFromGeoJson(?), %s))" +
+                ", 2)" +
+            ") AS street_intersect \n" +
+            "FROM " + SCHEMA + "." + districtType.name() + "\n" +
+            "WHERE %s";
+        List<String> whereCodeList = new ArrayList<>();
+        for (String code : codes) {
+            whereCodeList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')",
+                    resolveCodeColumn(districtType), code));
+        }
+        String whereSql = StringUtils.join(whereCodeList, " OR ");
+        String sql = String.format(sqlTmpl, resolveCodeColumn(districtType), districtType.name(), resolveSRID(districtType), whereSql);
+        try {
+            return run.query(sql, new StreetLineIntersectHandler(), jsonGeom);
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to retrieve intersecting district street lines!", ex);
         }
         return null;
     }
@@ -412,6 +433,21 @@ public class DistrictShapefileDao extends BaseDao
                 }
             }
             return districtOverlap;
+        }
+    }
+
+    private class StreetLineIntersectHandler implements ResultSetHandler<Map<String, List<Line>>>
+    {
+        @Override
+        public Map<String, List<Line>> handle(ResultSet rs) throws SQLException
+        {
+            Map<String, List<Line>> intersectMap = new HashMap<>();
+            while (rs.next()) {
+                String code = getDistrictCode(rs);
+                List<Line> lines = getLinesFromJson(rs.getString("street_intersect"));
+                intersectMap.put(code, lines);
+            }
+            return intersectMap;
         }
     }
 

@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.district;
 
+import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.services.model.Senator;
 

@@ -46,8 +46,7 @@ public class StreetFile implements DistrictService, StreetLookupService
     public List<DistrictedStreetRange> streetLookup(String zip5)
     {
         try {
-            int intZip5 = Integer.parseInt(zip5);
-            return streetFileDao.getDistrictStreetRangesByZip(intZip5);
+            return streetFileDao.getDistrictStreetRangesByZip(zip5);
         }
         catch (NumberFormatException ex) {
             logger.error("Zip5 was not valid. Possible non-NY entry.", ex);

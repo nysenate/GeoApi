@@ -1,21 +1,14 @@
 package gov.nysenate.sage.service.district;
 
-import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
-import gov.nysenate.sage.dao.provider.StreetFileDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictOverlap;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.provider.DistrictShapefile;
 import gov.nysenate.sage.service.base.ServiceProviders;
-import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
@@ -313,10 +306,10 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
 
     /** Multi District Overlap ---------------------------------------------------------------------------------------*/
 
-    public DistrictResult assignOverlapDistricts(GeocodedAddress geocodedAddress, Boolean zipProvided)
+    public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, Boolean zipProvided)
     {
         DistrictShapefile districtShapeFile = new DistrictShapefile();
-        return districtShapeFile.getOverlapDistrictResult(geocodedAddress, zipProvided);
+        return districtShapeFile.getMultiMatchResult(geocodedAddress, zipProvided);
     }
 
     /** Callables ----------------------------------------------------------------------------------------------------*/

@@ -1,13 +1,15 @@
 package gov.nysenate.sage.client.view.district;
 
 import gov.nysenate.sage.client.view.map.MapView;
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictOverlap;
-import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.client.view.street.StreetRangeView;
+import gov.nysenate.sage.model.district.*;
+import gov.nysenate.sage.model.geo.Line;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class MappedDistrictOverlapView
 {
@@ -18,13 +20,14 @@ public class MappedDistrictOverlapView
     protected BigDecimal intersectionArea;
     protected BigDecimal areaPercentage;
 
-    public MappedDistrictOverlapView(DistrictOverlap districtOverlap, String district)
+    public MappedDistrictOverlapView(DistrictOverlap districtOverlap, String district, DistrictMatchLevel matchLevel)
     {
         if (districtOverlap != null && district != null) {
             this.district = district;
             DistrictMap intersectionMap = districtOverlap.getIntersectionMap(district);
             DistrictMap districtMap = districtOverlap.getTargetDistrictMap(district);
-            if (intersectionMap != null) {
+
+            if (intersectionMap != null && !matchLevel.equals(DistrictMatchLevel.STREET)) {
                 this.map = new MapView(intersectionMap);
             }
             else if (districtMap != null) {
@@ -64,9 +67,5 @@ public class MappedDistrictOverlapView
 
     public BigDecimal getAreaPercentage() {
         return areaPercentage;
-    }
-
-    public void setAreaPercentage(BigDecimal areaPercentage) {
-        this.areaPercentage = areaPercentage;
     }
 }

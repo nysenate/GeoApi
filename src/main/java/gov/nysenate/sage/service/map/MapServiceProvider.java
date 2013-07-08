@@ -1,10 +1,7 @@
 package gov.nysenate.sage.service.map;
 
 import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictOverlap;
-import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import org.apache.log4j.Logger;
@@ -23,7 +20,7 @@ public class MapServiceProvider extends ServiceProviders<MapService>
      * @param override If false, previously set DistrictMaps will not be replaced
      * @return
      */
-    public DistrictInfo assignMapsToDistrictInfo(DistrictInfo districtInfo, boolean override)
+    public DistrictInfo assignMapsToDistrictInfo(DistrictInfo districtInfo, DistrictMatchLevel matchLevel, boolean override)
     {
         MapService mapService = this.newInstance();
         if (districtInfo != null && mapService != null) {
@@ -49,9 +46,9 @@ public class MapServiceProvider extends ServiceProviders<MapService>
                 }
             }
             /** Fill in senate overlap maps as well */
-            /*if (!districtInfo.getDistrictOverlaps().isEmpty()) {
+            if (!districtInfo.getDistrictOverlaps().isEmpty()) {
                 logger.debug("Getting overlap maps too!");
-                if (districtInfo.getDistrictOverlap(DistrictType.SENATE) != null) {
+                if (matchLevel.equals(DistrictMatchLevel.STREET) && districtInfo.getDistrictOverlap(DistrictType.SENATE) != null) {
                     DistrictOverlap senateOverlap = districtInfo.getDistrictOverlap(DistrictType.SENATE);
                     for (String code : senateOverlap.getTargetOverlap().keySet()) {
                         MapResult mapResult = mapService.getDistrictMap(DistrictType.SENATE, code);
@@ -60,7 +57,7 @@ public class MapServiceProvider extends ServiceProviders<MapService>
                         }
                     }
                 }
-            } */
+            }
         }
         return districtInfo;
     }

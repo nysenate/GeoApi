@@ -217,7 +217,9 @@ public class MapQuestDao
     private Address getAddressFromLocationNode(JsonNode location)
     {
         Address address = new Address();
-        address.setAddr1(location.hasNonNull("street") ? location.get("street").asText() : "");
+        String addr1 = location.hasNonNull("street") ? location.get("street").asText() : "";
+        addr1 = addr1.replaceFirst("^\\[.*\\]", "");
+        address.setAddr1(addr1);
         address.setCity(location.hasNonNull("adminArea5") ? location.get("adminArea5").asText() : "");
         address.setState(location.hasNonNull("adminArea3") ? location.get("adminArea3").asText() : "");
         address.setPostal(location.hasNonNull("postalCode") ? location.get("postalCode").asText() : "");

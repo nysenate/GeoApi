@@ -165,6 +165,9 @@ public class GeoCacheDao extends BaseDao
                 sa.setZip5(rs.getString("zip5"));
                 sa.setZip4(rs.getString("zip4"));
                 Geocode gc = getGeocodeFromResultSet(rs);
+                if (gc == null || gc.getQuality() == null || gc.getQuality().compareTo(GeocodeQuality.HOUSE) < 0) {
+                    return null;
+                }
                 return new GeocodedStreetAddress(sa, gc);
             }
             return null;

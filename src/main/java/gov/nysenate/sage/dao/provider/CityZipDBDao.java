@@ -29,7 +29,7 @@ public class CityZipDBDao extends BaseDao
         if (city == null || city.isEmpty()) return null; // Short circuit
         String sql = "SELECT DISTINCT zip5 \n" +
                      "FROM " + SCHEMA + "." + TABLE + "\n" +
-                     "WHERE city = upper(trim(?)) AND type = 'STANDARD'";
+                     "WHERE city = upper(trim(?)) AND type = 'STANDARD' AND \"locationType\" = 'PRIMARY'";
         try {
             return run.query(sql, new ResultSetHandler<List<String>>() {
                 @Override

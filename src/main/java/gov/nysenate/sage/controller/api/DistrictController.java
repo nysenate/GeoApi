@@ -12,7 +12,6 @@ import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
@@ -258,7 +257,6 @@ public class DistrictController extends BaseApiController implements Observer
         if (!distRequest.isSkipGeocode()) {
             geocodeRequest = new GeocodeRequest(distRequest.getApiRequest(), address, distRequest.getGeoProvider(), true, true);
             geocodedAddress = performGeocode(geocodeRequest);
-            logger.debug("Geocoded");
         }
 
         /** Obtain district result */
@@ -273,7 +271,7 @@ public class DistrictController extends BaseApiController implements Observer
 
         /** Ensure all maps are presented if requested */
         if (distRequest.isShowMaps() && (districtResult.isSuccess() || districtResult.isPartialSuccess())) {
-            mapProvider.assignMapsToDistrictInfo(districtResult.getDistrictInfo(), false);
+            mapProvider.assignMapsToDistrictInfo(districtResult.getDistrictInfo(), districtResult.getDistrictMatchLevel(), false);
         }
 
         /** Ensure all members (senators,assemblyman, etc) are presented if requested */
@@ -344,7 +342,7 @@ public class DistrictController extends BaseApiController implements Observer
                 if (geocodedAddress.isValidGeocode()) {
                     GeocodeQuality level = geocodedAddress.getGeocode().getQuality();
                     Address address = geocodedAddress.getAddress();
-                    logger.debug(FormatUtil.toJsonString(geocodedAddress));
+                    logger.trace(FormatUtil.toJsonString(geocodedAddress));
                     /** House level matches and above can utilize default district assignment behaviour */
                     if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
                         districtResult = districtProvider.assignDistricts(geocodedAddress, dr.getProvider(),
@@ -352,7 +350,7 @@ public class DistrictController extends BaseApiController implements Observer
                     }
                     /** All other level matches are routed to the overlap assignment method */
                     else {
-                        districtResult = districtProvider.assignOverlapDistricts(geocodedAddress, zipProvided);
+                        districtResult = districtProvider.assignMultiMatchDistricts(geocodedAddress, zipProvided);
                     }
                 }
                 else {

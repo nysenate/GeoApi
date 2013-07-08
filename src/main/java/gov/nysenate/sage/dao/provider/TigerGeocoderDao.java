@@ -40,14 +40,6 @@ public class TigerGeocoderDao extends BaseDao
     private QueryRunner run = getTigerQueryRunner();
     private int GEOCODER_TIMEOUT = 1000; //ms
 
-    private enum GeometryTypes {
-        LINESTRING("LineString"), MULTILINESTRING("MultiLineString");
-        public String type;
-        GeometryTypes(String type) {
-            this.type = type;
-        }
-    }
-
     /**
      * Performs geocoding and returns a GeocodedStreetAddress. A timeout is also enabled because some queries
      * can just go on indefinitely.
@@ -142,8 +134,13 @@ public class TigerGeocoderDao extends BaseDao
         return null;
     }
 
-    public List<Line> getStreetLineGeometry(String streetName, List<String> zip5List)
-    {
+    /**
+     *
+     * @param streetName
+     * @param zip5List
+     * @return
+     */
+    public String getStreetLineGeometryAsJson(String streetName, List<String> zip5List) {
         if (zip5List == null || zip5List.isEmpty()) return null; // short circuit
         String sql =
                 "WITH streets AS (\n" +
@@ -151,11 +148,11 @@ public class TigerGeocoderDao extends BaseDao
                 "  WHERE fullname ILIKE ? AND (%s)\n" +
                 ")\n" +
                 "SELECT fullname, " +
-                        "ST_AsGeoJson(\n" +
-                            "ST_LineMerge(\n" +
-                                "(SELECT ST_Union(the_geom) FROM streets)\n" +
-                            ")\n" +
-                        ") AS lines \n" +
+                    "ST_AsGeoJson(\n" +
+                        "ST_LineMerge(\n" +
+                            "(SELECT ST_Union(the_geom) FROM streets)\n" +
+                        ")\n" +
+                    ") AS lines \n" +
                 "FROM streets\n" +
                 "GROUP BY fullname";
         List<String> zip5WhereList = new ArrayList<>();
@@ -165,10 +162,33 @@ public class TigerGeocoderDao extends BaseDao
         String zip5Where = (!zip5WhereList.isEmpty()) ? StringUtils.join(zip5WhereList, " OR ") : "FALSE";
         sql = String.format(sql, zip5Where);
         try {
-            return run.query(sql, new StreetLineGeometryHandler(), streetName);
+            return run.query(sql, new ResultSetHandler<String>(){
+                @Override
+                public String handle(ResultSet rs) throws SQLException {
+                    if (rs.next()) {
+                        return rs.getString("lines");
+                    }
+                    return null;
+                }
+            }, streetName);
         }
         catch (SQLException ex) {
             logger.error("Failed to retrieve street line geometry!", ex);
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param streetName
+     * @param zip5List
+     * @return
+     */
+    public List<Line> getStreetLineGeometry(String streetName, List<String> zip5List)
+    {
+        String streetLineJson = getStreetLineGeometryAsJson(streetName, zip5List);
+        if (streetLineJson != null) {
+            return getLinesFromJson(streetLineJson);
         }
         return null;
     }
@@ -228,59 +248,4 @@ public class TigerGeocoderDao extends BaseDao
             return new BeanHandler<>(StreetAddress.class, new BasicRowProcessor(rowProcessor)).handle(rs);
         }
     }
-
-    private static class StreetLineGeometryHandler implements ResultSetHandler<List<Line>> {
-        @Override
-        public List<Line> handle(ResultSet rs) throws SQLException {
-            while (rs.next()) {
-                String lines= rs.getString("lines");
-                if (lines != null) {
-                    return getLinesFromJson(lines);
-                }
-            }
-            return null;
-        }
-    }
-
-    private static List<Line> getLinesFromJson(String jsonLines)
-    {
-        if (jsonLines != null && !jsonLines.isEmpty() && jsonLines != "null") {
-            logger.debug("jsonLines: " + jsonLines);
-            List<Line> lines = new ArrayList<>();
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                JsonNode mapNode = objectMapper.readTree(jsonLines);
-                String type = mapNode.get("type").asText();
-                GeometryTypes geoType = GeometryTypes.valueOf(type.toUpperCase());
-
-                JsonNode coordinates = mapNode.get("coordinates");
-                if (geoType.equals(GeometryTypes.LINESTRING)) {
-                    List<Point> points = new ArrayList<>();
-                    for (int i = 0; i < coordinates.size(); i++) {
-                        points.add(new Point(coordinates.get(i).get(1).asDouble(), coordinates.get(i).get(0).asDouble()));
-                    }
-                    lines.add(new Line(points));
-                }
-                else if (geoType.equals(GeometryTypes.MULTILINESTRING)) {
-                    for (int i = 0; i < coordinates.size(); i++) {
-                        List<Point> points = new ArrayList<>();
-                        JsonNode jsonLine = coordinates.get(i);
-                        for (int j = 0; j < jsonLine.size(); j++) {
-                            points.add(new Point(jsonLine.get(j).get(1).asDouble(), jsonLine.get(j).get(0).asDouble()));
-                        }
-                        lines.add(new Line(points));
-                    }
-                }
-                else {
-                    return null;
-                }
-                return lines;
-            }
-            catch (IOException ex) {
-                logger.error(ex);
-            }
-        }
-        return null;
-    }
-
 }

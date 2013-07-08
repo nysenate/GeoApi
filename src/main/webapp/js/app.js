@@ -236,19 +236,20 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         return null;
     };
 
-    mapService.setLines = function(geom, fitBounds, clear, style) {
+    mapService.setLines = function(geom, fitBounds, clear, style, lineSymbolStyle) {
         var coords = [];
         if (clear) {
             this.clearPolyLines();
         }
         var latLngBounds = new google.maps.LatLngBounds();
 
-        var lineSymbol = {
+        var lineSymbol = $.extend({
             path: 'M 0,-0.5 0,0.5',
             strokeWeight: 3,
             strokeOpacity: 1,
             scale: 1
-        };
+        }, lineSymbolStyle);
+
         if (style === null || typeof style === 'undefined') {
             style = {};
         }
@@ -329,7 +330,6 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         this.clearPolyLines();
     };
 
-
     /**--------------------------------------------
      * Client Geocoder
      ---------------------------------------------*/
@@ -397,6 +397,26 @@ sage.filter("senatorPic", function() {
     }
 });
 
+sage.filter("addressLevel", function(){
+    return function(address, level) {
+        switch (level) {
+            case "POINT" :
+            case "HOUSE" :
+            case "STREET" :
+                return address;
+                break;
+            case "CITY" :
+                return {city: address.city, state: address.state};
+                break;
+            case "ZIP5" :
+                return {state: address.state, zip5: address.zip5};
+                break;
+            default:
+                return address;
+        }
+    }
+});
+
 /** Formats an address properly */
 sage.filter('addressFormat', function(){
     return function(address, delim) {
@@ -456,8 +476,8 @@ sage.directive('myTable', function() {
                 "bStateSave": true,
                 "iCookieDuration": 2419200, /* 1 month */
                 "bJQueryUI": true,
-                "bPaginate": false,
-                "bLengthChange": false,
+                "bPaginate": true,
+                "bLengthChange": true,
                 "bFilter": false,
                 "bInfo": false,
                 "bDestroy": true
@@ -809,6 +829,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     $scope.neighborPolygons = [];
     $scope.colors = mapService.colors;
     $scope.neighborColors = ["#FF4500", "#639A00"];
+    $scope.senateColors = {};
     $scope.placeSuggestions = {};
     $scope.viewSuggestions = false;
 
@@ -823,44 +844,54 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         dataBus.setBroadcast("expandResults", true);
         mapService.toggleMap(true);
 
-        /** If the districts were assigned, initially set the map to display the senate boundary */
-        try {
+        if ($scope.multiMatch) {
+            var fillOpacity = 0.5;
+            /** Draw the intersected senate maps */
+            if ($scope.overlaps.senate) {
+                /** Sort the senate maps by greatest percentage first */
+                $scope.overlaps.senate = $scope.overlaps.senate.sort(function(a, b) {
+                    return b.areaPercentage - a.areaPercentage;
+                });
+                /** Assign a unique color to each senate district */
+                $.each($scope.overlaps.senate, function(i,v){
+                    $scope.senateColors[v.district] = $scope.colors[i];
+                    if (v.map != null) {
+                        mapService.setOverlay(v.map.geom, "Overlap for Senate District " + v.district, false, false, null, $scope.colors[i], {fillOpacity:fillOpacity});
+                    }
+                });
+            }
+            /** Display senate street lines if available */
+            if ($scope.matchLevel == "STREET") {
+                fillOpacity = 0.2;
+                if ($scope.streetLine && $scope.streetLine.geom) {
+                    mapService.setLines($scope.streetLine.geom, true, false, "#555", {
+                        path: 'M 0 0 L 0 1 L 1 1 L 1 0 z', strokeWeight: 1, strokeOpacity: 0,
+                        scale: 9, fillOpacity: 0.5, fillColor: "yellow"
+                    });
+                }
+                else {
+                    mapService.setMarker($scope.geocode.lat, $scope.geocode.lon, '', true, true);
+                }
+            }
+            else {
+                /** Set region (city / zip) dashed line boundary for multi-matches */
+                mapService.setLines($scope.referenceMap.geom, true, false, {});
+            }
+        }
+        else {
+            /** Update the marker location to point to the geocode */
             if ($scope.districtAssigned) {
                 if ($scope.districts.senate.map) {
                     mapService.setOverlay($scope.districts.senate.map.geom,
                         formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
                 }
             }
-            /** Display street lines */
-            if ($scope.streetLine) {
-                mapService.setLines($scope.streetLine.geom, true, true, {strokeColor:"#333"});
-            }
-            if ($scope.multiMatch) {
-                /** Draw the intersected senate maps */
-                if ($scope.overlaps.senate) {
-                    /** Sort the senate maps by greatest percentage first */
-                    $scope.overlaps.senate = $scope.overlaps.senate.sort(function(a, b) {
-                        return b.areaPercentage - a.areaPercentage;
-                    });
-                    $.each($scope.overlaps.senate, function(i,v){
-                        if (v.map != null){
-                            mapService.setOverlay(v.map.geom, "Overlap for Senate District " + v.district, false, false, null, mapService.colors[i], {fillOpacity:0.5});
-                        }
-                    });
-                }
-                /** Set region (city / zip) dashed line boundary for multi-matches */
-                mapService.setLines($scope.referenceMap.geom, true, false, {});
-            }
-            else {
-                /** Update the marker location to point to the geocode */
-                if ($scope.geocoded) {
-                    mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
-                        $filter('addressFormat')($scope.address, ''), true, true, null);
-                    mapService.setZoom(15);
-                }
+            if ($scope.geocoded) {
+                mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
+                    $filter('addressFormat')($scope.address, ''), true, true, null);
+                mapService.setZoom(15);
             }
         }
-        catch (ex) { console.log(ex); }
 
         /** Hide neighbors initially */
         $scope.showNeighbors = false;
@@ -953,7 +984,12 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
 
     $scope.getBgStyle = function(i) {
         return {"background-color" : this.colors[i]};
-    }
+    };
+
+    $scope.getColorStyle = function(senateDistrict) {
+        return {"color": this.senateColors[senateDistrict]};
+    };
+
 
 });
 
@@ -1002,11 +1038,12 @@ sage.controller("StreetViewController", function($scope, dataBus, uiBlocker, map
         "iCookieDuration": 2419200, /* 1 month */
         "bJQueryUI": false,
         "bPaginate": true,
-        "bLengthChange": false,
+        "bLengthChange": true,
         "bFilter": true,
         "bInfo": true,
         "bDestroy": true,
-        "iDisplayLength": 20
+        "iDisplayLength": 20,
+        "sPaginationType" : "full_numbers"
     };
 
     // Sort by street ( column index 2 )
@@ -1069,7 +1106,6 @@ sage.controller("RevGeoViewController", function($scope, $filter, dataBus, mapSe
         $scope.revGeocoded = ($scope.statusCode == 0);
         if ($scope.revGeocoded) {
             var markerTitle = $filter('addressFormat')($scope.address, '');
-            console.log(markerTitle);
             mapService.setMarker($scope.geocode.lat, $scope.geocode.lon, markerTitle , false, true, null);
         }
         dataBus.setBroadcast("expandResults", true);
@@ -1225,8 +1261,8 @@ $(document).ready(function(){
     });
 
     function resizeContentColumn() {
-        $('#contentcolumn').height($(window).height() - 81);
-        $('.scrollable-content').height($(window).height() - 80);
+        $('#contentcolumn').height($(window).height() - 82);
+        $('.scrollable-content').height($(window).height() - 81);
     }
 
     /**

@@ -121,8 +121,7 @@ em {color: red;}
 }
 
 .top-header.autohide {
-    background:#444;
-    color:white;
+    border-top:1px solid #0E4E5A;
 }
 
 /*-------------------------------------------------------
@@ -196,7 +195,7 @@ em {color: red;}
     background: #f9f9f9;
     border: 1px solid #999;
     box-shadow: 0 0 10px #999;
-    border-radius: 3px;
+    border-radius: 1px;
     padding: 10px 0 5px 5px;
 }
 
@@ -386,6 +385,7 @@ em {color: red;}
 #resultsTab {
     cursor: pointer;
     height:20px;
+    border-top:1px solid #799933;
 }
 
 #showResultsTab:hover, #resultsTab:hover {
@@ -417,7 +417,7 @@ em {color: red;}
 }
 
 .info-container.title {
-    padding:5px 10px;
+    padding:8px 10px;
     margin: 5px auto 0 auto;
     border-bottom:1px solid #eee;
 }
@@ -474,6 +474,21 @@ em {color: red;}
 .success-color {
     color:#477326 !important;
 }
+
+/*-------------------------------------------------------
+  Lightly Styled Tables
+  ------------------------------------------------------*/
+table.light-table {
+    text-align:center;
+    width:100%;
+    font-size:14px;
+    color:#333;
+}
+
+table.light-table tr {
+    border-bottom:1px solid #ddd;
+}
+
 
 /*-------------------------------------------------------
   Senator Results Display
@@ -533,6 +548,17 @@ em {color: red;}
 .validated-address {
     color: #333;
     font-size:18px;
+}
+
+.small-box {
+    font-weight:600;
+    padding: 4px 5px 4px 6px;
+    height:20px;
+    width:30px;
+    float:left;
+    margin-right:10px;
+    color:white;
+    overflow: hidden;
 }
 
 /*-------------------------------------------------------
@@ -665,6 +691,15 @@ table.dataTable tr.even td.sorting_1 {
 
 #streetSearchFilter {
     margin-left:20px;
+}
+
+#street-view-table_paginate {
+    margin-top:10px !important;
+}
+
+#street-view-table_paginate a {
+    border-radius: 2px !important;
+    font-size: 14px !important;
 }
 
 /*-------------------------------------------------------

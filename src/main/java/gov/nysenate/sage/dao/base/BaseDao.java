@@ -1,13 +1,21 @@
 package gov.nysenate.sage.dao.base;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.model.geo.GeometryTypes;
+import gov.nysenate.sage.model.geo.Line;
+import gov.nysenate.sage.model.geo.Point;
 import org.apache.commons.dbutils.AsyncQueryRunner;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 public class BaseDao
@@ -96,5 +104,51 @@ public class BaseDao
     {
         String setTimeout = "RESET statement_timeout;";
         run.update(conn, setTimeout);
+    }
+
+    /**
+     * Retrieve polylines from a GeoJson result
+     * @param jsonLines
+     * @return
+     */
+    public static List<Line> getLinesFromJson(String jsonLines)
+    {
+        if (jsonLines != null && !jsonLines.isEmpty() && jsonLines != "null") {
+            //logger.debug("jsonLines: " + jsonLines);
+            List<Line> lines = new ArrayList<>();
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                JsonNode mapNode = objectMapper.readTree(jsonLines);
+                String type = mapNode.get("type").asText();
+                GeometryTypes geoType = GeometryTypes.valueOf(type.toUpperCase());
+
+                JsonNode coordinates = mapNode.get("coordinates");
+                if (geoType.equals(GeometryTypes.LINESTRING)) {
+                    List<Point> points = new ArrayList<>();
+                    for (int i = 0; i < coordinates.size(); i++) {
+                        points.add(new Point(coordinates.get(i).get(1).asDouble(), coordinates.get(i).get(0).asDouble()));
+                    }
+                    lines.add(new Line(points));
+                }
+                else if (geoType.equals(GeometryTypes.MULTILINESTRING)) {
+                    for (int i = 0; i < coordinates.size(); i++) {
+                        List<Point> points = new ArrayList<>();
+                        JsonNode jsonLine = coordinates.get(i);
+                        for (int j = 0; j < jsonLine.size(); j++) {
+                            points.add(new Point(jsonLine.get(j).get(1).asDouble(), jsonLine.get(j).get(0).asDouble()));
+                        }
+                        lines.add(new Line(points));
+                    }
+                }
+                else {
+                    return null;
+                }
+                return lines;
+            }
+            catch (IOException ex) {
+                logger.error(ex);
+            }
+        }
+        return null;
     }
 }
