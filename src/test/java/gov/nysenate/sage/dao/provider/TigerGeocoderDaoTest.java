@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 
 import static gov.nysenate.sage.GeocodeTestBase.*;
@@ -13,6 +14,9 @@ import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -91,5 +95,17 @@ public class TigerGeocoderDaoTest extends TestBase
     public void miscTest()
     {
         FormatUtil.printObject(tigerGeocoderDao.getGeocodedStreetAddress(new Address("100 Nyroy Dr Troy NY 12180")));
+    }
+
+    @Test
+    public void getStreetsInZipTest() {
+        FormatUtil.printObject(tigerGeocoderDao.getStreetsInZip("12180"));
+    }
+
+    @Test
+    public void getStreetLineGeometryTest()
+    {
+        List<Line> lines = tigerGeocoderDao.getStreetLineGeometry("State St", Arrays.asList("12203", "12210"));
+        FormatUtil.printObject(lines);
     }
 }

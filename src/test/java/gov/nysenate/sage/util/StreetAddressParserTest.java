@@ -2,7 +2,11 @@ package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.StreetAddress;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
+
+import java.util.ArrayList;
+
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
@@ -56,15 +60,19 @@ public class StreetAddressParserTest {
     @Test
     public void edgeCases()
     {
-
+        FormatUtil.printObject(StreetAddressParser.parseAddress("1222 East 96th"));
     }
 
     @Test
     public void semiParsedTest()
     {
         // PreDir with Internal
-        Address address = new Address("211 S LOWELL AVE # 1 FL 3", "Syracuse", "NY", "13204");
-        System.out.print(StreetAddressParser.parseAddress(address).toStringParsed());
+        Address address = new Address("21st Street");
+        StreetAddress sa = new StreetAddress();
+        StreetAddressParser.extractStreet(address.toString(), sa);
+        StreetAddressParser.normalizeStreetAddress(sa);
+        FormatUtil.printObject(sa);
+
     }
 
     public void assertStreetAddressesAreEqual(StreetAddress s1, StreetAddress s2)

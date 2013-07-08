@@ -56,4 +56,11 @@ public class DistrictShapefileTest extends TestBase
         mapResult = districtShapefile.getDistrictMap(DistrictType.SENATE, null);
         assertEquals(ResultStatus.MISSING_DISTRICT_CODE, mapResult.getStatusCode());
     }
+
+    @Test
+    public void testGetDistrictOverlap()
+    {
+        districtShapefile.getMultiMatchResult(null, null);
+    }
+
 }

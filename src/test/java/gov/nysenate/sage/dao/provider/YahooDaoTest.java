@@ -26,4 +26,10 @@ public class YahooDaoTest extends TestBase
 
         FormatUtil.printObject(yahooDao.getGeocodedAddresses(addresses));
     }
+
+    @Test
+    public void getGeocodedAddressTest()
+    {
+        FormatUtil.printObject(yahooDao.getGeocodedAddress(new Address("133 St")));
+    }
 }
