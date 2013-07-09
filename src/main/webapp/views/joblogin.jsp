@@ -26,11 +26,11 @@
                 <ol class="input-container" style="width:280px;margin:auto;padding:20px;">
                     <li>
                         <label>Email</label>
-                        <input ng-model="email" type="email" required="true" placeholder="example@email.com" id="email" name="email"><br>
+                        <input ng-model="email" type="email" placeholder="example@email.com" id="email" name="email"><br>
                     </li>
                     <li>
                         <label>Password</label>
-                        <input ng-model="password" type="password" required="true" id="password" name="password"><br>
+                        <input ng-model="password" type="password" id="password" name="password"><br>
                     </li>
                     <li>
                         <br/>

@@ -1,10 +1,30 @@
 var sageJob = angular.module('sage-job', ['sage-common']);
-var baseStatusApi = "/job/status";
+var submitUrl = contextPath + "/job/submit";
+var uploadUrl = contextPath + "/job/upload";
+var removeUrl = contextPath + "/job/remove";
+var cancelUrl = contextPath + "/job/cancel";
+var statusUrl = contextPath + "/job/status";
 var uploader;
 
 sageJob.filter('yesno', function(){
     return function(input) {
         return (input) ? 'Yes' : 'No';
+    }
+});
+
+sageJob.filter('conditionFilter', function(){
+    return function(input) {
+        switch (input) {
+            case 'WAITING_FOR_CRON' : return 'Waiting';
+            case 'RUNNING' : return 'Processing';
+            case 'COMPLETED' : return 'Completed';
+            case 'COMPLETED_WITH_ERRORS' : return 'Completed with some errors';
+            case 'SKIPPED' : return 'Skipped';
+            case 'FAILED' : return 'Failed';
+            case 'CANCELLED' : return 'Cancelled';
+            case 'INACTIVE' : return "Currently inactive";
+            default : return input;
+        }
     }
 });
 
@@ -26,20 +46,55 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
     $scope.visible = true;
     $scope.empty = true;
     $scope.processes = [];
+    $scope.uploadProgress = 0;
 
     $scope.addProcess = function(process) {
         this.empty = false;
         this.processes.push(process);
     };
 
-    $scope.$on(menuService.menuToggleEvent, function(){
+    $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
     });
+
+    $scope.getProgressStyle = function() {
+        return {'visibility' : ($scope.uploadProgress > 0) ? 'visible' : 'collapsed',
+                'width' : ($scope.uploadProgress * 100) + '%'};
+    };
+
+    $scope.submitJobRequest = function() {
+        $http.post(submitUrl).success(function(data){
+            if (data != null && data.success == true) {
+                alert("Your request has been submitted");
+                $scope.processes = [];
+                menuService.toggleMethod(2);
+            }
+            else {
+                alert(data.message);
+            }
+        }).error(function(){
+            alert("Failed to submit batch job request!");
+        });
+    };
+
+    $scope.removeFile = function(fileName) {
+        $http.post(removeUrl + "?fileName=" + fileName).success(function(data){
+            if (data.success) {
+                for (var i = 0; i < $scope.processes.length; i++) {
+                    if ($scope.processes[i].fileName == fileName) {
+                        $scope.processes.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+            alert(data.message);
+        }).error(function(){ alert("Failed to remove file from request."); });
+    };
 
     $window.onload = function() {
         var uploader = new qq.FileUploaderBasic({
             button: document.getElementById($scope.uploaderId),
-            action: contextPath + "/jobtest/upload",
+            action: uploadUrl,
             debug: true,
             allowedExtensions: ['tsv', 'txt', 'csv'],
             hideShowDropArea: true,
@@ -49,6 +104,10 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
             },
             onProgress: function(id, fileName, loaded, total){
                 console.log("Progress: " + fileName + " " + loaded + "/" + total);
+                var scope = angular.element("#upload-container").scope();
+                scope.$apply(function(){
+                    scope.uploadProgress = (loaded / total < 1) ? loaded / total : 0;
+                });
             },
             onComplete: function(id, fileName, responseJSON){
                 console.log("Complete: " + fileName + " " + responseJSON);
@@ -103,9 +162,9 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
             clearInterval($scope.cpInterval);
             clearInterval($scope.apInterval);
 
-            $scope.cpInterval = setInterval(function() {$scope.getActiveProcesses()}, 6000);
-            $scope.cpInterval = setInterval(function() {$scope.getCompletedProcesses()}, 6000);
-            $scope.rpInterval = setInterval(function() {$scope.getRunningProcesses()}, 3000);
+            $scope.cpInterval = setInterval(function() {$scope.getActiveProcesses()}, 600000);
+            $scope.cpInterval = setInterval(function() {$scope.getCompletedProcesses()}, 600000);
+            $scope.rpInterval = setInterval(function() {$scope.getRunningProcesses()}, 300000);
         }
         else {
             clearInterval($scope.intervalId);
@@ -117,7 +176,7 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
     });
 
     $scope.getRunningProcesses = function() {
-        $http.get(contextPath + baseStatusApi + "/running")
+        $http.get(statusUrl + "/running")
             .success(function(data, status, headers, config) {
                 if (data && data.success) {
                     $scope.runningProcesses = data.statuses;
@@ -126,7 +185,7 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
             }).error(function(data) {
                 console.log("Failed to retrieve running job processes " + data);
             });
-    }
+    };
 
     $scope.computeProgress = function() {
         $.each(this.runningProcesses, function(){
@@ -136,10 +195,10 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
                 this.progressStyle = {'width' : ((current/total) * 100) + "%"};
             }
         });
-    }
+    };
 
     $scope.getActiveProcesses = function() {
-        $http.get(contextPath + baseStatusApi + "/active")
+        $http.get(statusUrl + "/active")
             .success(function(data, status, headers, config) {
                 if (data && data.success) {
                     $scope.activeProcesses = data.statuses;
@@ -153,7 +212,7 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
     };
 
     $scope.getCompletedProcesses = function() {
-        $http.get(contextPath + baseStatusApi + "/completed")
+        $http.get(statusUrl + "/completed")
             .success(function(data, status, headers, config) {
                 if (data && data.success) {
                     $scope.completedProcesses = data.statuses;
@@ -162,6 +221,15 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
                 console.log("Error retrieving completed processes.");
             });
     };
+
+    $scope.cancelJobProcess = function(processId) {
+        $http.post(cancelUrl + "?id=" + processId).success(function(data){
+            if (data) {
+                alert(data.message);
+            }
+            $scope.getActiveProcesses();
+        }).error(function(){});
+    }
 });
 
 sageJob.controller('JobHistoryController', function($scope, $http, menuService, dataBus) {
@@ -177,7 +245,7 @@ sageJob.controller('JobHistoryController', function($scope, $http, menuService, 
     });
 
     $scope.getAllProcesses = function() {
-        $http.get(contextPath + baseStatusApi + "/all")
+        $http.get(statusUrl + "/all")
              .success(function(data, status, headers, config){
                  if (data && data.success) {
                      $scope.allProcesses = data.statuses;
@@ -186,68 +254,8 @@ sageJob.controller('JobHistoryController', function($scope, $http, menuService, 
     }
 
 });
-    /*
-function initUploader() {
-    if (uploader === null || typeof uploader === 'undefined') {
-        uploader = new qq.FileUploader({
-            action: contextPath + '/job/upload',
-            element: document.getElementById('fileuploader'),
-            allowedExtensions:['tsv','csv', 'txt'],
-            multiple:false,
-            template: '<ul class="qq-upload-list"></ul><div class="qq-uploader">' +
-                '<div class="qq-upload-drop-area"><span>Drop file here to upload</span></div>' +
-                '<div class="custom-button qq-upload-button"><span><div class="icon-upload teal" style="margin-right:5px;"></div>Add a file</span></div>' +
-                '</div>',
-            onSubmit: doSubmit,
-            onComplete: doComplete
-        });
-
-        function doSubmit(id, fileName) {
-            return true;
-        }
-
-        function doComplete(id, fileName, uploadResponse) {
-            var html="";
-            if(uploadResponse.success == true && uploadResponse.process != null) {
-
-                var scope = angular.element($("#upload-container")).scope();
-                scope.$apply(function(){
-                    scope.addProcess(uploadResponse.process);
-                });
-            }
-            else {
-                //take care of bad headers or blank files here
-                alert(uploadResponse.message);
-            }
-        }
-
-        $('.custom-submit-button').click(function() {
-            var message = validate();
-            if(message == "" && canSubmit) {
-                $('#form_submit').html("Saving...");
-
-                canSubmit = false;
-
-                $('#uploadForm').submit();
-                return true;
-            }
-            else {
-                if(!canSubmit) {
-                    message += "<br>Select a valid file";
-                }
-                $("#error").html(message);
-                if(!$("#error").is(":visible")) {
-                    $("#error").slideToggle(500);
-                }
-                return false;
-            }
-        });
-    }
-}     */
 
 $(document).ready(function() {
     initVerticalMenu();
-    if ($.trim($("#error").html())=="") {
-        $("#error").hide();
-    }
+    $("#contentwrapper").height($(window).height() - 80);
 });

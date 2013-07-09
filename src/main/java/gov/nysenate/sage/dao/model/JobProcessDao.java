@@ -113,7 +113,8 @@ public class JobProcessDao extends BaseDao
 
     public JobProcessStatus getJobProcessStatus(int processId)
     {
-        String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status ON id = processId " +
+        String sql = "SELECT * FROM " + getTableName() + " \n" +
+                     "LEFT JOIN " + getStatusTableName() + " status ON id = processId " +
                      "WHERE processId = ?";
         try {
             return run.query(sql, statusHandler, processId);

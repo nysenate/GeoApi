@@ -44,6 +44,10 @@ sageCommon.controller('MenuController', function($scope, menuService, dataBus){
         menuService.toggleMethod(index);
     };
 
+    $scope.$on(menuService.menuToggleEvent, function(){
+        $scope.index = dataBus.data;
+    });
+
     $scope.getMethodClass = function(index) {
         return (this.index === index) ? "active" : "";
     };

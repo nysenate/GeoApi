@@ -22,9 +22,9 @@ import java.io.*;
 import java.util.Date;
 import java.util.List;
 
-public class JobController extends BaseJobController
+public class JobControllerOld extends BaseJobController
 {
-    private Logger logger = Logger.getLogger(JobController.class);
+    private Logger logger = Logger.getLogger(JobControllerOld.class);
     private Config config = ApplicationFactory.getConfig();
     private static String MAIN_JSP = "/views/jobmain.jsp";
     private static String LOGIN_JSP = "/views/joblogin.jsp";

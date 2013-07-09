@@ -756,6 +756,24 @@ table.job-table {
     text-align: center;
 }
 
+/** Cancel button style */
+.cancel {
+    color: #555;
+    background: #eee;
+    border: 1px solid #aaa;
+}
+
+div.cancel {
+    width: 50px;
+    padding: 3px;
+    cursor: pointer;
+}
+
+.cancel:hover {
+    color: orangered;
+    background:#f5f5f5;
+}
+
 /*-------------------------------------------------------
   Admin Page
 --------------------------------------------------------*/

@@ -1,5 +1,6 @@
 package gov.nysenate.sage.controller.job;
 
+import gov.nysenate.sage.client.response.job.JobActionResponse;
 import gov.nysenate.sage.client.response.job.JobUploadErrorResponse;
 import gov.nysenate.sage.client.response.job.JobUploadSuccessResponse;
 import gov.nysenate.sage.dao.model.JobProcessDao;
@@ -26,7 +27,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 public class JobController extends BaseJobController
@@ -80,6 +83,12 @@ public class JobController extends BaseJobController
                 case "/submit" : {
                     doSubmit(request, response); break;
                 }
+                case "/remove" : {
+                    doRemove(request, response); break;
+                }
+                case "/cancel" : {
+                    doCancel(request, response); break;
+                }
                 case "/logout" : {
                     doLogout(request, response); break;
                 }
@@ -90,6 +99,13 @@ public class JobController extends BaseJobController
         }
     }
 
+    /**
+     *
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     */
     public void doLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
         String email = request.getParameter("email");
@@ -109,6 +125,11 @@ public class JobController extends BaseJobController
         }
     }
 
+    /**
+     *
+     * @param request
+     * @param response
+     */
     public void doUpload(HttpServletRequest request, HttpServletResponse response)
     {
         String uploadDir = config.getValue("job.upload.dir");
@@ -222,31 +243,93 @@ public class JobController extends BaseJobController
         setJobResponse(uploadResponse, response);
     }
 
+    private void doRemove(HttpServletRequest request, HttpServletResponse response)
+    {
+        logger.info("User requested job file removal prior to submission");
+        String fileName = request.getParameter("fileName");
+        JobRequest jobRequest = getJobRequest(request);
+        if (fileName != null && jobRequest != null) {
+            if (jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
+                Iterator<JobProcess> itr = jobRequest.getProcesses().iterator();
+                while (itr.hasNext()) {
+                    if (itr.next().getFileName().equalsIgnoreCase(fileName)) {
+                        itr.remove();
+                        setJobResponse(new JobActionResponse(true, "Removed " + fileName), response);
+                        return;
+                    }
+                }
+            }
+        }
+        setJobResponse(new JobActionResponse(false, "The removal request was unsuccessful."), response);
+    }
+
+    /**
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
     public void doSubmit(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
         logger.info("Processing Job Request Submission.");
         JobProcessDao jobProcessDao = new JobProcessDao();
         JobRequest jobRequest = getJobRequest(request);
 
-        for (JobProcess jobProcess : jobRequest.getProcesses()) {
-            /** Store the job process and status */
-            int processId = jobProcessDao.addJobProcess(jobProcess);
-            if (processId > -1) {
-                JobProcessStatus status = new JobProcessStatus(processId);
-                jobProcessDao.setJobProcessStatus(status);
-                logger.info("Added job process and status for file " + jobProcess.getFileName());
+        if (jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
+            for (JobProcess jobProcess : jobRequest.getProcesses()) {
+                /** Store the job process and status */
+                int processId = jobProcessDao.addJobProcess(jobProcess);
+                if (processId > -1) {
+                    JobProcessStatus status = new JobProcessStatus(processId);
+                    jobProcessDao.setJobProcessStatus(status);
+                    logger.info("Added job process and status for file " + jobProcess.getFileName());
+                }
+                else {
+                    logger.error("Failed to add job process for file " + jobProcess.getFileName());
+                }
             }
-            else {
-                logger.error("Failed to add job process for file " + jobProcess.getFileName());
-            }
+            setJobResponse(new JobActionResponse(true, null), response);
         }
-        /** After submission the request should be cleared out */
+        else {
+            setJobResponse(new JobActionResponse(false, "You must upload a file before submitting."), response);
+        }
+        /** The request should be cleared out */
         getJobRequest(request).clear();
-
-        /** Redirect to main page */
-        response.sendRedirect(request.getContextPath() + "/job");
     }
 
+    /**
+     * Sets the condition of a job process status to cancelled.
+     * @param request
+     * @param response
+     */
+    public void doCancel(HttpServletRequest request, HttpServletResponse response)
+    {
+        logger.info("Cancelling job process");
+        try {
+            int processId = Integer.parseInt(request.getParameter("id"));
+            JobProcessDao jobProcessDao = new JobProcessDao();
+            JobProcessStatus jps = jobProcessDao.getJobProcessStatus(processId);
+            jps.setCondition(JobProcessStatus.Condition.CANCELLED);
+            jps.setCompleted(false);
+            jps.setMessages(Arrays.asList("Cancelled by user"));
+            int update = jobProcessDao.setJobProcessStatus(jps);
+            if (update > 0) {
+                setJobResponse(new JobActionResponse(true, "Job " + processId + " has been cancelled."), response);
+                return;
+            }
+        }
+        catch (NumberFormatException ex) {
+            logger.warn("Failed to parse job process id for cancellation!");
+        }
+        setJobResponse(new JobActionResponse(false, "Failed to cancel job process!"), response);
+    }
+
+    /**
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
     public void doLogout(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
         unsetJobUser(request);

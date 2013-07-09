@@ -132,19 +132,6 @@
         <url-pattern>/job/status/*</url-pattern>
     </servlet-mapping>
 
-    <!-- TEST -->
-    <servlet>
-        <display-name>JobController2</display-name>
-        <servlet-name>JobController2</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.job.JobController2</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>JobController2</servlet-name>
-        <url-pattern>/jobtest/*</url-pattern>
-    </servlet-mapping>
-
-
-
     <!-- Map v2 Controller mapping -->
     <servlet>
         <display-name>EmbeddedMapController</display-name>
