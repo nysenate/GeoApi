@@ -262,7 +262,7 @@ public class StreetFileDao extends BaseDao
         }
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
         try {
-            //logger.trace("Match Query: " + sqlQuery);
+            logger.trace("Match Query: " + sqlQuery);
             return run.query(sqlQuery, new ResultSetHandler<Map<DistrictType, Set<String>>>() {
                 @Override
                 public Map<DistrictType, Set<String>> handle(ResultSet rs) throws SQLException {
@@ -270,12 +270,10 @@ public class StreetFileDao extends BaseDao
                     while (rs.next()) {
                         DistrictType type = DistrictType.resolveType(rs.getString("type"));
                         String code = rs.getString("code");
-                        if (code != null && code != "null") {
-                            if (!resultMap.containsKey(type)) {
-                                resultMap.put(type, new HashSet<String>());
-                            }
-                            resultMap.get(type).add(code);
+                        if (!resultMap.containsKey(type)) {
+                            resultMap.put(type, new HashSet<String>());
                         }
+                        resultMap.get(type).add(code);
                     }
                     return resultMap;
                 }

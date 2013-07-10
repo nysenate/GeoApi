@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.job;
 import gov.nysenate.sage.client.response.job.JobStatusResponse;
 import gov.nysenate.sage.dao.model.JobProcessDao;
 import gov.nysenate.sage.model.job.JobProcessStatus;
+import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
 
 import javax.servlet.ServletConfig;
@@ -44,6 +45,7 @@ public class JobStatusController extends BaseJobController
             String pathInfo[] = request.getPathInfo().replaceFirst("^/", "").split("/");
             List<String> args = new ArrayList<>(Arrays.asList(pathInfo));
             String method = (args.size() > 0) ? args.get(0) : "";
+            JobUser jobUser = getJobUser(request);
 
             if (method != null) {
                 switch (method) {
@@ -51,7 +53,7 @@ public class JobStatusController extends BaseJobController
                         if (args.size() == 2) {
                             try {
                                 int processId = Integer.parseInt(args.get(1));
-                                statusResponse = new JobStatusResponse(getJobProcessStatusById(processId));
+                                statusResponse = new JobStatusResponse(getJobProcessStatusById(processId, jobUser));
                             }
                             catch (NumberFormatException ex) {
                                 statusResponse = new JobStatusResponse(new JobErrorResult("Process id must be an integer!"));
@@ -63,23 +65,23 @@ public class JobStatusController extends BaseJobController
                         break;
                     }
                     case "running" : {
-                        statusResponse = new JobStatusResponse(getRunningJobProcesses());
+                        statusResponse = new JobStatusResponse(getRunningJobProcesses(jobUser));
                         break;
                     }
                     case "active" : {
-                        statusResponse = new JobStatusResponse(getActiveJobProcesses());
+                        statusResponse = new JobStatusResponse(getActiveJobProcesses(jobUser));
                         break;
                     }
                     case "inactive" : {
-                        statusResponse = new JobStatusResponse(getInactiveJobProcesses());
+                        statusResponse = new JobStatusResponse(getInactiveJobProcesses(jobUser));
                         break;
                     }
                     case "completed" : {
-                        statusResponse = new JobStatusResponse(getRecentlyCompletedJobProcesses());
+                        statusResponse = new JobStatusResponse(getRecentlyCompletedJobProcesses(jobUser));
                         break;
                     }
                     case "all" : {
-                        statusResponse = new JobStatusResponse(getAllJobProcesses());
+                        statusResponse = new JobStatusResponse(getAllJobProcesses(jobUser));
                         break;
                     }
                 }
@@ -94,38 +96,38 @@ public class JobStatusController extends BaseJobController
     @Override
     public void init(ServletConfig config) throws ServletException {}
 
-    private JobProcessStatus getJobProcessStatusById(int processId)
+    private JobProcessStatus getJobProcessStatusById(int processId, JobUser jobUser)
     {
         JobProcessStatus jobProcessStatus = jobProcessDao.getJobProcessStatus(processId);
         return jobProcessStatus;
     }
 
-    private List<JobProcessStatus> getRunningJobProcesses()
+    private List<JobProcessStatus> getRunningJobProcesses(JobUser jobUser)
     {
-        return jobProcessDao.getJobStatusesByCondition(JobProcessStatus.Condition.RUNNING, null);
+        return jobProcessDao.getJobStatusesByCondition(JobProcessStatus.Condition.RUNNING, jobUser);
     }
 
-    private List<JobProcessStatus> getActiveJobProcesses()
+    private List<JobProcessStatus> getActiveJobProcesses(JobUser jobUser)
     {
-        return jobProcessDao.getActiveJobStatuses();
+        return jobProcessDao.getActiveJobStatuses(jobUser);
     }
 
-    private List<JobProcessStatus> getInactiveJobProcesses()
+    private List<JobProcessStatus> getInactiveJobProcesses(JobUser jobUser)
     {
-        return jobProcessDao.getInactiveJobStatuses();
+        return jobProcessDao.getInactiveJobStatuses(jobUser);
     }
 
-    private List<JobProcessStatus> getAllJobProcesses()
+    private List<JobProcessStatus> getAllJobProcesses(JobUser jobUser)
     {
-        return jobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()));
+        return jobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), jobUser);
     }
 
-    private List<JobProcessStatus> getRecentlyCompletedJobProcesses()
+    private List<JobProcessStatus> getRecentlyCompletedJobProcesses(JobUser jobUser)
     {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, -1);
         Timestamp yesterday = new Timestamp(calendar.getTimeInMillis());
 
-        return jobProcessDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, null, yesterday);
+        return jobProcessDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, jobUser, yesterday);
     }
 }

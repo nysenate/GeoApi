@@ -41,9 +41,9 @@ public class JobFileUtil
 
             switch (index) {
                 case -1 : return null;
-                case  0 : return CsvPreference.TAB_PREFERENCE;
-                case  1 : return CsvPreference.STANDARD_PREFERENCE;
-                case  2 : return CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE;
+                case  0 : logger.debug("Tab delimited"); return CsvPreference.TAB_PREFERENCE;
+                case  1 : logger.debug("Comma delimited"); return CsvPreference.STANDARD_PREFERENCE;
+                case  2 : logger.debug("Semi-colon delimited"); return CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE;
                 default : return null;
             }
         }

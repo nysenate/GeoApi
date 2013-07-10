@@ -82,8 +82,8 @@
                     </form>
                 </div>
                 <div id="status-container" ng-show="visible" ng-controller="JobStatusController" style="width:100%;">
-                    <div style="text-align: center;width:860px;margin:auto;">
-                        <h3 ng-show="runningProcesses.length">Running jobs</h3>
+                    <div style="text-align: center;padding:20px;width:95%;margin:auto;">
+                        <h3 ng-show="runningProcesses.length" style="color:#333;">Running Job</h3>
                         <div class="running-process-view" ng-repeat="runningProcess in runningProcesses">
                             <table class="job-table">
                                 <tr>
@@ -108,14 +108,14 @@
                             </table>
                         </div>
 
-                        <div ng-show="showProcessQueue();">
-                            <h3>Queued jobs</h3>
-                            <div style="padding:20px;background:#fefefe;box-shadow: 0px 3px 2px #ddd">
+                        <div style="padding:20px;width:95%;margin:auto;" ng-show="showProcessQueue();">
+                            <h3 style="color:#333;">Queued jobs</h3>
+                            <div>
                                 <table class="job-table">
                                     <thead style="text-align:left;border-bottom: 1px solid #999">
                                     <tr>
                                         <th>Job Id</th>
-                                        <th>File name</th>
+                                        <th style="width:240px;">File name</th>
                                         <th>Submitter</th>
                                         <th>Records</th>
                                         <th>Submitted On</th>
@@ -138,14 +138,16 @@
                             </div>
                         </div>
 
-                        <div>
-                            <h3>Recently Completed Jobs</h3>
-                            <div style="padding:20px;background:#fefefe;box-shadow: 0px 3px 2px #ddd">
+                        <div style="padding:20px;width:95%;margin:auto;">
+                            <h3 style="color:#333;">Recently Completed Jobs</h3>
+                            <div>
                                 <table class="job-table">
                                     <thead style="text-align:left;border-bottom: 1px solid #999">
                                     <tr>
                                         <th>Job Id</th>
                                         <th>File name</th>
+                                        <th>Submitted By</th>
+                                        <th>Started On</th>
                                         <th>Completed On</th>
                                         <th>Download Link</th>
                                     </tr>
@@ -153,6 +155,8 @@
                                     <tr ng-repeat="completedProcess in completedProcesses">
                                         <td style="padding-top: 5px;">{{completedProcess.processId}}</td>
                                         <td style="color:teal">{{completedProcess.process.sourceFileName}}</td>
+                                        <td>{{completedProcess.requestorEmail}}</td>
+                                        <td>{{completedProcess.startTime | date:'short'}}</td>
                                         <td>{{completedProcess.completeTime | date:'short'}}</td>
                                         <td>
                                             <a style="background:#477326;color:white;padding:2px;" ng-href="${downloadDir}{{completedProcess.process.fileName}}">Download</a>
@@ -170,9 +174,9 @@
                     </div>
                 </div>
                 <div id="history-container" ng-show="visible" ng-controller="JobHistoryController" style="width:100%;height:100%;">
-                    <div style="text-align: center;margin-left:20px;">
-                        <h3>Batch Job History</h3>
-                        <div style="padding:20px;background:#fefefe;box-shadow: 0px 3px 2px #ddd">
+                    <div style="text-align: center; padding:20px;width:95%;margin:auto;">
+                        <h3 style="color:#333;">Batch Job History</h3>
+                        <div>
                             <table class="job-table">
                                 <thead style="text-align:left;border-bottom: 1px solid #999">
                                 <tr>

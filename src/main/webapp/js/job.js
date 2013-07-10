@@ -162,9 +162,9 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
             clearInterval($scope.cpInterval);
             clearInterval($scope.apInterval);
 
-            $scope.cpInterval = setInterval(function() {$scope.getActiveProcesses()}, 600000);
-            $scope.cpInterval = setInterval(function() {$scope.getCompletedProcesses()}, 600000);
-            $scope.rpInterval = setInterval(function() {$scope.getRunningProcesses()}, 300000);
+            $scope.cpInterval = setInterval(function() {$scope.getActiveProcesses()}, 6000);
+            $scope.cpInterval = setInterval(function() {$scope.getCompletedProcesses()}, 6000);
+            $scope.rpInterval = setInterval(function() {$scope.getRunningProcesses()}, 3000);
         }
         else {
             clearInterval($scope.intervalId);

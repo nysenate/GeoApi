@@ -127,11 +127,11 @@ public class JobProcessDao extends BaseDao
 
     public List<JobProcessStatus> getJobStatusesByCondition(Condition condition, JobUser jobUser)
     {
-        String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status " +
-                     "ON id = processId WHERE status.condition = ? ";
-        sql += (jobUser != null) ? " AND userId = " + jobUser.getId() + " " : "";
+        String sql = "SELECT * FROM " + getTableName() + "\n" +
+                     "LEFT JOIN " + getStatusTableName() + " status ON id = processId \n" +
+                     "WHERE status.condition = ? ";
+        sql += (jobUser != null) ? " AND userId = " + jobUser.getId() : "";
         sql += " ORDER BY processId";
-
         try {
             return run.query(sql, statusListHandler, condition.name());
         }
@@ -141,15 +141,17 @@ public class JobProcessDao extends BaseDao
         return null;
     }
 
-    public List<JobProcessStatus> getJobStatusesByConditions(List<Condition> conditions)
+    public List<JobProcessStatus> getJobStatusesByConditions(List<Condition> conditions, JobUser jobUser)
     {
-        String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status " +
-                     "ON id = processId WHERE ";
+        String sql = "SELECT * FROM " + getTableName() + "\n" +
+                     "LEFT JOIN " + getStatusTableName() + " status ON id = processId " +
+                     "WHERE (%s) AND %s " +
+                     "ORDER BY processId DESC";
         List<String> where = new ArrayList<>();
         for (Condition c : conditions) {
             where.add("status.condition = '" + c.name() + "'");
         }
-        sql += StringUtils.join(where, " OR ") + " ORDER BY processId DESC";
+        sql = String.format(sql, StringUtils.join(where, " OR "), (jobUser != null) ? "userId = " + jobUser.getId() : "TRUE");
         try {
             return run.query(sql, statusListHandler);
         }
@@ -175,14 +177,14 @@ public class JobProcessDao extends BaseDao
         return null;
     }
 
-    public List<JobProcessStatus> getActiveJobStatuses()
+    public List<JobProcessStatus> getActiveJobStatuses(JobUser jobUser)
     {
-        return getJobStatusesByConditions(Condition.getActiveConditions());
+        return getJobStatusesByConditions(Condition.getActiveConditions(), jobUser);
     }
 
-    public List<JobProcessStatus> getInactiveJobStatuses()
+    public List<JobProcessStatus> getInactiveJobStatuses(JobUser jobUser)
     {
-        return  getJobStatusesByConditions(Condition.getInactiveConditions());
+        return  getJobStatusesByConditions(Condition.getInactiveConditions(), jobUser);
     }
 
     protected static class JobProcessHandler implements ResultSetHandler<JobProcess>

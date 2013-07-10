@@ -8,6 +8,7 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.JobErrorResult;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.JobFileUtil;
 import gov.nysenate.sage.util.auth.JobUserAuth;
 import org.apache.commons.fileupload.FileItem;
@@ -15,6 +16,7 @@ import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -138,7 +140,6 @@ public class JobController extends BaseJobController
         Object uploadResponse = null;
         String sourceFilename = request.getParameter("qqfile");
 
-        FileWriter targetFileWriter = null;
         CsvListWriter jobWriter = null;
         BufferedReader sourceReader = null;
         CsvListReader jobReader = null;
@@ -173,7 +174,7 @@ public class JobController extends BaseJobController
                 FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
                 IOUtils.copy(request.getInputStream(), fileOutputStream);
                 IOUtils.closeQuietly(fileOutputStream);
-                logger.debug("Saved uploaded file to: " + tempFile.getAbsolutePath());
+                logger.debug("Saved uploaded file to temp location: " + tempFile.getAbsolutePath());
 
                 /** Determine the formatting by inspecting the header */
                 CsvPreference preference = JobFileUtil.getCsvPreference(tempFile);
@@ -182,6 +183,11 @@ public class JobController extends BaseJobController
                     sourceReader = new BufferedReader(new FileReader(tempFile));
                     jobReader = new CsvListReader(sourceReader, preference);
                     String[] header = jobFile.processHeader(jobReader.getHeader(true));
+                    logger.debug("Header: " + FormatUtil.toJsonString(header));
+
+                    /** Close and re-open the source reader */
+                    sourceReader.close();
+                    sourceReader = new BufferedReader(new FileReader(tempFile));
 
                     /** Check for address fields in header */
                     if (!jobFile.hasAddress()) {
@@ -196,18 +202,17 @@ public class JobController extends BaseJobController
                     /** Save file into upload directory where it will be picked up by a job process */
                     else {
                         File targetFile = new File(uploadDir, targetFileName);
-                        targetFileWriter = new FileWriter(targetFile);
-                        jobWriter = new CsvListWriter(targetFileWriter, preference);
+                        FileUtils.copyFile(tempFile, targetFile);
+                        logger.debug("Copied file to: " + targetFile.getAbsolutePath());
 
-                        int recordCount = 0;
-                        final CellProcessor[] processors = jobFile.getProcessors().toArray(new CellProcessor[0]);
-                        List<Object> row;
-                        while ((row = jobReader.read(processors)) != null) {
-                            jobWriter.write(row, processors);
+                        /** Count the number of rows. Start at -1 so that the header is not included. */
+                        int recordCount = -1;
+                        String line = null;
+                        while ((line = sourceReader.readLine()) != null) {
                             recordCount++;
                         }
 
-                        logger.debug("Wrote " + recordCount + " records into target file: " + targetFile.getAbsolutePath());
+                        logger.debug("Counted " + recordCount + " records in file.");
 
                         /** Create a new job process and store in the current session */
                         JobProcess process = new JobProcess();
@@ -234,7 +239,6 @@ public class JobController extends BaseJobController
                 logger.error("IO Exception during file upload processing!", ex);
             }
             finally {
-                IOUtils.closeQuietly(targetFileWriter);
                 IOUtils.closeQuietly(jobWriter);
                 IOUtils.closeQuietly(sourceReader);
                 IOUtils.closeQuietly(jobReader);

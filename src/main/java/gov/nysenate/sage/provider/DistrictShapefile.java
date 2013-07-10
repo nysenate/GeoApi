@@ -212,7 +212,7 @@ public class DistrictShapefile implements DistrictService, MapService
                         if (matches.get(matchType) != null && !matches.get(matchType).isEmpty() && !matchType.equals(DistrictType.ZIP)) {
                             Set<String> distCodeSet = matches.get(matchType);
                             DistrictOverlap overlap = null;
-                            //logger.debug("Matches for " + matchType + " " + distCodeSet);
+                            logger.trace("Matches for " + matchType + " " + distCodeSet);
 
                             /** Senate districts should always get overlap assigned */
                             if (matchType.equals(DistrictType.SENATE) || distCodeSet.size() > 1) {

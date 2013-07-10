@@ -10,6 +10,7 @@ import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.JobFileUtil;
 import gov.nysenate.sage.util.Mailer;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -43,6 +44,7 @@ public class ProcessBatchJobs
     private static Integer DISTRICT_THREAD_COUNT;
     private static Integer JOB_BATCH_SIZE;
     private static String LOCK_FILENAME = "batchJobProcess.lock";
+    private static Boolean SEND_EMAILS = false;
 
     public static Logger logger = Logger.getLogger(ProcessBatchJobs.class);
     public static Mailer mailer;
@@ -148,11 +150,17 @@ public class ProcessBatchJobs
 
         try {
             /** Initialize file readers and writers */
-            FileReader fileReader = new FileReader(new File(UPLOAD_DIR + fileName));
-            jobReader = new CsvListReader(fileReader, CsvPreference.TAB_PREFERENCE);
+            File uploadedFile = new File(UPLOAD_DIR + fileName);
+            File targetFile = new File(DOWNLOAD_DIR, fileName);
 
-            FileWriter fileWriter = new FileWriter(new File(DOWNLOAD_DIR, fileName));
-            jobWriter = new CsvListWriter(fileWriter, CsvPreference.TAB_PREFERENCE);
+            /** Determine the type of formatting (tab, comma, semi-colon) */
+            CsvPreference preference = JobFileUtil.getCsvPreference(uploadedFile);
+
+            FileReader fileReader = new FileReader(uploadedFile);
+            jobReader = new CsvListReader(fileReader, preference);
+
+            FileWriter fileWriter = new FileWriter(targetFile);
+            jobWriter = new CsvListWriter(fileWriter, preference);
 
             String[] header = jobReader.getHeader(true);
             jobWriter.writeHeader(header);
@@ -209,6 +217,8 @@ public class ProcessBatchJobs
                         jobResults.add(futureGeocodedJobBatch);
                     }
                 }
+
+                boolean interrupted = false;
                 for (int i = 0; i < batchCount; i++) {
                     try {
                         logger.info("Waiting on batch # " + i);
@@ -216,6 +226,17 @@ public class ProcessBatchJobs
                         for (JobRecord record : batch.getJobRecords()) {
                             jobWriter.write(record.getRow(), processors);
                         }
+                        jobWriter.flush(); // Ensure records have been written
+
+                        /** Determine if this job process has been cancelled by the user */
+                        jobStatus = jobProcessDao.getJobProcessStatus(jobProcess.getId());
+                        logger.debug("Latest Status: " + FormatUtil.toJsonString(jobStatus));
+                        if (jobStatus.getCondition().equals(CANCELLED)) {
+                            logger.warn("Job process has been cancelled by the user!");
+                            interrupted = true;
+                            break;
+                        }
+
                         jobStatus.setCompletedRecords(jobStatus.getCompletedRecords() + batch.getJobRecords().size());
                         jobProcessDao.setJobProcessStatus(jobStatus);
                         logger.info("Wrote results of batch # " + i);
@@ -226,46 +247,50 @@ public class ProcessBatchJobs
                     }
                 }
 
-                jobStatus.setCompleted(true);
-                jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
-                jobStatus.setCondition(COMPLETED);
-                jobProcessDao.setJobProcessStatus(jobStatus);
+                if (!interrupted) {
+                    jobStatus.setCompleted(true);
+                    jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
+                    jobStatus.setCondition(COMPLETED);
+                    jobProcessDao.setJobProcessStatus(jobStatus);
+                }
 
-                logger.info("--------------------------------------------------------------------");
-                logger.info("Sending email confirmation                                         |");
-                logger.info("--------------------------------------------------------------------");
+                if (SEND_EMAILS) {
+                    logger.info("--------------------------------------------------------------------");
+                    logger.info("Sending email confirmation                                         |");
+                    logger.info("--------------------------------------------------------------------");
 
-                sendSuccessMail(jobStatus);
+                    sendSuccessMail(jobStatus);
 
-                logger.info("--------------------------------------------------------------------");
-                logger.info("Completed batch processing for job file!                           |");
-                logger.info("--------------------------------------------------------------------");
+                    logger.info("--------------------------------------------------------------------");
+                    logger.info("Completed batch processing for job file!                           |");
+                    logger.info("--------------------------------------------------------------------");
+                }
             }
         }
         catch (FileNotFoundException ex) {
             logger.error("Job process " + jobProcess.getId() + "'s file could not be found!");
             setJobStatusError(jobStatus, SKIPPED, "Could not open file!");
-            sendErrorMail(jobStatus, ex);
+            if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (IOException ex){
             logger.error(ex);
             setJobStatusError(jobStatus, SKIPPED, "IO Error! " + ex.getMessage());
-            sendErrorMail(jobStatus, ex);
+            if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (InterruptedException ex) {
             logger.error(ex);
             setJobStatusError(jobStatus, SKIPPED, "Job Interrupted! " + ex.getMessage());
-            sendErrorMail(jobStatus, ex);
+            if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (ExecutionException ex) {
             logger.error(ex);
             setJobStatusError(jobStatus, SKIPPED, "Execution Error! " + ex.getMessage());
-            sendErrorMail(jobStatus, ex);
+            if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (Exception ex) {
             logger.fatal("Unknown exception occurred!", ex);
             setJobStatusError(jobStatus, SKIPPED, "Fatal Error! " + ex.getMessage());
-            sendErrorMail(jobStatus, ex);
+            if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         finally {
             IOUtils.closeQuietly(jobReader);
