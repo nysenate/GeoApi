@@ -739,7 +739,7 @@ table.dataTable tr.even td.sorting_1 {
 .running-process-view {
     background: #fbfbfb;
     box-shadow: 0 2px 3px #DDD;
-    width: 780px;
+    width: 95%;
     margin: auto;
     padding: 10px;
 }

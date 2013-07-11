@@ -5,11 +5,13 @@ import gov.nysenate.sage.dao.model.JobProcessDao;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
+import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -29,7 +31,10 @@ import java.util.List;
  */
 public class JobStatusController extends BaseJobController
 {
+    private static Logger logger = Logger.getLogger(JobStatusController.class);
     private static JobProcessDao jobProcessDao = new JobProcessDao();
+    private static String TEMP_DIR = "/tmp";
+    private static String LOCK_FILENAME = "batchJobProcess.lock";
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -47,13 +52,15 @@ public class JobStatusController extends BaseJobController
             String method = (args.size() > 0) ? args.get(0) : "";
             JobUser jobUser = getJobUser(request);
 
+            boolean running = isProcessorRunning();
+
             if (method != null) {
                 switch (method) {
                     case "process" : {
                         if (args.size() == 2) {
                             try {
                                 int processId = Integer.parseInt(args.get(1));
-                                statusResponse = new JobStatusResponse(getJobProcessStatusById(processId, jobUser));
+                                statusResponse = new JobStatusResponse(getJobProcessStatusById(processId, jobUser), running);
                             }
                             catch (NumberFormatException ex) {
                                 statusResponse = new JobStatusResponse(new JobErrorResult("Process id must be an integer!"));
@@ -65,23 +72,27 @@ public class JobStatusController extends BaseJobController
                         break;
                     }
                     case "running" : {
-                        statusResponse = new JobStatusResponse(getRunningJobProcesses(jobUser));
+                        statusResponse = new JobStatusResponse(getRunningJobProcesses(jobUser), running);
                         break;
                     }
                     case "active" : {
-                        statusResponse = new JobStatusResponse(getActiveJobProcesses(jobUser));
+                        statusResponse = new JobStatusResponse(getActiveJobProcesses(jobUser), running);
                         break;
                     }
                     case "inactive" : {
-                        statusResponse = new JobStatusResponse(getInactiveJobProcesses(jobUser));
+                        statusResponse = new JobStatusResponse(getInactiveJobProcesses(jobUser), running);
                         break;
                     }
                     case "completed" : {
-                        statusResponse = new JobStatusResponse(getRecentlyCompletedJobProcesses(jobUser));
+                        statusResponse = new JobStatusResponse(getRecentlyCompletedJobProcesses(jobUser), running);
+                        break;
+                    }
+                    case "processor" : {
+                        statusResponse = isProcessorRunning();
                         break;
                     }
                     case "all" : {
-                        statusResponse = new JobStatusResponse(getAllJobProcesses(jobUser));
+                        statusResponse = new JobStatusResponse(getAllJobProcesses(jobUser), running);
                         break;
                     }
                 }
@@ -129,5 +140,12 @@ public class JobStatusController extends BaseJobController
         Timestamp yesterday = new Timestamp(calendar.getTimeInMillis());
 
         return jobProcessDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, jobUser, yesterday);
+    }
+
+    private boolean isProcessorRunning()
+    {
+        String tempDir = System.getProperty("java.io.tmpdir", "/tmp");
+        File lockFile = new File(TEMP_DIR, LOCK_FILENAME);
+        return lockFile.exists();
     }
 }

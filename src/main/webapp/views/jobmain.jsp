@@ -83,6 +83,8 @@
                 </div>
                 <div id="status-container" ng-show="visible" ng-controller="JobStatusController" style="width:100%;">
                     <div style="text-align: center;padding:20px;width:95%;margin:auto;">
+                        <span style="color:#CC333F;font-weight:bold;" ng-hide="processorRunning">Job processor is not running.</span>
+                        <span style="color:#639A00;font-weight:bold;" ng-show="processorRunning">Job processor is running.</span>
                         <h3 ng-show="runningProcesses.length" style="color:#333;">Running Job</h3>
                         <div class="running-process-view" ng-repeat="runningProcess in runningProcesses">
                             <table class="job-table">
@@ -155,7 +157,7 @@
                                     <tr ng-repeat="completedProcess in completedProcesses">
                                         <td style="padding-top: 5px;">{{completedProcess.processId}}</td>
                                         <td style="color:teal">{{completedProcess.process.sourceFileName}}</td>
-                                        <td>{{completedProcess.requestorEmail}}</td>
+                                        <td>{{completedProcess.process.requestorEmail}}</td>
                                         <td>{{completedProcess.startTime | date:'short'}}</td>
                                         <td>{{completedProcess.completeTime | date:'short'}}</td>
                                         <td>
@@ -186,15 +188,17 @@
                                     <th>Started</th>
                                     <th>Completed</th>
                                     <th>Status</th>
+
                                 </tr>
                                 </thead>
-                                <tr ng-repeat="allProcess in allProcesses">
-                                    <td>{{allProcess.processId}}</td>
-                                    <td>{{allProcess.process.sourceFileName}}</td>
-                                    <td>{{allProcess.process.recordCount}}</td>
-                                    <td>{{allProcess.startTime | date:'medium'}}</td>
-                                    <td>{{allProcess.completeTime | date:'medium'}}</td>
-                                    <td>{{allProcess.condition | conditionFilter}}</td>
+                                <tr ng-repeat="process in allProcesses">
+                                    <td>{{process.processId}}</td>
+                                    <td>{{process.process.sourceFileName}}</td>
+                                    <td>{{process.process.recordCount}}</td>
+                                    <td>{{process.startTime | date:'medium'}}</td>
+                                    <td>{{process.completeTime | date:'medium'}}</td>
+                                    <td>{{process.condition | conditionFilter}}</td>
+
                                 </tr>
                             </table>
                         </div>

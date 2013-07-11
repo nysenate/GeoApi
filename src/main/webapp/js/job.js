@@ -145,6 +145,8 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
     $scope.activeProcesses = [];
     $scope.completedProcesses = [];
 
+    $scope.processorRunning = false;
+
     $scope.showProcessQueue = function() {
         return (this.activeProcesses.length > 0);
     };
@@ -202,6 +204,7 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
             .success(function(data, status, headers, config) {
                 if (data && data.success) {
                     $scope.activeProcesses = data.statuses;
+                    $scope.processorRunning = data.processorRunning;
                 }
                 else {
                     console.log("Active processes: " + data);

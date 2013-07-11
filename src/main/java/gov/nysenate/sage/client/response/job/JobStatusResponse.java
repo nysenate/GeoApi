@@ -10,18 +10,20 @@ import java.util.List;
 public class JobStatusResponse
 {
     protected boolean success = false;
+    protected boolean processorRunning = false;
     protected List<JobProcessStatusView> statuses = new ArrayList<>();
     protected String message = "";
 
-    public JobStatusResponse(JobProcessStatus jobProcessStatus)
+    public JobStatusResponse(JobProcessStatus jobProcessStatus, boolean processorRunning)
     {
         if (jobProcessStatus != null) {
             this.success = true;
             this.statuses.add(new JobProcessStatusView(jobProcessStatus));
         }
+        this.processorRunning = processorRunning;
     }
 
-    public JobStatusResponse(List<JobProcessStatus> jobProcessStatuses)
+    public JobStatusResponse(List<JobProcessStatus> jobProcessStatuses, boolean processorRunning)
     {
         if (jobProcessStatuses != null) {
             this.success = true;
@@ -29,6 +31,7 @@ public class JobStatusResponse
                 this.statuses.add(new JobProcessStatusView(jps));
             }
         }
+        this.processorRunning = processorRunning;
     }
 
     public JobStatusResponse(JobErrorResult jobErrorResult)
@@ -59,5 +62,9 @@ public class JobStatusResponse
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public boolean isProcessorRunning() {
+        return processorRunning;
     }
 }

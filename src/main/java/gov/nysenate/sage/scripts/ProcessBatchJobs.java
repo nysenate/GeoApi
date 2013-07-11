@@ -43,6 +43,7 @@ public class ProcessBatchJobs
     private static Integer GEOCODE_THREAD_COUNT;
     private static Integer DISTRICT_THREAD_COUNT;
     private static Integer JOB_BATCH_SIZE;
+    private static String TEMP_DIR = "/tmp";
     private static String LOCK_FILENAME = "batchJobProcess.lock";
     private static Boolean SEND_EMAILS = false;
 
@@ -118,10 +119,10 @@ public class ProcessBatchJobs
     */
     public static void checkLockFile() throws IOException
     {
-        String tempDir = System.getProperty("java.io.tmpdir", "/tmp");
-        File lockFile = new File(tempDir, LOCK_FILENAME);
+        File lockFile = new File(TEMP_DIR, LOCK_FILENAME);
         boolean rc = lockFile.createNewFile();
         if (rc == true) {
+            logger.debug("Created lock file at: " + lockFile.getAbsolutePath());
             lockFile.deleteOnExit();
         }
         else {
@@ -257,7 +258,6 @@ public class ProcessBatchJobs
 
                         /** Determine if this job process has been cancelled by the user */
                         jobStatus = jobProcessDao.getJobProcessStatus(jobProcess.getId());
-                        logger.debug("Latest Status: " + FormatUtil.toJsonString(jobStatus));
                         if (jobStatus.getCondition().equals(CANCELLED)) {
                             logger.warn("Job process has been cancelled by the user!");
                             interrupted = true;
