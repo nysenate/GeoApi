@@ -85,11 +85,18 @@ public class ProcessBatchJobs
                     break;
                 }
                 case "process" : {
-                    List<JobProcessStatus> jobs = processBatchJobs.getWaitingJobProcesses();
-                    logger.info(jobs.size() + " batch jobs have been queued for processing.");
-                    for (JobProcessStatus job : jobs){
-                        logger.info("Processing job process id " + job.getProcessId());
-                        processBatchJobs.processJob(job);
+                    List<JobProcessStatus> runningJobs = processBatchJobs.getRunningJobProcesses();
+                    logger.info("Resuming " + runningJobs.size() + " jobs.");
+                    for (JobProcessStatus runningJob : runningJobs) {
+                        logger.info("Processing job process id " + runningJob.getProcessId());
+                        processBatchJobs.processJob(runningJob);
+                    }
+
+                    List<JobProcessStatus> waitingJobs = processBatchJobs.getWaitingJobProcesses();
+                    logger.info(waitingJobs.size() + " batch jobs have been queued for processing.");
+                    for (JobProcessStatus waitingJob : waitingJobs){
+                        logger.info("Processing job process id " + waitingJob.getProcessId());
+                        processBatchJobs.processJob(waitingJob);
                     }
                     break;
                 }
@@ -129,9 +136,16 @@ public class ProcessBatchJobs
      */
     public List<JobProcessStatus> getWaitingJobProcesses()
     {
-        JobProcessDao jobProcessDao = new JobProcessDao();
-        List<JobProcessStatus> jobs = jobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
-        return jobs;
+        return new JobProcessDao().getJobStatusesByCondition(WAITING_FOR_CRON, null);
+    }
+
+    /**
+     * Retrieves jobs that are still running and need to be finished.
+     * @return List<JobProcessStatus>
+     */
+    public List<JobProcessStatus> getRunningJobProcesses()
+    {
+        return new JobProcessDao().getJobStatusesByCondition(RUNNING, null);
     }
 
     /**
@@ -159,24 +173,20 @@ public class ProcessBatchJobs
             FileReader fileReader = new FileReader(uploadedFile);
             jobReader = new CsvListReader(fileReader, preference);
 
-            FileWriter fileWriter = new FileWriter(targetFile);
+            /** Target writer appends by default */
+            FileWriter fileWriter = new FileWriter(targetFile, true);
             jobWriter = new CsvListWriter(fileWriter, preference);
 
+            /** Retrieve the header (first line) */
             String[] header = jobReader.getHeader(true);
-            jobWriter.writeHeader(header);
 
             /** Create the job file and analyze the header columns */
             JobFile jobFile = new JobFile();
-            header = jobFile.processHeader(header);
+            jobFile.processHeader(header);
 
             logger.info("--------------------------------------------------------------------");
             logger.info("Starting Batch Job");
             logger.info("Job Header: " + FormatUtil.toJsonString(header));
-
-            /** Set the job status to running and record the start time */
-            jobStatus.setCondition(RUNNING);
-            jobStatus.setStartTime(new Timestamp(new Date().getTime()));
-            jobProcessDao.setJobProcessStatus(jobStatus);
 
             /** Check if file can be skipped */
             if (!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
@@ -186,8 +196,25 @@ public class ProcessBatchJobs
                 jobProcessDao.setJobProcessStatus(jobStatus);
             }
             else {
-                /** Read records into a JobFile */
                 final CellProcessor[] processors = jobFile.getProcessors().toArray(new CellProcessor[0]);
+
+                /** If process is already running, seek to the last saved record */
+                if (jobStatus.getCondition().equals(RUNNING)) {
+                    int completedRecords = jobStatus.getCompletedRecords();
+                    logger.debug("Skipping ahead " + completedRecords + " records.");
+                    for (int i = 0; i < completedRecords; i++) {
+                        jobReader.read(processors);
+                    }
+                }
+                /** Otherwise write the header and set the status to running */
+                else {
+                    jobWriter.writeHeader(header);
+                    jobStatus.setCondition(RUNNING);
+                    jobStatus.setStartTime(new Timestamp(new Date().getTime()));
+                    jobProcessDao.setJobProcessStatus(jobStatus);
+                }
+
+                /** Read records into a JobFile */
                 List<Object> row;
                 while( (row = jobReader.read(processors)) != null ) {
                     jobFile.addRecord(new JobRecord(jobFile, row));
