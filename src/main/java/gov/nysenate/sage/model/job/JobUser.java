@@ -8,6 +8,7 @@ public class JobUser
     protected String firstname;
     protected String lastname;
     protected boolean active;
+    protected boolean admin;
 
     public JobUser() {}
 
@@ -66,5 +67,13 @@ public class JobUser
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
     }
 }

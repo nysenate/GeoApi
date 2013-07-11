@@ -130,7 +130,7 @@ public class JobProcessDao extends BaseDao
         String sql = "SELECT * FROM " + getTableName() + "\n" +
                      "LEFT JOIN " + getStatusTableName() + " status ON id = processId \n" +
                      "WHERE status.condition = ? ";
-        sql += (jobUser != null) ? " AND userId = " + jobUser.getId() : "";
+        sql += (jobUser != null && !jobUser.isAdmin()) ? " AND userId = " + jobUser.getId() : "";
         sql += " ORDER BY processId";
         try {
             return run.query(sql, statusListHandler, condition.name());
@@ -151,7 +151,7 @@ public class JobProcessDao extends BaseDao
         for (Condition c : conditions) {
             where.add("status.condition = '" + c.name() + "'");
         }
-        sql = String.format(sql, StringUtils.join(where, " OR "), (jobUser != null) ? "userId = " + jobUser.getId() : "TRUE");
+        sql = String.format(sql, StringUtils.join(where, " OR "), (jobUser != null && !jobUser.isAdmin()) ? "userId = " + jobUser.getId() : "TRUE");
         try {
             return run.query(sql, statusListHandler);
         }
@@ -166,7 +166,7 @@ public class JobProcessDao extends BaseDao
         String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status " +
                 "ON id = processId WHERE ";
         sql += "status.condition = ? AND status.completeTime >= ? ";
-        sql += (jobUser != null) ? " AND userId = " + jobUser.getId() + " " : "";
+        sql += (jobUser != null && !jobUser.isAdmin()) ? " AND userId = " + jobUser.getId() + " " : "";
         sql += "ORDER BY status.completeTime DESC";
         try {
             return run.query(sql, statusListHandler, condition.name(), afterThis);

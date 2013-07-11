@@ -37,7 +37,7 @@ sageJob.controller('JobAuthController', function($scope, $http) {
 });
 
 sageJob.controller('JobController', function($scope, menuService) {
-    (function(){menuService.toggleMethod(2);}());
+
 });
 
 sageJob.controller('JobUploadController', function($scope, $http, $window, menuService, dataBus) {
@@ -100,17 +100,17 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
             hideShowDropArea: true,
 
             onSubmit: function(id, fileName){
-                console.log('Submit: ' + id + " " + fileName);
+                //console.log('Submit: ' + id + " " + fileName);
             },
             onProgress: function(id, fileName, loaded, total){
-                console.log("Progress: " + fileName + " " + loaded + "/" + total);
+                //console.log("Progress: " + fileName + " " + loaded + "/" + total);
                 var scope = angular.element("#upload-container").scope();
                 scope.$apply(function(){
                     scope.uploadProgress = (loaded / total < 1) ? loaded / total : 0;
                 });
             },
             onComplete: function(id, fileName, responseJSON){
-                console.log("Complete: " + fileName + " " + responseJSON);
+                //console.log("Complete: " + fileName + " " + responseJSON);
                 if (responseJSON.success) {
                     var scope = angular.element($("#upload-container")).scope();
                     scope.$apply(function(){
@@ -119,13 +119,13 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
                 }
             },
             onCancel: function(id, fileName){
-                console.log("Cancel: " + fileName);
+                //console.log("Cancel: " + fileName);
             },
             onUpload: function(id, fileName, xhr){
-                console.log("Upload: " + fileName + " " + xhr);
+                //console.log("Upload: " + fileName + " " + xhr);
             },
             onError: function(id, fileName, xhr) {
-                console.log("Error: " + fileName + " " + xhr);
+                //console.log("Error: " + fileName + " " + xhr);
             },
             messages: {
                 typeError: "Sorry, only {extensions} files are allowed for batch processing."
@@ -254,11 +254,24 @@ sageJob.controller('JobHistoryController', function($scope, $http, menuService, 
                      $scope.allProcesses = data.statuses;
                  }
              });
+    };
+
+    $scope.getConditionStyle = function(condition) {
+        var color = "#333";
+        switch (condition) {
+            case 'WAITING_FOR_CRON' : color = "#333"; break;
+            case 'RUNNING' :
+            case 'COMPLETED' : color = "#639A00"; break;
+            case 'SKIPPED' : color = "orangered"; break;
+            case 'COMPLETED_WITH_ERRORS' :
+            case 'FAILED' :
+            case 'CANCELLED' : color = "red"; break;
+        }
+        return {"color" : color};
     }
 
 });
 
 $(document).ready(function() {
     initVerticalMenu();
-    $("#contentwrapper").height($(window).height() - 80);
 });

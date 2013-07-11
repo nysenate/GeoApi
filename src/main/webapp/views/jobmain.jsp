@@ -28,7 +28,7 @@
             </jsp:attribute>
         </sage:header>
 
-        <div id="contentwrapper" ng-controller="JobController">
+        <div id="contentwrapper" style="height:auto;padding-bottom:20px;" ng-controller="JobController">
             <div id="contentcolumn" style="margin:0;padding-top:20px;background-color:#f5f5f5">
                 <div id="upload-container" ng-show="visible"  ng-controller="JobUploadController" style="width:100%;height:100%;">
                     <form id="uploadForm" ng-submit="submitJobRequest()" style="width:95%;margin:auto;">
@@ -184,21 +184,21 @@
                                 <tr>
                                     <th>Job Id</th>
                                     <th>File name</th>
+                                    <th>Submitted by</th>
                                     <th>Records</th>
                                     <th>Started</th>
                                     <th>Completed</th>
                                     <th>Status</th>
-
                                 </tr>
                                 </thead>
                                 <tr ng-repeat="process in allProcesses">
                                     <td>{{process.processId}}</td>
                                     <td>{{process.process.sourceFileName}}</td>
+                                    <td>{{process.process.requestorEmail}}</td>
                                     <td>{{process.process.recordCount}}</td>
                                     <td>{{process.startTime | date:'medium'}}</td>
                                     <td>{{process.completeTime | date:'medium'}}</td>
-                                    <td>{{process.condition | conditionFilter}}</td>
-
+                                    <td ng-style="getConditionStyle(process.condition)">{{process.condition | conditionFilter}}</td>
                                 </tr>
                             </table>
                         </div>

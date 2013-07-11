@@ -109,7 +109,14 @@ public class ProcessBatchJobs
 
         /** Clean up and exit */
         logger.info("Wrapping things up..");
-        ApplicationFactory.close();
+
+        /** Add a hook to close out db connections on termination */
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                ApplicationFactory.close();
+            }
+        });
+
         System.exit(0);
     }
 
