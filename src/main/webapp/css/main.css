@@ -774,6 +774,40 @@ div.cancel {
     background:#f5f5f5;
 }
 
+#jobInstructions {
+    border: 1px solid #ddd;
+    width: 820px;
+    padding: 10px;
+    margin: auto;
+    box-shadow: 0 0 1px 0 #eee;
+    margin-top: 30px;
+    margin-bottom:40px;
+    background:#fff;
+}
+
+.columnAliasTable {
+    text-align:left;
+    width:680px;
+    margin:auto;
+    font-size:13px;
+}
+
+.columnAliasTable tr {
+    border-bottom:1px solid #ddd;
+}
+
+.columnAliasTable tr td, .columnAliasTable tr th {
+    border-right:1px solid #ddd;
+}
+
+.columnAliasTable tr td code {
+    color:#333;
+}
+
+.columnAliasTable tr td:first-child {
+    color:teal;
+}
+
 /*-------------------------------------------------------
   Admin Page
 --------------------------------------------------------*/

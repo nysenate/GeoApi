@@ -80,6 +80,114 @@
                             </li>
                         </ol>
                     </form>
+                    <div id="jobInstructions" style="font-size:14px;">
+                        <h3>Guidelines</h3>
+                        <p>The job processor performs bulk geocoding and district assignment given a list of addresses.</p>
+                        <p>The file that is uploaded must be formatted in order to be processed successfully.</p>
+                        <br/>
+                        <p><strong>Supported formats</strong> - .tsv | .csv | .txt</p>
+                        <p><strong>Supported delimiters</strong> - tab | comma | semi-colon</p>
+                        <br/>
+                        <p>The following tables list the columns that are processed. The columns are read from the first line of the file.</p>
+                        <p>The aliases are the names that can be used to represent the column. The aliases are shown camelCased but </p>
+                        <p>they may also be underscored e.g streetAddress = street_address</p>
+                        <br/>
+                        <hr style="width:500px;outline:0;border:0;border-top:1px solid #ddd;"/>
+                        <p>Each row must contain an address. If the address is not parsed it can be defined by just the Street column.</p>
+                        <br/>
+                        <p><strong style="color:teal">Address columns</strong></p>
+                        <table class="columnAliasTable">
+                            <tr>
+                                <th style="width:110px;">Column</th>
+                                <th>Aliases</th>
+                            </tr>
+                            <tr>
+                                <td>Street</td>
+                                <td><code>street | streetAddress</code></td>
+                            </tr>
+                            <tr>
+                                <td>City</td>
+                                <td><code>city</code></td>
+                            </tr>
+                            <tr>
+                                <td>State</td>
+                                <td><code>state | stateProvinceId</code></td>
+                            </tr>
+                            <tr>
+                                <td>Zip5</td>
+                                <td><code>zip5 | zip | postal | postalCode</code></td>
+                            </tr>
+                            <tr>
+                                <td>Zip4</td>
+                                <td><code>zip4 | postalSuffix | postalCodeSuffix</code></td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <p>If geocode columns are specified, the processor will perform geocoding.</p>
+                        <br/>
+                        <p><strong style="color:teal">Geocode columns</strong></p>
+                        <table class="columnAliasTable">
+                            <tr>
+                                <th style="width:110px;">Column</th>
+                                <th>Aliases</th>
+                            </tr>
+                            <tr>
+                                <td>Latitude</td>
+                                <td><code>latitude | lat | geoCode1</code></td>
+                            </tr>
+                            <tr>
+                                <td>Longitude</td>
+                                <td><code>longitude | lon | lng | geoCode2</code></td>
+                            </tr>
+                            <tr>
+                                <td>Geocode Method</td>
+                                <td><code>geoMethod | geoSource</code></td>
+                            </tr>
+                            <tr>
+                                <td>Geocode Quality</td>
+                                <td><code>geoQuality | accuracy</code></td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <p>If any district assignment columns are specified, the processor will perform district assignment.</p>
+                        <br/>
+                        <p><strong style="color:teal">District code columns</strong></p>
+                        <table class="columnAliasTable">
+                            <tr>
+                                <th style="width:110px;">Column</th>
+                                <th>Aliases</th>
+                            </tr>
+                            <tr>
+                                <td>Senate</td>
+                                <td><code>senate | nySenateDistrict47 | sd | senateDistrict</code></td>
+                            </tr>
+                            <tr>
+                                <td>Assembly</td>
+                                <td><code>assembly | nyAssemblyDistrict48 |  ad | assemblyDistrict</code></td>
+                            </tr>
+                            <tr>
+                                <td>Congressional</td>
+                                <td><code>congressional | congressionalDistrict46 | cd | congressionalDistrict</code></td>
+                            </tr>
+                            <tr>
+                                <td>Town</td>
+                                <td><code>town | town52 | townCode</code></td>
+                            </tr>
+                            <tr>
+                                <td>School</td>
+                                <td><code>school | schoolDistrict54 | schoolDistrict</code></td>
+                            </tr>
+                            <tr>
+                                <td>Ward</td>
+                                <td><code>ward | ward53 | wardCode</code></td>
+                            </tr>
+                            <tr>
+                                <td>Election</td>
+                                <td><code>election | electionDistrict49 | electionDistrict | ed</code></td>
+                            </tr>
+                        </table>
+                        <br/>
+                    </div>
                 </div>
                 <div id="status-container" ng-show="visible" ng-controller="JobStatusController" style="width:100%;">
                     <div style="text-align: center;padding:20px;width:95%;margin:auto;">
