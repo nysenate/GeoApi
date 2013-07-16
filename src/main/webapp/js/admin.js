@@ -3,7 +3,7 @@ var baseAdminApi = contextPath + "/admin";
 
 sageAdmin.controller('DashboardController', function($scope, $http, menuService, dataBus) {
     $scope.id = 1;
-    $scope.visible = true;
+    $scope.visible = false;
     $scope.$on(menuService.menuToggleEvent, function(){
         $scope.visible = ($scope.id == dataBus.data);
     });
@@ -35,7 +35,6 @@ sageAdmin.controller('DashboardController', function($scope, $http, menuService,
         var next = startDate;
         $.each(data, function(i, v) {
             while (next < v.time && next < endDate) {
-                console.log("-- " + new Date(next));
                 seriesData.push(0);
                 next += intervalMilli;
             }
@@ -54,6 +53,106 @@ sageAdmin.controller('DashboardController', function($scope, $http, menuService,
         $scope.getDeploymentStats();
         $scope.getUsageStats(fromTimestamp, toTimestamp);
     }());
+});
+
+sageAdmin.controller('UserConsoleController', function($scope, $http, menuService, dataBus) {
+    $scope.id = 3;
+    $scope.visible = true;
+    $scope.currentApiUsers = null;
+    $scope.currentJobUsers = null;
+
+    $scope.$on(menuService.menuToggleEvent, function(){
+        $scope.visible = ($scope.id == dataBus.data);
+    });
+
+    $scope.getCurrentApiUsers = function() {
+        $http.post(baseAdminApi + "/currentApiUsers").success(function(data){
+            $scope.currentApiUsers = data;
+        }).error(function(data){
+            console.log("Failed to retrieve list of current Api users!");
+        });
+    };
+
+    $scope.getCurrentJobUsers = function() {
+        $http.post(baseAdminApi + "/currentJobUsers").success(function(data){
+            $scope.currentJobUsers = data;
+        }).error(function(data){
+            console.log("Failed to retrieve list of current Job users!")
+        });
+    };
+
+    $scope.createApiUser = function() {
+        if (this.apiUserName == null || this.apiUserName == '') {
+            alert("A name is required!");
+        }
+        else {
+            $http.post(baseAdminApi + "/createApiUser?name=" + this.apiUserName + "&desc=" + this.apiUserDesc)
+                .success(function(data){
+                    if (data) {
+                        alert(data.message);
+                        if (data.success) $scope.getCurrentApiUsers();
+                    }
+                    else {
+                        alert("Failed to add Api User!")
+                    }
+                }).error(function(data){
+                    console.log("Failed to add Api User, invalid response from Admin Api.");
+                });
+        }
+    };
+
+    $scope.deleteApiUser = function(id) {
+        if (id != null && confirm("Are you sure you want to delete this user?")) {
+            $http.post(baseAdminApi + "/deleteApiUser?id=" + id)
+                .success(function(data){
+                    if (data) {
+                        alert(data.message);
+                        if (data.success) $scope.getCurrentApiUsers();
+                    }
+                }).error(function(data){
+                    console.log("Failed to delete Api User, invalid response from Admin Api");
+                });
+        }
+    };
+
+    $scope.createJobUser = function() {
+        if (this.jobEmail == null || this.jobEmail == '' || this.jobPassword == null || this.jobPassword == '') {
+            alert("Email and password must be specified!");
+        }
+        else {
+            $http.post(baseAdminApi + "/createJobUser?email=" + this.jobEmail + "&password=" + this.jobPassword
+                                                  + "&firstname=" + this.jobFirstName + "&lastname=" + this.jobLastName + "&admin=" + (this.jobAdmin ? "true" : "false"))
+                .success(function(data){
+                    if (data) {
+                        alert(data.message);
+                        if (data.success) {
+                            $scope.getCurrentJobUsers();
+                        }
+                    }
+                }).error(function(data){
+                    console.log("Failed to create Job User, invalid response from Admin Api");
+                });
+        }
+    };
+
+    $scope.deleteJobUser = function(id) {
+        if (id != null && confirm("Are you sure you want to delete this user?")) {
+            $http.post(baseAdminApi + "/deleteJobUser?id=" + id).success(function(data){
+                if (data) {
+                    alert(data.message);
+                    if (data.success) $scope.getCurrentJobUsers();
+                }
+            }).error(function(data){
+                console.log("Failed to delete Job User, invalid response from Admin Api");
+            });
+        }
+    };
+
+    (function init() {
+        $scope.getCurrentApiUsers();
+        $scope.getCurrentJobUsers();
+    })();
+
 });
 
 $(document).ready(function() {
@@ -101,9 +200,9 @@ function makeApiUsageChart(startDate, seriesData) {
         },
         plotOptions: {
             areaspline : {
-                fillColor: 'teal',
+                fillColor: '#CC333F',
                 lineWidth: 1,
-                lineColor: 'teal',
+                lineColor: '#CC333F',
                 marker: {
                     enabled: false
                 },
