@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
+import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
 
 /**
  * Performs batch processing of uploaded jobs.
@@ -45,7 +46,7 @@ public class ProcessBatchJobs
     private static Integer JOB_BATCH_SIZE;
     private static String TEMP_DIR = "/tmp";
     private static String LOCK_FILENAME = "batchJobProcess.lock";
-    private static Boolean SEND_EMAILS = false;
+    private static Boolean SEND_EMAILS = true;
 
     public static Logger logger = Logger.getLogger(ProcessBatchJobs.class);
     public static Mailer mailer;
@@ -62,6 +63,7 @@ public class ProcessBatchJobs
         GEOCODE_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.geocode", "3"));
         DISTRICT_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.distassign", "3"));
         JOB_BATCH_SIZE = Integer.parseInt(config.getValue("job.batch.size", "95"));
+        SEND_EMAILS = Boolean.parseBoolean(config.getValue("job.send.email", "true"));
 
         mailer = new Mailer();
         geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
@@ -209,9 +211,14 @@ public class ProcessBatchJobs
                 /** If process is already running, seek to the last saved record */
                 if (jobStatus.getCondition().equals(RUNNING)) {
                     int completedRecords = jobStatus.getCompletedRecords();
-                    logger.debug("Skipping ahead " + completedRecords + " records.");
-                    for (int i = 0; i < completedRecords; i++) {
-                        jobReader.read(processors);
+                    if (completedRecords > 0) {
+                        logger.debug("Skipping ahead " + completedRecords + " records.");
+                        for (int i = 0; i < completedRecords; i++) {
+                            jobReader.read(processors);
+                        }
+                    }
+                    else {
+                        jobWriter.writeHeader(header);
                     }
                 }
                 /** Otherwise write the header and set the status to running */
@@ -293,7 +300,12 @@ public class ProcessBatchJobs
                     logger.info("Sending email confirmation                                         |");
                     logger.info("--------------------------------------------------------------------");
 
-                    sendSuccessMail(jobStatus);
+                    try {
+                        sendSuccessMail(jobStatus);
+                    }
+                    catch (Exception ex) {
+                        logger.error("Failed to send completion email!", ex);
+                    }
 
                     logger.info("--------------------------------------------------------------------");
                     logger.info("Completed batch processing for job file!                           |");
@@ -308,22 +320,22 @@ public class ProcessBatchJobs
         }
         catch (IOException ex){
             logger.error(ex);
-            setJobStatusError(jobStatus, SKIPPED, "IO Error! " + ex.getMessage());
+            setJobStatusError(jobStatus, FAILED, "IO Error! " + ex.getMessage());
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (InterruptedException ex) {
             logger.error(ex);
-            setJobStatusError(jobStatus, SKIPPED, "Job Interrupted! " + ex.getMessage());
+            setJobStatusError(jobStatus, FAILED, "Job Interrupted! " + ex.getMessage());
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (ExecutionException ex) {
             logger.error(ex);
-            setJobStatusError(jobStatus, SKIPPED, "Execution Error! " + ex.getMessage());
+            setJobStatusError(jobStatus, FAILED, "Execution Error! " + ex.getMessage());
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (Exception ex) {
             logger.fatal("Unknown exception occurred!", ex);
-            setJobStatusError(jobStatus, SKIPPED, "Fatal Error! " + ex.getMessage());
+            setJobStatusError(jobStatus, FAILED, "Fatal Error! " + ex.getMessage());
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         finally {
@@ -348,6 +360,7 @@ public class ProcessBatchJobs
     public static class GeocodeJobBatch implements Callable<JobBatch>
     {
         private JobBatch jobBatch;
+
         public GeocodeJobBatch(JobBatch jobBatch) {
             this.jobBatch = jobBatch;
         }
@@ -369,11 +382,17 @@ public class ProcessBatchJobs
     {
         private Future<JobBatch> futureJobBatch;
         private List<DistrictType> districtTypes;
+        private DistrictStrategy districtStrategy = DistrictStrategy.shapeFallback;
+
         public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types) throws InterruptedException,
                                                                                                   ExecutionException
         {
             this.futureJobBatch = futureJobBatch;
             this.districtTypes = types;
+            /** Change the strategy if the types contain town or school since they are typically missing in street files */
+            if (this.districtTypes.contains(DistrictType.TOWN) || this.districtTypes.contains(DistrictType.SCHOOL)) {
+                this.districtStrategy = DistrictStrategy.neighborMatch;
+            }
         }
 
         @Override
@@ -382,7 +401,7 @@ public class ProcessBatchJobs
             JobBatch jobBatch = futureJobBatch.get();
             logger.info("District assignment for records " + jobBatch.getFromRecord() + "-" + jobBatch.getToRecord());
             List<DistrictResult> districtResults = districtProvider.assignDistricts(jobBatch.getGeocodedAddresses(),
-                                                                                    this.districtTypes);
+                                                                                    null, this.districtTypes, this.districtStrategy);
             for (int i = 0; i < districtResults.size(); i++) {
                 jobBatch.setDistrictResult(i, districtResults.get(i));
             }

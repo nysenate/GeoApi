@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 
@@ -73,8 +74,15 @@ public class JobRecord
 
     public void applyGeocodeResult(GeocodeResult geocodeResult)
     {
-        if (geocodeResult != null && geocodeResult.isSuccess()) {
-            this.geocode = geocodeResult.getGeocode();
+        if (geocodeResult != null && geocodeResult.isSuccess() && geocodeResult.getGeocodedAddress() != null) {
+            GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
+            this.geocode = geocodedAddress.getGeocode();
+
+            /** If the quality is adequate, also set the address */
+            if (this.geocode.getQuality().compareTo(GeocodeQuality.HOUSE) >= 0 && geocodedAddress.isValidAddress()) {
+                this.correctedAddress = geocodeResult.getAddress();
+            }
+
             this.dataMap.put(Column.lat, this.geocode.getLat());
             this.dataMap.put(Column.lon, this.geocode.getLon());
             this.dataMap.put(Column.geoMethod, this.geocode.getMethod());
@@ -141,6 +149,7 @@ public class JobRecord
 
     /** Implicit getters */
     public GeocodedAddress getGeocodedAddress() {
-        return (geocode != null) ?  new GeocodedAddress(address, geocode) : new GeocodedAddress();
+        boolean hasCorrectedAddress = this.correctedAddress != null && !this.correctedAddress.isEmpty();
+        return (geocode != null) ?  new GeocodedAddress((hasCorrectedAddress ? correctedAddress : address), geocode) : new GeocodedAddress();
     }
 }

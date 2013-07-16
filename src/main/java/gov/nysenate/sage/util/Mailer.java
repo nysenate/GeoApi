@@ -50,12 +50,17 @@ public class Mailer
 
     public void sendMail(String to, String subject, String message) throws Exception
     {
-        sendMail(to, subject, message, SMTP_ACCOUNT_USER, "SAGE");
+        sendMail(to, subject, message, SMTP_ADMIN, "SAGE");
     }
 
     public void sendMail(String to, String subject, String message, String from, String fromDisplay) throws Exception
     {
 	    if (!SMTP_ACTIVE.equals("true")) return;
+
+        /** Set FROM to admin if it is empty */
+        if (from == null || from.isEmpty()) {
+            from = SMTP_ADMIN;
+        }
 
 		Properties props = new Properties();
 		props.put("mail.smtp.host", SMTP_HOST_NAME);

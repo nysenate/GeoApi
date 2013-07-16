@@ -299,6 +299,9 @@
                                     <th>Status</th>
                                 </tr>
                                 </thead>
+                                <tr ng-hide="allProcesses">
+                                    <td>No files have been processed.</td>
+                                </tr>
                                 <tr ng-repeat="process in allProcesses">
                                     <td>{{process.processId}}</td>
                                     <td>{{process.process.sourceFileName}}</td>

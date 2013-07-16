@@ -222,7 +222,6 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
             districtResults = districtService.assignDistricts(geocodedAddresses, districtTypes);
         }
         else {
-
             if (districtStrategy == null) {
                 districtStrategy = BATCH_DISTRICT_STRATEGY;
             }

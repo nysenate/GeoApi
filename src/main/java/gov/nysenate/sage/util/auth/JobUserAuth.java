@@ -38,7 +38,12 @@ public class JobUserAuth
 
     public JobUser addActiveJobUser(String email, String password, String firstname, String lastname)
     {
-        JobUser jobUser = new JobUser(email, BCrypt.hashpw(password, BCrypt.gensalt()), firstname, lastname);
+        return addActiveJobUser(email, password, firstname, lastname, false);
+    }
+
+    public JobUser addActiveJobUser(String email, String password, String firstname, String lastname, boolean admin)
+    {
+        JobUser jobUser = new JobUser(email, BCrypt.hashpw(password, BCrypt.gensalt()), firstname, lastname, admin);
         jobUser.setActive(true);
 
         int status = jobUserDao.addJobUser(jobUser);
