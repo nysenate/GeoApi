@@ -18,6 +18,7 @@ import java.util.List;
 public class EmbeddedMapController extends BaseMapController
 {
     private static Logger logger = Logger.getLogger(EmbeddedMapController.class);
+    private static String MAPS_JSP = "/views/maps.jsp";
 
     @Override
     public void init(ServletConfig config) throws ServletException {}
@@ -49,6 +50,6 @@ public class EmbeddedMapController extends BaseMapController
         request.setAttribute("districtType", districtType);
         request.setAttribute("districtCode", districtCode);
 
-        request.getRequestDispatcher("/maps.jsp").forward(request, response);
+        request.getRequestDispatcher(MAPS_JSP).forward(request, response);
     }
 }

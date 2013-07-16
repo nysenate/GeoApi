@@ -76,6 +76,12 @@ em {color: red;}
     margin-right:340px;
 }
 
+#mapcontentcolumn {
+    margin: 0;
+    height:100%;
+    background-color:black;
+}
+
 .innertube {
     margin-top: 0;
     height:100%;
@@ -489,7 +495,6 @@ table.light-table tr {
     border-bottom:1px solid #ddd;
 }
 
-
 /*-------------------------------------------------------
   Senator Results Display
   ------------------------------------------------------*/
@@ -776,7 +781,7 @@ div.cancel {
 
 #jobInstructions {
     border: 1px solid #ddd;
-    width: 820px;
+    width: 85%;
     padding: 10px;
     margin: auto;
     box-shadow: 0 0 1px 0 #eee;
@@ -830,14 +835,33 @@ ul.horizontal li {
 .highlight-section {
     border: 1px solid #ddd;
     padding: 10px;
-    box-shadow: 0 2px 1px #bbb;
     background: white;
     margin: 10px;
+    min-width: 900px;
+}
+
+.highlight-section .title {
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 1px solid #0E4E5A;
+    padding: 5px;
+    color: #0E4E5A;
 }
 
 .highlight-section label {
     color:teal;
     font-weight:600;
+}
+
+table.admin-table {
+    text-align:left;
+    width:100%;
+    font-size:14px;
+    color:#333;
+}
+
+table.admin-table tr {
+    border-bottom:1px solid #ddd;
 }
 
 #geocoder-stats {
@@ -850,7 +874,30 @@ ul.horizontal li {
     width:auto;
 }
 
-/** Google Autocomplete */
+.create-entity {
+    text-align: left;
+    padding: 5px;
+    margin-top: 10px;
+}
+
+.create-entity label {
+    margin-right:10px;
+    font-weight:400;
+    font-size:13px;
+}
+
+.create-entity input {
+    border:1px solid #ddd;
+    margin-right:20px;
+}
+
+.create-entity input:last-child {
+    margin-right:0;
+}
+
+/*-------------------------------------------------------
+  Google Autocomplete
+--------------------------------------------------------*/
 .pac-container {
     font-size: 14px;
 }

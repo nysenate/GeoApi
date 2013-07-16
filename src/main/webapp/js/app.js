@@ -47,8 +47,8 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.activeMarker = null;
     mapService.mapTitle = "Map";
     mapService.districtData = null;
-    //                    teal      orangered    green      red        yellow     darkblue    pink      purple
-    mapService.colors = ["#008080", "#ff4500", "#639A00", "#CC333F", "#EDC951", "#547980", "#F56991", "#351330"];
+    //                    teal      orangered    green      red        yellow     cyan    pink         purple     darkblue
+    mapService.colors = ["#008080", "#ff4500", "#639A00", "#CC333F", "#EDC951", "#09AA91", "#F56991", "#524656", "#547980"];
 
     /**
      * Resize when window size changes
@@ -247,7 +247,8 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             path: 'M 0,-0.5 0,0.5',
             strokeWeight: 3,
             strokeOpacity: 1,
-            scale: 1
+            scale: 1,
+            zIndex: 1000
         }, lineSymbolStyle);
 
         if (style === null || typeof style === 'undefined') {
@@ -781,11 +782,11 @@ sage.controller("EmbeddedMapController", function($scope, $http, $window, dataBu
                 })
                 .error(function(data){});
         }
-    }
+    };
 
     $scope.getDistrictMapUrl = function () {
         return contextPath + baseApi + "/map/" + this.districtType + "?showMembers=true" + ((this.districtCode) ? ("&district=" + this.districtCode) : "");
-    }
+    };
 
     $scope.lookup();
 });
@@ -826,12 +827,12 @@ sage.controller('ResultsViewController', function($scope, dataBus, mapService) {
             }
         }
         return false;
-    }
+    };
 
     $scope.closeResults = function() {
         $scope.centercolumn.removeClass($scope.toggleClass);
         $scope.rightcolumn.hide();
-    }
+    };
 
     $scope.openResults = function() {
         $scope.centercolumn.addClass($scope.toggleClass);
@@ -1183,8 +1184,8 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
                                     "</div>");
                         }
                     });
-                    $scope.showPrompt = true;
-                    $scope.showInfo = true;
+                    $scope.showPrompt = false;
+                    $scope.showInfo = false;
                 }
             }
         }
@@ -1280,6 +1281,7 @@ $(document).ready(function(){
 
     function resizeContentColumn() {
         $('#contentcolumn').height($(window).height() - 82);
+        $('#mapcontentcolumn').height($(window).height() - 41);
         $('.scrollable-content').height($(window).height() - 81);
     }
 
