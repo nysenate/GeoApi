@@ -300,7 +300,7 @@
                 </div>
                 <div style="color:#444;font-size:13px;border-bottom:1px solid #ddd" ng-switch="matchLevel" ng-show="multiMatch" class="info-container connected slim">
                     <span style="color:orangered">Note: </span>
-                    <span ng-switch-when="STREET">Street boundary is approximated.</span>
+                    <span ng-switch-when="STREET">Street boundary may be incomplete.</span>
                     <span ng-switch-when="ZIP5">Zip code boundary is approximated.</span>
                     <span ng-switch-when="CITY">City boundary is approximated.</span>
                 </div>
@@ -400,7 +400,11 @@
                     <div class="info-container connected-top">
                         <div ng-repeat="(i, d) in overlaps.senate">
                             <div ng-show="matchLevel != 'STREET'" class="small-box" ng-style="getBgStyle(i)">{{(d.areaPercentage*100).toFixed(0) || '<1'}}%</div>
-                            <div style="line-height:28px;"><a target="_blank" ng-href="{{overlaps.senate[i].member.url}}"><span ng-style="getColorStyle(d.district)">District {{d.district}}</span> | {{d.member.name}}</a></div>
+                            <div style="line-height:28px;">
+                                <a target="_blank" ng-href="{{overlaps.senate[i].member.url}}">
+                                    <span style="font-weight: bold" ng-style="getColorStyle(d.district)">District {{d.district}}</span> | {{d.member.name}}
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

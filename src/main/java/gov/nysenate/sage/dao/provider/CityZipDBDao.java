@@ -7,8 +7,7 @@ import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class CityZipDBDao extends BaseDao
 {
@@ -17,6 +16,10 @@ public class CityZipDBDao extends BaseDao
 
     private static String SCHEMA = "public";
     private static String TABLE = "cityzip";
+
+    /** List of cities that should accept any location type */
+    private static Set<String> cityExceptions = new HashSet<>(
+            Arrays.asList("New York", "Manhattan", "Queens", "Brooklyn", "Bronx", "Staten Island"));
 
     /**
      * Returns a list of zip codes given a city name.
@@ -29,7 +32,9 @@ public class CityZipDBDao extends BaseDao
         if (city == null || city.isEmpty()) return null; // Short circuit
         String sql = "SELECT DISTINCT zip5 \n" +
                      "FROM " + SCHEMA + "." + TABLE + "\n" +
-                     "WHERE city = upper(trim(?)) AND type = 'STANDARD' AND (locationType = 'PRIMARY' OR locationType = 'ACCEPTABLE')";
+                     "WHERE city = upper(trim(?)) AND type = 'STANDARD' \n" +
+                     (!cityExceptions.contains(city) ? " AND (locationType = 'PRIMARY' OR locationType = 'ACCEPTABLE')"
+                                                     : "");
         try {
             return run.query(sql, new ResultSetHandler<List<String>>() {
                 @Override
