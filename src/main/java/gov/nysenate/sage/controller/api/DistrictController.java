@@ -9,6 +9,7 @@ import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
@@ -226,16 +227,28 @@ public class DistrictController extends BaseApiController implements Observer
         DistrictResult districtResult;
         GeocodedAddress geocodedAddress;
         Boolean zipProvided = false;
+        Boolean isPoBox = false;
+
+        /** Parse the input address */
+        StreetAddress streetAddress = null;
+        try {
+            streetAddress = StreetAddressParser.parseAddress(address);
+        }
+        catch (Exception ex) {
+            logger.debug("Failed to parse input address");
+        }
 
         /** Perform geocoding for address input */
         if (districtRequest.getAddress() != null && !districtRequest.getAddress().isEmpty()) {
             geocodedAddress = new GeocodedAddress(address);
-            zipProvided = isZipProvided(address);
+            zipProvided = isZipProvided(streetAddress);
+            isPoBox = (streetAddress != null) ? streetAddress.isPoBoxAddress() : false;
+            logger.trace("Is PO BOX: " + isPoBox);
 
             /** Geocode address unless opted out */
             if (!districtRequest.isSkipGeocode()) {
                 GeocodeRequest geocodeRequest = new GeocodeRequest(districtRequest.getApiRequest(), address, districtRequest.getGeoProvider(), true, true);
-                geocodedAddress = performGeocode(geocodeRequest);
+                geocodedAddress = performGeocode(geocodeRequest, isPoBox);
             }
         }
         /** Possibly perform reverse geocoding for point input */
@@ -257,12 +270,16 @@ public class DistrictController extends BaseApiController implements Observer
         }
 
         /** Obtain district result */
-        districtResult = performDistrictAssign(districtRequest, geocodedAddress, zipProvided);
+        districtResult = performDistrictAssign(districtRequest, geocodedAddress, zipProvided, isPoBox);
         logger.debug("Obtained district result with assigned districts: " + FormatUtil.toJsonString(districtResult.getAssignedDistricts()));
 
         /** Perform usps address correction if requested */
         if (districtRequest.isUspsValidate()) {
-            districtResult.setUspsValidated(performAddressCorrection(address, geocodedAddress));
+            districtResult.setUspsValidated(performAddressCorrection(address, geocodedAddress, isPoBox, streetAddress));
+        }
+        /** Adjust address if it's a PO BOX */
+        else if (isPoBox && districtResult.getAddress() != null) {
+            districtResult.getAddress().setAddr1("Po Box " + streetAddress.getPoBox());
         }
 
         /** Add map and boundary information to the district result */
@@ -286,17 +303,14 @@ public class DistrictController extends BaseApiController implements Observer
 
     /**
      * Determines if a zip5 was specified in the input address.
-     * @param address       Input Address
+     * @param streetAddress  Parsed input Address
      * @return  True if zip5 was provided, false otherwise
      */
-    private Boolean isZipProvided(Address address) {
+    private Boolean isZipProvided(StreetAddress streetAddress) {
         Boolean zipProvided = false;
-        try {
-            String zip5 = StreetAddressParser.parseAddress(address).getZip5();
+        if (streetAddress != null) {
+            String zip5 = streetAddress.getZip5();
             zipProvided = (!zip5.isEmpty() && zip5.length() == 5);
-        }
-        catch (Exception ex) {
-            logger.debug("Error trying to initially parse address input");
         }
         return zipProvided;
     }
@@ -306,11 +320,15 @@ public class DistrictController extends BaseApiController implements Observer
      * @param geoRequest The GeocodeRequest to handle.
      * @return GeocodedAddress
      */
-    private GeocodedAddress performGeocode(GeocodeRequest geoRequest)
+    private GeocodedAddress performGeocode(GeocodeRequest geoRequest, boolean isPoBox)
     {
         Address address = geoRequest.getAddress();
         String geoProvider = geoRequest.getProvider();
 
+        /** Geocoding for Po Box works better when the address line is empty */
+        if (isPoBox && address != null && address.isParsed()) {
+            address.setAddr1("");
+        }
         GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
                                                             : geocodeProvider.geocode(address);
         /** Log geocode request/result to database */
@@ -327,10 +345,13 @@ public class DistrictController extends BaseApiController implements Observer
      * on the supplied geocodedAddress parameter.
      * @return GeocodedAddress the address corrected geocodedAddress.
      */
-    private boolean performAddressCorrection(Address address, GeocodedAddress geocodedAddress)
+    private boolean performAddressCorrection(Address address, GeocodedAddress geocodedAddress, boolean isPoBox, StreetAddress streetAddress)
     {
         Address addressToCorrect = (geocodedAddress != null && geocodedAddress.isValidAddress())
                                    ? geocodedAddress.getAddress() : address;
+        if (isPoBox && addressToCorrect != null) {
+            addressToCorrect.setAddr1("PO BOX " + streetAddress.getPoBox());
+        }
         AddressResult addressResult = addressProvider.newInstance("usps").validate(addressToCorrect);
         if (addressResult.isValidated() && geocodedAddress != null) {
             logger.debug("USPS Validated Address: " + addressResult.getAddress());
@@ -346,7 +367,7 @@ public class DistrictController extends BaseApiController implements Observer
      * @param geocodedAddress
      * @return
      */
-    private DistrictResult performDistrictAssign(DistrictRequest dr, GeocodedAddress geocodedAddress, Boolean zipProvided)
+    private DistrictResult performDistrictAssign(DistrictRequest dr, GeocodedAddress geocodedAddress, Boolean zipProvided, Boolean isPoBox)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
         districtResult.setStatusCode(NO_DISTRICT_RESULT);
@@ -358,7 +379,7 @@ public class DistrictController extends BaseApiController implements Observer
                     Address address = geocodedAddress.getAddress();
                     logger.trace(FormatUtil.toJsonString(geocodedAddress));
                     /** House level matches and above can utilize default district assignment behaviour */
-                    if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
+                    if (level.compareTo(GeocodeQuality.HOUSE) >= 0 || isPoBox) {
                         districtResult = districtProvider.assignDistricts(geocodedAddress, dr.getProvider(),
                                 DistrictType.getStandardTypes(), dr.getDistrictStrategy());
                     }

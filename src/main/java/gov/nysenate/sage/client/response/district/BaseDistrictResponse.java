@@ -5,6 +5,7 @@ import gov.nysenate.sage.client.view.address.AddressView;
 import gov.nysenate.sage.client.view.district.DistrictsView;
 import gov.nysenate.sage.client.view.geo.GeocodeView;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 
 public abstract class BaseDistrictResponse extends BaseResponse
@@ -22,7 +23,7 @@ public abstract class BaseDistrictResponse extends BaseResponse
         super(districtResult);
         if (districtResult != null) {
 
-            this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
+            this.districtAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
             this.matchLevel = districtResult.getDistrictMatchLevel().name();
             this.isMultiMatch = districtResult.isMultiMatch();
 
