@@ -34,7 +34,7 @@ public abstract class DistrictMemberProvider
         SenateDao senateDao = new SenateDao();
 
         /** Proceed on either a success or partial result */
-        if (districtResult.isSuccess() || districtResult.isPartialSuccess()) {
+        if (districtResult.isSuccess()) {
             DistrictInfo districtInfo = districtResult.getDistrictInfo();
             if (districtInfo != null) {
                 /** Set the Senate, Congressional, and Assembly data using the respective daos */

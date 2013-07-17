@@ -64,9 +64,13 @@ public abstract class DistrictServiceValidator
             districtResult.setDistrictMatchLevel(DistrictMatchLevel.NOMATCH);
             return false;
         }
-        /** If the result is only partial it still has some value so we don't want to return false here */
+        /** If the result is only partial, set completelyAssigned to false. */
         else if (!districtInfo.getAssignedDistricts().containsAll(reqTypes)) {
-            districtResult.setStatusCode(PARTIAL_DISTRICT_RESULT);
+            districtInfo.setCompletelyAssigned(false);
+        }
+        /** Otherwise set completelyAssigned to true */
+        else {
+            districtInfo.setCompletelyAssigned(true);
         }
         return true;
     }

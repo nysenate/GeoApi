@@ -281,7 +281,7 @@
                 </div>
                 <!-- Geocoded location information -->
                 <div class="info-container title" ng-switch="matchLevel" ng-show="geocoded && (districtAssigned || multiMatch)">
-                    <p ng-switch-when="POINT">Showing matching results for address</p>
+                    <p ng-switch-when="HOUSE">Showing matching results for address</p>
                     <p ng-switch-when="STREET">Showing matching results for street</p>
                     <p ng-switch-when="CITY">Showing matching results for city</p>
                     <p ng-switch-when="ZIP5">Showing matching results for zip code</p>
@@ -388,7 +388,7 @@
                 </div>
                 <div id="multi-senate-results" ng-show="multiMatch && overlaps.senate.length > 1">
                     <div class="info-container title connected-bottom">
-                        <p class="member-name" style="color:orangered;">{{overlaps.senate.length}} Senate District Matches</p>
+                        <p class="member-name">{{overlaps.senate.length}} Senate District Matches</p>
                     </div>
                     <div class="info-container title connected">
                         <span class="message" ng-switch="matchLevel">

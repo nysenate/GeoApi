@@ -172,6 +172,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
             }
         }
 
+        districtResult.setSource(DistrictServiceProvider.class);
         districtResult.setGeocodedAddress(geocodedAddress);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
 
@@ -347,12 +348,12 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     {
         switch (strategy) {
             case neighborMatch:
-                if (shapeResult.isSuccess() || shapeResult.isPartialSuccess()) {
+                if (shapeResult.isSuccess()) {
                     DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
                     String address = (shapeResult.getAddress() != null) ? shapeResult.getAddress().toString() : "Missing Address!";
 
                     /** Can only consolidate if street result exists */
-                    if (streetResult.isSuccess() || streetResult.isPartialSuccess()) {
+                    if (streetResult.isSuccess()) {
                         DistrictInfo streetInfo = streetResult.getDistrictInfo();
                         Set<DistrictType> fallbackSet = new HashSet<>(streetResult.getAssignedDistricts());
 
@@ -423,11 +424,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                 return shapeResult;
 
             case streetFallback:
-                if (shapeResult.isSuccess() || shapeResult.isPartialSuccess()) {
+                if (shapeResult.isSuccess()) {
                     DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
 
                     /** Can only consolidate if street result exists */
-                    if (streetResult.isSuccess() || streetResult.isPartialSuccess()) {
+                    if (streetResult.isSuccess()) {
                         Set<DistrictType> streetAssignedSet = new HashSet<>(streetResult.getAssignedDistricts());
                         DistrictInfo streetInfo = streetResult.getDistrictInfo();
 
@@ -453,7 +454,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                 }
 
             case shapeFallback:
-                if (!streetResult.isSuccess() && !streetResult.isPartialSuccess()) {
+                if (!streetResult.isSuccess()) {
                     return shapeService.assignDistricts(geocodedAddress);
                 }
                 else {
@@ -491,7 +492,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
      */
     private DistrictResult assignNeighbors(DistrictService shapeService, DistrictResult shapeResult)
     {
-        if (shapeResult != null && (shapeResult.isSuccess() || shapeResult.isPartialSuccess())) {
+        if (shapeResult != null && (shapeResult.isSuccess())) {
             DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
             GeocodedAddress geocodedAddress = shapeResult.getGeocodedAddress();
 

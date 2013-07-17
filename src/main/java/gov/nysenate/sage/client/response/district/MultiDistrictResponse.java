@@ -1,7 +1,7 @@
 package gov.nysenate.sage.client.response.district;
 
+import gov.nysenate.sage.client.view.district.DistrictOverlapView;
 import gov.nysenate.sage.client.view.district.MappedDistrictOverlapView;
-import gov.nysenate.sage.client.view.district.MappedDistrictsView;
 import gov.nysenate.sage.client.view.map.MapView;
 import gov.nysenate.sage.client.view.street.StreetRangeView;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
@@ -17,23 +17,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MappedMultiDistrictResponse extends MappedDistrictResponse
+public class MultiDistrictResponse extends DistrictResponse
 {
-    protected Map<String, List<MappedDistrictOverlapView>> overlaps = new HashMap<>();
-    protected MapView referenceMap;
-    protected MapView streetLine;
+    protected Map<String, List<DistrictOverlapView>> overlaps = new HashMap<>();
     protected BigDecimal totalReferenceArea;
     protected String areaUnit;
     protected List<StreetRangeView> streets = new ArrayList<>();
 
-    public MappedMultiDistrictResponse(DistrictResult districtResult) {
+    public MultiDistrictResponse(DistrictResult districtResult)
+    {
         super(districtResult);
         DistrictInfo districtInfo = districtResult.getDistrictInfo();
         DistrictMatchLevel districtMatchLevel = districtResult.getDistrictMatchLevel();
 
         if (districtInfo != null) {
             if (!districtInfo.getDistrictOverlaps().isEmpty()) {
-                this.referenceMap = new MapView(districtInfo.getReferenceMap());
 
                 Map<DistrictType, DistrictOverlap> overlapsByDistrictType = districtInfo.getDistrictOverlaps();
                 for (DistrictType districtType : overlapsByDistrictType.keySet()) {
@@ -46,16 +44,16 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
                     }
 
                     if (overlap != null) {
-                        List<MappedDistrictOverlapView> mappedOverlaps = new ArrayList<>();
+                        List<DistrictOverlapView> overlapViews = new ArrayList<>();
                         for (String district : overlap.getOverlapDistrictCodes()) {
-                            mappedOverlaps.add(new MappedDistrictOverlapView(overlap, district, districtMatchLevel));
+                            overlapViews.add(new DistrictOverlapView(overlap, district, districtMatchLevel));
                         }
-                        overlaps.put(districtType.name().toLowerCase(), mappedOverlaps);
+                        overlaps.put(districtType.name().toLowerCase(), overlapViews);
                     }
                 }
             }
+
             /** Handle street line matches */
-            this.streetLine = new MapView(districtInfo.getStreetLineReference());
             if (districtInfo.getStreetRanges() != null && !districtInfo.getStreetRanges().isEmpty()) {
                 for (DistrictedStreetRange dsr : districtInfo.getStreetRanges()) {
                     this.streets.add(new StreetRangeView(dsr));
@@ -64,12 +62,8 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
         }
     }
 
-    public Map<String, List<MappedDistrictOverlapView>> getOverlaps() {
+    public Map<String, List<DistrictOverlapView>> getOverlaps() {
         return overlaps;
-    }
-
-    public MapView getReferenceMap() {
-        return referenceMap;
     }
 
     public BigDecimal getTotalReferenceArea() {
@@ -78,10 +72,6 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
 
     public String getAreaUnit() {
         return areaUnit;
-    }
-
-    public MapView getStreetLine() {
-        return streetLine;
     }
 
     public List<StreetRangeView> getStreets() {

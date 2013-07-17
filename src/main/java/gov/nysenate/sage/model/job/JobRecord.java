@@ -92,7 +92,7 @@ public class JobRecord
 
     public void applyDistrictResult(DistrictResult districtResult)
     {
-        if (districtResult != null && (districtResult.isSuccess() || districtResult.isPartialSuccess())) {
+        if (districtResult != null && (districtResult.isSuccess())) {
             this.districtInfo = districtResult.getDistrictInfo();
             this.dataMap.put(Column.senate, districtInfo.getDistCode(DistrictType.SENATE));
             this.dataMap.put(Column.assembly, districtInfo.getDistCode(DistrictType.ASSEMBLY));

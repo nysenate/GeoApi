@@ -6,7 +6,7 @@ package gov.nysenate.sage.model.district;
  */
 public enum DistrictMatchLevel
 {
-    NOMATCH(0), STATE(10), CITY(50), ZIP5(70), STREET(80), HOUSE(90), POINT(100);
+    NOMATCH(0), STATE(10), CITY(50), ZIP5(70), STREET(80), HOUSE(100);
 
     private int value;
 

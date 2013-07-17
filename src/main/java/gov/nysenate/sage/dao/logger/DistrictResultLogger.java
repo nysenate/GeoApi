@@ -28,7 +28,7 @@ public class DistrictResultLogger extends BaseDao
         logger.debug("Starting to log district result");
         if (dr != null) {
             String sd = null, ad = null, cd = null, cc = null;
-            if (dr.isSuccess() || dr.isPartialSuccess()) {
+            if (dr.isSuccess()) {
                 DistrictInfo dinfo = dr.getDistrictedAddress().getDistrictInfo();
                 sd = dinfo.getDistCode(DistrictType.SENATE);
                 ad = dinfo.getDistCode(DistrictType.ASSEMBLY);
@@ -40,7 +40,7 @@ public class DistrictResultLogger extends BaseDao
                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?) \n" +
                          "RETURNING id";
             try {
-                int id = run.query(sql, new ReturnIdHandler(), districtRequestId, dr.isSuccess() || dr.isPartialSuccess(), dr.getStatusCode().name(),
+                int id = run.query(sql, new ReturnIdHandler(), districtRequestId, dr.isSuccess(), dr.getStatusCode().name(),
                                                              sd, ad, cd, cc, dr.getResultTime());
                 logger.debug("Saved district result id: " + id);
                 return id;

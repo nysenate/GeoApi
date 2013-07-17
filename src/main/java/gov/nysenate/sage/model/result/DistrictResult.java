@@ -18,6 +18,9 @@ public class DistrictResult extends BaseResult
     /** Contains the geocoded address and district information */
     protected DistrictedAddress districtedAddress;
 
+    /** Indicates if USPS Address correction was performed */
+    protected boolean uspsValidated;
+
     public DistrictResult()
     {
         this(null, null);
@@ -106,21 +109,18 @@ public class DistrictResult extends BaseResult
     }
 
     /**
-     * Determines if result assigned only a subset of the districts requested were assigned as in the
-     * case when returning street file results with missing data or during multi district matching.
-     * @return
-     */
-    public boolean isPartialSuccess() {
-        return (this.statusCode != null &&
-               (this.statusCode.equals(ResultStatus.PARTIAL_DISTRICT_RESULT) ||
-                this.statusCode.equals(ResultStatus.MULTIPLE_DISTRICT_RESULT)));
-    }
-
-    /**
      * Determines if result has a multi district overlap condition.
      * @return true if multi match, false otherwise
      */
     public boolean isMultiMatch() {
-        return (this.statusCode != null && this.statusCode.equals(ResultStatus.MULTIPLE_DISTRICT_RESULT));
+        return (this.isSuccess() && this.getDistrictMatchLevel().compareTo(DistrictMatchLevel.HOUSE) < 0);
+    }
+
+    public boolean isUspsValidated() {
+        return uspsValidated;
+    }
+
+    public void setUspsValidated(boolean uspsValidated) {
+        this.uspsValidated = uspsValidated;
     }
 }

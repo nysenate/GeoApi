@@ -19,6 +19,9 @@ public class DistrictInfo
     /** A set of DistrictTypes that were actually district assigned. */
     protected Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
 
+    /** If true, then all districts that were requested were assigned */
+    protected boolean completelyAssigned;
+
     /** A set of the DistrictTypes that might be incorrectly assigned. */
     protected Set<DistrictType> nearBorderDistricts = new LinkedHashSet<>();
 
@@ -102,6 +105,14 @@ public class DistrictInfo
         else {
             this.assignedDistricts.remove(districtType);
         }
+    }
+
+    public boolean isCompletelyAssigned() {
+        return completelyAssigned;
+    }
+
+    public void setCompletelyAssigned(boolean completelyAssigned) {
+        this.completelyAssigned = completelyAssigned;
     }
 
     public DistrictMap getDistMap(DistrictType districtType) {

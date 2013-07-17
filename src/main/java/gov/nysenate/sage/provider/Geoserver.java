@@ -88,7 +88,7 @@ public class Geoserver implements DistrictService, Observer
                 return districtResult;
             }
             /** Set the result. The quality here is always point since it's based of a geocode */
-            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.POINT));
+            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
         }
         catch (Exception ex) {
             districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);

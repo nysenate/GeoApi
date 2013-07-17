@@ -69,8 +69,8 @@ public class DistrictShapefile implements DistrictService, MapService
             if (!validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
                 return districtResult;
             }
-            /** Set the result. The quality here is always point since it's based of a geocode */
-            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.POINT));
+            /** Set the result */
+            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
         }
         catch (Exception ex) {
             districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
@@ -228,7 +228,7 @@ public class DistrictShapefile implements DistrictService, MapService
                            // }
                         }
                     }
-                    resultStatus = ResultStatus.MULTIPLE_DISTRICT_RESULT;
+                    resultStatus = ResultStatus.SUCCESS;
                     districtedAddress.setDistrictInfo(districtInfo);
                     districtedAddress.setDistrictMatchLevel(matchLevel);
                     logger.info("Resulting match level: " + matchLevel);

@@ -70,7 +70,7 @@ public abstract class BaseApiController extends HttpServlet
     }
 
     /**
-     * Constructs a new Point objct using the query parameters of the supplied HttpServletRequest
+     * Constructs a new Point object using the query parameters of the supplied HttpServletRequest
      * @param r     HttpServletRequest
      * @return      new Point instance or null
      */
