@@ -399,11 +399,17 @@
                     </div>
                     <div class="info-container connected-top">
                         <div ng-repeat="(i, d) in overlaps.senate">
-                            <div ng-show="matchLevel != 'STREET'" class="small-box" ng-style="getBgStyle(i)">{{(d.areaPercentage*100).toFixed(0) || '<1'}}%</div>
-                            <div style="line-height:28px;">
-                                <a target="_blank" ng-href="{{overlaps.senate[i].member.url}}">
-                                    <span style="font-weight: bold" ng-style="getColorStyle(d.district)">District {{d.district}}</span> | {{d.member.name}}
-                                </a>
+                            <div ng-show="matchLevel != 'STREET'" style="line-height:42px;height:42px;margin-right:0;" class="small-box" ng-style="getBgStyle(i)">{{(d.areaPercentage*100).toFixed(0) || '<1'}}%</div>
+                            <div class="senator" style="height:56px;">
+                                <div class="senator-pic-holder" style="width:50px;height:50px;">
+                                    <a target="_blank" ng-href="{{d.member.url}}"><img ng-src="{{d.member.imageUrl | senatorPic}}" class="senator-pic"></a>
+                                </div>
+                                <div>
+                                    <p class="senator member-name">
+                                        <a target="_blank" ng-href="{{d.member.url}}">{{d.member.name}}</a>
+                                    </p>
+                                    <p class="senate district" ng-style="getColorStyle(d.district)">Senate District {{d.district}}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
