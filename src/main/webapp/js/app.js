@@ -222,7 +222,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
             /** Set the zoom level to the district bounds */
             if (fitBounds) {
-                this.map.fitBounds(this.polygon.getBounds());
+                this.map.fitBounds(google.maps.getBoundsForPolygons(this.polygons));
                 this.map.setZoom(this.map.getZoom());
             }
 
@@ -1306,6 +1306,21 @@ $(document).ready(function(){
         var bounds = new google.maps.LatLngBounds();
         this.getPath().forEach(function(e) {
             bounds.extend(e);
+        });
+        return bounds;
+    };
+
+    google.maps.getBoundsForPolygons = function(polygons) {
+        var bounds = new google.maps.LatLngBounds();
+        $.each(polygons, function(index, polygon){
+            var paths = polygon.getPaths();
+            var path;
+            for (var i = 0; i < paths.getLength(); i++) {
+                path = paths.getAt(i);
+                for (var ii = 0; ii < path.getLength(); ii++) {
+                    bounds.extend(path.getAt(ii));
+                }
+            }
         });
         return bounds;
     };
