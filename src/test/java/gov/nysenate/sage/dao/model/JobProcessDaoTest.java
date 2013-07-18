@@ -78,19 +78,19 @@ public class JobProcessDaoTest extends TestBase
     public void getJobStatusesByConditions()
     {
         FormatUtil.printObject(jpDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.CANCELLED,
-                                         JobProcessStatus.Condition.WAITING_FOR_CRON)));
+                                         JobProcessStatus.Condition.WAITING_FOR_CRON), jobUser));
     }
 
     @Test
     public void getActiveJobStatuses()
     {
-        FormatUtil.printObject(jpDao.getActiveJobStatuses());
+        FormatUtil.printObject(jpDao.getActiveJobStatuses(jobUser));
     }
 
     @Test
     public void getInactiveJobStatuses()
     {
-        FormatUtil.printObject(jpDao.getInactiveJobStatuses());
+        FormatUtil.printObject(jpDao.getInactiveJobStatuses(jobUser));
     }
 
     @Test

@@ -21,16 +21,16 @@ The API requests must be crafted to match the following structure::
 All API requests need to be validated using an assigned API key however it is not required when requests are made from
 within the NY Senate's network. The key is supplied using the query parameter ``key``::
 
-    /api/v2/<group>/<method>/<params..>&key=YOUR KEY HERE
+    /api/v2/<group>/<method>?<params..>&key=YOUR KEY HERE
 
 The default output format is ``JSON``. To change the output to ``XML`` or ``JSON-P`` simply set the ``format`` query
 parameter to ``xml`` or ``jsonp``. For example to set to xml::
 
-    /api/v2/geo/geocode/addr=200 State St, Albany NY&format=xml
+    /api/v2/geo/geocode?addr=200 State St, Albany NY&format=xml
 
 To output JSON-P a callback must also be specified.::
 
-    /api/v2/geo/geocode/addr=200 State St, Albany NY&format=jsonp&callback=methodName
+    /api/v2/geo/geocode?addr=200 State St, Albany NY&format=jsonp&callback=methodName
 
 Groups
 ~~~~~~
@@ -133,7 +133,7 @@ A failed validation response::
       "messages" : [ ],
       "address" : null,
       "validated" : false,
-      "statusCode" : 420,
+      "statusCode" : 73,
       "description" : "The address could not be validated."
     }
 
@@ -166,7 +166,7 @@ A failed city/state response with invalid input::
       "city" : "",
       "state" : "",
       "zip5" : "",
-      "statusCode" : 420,
+      "statusCode" : 73,
       "description" : "The address could not be validated."
     }
 
@@ -194,7 +194,7 @@ A failed zipcode response, similar to the failed validate response::
       "messages" : [ ],
       "zip5" : null,
       "zip4" : null,
-      "statusCode" : 420,
+      "statusCode" : 73,
       "description" : "The address could not be validated."
     }
 
@@ -303,7 +303,7 @@ An unsuccessful response will resemble the following::
       "address" : null,
       "geocode" : null,
       "geocoded" : false,
-      "statusCode" : 410,
+      "statusCode" : 71,
       "description" : "Geocode service returned no results."
     }
 
@@ -425,7 +425,7 @@ In the event that the payload fails to parse, the response will be::
       "status" : "INVALID_BATCH_ADDRESSES",
       "source" : "GeocodeController",
       "messages" : [ ],
-      "statusCode" : 250,
+      "statusCode" : 55,
       "description" : "The supplied batch address list could not be parsed."
     }
 
@@ -469,6 +469,8 @@ The available providers are:
 +------------------+-------------------------------------------------------------------------------+
 | showMaps         | If true: map data is appended for each district.                              |
 +------------------+-------------------------------------------------------------------------------+
+| showMultiMatch   | If true: street range and overlap data will be returned for multi-matches.    |
++------------------+-------------------------------------------------------------------------------+
 | uspsValidate     | If true: usps will be used to perform address correction.                     |
 +------------------+-------------------------------------------------------------------------------+
 | skipGeocode      | If true: no geocoding will occur, useful when provider=streetfile             |
@@ -502,14 +504,17 @@ Assign
 
 The default query usage is as follows::
 
+    Unparsed Format:
     /api/v2/district/assign?addr=280 Madison Ave, New York, NY
+
+    Parsed Format:
     /api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY
 
 The district assignment response::
 
     {
       "status" : "SUCCESS",
-      "source" : "DistrictShapefile",
+      "source" : "DistrictServiceProvider",
       "messages" : [ ],
       "address" : {
         "addr1" : "280 Madison Ave",
@@ -525,19 +530,23 @@ The district assignment response::
         "quality" : "HOUSE",
         "method" : "YahooDao"
       },
+      "geocoded" : true,
+      "districtAssigned" : true,
+      "uspsValidated" : false,
+      "matchLevel" : "HOUSE",
       "districts" : {
         "senate" : {
-          "name" : "State Senate District 27",
+          "name" : "NY Senate District 27",
           "district" : "27",
           "senator" : null
         },
         "congressional" : {
-          "name" : "State Congressional District 12",
+          "name" : "NY Congressional District 12",
           "district" : "12",
           "member" : null
         },
         "assembly" : {
-          "name" : "State Assembly District 73",
+          "name" : "NY Assembly District 73",
           "district" : "73",
           "member" : null
         },
@@ -557,20 +566,192 @@ The district assignment response::
           "name" : "New York",
           "district" : "-NYC"
         },
+        "zip" : {
+          "name" : "10016",
+          "district" : "10016"
+        },
         "cleg" : null,
         "ward" : null,
         "village" : null
       },
-      "geocoded" : true,
-      "districtAssigned" : true,
+      "multiMatch" : false,
       "statusCode" : 0,
       "description" : "Success."
     }
 
+The ``districtAssigned`` field will be true if the senate district was assigned. For most purposes, ensuring that the ``statusCode`` = 0
+and ``districtAssigned`` = true should suffice as a check that the response is successful.
+
 The main components of the response are ``address``, ``geocode``, and ``districts``. The ``address`` typically contains
-a corrected address response from the geocode provider or is the result of USPS correction if ``uspsValidate`` is set to true.
+a corrected address response from the geocode provider or is the result of USPS correction if ``uspsValidated`` is true.
 The ``geocode`` contains the coordinates that were used to perform district assignment. The ``districts`` object contains all
 the district types supported by the service. ``district`` refers to the code or number that represents the district.
+
+The ``matchLevel`` indicates how granular the district assignment is. The following table describes the different ``matchLevel`` values:
+
++------------------+-----------------------------------------------------------------+
+| matchLevel value | Description                                                     |
++==================+=================================================================+
+| HOUSE            | A specific house/bldg address was located and assigned.         |
++------------------+-----------------------------------------------------------------+
+| STREET           | A street range was assigned within the given city or zip5.      |
++------------------+-----------------------------------------------------------------+
+| ZIP5             | A zip5 region was assigned.                                     |
++------------------+-----------------------------------------------------------------+
+| CITY             | The union of zip5 regions that belong to a city were assigned.  |
++------------------+-----------------------------------------------------------------+
+
+If the ``matchLevel`` is not HOUSE, the ``multiMatch`` field will be true. The assigned districts for a non HOUSE match will
+be those that completely encompass that geographic region. If a street spans multiple senate districts, it will not have it's
+senate district assigned. However if a street is contained fully by a senate district, it will have been assigned with that district.
+The same applies to ZIP5 and CITY level lookups. Optionally the ``showMultiMatch`` parameter can be set to true to view all possible
+overlap boundaries and street ranges. The output of that is described below.
+
+If ``showMultiMatch`` is set to true::
+
+    (Note that just the street is supplied to trigger a matchLevel of STREET)
+    /api/v2/district/assign?addr=Madison Ave, NY&showMultiMatch=true
+
+The response will resemble the following (truncated for brevity)::
+
+    {
+      "status" : "SUCCESS",
+      "source" : "DistrictShapefile",
+      "messages" : [ ],
+      "address" : {
+        "addr1" : "Madison Ave",
+        "addr2" : "",
+        "city" : "New York",
+        "state" : "NY",
+        "zip5" : "10010",
+        "zip4" : ""
+      },
+      "geocode" : {
+        "lat" : 40.742119,
+        "lon" : -73.987076,
+        "quality" : "STREET",
+        "method" : "YahooDao"
+      },
+      "geocoded" : true,
+      "districtAssigned" : false,
+      "uspsValidated" : false,
+      "matchLevel" : "STREET",
+      "districts" : {
+        "senate" : null,
+        "congressional" : null,
+        "assembly" : null,
+        "county" : {
+          "name" : "New York County",
+          "district" : "62"
+        },
+        "election" : null,
+        "school" : null,
+        "town" : null,
+        "zip" : null,
+        "cleg" : null,
+        "ward" : null,
+        "village" : null
+      },
+      "overlaps" : {
+        "assembly" : [ {
+          "name" : null,
+          "district" : "68",
+          "intersectionArea" : 6240510.4531401154,
+          "areaPercentage" : 0.11
+        }, {
+          "name" : null,
+          "district" : "70",
+          "intersectionArea" : 4577779.5892158523,
+          "areaPercentage" : 0.08
+        }, {
+          "name" : null,
+          "district" : "73",
+          "intersectionArea" : 4175298.2836983129,
+          "areaPercentage" : 0.07
+        }, {
+          "name" : null,
+          "district" : "75",
+          "intersectionArea" : 6626512.6820231033,
+          "areaPercentage" : 0.12
+        } ],
+        "congressional" : [ {
+          "name" : null,
+          "district" : "13",
+          "intersectionArea" : 18492568.968741294,
+          "areaPercentage" : 0.33
+        }, {
+          "name" : null,
+          "district" : "12",
+          "intersectionArea" : 17861734.376638968,
+          "areaPercentage" : 0.32
+        } ],
+        "senate" : [ {
+          "name" : "NY Senate District 30",
+          "district" : "30",
+          "intersectionArea" : 9377715.5224368814,
+          "areaPercentage" : 0.17
+        }, {
+          "name" : "NY Senate District 27",
+          "district" : "27",
+          "intersectionArea" : 11881916.930670122,
+          "areaPercentage" : 0.21
+        }, {
+          "name" : "NY Senate District 28",
+          "district" : "28",
+          "intersectionArea" : 7893341.056081377,
+          "areaPercentage" : 0.14
+        }, {
+          "name" : "NY Senate District 29",
+          "district" : "29",
+          "intersectionArea" : 5834177.0993249146,
+          "areaPercentage" : 0.10
+        } ]
+      },
+      "totalReferenceArea" : 55823719.26265686,
+      "areaUnit" : "SQ_METERS",
+      "streets" : [ {
+        "bldgLoNum" : 1,
+        "bldgHiNum" : 43,
+        "street" : "MADISON AVE",
+        "location" : "MANHATTAN",
+        "zip5" : "10010",
+        "parity" : "ODDS",
+        "congressional" : "12",
+        "senate" : "28",
+        "assembly" : "75",
+        "county" : "62",
+        "election" : "30",
+        "town" : null
+      }, {
+        "bldgLoNum" : 2,
+        "bldgHiNum" : 2,
+        "street" : "MADISON AVE",
+        "location" : "MANHATTAN",
+        "zip5" : "10010",
+        "parity" : "EVENS",
+        "congressional" : "12",
+        "senate" : "28",
+        "assembly" : "75",
+        "county" : "62",
+        "election" : "29",
+        "town" : null
+      }, (114 more entries..) ],
+      "multiMatch" : true,
+      "statusCode" : 0,
+      "description" : "Success."
+    }
+
+Any districts that were successfully assigned (fully contain the specified street/city/zip) will appear under the ``districts`` field
+as previously described. If there is contention between multiple districts of a certain type (senate, assembly, etc) they will be
+enumerated within the ``overlaps`` field. The ``areaPercentage`` field provides a rough estimate of the geographic area it occupies
+relative to the other districts of the given type. The ``areaPercentage`` is only applicable for CITY and ZIP5 matchLevel responses.
+
+The ``streets`` field is applicable when matchLevel = STREET. It is an array that contains objects representing discrete street ranges
+and the associated districts within that range. This information can be used to determine where district boundaries change within a given
+street. If the zip5 is specified in the input, the range will be limited to that zip. Otherwise the range will be contained within the
+zip boundaries the represent the city.
+
+Map polygon data can be retrieved for purposes of rendering to a 3rd party mapping application.
 
 If ``showMaps`` is set to true::
 
@@ -578,24 +759,7 @@ If ``showMaps`` is set to true::
 
 the ``districts`` portion of the response will be different::
 
-    {
-      "status" : "SUCCESS",
-      "source" : "DistrictShapefile",
-      "messages" : [ ],
-      "address" : {
-        "addr1" : "280 Madison Ave",
-        "addr2" : "",
-        "city" : "New York",
-        "state" : "NY",
-        "zip5" : "10016",
-        "zip4" : "0802"
-      },
-      "geocode" : {
-        "lat" : 40.751352,
-        "lon" : -73.980335,
-        "quality" : "HOUSE",
-        "method" : "YahooDao"
-      },
+    ...
       "districts" : {
         "senate" : {
           "name" : "State Senate District 27",
@@ -704,17 +868,14 @@ the ``districts`` portion of the response will be different::
           "neighbors" : [ ]
         }
       },
-      "geocoded" : true,
-      "districtAssigned" : true,
-      "statusCode" : 0,
-      "description" : "Success."
-    }
+      ...
 
 ``map.geom`` will contain polygon data if ``showMaps`` is true. ``nearBorder`` indicates that the address is very close
 to a district boundary. If ``nearBorder`` is true it suggests that the result for that district may be not be certain although
 by default the service will automatically attempt to correct the uncertain districts. ``neighbors`` will contain a list of
 districts that are near the geocode location but for performance reasons will only be populated if ``nearBorder`` was true
-for that district. Any district that does not have any map data associated with it will have ``map`` : null;
+for that district. The application may also limit neighbor matches to just the senate district to improve performance.
+Any district that does not have any map data associated with it will have ``map`` : null;
 
 .. tip::
      'geom' is an array containing an array of coordinate pairs which are represented as two floats in an array,
@@ -723,24 +884,6 @@ for that district. Any district that does not have any map data associated with 
 .. note::
      Not all district types have polygon data available. Currently only senate, assembly, congressional, county, town,
      and school maps are available. However the other district types may be supported in the future.
-
-By default district assignment attempts to assign the following districts: senate, assembly, congressional, county, town, and school.
-Typically when using shape files all of those districts will be assigned. However if using street files they may not be.
-
-In that event a partial district assign status is returned and looks something like::
-
-    {
-      "status" : "PARTIAL_DISTRICT_RESULT",
-      "source" : "StreetFile",
-      "messages" : [ ],
-      ... (truncated data) ...
-      "districtAssigned" : true,
-      "statusCode" : 402,
-      "description" : "District assignment only yielded some of the districts requested."
-    }
-
-Therefore both ``SUCCESS`` and ``PARTIAL_DISTRICT_ASSIGN`` statuses represent proper district assignments. Alternatively the ``districtAssigned``
-field can also be used to check for a valid response.
 
 District assignment via coordinate pairs is also supported::
 
@@ -753,19 +896,25 @@ BluebirdCRM
 
 For integration with Bluebird CRM, the bluebird method can be used instead::
 
+    Unparsed Format:
     /api/v2/district/bluebird?addr=280 Madison Ave NY
+
+    Parsed Format:
     /api/v2/district/bluebird?addr1=280 Madison Ave&state=NY
 
-Bluebird district assign is similar to the default assign except that the options are preconfigured::
+Bluebird district assign is similar to the default assign except that the options are fixed::
 
-    showMaps:    false
-    showMembers: false
-    skipGeocode: false
-    uspsValidate:true
+    showMaps:         false
+    showMembers:      false
+    skipGeocode:      false
+    uspsValidate:     true
+    showMultiMatch:   false
+    districtStrategy: (application setting)
 
-The response is identical to that of a default district assign except that the address is validated through USPS. More
-importantly the district assignment strategy for the bluebird method can be configured by the application so that
-district assignment for ``district/assign`` and ``district/bluebird`` can follow different execution paths.
+The response is identical to that of a default district assign with those parameters. The
+district assignment strategy for the bluebird method can be configured by the application so that
+district assignment for ``district/assign`` and ``district/bluebird`` can follow different execution paths, either to favor
+performance or completeness.
 
 An unsuccessful district assign response will look similar to the following::
 
@@ -778,7 +927,7 @@ An unsuccessful district assign response will look similar to the following::
       "districts" : null,
       "geocoded" : false,
       "districtAssigned" : false,
-      "statusCode" : 400,
+      "statusCode" : 70,
       "description" : "District assignment returned no results."
     }
 
@@ -829,87 +978,124 @@ A sample batch district assign in PHP::
 And the response::
 
     {
-      "results": [
-        {
-          "status": "PARTIAL_DISTRICT_RESULT",
-          "source": "StreetFile",
-          "messages": [],
-          "address": { "addr1": "100 Nyroy Dr", "addr2": "", "city": "Troy", "state": "NY", "zip5": "12180", "zip4": "" },
-          "geocode": { "lat": 42.741112, "lon": -73.668762, "quality": "HOUSE", "method": "YahooDao" },
-          "districts": {
-            "senate": {
-              "name": "State Senate District 44", "district": "44", "senator": null
-            },
-            "congressional": {
-              "name": "State Congressional District 20", "district": "20", "member": null
-            },
-            "assembly": {
-              "name": "State Assembly District 107", "district": "107", "member": null
-            },
-            "county": {
-              "name": null, "district": "38"
-            },
-            "election": {
-              "name": null, "district": "12"
-            },
-            "school": null,
-            "town": null,
-            "cleg": {
-              "name": null, "district": "1"
-            },
-            "ward": {
-              "name": null, "district": "0"
-            },
-            "village": {
-              "name": null, "district": "000"
-            }
-          },
-          "geocoded": true,
-          "districtAssigned": true,
-          "statusCode": 402,
-          "description": "District assignment only yielded some of the districts requested."
+      "results" : [ {
+        "status" : "SUCCESS",
+        "source" : "StreetFile",
+        "messages" : [ ],
+        "address" : {
+          "addr1" : "100 Nyroy Dr",
+          "addr2" : "",
+          "city" : "Troy",
+          "state" : "NY",
+          "zip5" : "12180",
+          "zip4" : "1921"
         },
-        {
-          "status": "PARTIAL_DISTRICT_RESULT",
-          "source": "StreetFile",
-          "messages": [],
-          "address": { "addr1": "44 Fairlawn Ave", "addr2": "", "city": "Albany", "state": "NY", "zip5": "12203", "zip4": ""},
-          "geocode": { "lat": 42.670583, "lon": -73.799606, "quality": "HOUSE", "method": "YahooDao" },
-          "districts": {
-            "senate": {
-              "name": "State Senate District 44", "district": "44", "senator": null
-            },
-            "congressional": {
-              "name": "State Congressional District 20", "district": "20", "member": null
-            },
-            "assembly": {
-              "name": "State Assembly District 109", "district": "109", "member": null
-            },
-            "county": {
-              "name": null, "district": "1"
-            },
-            "election": {
-              "name": null, "district": "5"
-            },
-            "school": null,
-            "town": null,
-            "cleg": {
-              "name": null, "district": "13"
-            },
-            "ward": {
-              "name": null, "district": "13"
-            },
-            "village": {
-              "name": null, "district": ""
-            }
+        "geocode" : {
+          "lat" : 42.741112,
+          "lon" : -73.668762,
+          "quality" : "HOUSE",
+          "method" : "YahooDao"
+        },
+        "geocoded" : true,
+        "districtAssigned" : true,
+        "uspsValidated" : false,
+        "matchLevel" : "HOUSE",
+        "districts" : {
+          "senate" : {
+            "name" : "NY Senate District 44", "district" : "44", "senator" : null
           },
-          "geocoded": true,
-          "districtAssigned": true,
-          "statusCode": 402,
-          "description": "District assignment only yielded some of the districts requested."
-        }
-      ],
-      "total": 2
+          "congressional" : {
+            "name" : "NY Congressional District 20", "district" : "20", "member" : null
+          },
+          "assembly" : {
+            "name" : "NY Assembly District 107", "district" : "107", "member" : null
+          },
+          "county" : {
+            "name" : null, "district" : "38"
+          },
+          "election" : {
+            "name" : null, "district" : "12"
+          },
+          "school" : null,
+          "town" : {
+            "name" : null, "district" : "-TROY"
+          },
+          "zip" : {
+            "name" : null, "district" : "12180"
+          },
+          "cleg" : {
+            "name" : null, "district" : "1"
+          },
+          "ward" : {
+            "name" : null, "district" : null
+          },
+          "village" : {
+            "name" : null, "district" : null
+          }
+        },
+        "multiMatch" : false,
+        "statusCode" : 0,
+        "description" : "Success."
+      }, {
+        "status" : "SUCCESS",
+        "source" : "StreetFile",
+        "messages" : [ ],
+        "address" : {
+          "addr1" : "44 Fairlawn Ave",
+          "addr2" : "",
+          "city" : "Albany",
+          "state" : "NY",
+          "zip5" : "12203",
+          "zip4" : "1933"
+        },
+        "geocode" : {
+          "lat" : 42.670583,
+          "lon" : -73.799606,
+          "quality" : "HOUSE",
+          "method" : "YahooDao"
+        },
+        "geocoded" : true,
+        "districtAssigned" : true,
+        "uspsValidated" : false,
+        "matchLevel" : "HOUSE",
+        "districts" : {
+          "senate" : {
+            "name" : "NY Senate District 44", "district" : "44", "senator" : null
+          },
+          "congressional" : {
+            "name" : "NY Congressional District 20", "district" : "20", "member" : null
+          },
+          "assembly" : {
+            "name" : "NY Assembly District 109", "district" : "109", "member" : null
+          },
+          "county" : {
+            "name" : null, "district" : "1"
+          },
+          "election" : {
+            "name" : null, "district" : "5"
+          },
+          "school" : null,
+          "town" : {
+            "name" : null, "district" : "-ALBAN"
+          },
+          "zip" : {
+            "name" : null, "district" : "12203"
+          },
+          "cleg" : {
+            "name" : null, "district" : "13"
+          },
+          "ward" : {
+            "name" : null, "district" : "13"
+          },
+          "village" : {
+            "name" : null, "district" : null
+          }
+        },
+        "multiMatch" : false,
+        "statusCode" : 0,
+        "description" : "Success."
+      } ],
+     "total" : 2
     }
 
 And a parse error response in case of invalid input::
@@ -918,7 +1104,7 @@ And a parse error response in case of invalid input::
       "status": "INVALID_BATCH_ADDRESSES",
       "source": "DistrictController",
       "messages": [],
-      "statusCode": 250,
+      "statusCode": 55,
       "description": "The supplied batch address list could not be parsed."
     }
 
@@ -986,7 +1172,7 @@ An invalid response, typically due to a non matching zip code is::
       "source" : "StreetController",
       "messages" : [ ],
       "streets" : [ ],
-      "statusCode" : 430,
+      "statusCode" : 74,
       "description" : "Street lookup returned no results for the given zip5"
     }
 
@@ -1147,63 +1333,63 @@ generally error statuses:
 +----------------------------------+------+---------------------------------------------------------------------------------+
 | JSONP_CALLBACK_NOT_SPECIFIED     | 23   | A callback signature must be specified as a parameter e.g &callback=method")    |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| RESPONSE_MISSING_ERROR           | 90   | No response from service provider                                               |
+| RESPONSE_MISSING_ERROR           | 30   | No response from service provider                                               |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| RESPONSE_PARSE_ERROR             | 91   | Error parsing response from service provider                                    |
+| RESPONSE_PARSE_ERROR             | 31   | Error parsing response from service provider                                    |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| MISSING_INPUT_PARAMS             | 100  | One or more parameters are missing                                              |
+| MISSING_INPUT_PARAMS             | 40   | One or more parameters are missing                                              |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| MISSING_ADDRESS                  | 110  | An address is required                                                          |
+| MISSING_ADDRESS                  | 41   | An address is required                                                          |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| MISSING_GEOCODE                  | 120  | A valid geocoded coordinate pair is required                                    |
+| MISSING_GEOCODE                  | 42   | A valid geocoded coordinate pair is required                                    |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| MISSING_ZIPCODE                  | 130  | A zipcode is required                                                           |
+| MISSING_ZIPCODE                  | 43   | A zipcode is required                                                           |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| MISSING_STATE                    | 140  | A state is required                                                             |
+| MISSING_STATE                    | 44   | A state is required                                                             |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| MISSING_POINT                    | 150  | A coordinate pair is required                                                   |
+| MISSING_POINT                    | 45   | A coordinate pair is required                                                   |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| MISSING_GEOCODED_ADDRESS         | 160  | A valid geocoded address is required                                            |
+| MISSING_GEOCODED_ADDRESS         | 46   | A valid geocoded address is required                                            |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| INVALID_INPUT_PARAMS             | 200  | One or more parameters are invalid                                              |
+| INVALID_INPUT_PARAMS             | 50   | One or more parameters are invalid                                              |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| INVALID_ADDRESS                  | 210  | The supplied address is invalid                                                 |
+| INVALID_ADDRESS                  | 51   | The supplied address is invalid                                                 |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| INVALID_GEOCODE                  | 220  | The supplied geocoded coordinate pair is invalid                                |
+| INVALID_GEOCODE                  | 52   | The supplied geocoded coordinate pair is invalid                                |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| INVALID_ZIPCODE                  | 230  | The supplied zipcode is invalid                                                 |
+| INVALID_ZIPCODE                  | 53   | The supplied zipcode is invalid                                                 |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| INVALID_STATE                    | 240  | The supplied state is invalid or is not supported                               |
+| INVALID_STATE                    | 54   | The supplied state is invalid or is not supported                               |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| INVALID_BATCH_ADDRESSES          | 250  | The supplied batch address list could not be parsed                             |
+| INVALID_BATCH_ADDRESSES          | 55   | The supplied batch address list could not be parsed                             |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| INVALID_BATCH_POINTS             | 260  | The supplied batch point list could not be parsed                               |
+| INVALID_BATCH_POINTS             | 56   | The supplied batch point list could not be parsed                               |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| INSUFFICIENT_INPUT_PARAMS        | 300  | One or more parameters are insufficient                                         |
+| NON_NY_STATE                     | 57   | The address you have supplied is not a valid New York address.                  |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| INSUFFICIENT_ADDRESS             | 310  | The supplied address is missing one or more parameters                          |
+| INSUFFICIENT_INPUT_PARAMS        | 60   | One or more parameters are insufficient                                         |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| INSUFFICIENT_GEOCODE             | 310  | The supplied geocoded is missing one or more parameters                         |
+| INSUFFICIENT_ADDRESS             | 61   | The supplied address is missing one or more parameters                          |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| NO_DISTRICT_RESULT               | 400  | District assignment returned no results                                         |
+| INSUFFICIENT_GEOCODE             | 62   | The supplied geocoded is missing one or more parameters                         |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| MULTIPLE_DISTRICT_RESULT         | 401  | Multiple matches were found for certain districts                               |
+| NO_DISTRICT_RESULT               | 70   | District assignment returned no results                                         |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| PARTIAL_DISTRICT_RESULT          | 402  | District assignment only yielded some of the districts requested                |
+| NO_GEOCODE_RESULT                | 71   | Geocode service returned no results                                             |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| NO_GEOCODE_RESULT                | 410  | Geocode service returned no results                                             |
+| NO_REVERSE_GEOCODE_RESULT        | 72   | Reverse Geocode service returned no results                                     |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| NO_REVERSE_GEOCODE_RESULT        | 411  | Reverse Geocode service returned no results                                     |
+| NO_ADDRESS_VALIDATE_RESULT       | 73   | The address could not be validated                                              |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| NO_ADDRESS_VALIDATE_RESULT       | 420  | The address could not be validated                                              |
+| NO_STREET_LOOKUP_RESULT          | 74   | Street lookup returned no results for the given zip5                            |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| NO_STREET_LOOKUP_RESULT          | 430  | Street lookup returned no results for the given zip5                            |
+| NO_MAP_RESULT                    | 80   | Map request returned no results                                                 |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| NO_MAP_RESULT                    | 450  | Map request returned no results                                                 |
+| UNSUPPORTED_DISTRICT_MAP         | 81   | Maps for the requested district type are not available                          |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| UNSUPPORTED_DISTRICT_MAP         | 460  | Maps for the requested district type are not available                          |
+| MISSING_DISTRICT_CODE            | 82   | A district code is required                                                     |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-| MISSING_DISTRICT_CODE            | 470  | A district code is required                                                     |
+| NOT_FOUND                        | 404  | Not Found                                                                       |
 +----------------------------------+------+---------------------------------------------------------------------------------+
 | INTERNAL_ERROR                   | 500  | Internal Server Error                                                           |
 +----------------------------------+------+---------------------------------------------------------------------------------+
@@ -1213,7 +1399,6 @@ generally error statuses:
 +----------------------------------+------+---------------------------------------------------------------------------------+
 | RESPONSE_SERIALIZATION_ERROR     | 503  | Failed to serialize response                                                    |
 +----------------------------------+------+---------------------------------------------------------------------------------+
-
 
 .. toctree::
    :maxdepth: 2

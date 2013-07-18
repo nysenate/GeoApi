@@ -26,7 +26,7 @@ public class StreetFileDaoTest extends TestBase
     @Test
     public void test() throws Exception
     {
-        StreetAddress s = StreetAddressParser.parseAddress("300 CENTRAL PARK W, APT 7K, New York, NY 10024");
+        StreetAddress s = StreetAddressParser.parseAddress("1204 Western Ave, Albany NY 12203");
         FormatUtil.printObject(s);
         FormatUtil.printObject(streetFileDao.getDistAddressByHouse(s));
     }

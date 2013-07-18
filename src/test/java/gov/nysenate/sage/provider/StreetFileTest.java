@@ -46,7 +46,6 @@ public class StreetFileTest extends TestBase
     {
         DistrictedAddress distAddrExpected = expected.get(0);
         DistrictResult districtResult = this.streetFile.assignDistricts(distAddrExpected.getGeocodedAddress(), DistrictType.getAllTypes());
-        assertEquals(ResultStatus.PARTIAL_DISTRICT_RESULT, districtResult.getStatusCode());
     }
 
     @Test
