@@ -43,7 +43,7 @@ public class DistrictsView
     }
 
     public MemberDistrictView getCongressional() {
-        return congressional;
+        return (congressional != null && congressional.district != null) ? congressional : null;
     }
 
     public MemberDistrictView getAssembly() {

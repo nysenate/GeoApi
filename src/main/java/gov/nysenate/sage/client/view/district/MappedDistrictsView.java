@@ -38,46 +38,46 @@ public class MappedDistrictsView
     }
 
     public MappedSenateDistrictView getSenate() {
-        return senate;
+        return (senate != null && senate.district != null) ? senate : null;
     }
 
     public MappedMemberDistrictView getCongressional() {
-        return congressional;
+        return (congressional != null && congressional.district != null) ? congressional : null;
     }
 
     public MappedMemberDistrictView getAssembly() {
-        return assembly;
+        return (assembly != null && assembly.district != null) ? assembly : null;
     }
 
     public MappedDistrictView getCounty() {
-        return county;
+        return (county != null && county.district != null) ? county : null;
     }
 
     public MappedDistrictView getElection() {
-        return election;
+        return (election != null && election.district != null) ? election : null;
     }
 
     public MappedDistrictView getSchool() {
-        return school;
+        return (school != null && school.district != null) ? school : null;
     }
 
     public MappedDistrictView getTown() {
-        return town;
+        return (town != null && town.district != null) ? town : null;
     }
 
     public MappedDistrictView getZip() {
-        return zip;
+        return (zip != null && zip.district != null) ? zip : null;
     }
 
     public MappedDistrictView getCleg() {
-        return cleg;
+        return (cleg != null && cleg.district != null) ? cleg : null;
     }
 
     public MappedDistrictView getWard() {
-        return ward;
+        return (ward != null && ward.district != null) ? ward : null;
     }
 
     public MappedDistrictView getVillage() {
-        return village;
+        return (village != null && village.district != null) ? village : null;
     }
 }
