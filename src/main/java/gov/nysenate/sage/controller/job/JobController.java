@@ -38,8 +38,8 @@ public class JobController extends BaseJobController
 {
     private Logger logger = Logger.getLogger(JobController.class);
     private Config config = ApplicationFactory.getConfig();
-    private static String MAIN_JSP = "/views/jobmain.jsp";
-    private static String LOGIN_JSP = "/views/joblogin.jsp";
+    private static String MAIN_JSP = "/WEB-INF/views/jobmain.jsp";
+    private static String LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
 
     @Override
     public void init(ServletConfig config) throws ServletException {}

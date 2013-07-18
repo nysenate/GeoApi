@@ -23,7 +23,7 @@
                 <li ng-click="toggleMethod(4)"><a>Reverse Geocode</a></li>
                 <li ng-click="toggleMethod(5)"><a>City/State</a></li>
                 <li><a href="${contextPath}/job">Batch</a></li>
-                <li><a href="https://sage-senate-address-geocoding-engine.readthedocs.org/en/latest/">Developer API</a></li>
+                <li><a href="${contextPath}/docs/html/index.html">Developer API</a></li>
             </ul>
         </div>
 

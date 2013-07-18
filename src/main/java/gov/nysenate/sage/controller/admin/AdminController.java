@@ -41,6 +41,8 @@ public class AdminController extends BaseAdminController
     private ApiUsageStatsDao apiUsageStatsDao;
     private DeploymentStatsDao deploymentStatsDao;
 
+    private static String ADMIN_JSP = "/WEB-INF/views/admin.jsp";
+
     @Override
     public void init(ServletConfig config) throws ServletException {
         apiRequestLogger = new ApiRequestLogger();
@@ -103,7 +105,7 @@ public class AdminController extends BaseAdminController
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        request.getRequestDispatcher("/admin.jsp").forward(request, response);
+        request.getRequestDispatcher(ADMIN_JSP).forward(request, response);
     }
 
     /**
