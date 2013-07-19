@@ -14,6 +14,7 @@ public abstract class BaseDistrictResponse extends BaseResponse
     protected GeocodeView geocode;
     protected boolean geocoded = false;
     protected boolean districtAssigned = false;
+    protected boolean senateAssigned = false;
     protected boolean uspsValidated = false;
     protected Boolean isMultiMatch = false;
     protected String matchLevel;
@@ -23,7 +24,8 @@ public abstract class BaseDistrictResponse extends BaseResponse
         super(districtResult);
         if (districtResult != null) {
 
-            this.districtAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
+            this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
+            this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
             this.matchLevel = districtResult.getDistrictMatchLevel().name();
             this.isMultiMatch = districtResult.isMultiMatch();
 
@@ -53,6 +55,10 @@ public abstract class BaseDistrictResponse extends BaseResponse
 
     public boolean isGeocoded() {
         return geocoded;
+    }
+
+    public boolean isSenateAssigned() {
+        return senateAssigned;
     }
 
     public boolean isDistrictAssigned() {

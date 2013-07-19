@@ -315,10 +315,10 @@
                     </div>
                 </div>
 
-                <div class="info-container title" ng-show="districts.senate.district">
+                <div class="info-container title" ng-show="senateAssigned">
                     <p class="member-name success-color">New York State Senator</p>
                 </div>
-                <div ng-show="districts.senate.district">
+                <div ng-show="senateAssigned">
                     <div class="info-container clickable connected senator" title="Show Senate District Map" ng-click="showDistrict('senate');">
                         <div class="senator-pic-holder">
                             <a target="_blank" ng-href="{{districts.senate.senator.url}}">
@@ -385,6 +385,36 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="info-container slim connected" ng-show="districts.senate.nearBorder">
+                        <table style="width:100%">
+                            <tr>
+                                <td>
+                                    <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)">Neighbor Senate Districts</a>
+                                    <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()">Neighbor Senate Districts</a>
+                                </td>
+                                <td class="right-icon-placeholder">
+                                    <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)"><div class="icon-arrow-down4 icon-hover-teal"></div></a>
+                                    <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()"><div class="icon-arrow-up4 icon-hover-teal"></div></a>
+                                </td>
+                            </tr>
+                        </table>
+                        <div ng-show="showNeighbors">
+                            <div style="padding:5px;border-top:1px solid #ddd;" ng-repeat="neighbor in districts.senate.neighbors">
+                                <div class="senator">
+                                    <div class="senator-pic-holder" style="width:50px;height:50px;">
+                                        <img ng-src="{{neighbor.member.imageUrl | senatorPic}}" class="senator-pic">
+                                    </div>
+                                    <div>
+                                        <p class="senator member-name">
+                                            <a target="_blank" ng-href="{{neighbor.member.url}}">{{neighbor.member.name}}</a>
+                                        </p>
+                                        <p class="senate district" ng-style="neighbor.style">Senate District {{neighbor.district}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="multi-senate-results" ng-show="multiMatch && overlaps.senate.length > 1">
                     <div class="info-container title connected-bottom">
@@ -439,53 +469,7 @@
                     <span style="font-size: 13px;color:#333;">If you are looking for more detailed street range information, try the Street Finder option located on the
                     top menu.</span>
                 </div>
-                <div id="multi-district-results" ng-show="false">
-                    <div class="info-container">
-                        <p class="member-name" style="color:orangered;">Multiple Possible Districts</p>
-                        <hr/>
-                        <span style="font-size:14px;">Your district lookup request for zipcode <span ng-bind-html-unsafe="address | addressFormat"></span>
-                            yielded several possible districts.
-                        </span>
-
-                        <div ng-repeat="(type, districts) in overlaps">
-                            <span>{{type | capitalize}}</span>
-                            <span ng-repeat="d in districts">
-                                <span>{{d.district}}</span>
-                            </span>
-                        </div>
-
-                    </div>
-                </div>
                 <div id="success-district-results" ng-show="districtAssigned">
-                    <div class="info-container slim connected" ng-show="districts.senate.nearBorder">
-                        <table style="width:100%">
-                            <tr>
-                                <td>
-                                    <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)">Neighbor Senate Districts</a>
-                                    <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()">Neighbor Senate Districts</a>
-                                </td>
-                                <td class="right-icon-placeholder">
-                                    <a ng-hide="showNeighbors" ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)"><div class="icon-arrow-down4 icon-hover-teal"></div></a>
-                                    <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()"><div class="icon-arrow-up4 icon-hover-teal"></div></a>
-                                </td>
-                            </tr>
-                        </table>
-                        <div ng-show="showNeighbors">
-                            <div style="padding:5px;border-top:1px solid #ddd;" ng-repeat="neighbor in districts.senate.neighbors">
-                                <div class="senator">
-                                    <div class="senator-pic-holder" style="width:50px;height:50px;">
-                                        <img ng-src="{{neighbor.member.imageUrl | senatorPic}}" class="senator-pic">
-                                    </div>
-                                    <div>
-                                        <p class="senator member-name">
-                                            <a target="_blank" ng-href="{{neighbor.member.url}}">{{neighbor.member.name}}</a>
-                                        </p>
-                                        <p class="senate district" ng-style="neighbor.style">Senate District {{neighbor.district}}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div class="info-container title connected-bottom">
                         <p class="member-name success-color">Matched New York State Districts</p>
                     </div>

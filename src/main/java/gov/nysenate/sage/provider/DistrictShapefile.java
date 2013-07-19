@@ -220,12 +220,14 @@ public class DistrictShapefile implements DistrictService, MapService
                                                                                   DistrictType.ZIP, new HashSet<String>(zip5List));
                                 districtInfo.addDistrictOverlap(matchType, overlap);
                             }
+                            /** If the district set from the street files is size 1, set it as the district */
                             if (distCodeSet.size() == 1) {
                                 districtInfo.setDistCode(matchType, distCodeSet.iterator().next());
                             }
-                           // else if (overlap != null && overlap.getTargetOverlap().size() == 1) {
-                           //     districtInfo.setDistCode(matchType, overlap.getOverlapDistrictCodes().get(0));
-                           // }
+                            /** Otherwise if the overlap count is size 1 for senate, set it as the district */
+                            else if (matchType.equals(DistrictType.SENATE) && overlap != null && overlap.getTargetOverlap().size() == 1) {
+                                districtInfo.setDistCode(matchType, overlap.getOverlapDistrictCodes().get(0));
+                            }
                         }
                     }
                     resultStatus = ResultStatus.SUCCESS;

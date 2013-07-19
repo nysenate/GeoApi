@@ -666,6 +666,7 @@ Parsed Format:
   <span class="p">},</span>
   <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
   <span class="s">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
   <span class="s">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
   <span class="s">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
@@ -714,8 +715,8 @@ Parsed Format:
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">districtAssigned</span></tt> field will be true if the senate district was assigned. For most purposes, ensuring that the <tt class="docutils literal"><span class="pre">statusCode</span></tt> = 0
-and <tt class="docutils literal"><span class="pre">districtAssigned</span></tt> = true should suffice as a check that the response is successful.</p>
+<p>The <tt class="docutils literal"><span class="pre">districtAssigned</span></tt> field will be true if any districts were assigned.
+The <tt class="docutils literal"><span class="pre">senateAssigned</span></tt> field will be true if the senate district was assigned.</p>
 <p>The main components of the response are <tt class="docutils literal"><span class="pre">address</span></tt>, <tt class="docutils literal"><span class="pre">geocode</span></tt>, and <tt class="docutils literal"><span class="pre">districts</span></tt>. The <tt class="docutils literal"><span class="pre">address</span></tt> typically contains
 a corrected address response from the geocode provider or is the result of USPS correction if <tt class="docutils literal"><span class="pre">uspsValidated</span></tt> is true.
 The <tt class="docutils literal"><span class="pre">geocode</span></tt> contains the coordinates that were used to perform district assignment. The <tt class="docutils literal"><span class="pre">districts</span></tt> object contains all
@@ -775,7 +776,8 @@ overlap boundaries and street ranges. The output of that is described below.</p>
     "method" : "YahooDao"
   },
   "geocoded" : true,
-  "districtAssigned" : false,
+  "districtAssigned" : true,
+  "senateAssigned" : false,
   "uspsValidated" : false,
   "matchLevel" : "STREET",
   "districts" : {
@@ -1058,7 +1060,9 @@ performance or completeness.</p>
   <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
   <span class="s">&quot;districts&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
   <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">70</span><span class="p">,</span>
   <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;District assignment returned no results.&quot;</span>
 <span class="p">}</span>
@@ -1127,6 +1131,7 @@ print_r($result);</pre>
     <span class="p">},</span>
     <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
     <span class="s">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
     <span class="s">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
     <span class="s">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
     <span class="s">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
@@ -1185,6 +1190,7 @@ print_r($result);</pre>
     <span class="p">},</span>
     <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
     <span class="s">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
     <span class="s">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
     <span class="s">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
     <span class="s">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>

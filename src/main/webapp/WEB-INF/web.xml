@@ -47,7 +47,8 @@
     </filter>
     <filter-mapping>
         <filter-name>ResourceFilter</filter-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/api/*</url-pattern>
+        <url-pattern>/job/*</url-pattern>
     </filter-mapping>
 
     <filter>

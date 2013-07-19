@@ -532,6 +532,7 @@ The district assignment response::
       },
       "geocoded" : true,
       "districtAssigned" : true,
+      "senateAssigned" : true,
       "uspsValidated" : false,
       "matchLevel" : "HOUSE",
       "districts" : {
@@ -579,8 +580,8 @@ The district assignment response::
       "description" : "Success."
     }
 
-The ``districtAssigned`` field will be true if the senate district was assigned. For most purposes, ensuring that the ``statusCode`` = 0
-and ``districtAssigned`` = true should suffice as a check that the response is successful.
+The ``districtAssigned`` field will be true if any districts were assigned.
+The ``senateAssigned`` field will be true if the senate district was assigned.
 
 The main components of the response are ``address``, ``geocode``, and ``districts``. The ``address`` typically contains
 a corrected address response from the geocode provider or is the result of USPS correction if ``uspsValidated`` is true.
@@ -633,7 +634,8 @@ The response will resemble the following (truncated for brevity)::
         "method" : "YahooDao"
       },
       "geocoded" : true,
-      "districtAssigned" : false,
+      "districtAssigned" : true,
+      "senateAssigned" : false,
       "uspsValidated" : false,
       "matchLevel" : "STREET",
       "districts" : {
@@ -926,7 +928,9 @@ An unsuccessful district assign response will look similar to the following::
       "geocode" : null,
       "districts" : null,
       "geocoded" : false,
+      "uspsValidated" : false,
       "districtAssigned" : false,
+      "senateAssigned" : false,
       "statusCode" : 70,
       "description" : "District assignment returned no results."
     }
@@ -998,6 +1002,7 @@ And the response::
         },
         "geocoded" : true,
         "districtAssigned" : true,
+        "senateAssigned" : true,
         "uspsValidated" : false,
         "matchLevel" : "HOUSE",
         "districts" : {
@@ -1056,6 +1061,7 @@ And the response::
         },
         "geocoded" : true,
         "districtAssigned" : true,
+        "senateAssigned" : true,
         "uspsValidated" : false,
         "matchLevel" : "HOUSE",
         "districts" : {
