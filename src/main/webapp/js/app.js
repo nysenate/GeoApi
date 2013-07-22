@@ -1225,6 +1225,8 @@ $(document).ready(function(){
     initVerticalMenu();
     resizeContentColumn();
 
+    $("#contentcolumn").show();
+
     /** Expand/Collapse behavior for search containers
      * TODO: Move to directive */
     var activeSearchContainer = ".search-container:visible";

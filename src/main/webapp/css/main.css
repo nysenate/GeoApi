@@ -126,8 +126,8 @@ em {color: red;}
     color: #FFFF80;
 }
 
-.top-header.autohide {
-    border-top:1px solid #0E4E5A;
+.top-header.map-info {
+    border-top:1px solid #333;
 }
 
 /*-------------------------------------------------------

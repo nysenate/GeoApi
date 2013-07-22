@@ -18,7 +18,7 @@ import java.util.List;
 public class EmbeddedMapController extends BaseMapController
 {
     private static Logger logger = Logger.getLogger(EmbeddedMapController.class);
-    private static String MAPS_JSP = "/views/maps.jsp";
+    private static String MAPS_JSP = "/WEB-INF/views/maps.jsp";
 
     @Override
     public void init(ServletConfig config) throws ServletException {}

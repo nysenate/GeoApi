@@ -27,9 +27,9 @@
             </ul>
         </div>
 
-        <div id="contentcolumn">
+        <div id="contentcolumn" style="display:none;">
             <div id="mapView" ng-controller="EmbeddedMapViewController">
-                <div class="top-header autohide">
+                <div class="top-header map-info">
                     <div class="large-icon icon-map white"></div>
                     <div class="text">{{mapTitle}}</div>
                 </div>
