@@ -45,11 +45,12 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
  */
 public class ApiFilter implements Filter, Observer
 {
-    private Logger logger = Logger.getLogger(ApiFilter.class);
-    private ApiRequestLogger apiRequestLogger;
-    private Config config;
-    private String ipFilter;
-    private String defaultKey;
+    private static Logger logger = Logger.getLogger(ApiFilter.class);
+    private static ApiRequestLogger apiRequestLogger;
+    private static Config config;
+    private static String ipFilter;
+    private static String defaultKey;
+    private static Boolean LOGGING_ENABLED = false;
 
     /** The valid format of an api request */
     private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map|street))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
@@ -70,8 +71,8 @@ public class ApiFilter implements Filter, Observer
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
     {
-        this.config = ApplicationFactory.getConfig();
-        this.apiRequestLogger = new ApiRequestLogger();
+        config = ApplicationFactory.getConfig();
+        apiRequestLogger = new ApiRequestLogger();
         jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
         xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
         configure();
@@ -79,8 +80,9 @@ public class ApiFilter implements Filter, Observer
 
     public void configure()
     {
-        this.ipFilter = config.getValue("user.ip_filter");
-        this.defaultKey = config.getValue("user.default");
+        ipFilter = config.getValue("user.ip_filter");
+        defaultKey = config.getValue("user.default");
+        LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled"));
         logger.info(String.format("Configured default access on %s via key %s", ipFilter, defaultKey));
     }
 
@@ -139,12 +141,14 @@ public class ApiFilter implements Filter, Observer
                 apiRequest.setApiUser(apiUser);
 
                 /** Log Api Request into the database */
-                int id = apiRequestLogger.logApiRequest(apiRequest);
-                apiRequest.setId(id);
+                int id = -1;
+                if (LOGGING_ENABLED) {
+                    id = apiRequestLogger.logApiRequest(apiRequest);
+                    apiRequest.setId(id);
+                }
 
                 /** Cache the current Api Request id */
                 request.setAttribute("apiRequestId", id);
-
                 return true;
             }
             else {

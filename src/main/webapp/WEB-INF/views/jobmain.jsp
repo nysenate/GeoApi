@@ -14,7 +14,7 @@
         <script src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables.min.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
         <script>
-            downloadDir = "${downloadDir}";
+            downloadBaseUrl = "${downloadBaseUrl}";
         </script>
     </jsp:attribute>
     <jsp:body>
@@ -269,7 +269,7 @@
                                         <td>{{completedProcess.startTime | date:'short'}}</td>
                                         <td>{{completedProcess.completeTime | date:'short'}}</td>
                                         <td>
-                                            <a style="background:#477326;color:white;padding:2px;" ng-href="${downloadDir}{{completedProcess.process.fileName}}">Download</a>
+                                            <a style="background:#477326;color:white;padding:2px;" ng-href="${downloadBaseUrl}{{completedProcess.process.fileName}}">Download</a>
                                         </td>
                                     </tr>
                                     <tr ng-hide="completedProcesses">
@@ -297,6 +297,7 @@
                                     <th>Started</th>
                                     <th>Completed</th>
                                     <th>Status</th>
+                                    <th>Download Link</th>
                                 </tr>
                                 </thead>
                                 <tr ng-hide="allProcesses">
@@ -310,6 +311,9 @@
                                     <td>{{process.startTime | date:'medium'}}</td>
                                     <td>{{process.completeTime | date:'medium'}}</td>
                                     <td ng-style="getConditionStyle(process.condition)">{{process.condition | conditionFilter}}</td>
+                                    <td>
+                                        <a ng-show="process.condition | conditionSuccess" style="padding:2px;" ng-href="${downloadBaseUrl}{{process.process.fileName}}">Download</a>
+                                    </td>
                                 </tr>
                             </table>
                         </div>

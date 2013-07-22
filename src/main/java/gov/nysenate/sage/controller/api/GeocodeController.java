@@ -14,6 +14,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
+import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -22,17 +23,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 /** Handles Geo Api requests */
-public class GeocodeController extends BaseApiController
+public class GeocodeController extends BaseApiController implements Observer
 {
-    private Logger logger = Logger.getLogger(GeocodeController.class);
+    private static Logger logger = Logger.getLogger(GeocodeController.class);
+    private static Config config = ApplicationFactory.getConfig();
     private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
     private static RevGeocodeServiceProvider revGeocodeServiceProvider = ApplicationFactory.getRevGeocodeServiceProvider();
 
+
     /** Usage loggers */
+    private static Boolean LOGGING_ENABLED = false;
     private static GeocodeRequestLogger geocodeRequestLogger;
     private static GeocodeResultLogger geocodeResultLogger;
 
@@ -42,6 +48,12 @@ public class GeocodeController extends BaseApiController
         logger.debug("Initialized " + this.getClass().getSimpleName());
         geocodeRequestLogger = new GeocodeRequestLogger();
         geocodeResultLogger = new GeocodeResultLogger();
+        update(null, null);
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled"));
     }
 
     @Override

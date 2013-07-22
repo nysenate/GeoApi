@@ -71,6 +71,7 @@ public class DistrictController extends BaseApiController implements Observer
     @Override
     public void update(Observable o, Object arg) {
         BLUEBIRD_DISTRICT_STRATEGY = config.getValue("district.strategy.bluebird");
+        LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled"));
     }
 
     @Override
@@ -216,9 +217,9 @@ public class DistrictController extends BaseApiController implements Observer
     }
 
     /**
-     *
-     * @param districtRequest
-     * @return
+     * Handle district assignment requests and performs functions based on settings in the supplied DistrictRequest.
+     * @param districtRequest   Contains the various parameters for the District Assign/Bluebird API
+     * @return  DistrictResult
      */
     private DistrictResult handleDistrictRequest(DistrictRequest districtRequest)
     {
@@ -295,7 +296,6 @@ public class DistrictController extends BaseApiController implements Observer
         if (LOGGING_ENABLED) {
             int requestId = districtRequestLogger.logDistrictRequest(districtRequest);
             districtResultLogger.logDistrictResult(requestId, districtResult);
-            logger.debug("logged it");
         }
 
         return districtResult;
@@ -340,7 +340,8 @@ public class DistrictController extends BaseApiController implements Observer
         return (geocodeResult != null) ? geocodeResult.getGeocodedAddress() : null;
     }
 
-    /** Perform USPS address correction on either the geocoded address or the input address.
+    /**
+     * Perform USPS address correction on either the geocoded address or the input address.
      * If the geocoded address is invalid, the original address will be corrected and set as the address
      * on the supplied geocodedAddress parameter.
      * @return GeocodedAddress the address corrected geocodedAddress.
@@ -362,10 +363,13 @@ public class DistrictController extends BaseApiController implements Observer
     }
 
     /**
-     *
-     * @param dr
-     * @param geocodedAddress
-     * @return
+     * Performs either single or multi district assignment based on the quality of the geocode and the input address.
+     * If either an address or geocode is missing, the method will set the appropriate error statuses to the DistrictResult.
+     * @param dr               DistrictRequest containing the various parameters
+     * @param geocodedAddress  GeocodedAddress returned by the geocoder
+     * @param zipProvided      Set true if user input address included a zip5
+     * @param isPoBox          Set true if user input address had a Po Box
+     * @return                 DistrictResult
      */
     private DistrictResult performDistrictAssign(DistrictRequest dr, GeocodedAddress geocodedAddress, Boolean zipProvided, Boolean isPoBox)
     {

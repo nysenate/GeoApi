@@ -133,6 +133,16 @@
         <url-pattern>/job/status/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <display-name>JobDownloadController</display-name>
+        <servlet-name>JobDownloadController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.job.JobDownloadController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>JobDownloadController</servlet-name>
+        <url-pattern>/job/download/*</url-pattern>
+    </servlet-mapping>
+
     <!-- Map v2 Controller mapping -->
     <servlet>
         <display-name>EmbeddedMapController</display-name>

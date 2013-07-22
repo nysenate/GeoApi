@@ -108,7 +108,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                 if (districtStrategy == null) {
                     districtStrategy = SINGLE_DISTRICT_STRATEGY;
                 }
-                logger.info("Using district assign strategy: " + districtStrategy);
+                logger.debug("Using district assign strategy: " + districtStrategy);
 
                 switch (districtStrategy) {
                     case neighborMatch:
@@ -309,7 +309,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, Boolean zipProvided)
     {
         DistrictShapefile districtShapeFile = new DistrictShapefile();
-        return districtShapeFile.getMultiMatchResult(geocodedAddress, zipProvided);
+        DistrictResult districtResult = districtShapeFile.getMultiMatchResult(geocodedAddress, zipProvided);
+        districtResult.setResultTime(new Timestamp(new Date().getTime()));
+        return districtResult;
     }
 
     /** Callables ----------------------------------------------------------------------------------------------------*/

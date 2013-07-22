@@ -28,6 +28,12 @@ sageJob.filter('conditionFilter', function(){
     }
 });
 
+sageJob.filter('conditionSuccess', function(){
+    return function(input) {
+        return (input == "COMPLETED" || input == "COMPLETED_WITH_ERRORS");
+    }
+});
+
 sageJob.controller('JobAuthController', function($scope, $http) {
     $scope.visible = true;
     $scope.email = "";
@@ -164,7 +170,7 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
             clearInterval($scope.cpInterval);
             clearInterval($scope.apInterval);
 
-            $scope.cpInterval = setInterval(function() {$scope.getActiveProcesses()}, 6000);
+            $scope.cpInterval = setInterval(function() {$scope.getActiveProcesses()}, 5000);
             $scope.cpInterval = setInterval(function() {$scope.getCompletedProcesses()}, 6000);
             $scope.rpInterval = setInterval(function() {$scope.getRunningProcesses()}, 3000);
         }

@@ -19,7 +19,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.CsvListWriter;
 import org.supercsv.prefs.CsvPreference;
@@ -40,6 +39,7 @@ public class JobController extends BaseJobController
     private Config config = ApplicationFactory.getConfig();
     private static String MAIN_JSP = "/WEB-INF/views/jobmain.jsp";
     private static String LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
+    private static String DOWNLOAD_BASE_URL = "/job/download/";
 
     @Override
     public void init(ServletConfig config) throws ServletException {}
@@ -60,7 +60,7 @@ public class JobController extends BaseJobController
                 logger.debug("Authenticated! Sending to main job page");
                 /** Clear out previous info */
                 getJobRequest(request).clear();
-                request.setAttribute("downloadDir", config.getValue("job.user.download.dir"));
+                request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
                 request.getRequestDispatcher(MAIN_JSP).forward(request, response);
             }
             else {
