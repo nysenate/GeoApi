@@ -8,4 +8,4 @@ System, as well as geocoders from Yahoo, Google, MapQuest, and Bing.
 SAGE is developed primarily by the Application Development unit at the
 New York State Senate.
 
-![screenshot](https://raw.github.com/nysenate/GeoApi/dev/docs/demo.png)
+![screenshot](https://raw.github.com/nysenate/GeoApi/dev/docs/ui-demo.png)
