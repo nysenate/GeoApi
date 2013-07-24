@@ -875,7 +875,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                 $.each($scope.overlaps.senate, function(i,v){
                     $scope.senateColors[v.district] = $scope.colors[i];
                     if (v.map != null) {
-                        mapService.setOverlay(v.map.geom, "Overlap for Senate District " + v.district, false, false, null, $scope.colors[i], {fillOpacity:fillOpacity});
+                        mapService.setOverlay(v.map.geom, "NY Senate District " + v.district + " Coverage", false, false, null, $scope.colors[i], {fillOpacity:fillOpacity});
                     }
                 });
             }
@@ -943,6 +943,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             /** Show the individual district map */
             else if (data.map != null) {
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
+                dataBus.setBroadcast("mapTitle", formatDistrictName(data));
                 if (data.type == "SENATE") {
                     dataBus.setBroadcastAndView("member", data.member, "member");
                 }
@@ -1170,11 +1171,12 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
             else if (data.map != null) {
                 $scope.senator = data.member;
                 $scope.district = data.district;
+                $scope.mapTitle = formatDistrictName(data);
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
                 if (data.type.toLowerCase() == "senate") {
                     $.each(data.member.offices, function(i, office){
                         if (office && office.name != null && office.name != "") {
-                            mapService.setMarker(office.latitude, office.longitude, "Senate", false, false,
+                            mapService.setMarker(office.latitude, office.longitude, null, false, false,
                                 "<div>" +
                                     "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
                                     "<p>" + office.street + "</p>" +
