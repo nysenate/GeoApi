@@ -1,23 +1,39 @@
 package gov.nysenate.sage.model.api;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
 
-public class DistrictRequest
+public class DistrictRequest implements Cloneable
 {
     private int id;
     private int addressId;
 
+    /** Source identifiers */
     private ApiRequest apiRequest;
+    private JobProcess jobProcess;
+
+    /** User Input */
     private Address address;
     private Point point;
+
+    /** Geocoded Input */
+    private GeocodedAddress geocodedAddress;
+
+    /** DistrictTypes to assign */
+    private List<DistrictType> districtTypes = DistrictType.getStandardTypes();
+
     private String provider = null;
     private String geoProvider = null;
     private boolean showMembers = false;
@@ -42,6 +58,10 @@ public class DistrictRequest
         dr.setSkipGeocode(false);
         dr.setDistrictStrategy(bluebirdStrategy);
         return dr;
+    }
+
+    public static DistrictRequest buildBluebirdRequest(DistrictRequest districtRequest, String bluebirdStrategy) {
+        return buildBluebirdRequest(districtRequest.getApiRequest(), districtRequest.getAddress(), bluebirdStrategy);
     }
 
     public DistrictRequest(ApiRequest apiRequest, Address address, String provider, String geoProvider, boolean showMembers,
@@ -83,6 +103,14 @@ public class DistrictRequest
         this.apiRequest = apiRequest;
     }
 
+    public JobProcess getJobProcess() {
+        return jobProcess;
+    }
+
+    public void setJobProcess(JobProcess jobProcess) {
+        this.jobProcess = jobProcess;
+    }
+
     public Address getAddress() {
         return address;
     }
@@ -97,6 +125,18 @@ public class DistrictRequest
 
     public void setPoint(Point point) {
         this.point = point;
+    }
+
+    public GeocodedAddress getGeocodedAddress() {
+        return geocodedAddress;
+    }
+
+    public void setGeocodedAddress(GeocodedAddress geocodedAddress) {
+        this.geocodedAddress = geocodedAddress;
+    }
+
+    public List<DistrictType> getDistrictTypes() {
+        return districtTypes;
     }
 
     public String getProvider() {
@@ -164,6 +204,10 @@ public class DistrictRequest
         }
     }
 
+    public void setDistrictTypes(List<DistrictType> districtTypes) {
+        this.districtTypes = districtTypes;
+    }
+
     public Timestamp getRequestTime() {
         return requestTime;
     }
@@ -175,5 +219,10 @@ public class DistrictRequest
     public boolean hasValidAddress()
     {
         return this.address != null && !this.address.isEmpty();
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

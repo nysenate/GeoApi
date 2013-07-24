@@ -9,12 +9,14 @@ import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
+import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -35,7 +37,6 @@ public class GeocodeController extends BaseApiController implements Observer
     private static Config config = ApplicationFactory.getConfig();
     private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
     private static RevGeocodeServiceProvider revGeocodeServiceProvider = ApplicationFactory.getRevGeocodeServiceProvider();
-
 
     /** Usage loggers */
     private static Boolean LOGGING_ENABLED = false;
@@ -77,6 +78,9 @@ public class GeocodeController extends BaseApiController implements Observer
         /** Only want to use cache when the provider is not specified */
         boolean useCache = (provider == null);
 
+        /** Construct a GeocodeRequest using the supplied params */
+        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider, useFallback, useCache);
+
         /**
          * If provider is specified then make sure it matches the available providers. Send an
          * api error and return if the provider is not supported.
@@ -96,17 +100,18 @@ public class GeocodeController extends BaseApiController implements Observer
             {
                 /** Handle single geocoding requests */
                 if (!apiRequest.isBatch()) {
-                    Address address = getAddressFromParams(request);
-                    if (address != null && !address.isEmpty()) {
-                        /** Obtain geocode response */
-                        GeocodeResult geocodeResult = geocodeServiceProvider.geocode(address, provider, useFallback, useCache);
-
-                        /** Log geocode request/result to database */
-                        int requestId = geocodeRequestLogger.logGeocodeRequest(new GeocodeRequest(apiRequest, address, provider, useFallback, useCache));
-                        geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
+                    if (geocodeRequest.getAddress() != null && !geocodeRequest.getAddress().isEmpty()) {
+                        /** Obtain geocode result */
+                        GeocodeResult geocodeResult = geocodeServiceProvider.geocode(geocodeRequest);
 
                         /** Construct response from request */
                         geocodeResponse = new GeocodeResponse(geocodeResult);
+
+                        /** Log geocode request/result to database */
+                        if (LOGGING_ENABLED) {
+                            int requestId = geocodeRequestLogger.logGeocodeRequest(geocodeRequest);
+                            geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
+                        }
                     }
                     else {
                         geocodeResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
@@ -116,8 +121,15 @@ public class GeocodeController extends BaseApiController implements Observer
                 else {
                     List<Address> addresses = getAddressesFromJsonBody(request);
                     if (addresses.size() > 0) {
-                        List<GeocodeResult> geocodeResults = geocodeServiceProvider.geocode(addresses);
+                        BatchGeocodeRequest batchGeocodeRequest = new BatchGeocodeRequest(geocodeRequest);
+                        batchGeocodeRequest.setAddresses(addresses);
+
+                        List<GeocodeResult> geocodeResults = geocodeServiceProvider.geocode(batchGeocodeRequest);
                         geocodeResponse = new BatchGeocodeResponse(geocodeResults);
+
+                        if (LOGGING_ENABLED) {
+                            geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
+                        }
                     }
                     else {
                         geocodeResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);

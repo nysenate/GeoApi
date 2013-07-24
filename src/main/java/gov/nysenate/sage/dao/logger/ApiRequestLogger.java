@@ -21,7 +21,7 @@ public class ApiRequestLogger extends BaseDao
 {
     private static Logger logger = Logger.getLogger(ApiRequestLogger.class);
     private static String SCHEMA = "log";
-    private static String TABLE = "apiRequests";
+    private static String TABLE = "apiRequest";
     private QueryRunner run = getQueryRunner();
 
     /**
@@ -33,14 +33,14 @@ public class ApiRequestLogger extends BaseDao
     {
         if (apiRequest != null) {
             ApiUser apiUser = apiRequest.getApiUser();
-            String sql = "INSERT INTO " + SCHEMA + "." + TABLE + "(ipAddress, apiUserId, version, requestTypeId, requestTime) \n" +
-                    "SELECT inet '" + apiRequest.getIpAddress().getHostAddress() + "', ?, 2, rt.id, now() \n" +
+            String sql = "INSERT INTO " + SCHEMA + "." + TABLE + "(ipAddress, apiUserId, version, requestTypeId, isBatch, requestTime) \n" +
+                    "SELECT inet '" + apiRequest.getIpAddress().getHostAddress() + "', ?, 2, rt.id, ?, ? \n" +
                     "FROM log.requestTypes AS rt \n" +
                     "LEFT JOIN log.services ser ON rt.serviceId = ser.id \n" +
                     "WHERE rt.name = ? AND ser.name = ?\n" +
                     "RETURNING id";
             try {
-                int id = run.query(sql, new ReturnIdHandler(), apiUser.getId(), apiRequest.getRequest(), apiRequest.getService());
+                int id = run.query(sql, new ReturnIdHandler(), apiUser.getId(), apiRequest.isBatch(), apiRequest.getApiRequestTime(), apiRequest.getRequest(), apiRequest.getService());
                 logger.debug("Saved apiRequest " + id + " to log");
                 return id;
             }
@@ -57,7 +57,7 @@ public class ApiRequestLogger extends BaseDao
      * @return ApiRequest
      */
     public ApiRequest getApiRequest(int apiRequestId) {
-        String sql = "SELECT " + SCHEMA + "." + TABLE + ".id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, requestTime, \n" +
+        String sql = "SELECT " + SCHEMA + "." + TABLE + ".id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, isBatch, requestTime, \n" +
                              "au.id AS apiUserId, au.name AS apiUserName, au.apiKey AS apiKey, au.description AS apiUserDesc " +
                      "FROM " + SCHEMA + "." + TABLE + "\n" +
                      "LEFT JOIN " + "public.apiUser au ON apiUserId = au.id \n" +
@@ -104,7 +104,7 @@ public class ApiRequestLogger extends BaseDao
     public List<ApiRequest> getApiRequestsDuring(String apiKey, String service, String method, Timestamp from, Timestamp to, int limit,
                                                  int offset, boolean orderByRecent)
     {
-        String sql = "SELECT log.apiRequests.id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, requestTime, \n" +
+        String sql = "SELECT log.apiRequests.id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, isBatch, requestTime, \n" +
                      "       au.id AS apiUserId, au.name AS apiUserName, au.apiKey AS apiKey, au.description AS apiUserDesc \n" +
                      "FROM " + SCHEMA + "." + TABLE + "\n" +
                      "LEFT JOIN " + "public.apiUser au ON apiUserId = au.id \n" +
@@ -138,6 +138,7 @@ public class ApiRequestLogger extends BaseDao
                 ar.setRequest(rs.getString("request"));
                 ar.setApiRequestTime(rs.getTimestamp("requestTime"));
                 ar.setVersion(rs.getInt("version"));
+                ar.setBatch(rs.getBoolean("isBatch"));
                 apiRequests.add(ar);
             }
             return apiRequests;

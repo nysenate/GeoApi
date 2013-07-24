@@ -1,21 +1,27 @@
 package gov.nysenate.sage.model.api;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.job.JobProcess;
 
 import java.sql.Timestamp;
 import java.util.Date;
 
-public class GeocodeRequest
+public class GeocodeRequest implements Cloneable
 {
     private int id;
     private int addressId;
 
+    /** Source identifiers */
     private ApiRequest apiRequest;
+    private JobProcess jobProcess;
+
     private Address address;
     private String provider;
     private boolean useFallback;
     private boolean useCache;
     private Timestamp requestTime;
+
+    public GeocodeRequest() {}
 
     public GeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache)
     {
@@ -49,6 +55,14 @@ public class GeocodeRequest
 
     public void setApiRequest(ApiRequest apiRequest) {
         this.apiRequest = apiRequest;
+    }
+
+    public JobProcess getJobProcess() {
+        return jobProcess;
+    }
+
+    public void setJobProcess(JobProcess jobProcess) {
+        this.jobProcess = jobProcess;
     }
 
     public Address getAddress() {
@@ -89,5 +103,10 @@ public class GeocodeRequest
 
     public void setRequestTime(Timestamp requestTime) {
         this.requestTime = requestTime;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

@@ -4,6 +4,7 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
+import gov.nysenate.sage.model.job.JobProcess;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.log4j.Logger;
 
@@ -14,7 +15,7 @@ public class DistrictRequestLogger extends BaseDao
     private static Logger logger = Logger.getLogger(DistrictRequestLogger.class);
     private static AddressLogger addressLogger = new AddressLogger();
     private static String SCHEMA = "log";
-    private static String TABLE = "districtRequests";
+    private static String TABLE = "districtRequest";
     private QueryRunner run = getQueryRunner();
 
     /**
@@ -26,13 +27,18 @@ public class DistrictRequestLogger extends BaseDao
     {
         if (dr != null) {
             ApiRequest apiRequest = dr.getApiRequest();
-            int addressId = addressLogger.logAddress(dr.getAddress());
+            JobProcess jobProcess = dr.getJobProcess();
+
             try {
+                int addressId = addressLogger.logAddress(dr.getGeocodedAddress().getAddress());
                 String strategy = (dr.getDistrictStrategy() != null) ? dr.getDistrictStrategy().name() : null;
                 int requestId = run.query(
-                    "INSERT INTO " + SCHEMA + "." + TABLE + "(apiRequestId, addressId, provider, geoProvider, showMembers, showMaps, uspsValidate, skipGeocode, districtStrategy, requestTime) \n" +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \n" +
-                    "RETURNING id", new ReturnIdHandler(), apiRequest.getId(), addressId, dr.getProvider(), dr.getGeoProvider(), dr.isShowMembers(), dr.isShowMaps(), dr.isUspsValidate(), dr.isSkipGeocode(), strategy, dr.getRequestTime());
+                    "INSERT INTO " + SCHEMA + "." + TABLE + "(apiRequestId, jobProcessId, addressId, provider, geoProvider, showMembers, showMaps, uspsValidate, skipGeocode, districtStrategy, requestTime) \n" +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \n" +
+                    "RETURNING id", new ReturnIdHandler(), (apiRequest != null) ? apiRequest.getId() : null,
+                                                           (jobProcess != null) ? jobProcess.getId() : null,
+                                                           (addressId > 0) ? addressId : null, dr.getProvider(), dr.getGeoProvider(), dr.isShowMembers(),
+                                                           dr.isShowMaps(), dr.isUspsValidate(), dr.isSkipGeocode(), strategy, dr.getRequestTime());
                 dr.setId(requestId);
                 return requestId;
             }
@@ -40,6 +46,9 @@ public class DistrictRequestLogger extends BaseDao
                 logger.error("Failed to log district request!", ex);
             }
         }
-        return -1;
+        else {
+            logger.error("DistrictRequest was null, cannot be logged!");
+        }
+        return 0;
     }
 }

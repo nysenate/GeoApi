@@ -2,6 +2,8 @@ package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.api.BatchDistrictRequest;
+import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -59,6 +61,20 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     }
 
     /** Single District Assign ---------------------------------------------------------------------------------------*/
+
+    /**
+     * Assign districts using supplied DistrictRequest.
+     * @param geocodedAddress
+     * @param districtRequest
+     * @return DistrictResult
+     */
+    public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final DistrictRequest districtRequest)
+    {
+        if (districtRequest != null) {
+            return assignDistricts(geocodedAddress, districtRequest.getProvider(), districtRequest.getDistrictTypes(), districtRequest.getDistrictStrategy());
+        }
+        return null;
+    }
 
     /**
      * Assign standard districts using default method.
@@ -183,7 +199,16 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     /** Batch District Assign ----------------------------------------------------------------------------------------*/
 
     /**
-     * Assign standard districts. No maps or members.
+     * Assign standard districts with options set in BatchDistrictRequest.
+     * @param bdr
+     * @return
+     */
+    public List<DistrictResult> assignDistricts(final BatchDistrictRequest bdr) {
+        return assignDistricts(bdr.getGeocodedAddresses(), bdr.getProvider(), DistrictType.getStandardTypes(), bdr.getDistrictStrategy());
+    }
+
+    /**
+     * Assign standard districts.
      * @param geocodedAddresses
      * @return
      */
@@ -192,7 +217,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     }
 
     /**
-     * Assign specified district types using default method. No maps or members.
+     * Assign specified district types using default method.
      * @param geocodedAddresses
      * @param districtTypes
      * @return List<DistrictResult>
@@ -203,11 +228,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     }
 
     /**
-     *
+     * Assign specified district types using an assortment of district strategies.
      * @param geocodedAddresses
-     * @param distProvider
+     * @param distProvider  If district provider is specified, (e.g streetfile), then only that provider will be used.
      * @param districtTypes
-     * @return
+     * @return List<DistrictResult>
      */
     public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final String distProvider,
                                                 final List<DistrictType> districtTypes, DistrictStrategy districtStrategy)

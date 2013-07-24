@@ -9,6 +9,6 @@ public class ReturnIdHandler implements ResultSetHandler<Integer>
 {
     @Override
     public Integer handle(ResultSet rs) throws SQLException {
-        return (rs.next()) ? rs.getInt("id") : -1;
+        return (rs.next()) ? rs.getInt("id") : 0;
     }
 }

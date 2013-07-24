@@ -20,6 +20,7 @@ import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
+import java.sql.Timestamp;
 import java.util.*;
 
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
@@ -71,6 +72,7 @@ public class DistrictShapefile implements DistrictService, MapService
             }
             /** Set the result */
             districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
+            districtResult.setResultTime(new Timestamp(new Date().getTime()));
         }
         catch (Exception ex) {
             districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
@@ -239,6 +241,7 @@ public class DistrictShapefile implements DistrictService, MapService
         }
         districtResult.setStatusCode(resultStatus);
         districtResult.setDistrictedAddress(districtedAddress);
+        districtResult.setResultTime(new Timestamp(new Date().getTime()));
         return districtResult;
     }
 }

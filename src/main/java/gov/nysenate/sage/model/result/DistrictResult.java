@@ -18,9 +18,6 @@ public class DistrictResult extends BaseResult
     /** Contains the geocoded address and district information */
     protected DistrictedAddress districtedAddress;
 
-    /** Indicates if USPS Address correction was performed */
-    protected boolean uspsValidated;
-
     public DistrictResult()
     {
         this(null, null);
@@ -86,10 +83,8 @@ public class DistrictResult extends BaseResult
     }
 
     public DistrictMatchLevel getDistrictMatchLevel() {
-        if (this.districtedAddress != null) {
-            return this.districtedAddress.getDistrictMatchLevel();
-        }
-        return DistrictMatchLevel.NOMATCH;
+        return (this.districtedAddress != null) ? this.districtedAddress.getDistrictMatchLevel()
+                                                : DistrictMatchLevel.NOMATCH;
     }
 
     public void setDistrictMatchLevel(DistrictMatchLevel quality) {
@@ -102,10 +97,8 @@ public class DistrictResult extends BaseResult
     /** Accessor method to the set of assigned districts stored in DistrictInfo */
     public Set<DistrictType> getAssignedDistricts()
     {
-        if (this.getDistrictInfo() != null){
-            return this.getDistrictInfo().getAssignedDistricts();
-        }
-        return new HashSet<>();
+        return (this.getDistrictInfo() != null) ? this.getDistrictInfo().getAssignedDistricts()
+                                                : new HashSet<DistrictType>();
     }
 
     /**
@@ -117,10 +110,6 @@ public class DistrictResult extends BaseResult
     }
 
     public boolean isUspsValidated() {
-        return uspsValidated;
-    }
-
-    public void setUspsValidated(boolean uspsValidated) {
-        this.uspsValidated = uspsValidated;
+        return (getAddress() != null) ? getAddress().isUspsValidated() : false;
     }
 }

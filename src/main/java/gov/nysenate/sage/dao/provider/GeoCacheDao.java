@@ -140,7 +140,7 @@ public class GeoCacheDao extends BaseDao
                     }
                 }
                 else {
-                    logger.debug(address + " already in cache.");
+                    logger.trace(address + " already in cache.");
                 }
             }
         }

@@ -24,6 +24,9 @@ public class Address implements Serializable, Cloneable
     protected String zip5 = "";
     protected String zip4 = "";
 
+    /** Verification info */
+    protected boolean uspsValidated = false;
+
     public Address() {}
 
     public Address(String addr1)
@@ -163,6 +166,14 @@ public class Address implements Serializable, Cloneable
             this.setZip5((zipParts.size() > 0) ? zipParts.get(0).trim() : "");
             this.setZip4((zipParts.size() > 1) ? zipParts.get(1).trim() : "");
         }
+    }
+
+    public boolean isUspsValidated() {
+        return uspsValidated;
+    }
+
+    public void setUspsValidated(boolean uspsValidated) {
+        this.uspsValidated = uspsValidated;
     }
 
     @Override

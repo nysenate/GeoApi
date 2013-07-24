@@ -21,7 +21,7 @@ public class SenateDao extends BaseDao
     /** Mapper used to serialize into json */
     private ObjectMapper mapper = new ObjectMapper();
 
-    /** Cached district code , Senator map */
+    /** Cached district code, Senator map */
     protected static Map<Integer, Senator> senatorMap;
 
     /**

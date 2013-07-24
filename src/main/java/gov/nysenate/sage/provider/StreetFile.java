@@ -16,6 +16,8 @@ import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -107,6 +109,7 @@ public class StreetFile implements DistrictService, StreetLookupService
             logger.error(ex);
         }
 
+        districtResult.setResultTime(new Timestamp(new Date().getTime()));
         return districtResult;
     }
 

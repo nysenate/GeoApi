@@ -80,7 +80,7 @@ public abstract class GeocodeServiceValidator
         if (geocodedAddresses != null && geocodedAddresses.size() == addresses.size()) {
             geocodeResults.clear();
             for (GeocodedAddress geocodedAddress : geocodedAddresses) {
-                GeocodeResult geocodeResult = new GeocodeResult(source.getClass());
+                GeocodeResult geocodeResult = new GeocodeResult(source);
                 validateGeocodeResult(geocodedAddress, geocodeResult);
                 geocodeResults.add(geocodeResult);
             }

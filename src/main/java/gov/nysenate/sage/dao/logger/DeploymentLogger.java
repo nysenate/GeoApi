@@ -35,6 +35,6 @@ public class DeploymentLogger extends BaseDao
         catch (SQLException ex) {
             logger.error("Failed to log deployment");
         }
-        return -1;
+        return 0;
     }
 }

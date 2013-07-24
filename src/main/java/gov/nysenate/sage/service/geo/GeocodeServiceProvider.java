@@ -2,6 +2,8 @@ package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.api.BatchGeocodeRequest;
+import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.GeoCache;
@@ -63,6 +65,22 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     public GeocodeCacheService newCacheInstance()
     {
         return new GeoCache();
+    }
+
+    /**
+     * Performs single geocode using GeocodeRequest.
+     * @param geocodeRequest
+     * @return
+     */
+    public GeocodeResult geocode(GeocodeRequest geocodeRequest)
+    {
+        if (geocodeRequest != null) {
+            String provider = (geocodeRequest.getProvider() != null && !geocodeRequest.getProvider().isEmpty())
+                              ? geocodeRequest.getProvider() : this.defaultProvider;
+            return this.geocode(geocodeRequest.getAddress(), provider, this.defaultFallback,
+                                geocodeRequest.isUseFallback(), geocodeRequest.isUseCache());
+        }
+        return null;
     }
 
     /**
@@ -160,6 +178,23 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             geocodeCache.saveToCacheAndFlush(geocodeResult);
         }
         return geocodeResult;
+    }
+
+    /**
+     * Perform batch geocoding using supplied BatchGeocodeRequest
+     * @param batchGeoRequest BatchGeocodeRequest with desired fields set
+     * @return  List<GeocodeResult> corresponding to the addresses list
+     */
+    public List<GeocodeResult> geocode(BatchGeocodeRequest batchGeoRequest)
+    {
+        if (batchGeoRequest != null) {
+            String provider = (batchGeoRequest.getProvider() != null && !batchGeoRequest.getProvider().isEmpty())
+                              ? batchGeoRequest.getProvider()
+                              : this.defaultProvider;
+            return this.geocode(batchGeoRequest.getAddresses(), provider, batchGeoRequest.isUseFallback(),
+                                batchGeoRequest.isUseCache());
+        }
+        return null;
     }
 
     /**
