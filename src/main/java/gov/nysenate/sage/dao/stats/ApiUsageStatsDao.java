@@ -34,7 +34,7 @@ public class ApiUsageStatsDao extends BaseDao
     {
         ApiUsageStats apiUsageStats = new ApiUsageStats();
         String sql = "SELECT date_trunc('" + requestInterval.field + "', requestTime) AS requestInterval, COUNT(*) AS requests \n" +
-                     "FROM log.apiRequests AS ar \n" +
+                     "FROM log.apiRequest AS ar \n" +
                      "WHERE ar.requestTime >= ? AND ar.requestTime <= ? \n" +
                      "GROUP BY date_trunc('" + requestInterval.field + "', requestTime)\n" +
                      "ORDER BY requestInterval";

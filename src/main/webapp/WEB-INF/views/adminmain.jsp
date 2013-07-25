@@ -20,6 +20,7 @@
                 <li><a ng-click='toggleMethod(2)'>Requests Log</a></li>
                 <li><a ng-click='toggleMethod(3)'>User Console</a></li>
                 <li><a ng-click='toggleMethod(4)'>Test Tool</a></li>
+                <li><a ng-href="${pageContext.request.contextPath}/admin/logout">Logout</a></li>
             </ul>
         </div>
         <div id="contentwrapper">

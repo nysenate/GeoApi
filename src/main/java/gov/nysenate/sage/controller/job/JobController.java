@@ -37,8 +37,9 @@ public class JobController extends BaseJobController
 {
     private Logger logger = Logger.getLogger(JobController.class);
     private Config config = ApplicationFactory.getConfig();
-    private static String MAIN_JSP = "/WEB-INF/views/jobmain.jsp";
-    private static String LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
+
+    private static String JOB_MAIN_JSP = "/WEB-INF/views/jobmain.jsp";
+    private static String JOB_LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
     private static String DOWNLOAD_BASE_URL = "/job/download/";
 
     @Override
@@ -52,7 +53,7 @@ public class JobController extends BaseJobController
         /** Handle log out */
         if (method != null && method.equalsIgnoreCase("/logout")) {
             doLogout(request, response);
-            request.getRequestDispatcher(LOGIN_JSP).forward(request, response);
+            request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
         }
         /** Handle all other requests */
         else {
@@ -61,11 +62,11 @@ public class JobController extends BaseJobController
                 /** Clear out previous info */
                 getJobRequest(request).clear();
                 request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
-                request.getRequestDispatcher(MAIN_JSP).forward(request, response);
+                request.getRequestDispatcher(JOB_MAIN_JSP).forward(request, response);
             }
             else {
-                logger.info("Authentication failed! Sending to login page");
-                request.getRequestDispatcher(LOGIN_JSP).forward(request, response);
+                logger.debug("Authentication failed! Sending to login page");
+                request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
             }
         }
     }
@@ -95,7 +96,7 @@ public class JobController extends BaseJobController
                     doLogout(request, response); break;
                 }
                 default : {
-                    request.getRequestDispatcher("/joblogin.jsp").forward(request, response);
+                    request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
                 }
             }
         }
@@ -116,14 +117,14 @@ public class JobController extends BaseJobController
         JobUserAuth jobUserAuth = new JobUserAuth();
         JobUser jobUser = jobUserAuth.getJobUser(email, password);
         if (jobUser != null) {
-            logger.info("Granted job service access to " + email);
+            logger.debug("Granted job service access to " + email);
             setJobUser(request, jobUser);
             response.sendRedirect(request.getContextPath() + "/job/main");
         }
         else {
-            logger.info("Denied job service access to " + email);
+            logger.debug("Denied job service access to " + email);
             request.setAttribute("errorMessage", "Invalid credentials");
-            request.getRequestDispatcher(LOGIN_JSP).forward(request, response);
+            request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
         }
     }
 

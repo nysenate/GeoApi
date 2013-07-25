@@ -1,5 +1,5 @@
 var sageAdmin = angular.module('sage-admin', ['sage-common']);
-var baseAdminApi = contextPath + "/admin";
+var baseAdminApi = contextPath + "/admin/api";
 
 sageAdmin.controller('DashboardController', function($scope, $http, menuService, dataBus) {
     $scope.id = 1;

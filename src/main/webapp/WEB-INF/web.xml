@@ -164,4 +164,14 @@
         <servlet-name>AdminController</servlet-name>
         <url-pattern>/admin/*</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminApiController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.admin.AdminApiController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminApiController</servlet-name>
+        <url-pattern>/admin/api/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>
