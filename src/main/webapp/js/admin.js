@@ -1,15 +1,22 @@
 var sageAdmin = angular.module('sage-admin', ['sage-common']);
 var baseAdminApi = contextPath + "/admin/api";
 
+sageAdmin.filter("code", function(){
+    return function(input) {
+        return (input) ? input.replace(/\\n/g, '<br/>').replace(/\\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;') : '';
+    }
+});
+
 sageAdmin.controller('DashboardController', function($scope, $http, menuService, dataBus) {
     $scope.id = 1;
     $scope.visible = true;
+
     $scope.$on(menuService.menuToggleEvent, function(){
         $scope.visible = ($scope.id == dataBus.data);
     });
 
     $scope.getDeploymentStats = function() {
-        $http.post(baseAdminApi + "/deployment")
+        $http.get(baseAdminApi + "/deployment")
             .success(function(data){
                 $scope = angular.extend($scope, data);
             })
@@ -19,7 +26,7 @@ sageAdmin.controller('DashboardController', function($scope, $http, menuService,
     };
 
     $scope.getUsageStats = function(startTime, endTime) {
-        $http.post(baseAdminApi + "/usage?interval=HOUR&from=" + startTime + "&to=" + endTime)
+        $http.get(baseAdminApi + "/usage?interval=HOUR&from=" + startTime + "&to=" + endTime)
             .success(function(data){
                 $scope = angular.extend($scope, data);
                 getSeriesData($scope.intervalFrom, $scope.intervalTo, $scope.intervalSizeInMinutes, $scope.intervalUsageCounts);
@@ -51,8 +58,25 @@ sageAdmin.controller('DashboardController', function($scope, $http, menuService,
         var fromTimestamp = +(from);
 
         $scope.getDeploymentStats();
-        $scope.getUsageStats(fromTimestamp, toTimestamp);
     }());
+});
+
+sageAdmin.controller('ExceptionViewController', function($scope, $http, dataBus){
+    $scope.exceptions = [];
+
+    $scope.init = function() {
+        this.getExceptions();
+    };
+
+    $scope.getExceptions = function() {
+        $http.get(baseAdminApi + "/exception")
+            .success(function(data){
+                $scope.exceptions = data;
+            })
+            .error(function(){});
+    };
+
+    $scope.init();
 });
 
 sageAdmin.controller('UserConsoleController', function($scope, $http, menuService, dataBus) {
@@ -66,7 +90,7 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
     });
 
     $scope.getCurrentApiUsers = function() {
-        $http.post(baseAdminApi + "/currentApiUsers").success(function(data){
+        $http.get(baseAdminApi + "/currentApiUsers").success(function(data){
             $scope.currentApiUsers = data;
         }).error(function(data){
             console.log("Failed to retrieve list of current Api users!");
@@ -74,7 +98,7 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
     };
 
     $scope.getCurrentJobUsers = function() {
-        $http.post(baseAdminApi + "/currentJobUsers").success(function(data){
+        $http.get(baseAdminApi + "/currentJobUsers").success(function(data){
             $scope.currentJobUsers = data;
         }).error(function(data){
             console.log("Failed to retrieve list of current Job users!")
@@ -158,8 +182,6 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
 $(document).ready(function() {
     initVerticalMenu();
 });
-
-
 
 function makeApiUsageChart(startDate, seriesData) {
     $('#api-usage-stats').highcharts({

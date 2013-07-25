@@ -7,11 +7,12 @@ import gov.nysenate.sage.dao.model.JobUserDao;
 import gov.nysenate.sage.dao.stats.ApiUsageStatsDao;
 import gov.nysenate.sage.dao.stats.ApiUserStatsDao;
 import gov.nysenate.sage.dao.stats.DeploymentStatsDao;
+import gov.nysenate.sage.dao.stats.ExceptionInfoDao;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.stats.ApiUsageStats;
 import gov.nysenate.sage.model.stats.DeploymentStats;
-import gov.nysenate.sage.model.stats.ExceptionStats;
+import gov.nysenate.sage.model.stats.ExceptionInfo;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.auth.JobUserAuth;
 import org.apache.log4j.Logger;
@@ -49,12 +50,6 @@ public class AdminApiController extends BaseAdminController
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        setAdminResponse(new GenericResponse(false, "Admin API is only available through POST requests"), response);
-    }
-
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
         Object adminResponse = null;
         if (isAuthenticated(request)) {
             String method = request.getPathInfo();
@@ -68,6 +63,38 @@ public class AdminApiController extends BaseAdminController
                         adminResponse = getCurrentJobUsers(request);
                         break;
                     }
+                    case "/usage" : {
+                        adminResponse = getApiUsageStats(request);
+                        break;
+                    }
+                    case "/deployment" : {
+                        adminResponse = getDeploymentStats(request);
+                        break;
+                    }
+                    case "/exception" : {
+                        adminResponse = getExceptionStats(request);
+                        break;
+                    }
+                    default : {
+                        adminResponse = new GenericResponse(false, "Invalid admin API request.");
+                    }
+                }
+            }
+        }
+        else {
+            adminResponse = new GenericResponse(false, "You must be logged in as an administrator to access this API.");
+        }
+        setAdminResponse(adminResponse, response);
+    }
+
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+        Object adminResponse = null;
+        if (isAuthenticated(request)) {
+            String method = request.getPathInfo();
+            if (method != null) {
+                switch (method) {
                     case "/createApiUser" : {
                         adminResponse = createApiUser(request);
                         break;
@@ -84,20 +111,8 @@ public class AdminApiController extends BaseAdminController
                         adminResponse = deleteJobUser(request);
                         break;
                     }
-                    case "/usage" : {
-                        adminResponse = getApiUsageStats(request);
-                        break;
-                    }
-                    case "/deployment" : {
-                        adminResponse = getDeploymentStats(request);
-                        break;
-                    }
-                    case "/exception" : {
-
-                        break;
-                    }
                     default : {
-
+                        adminResponse = new GenericResponse(false, "Invalid admin API request.");
                     }
                 }
             }
@@ -288,8 +303,9 @@ public class AdminApiController extends BaseAdminController
         return apiUsageStatsDao.getApiUsageStats(from, to, requestInterval);
     }
 
-    private ExceptionStats getExceptionStats(HttpServletRequest request)
+    private List<ExceptionInfo> getExceptionStats(HttpServletRequest request)
     {
-        return null;
+        ExceptionInfoDao exceptionInfoDao = new ExceptionInfoDao();
+        return exceptionInfoDao.getExceptionInfoList();
     }
 }

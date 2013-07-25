@@ -32,6 +32,24 @@
                             <li><label>API Requests Since Deployment | </label>{{requestsSinceLatest}}</li>
                         </ul>
                     </div>
+
+                    <!-- Exception viewer -->
+                    <div ng-controller="ExceptionViewController" class="highlight-section fixed">
+                        <p style="font-weight:600;color:teal;">Application Exceptions</p>
+                        <hr/>
+                        <div style="text-align: left;">
+                            <div ng-repeat="(i, exception) in exceptions" style="padding: 5px;border-bottom: 1px solid #eee;">
+                                <div>
+                                    <span style="color:#CC333F">{{exception.exceptionType}}</span> - {{exception.catchTime | date:'medium'}}
+                                    <a ng-click="toggleStackTrace = !toggleStackTrace" style="float:right;">Toggle stack trace</a>
+                                </div>
+                                <pre ng-show="toggleStackTrace" style="color:teal;font-size:12px;text-align:left;" ng-bind-html-unsafe="exception.stackTrace | code">
+                                </pre>
+                            </div>
+                        </div>
+
+
+                    </div>
                 </div>
                 <div ng-controller="UserConsoleController" ng-show="visible">
                     <h3 class="slim">User Console</h3>

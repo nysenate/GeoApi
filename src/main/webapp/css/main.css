@@ -40,6 +40,11 @@ ol, ul {
 
 b {font-size: 110%;}
 em {color: red;}
+hr {
+    outline:0;
+    border:1px solid #ddd;
+    border-style: solid none none none;
+}
 
 h3.slim {
     font-weight: 400;

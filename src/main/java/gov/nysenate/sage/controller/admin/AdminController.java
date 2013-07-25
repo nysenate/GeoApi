@@ -1,20 +1,10 @@
 package gov.nysenate.sage.controller.admin;
 
-import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.dao.model.AdminUserDao;
-import gov.nysenate.sage.dao.model.ApiUserDao;
-import gov.nysenate.sage.dao.model.JobUserDao;
 import gov.nysenate.sage.dao.stats.ApiUsageStatsDao;
 import gov.nysenate.sage.dao.stats.ApiUserStatsDao;
 import gov.nysenate.sage.dao.stats.DeploymentStatsDao;
-import gov.nysenate.sage.model.api.ApiUser;
-import gov.nysenate.sage.model.job.JobUser;
-import gov.nysenate.sage.model.stats.ApiUsageStats;
-import gov.nysenate.sage.model.stats.DeploymentStats;
-import gov.nysenate.sage.model.stats.ExceptionStats;
-import gov.nysenate.sage.util.auth.ApiUserAuth;
-import gov.nysenate.sage.util.auth.JobUserAuth;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -22,10 +12,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 public class AdminController extends BaseAdminController
 {
