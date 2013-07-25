@@ -41,6 +41,11 @@ ol, ul {
 b {font-size: 110%;}
 em {color: red;}
 
+h3.slim {
+    font-weight: 400;
+    font-size: 20px;
+}
+
 :focus {outline:none;}
 ::-moz-focus-inner {border:0;}
 
@@ -837,7 +842,13 @@ ul.horizontal li {
     padding: 10px;
     background: white;
     margin: 10px;
-    min-width: 900px;
+    min-width: 850px;
+    box-shadow: 0 0 1px #eee;
+}
+
+.highlight-section.fixed {
+    width: 850px;
+    margin: 10px auto;
 }
 
 .highlight-section .title {
@@ -849,8 +860,7 @@ ul.horizontal li {
 }
 
 .highlight-section label {
-    color:teal;
-    font-weight:600;
+    color:#0E4E5A;
 }
 
 table.admin-table {

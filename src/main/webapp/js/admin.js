@@ -3,7 +3,7 @@ var baseAdminApi = contextPath + "/admin/api";
 
 sageAdmin.controller('DashboardController', function($scope, $http, menuService, dataBus) {
     $scope.id = 1;
-    $scope.visible = false;
+    $scope.visible = true;
     $scope.$on(menuService.menuToggleEvent, function(){
         $scope.visible = ($scope.id == dataBus.data);
     });
@@ -57,7 +57,7 @@ sageAdmin.controller('DashboardController', function($scope, $http, menuService,
 
 sageAdmin.controller('UserConsoleController', function($scope, $http, menuService, dataBus) {
     $scope.id = 3;
-    $scope.visible = true;
+    $scope.visible = false;
     $scope.currentApiUsers = null;
     $scope.currentJobUsers = null;
 

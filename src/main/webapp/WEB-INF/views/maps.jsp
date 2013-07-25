@@ -20,7 +20,6 @@
                 </div>
                 <div id="mapView" ng-controller="EmbeddedMapViewController">
                     <div class="top-header">
-                        <div class="large-icon icon-map white"></div>
                         <div class="text">{{mapTitle}}</div>
                     </div>
 

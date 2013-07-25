@@ -17,20 +17,43 @@
         <div style="width:100%" id="header" ng-controller="MenuController">
             <sage:logo></sage:logo>
             <ul class="top-method-header">
-                <li><a class="active" ng-click="toggleMethod(1)">District Lookup</a></li>
-                <li><a ng-click="toggleMethod(2)">District Maps</a></li>
-                <li><a ng-click="toggleMethod(3)">Street Finder</a></li>
-                <li ng-click="toggleMethod(4)"><a>Reverse Geocode</a></li>
-                <li ng-click="toggleMethod(5)"><a>City/State</a></li>
-                <li><a href="${contextPath}/job">Batch</a></li>
-                <li><a href="${contextPath}/docs/html/index.html">Developer API</a></li>
+                <li>
+                    <a class="active" ng-click="toggleMethod(1)">
+                        <div class="icon-white-no-hover icon-search"></div>&nbsp;&nbsp;District Lookup
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="toggleMethod(2)">
+                        <div class="icon-white-no-hover icon-map"></div>&nbsp;&nbsp;District Maps
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="toggleMethod(3)">
+                        <div class="icon-white-no-hover icon-database"></div>&nbsp;&nbsp;Street Finder
+                    </a>
+                </li>
+                <li ng-click="toggleMethod(4)">
+                    <a>
+                        <div class="icon-white-no-hover icon-target"></div>&nbsp;&nbsp;Reverse Geocode
+                    </a>
+                </li>
+                <li ng-click="toggleMethod(5)">
+                    <a>
+                        <div class="icon-white-no-hover icon-location"></div>&nbsp;&nbsp;City/State
+                    </a>
+                </li>
+                <li>
+                    <a href="${contextPath}/job">Batch
+                    </a></li>
+                <li>
+                    <a href="${contextPath}/docs/html/index.html">Developer API
+                    </a></li>
             </ul>
         </div>
 
         <div id="contentcolumn" style="display:none;">
             <div id="mapView" ng-controller="EmbeddedMapViewController">
                 <div class="top-header map-info">
-                    <div class="large-icon icon-map white"></div>
                     <div class="text">{{mapTitle}}</div>
                 </div>
                 <div id="map_canvas"></div>
