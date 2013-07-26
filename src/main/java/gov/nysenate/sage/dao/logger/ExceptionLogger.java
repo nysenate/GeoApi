@@ -21,7 +21,7 @@ public class ExceptionLogger extends BaseDao
     private static Logger logger = Logger.getLogger(ExceptionLogger.class);
     private static ApiRequestLogger apiRequestLogger = new ApiRequestLogger();
     private static String SCHEMA = "log";
-    private static String TABLE = "exceptions";
+    private static String TABLE = "exception";
     private QueryRunner run = getQueryRunner();
 
     /**

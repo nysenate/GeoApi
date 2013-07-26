@@ -6,11 +6,20 @@ import java.sql.Timestamp;
 
 public class ExceptionInfo
 {
+    private Integer id;
     private ApiRequest apiRequest;
     private String exceptionType;
     private String message;
     private String stackTrace;
     private Timestamp catchTime;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public Timestamp getCatchTime() {
         return catchTime;

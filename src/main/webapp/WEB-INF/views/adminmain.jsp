@@ -22,7 +22,7 @@
             </ul>
         </div>
         <div id="contentwrapper">
-            <div id="contentcolumn" style="text-align:center;padding-top:20px;background-color:#f5f5f5">
+            <div id="contentcolumn" style="text-align:center;">
                 <div ng-controller='DashboardController' ng-show='visible'>
                     <h3 class="slim">SAGE Dashboard</h3>
                     <div id="uptime-stats" class="highlight-section fixed">
@@ -34,14 +34,19 @@
                     </div>
 
                     <!-- Exception viewer -->
-                    <div ng-controller="ExceptionViewController" class="highlight-section fixed">
+                    <div ng-controller="ExceptionViewController" ng-show="exceptions" class="highlight-section fixed">
                         <p style="font-weight:600;color:teal;">Application Exceptions</p>
                         <hr/>
                         <div style="text-align: left;">
                             <div ng-repeat="(i, exception) in exceptions" style="padding: 5px;border-bottom: 1px solid #eee;">
                                 <div>
                                     <span style="color:#CC333F">{{exception.exceptionType}}</span> - {{exception.catchTime | date:'medium'}}
-                                    <a ng-click="toggleStackTrace = !toggleStackTrace" style="float:right;">Toggle stack trace</a>
+                                    <span ng-show="exception.apiRequest"> | Api Request Id: {{exception.apiRequest.id}}</span>
+                                    <div style="float:right;font-size:14px;">
+                                        <a ng-click="toggleStackTrace = !toggleStackTrace" >Toggle stack trace</a>
+                                        <span style="color:teal;margin:0 5px">|</span>
+                                        <a ng-click="hideException(exception.id)">Remove</a>
+                                    </div>
                                 </div>
                                 <pre ng-show="toggleStackTrace" style="color:teal;font-size:12px;text-align:left;" ng-bind-html-unsafe="exception.stackTrace | code">
                                 </pre>

@@ -17,7 +17,7 @@
             </jsp:attribute>
         </sage:header>
 
-        <h1 style="text-align: center; color:#222;">SAGE Batch Services</h1>
+        <h1 style="text-align: center; color:#222;font-weight:400;">SAGE Batch Services</h1>
         <div style="margin:auto;width:720px;text-align: center;">
             <p>SAGE provides batch geocoding and district assignment services to registered users.</p>
         </div>

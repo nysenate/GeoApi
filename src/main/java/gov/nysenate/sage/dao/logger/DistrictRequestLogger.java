@@ -30,7 +30,7 @@ public class DistrictRequestLogger extends BaseDao
             JobProcess jobProcess = dr.getJobProcess();
 
             try {
-                int addressId = addressLogger.logAddress(dr.getGeocodedAddress().getAddress());
+                int addressId = (dr.getGeocodedAddress() != null) ? addressLogger.logAddress(dr.getGeocodedAddress().getAddress()) : 0;
                 String strategy = (dr.getDistrictStrategy() != null) ? dr.getDistrictStrategy().name() : null;
                 int requestId = run.query(
                     "INSERT INTO " + SCHEMA + "." + TABLE + "(apiRequestId, jobProcessId, addressId, provider, geoProvider, showMembers, showMaps, uspsValidate, skipGeocode, districtStrategy, requestTime) \n" +

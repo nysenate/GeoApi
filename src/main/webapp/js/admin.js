@@ -76,6 +76,21 @@ sageAdmin.controller('ExceptionViewController', function($scope, $http, dataBus)
             .error(function(){});
     };
 
+    $scope.hideException = function(id) {
+        $http.post(baseAdminApi + "/hideException?id=" + id)
+            .success(function(data){
+                if (data) {
+                    if (data.success) {
+                        $scope.getExceptions();
+                    }
+                    else {
+                        alert(data.message);
+                    }
+                }
+            })
+            .error(function(){});
+    };
+
     $scope.init();
 });
 

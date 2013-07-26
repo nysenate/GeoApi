@@ -111,6 +111,10 @@ public class AdminApiController extends BaseAdminController
                         adminResponse = deleteJobUser(request);
                         break;
                     }
+                    case "/hideException" : {
+                        adminResponse = hideException(request);
+                        break;
+                    }
                     default : {
                         adminResponse = new GenericResponse(false, "Invalid admin API request.");
                     }
@@ -148,7 +152,7 @@ public class AdminApiController extends BaseAdminController
     /**
      * Creates a new Api User.
      * @param request Required param(s): name
-     * @return
+     * @return GenericResponse indicating success/failure.
      */
     private GenericResponse createApiUser(HttpServletRequest request)
     {
@@ -175,7 +179,7 @@ public class AdminApiController extends BaseAdminController
     /**
      * Deletes an Api User.
      * @param request Required Param(s): id
-     * @return
+     * @return GenericResponse indicating success/failure.
      */
     private GenericResponse deleteApiUser(HttpServletRequest request)
     {
@@ -201,7 +205,7 @@ public class AdminApiController extends BaseAdminController
     /**
      * Creates a new Job User
      * @param request Required Params: email, password, firstname, lastname
-     * @return
+     * @return GenericResponse indicating success/failure.
      */
     private GenericResponse createJobUser(HttpServletRequest request)
     {
@@ -231,7 +235,7 @@ public class AdminApiController extends BaseAdminController
     /**
      * Deletes a Job User with the given id.
      * @param request Required Params: id
-     * @return
+     * @return GenericResponse indicating success/failure.
      */
     private GenericResponse deleteJobUser(HttpServletRequest request)
     {
@@ -306,6 +310,26 @@ public class AdminApiController extends BaseAdminController
     private List<ExceptionInfo> getExceptionStats(HttpServletRequest request)
     {
         ExceptionInfoDao exceptionInfoDao = new ExceptionInfoDao();
-        return exceptionInfoDao.getExceptionInfoList();
+        return exceptionInfoDao.getExceptionInfoList(true);
+    }
+
+    /**
+     * Marks an exception as hidden so that it can be filtered out in the interface.
+     * @param request Required Params: id (of the exceptionInfo).
+     * @return GenericResponse indicating success/failure.
+     */
+    private GenericResponse hideException(HttpServletRequest request)
+    {
+        int id;
+        try {
+            id = Integer.parseInt(request.getParameter("id"));
+        }
+        catch (NumberFormatException ex) {
+            return new GenericResponse(false, "Must supply a valid exception id to hide!");
+        }
+        ExceptionInfoDao exceptionInfoDao = new ExceptionInfoDao();
+        int update = exceptionInfoDao.hideExceptionInfo(id);
+        return (update > 0) ? new GenericResponse(true, "Exception hidden")
+                            : new GenericResponse(false, "Failed to hide exception!");
     }
 }

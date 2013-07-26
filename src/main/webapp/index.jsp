@@ -61,7 +61,6 @@
             <div id="streetView" ng-show="visible" ng-controller="StreetLookupController">
                 <div style="height:100%;">
                     <div class="top-header autohide">
-                        <div class="large-icon icon-database white"></div>
                         <div class="text">Board of Elections Street Lookup</div>
                     </div>
                     <div id="streetLookupSearch" class="search-container small">
@@ -314,10 +313,12 @@
                         <tr>
                             <td><div class="icon-location icon-teal"></div></td>
                             <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressLevel:matchLevel | addressFormat"></p></td>
+                            <td><small ng-show="uspsValidated" style="text-align:right;color:teal;">USPS</small></td>
                         </tr>
                         <tr>
                             <td><div class="icon-target icon-teal"></div></td>
-                            <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}}) <small style="float:right;">{{geocode.method | remove:'Dao'}}</small></p></td>
+                            <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}})</p></td>
+                            <td><small style="text-align:right;color:teal;">{{geocode.method | remove:'Dao'}}</small></td>
                         </tr>
                     </table>
                 </div>

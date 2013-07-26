@@ -16,7 +16,7 @@
             </jsp:attribute>
         </sage:header>
 
-        <h1 style="text-align: center; color:#222;">SAGE Admin Interface</h1>
+        <h1 style="text-align: center; color:#222;font-weight: 400;">SAGE Admin Interface</h1>
         <div style="width:500px;margin:auto;" ng-controller="">
             <form id="uploadForm" method="post" ng-submit="login()" action="${pageContext.request.contextPath}/admin/login">
                 <ol class="input-container" style="width:280px;margin:auto;padding:20px;">

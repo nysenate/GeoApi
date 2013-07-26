@@ -49,6 +49,7 @@ public class StreetAddress
         if (!getPreDir().isEmpty()) addr1 += getPreDir() + " ";
         if (!getStreet().isEmpty()) addr1 += getStreet() + " ";
         if (!getPostDir().isEmpty()) addr1 += getPostDir() + " ";
+        if (isPoBoxAddress()) addr1 += "PO Box: " + getPoBox();
 
         String addr2 = "";
         if (!getInternal().isEmpty()){
@@ -56,9 +57,6 @@ public class StreetAddress
         }
         else if (!getBldgChar().isEmpty()){
             addr2 = getBldgChar();
-        }
-        else if (!getInternal().isEmpty()) {
-            addr2 += getInternal();
         }
 
         String city = getLocation();
