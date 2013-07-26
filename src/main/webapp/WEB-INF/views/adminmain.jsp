@@ -52,8 +52,51 @@
                                 </pre>
                             </div>
                         </div>
+                    </div>
 
+                    <div ng-controller="ApiUserStatsController" class="highlight-section fixed">
+                        <p style="font-weight:600;color:teal;">Api User Request Stats</p>
+                        <hr/>
+                        <table class="light-table">
+                            <tr>
+                                <th>Api User Id</th>
+                                <th>Api User Name</th>
+                                <th>Api Requests</th>
+                                <th>Geocode Requests</th>
+                                <th>District Assign Requests</th>
+                            </tr>
+                            <tr ng-repeat="(id, apiUserStat) in apiUserStats">
+                                <td>{{id}}</td>
+                                <td>{{apiUserStat.apiUser.name}}</td>
+                                <td>{{apiUserStat.apiRequests}}</td>
+                                <td>{{apiUserStat.geoRequests}}</td>
+                                <td>{{apiUserStat.distRequests}}</td>
+                            </tr>
+                        </table>
 
+                        <br/>
+                        <p style="font-weight:600;color:teal;">Requests per method</p>
+                        <hr/>
+                        <table class="light-table">
+                            <tr>
+                                <th style="width:100px;">Api User Id</th>
+                                <th style="width:300px;">Api User Name</th>
+                                <th style="width:175px;">Service</th>
+                                <th style="width:175px;">Method</th>
+                                <th style="width:100px;">Requests</th>
+                            </tr>
+                        </table>
+                        <div ng-repeat="(id, apiUserStat) in apiUserStats">
+                            <table class="light-table" ng-repeat="(service,methodList) in apiUserStat.requestsByMethod">
+                                <tr ng-repeat="(method, requests) in methodList">
+                                    <td style="width:100px;">{{id}}</td>
+                                    <td style="width:300px;">{{apiUserStat.apiUser.name}}</td>
+                                    <td style="width:175px;">{{service}}</td>
+                                    <td style="width:175px;">{{method}}</td>
+                                    <td style="width:100px;">{{requests}}</td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <div ng-controller="UserConsoleController" ng-show="visible">

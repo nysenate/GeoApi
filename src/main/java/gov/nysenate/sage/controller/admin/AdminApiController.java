@@ -11,6 +11,7 @@ import gov.nysenate.sage.dao.stats.ExceptionInfoDao;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.stats.ApiUsageStats;
+import gov.nysenate.sage.model.stats.ApiUserStats;
 import gov.nysenate.sage.model.stats.DeploymentStats;
 import gov.nysenate.sage.model.stats.ExceptionInfo;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -26,6 +27,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class AdminApiController extends BaseAdminController
 {
@@ -61,6 +63,10 @@ public class AdminApiController extends BaseAdminController
                     }
                     case "/currentJobUsers" : {
                         adminResponse = getCurrentJobUsers(request);
+                        break;
+                    }
+                    case "/apiUserUsage" : {
+                        adminResponse = getApiUserStats(request);
                         break;
                     }
                     case "/usage" : {
@@ -305,6 +311,12 @@ public class AdminApiController extends BaseAdminController
         }
 
         return apiUsageStatsDao.getApiUsageStats(from, to, requestInterval);
+    }
+
+
+    private Map<Integer, ApiUserStats> getApiUserStats(HttpServletRequest request)
+    {
+        return apiUserStatsDao.getRequestCounts();
     }
 
     private List<ExceptionInfo> getExceptionStats(HttpServletRequest request)

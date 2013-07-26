@@ -94,6 +94,24 @@ sageAdmin.controller('ExceptionViewController', function($scope, $http, dataBus)
     $scope.init();
 });
 
+sageAdmin.controller('ApiUserStatsController', function($scope, $http, dataBus) {
+    $scope.apiUserStats = [];
+
+    $scope.init = function() {
+        this.getApiUserStats();
+    };
+
+    $scope.getApiUserStats = function() {
+        $http.get(baseAdminApi + "/apiUserUsage")
+            .success(function(data){
+                $scope.apiUserStats = data;
+            })
+            .error(function(){});
+    };
+
+    $scope.init();
+});
+
 sageAdmin.controller('UserConsoleController', function($scope, $http, menuService, dataBus) {
     $scope.id = 3;
     $scope.visible = false;

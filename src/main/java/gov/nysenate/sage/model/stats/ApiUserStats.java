@@ -2,15 +2,22 @@ package gov.nysenate.sage.model.stats;
 
 import gov.nysenate.sage.model.api.ApiUser;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Model class for representing usage counts for a specific ApiUser.
  */
 public class ApiUserStats
 {
     private ApiUser apiUser;
-    private int dailyApiRequests;
-    private int monthlyApiRequests;
-    private int lifetimeApiRequests;
+    private int apiRequests;
+    private int geoRequests;
+    private int distRequests;
+    /**             (Service -> Method) -> RequestCount  */
+    private Map<String, Map<String, Integer>> requestsByMethod = new HashMap<>();
 
     public ApiUser getApiUser() {
         return apiUser;
@@ -20,27 +27,43 @@ public class ApiUserStats
         this.apiUser = apiUser;
     }
 
-    public int getDailyApiRequests() {
-        return dailyApiRequests;
+    public int getApiRequests() {
+        return apiRequests;
     }
 
-    public void setDailyApiRequests(int dailyApiRequests) {
-        this.dailyApiRequests = dailyApiRequests;
+    public void setApiRequests(int apiRequests) {
+        this.apiRequests = apiRequests;
     }
 
-    public int getMonthlyApiRequests() {
-        return monthlyApiRequests;
+    public int getGeoRequests() {
+        return geoRequests;
     }
 
-    public void setMonthlyApiRequests(int monthlyApiRequests) {
-        this.monthlyApiRequests = monthlyApiRequests;
+    public void setGeoRequests(int geoRequests) {
+        this.geoRequests = geoRequests;
     }
 
-    public int getLifetimeApiRequests() {
-        return lifetimeApiRequests;
+    public int getDistRequests() {
+        return distRequests;
     }
 
-    public void setLifetimeApiRequests(int lifetimeApiRequests) {
-        this.lifetimeApiRequests = lifetimeApiRequests;
+    public void setDistRequests(int distRequests) {
+        this.distRequests = distRequests;
+    }
+
+    public Map<String, Map<String, Integer>> getRequestsByMethod() {
+        return requestsByMethod;
+    }
+
+    public void setRequestsByMethod(Map<String, Map<String, Integer>> requestsByMethod) {
+        this.requestsByMethod = requestsByMethod;
+    }
+
+    public void addMethodRequestCount(String service, String method, Integer requests)
+    {
+        if (this.requestsByMethod.get(service) == null) {
+            this.requestsByMethod.put(service, new HashMap<String, Integer>());
+        }
+        this.requestsByMethod.get(service).put(method, requests);
     }
 }

@@ -52,7 +52,7 @@ public class ApiUsageStatsDao extends BaseDao
         return null;
     }
 
-    private class ApiIntervalUsageHandler implements ResultSetHandler<List<IntervalUsage>> {
+    private static class ApiIntervalUsageHandler implements ResultSetHandler<List<IntervalUsage>> {
 
         @Override
         public List<IntervalUsage> handle(ResultSet rs) throws SQLException {

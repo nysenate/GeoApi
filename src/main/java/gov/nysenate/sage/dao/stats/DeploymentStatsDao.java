@@ -16,7 +16,7 @@ public class DeploymentStatsDao extends BaseDao
 {
     private static Logger logger = Logger.getLogger(DeploymentStatsDao.class);
     private String SCHEMA = "log";
-    private String TABLE = "deployments";
+    private String TABLE = "deployment";
     private static ResultSetHandler<List<Deployment>> listHandler = new BeanListHandler<>(Deployment.class);
     private QueryRunner run = getQueryRunner();
 
