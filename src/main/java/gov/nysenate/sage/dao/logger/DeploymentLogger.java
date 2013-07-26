@@ -13,7 +13,7 @@ public class DeploymentLogger extends BaseDao
 {
     private static Logger logger = Logger.getLogger(DeploymentLogger.class);
     private static String SCHEMA = "log";
-    private static String TABLE = "deployments";
+    private static String TABLE = "deployment";
     private QueryRunner run = getQueryRunner();
 
     /**

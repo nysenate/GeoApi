@@ -20,8 +20,11 @@ public class GeocodeRequestLogger extends BaseDao
 {
     private static Logger logger = Logger.getLogger(GeocodeRequestLogger.class);
     private static AddressLogger addressLogger = new AddressLogger();
+    private static PointLogger pointLogger = new PointLogger();
+
     private static String SCHEMA = "log";
     private static String TABLE = "geocodeRequest";
+
     private QueryRunner run = getQueryRunner();
 
     /**
@@ -36,12 +39,14 @@ public class GeocodeRequestLogger extends BaseDao
                 ApiRequest apiRequest = geoRequest.getApiRequest();
                 JobProcess jobProcess = geoRequest.getJobProcess();
 
-                int addressId = addressLogger.logAddress(geoRequest.getAddress());
+                int addressId = (!geoRequest.isReverse()) ? addressLogger.logAddress(geoRequest.getAddress()) : 0;
+                int pointId = (geoRequest.isReverse()) ? pointLogger.logPoint(geoRequest.getPoint()) : 0;
+
                 int requestId = run.query(
-                          "INSERT INTO " + SCHEMA + "." + TABLE + "(apiRequestId, jobProcessId, addressId, provider, useFallback, useCache, requestTime) \n" +
-                          "VALUES (?, ?, ?, ?, ?, ?, ?) \n" +
+                          "INSERT INTO " + SCHEMA + "." + TABLE + "(apiRequestId, jobProcessId, addressId, pointId, provider, useFallback, useCache, requestTime) \n" +
+                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?) \n" +
                           "RETURNING id", new ReturnIdHandler(), (apiRequest != null) ? apiRequest.getId() : null, (jobProcess != null) ? jobProcess.getId() : null,
-                                                                 (addressId > 0) ? addressId : null, geoRequest.getProvider(), geoRequest.isUseFallback(),
+                                                                 (addressId > 0) ? addressId : null, (pointId > 0) ? pointId : null, geoRequest.getProvider(), geoRequest.isUseFallback(),
                                                                  geoRequest.isUseCache(), geoRequest.getRequestTime());
                 geoRequest.setId(requestId);
                 return requestId;

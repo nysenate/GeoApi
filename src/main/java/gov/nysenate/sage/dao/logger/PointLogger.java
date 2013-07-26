@@ -12,7 +12,7 @@ public class PointLogger extends BaseDao
 {
     private static Logger logger = Logger.getLogger(AddressLogger.class);
     private static String SCHEMA = "log";
-    private static String TABLE = "points";
+    private static String TABLE = "point";
     private QueryRunner run = getQueryRunner();
 
     /**

@@ -1,6 +1,8 @@
 package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.model.api.BatchGeocodeRequest;
+import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -8,6 +10,7 @@ import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -22,6 +25,16 @@ public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeServic
 
     @Override
     public void update(Observable o, Object arg) {}
+
+    public GeocodeResult reverseGeocode(GeocodeRequest geocodeRequest)
+    {
+        if (geocodeRequest != null) {
+            return reverseGeocode(geocodeRequest.getPoint(), geocodeRequest.getProvider(), geocodeRequest.isUseFallback());
+        }
+        else {
+            return null;
+        }
+    }
 
     /**
      * Perform reverse geocode with default options.
@@ -75,7 +88,21 @@ public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeServic
                 geocodeResult = this.newInstance(fallbackIterator.next()).reverseGeocode(point);
             }
         }
+        geocodeResult.setResultTime(new Timestamp(new Date().getTime()));
         return geocodeResult;
+    }
+
+    /**
+     * Perform batch reverse geocoding using supploed BatchGeocodeRequest with points set.
+     * @param batchRevGeoRequest
+     * @return  List<GeocodeResult> or null if batchRevGeoRequest is null.
+     */
+    public List<GeocodeResult> reverseGeocode(BatchGeocodeRequest batchRevGeoRequest)
+    {
+        if (batchRevGeoRequest != null) {
+            return reverseGeocode(batchRevGeoRequest.getPoints(), batchRevGeoRequest.getProvider(), this.defaultFallback);
+        }
+        return null;
     }
 
     /**

@@ -143,9 +143,15 @@ public class GeocodeController extends BaseApiController implements Observer
                 if (!apiRequest.isBatch()) {
                     Point point = getPointFromParams(request);
                     if (point != null ) {
-                        logger.debug("sending to rev geo service provider");
-                        GeocodeResult revGeocodeResult = revGeocodeServiceProvider.reverseGeocode(point, provider, true);
+                        geocodeRequest.setReverse(true);
+                        geocodeRequest.setPoint(point);
+                        GeocodeResult revGeocodeResult = revGeocodeServiceProvider.reverseGeocode(geocodeRequest);
                         geocodeResponse = new RevGeocodeResponse(revGeocodeResult);
+
+                        /** Log rev geocode request/result to database */
+                        if (LOGGING_ENABLED) {
+                            geocodeResultLogger.logGeocodeRequestAndResult(geocodeRequest, revGeocodeResult);
+                        }
                     }
                     else {
                         geocodeResponse = new ApiError(this.getClass(), MISSING_POINT);
@@ -155,8 +161,16 @@ public class GeocodeController extends BaseApiController implements Observer
                 else {
                     List<Point> points = getPointsFromJsonBody(request);
                     if (points.size() > 0) {
-                        List<GeocodeResult> revGeocodeResults = revGeocodeServiceProvider.reverseGeocode(points);
+                        BatchGeocodeRequest batchGeocodeRequest = new BatchGeocodeRequest(geocodeRequest);
+                        batchGeocodeRequest.setReverse(true);
+                        batchGeocodeRequest.setPoints(points);
+
+                        List<GeocodeResult> revGeocodeResults = revGeocodeServiceProvider.reverseGeocode(batchGeocodeRequest);
                         geocodeResponse = new BatchGeocodeResponse(revGeocodeResults);
+
+                        if (LOGGING_ENABLED) {
+                            geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, revGeocodeResults, true);
+                        }
                     }
                     else {
                         geocodeResponse = new ApiError(this.getClass(), INVALID_BATCH_POINTS);

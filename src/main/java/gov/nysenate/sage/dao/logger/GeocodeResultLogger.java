@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.GeoCache;
@@ -25,6 +26,7 @@ public class GeocodeResultLogger extends BaseDao
 {
     private static Logger logger = Logger.getLogger(GeocodeResultLogger.class);
     private static AddressLogger addressLogger = new AddressLogger();
+    private static PointLogger pointLogger = new PointLogger();
     private static GeocodeRequestLogger geocodeRequestLogger = new GeocodeRequestLogger();
 
     private static String SCHEMA = "log";
@@ -57,18 +59,18 @@ public class GeocodeResultLogger extends BaseDao
             boolean success =  geocodeResult.isSuccess();
             boolean cacheHit = geocodeResult.getSource().equalsIgnoreCase(GeoCache.class.getSimpleName());
             int addressId = (success) ? addressLogger.logAddress(geocodeResult.getAddress()) : 0;
+            int latLonId = (success) ? pointLogger.logPoint(geocodeResult.getGeocode().getLatLon()) : 0;
 
             String sql =
-                    "INSERT INTO " + SCHEMA + "." + TABLE + "(geocodeRequestId, success, cacheHit, addressId, method, quality, latlon, resultTime) \n" +
-                    "VALUES (?, ?, ?, ?, ?, ?, ST_GeomFromText(?), ?) \n" +
+                    "INSERT INTO " + SCHEMA + "." + TABLE + "(geocodeRequestId, success, cacheHit, addressId, method, quality, latLonId, resultTime) \n" +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?) \n" +
                     "RETURNING id";
             try {
                 Geocode geocode = geocodeResult.getGeocode();
                 String method = (success) ? geocode.getMethod() : null;
                 String quality = (success) ? geocode.getQuality().name() : null;
-                String point = (success) ? "POINT(" + geocode.getLat() + " " + geocode.getLat() + ")" : null;
                 return run.query(sql, new ReturnIdHandler(), (geocodeRequestId > 0) ? geocodeRequestId : null, success, cacheHit,
-                                                             (addressId > 0) ? addressId : null, method, quality, point,
+                                                             (addressId > 0) ? addressId : null, method, quality, (latLonId > 0) ? latLonId : null,
                                                              geocodeResult.getResultTime());
             }
             catch (SQLException ex) {
@@ -88,11 +90,21 @@ public class GeocodeResultLogger extends BaseDao
     {
         if (batchGeoRequest != null && geocodeResults != null) {
             try {
-                for (int i = 0; i < batchGeoRequest.getAddresses().size(); i++) {
-                    Address address = batchGeoRequest.getAddresses().get(i);
-                    GeocodeRequest geoRequest = (GeocodeRequest) batchGeoRequest.clone();
-                    geoRequest.setAddress(address);
-                    batchGeoLogCache.add(new ImmutablePair<>(geoRequest, geocodeResults.get(i)));
+                if (batchGeoRequest.getAddresses().size() > 0) {
+                    for (int i = 0; i < batchGeoRequest.getAddresses().size(); i++) {
+                        Address address = batchGeoRequest.getAddresses().get(i);
+                        GeocodeRequest geoRequest = (GeocodeRequest) batchGeoRequest.clone();
+                        geoRequest.setAddress(address);
+                        batchGeoLogCache.add(new ImmutablePair<>(geoRequest, geocodeResults.get(i)));
+                    }
+                }
+                else if (batchGeoRequest.getPoints().size() > 0 && batchGeoRequest.isReverse()) {
+                    for (int i = 0; i < batchGeoRequest.getPoints().size(); i++) {
+                        Point point = batchGeoRequest.getPoints().get(i);
+                        GeocodeRequest geoRequest = (GeocodeRequest) batchGeoRequest.clone();
+                        geoRequest.setPoint(point);
+                        batchGeoLogCache.add(new ImmutablePair<>(geoRequest, geocodeResults.get(i)));
+                    }
                 }
             }
             catch (Exception ex) {

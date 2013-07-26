@@ -243,7 +243,7 @@ public class DistrictController extends BaseApiController implements Observer
         zipProvided = isZipProvided(streetAddress);
         isPoBox = (streetAddress != null) ? streetAddress.isPoBoxAddress() : false;
 
-        if (districtRequest.getAddress() != null && !districtRequest.getAddress().isEmpty()) {
+        if (address != null && !address.isEmpty()) {
             /** Perform usps address correction if requested */
             if (districtRequest.isUspsValidate()) {
                 Address parsedAddress = streetAddress.toAddress();
@@ -268,17 +268,17 @@ public class DistrictController extends BaseApiController implements Observer
                 geocodedAddress = performGeocode(geocodeRequest, isPoBox);
             }
         }
-        /** Possibly perform reverse geocoding for point input */
-        else if (districtRequest.getPoint() != null) {
-            Address revGeoAddress = null;
-            /** Note: If the provider is `streetfile` then we must resolve the point into an address */
+        /** Perform reverse geocoding for point input */
+        else if (point != null) {
+            GeocodedAddress revGeoAddress = null;
             if (!districtRequest.isSkipGeocode()) {
-                GeocodeResult geocodeResult = revGeocodeProvider.reverseGeocode(point);
-                if (geocodeResult.isSuccess()) {
-                    revGeoAddress = geocodeResult.getAddress();
-                }
+                GeocodeRequest geocodeRequest = new GeocodeRequest(districtRequest.getApiRequest(), null, null, true, true);
+                geocodeRequest.setPoint(point);
+                geocodeRequest.setReverse(true);
+
+                revGeoAddress = performGeocode(geocodeRequest, false);
             }
-            geocodedAddress = new GeocodedAddress(revGeoAddress, new Geocode(districtRequest.getPoint(), GeocodeQuality.POINT, "User Supplied"));
+            geocodedAddress = new GeocodedAddress(revGeoAddress.getAddress(), new Geocode(point, GeocodeQuality.POINT, "User Supplied"));
         }
         else {
             districtResult = new DistrictResult(this.getClass());
@@ -346,13 +346,21 @@ public class DistrictController extends BaseApiController implements Observer
     {
         Address address = (geoRequest.getAddress() != null) ? geoRequest.getAddress().clone() : null;
         String geoProvider = geoRequest.getProvider();
+        GeocodeResult geocodeResult = null;
 
-        /** Geocoding for Po Box works better when the address line is empty */
-        if (isPoBox && address != null && address.isParsed()) {
-            address.setAddr1("");
+        /** Address-to-point geocoding */
+        if (!geoRequest.isReverse()) {
+            /** Geocoding for Po Box works better when the address line is empty */
+            if (isPoBox && address != null && address.isParsed()) {
+                address.setAddr1("");
+            }
+            geocodeResult = geocodeProvider.geocode(geoRequest);
         }
-        GeocodeResult geocodeResult = (geoProvider != null) ? geocodeProvider.geocode(address, geoProvider, false, false)
-                                                            : geocodeProvider.geocode(address);
+        /** Point-to-address geocoding */
+        else {
+            geocodeResult = revGeocodeProvider.reverseGeocode(geoRequest);
+        }
+
         /** Log geocode request/result to database */
         if (LOGGING_ENABLED) {
             int requestId = geocodeRequestLogger.logGeocodeRequest(geoRequest);
