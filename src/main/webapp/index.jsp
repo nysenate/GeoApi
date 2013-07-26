@@ -313,12 +313,12 @@
                         <tr>
                             <td><div class="icon-location icon-teal"></div></td>
                             <td><p style="font-size: 16px;color:#111;" ng-bind-html-unsafe="address | addressLevel:matchLevel | addressFormat"></p></td>
-                            <td><small ng-show="uspsValidated" style="text-align:right;color:teal;">USPS</small></td>
+                            <td style="text-align:right;"><small ng-show="uspsValidated" style="color:teal;">USPS</small></td>
                         </tr>
                         <tr>
                             <td><div class="icon-target icon-teal"></div></td>
                             <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}})</p></td>
-                            <td><small style="text-align:right;color:teal;">{{geocode.method | remove:'Dao'}}</small></td>
+                            <td style="text-align:right;"><small style="color:teal;">{{geocode.method | remove:'Dao'}}</small></td>
                         </tr>
                     </table>
                 </div>
