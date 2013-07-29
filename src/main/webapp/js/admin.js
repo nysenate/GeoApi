@@ -112,6 +112,31 @@ sageAdmin.controller('ApiUserStatsController', function($scope, $http, dataBus) 
     $scope.init();
 });
 
+sageAdmin.controller("GeocodeUsageController", function($scope, $http, dataBus){
+
+    $scope.init = function() {
+        this.getGeocodeStats();
+    };
+
+    $scope.getGeocodeStats = function() {
+        $http.get(baseAdminApi + "/geocodeUsage")
+            .success(function(data){
+                if (data) {
+                    $scope = angular.extend($scope, data);
+                }
+            })
+            .error(function(data){
+                console.log("Failed to retrieve geocode usage response!");
+            });
+    };
+
+    $scope.getBarStyle = function(hits, total) {
+        return {width: (hits/total) * 100 + "%"}
+    };
+
+    $scope.init();
+});
+
 sageAdmin.controller('UserConsoleController', function($scope, $http, menuService, dataBus) {
     $scope.id = 3;
     $scope.visible = false;

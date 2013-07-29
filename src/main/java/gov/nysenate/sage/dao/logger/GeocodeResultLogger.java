@@ -122,7 +122,7 @@ public class GeocodeResultLogger extends BaseDao
      */
     public void flushBatchRequestsCache()
     {
-        logger.trace("Flushing geocode batch log");
+        logger.debug("Flushing geocode batch log");
         for (Pair<GeocodeRequest, GeocodeResult> geoPair : batchGeoLogCache) {
             logGeocodeRequestAndResult(geoPair.getLeft(), geoPair.getRight());
         }

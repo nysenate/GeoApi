@@ -884,6 +884,7 @@ ul.horizontal li {
     margin: 10px;
     min-width: 850px;
     box-shadow: 0 0 1px #eee;
+    font-size:14px;
 }
 
 .highlight-section.fixed {

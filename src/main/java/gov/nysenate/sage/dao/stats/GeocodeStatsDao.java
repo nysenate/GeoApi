@@ -22,51 +22,65 @@ public class GeocodeStatsDao extends BaseDao
     private QueryRunner run = getQueryRunner();
 
     /**
-     * Retrieve geocode stats since first deployment
-     * @return GeocodeStats
-     */
-    public GeocodeStats getLifetimeGeocodeStats()
-    {
-        Timestamp since = new Timestamp(0);
-        Timestamp until = new Timestamp(new Date().getTime());
-        return getGeocodeStatsDuring(since, until);
-    }
-
-    /**
-     * Retrieve geocode stats since last deployment
-     * @return GeocodeStats
-     */
-    public GeocodeStats getCurrentGeocodeStats()
-    {
-        DeploymentStats deploymentStats = deploymentStatsDao.getDeploymentStats();
-        Timestamp since = deploymentStats.getLastDeploymentTime();
-        Timestamp until = new Timestamp(new Date().getTime());
-        return getGeocodeStatsDuring(since, until);
-    }
-
-    /**
      * Retrieve geocode stats within a specified time frame
-     * @param since
-     * @param until
+     * @param sinceDays if not null, returns counts within last `sinceDays` days.
      * @return GeocodeStats
      */
-    public GeocodeStats getGeocodeStatsDuring(Timestamp since, Timestamp until)
+    public GeocodeStats getGeocodeStats(Integer sinceDays)
     {
-        String sql = "SELECT method, COUNT(*) AS usage \n" +
-                     "FROM log.geocodeResults\n" +
-                     "WHERE resultTime >= ? AND resultTime <= ? \n" +
-                     "GROUP BY method";
-        try {
-            return run.query(sql, new ResultSetHandler<GeocodeStats>() {
-                @Override
-                public GeocodeStats handle(ResultSet rs) throws SQLException {
-                    GeocodeStats gs = new GeocodeStats();
-                    while (rs.next()) {
-                        gs.addGeocoderUsage(rs.getString("method"), rs.getInt("usage"));
-                    }
+        String totalCountsSql =
+                "SELECT COUNT(*) AS totalGeocodes,\n" +
+                "COUNT( DISTINCT resultTime ) AS totalRequests,\n" +
+                "COUNT(NULLIF(cacheHit, false)) AS cacheHits\n" +
+                "FROM log.geocodeResult\n" +
+                ((sinceDays != null) ? "WHERE resultTime > (current_timestamp - interval '" + sinceDays + "' day)\n"
+                                     : "");
+
+        String geocoderUsageSql =
+                "SELECT replace(method, 'Dao', '') AS method, COUNT(DISTINCT resultTime) AS requests\n" +
+                "FROM log.geocodeResult\n" +
+                "WHERE cacheHit = false\n" +
+                ((sinceDays != null) ? "AND resultTime > (current_timestamp - interval '" + sinceDays + "' day)\n"
+                                 : "") +
+                "GROUP BY method\n" +
+                "ORDER BY requests DESC";
+
+        /** Handler for result set of totalCountsSql */
+        class TotalCountsHandler implements ResultSetHandler<GeocodeStats> {
+            @Override
+            public GeocodeStats handle(ResultSet rs) throws SQLException {
+                GeocodeStats gs = new GeocodeStats();
+                if (rs.next()) {
+                    gs.setTotalGeocodes(rs.getInt("totalGeocodes"));
+                    gs.setTotalRequests(rs.getInt("totalRequests"));
+                    gs.setTotalCacheHits(rs.getInt("cacheHits"));
                     return gs;
                 }
-            }, since, until);
+                return null;
+            }
+        };
+
+        /** Handler for result set of geocoderUsageSql */
+        class GeocoderUsageHandler implements ResultSetHandler<GeocodeStats> {
+            GeocodeStats gs;
+            public GeocoderUsageHandler(GeocodeStats gs) {
+                this.gs = gs;
+            }
+
+            @Override
+            public GeocodeStats handle(ResultSet rs) throws SQLException {
+                while (rs.next()) {
+                    gs.addGeocoderUsage(rs.getString("method"), rs.getInt("requests"));
+                }
+                return gs;
+            }
+        }
+
+        try {
+            GeocodeStats gs = run.query(totalCountsSql, new TotalCountsHandler());
+            if (gs != null) {
+                return run.query(geocoderUsageSql, new GeocoderUsageHandler(gs));
+            }
         }
         catch (SQLException ex) {
             logger.error("Failed to get geocode stats!", ex);

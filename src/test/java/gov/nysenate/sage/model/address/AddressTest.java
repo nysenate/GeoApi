@@ -1,7 +1,10 @@
 package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.util.FormatUtil;
 import org.junit.Test;
+import org.mindrot.jbcrypt.BCrypt;
+
 import static org.junit.Assert.*;
 
 public class AddressTest
@@ -77,9 +80,10 @@ public class AddressTest
     @Test
     public void zipTest()
     {
-        Address a = new Address();
-        a.setZip5("1132");
+        //Address a = new Address();
+        //a.setZip5("1132");
 
-        assertEquals("01132", a.getZip5());
+        //assertEquals("01132", a.getZip5());
+        FormatUtil.printObject(BCrypt.hashpw("geoadmin1", BCrypt.gensalt()));
     }
 }

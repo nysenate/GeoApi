@@ -17,16 +17,9 @@ public class GeocodeStatsDaoTest extends TestBase
     }
 
     @Test
-    public void getLifetimeGeocodeStatsTest()
+    public void getGeocodeStatsTest()
     {
-        GeocodeStats gs = this.geocodeStatsDao.getLifetimeGeocodeStats();
-        FormatUtil.printObject(gs);
-    }
-
-    @Test
-    public void getCurrentGeocodeStatsTest()
-    {
-        GeocodeStats gs = this.geocodeStatsDao.getCurrentGeocodeStats();
+        GeocodeStats gs = this.geocodeStatsDao.getGeocodeStats(1);
         FormatUtil.printObject(gs);
     }
 }

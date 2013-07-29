@@ -19,7 +19,7 @@
                 <li><a ng-click='toggleMethod(1)' class="active">
                     <div ng-show="index == 1" class="icon-white-no-hover icon-house"></div>&nbsp;Dashboard</a></li>
                 <li><a ng-click='toggleMethod(3)'>
-                    <div ng-show="index == 2" class="icon-white-no-hover icon-user-add"></div>&nbsp;User Console</a></li>
+                    <div ng-show="index == 3" class="icon-white-no-hover icon-user-add"></div>&nbsp;User Console</a></li>
                 <li><a ng-href="${pageContext.request.contextPath}/admin/logout">Logout</a></li>
             </ul>
         </div>
@@ -101,9 +101,27 @@
                         </div>
                     </div>
 
-                    <div class="highlight-section fixed">
+                    <div class="highlight-section fixed" ng-controller="GeocodeUsageController">
                         <p class="blue-header">Geocoder Usage</p>
                         <hr/>
+                        <ul class="horizontal">
+                            <li><label>Total Geocoder Request Calls: </label>{{totalRequests}}</li>
+                            <li><label>Total Geocodes: </label>{{totalGeocodes}}</li>
+                            <li><label>Cache Hits: </label>{{totalCacheHits}}</li>
+                            <li><label>Cache Hit Rate: </label>{{(totalCacheHits / totalGeocodes) | number:2}}%</li>
+                        </ul>
+                        <hr/>
+                        <table class="light-table" style="width:650px;margin:auto;text-align: left;">
+                            <thead><tr><th>Geocoder</th><th>Requests</th><th colspan="2" style="width:300px">Percentage of requests</th></tr></thead>
+                            <tbody>
+                                <tr ng-repeat="(geocoder, requests) in geocoderUsage">
+                                    <td>{{geocoder}}</td>
+                                    <td>{{requests}}</td>
+                                    <td style="width:50px;">{{(requests / totalRequests) * 100 | number:1}}%</td>
+                                    <td style="width:250px;"><div style="background:#005588;" ng-style="getBarStyle(requests, totalRequests)">&nbsp;</div></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 

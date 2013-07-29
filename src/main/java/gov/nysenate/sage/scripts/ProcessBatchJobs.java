@@ -309,16 +309,6 @@ public class ProcessBatchJobs
                     jobProcessDao.setJobProcessStatus(jobStatus);
                 }
 
-                if (LOGGING_ENABLED) {
-                    try {
-                        geocodeResultLogger.flushBatchRequestsCache();
-                        districtResultLogger.flushBatchRequestsCache();
-                    }
-                    catch (Exception ex) {
-                        logger.error("Failed to flush log buffer! Logged data will be discarded.", ex);
-                    }
-                }
-
                 if (SEND_EMAILS) {
                     logger.info("--------------------------------------------------------------------");
                     logger.info("Sending email confirmation                                         |");
@@ -334,6 +324,16 @@ public class ProcessBatchJobs
                     logger.info("--------------------------------------------------------------------");
                     logger.info("Completed batch processing for job file!                           |");
                     logger.info("--------------------------------------------------------------------");
+                }
+
+                if (LOGGING_ENABLED) {
+                    try {
+                        geocodeResultLogger.flushBatchRequestsCache();
+                        districtResultLogger.flushBatchRequestsCache();
+                    }
+                    catch (Exception ex) {
+                        logger.error("Failed to flush log buffer! Logged data will be discarded.", ex);
+                    }
                 }
             }
         }
