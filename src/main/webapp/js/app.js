@@ -1284,9 +1284,9 @@ $(document).ready(function(){
     });
 
     function resizeContentColumn() {
-        $('#contentcolumn').height($(window).height() - 82);
+        $('#contentcolumn').height($(window).height() - 84);
         $('#mapcontentcolumn').height($(window).height() - 41);
-        $('.scrollable-content').height($(window).height() - 81);
+        $('.scrollable-content').height($(window).height() - 84);
     }
 
     /**

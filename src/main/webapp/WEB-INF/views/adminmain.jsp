@@ -16,8 +16,10 @@
         <div style="width:100%" id="header" ng-controller="MenuController">
             <sage:logo></sage:logo>
             <ul class="top-method-header">
-                <li><a ng-click='toggleMethod(1)' class="active"><div class="icon-white-no-hover icon-house"></div>&nbsp;Dashboard</a></li>
-                <li><a ng-click='toggleMethod(3)'><div class="icon-white-no-hover icon-user-add"></div>&nbsp;User Console</a></li>
+                <li><a ng-click='toggleMethod(1)' class="active">
+                    <div ng-show="index == 1" class="icon-white-no-hover icon-house"></div>&nbsp;Dashboard</a></li>
+                <li><a ng-click='toggleMethod(3)'>
+                    <div ng-show="index == 2" class="icon-white-no-hover icon-user-add"></div>&nbsp;User Console</a></li>
                 <li><a ng-href="${pageContext.request.contextPath}/admin/logout">Logout</a></li>
             </ul>
         </div>

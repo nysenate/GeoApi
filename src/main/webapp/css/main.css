@@ -61,15 +61,6 @@ h3.slim {
     height:100%;
 }
 
-#header {
-    display:block;
-    height:40px;
-    background:#2a2a2a;
-    padding:0;
-    margin:0;
-    font-size:16px;
-}
-
 #contentwrapper {
     float: left;
     width: 100%;
@@ -80,6 +71,7 @@ h3.slim {
     margin: 0;
     height:100%;
     background-color:#f5f5f5;
+    position:relative;
 }
 
 #contentcolumn.sidebar {
@@ -100,6 +92,7 @@ h3.slim {
 .scrollable-content {
     overflow-x: inherit;
     overflow-y: auto;
+    border-left:1px solid #bbb;
 }
 
 #leftcolumn {
@@ -136,18 +129,28 @@ h3.slim {
     color: #FFFF80;
 }
 
-.top-header.map-info {
-    border-top:1px solid #333;
-}
-
 /*-------------------------------------------------------
   Top Headers
 --------------------------------------------------------*/
 #sageLogoText {
     font-size: 150%;
     padding: 0;
-    font-weight: bold;
+    font-weight: 600;
     line-height: 40px;
+}
+
+#sageLogoText a {
+    color:#0E4E5A;
+}
+
+#header {
+    display:block;
+    height:40px;
+    background:#eeeeee;
+    padding:0;
+    margin:0;
+    font-size:16px;
+    border-bottom:1px solid #bbb;
 }
 
 #header ul {
@@ -158,25 +161,31 @@ h3.slim {
 #header ul li {
     display: inline;
     list-style-type: none;
-    margin-right:5px;
     font-size:14px;
     line-height:40px;
 }
 
 #header ul li a {
-    color:#aaa;
+    color:#555;
+    font-weight: 600;
     padding:11px 9px;
     outline:none;
 }
 
 #header ul li a:hover {
     text-decoration: none !important;
+    color:white !important;
+    background:#aaa;
 }
 
 #header ul li a.active {
     color:white;
     font-weight: 600;
-    background: #0E4E5A;
+    background: #005588;
+}
+
+#header ul li a.active:hover {
+    color:white !important;
 }
 
 #header ul li a:hover {
@@ -187,8 +196,12 @@ h3.slim {
     padding:0 15px;
     margin:0;
     font-size:16px;
-    background:#2a2a2a;
-    color:white;
+    background:#dfdfdf;
+    color:#005588 !important;
+    font-weight:600;
+    border-width:1px;
+    border-color:#aaa;
+    border-style: none none solid none;
 }
 
 .top-header .text {
@@ -204,15 +217,15 @@ h3.slim {
 --------------------------------------------------------*/
 .search-container {
     position: absolute;
-    top: 100px;
+    top: 50px;
     left: 40px;
     height: auto;
     width: 350px;
     background: #f9f9f9;
-    border: 1px solid #999;
+    border: 1px solid white;
     box-shadow: 0 0 10px #999;
-    border-radius: 1px;
     padding: 10px 0 5px 5px;
+    z-index:1000;
 }
 
 .search-container.small {
@@ -396,21 +409,23 @@ h3.slim {
     right:0;
     cursor: pointer;
     display:none;
+    height:22px;
 }
 
 #resultsTab {
     cursor: pointer;
     height:20px;
-    border-top:1px solid #799933;
+    border-top:1px solid #aaa;
+    border-bottom:1px solid #aaa;
 }
 
 #showResultsTab:hover, #resultsTab:hover {
-    background-color:#799933 !important;
+    background-color:#005588 !important;
 }
 
 .result-header.success {
     color: white;
-    background-color:#477326;
+    background-color:#0e4e5a;
     font-weight: 600;
 }
 
@@ -676,6 +691,21 @@ table.dataTable tr.even td.sorting_1 {
 
 .paginate_disabled_previous, .paginate_disabled_next {
     color:#777 !important;
+}
+
+#street-view-table_length {
+    font-size:13px;
+    color:#333;
+    padding:5px 0 10px 10px;
+}
+
+#street-view-table tr td {
+    font-size:14px;
+}
+
+#street-view-table.dataTable thead th {
+    font-size:14px;
+    color:#005588;
 }
 
 #street-view-table_filter {

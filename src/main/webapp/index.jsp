@@ -19,27 +19,27 @@
             <ul class="top-method-header">
                 <li>
                     <a class="active" ng-click="toggleMethod(1)">
-                        <div class="icon-white-no-hover icon-search"></div>&nbsp;&nbsp;District Lookup
+                        <div ng-show="index == 1" class="icon-white-no-hover icon-search"></div>&nbsp;&nbsp;District Lookup
                     </a>
                 </li>
                 <li>
                     <a ng-click="toggleMethod(2)">
-                        <div class="icon-white-no-hover icon-map"></div>&nbsp;&nbsp;District Maps
+                        <div ng-show="index == 2" class="icon-white-no-hover icon-map"></div>&nbsp;&nbsp;District Maps
                     </a>
                 </li>
                 <li>
                     <a ng-click="toggleMethod(3)">
-                        <div class="icon-white-no-hover icon-database"></div>&nbsp;&nbsp;Street Finder
+                        <div ng-show="index == 3" class="icon-white-no-hover icon-directions"></div>&nbsp;&nbsp;Street Finder
                     </a>
                 </li>
                 <li ng-click="toggleMethod(4)">
                     <a>
-                        <div class="icon-white-no-hover icon-target"></div>&nbsp;&nbsp;Reverse Geocode
+                        <div ng-show="index == 4" class="icon-white-no-hover icon-target"></div>&nbsp;&nbsp;Reverse Geocode
                     </a>
                 </li>
                 <li ng-click="toggleMethod(5)">
                     <a>
-                        <div class="icon-white-no-hover icon-location"></div>&nbsp;&nbsp;City/State
+                        <div ng-show="index == 5" class="icon-white-no-hover icon-location"></div>&nbsp;&nbsp;City/State
                     </a>
                 </li>
                 <li>
@@ -60,9 +60,6 @@
             </div>
             <div id="streetView" ng-show="visible" ng-controller="StreetLookupController">
                 <div style="height:100%;">
-                    <div class="top-header autohide">
-                        <div class="text">Board of Elections Street Lookup</div>
-                    </div>
                     <div id="streetLookupSearch" class="search-container small">
                         <form id="streetLookupForm" action="" method="post">
                             <label>Enter a zipcode to find streets</label>
