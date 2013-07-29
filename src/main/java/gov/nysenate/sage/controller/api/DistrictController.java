@@ -250,9 +250,9 @@ public class DistrictController extends BaseApiController implements Observer
                 logger.debug("USPS validating: " + parsedAddress);
                 validatedAddress = performAddressCorrection(parsedAddress);
 
-                /** If failed, try again with parsed form */
+                /** If failed, try again with just the raw input address */
                 if (validatedAddress == null) {
-                    logger.debug("USPS validating: " + parsedAddress);
+                    logger.debug("USPS validating: " + address);
                     validatedAddress = performAddressCorrection(address);
                 }
             }

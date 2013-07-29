@@ -37,7 +37,7 @@
 
                     <!-- Exception viewer -->
                     <div ng-controller="ExceptionViewController" ng-show="exceptions" class="highlight-section fixed">
-                        <p style="font-weight:600;color:teal;">Application Exceptions</p>
+                        <p class="blue-header">Application Exceptions</p>
                         <hr/>
                         <div style="text-align: left;">
                             <div ng-repeat="(i, exception) in exceptions" style="padding: 5px;border-bottom: 1px solid #eee;">
@@ -57,7 +57,7 @@
                     </div>
 
                     <div ng-controller="ApiUserStatsController" class="highlight-section fixed">
-                        <p style="font-weight:600;color:teal;">Api User Request Stats</p>
+                        <p class="blue-header">Api User Request Stats</p>
                         <hr/>
                         <table class="light-table">
                             <tr>
@@ -77,7 +77,7 @@
                         </table>
 
                         <br/>
-                        <p style="font-weight:600;color:teal;">Requests per method</p>
+                        <p class="blue-header">Requests per method</p>
                         <hr/>
                         <table class="light-table">
                             <tr>
@@ -100,7 +100,13 @@
                             </table>
                         </div>
                     </div>
+
+                    <div class="highlight-section fixed">
+                        <p class="blue-header">Geocoder Usage</p>
+                        <hr/>
+                    </div>
                 </div>
+
                 <div ng-controller="UserConsoleController" ng-show="visible">
                     <h3 class="slim">User Console</h3>
                     <!-- Current Api Users -->

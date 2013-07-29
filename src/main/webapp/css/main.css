@@ -856,6 +856,11 @@ div.cancel {
 /*-------------------------------------------------------
   Admin Page
 --------------------------------------------------------*/
+p.blue-header {
+    color:#005588;
+    font-weight: 600;
+}
+
 #leftcolumn.admin {
     width:250px;
     border-right:1px solid #ddd;
