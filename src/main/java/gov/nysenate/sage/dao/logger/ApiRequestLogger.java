@@ -104,7 +104,7 @@ public class ApiRequestLogger extends BaseDao
     public List<ApiRequest> getApiRequestsDuring(String apiKey, String service, String method, Timestamp from, Timestamp to, int limit,
                                                  int offset, boolean orderByRecent)
     {
-        String sql = "SELECT log.apiRequests.id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, isBatch, requestTime, \n" +
+        String sql = "SELECT log.apiRequest.id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, isBatch, requestTime, \n" +
                      "       au.id AS apiUserId, au.name AS apiUserName, au.apiKey AS apiKey, au.description AS apiUserDesc \n" +
                      "FROM " + SCHEMA + "." + TABLE + "\n" +
                      "LEFT JOIN " + "public.apiUser au ON apiUserId = au.id \n" +

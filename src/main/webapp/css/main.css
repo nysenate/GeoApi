@@ -217,7 +217,7 @@ h3.slim {
 --------------------------------------------------------*/
 .search-container {
     position: absolute;
-    top: 50px;
+    top: 10px;
     left: 40px;
     height: auto;
     width: 350px;
@@ -445,6 +445,10 @@ h3.slim {
 
 .info-container.slim {
     padding:5px 10px;
+}
+
+.info-container.slim2 {
+    padding:5px 10px 0 10px;
 }
 
 .info-container.title {
@@ -956,4 +960,19 @@ table.admin-table tr {
 .pac-item b {
     font-weight: 600;
     color:teal;
+}
+
+/*-------------------------------------------------------
+  Map Tooltip
+--------------------------------------------------------*/
+#mapTooltip {
+    display:none;
+    position:absolute;
+    width:auto;
+    padding:5px;
+    font-size:13px;
+    background:#005588;
+    color:white;
+    font-weight:600;
+    opacity:0.9;
 }

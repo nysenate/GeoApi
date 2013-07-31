@@ -14,6 +14,7 @@ import java.util.Map;
 public class MappedDistrictOverlapView extends DistrictOverlapView
 {
     protected MapView map;
+    protected MapView fullMap;
     protected Object member;
 
     public MappedDistrictOverlapView(DistrictOverlap districtOverlap, String district, DistrictMatchLevel matchLevel)
@@ -25,6 +26,9 @@ public class MappedDistrictOverlapView extends DistrictOverlapView
 
             if (intersectionMap != null && !matchLevel.equals(DistrictMatchLevel.STREET)) {
                 this.map = new MapView(intersectionMap);
+                if (districtMap != null) {
+                    this.fullMap = new MapView(districtMap);
+                }
             }
             else if (districtMap != null) {
                 this.map = new MapView(districtMap);
@@ -42,5 +46,9 @@ public class MappedDistrictOverlapView extends DistrictOverlapView
 
     public Object getMember() {
         return member;
+    }
+
+    public MapView getFullMap() {
+        return fullMap;
     }
 }

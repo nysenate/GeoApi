@@ -53,9 +53,6 @@
 
         <div id="contentcolumn" style="display:none;">
             <div id="mapView" ng-controller="EmbeddedMapViewController">
-                <div class="top-header map-info">
-                    <div class="text">{{mapTitle}}</div>
-                </div>
                 <div id="map_canvas"></div>
             </div>
             <div id="streetView" ng-show="visible" ng-controller="StreetLookupController">
@@ -448,22 +445,32 @@
                             <span ng-switch-when="STREET">The indicated street contains multiple Senate Districts.</span>
                         </span>
                     </div>
-                    <div class="info-container connected-top">
-                        <div ng-repeat="(i, d) in overlaps.senate">
-                            <div ng-show="matchLevel != 'STREET'" style="line-height:42px;height:42px;margin-right:0;" class="small-box" ng-style="getBgStyle(i)">{{(d.areaPercentage*100).toFixed(0) || '<1'}}%</div>
-                            <div class="senator" style="height:56px;">
-                                <div class="senator-pic-holder" style="width:50px;height:50px;">
-                                    <a target="_blank" ng-href="{{d.member.url}}"><img ng-src="{{d.member.imageUrl | senatorPic}}" class="senator-pic"></a>
-                                </div>
-                                <div>
-                                    <p class="senator member-name">
-                                        <a target="_blank" ng-href="{{d.member.url}}">{{d.member.name}}</a>
-                                    </p>
-                                    <p class="senate district" ng-style="getColorStyle(d.district)">Senate District {{d.district}}</p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="info-container connected clickable slim2" title="Show full district map" ng-repeat="(i, d) in overlaps.senate" ng-click="showFullMapForOverlap(i, d, matchLevel);">
+                        <table style="width:100%">
+                            <tr>
+                                <td>
+                                    <div ng-show="matchLevel != 'STREET'" style="line-height:42px;height:42px;margin-right:0;" class="small-box" ng-style="getBgStyle(i)">{{(d.areaPercentage*100).toFixed(0) || '<1'}}%</div>
+                                    <div class="senator" style="height:56px;">
+                                        <div class="senator-pic-holder" style="width:50px;height:50px;">
+                                            <a target="_blank" ng-href="{{d.member.url}}"><img ng-src="{{d.member.imageUrl | senatorPic}}" class="senator-pic"></a>
+                                        </div>
+                                        <div style="line-height: 25px;">
+                                            <p class="senator member-name" style="font-size:16px;">
+                                                <a target="_blank" ng-href="{{d.member.url}}">{{d.member.name}}</a>
+                                            </p>
+                                            <p style="font-size:16px;" class="senate district" ng-style="getColorStyle(d.district)">Senate District {{d.district}}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="right-icon-placeholder">
+                                    <a title="Show Map">
+                                        <div class="icon-map"></div>
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
+
                 </div>
 
                 <div class="info-container title" ng-show="multiMatch && streets">
@@ -490,12 +497,12 @@
                     <span style="font-size: 13px;color:#333;">If you are looking for more detailed street range information, try the Street Finder option located on the
                     top menu.</span>
                 </div>
-                <div id="success-district-results" ng-show="districtAssigned">
+                <div id="success-district-results" ng-show="districtAssigned ">
                     <div class="info-container title connected-bottom">
                         <p class="member-name success-color">Matched New York State Districts</p>
                     </div>
                     <div class="info-container connected slim" ng-show="multiMatch">
-                        <span class="message">The district assignments below are confirmed since there are no other overlapping districts within the outlined
+                        <span class="message">Any districts listed below are confirmed since there are no other overlapping districts within the outlined
                             geographic area.</span>
                     </div>
                     <div class="info-container clickable connected congressional" ng-show="districts.congressional.district" title="Show Congressional District Map" ng-click="showDistrict('congressional');">
@@ -669,5 +676,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Tooltip -->
+    <div id="mapTooltip"></div>
+
     </jsp:body>
 </sage:wrapper>

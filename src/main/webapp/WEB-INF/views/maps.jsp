@@ -19,10 +19,6 @@
                     </script>
                 </div>
                 <div id="mapView" ng-controller="EmbeddedMapViewController">
-                    <div class="top-header">
-                        <div class="text">{{mapTitle}}</div>
-                    </div>
-
                     <div class="info-container" ng-show="showPrompt" style="width:280px;padding:3px 10px;position:absolute;left:40px;z-index:10000;">
                         <table style="width:100%">
                             <tr>
@@ -52,5 +48,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Map Tooltip -->
+        <div id="mapTooltip"></div>
     </jsp:body>
 </sage:wrapper>

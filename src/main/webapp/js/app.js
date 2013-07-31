@@ -13,6 +13,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
     google.maps.visualRefresh = true;
 
+    /** Load up the NY State bounds */
     var nyBounds = [[40.488737, -74.264832],[40.955011, -71.762695],[41.294317, -71.932983],[40.955011, -73.641357],[41.100052, -73.721008],[41.215854, -73.487549],[41.298444, -73.550720],[42.085994, -73.504028],[42.747012, -73.267822],[43.612217, -73.289795],[45.003651, -73.300781],[45.011419, -74.959717], [43.612217, -77.189941],[43.269206, -79.112549],[42.843751, -78.936768],[42.536892, -79.782715],[42.000325, -79.749756],[41.983994, -75.366211],[41.327326, -74.783936],[40.996484, -73.907776],[40.653555, -74.058838],[40.640009, -74.200287]];
     var nyLatLngBounds = new google.maps.LatLngBounds();
     $.each(nyBounds, function(i,v){
@@ -22,6 +23,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     /** Initialization */
     var mapService = {};
     mapService.el = $("#mapView");
+    mapService.tooltipEl = $("#mapTooltip");
     mapService.mapOptions = {
         center: new google.maps.LatLng(42.440510, -76.495460), // Centers the map nicely over NY
         zoom: 7,
@@ -123,7 +125,6 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         var marker = new google.maps.Marker({
             map: mapService.map,
             draggable:false,
-            animation: google.maps.Animation.DROP,
             position: new google.maps.LatLng(lat, lon),
             title: title
         });
@@ -189,15 +190,18 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                 /** On mouseover update the header title */
                 google.maps.event.addListener(polygon,"mouseover",function() {
                     this.setOptions({fillOpacity: style.fillOpacity - 0.2});
-                    var scope = angular.element(mapService.el).scope();
-                    scope.$apply(function() {
-                        scope.mapTitle = name;
-                    });
+                    mapService.tooltipEl.show();
+                });
+
+                google.maps.event.addListener(polygon, "mousemove", function(mousemove){
+                    mapService.tooltipEl.offset({top: mousemove.Ra.y + 20, left: mousemove.Ra.x});
+                    mapService.tooltipEl.text(name);
                 });
 
                 /** On mouseout restore the opacity */
                 google.maps.event.addListener(polygon,"mouseout",function(){
                     this.setOptions({fillOpacity: style.fillOpacity});
+                    mapService.tooltipEl.hide();
                 });
 
                 /** Set up event handling for mouse click on polygon */
@@ -740,11 +744,11 @@ sage.controller("StreetLookupController", function($scope, $http, dataBus, mapSe
             }).error(function(data) {
                 uiBlocker.unBlock();
             });
-    }
+    };
 
     $scope.getStreetLookupUrl = function () {
         return contextPath + baseApi + "/street/lookup?zip5=" + this.zip5;
-    }
+    };
 });
 
 sage.controller("RevGeoController", function($scope, $http, menuService, dataBus) {
@@ -762,11 +766,11 @@ sage.controller("RevGeoController", function($scope, $http, menuService, dataBus
             .success(function(data, status, headers, config) {
                 dataBus.setBroadcastAndView("revgeo", data, "revgeo");
             });
-    }
+    };
 
     $scope.getRevGeoUrl = function() {
         return contextPath + baseApi + "/geo/revgeocode?lat=" + this.lat + "&lon=" + this.lon;
-    }
+    };
 });
 
 sage.controller("EmbeddedMapController", function($scope, $http, $window, dataBus, uiBlocker) {
@@ -974,7 +978,12 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             mapService.resizeMap();
             mapService.setOverlay(district.map.geom, formatDistrictName(district), true, true, null);
         }
-    }
+    };
+
+    $scope.showFullMapForOverlap = function(index, overlap, matchLevel) {
+        var geom = (matchLevel == "STREET") ? overlap.map.geom : overlap.fullMap.geom;
+        mapService.setOverlay(geom, overlap.name, false, true, null, this.colors[index]);
+    };
 
     $scope.showNeighborDistricts = function(type, neighbors) {
         this.showNeighbors = true;
@@ -1283,9 +1292,12 @@ $(document).ready(function(){
         resizeContentColumn();
     });
 
+    /**
+     * Resize the page dynamically to avoid scrollbars.
+     */
     function resizeContentColumn() {
-        $('#contentcolumn').height($(window).height() - 84);
-        $('#mapcontentcolumn').height($(window).height() - 41);
+        $('#contentcolumn').height($(window).height() - 42);
+        $('#mapcontentcolumn').height($(window).height() - 2);
         $('.scrollable-content').height($(window).height() - 84);
     }
 
