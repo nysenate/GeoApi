@@ -193,8 +193,8 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                     mapService.tooltipEl.show();
                 });
 
-                google.maps.event.addListener(polygon, "mousemove", function(mousemove){
-                    mapService.tooltipEl.offset({top: mousemove.Ra.y + 20, left: mousemove.Ra.x});
+                google.maps.event.addListener(polygon, "mousemove", function(mousemove) {
+                    mapService.tooltipEl.offset({top: mousemove.Ra.clientY + 20, left: mousemove.Ra.clientX});
                     mapService.tooltipEl.text(name);
                 });
 
