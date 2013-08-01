@@ -2,6 +2,7 @@ package gov.nysenate.sage.controller.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -11,11 +12,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
 
 public abstract class BaseAdminController extends HttpServlet
 {
     private static Logger logger = Logger.getLogger(BaseAdminController.class);
-    private static ObjectMapper jsonMapper = new ObjectMapper();
 
     protected static String AUTH_ATTR = "authenticated";
     protected static String ADMIN_USERNAME_ATTR = "adminUserName";
@@ -50,16 +53,54 @@ public abstract class BaseAdminController extends HttpServlet
     {
         String json;
         try {
-            json = jsonMapper.writeValueAsString(responseObj);
+            json = FormatUtil.toJsonString(responseObj);
             response.setContentType("application/json");
             response.setContentLength(json.length());
             response.getWriter().write(json);
         }
         catch(JsonProcessingException ex) {
-            logger.error("Failed to parse job response!", ex);
+            logger.error("Failed to json format admin response!", ex);
         }
         catch(IOException ex) {
-            logger.error("Failed to write job response", ex);
+            logger.error("Failed to write admin response", ex);
         }
     }
+
+    /**
+     *
+     * @param request
+     * @return
+     */
+    protected static Timestamp getBeginTimestamp(HttpServletRequest request) {
+        Timestamp from;
+        try {
+            from = new Timestamp(Long.parseLong(request.getParameter("from")));
+        }
+        catch (Exception ex) {
+            logger.debug("Invalid `from` timestamp parameter.", ex);
+            Calendar c = Calendar.getInstance();
+            c.setTime(new Date());
+            c.add(Calendar.DATE, -7);
+            from = new Timestamp(c.getTimeInMillis());
+        }
+        return from;
+    }
+
+    /**
+     *
+     * @param request
+     * @return
+     */
+    protected static Timestamp getEndTimestamp(HttpServletRequest request) {
+        Timestamp to;
+        try {
+            to = new Timestamp(Long.parseLong(request.getParameter("to")));
+        }
+        catch (Exception ex) {
+            logger.debug("Invalid `to` timestamp parameter.", ex);
+            to = new Timestamp(new Date().getTime());
+        }
+        return to;
+    }
+
 }

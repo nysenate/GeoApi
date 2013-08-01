@@ -10,10 +10,51 @@ sageAdmin.filter("code", function(){
 sageAdmin.controller('DashboardController', function($scope, $http, menuService, dataBus) {
     $scope.id = 1;
     $scope.visible = true;
+    $scope.now = new Date();
+    $scope.lastWeek = new Date(new Date().setDate(new Date().getDate() - 7));
+
+    $scope.from = $scope.lastWeek;
+    $scope.to = $scope.now;
+
+    $scope.fromMonth = $scope.lastWeek.getMonth() + 1;
+    $scope.fromDate = $scope.lastWeek.getDate();
+    $scope.fromYear = $scope.lastWeek.getFullYear();
+
+    $scope.toMonth = $scope.now.getMonth() + 1;
+    $scope.toDate = $scope.now.getDate();
+    $scope.toYear = $scope.now.getFullYear();
 
     $scope.$on(menuService.menuToggleEvent, function(){
         $scope.visible = ($scope.id == dataBus.data);
     });
+
+    $scope.update = function() {
+        dataBus.setBroadcast("update", true);
+    };
+
+    $scope.$on("update", function() {
+        $scope.init();
+    });
+
+    $scope.init = function() {
+        $scope.from.setMonth($scope.fromMonth - 1);
+        $scope.from.setDate($scope.fromDate);
+        $scope.from.setFullYear($scope.fromYear);
+        $scope.from.setHours(0);
+        $scope.from.setMinutes(0);
+        $scope.to.setMonth($scope.toMonth - 1);
+        $scope.to.setDate($scope.toDate);
+        $scope.to.setFullYear($scope.toYear);
+        $scope.to.setHours(23);
+        $scope.to.setMinutes(59);
+    };
+});
+
+sageAdmin.controller('DeploymentStatsController', function($scope, $http, dataBus) {
+
+    $scope.init = function() {
+        this.getDeploymentStats();
+    };
 
     $scope.getDeploymentStats = function() {
         $http.get(baseAdminApi + "/deployment")
@@ -23,6 +64,19 @@ sageAdmin.controller('DashboardController', function($scope, $http, menuService,
             .error(function(data){
                 console.log("Error retrieving deployment stats! " + data);
             });
+    };
+
+    $scope.$on("update", function() {
+        $scope.init();
+    });
+
+    $scope.init();
+});
+
+sageAdmin.controller('ApiUsageController', function($scope, $http, dataBus){
+
+    $scope.init = function() {
+        this.getUsageStats((+this.from), (+this.to));
     };
 
     $scope.getUsageStats = function(startTime, endTime) {
@@ -51,14 +105,11 @@ sageAdmin.controller('DashboardController', function($scope, $http, menuService,
         makeApiUsageChart(startDate, seriesData);
     };
 
-    (function(){
-        var now = new Date();
-        var from = new Date(2013,4,19);
-        var toTimestamp = +(now);
-        var fromTimestamp = +(from);
+    $scope.$on("update", function() {
+        $scope.init();
+    });
 
-        $scope.getDeploymentStats();
-    }());
+    $scope.init();
 });
 
 sageAdmin.controller('ExceptionViewController', function($scope, $http, dataBus){
@@ -91,6 +142,10 @@ sageAdmin.controller('ExceptionViewController', function($scope, $http, dataBus)
             .error(function(){});
     };
 
+    $scope.$on("update", function() {
+        $scope.init();
+    });
+
     $scope.init();
 });
 
@@ -102,12 +157,16 @@ sageAdmin.controller('ApiUserStatsController', function($scope, $http, dataBus) 
     };
 
     $scope.getApiUserStats = function() {
-        $http.get(baseAdminApi + "/apiUserUsage")
+        $http.get(baseAdminApi + "/apiUserUsage?from=" + (+$scope.from) + "&to=" + (+$scope.to))
             .success(function(data){
                 $scope.apiUserStats = data;
             })
             .error(function(){});
     };
+
+    $scope.$on("update", function() {
+        $scope.init();
+    });
 
     $scope.init();
 });
@@ -119,7 +178,7 @@ sageAdmin.controller("GeocodeUsageController", function($scope, $http, dataBus){
     };
 
     $scope.getGeocodeStats = function() {
-        $http.get(baseAdminApi + "/geocodeUsage")
+        $http.get(baseAdminApi + "/geocodeUsage?from=" + (+$scope.from) + "&to=" + (+$scope.to))
             .success(function(data){
                 if (data) {
                     $scope = angular.extend($scope, data);
@@ -133,6 +192,10 @@ sageAdmin.controller("GeocodeUsageController", function($scope, $http, dataBus){
     $scope.getBarStyle = function(hits, total) {
         return {width: (hits/total) * 100 + "%"}
     };
+
+    $scope.$on("update", function() {
+        $scope.init();
+    });
 
     $scope.init();
 });
@@ -252,10 +315,10 @@ function makeApiUsageChart(startDate, seriesData) {
             enabled: false
         },
         title: {
-            text: 'Api Hourly Usage'
+            text: null
         },
         subtitle: {
-            text: 'Highlight an area to zoom in'
+            text: null
         },
         xAxis: {
             type: 'datetime',

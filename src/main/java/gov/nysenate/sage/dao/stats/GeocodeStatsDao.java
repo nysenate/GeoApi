@@ -22,26 +22,23 @@ public class GeocodeStatsDao extends BaseDao
     private QueryRunner run = getQueryRunner();
 
     /**
-     * Retrieve geocode stats within a specified time frame
-     * @param sinceDays if not null, returns counts within last `sinceDays` days.
+     * Retrieve geocode stats within a specified time frame.
      * @return GeocodeStats
      */
-    public GeocodeStats getGeocodeStats(Integer sinceDays)
+    public GeocodeStats getGeocodeStats(Timestamp from, Timestamp to)
     {
         String totalCountsSql =
                 "SELECT COUNT(*) AS totalGeocodes,\n" +
                 "COUNT( DISTINCT resultTime ) AS totalRequests,\n" +
                 "COUNT(NULLIF(cacheHit, false)) AS cacheHits\n" +
                 "FROM log.geocodeResult\n" +
-                ((sinceDays != null) ? "WHERE resultTime > (current_timestamp - interval '" + sinceDays + "' day)\n"
-                                     : "");
+                "WHERE resultTime >= ? AND resultTime <= ?";
 
         String geocoderUsageSql =
                 "SELECT replace(method, 'Dao', '') AS method, COUNT(DISTINCT resultTime) AS requests\n" +
                 "FROM log.geocodeResult\n" +
                 "WHERE cacheHit = false\n" +
-                ((sinceDays != null) ? "AND resultTime > (current_timestamp - interval '" + sinceDays + "' day)\n"
-                                 : "") +
+                "AND resultTime >= ? AND resultTime <= ?\n" +
                 "GROUP BY method\n" +
                 "ORDER BY requests DESC";
 
@@ -77,9 +74,9 @@ public class GeocodeStatsDao extends BaseDao
         }
 
         try {
-            GeocodeStats gs = run.query(totalCountsSql, new TotalCountsHandler());
+            GeocodeStats gs = run.query(totalCountsSql, new TotalCountsHandler(), from, to);
             if (gs != null) {
-                return run.query(geocoderUsageSql, new GeocoderUsageHandler(gs));
+                return run.query(geocoderUsageSql, new GeocoderUsageHandler(gs), from, to);
             }
         }
         catch (SQLException ex) {
