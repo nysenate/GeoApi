@@ -285,20 +285,6 @@ public class AdminApiController extends BaseAdminController
      */
     private ApiUsageStats getApiUsageStats(HttpServletRequest request)
     {
-        Timestamp from, to;
-        try {
-            from = new Timestamp(Long.parseLong(request.getParameter("from")));
-            to = new Timestamp(Long.parseLong(request.getParameter("to")));
-        }
-        catch (Exception ex) {
-            logger.warn("Invalid from/to parameters.");
-            Calendar c = Calendar.getInstance();
-            c.setTime(new Date());
-            to = new Timestamp(c.getTimeInMillis());
-            c.add(Calendar.MONTH, -1);
-            from = new Timestamp(c.getTimeInMillis());
-        }
-
         ApiUsageStatsDao.RequestInterval requestInterval;
         try {
             requestInterval = ApiUsageStatsDao.RequestInterval.valueOf(request.getParameter("interval"));
@@ -308,7 +294,7 @@ public class AdminApiController extends BaseAdminController
             requestInterval = ApiUsageStatsDao.RequestInterval.HOUR;
         }
 
-        return apiUsageStatsDao.getApiUsageStats(from, to, requestInterval);
+        return apiUsageStatsDao.getApiUsageStats(getBeginTimestamp(request), getEndTimestamp(request), requestInterval);
     }
 
     /**
@@ -324,12 +310,12 @@ public class AdminApiController extends BaseAdminController
             sinceDays = Integer.parseInt(request.getParameter("sinceDays"));
         }
         catch (NumberFormatException ex) {}
-        return gsd.getGeocodeStats(sinceDays);
+        return gsd.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
     }
 
     private Map<Integer, ApiUserStats> getApiUserStats(HttpServletRequest request)
     {
-        return apiUserStatsDao.getRequestCounts();
+        return apiUserStatsDao.getRequestCounts(getBeginTimestamp(request), getEndTimestamp(request));
     }
 
     private List<ExceptionInfo> getExceptionStats(HttpServletRequest request)

@@ -15,7 +15,9 @@ public class GeocodeStats
     }
 
     public void addGeocoderUsage(String geocoder, int usage) {
-        this.geocoderUsage.put(geocoder, usage);
+        if (geocoder != null) {
+            this.geocoderUsage.put(geocoder, usage);
+        }
     }
 
     public Map<String, Integer> getGeocoderUsage() {

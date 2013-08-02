@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +20,7 @@ public class ApiUserStatsDao extends BaseDao
 
     private QueryRunner run = getQueryRunner();
 
-    public Map<Integer, ApiUserStats> getRequestCounts()
+    public Map<Integer, ApiUserStats> getRequestCounts(Timestamp from, Timestamp to)
     {
         String requestCounts = "SELECT ar.apiUserId, COUNT(DISTINCT ar.id) AS apiRequests, \n" +
                 "                          COUNT(DISTINCT gr.id) AS geoRequests,\n" +
@@ -27,17 +28,19 @@ public class ApiUserStatsDao extends BaseDao
                 "FROM log.apiRequest ar\n" +
                 "LEFT JOIN log.geocodeRequest gr ON gr.apiRequestId = ar.id\n" +
                 "LEFT JOIN log.districtRequest dr ON dr.apiRequestId = ar.id\n" +
+                "WHERE ar.requestTime >= ? AND ar.requestTime <= ?\n" +
                 "GROUP BY ar.apiUserId";
 
         String methodCounts = "SELECT ar.apiUserId, s.name AS service, rt.name AS method, COUNT(*) AS requests\n" +
                 "FROM log.apiRequest ar\n" +
                 "LEFT JOIN log.requestTypes rt ON ar.requestTypeId = rt.Id\n" +
                 "LEFT JOIN log.services s ON rt.serviceId = s.id\n" +
+                "WHERE ar.requestTime >= ? AND ar.requestTime <= ?\n" +
                 "GROUP BY ar.apiUserId, s.name, rt.name\n" +
                 "ORDER BY ar.apiUserId, service, method";
         try {
-            Map<Integer, ApiUserStats> apiUserStatsMap = run.query(requestCounts, new RequestCountHandler());
-            return run.query(methodCounts, new MethodRequestCountHandler(apiUserStatsMap));
+            Map<Integer, ApiUserStats> apiUserStatsMap = run.query(requestCounts, new RequestCountHandler(), from, to);
+            return run.query(methodCounts, new MethodRequestCountHandler(apiUserStatsMap), from, to);
         }
         catch (SQLException ex) {
             logger.error("Failed to get ApiUser stats!", ex);

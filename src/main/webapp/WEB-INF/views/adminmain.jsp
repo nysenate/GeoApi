@@ -27,12 +27,29 @@
             <div id="contentcolumn" style="text-align:center;">
                 <div ng-controller='DashboardController' ng-show='visible'>
                     <h3 class="slim">SAGE Dashboard</h3>
-                    <div id="uptime-stats" class="highlight-section fixed">
+                    <div ng-controller="DeploymentStatsController" id="uptime-stats" class="highlight-section fixed">
                         <ul class="horizontal">
                             <li><label>Last Deployed | </label> {{lastDeployment.deployTime | date:'medium'}}</li>
                             <li><label>Latest Uptime | </label>{{latestUptime / 3600000 | number:3}} hours</li>
                             <li><label>API Requests Since Deployment | </label>{{requestsSinceLatest}}</li>
                         </ul>
+                    </div>
+
+                    <div class="highlight-section fixed">
+                        <span>The time frame to view stats is between &nbsp;</span>
+                        <input ng-model="fromMonth" style="width:35px;" min="1" max="12" maxlength="2" type="number"/>/
+                        <input ng-model="fromDate" style="width:35px;" min="1" max="31" maxlength="2" type="number"/>/
+                        <input ng-model="fromYear" style="width:70px;" min="2013" max="2020" maxlength="4" type="number"/>
+
+                        <span>&nbsp; and &nbsp;</span>
+
+                        <input ng-model="toMonth" style="width:35px;" min="1" max="12" maxlength="2" type="number"/>/
+                        <input ng-model="toDate" style="width:35px;" min="1" max="31" maxlength="2" type="number"/>/
+                        <input ng-model="toYear" style="width:70px;" min="2013" max="2020" maxlength="4" type="number"/>
+
+                        <button ng-click="update()" class="submit" style="width:auto; padding:5px 10px;">
+                            <span>Update</span>
+                        </button>
                     </div>
 
                     <!-- Exception viewer -->
@@ -54,6 +71,11 @@
                                 </pre>
                             </div>
                         </div>
+                    </div>
+
+                    <div ng-controller="ApiUsageController" class="highlight-section fixed">
+                        <p class="blue-header">Api Hourly Usage</p>
+                        <div id="api-usage-stats"></div>
                     </div>
 
                     <div ng-controller="ApiUserStatsController" class="highlight-section fixed">
@@ -105,7 +127,6 @@
                         <p class="blue-header">Geocoder Usage</p>
                         <hr/>
                         <ul class="horizontal">
-                            <li><label>Total Geocoder Request Calls: </label>{{totalRequests}}</li>
                             <li><label>Total Geocodes: </label>{{totalGeocodes}}</li>
                             <li><label>Cache Hits: </label>{{totalCacheHits}}</li>
                             <li><label>Cache Hit Rate: </label>{{(totalCacheHits / totalGeocodes) | number:2}}%</li>
@@ -118,11 +139,16 @@
                                     <td>{{geocoder}}</td>
                                     <td>{{requests}}</td>
                                     <td style="width:50px;">{{(requests / totalRequests) * 100 | number:1}}%</td>
-                                    <td style="width:250px;"><div style="background:#005588;" ng-style="getBarStyle(requests, totalRequests)">&nbsp;</div></td>
+                                    <td style="width:250px;background:#f5f5f5;"><div style="background:#CC333F;" ng-style="getBarStyle(requests, totalRequests)">&nbsp;</div></td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+
+                    <div class="highlight-section fixed">
+
+                    </div>
+
                 </div>
 
                 <div ng-controller="UserConsoleController" ng-show="visible">
