@@ -28,18 +28,19 @@ public class GenerateMetadata
     public GenerateMetadata()
     {
         config = ApplicationFactory.getConfig();
-    }
+    } // GenerateMetadata()
+
 
     public static void main(String[] args) throws Exception
     {
-        if (args.length == 1) {
-            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s] [--maps|-m]");
+        if (args.length == 0) {
+            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
             System.exit(1);
         }
 
         /** Load up the configuration settings */
         if (!ApplicationFactory.bootstrap()){
-            System.err.println("Failed to configure application config");
+            System.err.println("Failed to configure application");
             System.exit(-1);
         }
 
@@ -49,10 +50,8 @@ public class GenerateMetadata
         boolean processCongress = false;
         boolean processSenate = false;
 
-        for (int i = 1; i < args.length; i++) {
-
+        for (int i = 0; i < args.length; i++) {
             String arg = args[i];
-            System.out.println(arg);
             if (arg.equals("--all")) {
                 processAssembly = true;
                 processSenate = true;
@@ -72,6 +71,7 @@ public class GenerateMetadata
                 System.exit(1);
             }
         }
+
         if (processAssembly) {
             generateMetadata.generateAssemblyData();
         }
@@ -83,7 +83,8 @@ public class GenerateMetadata
         if (processSenate) {
             generateMetadata.generateSenateData();
         }
-    }
+    } // main()
+
 
     /**
      * Retrieves Congressional member data from an external source and updates the
@@ -102,7 +103,8 @@ public class GenerateMetadata
         for (Congressional congressional : congressionals) {
             congressionalDao.insertCongressional(congressional);
         }
-    }
+    } // generateCongressionalData()
+
 
     /**
      * Retrieves Assembly member data from an external source and updates the
@@ -121,7 +123,8 @@ public class GenerateMetadata
         for (Assembly assembly : assemblies) {
             assemblyDao.insertAssembly(assembly);
         }
-    }
+    } // generateAssemblyData()
+
 
     /**
      * Retrieves senate data from the NY Senate API Client and stores it in
@@ -148,13 +151,13 @@ public class GenerateMetadata
         /** Retrieve the list of senators from the client API */
         List<Senator> senators = senateClient.getSenators();
 
-        for (Senator senator : senators){
+        for (Senator senator : senators) {
             /** Senate table contains the district and the url */
             senateDao.insertSenate(senator.getDistrict());
 
             /** Senator table will contain all of the senator information */
             senateDao.insertSenator(senator);
         }
-    }
+    } // generateSenateData()
 }
 
