@@ -17,7 +17,7 @@ import java.util.List;
  * SAGE contains several metadata tables which include information about different
  * district members such as senators. Running this script will retrieve the most
  * up to date information and refresh the contents of the local database. This script
- * must be run when setting up a new SAGE instance.
+ * must be run when setting up a new SAGE instance or when data has been changed.
  *
  * @author Ken Zalewski, Ash Islam
  */
@@ -28,8 +28,7 @@ public class GenerateMetadata
     public GenerateMetadata()
     {
         config = ApplicationFactory.getConfig();
-    } // GenerateMetadata()
-
+    }
 
     public static void main(String[] args) throws Exception
     {
@@ -83,8 +82,7 @@ public class GenerateMetadata
         if (processSenate) {
             generateMetadata.generateSenateData();
         }
-    } // main()
-
+    }
 
     /**
      * Retrieves Congressional member data from an external source and updates the
@@ -103,8 +101,7 @@ public class GenerateMetadata
         for (Congressional congressional : congressionals) {
             congressionalDao.insertCongressional(congressional);
         }
-    } // generateCongressionalData()
-
+    }
 
     /**
      * Retrieves Assembly member data from an external source and updates the
@@ -123,8 +120,7 @@ public class GenerateMetadata
         for (Assembly assembly : assemblies) {
             assemblyDao.insertAssembly(assembly);
         }
-    } // generateAssemblyData()
-
+    }
 
     /**
      * Retrieves senate data from the NY Senate API Client and stores it in
@@ -158,6 +154,6 @@ public class GenerateMetadata
             /** Senator table will contain all of the senator information */
             senateDao.insertSenator(senator);
         }
-    } // generateSenateData()
+    }
 }
 

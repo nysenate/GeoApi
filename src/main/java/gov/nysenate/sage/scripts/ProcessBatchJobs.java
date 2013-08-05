@@ -91,12 +91,13 @@ public class ProcessBatchJobs
         /** Ensure another job process is not running */
         checkLockFile();
 
-        /** Bootstrap the application */
-        ApplicationFactory.bootstrap();
-        ProcessBatchJobs processBatchJobs = new ProcessBatchJobs();
+        if (args.length > 0) {
 
-        if (args.length > 1) {
-            switch (args[1]) {
+            /** Bootstrap the application */
+            ApplicationFactory.bootstrap();
+            ProcessBatchJobs processBatchJobs = new ProcessBatchJobs();
+
+            switch (args[0]) {
                 case "clean" : {
                     processBatchJobs.cancelRunningJobs();
                     break;
@@ -118,20 +119,25 @@ public class ProcessBatchJobs
                     break;
                 }
                 default : {
-                    logger.error("Unsupported argument. " + args[1] + " Exiting..");
+                    logger.error("Unsupported argument. " + args[0] + " Exiting..");
                 }
             }
+
+            /** Clean up and exit */
+            logger.info("Wrapping things up..");
+
+            /** Add a hook to close out db connections on termination */
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    ApplicationFactory.close();
+                }
+            });
         }
-
-        /** Clean up and exit */
-        logger.info("Wrapping things up..");
-
-        /** Add a hook to close out db connections on termination */
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                ApplicationFactory.close();
-            }
-        });
+        else {
+            System.err.println("Usage: ProcessBatchJobs [process | clean]");
+            System.err.println("Process: Iterates through all pending jobs and completes them.");
+            System.err.println("Clean:   Cancels all running jobs.");
+        }
 
         System.exit(0);
     }
@@ -173,7 +179,7 @@ public class ProcessBatchJobs
     }
 
     /**
-     *
+     * Main routine for processing a JobProcess.
      * @param jobStatus
      */
     public void processJob(JobProcessStatus jobStatus)
@@ -372,6 +378,12 @@ public class ProcessBatchJobs
         return;
     }
 
+    /**
+     * Marks a JobProcessStatus with the given condition and message.
+     * @param jobStatus JobProcessStatus to modify.
+     * @param condition The condition to write.
+     * @param message   The message to write.
+     */
     private void setJobStatusError(JobProcessStatus jobStatus, JobProcessStatus.Condition condition, String message)
     {
         if (jobStatus != null) {
@@ -381,6 +393,9 @@ public class ProcessBatchJobs
         }
     }
 
+    /**
+     * A callable for the executor to perform geocoding for a JobBatch.
+     */
     public static class GeocodeJobBatch implements Callable<JobBatch>
     {
         private JobBatch jobBatch;
@@ -415,6 +430,9 @@ public class ProcessBatchJobs
         }
     }
 
+    /**
+     * A callable for the executor to perform district assignment for a JobBatch.
+     */
     public static class DistrictJobBatch implements Callable<JobBatch>
     {
         private JobProcess jobProcess;
@@ -460,7 +478,7 @@ public class ProcessBatchJobs
     }
 
     /**
-     *
+     * Sends an email to the JobProcess's submitter and the admin indicating that the job has completed successfully.
      * @param jobStatus
      * @throws Exception
      */
@@ -485,7 +503,7 @@ public class ProcessBatchJobs
     }
 
     /**
-     *
+     * Sends an email to the JobProcess's submitter and the admin indicating that the job has encountered an error.
      * @param jobStatus
      * @throws Exception
      */
@@ -516,7 +534,7 @@ public class ProcessBatchJobs
     }
 
     /**
-     *
+     * Marks all running jobs as cancelled effectively removing them from the queue.
      */
     public void cancelRunningJobs()
     {
