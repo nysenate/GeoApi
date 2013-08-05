@@ -265,6 +265,10 @@ public class DistrictController extends BaseApiController implements Observer
             /** Geocode address unless opted out */
             if (!districtRequest.isSkipGeocode()) {
                 GeocodeRequest geocodeRequest = new GeocodeRequest(districtRequest.getApiRequest(), addressToGeocode, districtRequest.getGeoProvider(), true, true);
+                /** Disable cache if provider is specified. */
+                if (districtRequest.getGeoProvider() != null && !districtRequest.getGeoProvider().isEmpty()) {
+                    geocodeRequest.setUseCache(false);
+                }
                 geocodedAddress = performGeocode(geocodeRequest, isPoBox);
             }
         }
