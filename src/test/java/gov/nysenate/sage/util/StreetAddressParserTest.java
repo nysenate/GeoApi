@@ -6,6 +6,8 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -60,7 +62,8 @@ public class StreetAddressParserTest {
     @Test
     public void edgeCases()
     {
-        FormatUtil.printObject(StreetAddressParser.parseAddress("1222 East 96th"));
+        FormatUtil.printObject(StreetAddressParser.parseAddress("92-64 Fort Greene Pl\n" +
+                "Brooklyn, NY 11217-1204"));
     }
 
     @Test

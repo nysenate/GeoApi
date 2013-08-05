@@ -7,6 +7,7 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.util.AddressDictionary;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -74,25 +75,15 @@ public class StreetFileDao extends BaseDao
         }
 
         if (whereStreet) {
-            String street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
-            street += streetAddr.getStreet();
-            street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
-            street = street.toUpperCase();
+            /** Obtain a formatted street name with post/pre directionals applied */
+            String street = getFormattedStreet(streetAddr, false);
+
+            /** This street name is similar to the above except a matching prefix will be abbreviated.
+             *  i.e 'SAINT MARKS PL' -> 'ST MARKS PL' */
+            String streetPrefixAbbr = getFormattedStreet(streetAddr, true);
 
             /** Sometimes the bldg_chr is actually the tail end of the street name */
             if (whereBldgChr) {
-                /** Handle dashed NYC buildings by collapsing on the dash */
-                if (streetAddr.getBldgChar().startsWith("-")) {
-                    try {
-                        String bldgNum = String.valueOf(streetAddr.getBldgNum()) + streetAddr.getBldgChar().substring(1);
-                        streetAddr.setBldgNum(Integer.parseInt(bldgNum));
-                        streetAddr.setBldgChar(null);
-                    }
-                    catch (NumberFormatException e) {
-                        logger.warn("bldg_chr `" + streetAddr.getBldgChar() + "` not as expected.");
-                    }
-                }
-
                 /** Every one else gets a range check; sometimes the suffix is actually part of the street prefix. */
                 if (streetAddr.getBldgChar() != null) {
                     if (fuzzy) {
@@ -112,8 +103,9 @@ public class StreetFileDao extends BaseDao
             else {
                 /** Loose street match */
                 if (fuzzy) {
-                    sql += " AND (street LIKE ?) \n";
+                    sql += " AND (street LIKE ? OR street LIKE ?) \n";
                     params.add(street + "%");
+                    params.add(streetPrefixAbbr + "%");
                 }
                 /** Strict street match */
                 else {
@@ -161,7 +153,7 @@ public class StreetFileDao extends BaseDao
     {
         if (street == null) street = "";
         if (!street.isEmpty()) {
-            street = getFormattedStreet(street);
+            street = getFormattedStreet(street, false);
         }
         String sql =
             "SELECT * " +
@@ -243,7 +235,7 @@ public class StreetFileDao extends BaseDao
         if (streetList != null && !streetList.isEmpty()) {
             List<String> streetWhereList = new ArrayList<>();
             for (String stRaw : streetList) {
-                String street = getFormattedStreet(stRaw);
+                String street = getFormattedStreet(stRaw, false);
                 if (!street.isEmpty()) {
                     streetWhereList.add(String.format("street = '%s'", StringEscapeUtils.escapeSql(street)));
                 }
@@ -412,27 +404,27 @@ public class StreetFileDao extends BaseDao
     }
 
     /**
-     *
+     * Appends pre and post dirs to the street and upper cases the result.
      * @param street
      * @return
      */
-    private String getFormattedStreet(String street)
+    private String getFormattedStreet(String street, boolean prefixNormalize)
     {
         StreetAddress streetAddress = new StreetAddress();
         StreetAddressParser.extractStreet(street, streetAddress);
         StreetAddressParser.normalizeStreetAddress(streetAddress);
-        return getFormattedStreet(streetAddress);
+        return getFormattedStreet(streetAddress, prefixNormalize);
     }
 
     /**
-     *
+     * Appends pre and post dirs to the street and upper cases the result.
      * @param streetAddr
      * @return
      */
-    private String getFormattedStreet(StreetAddress streetAddr) {
+    private String getFormattedStreet(StreetAddress streetAddr, boolean prefixNormalize) {
         if (streetAddr != null) {
             String street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
-            street += streetAddr.getStreet();
+            street += (!prefixNormalize) ? streetAddr.getStreet() : StreetAddressParser.getPrefixNormalizedStreetName(streetAddr.getStreet());
             street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
             street = street.toUpperCase();
             return street;

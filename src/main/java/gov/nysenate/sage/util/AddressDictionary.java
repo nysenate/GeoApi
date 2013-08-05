@@ -13,6 +13,7 @@ public class AddressDictionary
     public static final Map<String, String> streetTypeMap = new HashMap<>();
     public static final Map<String, String> highWayMap = new HashMap<>();
     public static final Map<String, String> directionMap = new HashMap<>();
+    public static final Map<String, String> streetPrefixMap = new HashMap<>();
 
     /* State mappings */
     static {
@@ -767,5 +768,13 @@ public class AddressDictionary
         directionMap.put("N","N");
         directionMap.put("EAST","E");
         directionMap.put("E","E");
+    }
+
+    /** Street prefix map */
+    static {
+        streetPrefixMap.put("SAINT", "St");
+        streetPrefixMap.put("FORT","Ft");
+        streetPrefixMap.put("FRT","Ft");
+        streetPrefixMap.put("FT","Ft");
     }
 }

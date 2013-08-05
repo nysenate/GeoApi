@@ -19,7 +19,6 @@ public class GeocodeStatsDaoTest extends TestBase
     @Test
     public void getGeocodeStatsTest()
     {
-        GeocodeStats gs = this.geocodeStatsDao.getGeocodeStats(1);
-        FormatUtil.printObject(gs);
+
     }
 }

@@ -89,6 +89,28 @@ public abstract class StreetAddressParser
         return streetAddr;
     }
 
+    /**
+     * Sometimes a street may be prefixed with `Saint` (as in `Saint Marks`) or `Fort` and an abbreviated
+     * street name is desired (i.e `St Marks`)
+     * @param street Street name to normalize
+     * @return       If the criteria matched on the first word, replace that portion and return the full street name.
+     */
+    public static String getPrefixNormalizedStreetName(String street)
+    {
+        if (street != null && !street.isEmpty()) {
+            List<String> parts = new ArrayList<>(Arrays.asList(street.split(" ")));
+            if (parts.size() > 0) {
+                String streetPrefix = parts.get(0);
+                String replaceStreetPrefix = AddressDictionary.streetPrefixMap.get(streetPrefix.toUpperCase());
+                if (replaceStreetPrefix != null && !replaceStreetPrefix.isEmpty()) {
+                    parts.set(0, replaceStreetPrefix);
+                    street = StringUtils.join(parts, " ");
+                }
+            }
+        }
+        return street;
+    }
+
     /** Internal parsing code ----------------------------------------------------------------------------------------*/
 
     /**
@@ -197,6 +219,9 @@ public abstract class StreetAddressParser
     */
     public static String extractStreet(String addressStr, StreetAddress streetAddress)
     {
+        /** Replace new lines/tabs with spaces */
+        addressStr = addressStr.replaceAll("\n", " ").replaceAll("\t", " ");
+
         String[] addrParts = addressStr.split(",");
         if (addrParts.length >= 1) {
             LinkedList<String> stParts = new LinkedList<>(Arrays.asList(addrParts[0].split(" ")));
