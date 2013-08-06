@@ -187,18 +187,18 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
                 var polygon = new google.maps.Polygon(overlayProps);
 
-                /** On mouseover update the header title */
+                /** On mouseover reveal the tooltip and decrease opacity */
                 google.maps.event.addListener(polygon,"mouseover",function() {
                     this.setOptions({fillOpacity: style.fillOpacity - 0.2});
                     mapService.tooltipEl.show();
                 });
 
                 google.maps.event.addListener(polygon, "mousemove", function(mousemove) {
-                    mapService.tooltipEl.offset({top: mousemove.Ra.clientY + 20, left: mousemove.Ra.clientX});
+                    mapService.tooltipEl.offset({top: mousemove.Ta.clientY + 20, left: mousemove.Ta.clientX});
                     mapService.tooltipEl.text(name);
                 });
 
-                /** On mouseout restore the opacity */
+                /** On mouseout restore the opacity and hide the tooltip */
                 google.maps.event.addListener(polygon,"mouseout",function(){
                     this.setOptions({fillOpacity: style.fillOpacity});
                     mapService.tooltipEl.hide();
