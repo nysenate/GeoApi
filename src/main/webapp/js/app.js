@@ -711,11 +711,11 @@ sage.controller('CityStateController', function($scope, $http, mapService, menuS
              .success(function(data, status, headers, config) {
                 dataBus.setBroadcastAndView("citystate", data, "citystate");
             });
-    }
+    };
 
     $scope.getCityStateUrl = function() {
         return contextPath + baseApi + "/address/citystate?provider=mapquest&zip5=" + this.zip5;
-    }
+    };
 });
 
 sage.controller("StreetLookupController", function($scope, $http, dataBus, mapService, menuService, uiBlocker) {
@@ -1296,9 +1296,11 @@ $(document).ready(function(){
      * Resize the page dynamically to avoid scrollbars.
      */
     function resizeContentColumn() {
-        $('#contentcolumn').height($(window).height() - 42);
-        $('#mapcontentcolumn').height($(window).height() - 2);
-        $('.scrollable-content').height($(window).height() - 84);
+        if (typeof width == 'undefined' || typeof height == 'undefined' || width == null || width <= 0 || height == null || height <= 0) {
+            $('#contentcolumn').height($(window).height() - 42);
+            $('#mapcontentcolumn').height($(window).height() - 2);
+            $('.scrollable-content').height($(window).height() - 84);
+        }
     }
 
     /**

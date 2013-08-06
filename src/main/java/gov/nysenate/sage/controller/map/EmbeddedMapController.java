@@ -35,10 +35,18 @@ public class EmbeddedMapController extends BaseMapController
         String path = request.getPathInfo();
         String districtType = "";
         String districtCode = "";
+        Integer width = 0, height = 0;
+        try {
+            width = Integer.parseInt(request.getParameter("width"));
+            height = Integer.parseInt(request.getParameter("height"));
+        }
+        catch (NumberFormatException ex) {
+            logger.debug("No width and height parameters supplied.");
+        }
 
         if (path != null) {
             path = path.replaceFirst("/", "");
-            List<String> pathList = new ArrayList(Arrays.asList(path.split("/")));
+            List<String> pathList = new ArrayList<String>(Arrays.asList(path.split("/")));
             if (pathList.size() >= 1) {
                 districtType = pathList.get(0);
             }
@@ -49,6 +57,8 @@ public class EmbeddedMapController extends BaseMapController
 
         request.setAttribute("districtType", districtType);
         request.setAttribute("districtCode", districtCode);
+        request.setAttribute("width", width);
+        request.setAttribute("height", height);
 
         request.getRequestDispatcher(MAPS_JSP).forward(request, response);
     }

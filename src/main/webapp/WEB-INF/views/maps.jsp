@@ -16,6 +16,8 @@
                     <script>
                         districtType = "${districtType}";
                         districtCode = "${districtCode}";
+                        width = ${width};
+                        height = ${height};
                     </script>
                 </div>
                 <div id="mapView" ng-controller="EmbeddedMapViewController">
@@ -51,5 +53,13 @@
 
         <!-- Map Tooltip -->
         <div id="mapTooltip"></div>
+
+        <script>
+            $(window).load(function(){
+                if (width > 0 && height > 0) {
+                    $("body").width(width).height(height);
+                }
+            });
+        </script>
     </jsp:body>
 </sage:wrapper>
