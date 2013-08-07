@@ -47,9 +47,7 @@ public class ResourceFilter implements Filter
      */
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
     {
-        /** Read a key to trigger the config listener mechanism. */
-        config.getValue("user.ip_filter");
-
+        config.refresh();
         log4jRefresh();
         chain.doFilter(request, response);
     }

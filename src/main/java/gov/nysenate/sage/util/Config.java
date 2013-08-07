@@ -51,6 +51,7 @@ public class Config
         this.config.setReloadingStrategy(new FileChangedReloadingStrategy());
         this.config.addConfigurationListener(listener);
         logger.debug("Loaded config for " + this.config.getPath());
+        config.reload();
     }
 
     /**
@@ -73,10 +74,24 @@ public class Config
         return value;
     }
 
+    /**
+     * Same behaviour as getValue(key) except a default value can be returned if the key cannot be resolved.
+     * @param key           - Property key to look up the value for.
+     * @param defaultValue  - Default value to substitute
+     * @return String - Value of property or defaultValue if not found
+     */
     public String getValue(String key, String defaultValue)
     {
         String value = this.getValue(key);
         return (!value.isEmpty()) ? value : defaultValue;
+    }
+
+    /**
+     * Checks to see if the config file has been updated recently and propagates updates.
+     */
+    public void refresh()
+    {
+        this.config.reload();
     }
 
     /**
@@ -112,10 +127,4 @@ public class Config
         }
         return value;
     }
-
-    @Deprecated
-    public static void notify(Observer o) {}
-
-    @Deprecated
-    public static String read(String key) {return "";}
 }

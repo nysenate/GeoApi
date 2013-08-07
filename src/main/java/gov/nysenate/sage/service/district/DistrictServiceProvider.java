@@ -384,8 +384,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                         DistrictInfo streetInfo = streetResult.getDistrictInfo();
                         Set<DistrictType> fallbackSet = new HashSet<>(streetResult.getAssignedDistricts());
 
-                        /** Only worry about instances where the location is close to a boundary */
-                        for (DistrictType assignedType : shapeInfo.getNearBorderDistricts()) {
+                        for (DistrictType assignedType : shapeInfo.getAssignedDistricts()) {
                             String shapeCode = shapeInfo.getDistCode(assignedType);
                             String streetCode = streetInfo.getDistCode(assignedType);
 
@@ -498,11 +497,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     }
 
     /**
-     *
-     * @param districtType
-     * @param shapeInfo
-     * @param streetInfo
-     * @return
+     * Helper method to replace a shape assigned district with a streetfile assigned district.
+     * @param districtType  District type to replace
+     * @param shapeInfo The shapefile DistrictInfo
+     * @param streetInfo The streetfile DistrictInfo
+     * @return The shapefile DistrictInfo with modified district code and name. DistrictMap is not altered.
      */
     private DistrictInfo replaceShapeWithStreet(DistrictType districtType, DistrictInfo shapeInfo, DistrictInfo streetInfo)
     {

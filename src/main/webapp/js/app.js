@@ -31,8 +31,9 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         panControl: false,
         zoomControl: true,
+        streetViewControl: false,
         zoomControlOptions: {
-            style: google.maps.ZoomControlStyle.LARGE,
+            style: google.maps.ZoomControlStyle.DEFAULT,
             position: google.maps.ControlPosition.LEFT_TOP
         },
         styles: [
@@ -42,6 +43,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     };
     mapService.map = new google.maps.Map(document.getElementById("map_canvas"), mapService.mapOptions);
     mapService.autoComplete = new google.maps.places.AutocompleteService();
+    mapService.bounds = null;
     mapService.polygons = [];
     mapService.lines = [];
     mapService.polygon = null;
@@ -65,6 +67,10 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.resizeMap = function() {
         google.maps.event.trigger(mapService.map, 'resize');
     };
+
+    google.maps.event.addListener(mapService.map, 'bounds_changed', function() {
+        mapService.bounds =  mapService.map.getBounds();
+    });
 
     /**
      * Toggle the visibility of the map
@@ -224,10 +230,9 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                 coords = [];
             }
 
-            /** Set the zoom level to the district bounds */
+            /** Set the zoom level to the polygon bounds */
             if (fitBounds) {
                 this.map.fitBounds(google.maps.getBoundsForPolygons(this.polygons));
-                this.map.setZoom(this.map.getZoom());
             }
 
             /** Text to display on the map header */

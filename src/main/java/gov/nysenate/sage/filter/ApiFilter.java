@@ -12,7 +12,6 @@ import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.Config;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Observable;
@@ -50,10 +49,14 @@ public class ApiFilter implements Filter, Observer
     private static Config config;
     private static String ipFilter;
     private static String defaultKey;
+    private static String publicKey;
+
     private static Boolean LOGGING_ENABLED = false;
 
     /** The valid format of an api request */
     private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map|street))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
+
+    private static String publicApiFilter = "(map)";
 
     /** String keys used for setting key value attributes in the request object */
     private static final String RESPONSE_OBJECT_KEY = "responseObject";
@@ -75,13 +78,16 @@ public class ApiFilter implements Filter, Observer
         apiRequestLogger = new ApiRequestLogger();
         jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
         xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        config.notifyOnChange(this);
         configure();
     }
 
     public void configure()
     {
-        ipFilter = config.getValue("user.ip_filter");
-        defaultKey = config.getValue("user.default");
+        ipFilter = config.getValue("user.ip.filter");
+        defaultKey = config.getValue("user.default.key");
+        publicApiFilter = config.getValue("public.api.filter");
+        publicKey = config.getValue("user.public.key");
         LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled"));
         logger.info(String.format("Configured default access on %s via key %s", ipFilter, defaultKey));
     }
@@ -127,9 +133,17 @@ public class ApiFilter implements Filter, Observer
     private boolean authenticateUser(String key, String remoteIp, String uri, ServletRequest request) throws IOException
     {
         ApiRequest apiRequest = getApiRequest(request);
-        if (key == null && remoteIp.matches(ipFilter)) {
-            key = defaultKey;
-            logger.trace(String.format("Default user: %s granted default key %s", remoteIp, key));
+        String service = apiRequest.getService();
+
+        if (key == null) {
+            if (remoteIp.matches(ipFilter)) {
+                key = defaultKey;
+                logger.trace(String.format("Default user: %s granted default key %s", remoteIp, key));
+            }
+            else if (service.matches(publicApiFilter)) {
+                key = publicKey;
+                logger.trace(String.format("User: %s granted default map key for accessing public api.", remoteIp));
+            }
         }
 
         if (key != null) {
