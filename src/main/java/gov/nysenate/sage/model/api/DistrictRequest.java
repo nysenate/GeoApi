@@ -15,8 +15,13 @@ import java.util.List;
 
 import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
 
+/**
+ * A DistrictRequest represents a district assignment API request.
+ * It is intended to encapsulate the various options and input types.
+ */
 public class DistrictRequest implements Cloneable
 {
+    /** The ids are assigned once the request has been logged */
     private int id;
     private int addressId;
 
@@ -34,6 +39,7 @@ public class DistrictRequest implements Cloneable
     /** DistrictTypes to assign */
     private List<DistrictType> districtTypes = DistrictType.getStandardTypes();
 
+    /** District assign api options */
     private String provider = null;
     private String geoProvider = null;
     private boolean showMembers = false;
@@ -45,11 +51,20 @@ public class DistrictRequest implements Cloneable
 
     public DistrictRequest() {}
 
-    public static DistrictRequest buildBluebirdRequest(ApiRequest apiRequest, Address address, String bluebirdStrategy)
+    /**
+     * Construct a DistrictRequest to conform to certain rules for Bluebird district assign.
+     * @param apiRequest The api request object
+     * @param address The input address
+     * @param point The input point
+     * @param bluebirdStrategy The district assignment strategy for bluebird requests
+     * @return DistrictRequest with preset bluebird assign options.
+     */
+    public static DistrictRequest buildBluebirdRequest(ApiRequest apiRequest, Address address, Point point, String bluebirdStrategy)
     {
         DistrictRequest dr = new DistrictRequest();
         dr.setApiRequest(apiRequest);
         dr.setAddress(address);
+        dr.setPoint(point);
         dr.setProvider(null);
         dr.setGeoProvider(null);
         dr.setShowMaps(false);
@@ -60,8 +75,14 @@ public class DistrictRequest implements Cloneable
         return dr;
     }
 
+    /**
+     * Modify existing DistrictRequest with bluebird options.
+     * @param districtRequest DistrictRequest with options set.
+     * @param bluebirdStrategy The district assignment strategy for bluebird requests.
+     * @return A new DistrictRequest instance with bluebird options set.
+     */
     public static DistrictRequest buildBluebirdRequest(DistrictRequest districtRequest, String bluebirdStrategy) {
-        return buildBluebirdRequest(districtRequest.getApiRequest(), districtRequest.getAddress(), bluebirdStrategy);
+        return buildBluebirdRequest(districtRequest.getApiRequest(), districtRequest.getAddress(), districtRequest.getPoint(), bluebirdStrategy);
     }
 
     public DistrictRequest(ApiRequest apiRequest, Address address, String provider, String geoProvider, boolean showMembers,

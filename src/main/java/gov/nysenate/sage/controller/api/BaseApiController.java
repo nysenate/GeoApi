@@ -99,29 +99,38 @@ public abstract class BaseApiController extends HttpServlet
      * <code>
      *  [{"addr1":"", "addr2":"", "city":"", "state":"","zip5":"", "zip4":""} .. ]
      * </code>
-     * @param r
+     * @param json Json payload
      * @return
      */
-    public static ArrayList<Address> getAddressesFromJsonBody(HttpServletRequest r)
+    public static ArrayList<Address> getAddressesFromJsonBody(String json)
     {
         ArrayList<Address> addresses = new ArrayList<>();
         try {
-            String json = IOUtils.toString(r.getInputStream(), "UTF-8");
             logger.debug("Batch address json body " + json);
             ObjectMapper mapper = new ObjectMapper();
             return new ArrayList<>(Arrays.asList(mapper.readValue(json, Address[].class)));
         }
         catch(Exception ex){
-            logger.error("Failed to get address from JSON body.", ex);
+            logger.debug("No valid batch address payload detected.");
+            logger.trace(ex);
         }
         return addresses;
     }
 
-    public static ArrayList<Point> getPointsFromJsonBody(HttpServletRequest r)
+    /**
+     * Constructs a collection of Point objects using the JSON payload data in the body of the
+     * HttpServletRequest. The root JSON element must be an array containing a collection of
+     * point component objects containing numerical values for "lat" and "lon" e.g
+     * <code>
+     *     [{"lat":43.123 , "lon":-73.123 }, ..]
+     * </code>
+     * @param json Json payload
+     * @return
+     */
+    public static ArrayList<Point> getPointsFromJsonBody(String json)
     {
         ArrayList<Point> points = new ArrayList<>();
         try {
-            String json = IOUtils.toString(r.getInputStream(), "UTF-8");
             logger.debug("Batch points json body " + json);
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
@@ -131,7 +140,8 @@ public abstract class BaseApiController extends HttpServlet
             }
         }
         catch(Exception ex){
-            logger.error("Failed to get points from JSON body.", ex);
+            logger.debug("No valid batch point payload detected.");
+            logger.trace(ex);
         }
         return points;
     }

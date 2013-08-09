@@ -60,7 +60,7 @@ public class DistrictShapefileDao extends BaseDao
         String sqlTmpl =
                 "SELECT '%s' AS type, %s AS name, %s as code " +
                         "%s" + // <- mapQuery
-                "       ST_Distance(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity " +
+                "       ST_Distance_Sphere(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity " +
                 "FROM " + SCHEMA + ".%s " +
                 "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)' , " + "%s" + "))";
 
@@ -268,7 +268,7 @@ public class DistrictShapefileDao extends BaseDao
      * @param point
      * @return
      */
-    public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int count)
+    public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int proximity, int count)
     {
         if (DistrictShapeCode.contains(districtType)) {
             String srid = resolveSRID(districtType);
@@ -276,13 +276,17 @@ public class DistrictShapefileDao extends BaseDao
                 "SELECT '%s' AS type, %s as name, %s AS code, " + ((getMaps) ? "ST_AsGeoJson(geom) AS map " : "null as map \n") +
                 "FROM " + SCHEMA +".%s \n" +
                 "WHERE ST_Contains(geom, %s) = false \n" +
+                "AND ST_Distance_Sphere(%s, ST_ClosestPoint(geom, %s)) < %s \n" +
                 "ORDER BY ST_ClosestPoint(geom, %s) <-> %s \n" +
                 "LIMIT %d;";
 
-           String pointText = String.format("ST_PointFromText('POINT(%s %s)', %s)", point.getLon(), point.getLat(), srid);
-
+            String pointText = String.format("ST_PointFromText('POINT(%s %s)', %s)", point.getLon(), point.getLat(), srid);
             String sqlQuery = String.format(tmpl, districtType.name(), resolveNameColumn(districtType), resolveCodeColumn(districtType),
-                    districtType.name(), pointText, pointText, pointText, count);
+                    districtType.name(),             // Table name
+                    pointText,                       // ST_Contains -> Where clause
+                    pointText, pointText, proximity, // ST_Distance_Sphere -> Where clause
+                    pointText, pointText, count);    // ST_ClosestPoint -> Order By
+
             try {
                 return run.query(sqlQuery, new NearbyDistrictMapsHandler());
             }

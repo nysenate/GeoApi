@@ -3,13 +3,13 @@ package gov.nysenate.sage.provider;
 import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.dao.provider.StreetFileDao;
 import gov.nysenate.sage.dao.provider.TigerGeocoderDao;
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
-import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.MapResult;
@@ -17,6 +17,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.service.map.MapService;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
@@ -26,9 +27,10 @@ import java.util.*;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
 
-public class DistrictShapefile implements DistrictService, MapService
+public class DistrictShapefile implements DistrictService, MapService, Observer
 {
     private static Logger logger = Logger.getLogger(DistrictShapefile.class);
+    private static Config config = ApplicationFactory.getConfig();
     private DistrictShapefileDao districtShapefileDao;
 
     /** The street file and cityzip daos are needed to determine overlap */
@@ -36,12 +38,25 @@ public class DistrictShapefile implements DistrictService, MapService
     private CityZipDB cityZipDBDao;
     private TigerGeocoderDao tigerGeocoderDao;
 
+    /** Specifies the maximum distance a neighbor district can be from a specific point to still be considered
+     * a nearby neighbor. */
+    private static Integer NEIGHBOR_PROXIMITY = 500;
+
+    /** Specifies the maximum number of nearby neighbors that will be returned by default. */
+    private static Integer MAX_NEIGHBORS = 2;
+
     public DistrictShapefile()
     {
         this.districtShapefileDao = new DistrictShapefileDao();
         this.streetFileDao = new StreetFileDao();
         this.cityZipDBDao = new CityZipDB();
         this.tigerGeocoderDao = new TigerGeocoderDao();
+        update(null, null);
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        NEIGHBOR_PROXIMITY = Integer.parseInt(config.getValue("neighbor.proximity", "500"));
     }
 
     @Override
@@ -97,7 +112,7 @@ public class DistrictShapefile implements DistrictService, MapService
     @Override
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType)
     {
-        return nearbyDistricts(geocodedAddress, districtType, 2);
+        return nearbyDistricts(geocodedAddress, districtType, MAX_NEIGHBORS);
     }
 
     @Override
@@ -105,7 +120,7 @@ public class DistrictShapefile implements DistrictService, MapService
     {
         if (geocodedAddress != null && geocodedAddress.isValidGeocode()) {
             Point point = geocodedAddress.getGeocode().getLatLon();
-            return this.districtShapefileDao.getNearbyDistricts(districtType, point, true, count);
+            return this.districtShapefileDao.getNearbyDistricts(districtType, point, true, NEIGHBOR_PROXIMITY, count);
         }
         return null;
     }

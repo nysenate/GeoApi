@@ -27,7 +27,8 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         neighborMatch,  /** Perform shape and street lookup, performing neighbor consolidation as needed. */
         streetFallback, /** Perform shape lookup and consolidate street file results without neighbor checking. */
         shapeFallback,  /** Perform street lookup and only fall back to shape files when street lookup failed. */
-        streetOnly      /** Perform street lookup only */
+        streetOnly,     /** Perform street lookup only */
+        shapeOnly       /** Perform shape lookup only */
     }
 
     private final Logger logger = Logger.getLogger(DistrictServiceProvider.class);
@@ -36,8 +37,8 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     private static DistrictStrategy SINGLE_DISTRICT_STRATEGY;
     private static DistrictStrategy BATCH_DISTRICT_STRATEGY;
 
-    /** Specifies the distance to a district boundary in which the accuracy of shapefiles is uncertain */
-    private static Double PROXIMITY_THRESHOLD = 0.001;
+    /** Specifies the distance (meters) to a district boundary in which the accuracy of shapefiles is uncertain */
+    private static Integer PROXIMITY_THRESHOLD = 300;
 
     /** Specifies the set of districts that are allowed to obtain nearby neighbor info. The reason every
      * district that has shape files can't do this is because the query can be rather slow. */
@@ -55,7 +56,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     @Override
     public void update(Observable o, Object arg)
     {
-        PROXIMITY_THRESHOLD = Double.parseDouble(this.config.getValue("proximity.threshold", "0.001"));
+        PROXIMITY_THRESHOLD = Integer.parseInt(this.config.getValue("border.proximity", "300"));
         SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf(this.config.getValue("district.strategy.single", "neighborMatch"));
         BATCH_DISTRICT_STRATEGY = DistrictStrategy.valueOf(this.config.getValue("district.strategy.batch", "shapeFallback"));
     }
@@ -168,6 +169,10 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
 
                     case streetOnly:
                         districtResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
+                        break;
+
+                    case shapeOnly:
+                        districtResult = shapeFileService.assignDistricts(geocodedAddress, districtTypes);
                         break;
 
                     default:
@@ -313,6 +318,10 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                         districtResults = streetFileService.assignDistricts(geocodedAddresses, districtTypes);
                         break;
 
+                    case shapeOnly:
+                        districtResults = shapeFileService.assignDistricts(geocodedAddresses, districtTypes);
+                        break;
+
                     default:
                         logger.error("Incorrect batch district assignment strategy set. Cannot proceed with assignment!");
                         break;
@@ -414,9 +423,15 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                         /** Replace the neighbor */
                                         int index = shapeInfo.getNeighborMaps(assignedType).indexOf(neighborMap);
                                         shapeInfo.getNeighborMaps(assignedType).remove(index);
-                                        shapeInfo.getNeighborMaps(assignedType).set(0, original);
+                                        if (shapeInfo.getNeighborMaps(assignedType).isEmpty()) {
+                                            shapeInfo.getNeighborMaps(assignedType).add(original);
+                                        }
+                                        else {
+                                            shapeInfo.getNeighborMaps(assignedType).set(0, original);
+                                        }
                                     }
-                                    /** Otherwise there was a mismatch between the street and shape files that can't be corrected */
+                                    /** Otherwise there was a mismatch between the street and shape files that should be investigated.
+                                     *  TODO: Consider logging this better. */
                                     else {
                                         logger.warn("Shapefile/Streetfile mismatch for district " + assignedType + " for address " + address);
                                     }
@@ -561,6 +576,4 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         }
         return null;
     }
-
-
 }

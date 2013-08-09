@@ -17,6 +17,7 @@ import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -119,7 +120,8 @@ public class GeocodeController extends BaseApiController implements Observer
                 }
                 /** Handle batch geocoding requests */
                 else {
-                    List<Address> addresses = getAddressesFromJsonBody(request);
+                    String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
+                    List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
                     if (addresses.size() > 0) {
                         BatchGeocodeRequest batchGeocodeRequest = new BatchGeocodeRequest(geocodeRequest);
                         batchGeocodeRequest.setAddresses(addresses);
@@ -159,7 +161,8 @@ public class GeocodeController extends BaseApiController implements Observer
                 }
                 /** Handle batch rev geocoding requests */
                 else {
-                    List<Point> points = getPointsFromJsonBody(request);
+                    String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
+                    List<Point> points = getPointsFromJsonBody(batchJsonPayload);
                     if (points.size() > 0) {
                         BatchGeocodeRequest batchGeocodeRequest = new BatchGeocodeRequest(geocodeRequest);
                         batchGeocodeRequest.setReverse(true);
