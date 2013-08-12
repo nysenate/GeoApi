@@ -1,5 +1,6 @@
 package gov.nysenate.sage.controller.api;
 
+import gov.nysenate.sage.client.response.address.BatchValidateResponse;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.address.CityStateResponse;
 import gov.nysenate.sage.client.response.address.ValidateResponse;
@@ -8,7 +9,9 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 
 import gov.nysenate.sage.model.api.ApiRequest;
+import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -16,6 +19,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
@@ -71,11 +76,9 @@ public final class AddressController extends BaseApiController
 
         /** Handle single request */
         if (!apiRequest.isBatch()) {
-
             Address address = getAddressFromParams(request);
             if (address != null && !address.isEmpty()) {
-                switch (apiRequest.getRequest())
-                {
+                switch (apiRequest.getRequest()) {
                     case "validate": {
                         addressResponse = new ValidateResponse(addressProvider.validate(address, provider));
                         break;
@@ -94,7 +97,26 @@ public final class AddressController extends BaseApiController
                 }
             }
             else {
-                addressResponse = new ApiError(AddressController.class, MISSING_ADDRESS);
+                addressResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
+            }
+        }
+        else {
+            String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
+            ArrayList<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
+            if (addresses != null && !addresses.isEmpty()) {
+                switch (apiRequest.getRequest()) {
+                    case "validate": {
+                        AddressService addressService = addressProvider.newInstance(provider, "usps");
+                        addressResponse = new BatchValidateResponse(addressService.validate(addresses));
+                        break;
+                    }
+                    default : {
+                        addressResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
+                    }
+                }
+            }
+            else {
+                addressResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
             }
         }
 
