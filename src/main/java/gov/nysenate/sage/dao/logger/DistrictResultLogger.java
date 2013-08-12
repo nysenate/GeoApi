@@ -119,7 +119,14 @@ public class DistrictResultLogger extends BaseDao
     {
         logger.debug("Flushing district batch log of size " + batchDistLogCache.size());
         for (Pair<DistrictRequest, DistrictResult> distPair : batchDistLogCache) {
-            logDistrictRequestAndResult(distPair.getLeft(), distPair.getRight());
+            try {
+                if (distPair != null) {
+                    logDistrictRequestAndResult(distPair.getLeft(), distPair.getRight());
+                }
+            }
+            catch (Exception ex) {
+                logger.warn("Failed to flush district request/result pair to log: ", ex);
+            }
         }
         batchDistLogCache.clear();
     }

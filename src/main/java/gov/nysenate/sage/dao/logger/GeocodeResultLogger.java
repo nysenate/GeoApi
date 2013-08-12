@@ -124,7 +124,14 @@ public class GeocodeResultLogger extends BaseDao
     {
         logger.debug("Flushing geocode batch log");
         for (Pair<GeocodeRequest, GeocodeResult> geoPair : batchGeoLogCache) {
-            logGeocodeRequestAndResult(geoPair.getLeft(), geoPair.getRight());
+            try {
+                if (geoPair != null) {
+                    logGeocodeRequestAndResult(geoPair.getLeft(), geoPair.getRight());
+                }
+            }
+            catch (Exception ex) {
+                logger.warn("Failed to flush geocode request/result pair into log: ", ex);
+            }
         }
         batchGeoLogCache.clear();
     }
