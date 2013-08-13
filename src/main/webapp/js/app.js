@@ -1228,7 +1228,7 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
         $.each(offices, function(i, office){
             if (office && office.name != null && office.name != "") {
                 mapService.setMarker(office.latitude, office.longitude, office.name, false, false,
-                    "<div style='min-width:160px;'>" +
+                    "<div style='width:160px;'>" +
                         "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
                         "<p>" + office.street + "</p>" +
                         "<p>" + office.additional+ "</p>" +
