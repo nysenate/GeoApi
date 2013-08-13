@@ -633,8 +633,8 @@
                                     <tr>
                                         <td><p style="font-size:16px;color:teal;">{{office.name}}</p></td>
                                         <td class="right-icon-placeholder">
-                                            <a title="Locate office" ng-click="setOfficeMarker(office);">
-                                                <div class="icon-location"></div>
+                                                <a title="Locate office" ng-click="setOfficeMarker(office);">
+                                                <div class="icon-location icon-hover-teal"></div>
                                             </a>
                                         </td>
                                     </tr>

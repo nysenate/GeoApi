@@ -49,8 +49,8 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.polygon = null;
     mapService.markers = [];
     mapService.activeMarker = null;
-    mapService.mapTitle = "Map";
     mapService.districtData = null;
+    mapService.mouseEventName = null;
     //                    teal      orangered    green      red        yellow     cyan    pink         purple     darkblue
     mapService.colors = ["#008080", "#ff4500", "#639A00", "#CC333F", "#EDC951", "#09AA91", "#F56991", "#524656", "#547980"];
 
@@ -95,10 +95,6 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         this.map.setCenter(new google.maps.LatLng(lat, lon));
     };
 
-    mapService.setTitle = function(title) {
-        dataBus.setBroadcast('mapTitle', title);
-    };
-
     mapService.makeAutocomplete = function(inputId) {
         new google.maps.places.Autocomplete(
             document.getElementById(inputId), {
@@ -131,13 +127,8 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         var marker = new google.maps.Marker({
             map: mapService.map,
             draggable:false,
-            position: new google.maps.LatLng(lat, lon),
-            title: title
+            position: new google.maps.LatLng(lat, lon)
         });
-
-        if (title != null && typeof title != 'undefined') {
-            this.setTitle((title) ? title : 'Map');
-        }
 
         if (clickContent) {
             var infowindow = new google.maps.InfoWindow({
@@ -152,6 +143,15 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         this.markers.push(marker);
         if (center) {
             this.map.setCenter(this.activeMarker.position);
+        }
+        if (title) {
+            google.maps.event.addListener(marker, "mouseover", function(){
+                mapService.tooltipEl.show();
+                mapService.tooltipEl.text(title);
+            });
+            google.maps.event.addListener(marker, "mouseout", function(){
+                mapService.tooltipEl.hide();
+            });
         }
     };
 
@@ -200,8 +200,21 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                 });
 
                 google.maps.event.addListener(polygon, "mousemove", function(mousemove) {
-                    mapService.tooltipEl.offset({top: mousemove.Ta.clientY + 20, left: mousemove.Ta.clientX});
-                    mapService.tooltipEl.text(name);
+                    /** Have to find the correct property name that contains the client x,y data */
+                    if (mapService.mouseEventName == null) {
+                        for (var prop in mousemove) {
+                            if (mousemove.hasOwnProperty(prop) && typeof mousemove[prop] == 'object') {
+                                if (mousemove[prop] != null && 'clientY' in mousemove[prop]) {
+                                    mapService.mouseEventName = prop;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (mapService.mouseEventName != null) {
+                        mapService.tooltipEl.offset({top: mousemove[mapService.mouseEventName].clientY + 20, left: mousemove[mapService.mouseEventName].clientX});
+                        mapService.tooltipEl.text(name);
+                    }
                 });
 
                 /** On mouseout restore the opacity and hide the tooltip */
@@ -236,7 +249,6 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             }
 
             /** Text to display on the map header */
-            this.mapTitle = name;
             return this.polygon;
         }
         else {
@@ -808,7 +820,6 @@ sage.controller('ResultsViewController', function($scope, dataBus, mapService) {
     $scope.showResultsTab = $("#showResultsTab");
     $scope.centercolumn = $('#contentcolumn');
     $scope.rightcolumn = $("#rightcolumn");
-    $scope.width = '330px';
     $scope.toggleClass = "sidebar";
 
     $scope.$on('expandResults', function() {
@@ -941,8 +952,18 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                 $.each(data.districts, function(i, v){
                     if (v.map != null) {
                         mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
-                            (v.type == "SENATE") ? function() {dataBus.setBroadcastAndView("memberApply", v.member, "member");}
-                                : null
+                            (v.type == "SENATE") ? function() {
+
+                                /** Draw the office markers */
+                                mapService.clearMarkers();
+                                $.each(v.member.offices, function(i, office){
+                                    if (office && office.name != null && office.name != "") {
+                                        mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, false, false);
+                                    }
+                                });
+                                dataBus.setBroadcastAndView("member", v.member, "member");
+                                $scope.$apply();
+                            } : null
                         );
                     }
                 });
@@ -952,9 +973,16 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             /** Show the individual district map */
             else if (data.map != null) {
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
-                dataBus.setBroadcast("mapTitle", formatDistrictName(data));
                 if (data.type == "SENATE") {
                     dataBus.setBroadcastAndView("member", data.member, "member");
+
+                    /** Draw the office markers */
+                    mapService.clearMarkers();
+                    $.each(data.member.offices, function(i, office){
+                        if (office && office.name != null && office.name != "") {
+                            mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, false, false);
+                        }
+                    });
                 }
                 else {
                     dataBus.setBroadcast("hideResultTab");
@@ -1008,7 +1036,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
 
     $scope.setOfficeMarker = function(office) {
         if (office != null) {
-            mapService.setMarker(office.latitude, office.longitude, office.name, false, true, null);
+            mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, true, true, null);
         }
     };
 
@@ -1023,8 +1051,6 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     $scope.getColorStyle = function(senateDistrict) {
         return {"color": this.senateColors[senateDistrict]};
     };
-
-
 });
 
 sage.controller("CityStateView", function($scope, dataBus, mapService) {
@@ -1099,7 +1125,7 @@ sage.controller("MemberViewController", function($scope, dataBus, mapService) {
     $scope.viewId = "member";
     $scope.member = {};
 
-    $scope.$on(dataBus.viewHandleEvent, function(){
+    $scope.$on(dataBus.viewHandleEvent, function() {
         $scope.visible = ($scope.viewId == dataBus.viewId);
     });
 
@@ -1115,18 +1141,9 @@ sage.controller("MemberViewController", function($scope, dataBus, mapService) {
         }
     });
 
-    /** Used when clicking from multi-district map. Need to use $apply to propagate updates from map scope. */
-    $scope.$on("memberApply", function() {
-        if (dataBus.data) {
-            $scope.$apply(function(){
-                $scope.showMember();
-            });
-        }
-    });
-
     $scope.setOfficeMarker = function(office) {
         if (office != null) {
-            mapService.setMarker(office.latitude, office.longitude, office.name, false, true, null);
+            mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, true, true, null);
         }
     }
 });
@@ -1153,13 +1170,8 @@ sage.controller("RevGeoViewController", function($scope, $filter, dataBus, mapSe
 });
 
 sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker, mapService){
-    $scope.mapTitle = "Map";
     $scope.showPrompt = false;
     $scope.viewInfo = false;
-
-    $scope.$on("mapTitle", function(){
-        $scope.mapTitle = dataBus.data;
-    });
 
     $scope.$on("embeddedMap", function() {
         var data = dataBus.data;
@@ -1185,21 +1197,9 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
             else if (data.map != null) {
                 $scope.senator = data.member;
                 $scope.district = data.district;
-                $scope.mapTitle = formatDistrictName(data);
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
                 if (data.type.toLowerCase() == "senate") {
-                    $.each(data.member.offices, function(i, office){
-                        if (office && office.name != null && office.name != "") {
-                            mapService.setMarker(office.latitude, office.longitude, null, false, false,
-                                "<div>" +
-                                    "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
-                                    "<p>" + office.street + "</p>" +
-                                    "<p>" + office.additional+ "</p>" +
-                                    "<p>" + office.city + ", " + office.province + " " + office.postalCode +"</p>" +
-                                    "<p>Phone " + office.phone + "</p>" +
-                                    "</div>");
-                        }
-                    });
+                    $scope.setOfficeMarkers(data.member.offices);
                     $scope.showPrompt = false;
                     $scope.showInfo = false;
                 }
@@ -1217,24 +1217,27 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
                 $scope.showInfo = true;
                 $scope.senator = data.member;
                 $scope.district = data.district;
-            });
-            mapService.clearMarkers();
-
-            /** Clicking an office marker will open info pane with details */
-            $.each(data.member.offices, function(i, office){
-                if (office && office.name != null && office.name != "") {
-                    mapService.setMarker(office.latitude, office.longitude, office.name, false, false,
-                        "<div>" +
-                            "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
-                            "<p>" + office.street + "</p>" +
-                            "<p>" + office.additional+ "</p>" +
-                            "<p>" + office.city + ", " + office.province + " " + office.postalCode +"</p>" +
-                            "<p>Phone " + office.phone + "</p>" +
-                        "</div>");
-                }
+                mapService.clearMarkers();
+                $scope.setOfficeMarkers(data.member.offices);
             });
         }
     });
+
+    $scope.setOfficeMarkers = function(offices) {
+        /** Clicking an office marker will open info pane with details */
+        $.each(offices, function(i, office){
+            if (office && office.name != null && office.name != "") {
+                mapService.setMarker(office.latitude, office.longitude, office.name, false, false,
+                    "<div style='min-width:160px;'>" +
+                        "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
+                        "<p>" + office.street + "</p>" +
+                        "<p>" + office.additional+ "</p>" +
+                        "<p>" + office.city + ", " + office.province + " " + office.postalCode +"</p>" +
+                        "<p>Phone " + office.phone + "</p>" +
+                    "</div>");
+            }
+        });
+    }
 });
 
 $(document).ready(function(){

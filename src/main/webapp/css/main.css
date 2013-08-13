@@ -240,6 +240,8 @@ h3.slim {
 .search-container select {
     background-color:white;
     border:1px solid #ddd;
+    color:#333;
+    font-size:14px;
 }
 
 .search-container input {
