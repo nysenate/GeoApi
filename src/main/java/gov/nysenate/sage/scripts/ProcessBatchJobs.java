@@ -448,7 +448,7 @@ public class ProcessBatchJobs
             this.districtTypes = types;
             /** Change the strategy if the types contain town or school since they are typically missing in street files */
             if (this.districtTypes.contains(DistrictType.TOWN) || this.districtTypes.contains(DistrictType.SCHOOL)) {
-                this.districtStrategy = DistrictStrategy.neighborMatch;
+                this.districtStrategy = DistrictStrategy.streetFallback;
             }
         }
 
