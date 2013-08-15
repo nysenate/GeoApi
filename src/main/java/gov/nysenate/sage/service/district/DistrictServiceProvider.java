@@ -256,7 +256,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
             if (districtStrategy == null) {
                 districtStrategy = BATCH_DISTRICT_STRATEGY;
             }
-            logger.info("Using district assign strategy: " + districtStrategy);
+            logger.debug("Using district assign strategy: " + districtStrategy);
 
             try {
                 switch (districtStrategy) {
@@ -456,7 +456,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                         }
                     }
                     else {
-                        logger.info("No street file result for " + address);
+                        logger.debug("No street file result for " + address);
                     }
                 }
                 else {

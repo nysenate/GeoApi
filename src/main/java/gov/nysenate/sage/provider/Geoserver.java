@@ -104,6 +104,11 @@ public class Geoserver implements DistrictService, Observer
     }
 
     @Override
+    public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
+        return assignDistricts(geocodedAddress, reqTypes);
+    }
+
+    @Override
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType) {
         logger.warn("Nearby districts is not implemented in Geoserver");
         return null;

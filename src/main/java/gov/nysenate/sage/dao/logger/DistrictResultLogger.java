@@ -18,10 +18,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DistrictResultLogger extends BaseDao
 {
@@ -30,13 +27,18 @@ public class DistrictResultLogger extends BaseDao
 
     private static String SCHEMA = "log";
     private static String TABLE = "districtResult";
+    private static Boolean SAVE_LOCK = false;
+
     private QueryRunner run = getQueryRunner();
 
     /** Batch cache */
     private static List<Pair<DistrictRequest, DistrictResult>> batchDistLogCache = new ArrayList<>();
 
+    /** Temporary cache for when the data is being saved to the database */
+    private static List<Pair<DistrictRequest, DistrictResult>> tempCache = new ArrayList<>();
+
     /**
-     *
+     * Logs a DistrictRequest and the corresponding DistrictResult to the database.
      * @param districtRequest
      * @param districtResult
      * @return
@@ -100,7 +102,13 @@ public class DistrictResultLogger extends BaseDao
                     GeocodedAddress geocodedAddress = batchDistRequest.getGeocodedAddresses().get(i);
                     DistrictRequest districtRequest = (DistrictRequest) batchDistRequest.clone();
                     districtRequest.setGeocodedAddress(geocodedAddress);
-                    batchDistLogCache.add(new ImmutablePair<>(districtRequest, districtResults.get(i)));
+                    if (!SAVE_LOCK) {
+                        batchDistLogCache.add(new ImmutablePair<>(districtRequest, districtResults.get(i)));
+                    }
+                    else {
+                        logger.debug("Logging district result to temporary list.");
+                        tempCache.add(new ImmutablePair<>(districtRequest, districtResults.get(i)));
+                    }
                 }
                 catch (Exception ex) {
                     logger.error("Failed to log batch district results!", ex);
@@ -113,21 +121,54 @@ public class DistrictResultLogger extends BaseDao
     }
 
     /**
+     * Returns the current size of the batch log cache.
+     * @return int
+     */
+    public int getLogCacheSize()
+    {
+        return batchDistLogCache.size();
+    }
+
+    /**
      * Logs district requests and results stored in the batch queue
      */
-    public void flushBatchRequestsCache()
+    public synchronized void flushBatchRequestsCache()
     {
         logger.debug("Flushing district batch log of size " + batchDistLogCache.size());
-        for (Pair<DistrictRequest, DistrictResult> distPair : batchDistLogCache) {
-            try {
-                if (distPair != null) {
-                    logDistrictRequestAndResult(distPair.getLeft(), distPair.getRight());
+        SAVE_LOCK = true;
+        try {
+            Iterator<Pair<DistrictRequest, DistrictResult>> distPairIterator = batchDistLogCache.iterator();
+            while (distPairIterator.hasNext()) {
+                try {
+                    Pair<DistrictRequest, DistrictResult> distPair = distPairIterator.next();
+                    if (distPair != null) {
+                        logDistrictRequestAndResult(distPair.getLeft(), distPair.getRight());
+                    }
+                }
+                catch (Exception ex) {
+                    logger.warn("Failed to flush district request/result pair to log: ", ex);
                 }
             }
-            catch (Exception ex) {
-                logger.warn("Failed to flush district request/result pair to log: ", ex);
-            }
+        }
+        catch (Exception ex) {
+            logger.error("Failed to flush district batch. Clearing now. ", ex);
         }
         batchDistLogCache.clear();
+        moveTempToMainCache();
+        SAVE_LOCK = false;
+    }
+
+    /**
+     * While the request/response pairs are being saved, any new pairs that are being logged are appended
+     * to a temporary list such that the main batch list does not encounter concurrent modification issues.
+     * Once the batch list has been flushed this method is called to transfer all the pairs stored in the
+     * temp list back to the main batch list.
+     */
+    private synchronized void moveTempToMainCache()
+    {
+        logger.debug("Transferring temp geocode pairs to main batch..");
+        batchDistLogCache.addAll(new ArrayList<>(tempCache));
+        tempCache.clear();
+        logger.debug("Main batch size: " + batchDistLogCache.size());
     }
 }

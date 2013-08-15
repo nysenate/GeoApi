@@ -1,7 +1,9 @@
 package gov.nysenate.sage.service.geo;
 
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -11,7 +13,8 @@ import java.util.concurrent.*;
 public class ParallelRevGeocodeService
 {
     private static Logger logger = Logger.getLogger(ParallelRevGeocodeService.class);
-    private static int THREAD_COUNT = 3;
+    private static Config config = ApplicationFactory.getConfig();
+    private static int THREAD_COUNT = Integer.parseInt(config.getValue("revgeocode.threads", "3"));
 
     /**
     * Callable for parallel reverse geocoding requests

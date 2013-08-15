@@ -53,6 +53,7 @@ public class ProcessBatchJobs
     private static String LOCK_FILENAME = "batchJobProcess.lock";
     private static Boolean SEND_EMAILS = true;
     private static Boolean LOGGING_ENABLED = false;
+    private static Integer LOGGING_THRESHOLD = 1000;
 
     public static Logger logger = Logger.getLogger(ProcessBatchJobs.class);
     public static Mailer mailer;
@@ -250,14 +251,16 @@ public class ProcessBatchJobs
                 }
 
                 /** Read records into a JobFile */
+                logMemoryUsage();
                 List<Object> row;
                 while( (row = jobReader.read(processors)) != null ) {
                     jobFile.addRecord(new JobRecord(jobFile, row));
                 }
+                logMemoryUsage();
                 logger.info(jobFile.getRecords().size() + " records");
                 logger.info("--------------------------------------------------------------------");
 
-                ArrayList<Future<JobBatch>> jobResults = new ArrayList<>();
+                LinkedTransferQueue<Future<JobBatch>> jobResultsQueue = new LinkedTransferQueue<>();
                 List<DistrictType> districtTypes = jobFile.getRequiredDistrictTypes();
 
                 int recordCount = jobFile.recordCount();
@@ -273,18 +276,19 @@ public class ProcessBatchJobs
                     Future<JobBatch> futureGeocodedJobBatch = geocodeExecutor.submit(new GeocodeJobBatch(jobBatch, jobProcess));
                     if (jobFile.requiresDistrictAssign()) {
                          Future<JobBatch> futureDistrictedJobBatch = districtExecutor.submit(new DistrictJobBatch(futureGeocodedJobBatch, districtTypes, jobProcess));
-                         jobResults.add(futureDistrictedJobBatch);
+                        jobResultsQueue.add(futureDistrictedJobBatch);
                     }
                     else {
-                        jobResults.add(futureGeocodedJobBatch);
+                        jobResultsQueue.add(futureGeocodedJobBatch);
                     }
                 }
 
                 boolean interrupted = false;
-                for (int i = 0; i < batchCount; i++) {
+                int batchNum = 0;
+                while (jobResultsQueue.peek() != null) {
                     try {
-                        logger.info("Waiting on batch # " + i);
-                        JobBatch batch = jobResults.get(i).get();
+                        logger.info("Waiting on batch # " + batchNum);
+                        JobBatch batch = jobResultsQueue.poll().get();
                         for (JobRecord record : batch.getJobRecords()) {
                             jobWriter.write(record.getRow(), processors);
                         }
@@ -300,7 +304,7 @@ public class ProcessBatchJobs
 
                         jobStatus.setCompletedRecords(jobStatus.getCompletedRecords() + batch.getJobRecords().size());
                         jobProcessDao.setJobProcessStatus(jobStatus);
-                        logger.info("Wrote results of batch # " + i);
+                        logger.info("Wrote results of batch # " + batchNum);
                     }
                     catch (Exception e) {
                         logger.error(e);
@@ -334,8 +338,11 @@ public class ProcessBatchJobs
 
                 if (LOGGING_ENABLED) {
                     try {
+                        logger.info("Flushing log cache...");
+                        logMemoryUsage();
                         geocodeResultLogger.flushBatchRequestsCache();
                         districtResultLogger.flushBatchRequestsCache();
+                        logMemoryUsage();
                     }
                     catch (Exception ex) {
                         logger.error("Failed to flush log buffer! Logged data will be discarded.", ex);
@@ -425,6 +432,10 @@ public class ProcessBatchJobs
 
             if (LOGGING_ENABLED) {
                 geocodeResultLogger.logBatchGeocodeResults(batchGeoRequest, geocodeResults, false);
+                if (geocodeResultLogger.getLogCacheSize() > LOGGING_THRESHOLD) {
+                    geocodeResultLogger.flushBatchRequestsCache();
+                    logMemoryUsage();
+                }
             }
             return this.jobBatch;
         }
@@ -472,6 +483,10 @@ public class ProcessBatchJobs
 
             if (LOGGING_ENABLED) {
                 districtResultLogger.logBatchDistrictResults(batchDistRequest, districtResults, false);
+                if (districtResultLogger.getLogCacheSize() > LOGGING_THRESHOLD) {
+                    districtResultLogger.flushBatchRequestsCache();
+                    logMemoryUsage();
+                }
             }
             return jobBatch;
         }
@@ -546,5 +561,14 @@ public class ProcessBatchJobs
             jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
             jobProcessDao.setJobProcessStatus(jobStatus);
         }
+    }
+
+    /**
+     * Prints out memory stats.
+     */
+    private static void logMemoryUsage()
+    {
+        logger.info("[RUNTIME STATS]: Free Memory - " + Runtime.getRuntime().freeMemory() + " bytes.");
+        logger.info("[RUNTIME STATS]: Total Memory - " + Runtime.getRuntime().totalMemory() + " bytes.");
     }
 }

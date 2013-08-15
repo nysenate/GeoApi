@@ -114,6 +114,12 @@ public class StreetFile implements DistrictService, StreetLookupService
     }
 
     @Override
+    public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
+    {
+        return assignDistricts(geocodedAddress, reqTypes);
+    }
+
+    @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses)
     {
         return ParallelDistrictService.assignDistricts(this, geocodedAddresses, DistrictType.getStateBasedTypes());

@@ -12,7 +12,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -40,8 +42,13 @@ public class DistrictShapefileDaoTest extends TestBase
     @Test
     public void getDistrictInfoFromPoint()
     {
-        DistrictInfo dinfo = (dsDao.getDistrictInfo(new Point(42.74117729798573, -73.66938646729645), DistrictType.getStandardTypes(), true));
-        FormatUtil.printObject(dinfo.getDistMap(DistrictType.ASSEMBLY));
+        //logger.debug("Start" + ));
+        DistrictInfo dinfo = (dsDao.getDistrictInfo(new Point(42.74117729798573, -73.66938646729645), DistrictType.getStandardTypes(), false, false));
+        long start = new Date().getTime();
+        DistrictInfo dinfo2 = (dsDao.getDistrictInfo(new Point(42.84117729798573, -73.66938646729645), DistrictType.getStandardTypes(), false, false));
+        long end = new Date().getTime();
+        logger.debug("Elapsed: " + (end - start));
+        FormatUtil.printObject(dinfo2);
     }
 
     @Test
@@ -55,7 +62,7 @@ public class DistrictShapefileDaoTest extends TestBase
     public void setsDistrictProximityTest()
     {
         FormatUtil.printObject(DistrictType.getStandardTypes());
-        DistrictInfo dinfo = (dsDao.getDistrictInfo(new Point(40.712681, -73.797050), DistrictType.getStandardTypes(), false));
+        DistrictInfo dinfo = (dsDao.getDistrictInfo(new Point(40.712681, -73.797050), DistrictType.getStandardTypes(), false, true));
         FormatUtil.printObject(dinfo.getDistProximity(DistrictType.ZIP));
 
     }

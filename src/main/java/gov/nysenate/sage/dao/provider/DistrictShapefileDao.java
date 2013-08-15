@@ -51,16 +51,17 @@ public class DistrictShapefileDao extends BaseDao
      * Retrieves a DistrictInfo object based on the districts that intersect the given point.
      * @param point          Point of interest
      * @param districtTypes  Collection of district types to resolve
-     * @param getMaps        If true then query will return DistrictMap values as well
+     * @param getSpecialMaps If true then query will return DistrictMap values for districts in the retrieveMapSet
+     *                       since they do not have a unique district code identifier.
      * @return  DistrictInfo if query was successful, null otherwise
      */
-    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getMaps)
+    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps, boolean getProximity)
     {
         /** Template SQL for looking up district given a point */
         String sqlTmpl =
                 "SELECT '%s' AS type, %s AS name, %s as code " +
-                        "%s" + // <- mapQuery
-                "       ST_Distance_Sphere(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity " +
+                        "%s, " + // <- mapQuery
+                        "%s \n" + // <- proximityQuery
                 "FROM " + SCHEMA + ".%s " +
                 "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)' , " + "%s" + "))";
 
@@ -71,10 +72,15 @@ public class DistrictShapefileDao extends BaseDao
                 String nameColumn = DistrictShapeCode.getNameColumn(districtType);
                 String codeColumn = resolveCodeColumn(districtType);
                 String srid = resolveSRID(districtType);
-                String mapQuery = ((getMaps && retrieveMapSet.contains(districtType)) ? ", ST_AsGeoJson(geom) AS map, "
-                                                                                             : ", null as map, ");
-                queryList.add(String.format(sqlTmpl, districtType, nameColumn, codeColumn, mapQuery, point.getLon(), point.getLat(),
-                        srid, districtType, point.getLon(), point.getLat(), srid)); // lon,lat is correct order
+                String mapQuery = ((getSpecialMaps && retrieveMapSet.contains(districtType)) ? ", ST_AsGeoJson(geom) AS map"
+                                                                                             : ", null as map");
+                String proximityQuery = "100000 as proximity";
+                if (getProximity) {
+                    proximityQuery = "ST_Distance_Sphere(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity";
+                    proximityQuery = String.format(proximityQuery, point.getLon(), point.getLat(), srid);
+                }
+
+                queryList.add(String.format(sqlTmpl, districtType, nameColumn, codeColumn, mapQuery, proximityQuery, districtType, point.getLon(), point.getLat(), srid)); // lon,lat is correct order
             }
         }
 

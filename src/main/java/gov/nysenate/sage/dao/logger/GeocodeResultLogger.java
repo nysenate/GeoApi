@@ -12,15 +12,13 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.GeoCache;
 import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GeocodeResultLogger extends BaseDao
 {
@@ -31,10 +29,15 @@ public class GeocodeResultLogger extends BaseDao
 
     private static String SCHEMA = "log";
     private static String TABLE = "geocodeResult";
+    private static Boolean SAVE_LOCK = false;
+
     private QueryRunner run = getQueryRunner();
 
     /** Batch cache */
     private static List<Pair<GeocodeRequest, GeocodeResult>> batchGeoLogCache = new ArrayList<>();
+
+    /** Temporary cache for when the data is being saved to the database */
+    private static List<Pair<GeocodeRequest, GeocodeResult>> tempCache = new ArrayList<>();
 
     /**
      * Logs a GeocodeRequest and the corresponding GeocodeResult to the database.
@@ -95,7 +98,13 @@ public class GeocodeResultLogger extends BaseDao
                         Address address = batchGeoRequest.getAddresses().get(i);
                         GeocodeRequest geoRequest = (GeocodeRequest) batchGeoRequest.clone();
                         geoRequest.setAddress(address);
-                        batchGeoLogCache.add(new ImmutablePair<>(geoRequest, geocodeResults.get(i)));
+                        if (!SAVE_LOCK) {
+                            batchGeoLogCache.add(new ImmutablePair<>(geoRequest, geocodeResults.get(i)));
+                        }
+                        else {
+                            logger.debug("Logging geocode request to temporary list.");
+                            tempCache.add(new ImmutablePair<>(geoRequest, geocodeResults.get(i)));
+                        }
                     }
                 }
                 else if (batchGeoRequest.getPoints().size() > 0 && batchGeoRequest.isReverse()) {
@@ -103,7 +112,13 @@ public class GeocodeResultLogger extends BaseDao
                         Point point = batchGeoRequest.getPoints().get(i);
                         GeocodeRequest geoRequest = (GeocodeRequest) batchGeoRequest.clone();
                         geoRequest.setPoint(point);
-                        batchGeoLogCache.add(new ImmutablePair<>(geoRequest, geocodeResults.get(i)));
+                        if (!SAVE_LOCK) {
+                            batchGeoLogCache.add(new ImmutablePair<>(geoRequest, geocodeResults.get(i)));
+                        }
+                        else {
+                            logger.debug("Logging revgeocode result to temporary list.");
+                            tempCache.add(new ImmutablePair<>(geoRequest, geocodeResults.get(i)));
+                        }
                     }
                 }
             }
@@ -118,21 +133,54 @@ public class GeocodeResultLogger extends BaseDao
     }
 
     /**
+     * Returns the current size of the batch log cache.
+     * @return int
+     */
+    public int getLogCacheSize()
+    {
+        return batchGeoLogCache.size();
+    }
+
+    /**
      * Logs geocode requests and results stored in the batch queue
      */
-    public void flushBatchRequestsCache()
+    public synchronized void flushBatchRequestsCache()
     {
-        logger.debug("Flushing geocode batch log");
-        for (Pair<GeocodeRequest, GeocodeResult> geoPair : batchGeoLogCache) {
-            try {
-                if (geoPair != null) {
-                    logGeocodeRequestAndResult(geoPair.getLeft(), geoPair.getRight());
+        logger.debug("Flushing geocode batch log! Locking the batch log cache.");
+        SAVE_LOCK = true;
+        try {
+            Iterator<Pair<GeocodeRequest, GeocodeResult>> geoPairIterator = batchGeoLogCache.iterator();
+            while (geoPairIterator.hasNext()) {
+                try {
+                    Pair<GeocodeRequest, GeocodeResult> geoPair = geoPairIterator.next();
+                    if (geoPair != null) {
+                        logGeocodeRequestAndResult(geoPair.getLeft(), geoPair.getRight());
+                    }
+                }
+                catch (Exception ex) {
+                    logger.warn("Failed to flush geocode request/result pair into log: ", ex);
                 }
             }
-            catch (Exception ex) {
-                logger.warn("Failed to flush geocode request/result pair into log: ", ex);
-            }
+        }
+        catch (Exception ex) {
+            logger.error("Failed to flush geocode batch. Clearing now. ", ex);
         }
         batchGeoLogCache.clear();
+        moveTempToMainCache();
+        SAVE_LOCK = false;
+    }
+
+    /**
+     * While the request/response pairs are being saved, any new pairs that are being logged are appended
+     * to a temporary list such that the main batch list does not encounter concurrent modification issues.
+     * Once the batch list has been flushed this method is called to transfer all the pairs stored in the
+     * temp list back to the main batch list.
+     */
+    private synchronized void moveTempToMainCache()
+    {
+        logger.debug("Transferring temp geocode pairs to main batch..");
+        batchGeoLogCache.addAll(new ArrayList<>(tempCache));
+        tempCache.clear();
+        logger.debug("Main batch size: " + batchGeoLogCache.size());
     }
 }

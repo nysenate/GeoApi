@@ -62,14 +62,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
     @Override
     public boolean requiresGeocode() { return true; }
 
-    @Override
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
-    {
-        return assignDistricts(geocodedAddress, DistrictType.getStateBasedTypes());
-    }
-
-    @Override
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes, boolean getSpecialMaps, boolean getProximity)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
@@ -79,7 +72,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
         }
         try {
             Geocode geocode = geocodedAddress.getGeocode();
-            DistrictInfo districtInfo = this.districtShapefileDao.getDistrictInfo(geocode.getLatLon(), reqTypes, true);
+            DistrictInfo districtInfo = this.districtShapefileDao.getDistrictInfo(geocode.getLatLon(), reqTypes, getSpecialMaps, getProximity);
 
             /** Validate response */
             if (!validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
@@ -95,6 +88,42 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
         }
 
         return districtResult;
+    }
+
+    /**
+     * Delegates to assignDistricts with reqTypes set as all state-based districts.
+     * @param geocodedAddress
+     * @return
+     */
+    @Override
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
+    {
+        return assignDistricts(geocodedAddress, DistrictType.getStateBasedTypes());
+    }
+
+    /**
+     * Performs district assign and retrieves certain map data along with proximities.
+     * @param geocodedAddress Geocoded address
+     * @param reqTypes        Required types to district assign.
+     * @return                DistrictResult
+     */
+    @Override
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
+    {
+        return assignDistricts(geocodedAddress, reqTypes, true, true);
+    }
+
+    /**
+     * Performs district assign but does not retrieve any maps or proximity info. This method is intended
+     * to be called through the ParallelDistrictService.
+     * @param geocodedAddress
+     * @param reqTypes
+     * @return
+     */
+    @Override
+    public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
+    {
+        return assignDistricts(geocodedAddress, reqTypes, false, false);
     }
 
     @Override
