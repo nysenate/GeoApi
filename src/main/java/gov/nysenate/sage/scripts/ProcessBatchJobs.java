@@ -305,6 +305,7 @@ public class ProcessBatchJobs
                         jobStatus.setCompletedRecords(jobStatus.getCompletedRecords() + batch.getJobRecords().size());
                         jobProcessDao.setJobProcessStatus(jobStatus);
                         logger.info("Wrote results of batch # " + batchNum);
+                        batchNum++;
                     }
                     catch (Exception e) {
                         logger.error(e);
