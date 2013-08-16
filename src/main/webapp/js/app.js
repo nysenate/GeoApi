@@ -1066,10 +1066,10 @@ sage.controller("CityStateView", function($scope, dataBus, mapService) {
         var cityState = dataBus.data;
         $scope.error = cityState.statusCode != 0;
         $scope = angular.extend($scope, cityState);
-        mapService.geocode(cityState.city + ", " + cityState.state + " " + cityState.zip5, function(data) {
-            mapService.setMarker(data.jb, data.kb, '', true, true);
+        mapService.geocode(cityState.city + ", " + cityState.state + " " + cityState.zip5, function(latlng) {
+           mapService.toggleMap(true);
+           mapService.setMarker(latlng.lat(), latlng.lng(), '', true, true);
         });
-
         dataBus.setBroadcast("expandResults", true);
     });
 });
