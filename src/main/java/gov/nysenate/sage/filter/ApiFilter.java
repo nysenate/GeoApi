@@ -51,7 +51,7 @@ public class ApiFilter implements Filter, Observer
     private static String defaultKey;
     private static String publicKey;
 
-    private static Boolean LOGGING_ENABLED = false;
+    private static Boolean API_LOGGING_ENABLED = false;
 
     /** The valid format of an api request */
     private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map|street))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
@@ -88,7 +88,7 @@ public class ApiFilter implements Filter, Observer
         defaultKey = config.getValue("user.default.key");
         publicApiFilter = config.getValue("public.api.filter");
         publicKey = config.getValue("user.public.key");
-        LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled"));
+        API_LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled", "true"));
         logger.info(String.format("Configured default access on %s via key %s", ipFilter, defaultKey));
     }
 
@@ -156,7 +156,7 @@ public class ApiFilter implements Filter, Observer
 
                 /** Log Api Request into the database */
                 int id = -1;
-                if (LOGGING_ENABLED) {
+                if (API_LOGGING_ENABLED) {
                     id = apiRequestLogger.logApiRequest(apiRequest);
                     apiRequest.setId(id);
                 }

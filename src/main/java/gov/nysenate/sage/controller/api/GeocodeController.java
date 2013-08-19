@@ -16,7 +16,6 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
@@ -40,7 +39,8 @@ public class GeocodeController extends BaseApiController implements Observer
     private static RevGeocodeServiceProvider revGeocodeServiceProvider = ApplicationFactory.getRevGeocodeServiceProvider();
 
     /** Usage loggers */
-    private static Boolean LOGGING_ENABLED = false;
+    private static Boolean SINGLE_LOGGING_ENABLED = false;
+    private static Boolean BATCH_LOGGING_ENABLED = false;
     private static GeocodeRequestLogger geocodeRequestLogger;
     private static GeocodeResultLogger geocodeResultLogger;
 
@@ -55,7 +55,9 @@ public class GeocodeController extends BaseApiController implements Observer
 
     @Override
     public void update(Observable o, Object arg) {
-        LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled"));
+        Boolean API_LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled", "false"));
+        SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("detailed.logging.enabled", "true"));
+        BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("batch.detailed.logging.enabled", "false"));
     }
 
     @Override
@@ -109,7 +111,7 @@ public class GeocodeController extends BaseApiController implements Observer
                         geocodeResponse = new GeocodeResponse(geocodeResult);
 
                         /** Log geocode request/result to database */
-                        if (LOGGING_ENABLED) {
+                        if (SINGLE_LOGGING_ENABLED) {
                             int requestId = geocodeRequestLogger.logGeocodeRequest(geocodeRequest);
                             geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
                         }
@@ -129,7 +131,7 @@ public class GeocodeController extends BaseApiController implements Observer
                         List<GeocodeResult> geocodeResults = geocodeServiceProvider.geocode(batchGeocodeRequest);
                         geocodeResponse = new BatchGeocodeResponse(geocodeResults);
 
-                        if (LOGGING_ENABLED) {
+                        if (BATCH_LOGGING_ENABLED) {
                             geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
                         }
                     }
@@ -151,7 +153,7 @@ public class GeocodeController extends BaseApiController implements Observer
                         geocodeResponse = new RevGeocodeResponse(revGeocodeResult);
 
                         /** Log rev geocode request/result to database */
-                        if (LOGGING_ENABLED) {
+                        if (SINGLE_LOGGING_ENABLED) {
                             geocodeResultLogger.logGeocodeRequestAndResult(geocodeRequest, revGeocodeResult);
                         }
                     }
@@ -171,7 +173,7 @@ public class GeocodeController extends BaseApiController implements Observer
                         List<GeocodeResult> revGeocodeResults = revGeocodeServiceProvider.reverseGeocode(batchGeocodeRequest);
                         geocodeResponse = new BatchGeocodeResponse(revGeocodeResults);
 
-                        if (LOGGING_ENABLED) {
+                        if (BATCH_LOGGING_ENABLED) {
                             geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, revGeocodeResults, true);
                         }
                     }

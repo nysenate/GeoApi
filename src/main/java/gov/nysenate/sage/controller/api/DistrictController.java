@@ -11,7 +11,6 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.*;
-import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
@@ -65,12 +64,16 @@ public class DistrictController extends BaseApiController implements Observer
 
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
-    private static Boolean LOGGING_ENABLED = false;
+    private static Boolean SINGLE_LOGGING_ENABLED = false;
+    private static Boolean BATCH_LOGGING_ENABLED = false;
 
     @Override
     public void update(Observable o, Object arg) {
         BLUEBIRD_DISTRICT_STRATEGY = config.getValue("district.strategy.bluebird");
-        LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled"));
+
+        Boolean API_LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled", "false"));
+        SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("detailed.logging.enabled", "false"));
+        BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("batch.detailed.logging.enabled", "false"));
     }
 
     @Override
@@ -313,7 +316,7 @@ public class DistrictController extends BaseApiController implements Observer
             DistrictMemberProvider.assignDistrictMembers(districtResult);
         }
 
-        if (LOGGING_ENABLED) {
+        if (SINGLE_LOGGING_ENABLED) {
             int requestId = districtRequestLogger.logDistrictRequest(districtRequest);
             districtResultLogger.logDistrictResult(requestId, districtResult);
         }
@@ -360,7 +363,7 @@ public class DistrictController extends BaseApiController implements Observer
         }
 
         /** Log geocode request/result to database */
-        if (LOGGING_ENABLED) {
+        if (SINGLE_LOGGING_ENABLED) {
             int requestId = geocodeRequestLogger.logGeocodeRequest(geoRequest);
             geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
         }
@@ -467,7 +470,7 @@ public class DistrictController extends BaseApiController implements Observer
             for (int i = 0; i < geocodeResults.size(); i++) {
                 geocodedAddresses.set(i, geocodeResults.get(i).getGeocodedAddress());
             }
-            if (LOGGING_ENABLED) {
+            if (BATCH_LOGGING_ENABLED) {
                 geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
             }
         }
@@ -493,7 +496,7 @@ public class DistrictController extends BaseApiController implements Observer
         List<DistrictResult> districtResults = districtProvider.assignDistricts(batchDistrictRequest);
 
         /** Perform batch logging */
-        if (LOGGING_ENABLED) {
+        if (BATCH_LOGGING_ENABLED) {
             districtResultLogger.logBatchDistrictResults(batchDistrictRequest, districtResults, true);
         }
         return districtResults;

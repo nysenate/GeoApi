@@ -75,7 +75,7 @@ public class ProcessBatchJobs
         DISTRICT_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.distassign", "3"));
         JOB_BATCH_SIZE = Integer.parseInt(config.getValue("job.batch.size", "95"));
         SEND_EMAILS = Boolean.parseBoolean(config.getValue("job.send.email", "true"));
-        LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled"));
+        LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("batch.detailed.logging.enabled", "false"));
 
         mailer = new Mailer();
         geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();

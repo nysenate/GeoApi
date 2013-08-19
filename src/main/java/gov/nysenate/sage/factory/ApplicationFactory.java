@@ -205,7 +205,6 @@ public class ApplicationFactory
         return true;
     }
 
-
     public static Config getConfig() {
         return factoryInstance.config;
     }
