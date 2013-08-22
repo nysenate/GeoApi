@@ -134,7 +134,7 @@ public class DistrictController extends BaseApiController implements Observer
         districtRequest.setUspsValidate(uspsValidate);
         districtRequest.setSkipGeocode(skipGeocode);
         districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
-        districtRequest.setDistrictStrategy(config.getValue("district.strategy.single", "neighborMatch"));
+        districtRequest.setDistrictStrategy(districtStrategy);
 
         logger.info("--------------------------------------");
         logger.info(String.format("District Request | Mode: %s", apiRequest.getRequest()));
