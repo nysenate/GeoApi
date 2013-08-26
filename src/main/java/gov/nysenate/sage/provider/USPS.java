@@ -105,7 +105,12 @@ public class USPS implements AddressService, Observer
     @Override
     public AddressResult validate(Address address)
     {
-        return validate(new ArrayList<>(Arrays.asList(address))).get(0);
+        ArrayList<Address> addressList = new ArrayList<>(Arrays.asList(address));
+        ArrayList<AddressResult> resultList = validate(addressList);
+        if (resultList != null && !resultList.isEmpty()) {
+            return resultList.get(0);
+        }
+        return new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
     /**
@@ -116,6 +121,9 @@ public class USPS implements AddressService, Observer
     @Override
     public ArrayList<AddressResult> validate(ArrayList<Address> addresses)
     {
+        /** Short circuit invalid input */
+        if (addresses == null || addresses.size() == 0) return null;
+
         String url = "";
         Content page = null;
         Document response = null;

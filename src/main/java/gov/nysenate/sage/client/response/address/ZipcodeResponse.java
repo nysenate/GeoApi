@@ -13,7 +13,8 @@ public class ZipcodeResponse extends BaseResponse
     public ZipcodeResponse(AddressResult addressResult)
     {
         super(addressResult);
-        if (addressResult != null && addressResult.getStatusCode().equals(SUCCESS)) {
+        if (addressResult != null && addressResult.getStatusCode() != null &&
+            addressResult.getStatusCode().equals(SUCCESS)) {
             this.zip5 = addressResult.getAddress().getZip5();
             this.zip4 = addressResult.getAddress().getZip4();
         }

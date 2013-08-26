@@ -15,28 +15,28 @@ public class AddressResult extends BaseResult
 
     public AddressResult()
     {
-        this(null, "", null);
+        this(null);
     }
 
     public AddressResult(Class sourceClass)
     {
-        this(null, "", sourceClass);
+        this.setSource(sourceClass);
     }
 
     public AddressResult(Class sourceClass, ResultStatus status)
     {
-        this.source = sourceClass.getSimpleName();
-        this.statusCode = status;
+        this(null, status, sourceClass);
     }
 
-    public AddressResult(Address address, String status, Class sourceClass)
+    public AddressResult(Address address, ResultStatus status, Class sourceClass)
     {
-        this(address,status,sourceClass,false);
+        this(address, status, sourceClass, false);
     }
 
-    public AddressResult(Address address, String status, Class sourceClass, boolean validated)
+    public AddressResult(Address address, ResultStatus status, Class sourceClass, boolean validated)
     {
         this.setAddress(address);
+        this.setStatusCode(status);
         this.setSource(sourceClass);
         this.setValidated(validated);
     }

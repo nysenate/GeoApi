@@ -477,9 +477,11 @@ public class DistrictController extends BaseApiController implements Observer
 
         if (usingAddresses && batchDistrictRequest.isUspsValidate()) {
             List<AddressResult> addressResults = addressProvider.newInstance("usps").validate((ArrayList<Address>) addresses);
-            for (int i = 0; i < addressResults.size(); i++) {
-                if (addressResults.get(i).isValidated() && !geocodedAddresses.isEmpty()) {
-                    geocodedAddresses.get(i).setAddress(addressResults.get(i).getAddress());
+            if (addressResults != null && addressResults.size() == addresses.size()) {
+                for (int i = 0; i < addressResults.size(); i++) {
+                    if (addressResults.get(i).isValidated() && !geocodedAddresses.isEmpty()) {
+                        geocodedAddresses.get(i).setAddress(addressResults.get(i).getAddress());
+                    }
                 }
             }
         }
