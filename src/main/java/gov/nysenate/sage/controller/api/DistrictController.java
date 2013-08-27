@@ -251,18 +251,19 @@ public class DistrictController extends BaseApiController implements Observer
         if (address != null && !address.isEmpty()) {
             /** Perform usps address correction if requested */
             if (districtRequest.isUspsValidate()) {
-                Address parsedAddress = streetAddress.toAddress();
-                logger.debug("USPS validating: " + parsedAddress);
-                validatedAddress = performAddressCorrection(parsedAddress);
-
-                /** If failed, try again with just the raw input address */
-                if (validatedAddress == null) {
-                    logger.debug("USPS validating: " + address);
-                    validatedAddress = performAddressCorrection(address);
+                Address addressToValidate = null;
+                if (address.isEligibleForUSPS()) {
+                    addressToValidate = address;
+                }
+                else if (streetAddress != null) {
+                    addressToValidate = streetAddress.toAddress();
+                }
+                if (addressToValidate != null) {
+                    validatedAddress = performAddressCorrection(addressToValidate);
                 }
             }
 
-            /** Perform geocoding for address input */
+            /** Create GeocodedAddress using either the validated address or original. */
             Address addressToGeocode = (validatedAddress != null && !validatedAddress.isEmpty())
                                        ? validatedAddress : address;
             geocodedAddress = new GeocodedAddress(addressToGeocode);
@@ -302,7 +303,7 @@ public class DistrictController extends BaseApiController implements Observer
         logger.debug("Obtained district result with assigned districts: " + FormatUtil.toJsonString(districtResult.getAssignedDistricts()));
 
         /** Adjust address if it's a PO BOX and was not USPS validated */
-        if (!districtResult.isUspsValidated() && isPoBox && districtResult.getAddress() != null) {
+        if (isPoBox && !districtResult.isUspsValidated()) {
             districtResult.getAddress().setAddr1("PO Box " + streetAddress.getPoBox());
         }
 
@@ -379,6 +380,7 @@ public class DistrictController extends BaseApiController implements Observer
      */
     private Address performAddressCorrection(Address address)
     {
+        logger.debug("USPS Validating: " + address.toString());
         AddressResult addressResult = addressProvider.newInstance("usps").validate(address);
         if (addressResult.isValidated()) {
             logger.trace("USPS Validated Address: " + addressResult.getAddress());
@@ -464,25 +466,35 @@ public class DistrictController extends BaseApiController implements Observer
             return new ArrayList<>();
         }
 
-        if (usingAddresses && !batchDistrictRequest.isSkipGeocode()) {
-            BatchGeocodeRequest batchGeocodeRequest = new BatchGeocodeRequest(batchDistrictRequest);
-            List<GeocodeResult> geocodeResults = geocodeProvider.geocode(batchGeocodeRequest);
-            for (int i = 0; i < geocodeResults.size(); i++) {
-                geocodedAddresses.set(i, geocodeResults.get(i).getGeocodedAddress());
-            }
-            if (BATCH_LOGGING_ENABLED) {
-                geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
-            }
-        }
-
+        /** Batch USPS validation */
         if (usingAddresses && batchDistrictRequest.isUspsValidate()) {
             List<AddressResult> addressResults = addressProvider.newInstance("usps").validate((ArrayList<Address>) addresses);
             if (addressResults != null && addressResults.size() == addresses.size()) {
                 for (int i = 0; i < addressResults.size(); i++) {
-                    if (addressResults.get(i).isValidated() && !geocodedAddresses.isEmpty()) {
+                    if (addressResults.get(i).isValidated()) {
                         geocodedAddresses.get(i).setAddress(addressResults.get(i).getAddress());
                     }
                 }
+            }
+        }
+
+        /** Batch Geocoding */
+        if (usingAddresses && !batchDistrictRequest.isSkipGeocode()) {
+            BatchGeocodeRequest batchGeocodeRequest = new BatchGeocodeRequest(batchDistrictRequest);
+            List<GeocodeResult> geocodeResults = geocodeProvider.geocode(batchGeocodeRequest);
+            for (int i = 0; i < geocodeResults.size(); i++) {
+                GeocodeResult geocodeResult = geocodeResults.get(i);
+                if (geocodeResult != null) {
+                    if (geocodedAddresses.get(i).isValidAddress() && geocodedAddresses.get(i).getAddress().isUspsValidated()) {
+                        geocodedAddresses.get(i).setGeocode(geocodeResult.getGeocode());
+                    }
+                    else {
+                        geocodedAddresses.set(i, geocodeResult.getGeocodedAddress());
+                    }
+                }
+            }
+            if (BATCH_LOGGING_ENABLED) {
+                geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
             }
         }
 
@@ -494,7 +506,7 @@ public class DistrictController extends BaseApiController implements Observer
             batchDistrictRequest.setDistrictStrategy(DistrictStrategy.shapeOnly);
         }
 
-        /** Fetch the results */
+        /** Batch District Assign */
         List<DistrictResult> districtResults = districtProvider.assignDistricts(batchDistrictRequest);
 
         /** Perform batch logging */

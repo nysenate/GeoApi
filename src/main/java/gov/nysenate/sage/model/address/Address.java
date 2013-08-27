@@ -168,12 +168,19 @@ public class Address implements Serializable, Cloneable
         }
     }
 
+    /** Indicates if address has been marked USPS validated. */
     public boolean isUspsValidated() {
         return uspsValidated;
     }
 
+    /** Marks address as validated by USPS. */
     public void setUspsValidated(boolean uspsValidated) {
         this.uspsValidated = uspsValidated;
+    }
+
+    /** Address is eligible for usps validation if addr1 and either zip or city/state are set. */
+    public boolean isEligibleForUSPS() {
+        return (!addr1.isEmpty() && (!zip5.isEmpty() || (!city.isEmpty() && !state.isEmpty())));
     }
 
     @Override

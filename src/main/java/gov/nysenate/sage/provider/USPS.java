@@ -172,23 +172,24 @@ public class USPS implements AddressService, Observer
                     NodeList responses = (NodeList)xpath.evaluate("AddressValidateResponse/Address", response, XPathConstants.NODESET);
                     for (int i = 0; i < responses.getLength(); i++) {
                         Node addressResponse = responses.item(i);
-                        error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
+                        int index = Integer.parseInt(xpath.evaluate("@ID", addressResponse));
 
+                        error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
                         if (error != null) {
-                            AddressResult result = batchResults.get(i);
+                            AddressResult result = batchResults.get(index % BATCH_SIZE);
                             result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
                             result.addMessage(xpath.evaluate("Description", error).trim());
                             result.setValidated(false);
                             continue;
                         }
 
-                        int index = Integer.parseInt(xpath.evaluate("@ID", addressResponse));
                         String addr1 = xpath.evaluate("Address1", addressResponse);
                         String addr2 = xpath.evaluate("Address2", addressResponse);
                         String city = xpath.evaluate("City", addressResponse);
                         String state = xpath.evaluate("State", addressResponse);
                         String zip5 = xpath.evaluate("Zip5", addressResponse);
                         String zip4 = xpath.evaluate("Zip4", addressResponse);
+                        String returnText = xpath.evaluate("ReturnText", addressResponse);
 
                         addr2 = (addr2 != null) ? WordUtils.capitalizeFully(addr2.toLowerCase()) : addr2;
                         city = (city != null) ? WordUtils.capitalizeFully(city.toLowerCase()) : addr2;
@@ -199,6 +200,10 @@ public class USPS implements AddressService, Observer
 
                         /** Mark address as validated */
                         validatedAddr.setUspsValidated(true);
+
+                        if (returnText != null) {
+                            batchResults.get(index % BATCH_SIZE).addMessage(returnText);
+                        }
 
                         /** Apply to result set */
                         batchResults.get(index % BATCH_SIZE).setAddress(validatedAddr);
@@ -222,6 +227,10 @@ public class USPS implements AddressService, Observer
                 logger.error("Unexpected XML Schema\n\n"+response.toString(), e);
                 return null;
             }
+            catch (IllegalArgumentException e) {
+                logger.error("Illegal argument!", e);
+                return null;
+            }
 
             xmlRequest = new StringBuilder(xmlStartTag);
             results.addAll(batchResults);
@@ -234,7 +243,12 @@ public class USPS implements AddressService, Observer
     @Override
     public AddressResult lookupCityState(Address address)
     {
-        return lookupCityState(new ArrayList<Address>(Arrays.asList(address))).get(0);
+        ArrayList<Address> addressList = new ArrayList<>(Arrays.asList(address));
+        ArrayList<AddressResult> resultList = lookupCityState(addressList);
+        if (resultList != null && !resultList.isEmpty()) {
+            return resultList.get(0);
+        }
+        return new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
 
@@ -261,7 +275,7 @@ public class USPS implements AddressService, Observer
             xmlRequest.append(String.format("<ZipCode ID=\"%s\"><Zip5>%s</Zip5></ZipCode>", a-1, address.getZip5()));
 
             /** Stop here until we've filled this batch request */
-            if (a%BATCH_SIZE != 0 && a != addresses.size()) {
+            if (a % BATCH_SIZE != 0 && a != addresses.size()) {
                 continue;
             }
 
@@ -287,16 +301,17 @@ public class USPS implements AddressService, Observer
                     NodeList responses = (NodeList)xpath.evaluate("CityStateLookupResponse/ZipCode", response, XPathConstants.NODESET);
                     for (int i = 0; i<responses.getLength(); i++) {
                         Node addressResponse = responses.item(i);
+                        int index = Integer.parseInt(xpath.evaluate("@ID", addressResponse));
+
                         error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
                         if (error != null) {
-                            AddressResult result = batchResults.get(i);
+                            AddressResult result = batchResults.get(index % BATCH_SIZE);
                             result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
                             result.addMessage(xpath.evaluate("Description", error).trim());
                             result.setValidated(false);
                             continue;
                         }
 
-                        int index = Integer.parseInt(xpath.evaluate("@ID", addressResponse));
                         Address resultAddress = new Address();
                         resultAddress.setCity(xpath.evaluate("City", addressResponse));
                         resultAddress.setState(xpath.evaluate("State", addressResponse));
@@ -334,7 +349,7 @@ public class USPS implements AddressService, Observer
     @Override
     public AddressResult lookupZipCode(Address address)
     {
-        return lookupZipCode(new ArrayList<>(Arrays.asList(address))).get(0);
+        return validate(address);
     }
 
     /** ZipCode lookup for USPS has no advantage over address validation so just use the

@@ -14,8 +14,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
         if (provider != null && !provider.isEmpty()) {
             return this.newInstance(provider).validate(address);
         }
-        if (address != null && address.isParsed()
-                && !address.getCity().isEmpty() && !address.getState().isEmpty()) {
+        if (address != null && address.isEligibleForUSPS()) {
             return this.newInstance("usps").validate(address);
         }
         return this.newInstance("mapquest").validate(address);
