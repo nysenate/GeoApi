@@ -68,4 +68,18 @@ public class AssemblyDao extends BaseDao
             logger.error("Failed to delete assemblies " + ex.getMessage());
         }
     }
+
+    /**
+     * Removes an assembly by district.
+     */
+    public void deleteAssemblies(int district)
+    {
+        String sql = "DELETE FROM assembly WHERE district = ?";
+        try {
+            run.update(sql, district);
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to delete assembly " + district + " " + ex.getMessage());
+        }
+    }
 }

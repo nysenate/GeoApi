@@ -68,4 +68,18 @@ public class CongressionalDao extends BaseDao
             logger.error("Failed to delete congressionals " + ex.getMessage());
         }
     }
+
+    /**
+     * Removes a congressional by district.
+     */
+    public void deleteCongressional(int district)
+    {
+        String sql = "DELETE FROM congressional WHERE district = ?";
+        try {
+            run.update(sql, district);
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to delete congressional " + district + ": " + ex.getMessage());
+        }
+    }
 }

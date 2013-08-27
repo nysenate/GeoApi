@@ -163,4 +163,19 @@ public class SenateDao extends BaseDao
             logger.error("Failed to delete senators " + ex.getMessage());
         }
     }
+
+    /**
+     * Deletes a senator entry with the given district.
+     * @param district
+     */
+    public void deleteSenator(int district)
+    {
+        String sql = "DELETE FROM senator WHERE district = ?";
+        try {
+            run.update(sql, district);
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to delete senator in district " + district);
+        }
+    }
 }
