@@ -2,6 +2,8 @@ package gov.nysenate.sage.dao.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Senator;
@@ -11,18 +13,27 @@ import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.*;
 
-public class SenateDao extends BaseDao
+public class SenateDao extends BaseDao implements Observer
 {
     private static Logger logger = Logger.getLogger(SenateDao.class);
+    private static Config config = ApplicationFactory.getConfig();
     private QueryRunner run = getQueryRunner();
 
     /** Mapper used to serialize into json */
     private ObjectMapper mapper = new ObjectMapper();
 
-    /** Cached district code, Senator map */
+    /** Cached district code, Senator */
     protected static Map<Integer, Senator> senatorMap;
+    protected static Integer refreshIntervalHours = 12;
+    protected static Timestamp cacheUpdated;
+
+    @Override
+    public void update(Observable o, Object arg) {
+        refreshIntervalHours = Integer.parseInt(config.getValue("senator.cache.refresh.hours", "12"));
+    }
 
     /**
      * Retrieves senators from the database and puts Senator objects into the cache map.
@@ -47,6 +58,7 @@ public class SenateDao extends BaseDao
                 }
             }
             logger.info("Cached " + senatorMap.size() + " senators.");
+            cacheUpdated = new Timestamp(new Date().getTime());
             return senatorMap;
         }
     }
@@ -81,7 +93,7 @@ public class SenateDao extends BaseDao
      */
     private Map<Integer,Senator> getSenatorMap()
     {
-        if (senatorMap == null) {
+        if (senatorMap == null || cacheUpdated == null || refreshIntervalElapsed()) {
             senatorMap = new HashMap<>();
 
             String sql = "SELECT * FROM senator";
@@ -93,6 +105,20 @@ public class SenateDao extends BaseDao
             }
         }
         return senatorMap;
+    }
+
+    /**
+     * Indicates if it's time for a senator cache refresh.
+     * @return
+     */
+    private static Boolean refreshIntervalElapsed()
+    {
+        if (cacheUpdated == null) {
+            return true;
+        }
+        Timestamp now = new Timestamp(new Date().getTime());
+        Timestamp refreshTime = new Timestamp(cacheUpdated.getTime() + (1000 * 3600 * refreshIntervalHours));
+        return now.after(refreshTime);
     }
 
     /**
