@@ -60,16 +60,4 @@ public class AddressResult extends BaseResult
     {
         this.validated = isValidated;
     }
-
-    public Map<String, Object> toMap()
-    {
-        LinkedHashMap<String,Object> root = new LinkedHashMap<>();
-        LinkedHashMap<String,Object> data = new LinkedHashMap<>();
-        data.put("address", this.getAddress());
-        data.put("validated", this.isValidated());
-        data.put("source", this.getSource());
-        data.put("messages", this.getMessages());
-        root.put("addressResult", data);
-        return root;
-    }
 }

@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.admin;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.dao.model.ApiUserDao;
+import gov.nysenate.sage.dao.model.JobProcessDao;
 import gov.nysenate.sage.dao.model.JobUserDao;
 import gov.nysenate.sage.dao.stats.*;
 import gov.nysenate.sage.model.api.ApiUser;
@@ -69,6 +70,10 @@ public class AdminApiController extends BaseAdminController
                     }
                     case "/geocodeUsage" : {
                         adminResponse = getGeocodeUsageStats(request);
+                        break;
+                    }
+                    case "/jobUsage" : {
+
                         break;
                     }
                     case "/deployment" : {
@@ -279,7 +284,7 @@ public class AdminApiController extends BaseAdminController
     }
 
     /**
-     *
+     * Retrieves interval-based api usage stats within a specified time frame.
      * @param request
      * @return
      */
@@ -298,7 +303,7 @@ public class AdminApiController extends BaseAdminController
     }
 
     /**
-     *
+     * Returns GeocodeUsageStats from `sinceDays` ago to now.
      * @param request: Optional param: sinceDays
      * @return GeocodeStats
      */
@@ -311,6 +316,12 @@ public class AdminApiController extends BaseAdminController
         }
         catch (NumberFormatException ex) {}
         return gsd.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
+    }
+
+    private Object getJobUsageStats(HttpServletRequest request)
+    {
+        JobProcessDao jpd = new JobProcessDao();
+        return null;
     }
 
     private Map<Integer, ApiUserStats> getApiUserStats(HttpServletRequest request)

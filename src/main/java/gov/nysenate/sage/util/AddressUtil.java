@@ -3,10 +3,6 @@ package gov.nysenate.sage.util;
 import gov.nysenate.sage.model.address.Address;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,7 +13,7 @@ public class AddressUtil
     /**
      * Adds a period to the end of every directional, street type abbreviation, and unit type.
      * @param address
-     * @return Puncuated address
+     * @return Punctuated address
      */
     public static Address addPunctuation(Address address) {
         if (address != null && !address.isEmpty()) {

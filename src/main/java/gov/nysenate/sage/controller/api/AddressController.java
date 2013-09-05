@@ -9,8 +9,10 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 
 import gov.nysenate.sage.model.api.ApiRequest;
+import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.util.AddressUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
@@ -58,6 +60,8 @@ public final class AddressController extends BaseApiController
         ApiRequest apiRequest = getApiRequest(request);
         String provider = apiRequest.getProvider();
 
+        Boolean usePunctuation = Boolean.parseBoolean(request.getParameter("punct"));
+
         /**
          * If provider is specified then make sure it matches the available providers. Send an
          * api error and return if the provider is not supported.
@@ -80,7 +84,7 @@ public final class AddressController extends BaseApiController
             if (address != null && !address.isEmpty()) {
                 switch (apiRequest.getRequest()) {
                     case "validate": {
-                        addressResponse = new ValidateResponse(addressProvider.validate(address, provider));
+                        addressResponse = new ValidateResponse(addressProvider.validate(address, provider, usePunctuation));
                         break;
                     }
                     case "citystate" : {

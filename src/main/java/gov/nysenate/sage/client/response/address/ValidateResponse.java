@@ -15,8 +15,8 @@ public class ValidateResponse extends BaseResponse
         super(addressResult);
         if (addressResult != null && addressResult.getStatusCode() != null &&
             addressResult.getStatusCode().equals(SUCCESS)) {
-            this.address = new AddressView(addressResult.getAddress());
             this.validated = addressResult.isValidated();
+            this.address = new AddressView(addressResult.getAddress());
         }
     }
 

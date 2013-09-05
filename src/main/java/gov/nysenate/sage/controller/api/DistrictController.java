@@ -356,6 +356,10 @@ public class DistrictController extends BaseApiController implements Observer
             if (isPoBox && address != null && address.isParsed()) {
                 address.setAddr1("");
             }
+            /** Do not fallback to other geocoders if provider is specified */
+            if (geoProvider != null && !geoProvider.isEmpty()) {
+                geoRequest.setUseFallback(false);
+            }
             geocodeResult = geocodeProvider.geocode(geoRequest);
         }
         /** Point-to-address geocoding */

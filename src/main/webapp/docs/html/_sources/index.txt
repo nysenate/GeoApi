@@ -140,6 +140,9 @@ A failed validation response::
 .. caution:: USPS address validation requires addr1, city and state explicitly specified in the query parameters. Given a query that
           is missing those fields, USPS will not be used to perform validation and another provider will be used instead.
 
+The ``punct`` parameter can be supplied if abbreviations require a period appended to them. Simply add ``punct=true`` to the url
+to enable punctuation.
+
 The usage of ``citystate`` with a zip code input::
 
     /api/v2/address/citystate?zip5=12210

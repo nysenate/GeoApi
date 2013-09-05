@@ -1,6 +1,5 @@
 package gov.nysenate.sage.model.address;
 
-import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.util.FormatUtil;
 import org.junit.Test;
 import org.mindrot.jbcrypt.BCrypt;
@@ -85,5 +84,26 @@ public class AddressTest
 
         //assertEquals("01132", a.getZip5());
         FormatUtil.printObject(BCrypt.hashpw("geoadmin1", BCrypt.gensalt()));
+    }
+
+    @Test
+    public void isEligibleForValidationTest()
+    {
+        Address eligibile1 = new Address("100 N Drive", "Troy", "NY", "12180");
+        Address eligibile2 = new Address("100 N Drive", "", "", "12180");
+        Address eligibile3 = new Address("100 N Drive", "Troy", "NY", "");
+        Address notEligibile1 = new Address("100 N Drive", "", "", "");
+        Address notEligibile2 = new Address("100 N Drive", "", "NY", "");
+        Address notEligibile3 = new Address("100 N Drive", "Troy", "", "");
+        Address notEligibile4 = new Address("", "Troy", "NY", "12180");
+
+        assertEquals(true, eligibile1.isEligibleForUSPS());
+        assertEquals(true, eligibile2.isEligibleForUSPS());
+        assertEquals(true, eligibile3.isEligibleForUSPS());
+        assertEquals(false, notEligibile1.isEligibleForUSPS());
+        assertEquals(false, notEligibile2.isEligibleForUSPS());
+        assertEquals(false, notEligibile3.isEligibleForUSPS());
+        assertEquals(false, notEligibile4.isEligibleForUSPS());
+
     }
 }

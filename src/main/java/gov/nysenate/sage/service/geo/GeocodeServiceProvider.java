@@ -253,6 +253,10 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         }
         /** Use the specified provider without cache */
         else if (this.isRegistered(provider)) {
+            /** Remove the provider if it's set in the fallback chain */
+            if (fallback.contains(provider)) {
+                fallback.remove(provider);
+            }
             geocodeResults = this.newInstance(provider).geocode((ArrayList<Address>) addresses);
         }
         /** Throw an exception if provider is invalid with no fallbacks */
