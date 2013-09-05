@@ -17,7 +17,6 @@ public class CityStateResponse extends BaseResponse
         if (addressResult != null) {
             this.status = addressResult.getStatusCode();
             this.messages = addressResult.getMessages();
-            this.source = addressResult.getSource();
 
             if (addressResult.getStatusCode().equals(ResultStatus.SUCCESS)) {
                 this.city = addressResult.getAddress().getCity();

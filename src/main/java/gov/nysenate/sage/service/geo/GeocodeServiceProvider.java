@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.GeoCache;
+import gov.nysenate.sage.provider.Yahoo;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
@@ -25,7 +26,6 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     private final static Config config = ApplicationFactory.getConfig();
 
     /** Caching members */
-    private static List<String> cacheableProviders = new ArrayList<>();
     private GeocodeCacheService geocodeCache;
     private Boolean CACHE_ENABLED = true;
 
@@ -45,17 +45,8 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      */
     public void registerProviderAsCacheable(String providerName)
     {
-        cacheableProviders.add(providerName);
-    }
-
-    /**
-     * Checks if providerName is allowed to save result into cache
-     * @param providerName
-     * @return true if it is allowed, false otherwise
-     */
-    public boolean isProviderCacheable(String providerName)
-    {
-        return cacheableProviders.contains(providerName);
+        GeocodeService provider = this.newInstance(providerName);
+        GeoCache.registerProviderAsCacheable(provider.getClass());
     }
 
     /**
@@ -174,7 +165,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         geocodeResult.setResultTime(new Timestamp(new Date().getTime()));
 
         /** Cache result */
-        if (CACHE_ENABLED && !cacheHit && isProviderCacheable(provider)) {
+        if (CACHE_ENABLED && !cacheHit) {
             geocodeCache.saveToCacheAndFlush(geocodeResult);
         }
         return geocodeResult;
@@ -273,18 +264,21 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         /** Create new batches containing just the failed results and run them through the fallback providers.
          *  Recompute the failed results and repeat until all fallback providers specified have been used. */
         while (!failedIndices.isEmpty() && fallbackIterator.hasNext()) {
-            String fallbackProvider = fallbackIterator.next();
-            logger.debug(failedIndices.size() + " geocodes are missing. Falling back to " + fallbackProvider);
+            provider = fallbackIterator.next();
+            logger.debug(failedIndices.size() + " geocodes are missing. Falling back to " + provider);
 
             ArrayList<Address> fallbackBatch = new ArrayList<>();
             for (int failedIndex : failedIndices) {
                 fallbackBatch.add(addresses.get(failedIndex));
             }
 
-            List<GeocodeResult> fallbackResults = this.newInstance(fallbackProvider).geocode(fallbackBatch);
+            List<GeocodeResult> fallbackResults = this.newInstance(provider).geocode(fallbackBatch);
             Iterator<GeocodeResult> fallbackResultIterator = fallbackResults.iterator();
             for (int failedIndex : failedIndices) {
-                geocodeResults.set(failedIndex, fallbackResultIterator.next());
+                GeocodeResult fallbackResult = fallbackResultIterator.next();
+                if (fallbackResult != null) {
+                    geocodeResults.set(failedIndex, fallbackResult);
+                }
             }
             failedIndices = getFailedResultIndices(geocodeResults);
         }

@@ -13,7 +13,7 @@ public class GeoCacheTest extends TestBase
     public void geocodeTest()
     {
         //geoCache.saveToCache();
-        FormatUtil.printObject(geoCache.geocode(new Address("214 8th St, Troy NY 12180")));
+        FormatUtil.printObject(GeoCache.isProviderCacheable(TigerGeocoder.class));
     }
 
 }

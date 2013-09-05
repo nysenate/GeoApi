@@ -60,7 +60,7 @@ public class GeocodeResultLogger extends BaseDao
     {
         if (geocodeResult != null && geocodeRequestId > -1) {
             boolean success =  geocodeResult.isSuccess();
-            boolean cacheHit = geocodeResult.getSource().equalsIgnoreCase(GeoCache.class.getSimpleName());
+            boolean cacheHit = geocodeResult.getSource().equals(GeoCache.class);
             int addressId = (success) ? addressLogger.logAddress(geocodeResult.getAddress()) : 0;
             int latLonId = (success) ? pointLogger.logPoint(geocodeResult.getGeocode().getLatLon()) : 0;
 

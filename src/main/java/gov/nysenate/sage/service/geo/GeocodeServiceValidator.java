@@ -51,7 +51,9 @@ public abstract class GeocodeServiceValidator
             geocodeResult.setGeocodedAddress(geocodedAddress);
             if (!geocodedAddress.isValidGeocode()){
                 geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
-                logger.debug("Geocode Response Quality: " + FormatUtil.toJsonString(geocodedAddress.getGeocode()));
+                if (geocodedAddress.getGeocode() != null) {
+                    logger.debug("Geocode Response: " + FormatUtil.toJsonString(geocodedAddress.getGeocode()));
+                }
                 return false;
             }
             geocodeResult.setStatusCode(SUCCESS);
@@ -78,7 +80,6 @@ public abstract class GeocodeServiceValidator
 
         /** Check each geocoded address to set the result status accordingly */
         if (geocodedAddresses != null && geocodedAddresses.size() == addresses.size()) {
-            geocodeResults.clear();
             for (GeocodedAddress geocodedAddress : geocodedAddresses) {
                 GeocodeResult geocodeResult = new GeocodeResult(source);
                 validateGeocodeResult(geocodedAddress, geocodeResult);

@@ -141,6 +141,7 @@ public class JobProcessDao extends BaseDao
         return null;
     }
 
+    /** TODO: Implement date range and order by */
     public List<JobProcessStatus> getJobStatusesByConditions(List<Condition> conditions, JobUser jobUser)
     {
         String sql = "SELECT * FROM " + getTableName() + "\n" +
@@ -161,15 +162,25 @@ public class JobProcessDao extends BaseDao
         return null;
     }
 
+    /**
+     * Gets completed job statuses
+     * @param condition
+     * @param jobUser
+     * @param afterThis
+     * @return
+     */
     public List<JobProcessStatus> getRecentlyCompletedJobStatuses(Condition condition, JobUser jobUser, Timestamp afterThis)
     {
         String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status " +
                 "ON id = processId WHERE ";
-        sql += "status.condition = ? AND status.completeTime >= ? ";
+        sql += ((condition != null) ? "status.condition = ? AND " : "") + "status.completeTime >= ? ";
         sql += (jobUser != null && !jobUser.isAdmin()) ? " AND userId = " + jobUser.getId() + " " : "";
         sql += "ORDER BY status.completeTime DESC";
         try {
-            return run.query(sql, statusListHandler, condition.name(), afterThis);
+            if (condition != null) {
+                return run.query(sql, statusListHandler, condition.name(), afterThis);
+            }
+            return run.query(sql, statusListHandler, afterThis);
         }
         catch (SQLException ex){
             logger.error("Failed to retrieve recent job statuses!", ex);

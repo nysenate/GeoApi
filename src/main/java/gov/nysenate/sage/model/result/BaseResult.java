@@ -13,7 +13,7 @@ public abstract class BaseResult
     protected int serialId; // Can be used for maintaining order in a list
     protected ArrayList<String> messages = new ArrayList<>();
     protected ResultStatus statusCode = ResultStatus.SUCCESS;
-    protected String source = "";
+    protected Class source;
     protected Timestamp resultTime;
 
     public ArrayList<String> getMessages()
@@ -39,7 +39,7 @@ public abstract class BaseResult
         this.messages = messages;
     }
 
-    public String getSource()
+    public Class getSource()
     {
         return source;
     }
@@ -47,7 +47,7 @@ public abstract class BaseResult
     public void setSource(Class sourceClass)
     {
         if (sourceClass != null){
-            this.source = sourceClass.getSimpleName();
+            this.source = sourceClass;
         }
     }
 

@@ -36,7 +36,8 @@ public class YahooDao implements Observer
     private static final String SET_QUERY_AS = "?format=json&q=";
     private static final String GEOCODE_QUERY = "select line1, city, statecode, postal, quality, latitude, longitude " +
                                                 "from geo.placefinder where text=\"%s\"";
-    private static final String BATCH_GEOCODE_QUERY = "select * from geo.placefinder where %s";
+    private static final String BATCH_GEOCODE_QUERY = "select line1, city, statecode, postal, quality, latitude, longitude " +
+                                                "from geo.placefinder where %s";
     private static final String REVERSE_GEO_QUERY = "select * from geo.placefinder where text=\"%f,%f\" and gflags=\"R\"";
 
     private static String CONSUMER_KEY;

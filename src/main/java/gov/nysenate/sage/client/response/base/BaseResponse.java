@@ -9,7 +9,7 @@ import java.util.List;
 public class BaseResponse
 {
     protected ResultStatus status = ResultStatus.RESPONSE_ERROR;
-    protected String source;
+    protected String source = "";
     protected List<String> messages = new ArrayList<>();
 
     public BaseResponse() {}
@@ -19,7 +19,9 @@ public class BaseResponse
         if (baseResult != null )
         {
             this.status = baseResult.getStatusCode();
-            this.source = baseResult.getSource();
+            if (baseResult.getSource() != null) {
+                this.source = baseResult.getSource().getSimpleName();
+            }
             this.messages = baseResult.getMessages();
         }
     }

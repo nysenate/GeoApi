@@ -8,13 +8,16 @@ import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeCacheService;
+import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateGeocodeInput;
 import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateGeocodeResult;
@@ -22,10 +25,32 @@ import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateGeoc
 public class GeoCache implements GeocodeCacheService
 {
     private final Logger logger = Logger.getLogger(GeoCache.class);
+    private static Set<Class<? extends GeocodeService>> cacheableProviders = new HashSet<>();
     private GeoCacheDao geoCacheDao;
 
     public GeoCache() {
         this.geoCacheDao = new GeoCacheDao();
+    }
+
+    /**
+     * Designates a provider (that has been registered) as a reliable source for caching results.
+     * @param provider
+     */
+    public static void registerProviderAsCacheable(Class<? extends GeocodeService> provider)
+    {
+        if (provider != null) {
+            cacheableProviders.add(provider);
+        }
+    }
+
+    /**
+     * Checks if providerName is allowed to save result into cache
+     * @param provider
+     * @return true if it is allowed, false otherwise
+     */
+    public static boolean isProviderCacheable(Class<? extends GeocodeService> provider)
+    {
+        return cacheableProviders.contains(provider);
     }
 
     @Override
@@ -57,8 +82,10 @@ public class GeoCache implements GeocodeCacheService
     @Override
     public void saveToCache(GeocodeResult geocodeResult)
     {
-        if (geocodeResult != null && geocodeResult.isSuccess()) {
-            geoCacheDao.cacheGeocodedAddress(geocodeResult.getGeocodedAddress());
+        if (geocodeResult != null && geocodeResult.isSuccess() && geocodeResult.getSource() != null) {
+            if (isProviderCacheable(geocodeResult.getSource())) {
+                geoCacheDao.cacheGeocodedAddress(geocodeResult.getGeocodedAddress());
+            }
         }
     }
 
@@ -75,7 +102,9 @@ public class GeoCache implements GeocodeCacheService
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
         for (GeocodeResult geocodeResult : geocodeResults) {
             if (geocodeResult != null && geocodeResult.isSuccess()) {
-                geocodedAddresses.add(geocodeResult.getGeocodedAddress());
+                if (isProviderCacheable(geocodeResult.getSource())) {
+                    geocodedAddresses.add(geocodeResult.getGeocodedAddress());
+                }
             }
         }
         geoCacheDao.cacheGeocodedAddresses(geocodedAddresses);

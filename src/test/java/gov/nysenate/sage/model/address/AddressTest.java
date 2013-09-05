@@ -1,8 +1,14 @@
 package gov.nysenate.sage.model.address;
 
+import gov.nysenate.sage.provider.MapQuest;
+import gov.nysenate.sage.provider.Yahoo;
+import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.util.FormatUtil;
 import org.junit.Test;
 import org.mindrot.jbcrypt.BCrypt;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -105,5 +111,10 @@ public class AddressTest
         assertEquals(false, notEligibile3.isEligibleForUSPS());
         assertEquals(false, notEligibile4.isEligibleForUSPS());
 
+    }
+
+    @Test
+    public void test() {
+        FormatUtil.printObject(Yahoo.class.equals(MapQuest.class));
     }
 }
