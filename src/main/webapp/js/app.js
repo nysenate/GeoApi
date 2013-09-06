@@ -479,7 +479,7 @@ function capitalize(input) {
 }
 
 /**
- * Return the district name header as |
+ * Returns a proper district title depending on the district type.
  * @param district
  * @param type
  * @returns {string}
@@ -489,10 +489,15 @@ function formatDistrictName(district, type) {
     if (distType !== null && typeof distType !== "undefined") {
         distType = distType.toLowerCase();
     }
-    return (district.name) ? district.name + " " : "" +
-        !(distType == "senate" || distType == "assembly" || distType == "congressional") ? district.district : "" +
-        (district.member) ? " - " + district.member.name : "" +
-        (district.senator) ? " - " + district.senator.name : "";
+    var districtName = (district.name) ? district.name + " " : "";
+    if (distType == "school" || distType == "town" || distType == "county") {
+        districtName += " - T&F Code (" + district.district + ")";
+    }
+    else {
+        districtName += (district.senator) ? " - " + district.senator.name : "";
+        districtName += (district.member) ? " - " + district.member.name : "";
+    }
+    return districtName;
 }
 
 /**------------------------------------------------\
