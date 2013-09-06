@@ -313,7 +313,9 @@ public class USPS implements AddressService, Observer
                         }
 
                         Address resultAddress = new Address();
-                        resultAddress.setCity(xpath.evaluate("City", addressResponse));
+                        String city = xpath.evaluate("City", addressResponse);
+                        city = (city != null) ? WordUtils.capitalizeFully(city) : city;
+                        resultAddress.setCity(city);
                         resultAddress.setState(xpath.evaluate("State", addressResponse));
                         resultAddress.setZip5(xpath.evaluate("Zip5", addressResponse));
 
