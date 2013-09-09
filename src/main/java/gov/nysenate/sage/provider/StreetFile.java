@@ -1,17 +1,16 @@
 package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.dao.provider.StreetFileDao;
-import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.DistrictedAddress;
+import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.service.street.StreetLookupService;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
+import gov.nysenate.sage.service.street.StreetLookupService;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.log4j.Logger;
 

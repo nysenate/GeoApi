@@ -3,8 +3,6 @@ package gov.nysenate.sage.client.view.district;
 import gov.nysenate.sage.model.district.DistrictInfo;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
-import static gov.nysenate.sage.model.district.DistrictType.VILLAGE;
-import static gov.nysenate.sage.model.district.DistrictType.WARD;
 
 public class MappedDistrictsView
 {

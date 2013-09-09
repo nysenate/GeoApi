@@ -8,7 +8,8 @@ import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents the result returned by district assignment services.

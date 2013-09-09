@@ -1,6 +1,5 @@
 package gov.nysenate.sage.controller.map;
 
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletConfig;

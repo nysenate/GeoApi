@@ -1,6 +1,5 @@
 package gov.nysenate.sage.dao.logger;
 
-import com.sun.org.apache.xpath.internal.operations.And;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.address.Address;

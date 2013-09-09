@@ -2,11 +2,9 @@ package gov.nysenate.sage.dao.stats;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.logger.ApiRequestLogger;
-import gov.nysenate.sage.model.stats.Deployment;
 import gov.nysenate.sage.model.stats.ExceptionInfo;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;

@@ -5,13 +5,14 @@ import gov.nysenate.sage.util.Config;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
-import javax.activation.MimeType;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.soap.MimeHeader;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Observable;
 import java.util.Observer;
 

@@ -1,9 +1,6 @@
 package gov.nysenate.sage.model.api;
 
-import org.apache.log4j.Logger;
-
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.Date;
 

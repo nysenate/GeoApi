@@ -1,15 +1,9 @@
 package gov.nysenate.sage.client.view.district;
 
 import gov.nysenate.sage.client.view.map.MapView;
-import gov.nysenate.sage.client.view.street.StreetRangeView;
-import gov.nysenate.sage.model.district.*;
-import gov.nysenate.sage.model.geo.Line;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictMatchLevel;
+import gov.nysenate.sage.model.district.DistrictOverlap;
 
 public class MappedDistrictOverlapView extends DistrictOverlapView
 {

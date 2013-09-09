@@ -1,7 +1,6 @@
 package gov.nysenate.sage.model.job;
 
 import java.sql.Timestamp;
-import java.util.Comparator;
 import java.util.Date;
 
 public class JobProcess

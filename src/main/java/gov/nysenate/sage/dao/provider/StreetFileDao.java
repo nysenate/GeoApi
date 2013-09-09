@@ -3,11 +3,8 @@ package gov.nysenate.sage.dao.provider;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictInfo;
-import static gov.nysenate.sage.model.district.DistrictType.*;
-
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.util.AddressDictionary;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -18,6 +15,8 @@ import org.apache.log4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
 public class StreetFileDao extends BaseDao
 {

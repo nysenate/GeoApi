@@ -1,12 +1,10 @@
 package gov.nysenate.sage.service.map;
 
-import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import org.apache.log4j.Logger;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 

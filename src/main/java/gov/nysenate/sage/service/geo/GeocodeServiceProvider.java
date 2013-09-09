@@ -7,7 +7,6 @@ import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.GeoCache;
-import gov.nysenate.sage.provider.Yahoo;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;

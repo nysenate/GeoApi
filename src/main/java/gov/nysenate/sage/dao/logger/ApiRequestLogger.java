@@ -4,10 +4,8 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;

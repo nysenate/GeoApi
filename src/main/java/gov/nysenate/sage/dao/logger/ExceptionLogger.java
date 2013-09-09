@@ -2,19 +2,14 @@ package gov.nysenate.sage.dao.logger;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
-import gov.nysenate.sage.model.stats.ExceptionInfo;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ExceptionLogger extends BaseDao
 {

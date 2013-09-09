@@ -5,12 +5,10 @@ import gov.nysenate.sage.model.admin.AdminUser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
-import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
-import java.util.List;
 
 /**
  * AdminUserDao provides database persistence for the AdminUser model.

@@ -1,14 +1,8 @@
 package gov.nysenate.sage.model.district;
 
-import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.services.model.Senator;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static gov.nysenate.sage.model.district.DistrictType.ASSEMBLY;
-import static gov.nysenate.sage.model.district.DistrictType.CONGRESSIONAL;
-import static gov.nysenate.sage.model.district.DistrictType.SENATE;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
  * Hold basic identifying information for a district such as its type, code, and member.

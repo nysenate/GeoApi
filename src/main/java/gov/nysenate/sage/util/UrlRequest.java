@@ -5,10 +5,6 @@ import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
-import oauth.signpost.http.HttpRequest;
-import oauth.signpost.signature.AuthorizationHeaderSigningStrategy;
-import oauth.signpost.signature.HmacSha1MessageSigner;
-import oauth.signpost.signature.SigningStrategy;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 

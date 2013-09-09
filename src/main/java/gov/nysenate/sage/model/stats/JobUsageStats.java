@@ -2,7 +2,6 @@ package gov.nysenate.sage.model.stats;
 
 import gov.nysenate.sage.client.view.job.JobProcessStatusView;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 

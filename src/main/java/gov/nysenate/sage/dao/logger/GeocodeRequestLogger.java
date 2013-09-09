@@ -2,19 +2,13 @@ package gov.nysenate.sage.dao.logger;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
-import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
-import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.job.JobProcess;
-import gov.nysenate.sage.model.job.JobRequest;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 
 public class GeocodeRequestLogger extends BaseDao
 {

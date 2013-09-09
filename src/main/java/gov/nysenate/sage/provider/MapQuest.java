@@ -8,11 +8,16 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressService;
-import gov.nysenate.sage.service.geo.*;
+import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.ParallelRevGeocodeService;
+import gov.nysenate.sage.service.geo.RevGeocodeService;
+import gov.nysenate.sage.service.geo.RevGeocodeServiceValidator;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateBatchGeocodeResult;

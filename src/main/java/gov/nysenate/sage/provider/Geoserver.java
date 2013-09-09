@@ -16,7 +16,10 @@ import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;

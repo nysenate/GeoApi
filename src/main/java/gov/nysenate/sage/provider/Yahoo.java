@@ -11,8 +11,6 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gov.nysenate.sage.model.result.ResultStatus.*;
-
 public class Yahoo implements GeocodeService, RevGeocodeService
 {
     private final Logger logger = Logger.getLogger(Yahoo.class);

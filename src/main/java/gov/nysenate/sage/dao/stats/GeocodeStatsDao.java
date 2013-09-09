@@ -1,7 +1,6 @@
 package gov.nysenate.sage.dao.stats;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.model.stats.DeploymentStats;
 import gov.nysenate.sage.model.stats.GeocodeStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -10,7 +9,6 @@ import org.apache.log4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * Retrieves stats pertaining to geocoder usage.

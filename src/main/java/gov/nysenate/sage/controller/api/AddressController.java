@@ -1,18 +1,15 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.address.BatchValidateResponse;
-import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.address.CityStateResponse;
 import gov.nysenate.sage.client.response.address.ValidateResponse;
 import gov.nysenate.sage.client.response.address.ZipcodeResponse;
+import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
-
 import gov.nysenate.sage.model.api.ApiRequest;
-import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
-import gov.nysenate.sage.util.AddressUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
@@ -22,7 +19,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 

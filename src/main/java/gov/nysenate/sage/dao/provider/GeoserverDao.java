@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.CountyDao;
 import gov.nysenate.sage.model.district.*;
-import static gov.nysenate.sage.model.district.DistrictType.*;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.UrlRequest;
@@ -17,6 +16,8 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static gov.nysenate.sage.model.district.DistrictType.COUNTY;
 
 /**
  * Provides a data abstraction layer for performing Geoserver WFS requests.

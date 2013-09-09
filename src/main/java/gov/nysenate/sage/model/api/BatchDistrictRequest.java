@@ -3,7 +3,6 @@ package gov.nysenate.sage.model.api;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.service.district.DistrictServiceProvider;
 
 import java.util.ArrayList;
 import java.util.List;

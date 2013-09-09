@@ -1,6 +1,5 @@
 package gov.nysenate.sage.model.address;
 
-import gov.nysenate.sage.model.address.StreetAddressRange;
 import gov.nysenate.sage.model.district.DistrictInfo;
 
 public class DistrictedStreetRange

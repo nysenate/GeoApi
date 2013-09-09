@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.model.job.JobProcessStatus;
-import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
-
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
@@ -20,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
 
 /**
  * JobProcessDao provides persistence for submitted requests and process statuses.
@@ -61,9 +61,9 @@ public class JobProcessDao extends BaseDao
     }
 
     /**
-     *
-     * @param id
-     * @return
+     * Get JobProcess by job process id.
+     * @param id int
+     * @return JobProcess
      */
     public JobProcess getJobProcessById(int id)
     {
@@ -78,9 +78,9 @@ public class JobProcessDao extends BaseDao
     }
 
     /**
-     *
-     * @param userId
-     * @return
+     * Retrieve List of JobProcess objects by job userId.
+     * @param userId int
+     * @return List<JobProcess>
      */
     public List<JobProcess> getJobProcessesByUser(int userId)
     {
@@ -95,9 +95,10 @@ public class JobProcessDao extends BaseDao
     }
 
     /**
-     *
-     * @param jps
-     * @return
+     * Update or insert a JobProcessStatus. If a job status entry already exists, the record will be updated with the
+     * new information. Otherwise a new row will be created.
+     * @param jps JobProcessStatus
+     * @return int (rows affected) or -1 if failed.
      */
     public int setJobProcessStatus(JobProcessStatus jps)
     {
@@ -128,9 +129,9 @@ public class JobProcessDao extends BaseDao
     }
 
     /**
-     *
-     * @param processId
-     * @return
+     * Retrieve JobProcessStatus by processId.
+     * @param processId int
+     * @return JobProcessStatus
      */
     public JobProcessStatus getJobProcessStatus(int processId)
     {

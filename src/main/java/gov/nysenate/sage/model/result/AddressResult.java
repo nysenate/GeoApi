@@ -2,9 +2,6 @@ package gov.nysenate.sage.model.result;
 
 import gov.nysenate.sage.model.address.Address;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /**
  * AddressResult represents the response returned by an AddressService implementation.
  */

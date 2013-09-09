@@ -1,7 +1,6 @@
 package gov.nysenate.sage.controller.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 

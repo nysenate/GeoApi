@@ -9,7 +9,8 @@ import org.apache.log4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static gov.nysenate.sage.model.stats.ApiUsageStats.IntervalUsage;
 

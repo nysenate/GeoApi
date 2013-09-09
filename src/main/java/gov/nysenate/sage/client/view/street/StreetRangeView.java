@@ -4,7 +4,6 @@ import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.StreetAddressRange;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.result.StreetResult;
 
 import java.util.HashMap;
 import java.util.Map;

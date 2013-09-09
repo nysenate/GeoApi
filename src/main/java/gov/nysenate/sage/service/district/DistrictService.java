@@ -4,8 +4,7 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.model.result.ResultStatus;
-import org.apache.log4j.Logger;
+
 import java.util.List;
 import java.util.Map;
 

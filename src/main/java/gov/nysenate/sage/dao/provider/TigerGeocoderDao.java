@@ -1,19 +1,14 @@
 package gov.nysenate.sage.dao.provider;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
-import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.BeanProcessor;
 import org.apache.commons.dbutils.QueryRunner;
@@ -22,13 +17,10 @@ import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-
-import static org.apache.commons.dbutils.DbUtils.close;
 
 /**
  * Provides a query interface to the TigerGeocoder database. For documentation on the geocoder

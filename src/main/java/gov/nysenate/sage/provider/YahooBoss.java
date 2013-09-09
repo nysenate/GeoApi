@@ -4,13 +4,12 @@ import gov.nysenate.sage.dao.provider.YahooBossDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
-
-import org.apache.log4j.Logger;
 
 /**
 * Yahoo Boss - Commercial geo-coding service from Yahoo

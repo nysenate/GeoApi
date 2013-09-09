@@ -1,15 +1,15 @@
 package gov.nysenate.sage.util;
 
-import java.io.File;
-import java.util.Observer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import gov.nysenate.sage.listener.SageConfigurationListener;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.util.Observer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The Config class provides access to the property file configuration values.

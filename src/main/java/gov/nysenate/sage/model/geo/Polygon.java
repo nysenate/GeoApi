@@ -1,7 +1,5 @@
 package gov.nysenate.sage.model.geo;
 
-import java.lang.StringBuilder;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

@@ -5,7 +5,6 @@ import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.services.model.Senator;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;

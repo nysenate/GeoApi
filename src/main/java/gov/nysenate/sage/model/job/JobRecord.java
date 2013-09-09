@@ -10,11 +10,11 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 
-import static gov.nysenate.sage.model.job.JobFile.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static gov.nysenate.sage.model.job.JobFile.Column;
 
 public class JobRecord
 {

@@ -13,9 +13,7 @@ import gov.nysenate.services.model.Senator;
 import java.util.HashMap;
 import java.util.Map;
 
-import static gov.nysenate.sage.model.district.DistrictType.ASSEMBLY;
-import static gov.nysenate.sage.model.district.DistrictType.CONGRESSIONAL;
-import static gov.nysenate.sage.model.district.DistrictType.SENATE;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
  * Typically when the district service providers return a DistrictInfo, only the district codes

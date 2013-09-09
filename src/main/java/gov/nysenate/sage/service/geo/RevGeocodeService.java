@@ -2,6 +2,7 @@ package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
+
 import java.util.ArrayList;
 
 /**

@@ -4,10 +4,6 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 public class GeocodeResult extends BaseResult
 {
     private GeocodedAddress geocodedAddress;

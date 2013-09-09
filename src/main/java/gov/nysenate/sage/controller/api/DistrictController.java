@@ -40,7 +40,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
-import static gov.nysenate.sage.service.district.DistrictServiceProvider.*;
+import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
 
 /** Handles District Api requests */
 public class DistrictController extends BaseApiController implements Observer

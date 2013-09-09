@@ -9,8 +9,12 @@ import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
-import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.auth.ApiUserAuth;
+import org.apache.log4j.Logger;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -18,15 +22,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 /**

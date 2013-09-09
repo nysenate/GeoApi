@@ -6,13 +6,14 @@ import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
-import gov.nysenate.sage.util.*;
+import gov.nysenate.sage.util.AssemblyScraper;
+import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.services.MemoryCachedNYSenateClient;
 import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Office;
 import gov.nysenate.services.model.Senator;
 import org.apache.xmlrpc.XmlRpcException;
-import org.apache.xmlrpc.util.ReflectionUtil;
 
 import java.util.ArrayList;
 import java.util.List;

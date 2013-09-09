@@ -1,7 +1,6 @@
 package gov.nysenate.sage.client.response.district;
 
 import gov.nysenate.sage.client.view.district.MappedDistrictOverlapView;
-import gov.nysenate.sage.client.view.district.MappedDistrictsView;
 import gov.nysenate.sage.client.view.map.MapView;
 import gov.nysenate.sage.client.view.street.StreetRangeView;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;

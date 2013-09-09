@@ -1,7 +1,7 @@
 package gov.nysenate.sage.util.auth;
 
-import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.dao.model.ApiUserDao;
+import gov.nysenate.sage.model.api.ApiUser;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
 

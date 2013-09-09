@@ -2,16 +2,12 @@ package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.ImageUtil;
 import gov.nysenate.services.model.Senator;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.Collection;
-import java.util.List;
 
 public class GenerateSenatorImages
 {

@@ -4,7 +4,6 @@ import gov.nysenate.sage.dao.logger.ExceptionLogger;
 import org.apache.log4j.Logger;
 
 import javax.servlet.*;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Date;
 

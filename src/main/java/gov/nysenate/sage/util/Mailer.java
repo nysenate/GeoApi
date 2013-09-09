@@ -2,14 +2,15 @@ package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import org.apache.log4j.Logger;
-import java.util.Properties;
-import java.util.StringTokenizer;
+
 import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.util.Properties;
+import java.util.StringTokenizer;
 
 public class Mailer
 {

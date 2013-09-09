@@ -2,7 +2,6 @@ package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;

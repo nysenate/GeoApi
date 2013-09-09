@@ -1,6 +1,5 @@
 package gov.nysenate.sage.controller.error;
 
-import gov.nysenate.sage.controller.api.BaseApiController;
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
 import org.apache.log4j.Logger;
 
@@ -11,8 +10,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.sql.Timestamp;
 import java.util.Date;
 

@@ -1,7 +1,6 @@
 package gov.nysenate.sage.client.view.job;
 
 import gov.nysenate.sage.model.job.JobProcess;
-import gov.nysenate.sage.model.job.JobUser;
 
 import java.sql.Timestamp;
 

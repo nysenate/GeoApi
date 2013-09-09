@@ -1,20 +1,19 @@
 package gov.nysenate.sage.provider;
 
-import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.Config;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Observable;
-import java.util.Observer;
+import gov.nysenate.sage.util.UrlRequest;
+import org.apache.commons.lang3.text.WordUtils;
+import org.apache.http.client.fluent.Content;
+import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,17 +21,13 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
-import gov.nysenate.sage.util.UrlRequest;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
-import org.apache.http.client.fluent.Content;
-import org.apache.http.client.fluent.Request;
-import org.apache.log4j.Logger;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * USPS adapter used for performing address validations.

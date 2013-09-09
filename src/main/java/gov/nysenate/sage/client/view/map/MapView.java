@@ -4,7 +4,6 @@ import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
-import gov.nysenate.sage.util.FormatUtil;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

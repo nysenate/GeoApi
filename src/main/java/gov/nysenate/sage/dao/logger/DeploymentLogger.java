@@ -1,6 +1,5 @@
 package gov.nysenate.sage.dao.logger;
 
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import org.apache.commons.dbutils.QueryRunner;

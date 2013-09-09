@@ -2,9 +2,7 @@ package gov.nysenate.sage.model.stats;
 
 import gov.nysenate.sage.model.api.ApiUser;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**

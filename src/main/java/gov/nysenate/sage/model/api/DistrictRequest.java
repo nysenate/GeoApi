@@ -5,11 +5,8 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.job.JobProcess;
-import gov.nysenate.sage.service.district.DistrictServiceProvider;
 
-import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 

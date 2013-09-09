@@ -4,21 +4,20 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
-import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.GeoCache;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class GeocodeResultLogger extends BaseDao
 {

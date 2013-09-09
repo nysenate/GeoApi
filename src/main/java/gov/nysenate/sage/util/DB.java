@@ -1,11 +1,10 @@
 package gov.nysenate.sage.util;
 
-import java.util.Observable;
-import java.util.Observer;
-
-import gov.nysenate.sage.util.Config;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
+
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Database class to configure and wrap a DataSource instance for performing queries.

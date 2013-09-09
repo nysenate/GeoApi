@@ -1,10 +1,7 @@
 package gov.nysenate.sage.model.stats;
 
-import gov.nysenate.sage.util.FormatUtil;
-
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 

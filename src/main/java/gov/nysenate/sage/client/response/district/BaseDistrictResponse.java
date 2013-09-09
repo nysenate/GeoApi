@@ -2,7 +2,6 @@ package gov.nysenate.sage.client.response.district;
 
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.view.address.AddressView;
-import gov.nysenate.sage.client.view.district.DistrictsView;
 import gov.nysenate.sage.client.view.geo.GeocodeView;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;

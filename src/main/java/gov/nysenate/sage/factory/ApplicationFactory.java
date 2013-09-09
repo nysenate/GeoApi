@@ -2,22 +2,21 @@ package gov.nysenate.sage.factory;
 
 import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
-import gov.nysenate.sage.provider.*;
 import gov.nysenate.sage.listener.SageConfigurationListener;
+import gov.nysenate.sage.provider.*;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.address.CityZipServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
-import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
-import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.map.MapServiceProvider;
+import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
-import sun.applet.AppletListener;
 
 import java.util.Arrays;
 import java.util.Collection;

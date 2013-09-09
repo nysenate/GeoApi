@@ -2,7 +2,6 @@ package gov.nysenate.sage.model.stats;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
 public class ApiUsageStats
 {
