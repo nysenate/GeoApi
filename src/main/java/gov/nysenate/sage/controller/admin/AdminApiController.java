@@ -7,6 +7,7 @@ import gov.nysenate.sage.dao.model.JobProcessDao;
 import gov.nysenate.sage.dao.model.JobUserDao;
 import gov.nysenate.sage.dao.stats.*;
 import gov.nysenate.sage.model.api.ApiUser;
+import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.stats.*;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -19,10 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AdminApiController extends BaseAdminController
 {
@@ -72,8 +70,8 @@ public class AdminApiController extends BaseAdminController
                         adminResponse = getGeocodeUsageStats(request);
                         break;
                     }
-                    case "/jobUsage" : {
-
+                    case "/jobStatuses" : {
+                        adminResponse = getJobProcessStatusList(request);
                         break;
                     }
                     case "/deployment" : {
@@ -137,9 +135,10 @@ public class AdminApiController extends BaseAdminController
     }
 
     /**
-     * Retrieves all registered Api Users.
-     * @param request
-     * @return
+     * Retrieves all registered Api Users. This method should not be exposed through a non-admin API as it contains
+     * the hashed api user passwords.
+     * @param request HttpServletRequest
+     * @return List<ApiUser>
      */
     private List getCurrentApiUsers(HttpServletRequest request)
     {
@@ -273,9 +272,10 @@ public class AdminApiController extends BaseAdminController
     }
 
     /**
-     *
-     * @param request
-     * @return
+     * Returns an object that contains a list of the times of all application deployments and shutdowns.
+     * @see DeploymentStats
+     * @param request HttpServletRequest
+     * @return DeploymentStats
      */
     private DeploymentStats getDeploymentStats(HttpServletRequest request)
     {
@@ -284,9 +284,12 @@ public class AdminApiController extends BaseAdminController
     }
 
     /**
-     * Retrieves interval-based api usage stats within a specified time frame.
-     * @param request
-     * @return
+     * Retrieves interval-based api usage stats within a specified time frame or per hour by default.
+     * @see ApiUsageStats
+     * @see ApiUsageStatsDao.RequestInterval
+     * @param request HttpServletRequest with optional query parameter 'interval' which should be a
+     *                string representation of a RequestInterval value (e.g 'HOUR').
+     * @return ApiUsageStats
      */
     private ApiUsageStats getApiUsageStats(HttpServletRequest request)
     {
@@ -304,7 +307,7 @@ public class AdminApiController extends BaseAdminController
 
     /**
      * Returns GeocodeUsageStats from `sinceDays` ago to now.
-     * @param request: Optional param: sinceDays
+     * @param request: HttpServletRequest, Optional query parameter: sinceDays (int)
      * @return GeocodeStats
      */
     private GeocodeStats getGeocodeUsageStats(HttpServletRequest request)
@@ -318,10 +321,18 @@ public class AdminApiController extends BaseAdminController
         return gsd.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
     }
 
-    private Object getJobUsageStats(HttpServletRequest request)
+    /**
+     * Returns a List of JobProcessStatus objects within the given 'from' and 'to' request time range.
+     * @param request HttpServletRequest, Optional Params: 'from' (Start timestamp value for job requestTime)
+     *                                                     'to' (End timestamp value for job requestTime)
+     * @return List<JobProcessStatus>
+     */
+    private List<JobProcessStatus> getJobProcessStatusList(HttpServletRequest request)
     {
         JobProcessDao jpd = new JobProcessDao();
-        return null;
+        Timestamp from = getBeginTimestamp(request);
+        Timestamp to = getEndTimestamp(request);
+        return jpd.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), null, from, to);
     }
 
     private Map<Integer, ApiUserStats> getApiUserStats(HttpServletRequest request)

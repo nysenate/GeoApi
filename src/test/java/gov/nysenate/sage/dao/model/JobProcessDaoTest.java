@@ -8,10 +8,7 @@ import gov.nysenate.sage.util.FormatUtil;
 import org.junit.Test;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -77,8 +74,9 @@ public class JobProcessDaoTest extends TestBase
     @Test
     public void getJobStatusesByConditions()
     {
-        FormatUtil.printObject(jpDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.CANCELLED,
-                                         JobProcessStatus.Condition.WAITING_FOR_CRON), jobUser));
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, -1);
+        FormatUtil.printObject(jpDao.getJobStatusesByConditions(new ArrayList<JobProcessStatus.Condition>(), jobUser, new Timestamp(cal.getTimeInMillis()), null));
     }
 
     @Test
@@ -97,7 +95,7 @@ public class JobProcessDaoTest extends TestBase
     public void getRecentlyCompletedJobStatuses()
     {
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, -1);
+        calendar.add(Calendar.MONTH, -1);
         Timestamp yesterday = new Timestamp(calendar.getTimeInMillis());
 
         FormatUtil.printObject(jpDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, null, yesterday));

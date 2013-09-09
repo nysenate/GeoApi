@@ -130,7 +130,7 @@ public class JobStatusController extends BaseJobController
 
     private List<JobProcessStatus> getAllJobProcesses(JobUser jobUser)
     {
-        return jobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), jobUser);
+        return jobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), jobUser, null, null);
     }
 
     private List<JobProcessStatus> getRecentlyCompletedJobProcesses(JobUser jobUser)

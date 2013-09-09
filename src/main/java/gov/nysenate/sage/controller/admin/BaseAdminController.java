@@ -28,6 +28,11 @@ public abstract class BaseAdminController extends HttpServlet
     public abstract void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
     public abstract void init(ServletConfig config) throws ServletException;
 
+    /**
+     * Determine if the current session is authentic by checking to see if an admin auth session key has been set.
+     * @param request HttpServletRequest
+     * @return True if authenticated (user has logged in as admin), false otherwise.
+     */
     protected static boolean isAuthenticated(HttpServletRequest request)
     {
         HttpSession session = request.getSession();
@@ -37,6 +42,13 @@ public abstract class BaseAdminController extends HttpServlet
         return false;
     }
 
+    /**
+     * Sets the current session as either authenticated or not authenticated. If the user is specified as
+     * not authenticated, the entire session will be invalidated.
+     * @param request HttpServletRequest
+     * @param authenticated Indicate if the user's admin credentials were valid.
+     * @param username Indicate the admin username used for login.
+     */
     protected static void setAuthenticated(HttpServletRequest request, boolean authenticated, String username)
     {
         HttpSession session = request.getSession();
@@ -49,6 +61,12 @@ public abstract class BaseAdminController extends HttpServlet
         }
     }
 
+    /**
+     * Since Admin requests do not go through the ApiFilter this method is needed to write result
+     * objects as JSON into the servlet response.
+     * @param responseObj Object to serialize.
+     * @param response The HeepServletResponse to write the result to.
+     */
     protected static void setAdminResponse(Object responseObj, HttpServletResponse response)
     {
         String json;
@@ -67,9 +85,12 @@ public abstract class BaseAdminController extends HttpServlet
     }
 
     /**
-     *
-     * @param request
-     * @return
+     * Reads the 'from' query parameter and builds a timestamp object representing that date/time.
+     * The 'from' parameter will contain a Unix time value (milliseconds since 0 UTC).
+     * If the 'from' value is null or invalid, a timestamp of exactly one week ago from the current time
+     * will be returned.
+     * @param request HttpServletRequest containing the 'from' query parameter.
+     * @return Timestamp
      */
     protected static Timestamp getBeginTimestamp(HttpServletRequest request) {
         Timestamp from;
@@ -87,9 +108,12 @@ public abstract class BaseAdminController extends HttpServlet
     }
 
     /**
-     *
-     * @param request
-     * @return
+     * Reads the 'to' query parameter ands builds a Timestamp object representing the date/time.
+     * The 'to' parameter will contain a Unix time value (milliseconds from 0 UTC).
+     * If the 'to' parameter is null or invalid, a new Timestamp representing the current time will
+     * be returned.
+     * @param request HttpServletRequest containing the 'to' query parameter.
+     * @return Timestamp
      */
     protected static Timestamp getEndTimestamp(HttpServletRequest request) {
         Timestamp to;
@@ -102,5 +126,4 @@ public abstract class BaseAdminController extends HttpServlet
         }
         return to;
     }
-
 }

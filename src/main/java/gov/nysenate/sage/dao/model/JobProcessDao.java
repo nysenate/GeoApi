@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,9 +26,9 @@ import java.util.List;
  */
 public class JobProcessDao extends BaseDao
 {
-    private String SCHEMA = "job";
-    private String TABLE = "process";
-    private String STATUS_TABLE = "status";
+    private static String SCHEMA = "job";
+    private static String TABLE = "process";
+    private static String STATUS_TABLE = "status";
     private Logger logger = Logger.getLogger(JobUserDao.class);
     private ResultSetHandler<JobProcess> processHandler = new JobProcessHandler();
     private ResultSetHandler<JobProcessStatus> statusHandler = new JobStatusHandler();
@@ -44,7 +45,7 @@ public class JobProcessDao extends BaseDao
      */
     public int addJobProcess(JobProcess p)
     {
-        String sql = "INSERT INTO " + getTableName() + " (userId, fileName, fileType, sourceFileName, requestTime, recordCount, validationReq, geocodeReq, districtReq) " +
+        String sql = "INSERT INTO " + getProcessTableName() + " (userId, fileName, fileType, sourceFileName, requestTime, recordCount, validationReq, geocodeReq, districtReq) " +
                      "VALUES (?,?,?,?,?,?,?,?,?) RETURNING id";
         try {
             return run.query(sql, new ResultSetHandler<Integer>() {
@@ -59,9 +60,14 @@ public class JobProcessDao extends BaseDao
         return -1;
     }
 
+    /**
+     *
+     * @param id
+     * @return
+     */
     public JobProcess getJobProcessById(int id)
     {
-        String sql = "SELECT * FROM " + getTableName() + " WHERE id = ?";
+        String sql = "SELECT * FROM " + getProcessTableName() + " WHERE id = ?";
         try {
             return run.query(sql, processHandler, id);
         }
@@ -71,9 +77,14 @@ public class JobProcessDao extends BaseDao
         return null;
     }
 
+    /**
+     *
+     * @param userId
+     * @return
+     */
     public List<JobProcess> getJobProcessesByUser(int userId)
     {
-        String sql = "SELECT * FROM " + getTableName() + " WHERE userId = ?";
+        String sql = "SELECT * FROM " + getProcessTableName() + " WHERE userId = ?";
         try {
             return run.query(sql, processListHandler, userId);
         }
@@ -83,6 +94,11 @@ public class JobProcessDao extends BaseDao
         return null;
     }
 
+    /**
+     *
+     * @param jps
+     * @return
+     */
     public int setJobProcessStatus(JobProcessStatus jps)
     {
         /** In order to allow this method to both insert and update a status record, an update query is run first.
@@ -111,9 +127,14 @@ public class JobProcessDao extends BaseDao
         return -1;
     }
 
+    /**
+     *
+     * @param processId
+     * @return
+     */
     public JobProcessStatus getJobProcessStatus(int processId)
     {
-        String sql = "SELECT * FROM " + getTableName() + " \n" +
+        String sql = "SELECT * FROM " + getProcessTableName() + " \n" +
                      "LEFT JOIN " + getStatusTableName() + " status ON id = processId " +
                      "WHERE processId = ?";
         try {
@@ -125,36 +146,57 @@ public class JobProcessDao extends BaseDao
         return null;
     }
 
+    /**
+     * Retrieves a List of JobProcessStatus matching the given Condition with no filtering on requestTime.
+     * Delegates to getJobStatusesByConditions(), see method for details.
+     * @return List<JobProcessStatus>
+     */
     public List<JobProcessStatus> getJobStatusesByCondition(Condition condition, JobUser jobUser)
     {
-        String sql = "SELECT * FROM " + getTableName() + "\n" +
-                     "LEFT JOIN " + getStatusTableName() + " status ON id = processId \n" +
-                     "WHERE status.condition = ? ";
-        sql += (jobUser != null && !jobUser.isAdmin()) ? " AND userId = " + jobUser.getId() : "";
-        sql += " ORDER BY processId";
-        try {
-            return run.query(sql, statusListHandler, condition.name());
-        }
-        catch(SQLException ex) {
-            logger.error("Failed to retrieve processes with condition " + condition.name(), ex);
-        }
-        return null;
+        return getJobStatusesByCondition(condition, jobUser, null, null);
     }
 
-    /** TODO: Implement date range and order by */
-    public List<JobProcessStatus> getJobStatusesByConditions(List<Condition> conditions, JobUser jobUser)
+    /**
+     * Retrieves a List of JobProcessStatus matching the given Condition.
+     * Delegates to getJobStatusesByConditions(), see method for details.
+     * @return List<JobProcessStatus>
+     */
+    public List<JobProcessStatus> getJobStatusesByCondition(Condition condition, JobUser jobUser, Timestamp start, Timestamp end)
     {
-        String sql = "SELECT * FROM " + getTableName() + "\n" +
+        return getJobStatusesByConditions(Arrays.asList(condition), jobUser, start, end);
+    }
+
+    /**
+     * Retrieves a List of JobProcessStatus matching the given Condition types.
+     * @param conditions List of Condition objects to filter results by.
+     * @param jobUser JobUser to retrieve results for. If null or admin user, all results returned.
+     * @param start Start requestTime to filter results by. If null, start will be defaulted to 0 UTC.
+     * @param end End requestTime to filter results by. If null, end will be defaulted to current time.
+     * @return List<JobProcessStatus>
+     */
+    public List<JobProcessStatus> getJobStatusesByConditions(List<Condition> conditions, JobUser jobUser, Timestamp start, Timestamp end)
+    {
+        String sql = "SELECT * FROM " + getProcessTableName() + "\n" +
                      "LEFT JOIN " + getStatusTableName() + " status ON id = processId " +
-                     "WHERE (%s) AND %s " +
+                     "WHERE (%s) " +  // Condition Filter
+                     "AND (%s) " +    // JobUser Filter
+                     "AND (%s) " +    // Request Time Filter
                      "ORDER BY processId DESC";
         List<String> where = new ArrayList<>();
         for (Condition c : conditions) {
             where.add("status.condition = '" + c.name() + "'");
         }
-        sql = String.format(sql, StringUtils.join(where, " OR "), (jobUser != null && !jobUser.isAdmin()) ? "userId = " + jobUser.getId() : "TRUE");
+        String conditionFilter = (!where.isEmpty()) ? StringUtils.join(where, " OR ") : "FALSE";
+        String jobUserFilter = (jobUser != null && !jobUser.isAdmin()) ? "userId = " + jobUser.getId() : "TRUE";
+
+        /** If start and end timestamps are null, set to earliest and current time respectively */
+        start = (start == null) ? new Timestamp(0) : start;
+        end = (end == null) ? new Timestamp(new Date().getTime()) : end;
+        String requestTimeFilter = "requestTime >= ? AND requestTime <= ?";
+
+        sql = String.format(sql, conditionFilter, jobUserFilter, requestTimeFilter);
         try {
-            return run.query(sql, statusListHandler);
+            return run.query(sql, statusListHandler, start, end);
         }
         catch (SQLException ex){
             logger.error("Failed to retrieve statuses by conditions!", ex);
@@ -163,22 +205,29 @@ public class JobProcessDao extends BaseDao
     }
 
     /**
-     * Gets completed job statuses
-     * @param condition
-     * @param jobUser
-     * @param afterThis
-     * @return
+     * Gets completed job statuses that finished on or after the 'afterThis' timestamp.
+     * This method is different from getJobStatusesByCondition because the completeTime is filtered on
+     * as opposed to the requestTime.
+     * @param condition Condition to filter by. If null, no filtering will occur on condition.
+     * @param jobUser JobUser to retrieve results for. If null or admin user, all results returned.
+     * @param afterThis Filter results where completeTime is on or after the 'afterThis' timestamp.
+     * @return List<JobProcessStatus>
      */
     public List<JobProcessStatus> getRecentlyCompletedJobStatuses(Condition condition, JobUser jobUser, Timestamp afterThis)
     {
-        String sql = "SELECT * FROM " + getTableName() + " LEFT JOIN " + getStatusTableName() + " status " +
-                "ON id = processId WHERE ";
-        sql += ((condition != null) ? "status.condition = ? AND " : "") + "status.completeTime >= ? ";
-        sql += (jobUser != null && !jobUser.isAdmin()) ? " AND userId = " + jobUser.getId() + " " : "";
-        sql += "ORDER BY status.completeTime DESC";
+        String sql = "SELECT * FROM " + getProcessTableName() + " " +
+                     "LEFT JOIN " + getStatusTableName() + " status " + "ON id = processId " +
+                     "WHERE status.completeTime >= ? " + // completeTime filter
+                     "AND (%s) " + // condition filter
+                     "AND (%s) " + // jobUser filter
+                     "ORDER BY status.completeTime DESC";
+
+        String conditionFilter = (condition != null) ? "status.condition = ?" : "TRUE";
+        String jobUserFilter = (jobUser != null && !jobUser.isAdmin()) ? "userId = " + jobUser.getId() : "TRUE";
+        sql = String.format(sql, conditionFilter, jobUserFilter);
         try {
             if (condition != null) {
-                return run.query(sql, statusListHandler, condition.name(), afterThis);
+                return run.query(sql, statusListHandler, afterThis, condition.name());
             }
             return run.query(sql, statusListHandler, afterThis);
         }
@@ -190,12 +239,12 @@ public class JobProcessDao extends BaseDao
 
     public List<JobProcessStatus> getActiveJobStatuses(JobUser jobUser)
     {
-        return getJobStatusesByConditions(Condition.getActiveConditions(), jobUser);
+        return getJobStatusesByConditions(Condition.getActiveConditions(), jobUser, null, null);
     }
 
     public List<JobProcessStatus> getInactiveJobStatuses(JobUser jobUser)
     {
-        return  getJobStatusesByConditions(Condition.getInactiveConditions(), jobUser);
+        return  getJobStatusesByConditions(Condition.getInactiveConditions(), jobUser, null, null);
     }
 
     protected static class JobProcessHandler implements ResultSetHandler<JobProcess>
@@ -294,7 +343,7 @@ public class JobProcessDao extends BaseDao
         return jps;
     }
 
-    private String getTableName()
+    private String getProcessTableName()
     {
         return SCHEMA + "." + TABLE;
     }
