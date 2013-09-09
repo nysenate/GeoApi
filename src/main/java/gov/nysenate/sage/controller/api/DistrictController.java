@@ -303,7 +303,7 @@ public class DistrictController extends BaseApiController implements Observer
         logger.debug("Obtained district result with assigned districts: " + FormatUtil.toJsonString(districtResult.getAssignedDistricts()));
 
         /** Adjust address if it's a PO BOX and was not USPS validated */
-        if (isPoBox && !districtResult.isUspsValidated()) {
+        if (isPoBox && !districtResult.isUspsValidated() && districtResult.getAddress() != null) {
             districtResult.getAddress().setAddr1("PO Box " + streetAddress.getPoBox());
         }
 
