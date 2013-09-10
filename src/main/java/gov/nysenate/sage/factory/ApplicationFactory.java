@@ -136,7 +136,7 @@ public class ApplicationFactory
             geocodeServiceProvider.registerProvider("yahooboss", YahooBoss.class);
             geocodeServiceProvider.registerProvider("osm", OSM.class);
             geocodeServiceProvider.registerProvider("ruby", RubyGeocoder.class);
-            geocodeServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest", "tiger", "yahooBoss"));
+            geocodeServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest", "tiger"));
 
             geocodeServiceProvider.registerProviderAsCacheable("yahoo");
             geocodeServiceProvider.registerProviderAsCacheable("yahooboss");
