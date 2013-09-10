@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.client.fluent.Content;
@@ -28,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * USPS adapter used for performing address validations.
@@ -186,8 +189,30 @@ public class USPS implements AddressService, Observer
                         String zip4 = xpath.evaluate("Zip4", addressResponse);
                         String returnText = xpath.evaluate("ReturnText", addressResponse);
 
-                        addr2 = (addr2 != null) ? WordUtils.capitalizeFully(addr2.toLowerCase()) : addr2;
+                        /** Perform init caps on city */
                         city = (city != null) ? WordUtils.capitalizeFully(city.toLowerCase()) : addr2;
+
+                        if (addr2 != null) {
+                            /** Perform init caps on the street address */
+                            addr2 = WordUtils.capitalizeFully(addr2.toLowerCase());
+
+                            /** Ensure unit portion is fully uppercase e.g 2N */
+                            Pattern p = Pattern.compile("([0-9]+-?[a-z]+[0-9]*)$");
+                            Matcher m = p.matcher(addr2);
+                            if (m.find()) {
+                                addr2 = m.replaceFirst(m.group().toUpperCase());
+                            }
+
+                            /** Ensure (SW|SE|NW|NE) are not init capped */
+                            p = Pattern.compile("(?i)\\b(SW|SE|NW|NE)\\b");
+                            m = p.matcher(addr2);
+                            if (m.find()) {
+                                addr2 = m.replaceAll(m.group().toUpperCase());
+                            }
+
+                            /** Change Po Box to PO Box */
+                            addr2 = addr2.replaceAll("Po Box", "PO Box");
+                        }
 
                         /** USPS usually sets the addr2 which is not intuitive. Here we can
                          *  create a new Address object with addr1 initialized with addr2. */

@@ -2,7 +2,10 @@ package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.address.Address;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,15 +20,19 @@ public class AddressUtil
      */
     public static Address addPunctuation(Address address) {
         if (address != null && !address.isEmpty()) {
-            String unitAlt = StringUtils.join(AddressDictionary.unitMap.keySet(), "|");
-            String stTypeAlt = StringUtils.join(AddressDictionary.streetTypeMap.keySet(), "|");
+            Set<String> streetTypes = new HashSet<>();
+            streetTypes.addAll(AddressDictionary.streetTypeMap.values());
+            streetTypes.addAll(AddressDictionary.highWayMap.values());
+
+            String unitAlt = StringUtils.join(AddressDictionary.unitMap.values(), "|");
+            String stTypeAlt = StringUtils.join(streetTypes, "|");
             String directionalAlt = StringUtils.join(AddressDictionary.directionMap.values(), "|");
 
             String addr1 = address.getAddr1();
             String res = addr1;
 
             if (addr1 != null && !addr1.isEmpty()) {
-                Matcher m = Pattern.compile("(?i)(" + unitAlt + ")([ ]*#?[ ]*\\d+\\w*)$").matcher(addr1);
+                Matcher m = Pattern.compile("(?i)(" + unitAlt + ")([ ]*#?[ ]*\\d*-?\\w*)$").matcher(addr1);
                 if (m.find()) {
                     String internal = m.group();
                     addr1 = m.replaceFirst("$1.$2");
