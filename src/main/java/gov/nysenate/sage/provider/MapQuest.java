@@ -86,7 +86,7 @@ public class MapQuest implements AddressService, GeocodeService, RevGeocodeServi
 
         /** Validate and return */
         if (!validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults, geocodedAddresses)){
-            logger.warn("Failed to batch geocode using Yahoo!");
+            logger.warn("Failed to batch geocode using MapQuest!");
         }
         return geocodeResults;
     }

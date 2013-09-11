@@ -53,7 +53,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
         /** Retrieve geocoded addresses from dao */
         List<GeocodedAddress> geocodedAddresses = this.yahooDao.getGeocodedAddresses(addresses);
 
-        /** Validate and return */
+        /** Validate batch */
         if (!GeocodeServiceValidator.validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults,
                 geocodedAddresses)){
             logger.warn("Yahoo batch result is inconsistent with input addresses.");

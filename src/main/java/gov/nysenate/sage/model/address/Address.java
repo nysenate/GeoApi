@@ -54,12 +54,13 @@ public class Address implements Serializable, Cloneable
 
     public boolean isParsed()
     {
-        return !(addr2.equals("") && city.equals("") && state.equals("") && zip5.equals(""));
+        return !(addr2.trim().isEmpty() && city.trim().isEmpty() &&
+                 state.trim().isEmpty() && zip5.trim().isEmpty());
     }
 
     public boolean isEmpty()
     {
-        return (addr1.equals("") && !isParsed());
+        return (addr1.trim().isEmpty() && !isParsed());
     }
 
     @Override
@@ -93,7 +94,7 @@ public class Address implements Serializable, Cloneable
 
     public void setAddr1(String addr1)
     {
-        if (addr1 != null ){
+        if (addr1 != null){
             this.addr1 = addr1;
         }
     }

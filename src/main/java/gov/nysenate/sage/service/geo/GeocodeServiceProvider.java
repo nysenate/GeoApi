@@ -2,6 +2,7 @@ package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.result.GeocodeResult;
@@ -9,6 +10,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.GeoCache;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
@@ -59,8 +61,8 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
     /**
      * Performs single geocode using GeocodeRequest.
-     * @param geocodeRequest
-     * @return
+     * @param geocodeRequest GeocodeRequest object with geocode options and address set.
+     * @return GeocodeResult
      */
     public GeocodeResult geocode(GeocodeRequest geocodeRequest)
     {
@@ -141,9 +143,9 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             }
             else {
                 logger.error("Supplied an invalid geocoding provider! " + provider);
-                if (useFallback && !fallbackProviders.contains(this.defaultProvider)) {
+                if (useFallback && !fallback.contains(this.defaultProvider)) {
                     logger.info("Adding default geocoder as fallback");
-                    fallbackProviders.set(0, this.defaultProvider);
+                    fallback.set(0, this.defaultProvider);
                 }
             }
         }
@@ -224,12 +226,25 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
                     fallbackProviders + " with useFallback:" + useFallback + " and useCache:" + useCache);
 
         this.geocodeCache = this.newCacheInstance();
+        final int addressCount = addresses.size();
 
         /** Clone the list of fall back providers */
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
                                                                   : new LinkedList<>(this.defaultFallback);
-        List<GeocodeResult> geocodeResults = null;
-        List<Integer> failedIndices;
+        List<GeocodeResult> geocodeResults = new ArrayList<>();
+
+        /** Make note of the indices that contain empty addresses and create a new list of addresses
+        * containing just the addresses with values. */
+        List<Address> validAddresses = new ArrayList<>(addressCount);
+        List<Integer> invalidIndices = new ArrayList<>();
+        for (int i = 0; i < addressCount; i++) {
+            if (addresses.get(i) != null && !addresses.get(i).isEmpty()) {
+                validAddresses.add(addresses.get(i));
+            }
+            else {
+                invalidIndices.add(i);
+            }
+        }
 
         /** Clear out the fallback list if fallback is disabled */
         if (!useFallback) {
@@ -238,7 +253,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         /** If cache enabled, attempt to geocode batch and add the provider as the first fallback */
         if (CACHE_ENABLED && useCache) {
             logger.debug("Running batch through geo cache..");
-            geocodeResults = this.geocodeCache.geocode((ArrayList<Address>) addresses);
+            geocodeResults = this.geocodeCache.geocode((ArrayList<Address>) validAddresses);
             fallback.add(0, provider);
         }
         /** Use the specified provider without cache */
@@ -247,15 +262,22 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             if (fallback.contains(provider)) {
                 fallback.remove(provider);
             }
-            geocodeResults = this.newInstance(provider).geocode((ArrayList<Address>) addresses);
+            geocodeResults = this.newInstance(provider).geocode((ArrayList<Address>) validAddresses);
+        }
+        /** Otherwise populate the results array with failed results so they get picked up
+         *  during the fallback stage. */
+        else if (useFallback && fallback.size() > 0) {
+            for (int i = 0; i < addressCount; i++) {
+                geocodeResults.add(new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT));
+            }
         }
         /** Throw an exception if provider is invalid with no fallbacks */
-        else if (!useFallback || fallback.size() == 0) {
-            throw new IllegalArgumentException("Supplied an invalid geocoding provider!");
+        else {
+            throw new IllegalArgumentException("Supplied an invalid geocoding provider with no cache or fallback!");
         }
 
         /** Get the indices of results that were not successful */
-        failedIndices = getFailedResultIndices(geocodeResults);
+        List<Integer> failedIndices = getFailedResultIndices(geocodeResults);
         logger.debug("There were " + failedIndices.size() + " cache misses.");
 
         Iterator<String> fallbackIterator = fallback.iterator();
@@ -268,7 +290,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
             ArrayList<Address> fallbackBatch = new ArrayList<>();
             for (int failedIndex : failedIndices) {
-                fallbackBatch.add(addresses.get(failedIndex));
+                fallbackBatch.add(validAddresses.get(failedIndex));
             }
 
             List<GeocodeResult> fallbackResults = this.newInstance(provider).geocode(fallbackBatch);
@@ -282,8 +304,37 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             failedIndices = getFailedResultIndices(geocodeResults);
         }
 
+        /** If the geocodeResults do not align with the valid input address set, produce error and return empty array. */
+        if (geocodeResults.size() != validAddresses.size()) {
+            logger.error("Batch geocode result size not equal to address set size!");
+            GeocodeResult errorResult = new GeocodeResult(this.getClass(), ResultStatus.INTERNAL_ERROR);
+            errorResult.addMessage("Batch response was not consistent with the input addresses list.");
+            return new ArrayList<>(Arrays.asList(errorResult));
+        }
+
+        /** Create a final result array and set it to geocodeResults if no addresses were
+         *  empty or iterate through and insert the failed results in the proper order. */
+        List<GeocodeResult> finalGeocodeResults;
+        if (!invalidIndices.isEmpty()) {
+            finalGeocodeResults = new ArrayList<>(addresses.size());
+            Iterator<GeocodeResult> geoResultIterator = geocodeResults.iterator();
+            for (int i = 0; i < addressCount; i++) {
+                if (invalidIndices.contains(i)) {
+                    GeocodeResult invalidInputResult = new GeocodeResult(this.getClass(), ResultStatus.INSUFFICIENT_ADDRESS,
+                                                                         new GeocodedAddress(addresses.get(i)));
+                    finalGeocodeResults.add(invalidInputResult);
+                }
+                else {
+                    finalGeocodeResults.add(geoResultIterator.next());
+                }
+            }
+        }
+        else {
+            finalGeocodeResults = geocodeResults;
+        }
+
         /** Loop through results and set the timestamp */
-        for (GeocodeResult geocodeResult : geocodeResults) {
+        for (GeocodeResult geocodeResult : finalGeocodeResults) {
             if (geocodeResult != null) {
                 geocodeResult.setResultTime(new Timestamp(new Date().getTime()));
             }
@@ -291,10 +342,10 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
         /** Cache results */
         if (CACHE_ENABLED && useCache) {
-            geocodeCache.saveToCache(geocodeResults);
+            geocodeCache.saveToCacheAndFlush(finalGeocodeResults);
         }
 
-        return geocodeResults;
+        return finalGeocodeResults;
     }
 
     /**

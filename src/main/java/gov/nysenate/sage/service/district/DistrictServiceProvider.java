@@ -452,7 +452,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                         /** Incorporate all the districts found in street file result that are missing in the shape file result */
                         fallbackSet.removeAll(shapeInfo.getAssignedDistricts());
                         for (DistrictType districtType : fallbackSet) {
-                            shapeInfo.setDistCode(districtType, streetInfo.getDistCode(districtType));
+                            replaceShapeWithStreet(districtType, shapeInfo, streetInfo);
                         }
                     }
                     else {
@@ -482,8 +482,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                 !shapeInfo.getDistCode(assignedType).equalsIgnoreCase(streetCode)) {
 
                                 /** Apply the street file data */
-                                shapeInfo.setDistCode(assignedType, streetInfo.getDistCode(assignedType));
-                                shapeInfo.setDistName(assignedType, streetInfo.getDistName(assignedType));
+                                replaceShapeWithStreet(assignedType, shapeInfo, streetInfo);
                                 shapeInfo.setDistMap(assignedType, null);
                             }
                         }
