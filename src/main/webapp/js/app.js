@@ -491,7 +491,7 @@ function formatDistrictName(district, type) {
     }
     var districtName = (district.name) ? district.name + " " : "";
     if (distType == "school" || distType == "town" || distType == "county") {
-        districtName += " - T&F Code (" + district.district + ")";
+        districtName += " - (" + district.district + ")";
     }
     else {
         districtName += (district.senator) ? " - " + district.senator.name : "";
