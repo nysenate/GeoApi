@@ -47,8 +47,6 @@ public class Yahoo implements GeocodeService, RevGeocodeService
     {
         logger.debug("Performing batch geocoding using Yahoo Free");
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
-        /** Indicates if no addresses in the batch were assigned successfully */
-        boolean batchInvalid = false;
 
         /** Retrieve geocoded addresses from dao */
         List<GeocodedAddress> geocodedAddresses = this.yahooDao.getGeocodedAddresses(addresses);
@@ -57,28 +55,9 @@ public class Yahoo implements GeocodeService, RevGeocodeService
         if (!GeocodeServiceValidator.validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults,
                 geocodedAddresses)){
             logger.warn("Yahoo batch result is inconsistent with input addresses.");
-            batchInvalid = true;
         }
 
-        /** Determine if a single successful result exists which would keep the batch valid */
-        if (!batchInvalid) {
-            batchInvalid = true;
-            for (GeocodeResult geocodeResult : geocodeResults) {
-                if (geocodeResult.isSuccess()) {
-                    batchInvalid = false;
-                    break;
-                }
-            }
-        }
-
-        /** If the batch is invalid, use the parallel geocode implementation */
-        if (batchInvalid) {
-            logger.debug("Falling back to parallel Yahoo geocoding.");
-            return ParallelGeocodeService.geocode(this, addresses);
-        }
-        else {
-            return geocodeResults;
-        }
+        return geocodeResults;
     }
 
     /** Reverse Geocode Service Implementation ---------------------------------------------------*/
