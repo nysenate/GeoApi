@@ -81,7 +81,7 @@ public class StreetAddress
     {
         return "bldgNum [" + this.getBldgNum() + "] preDir [" + this.getPreDir() + "] streetName [" + this.getStreetName() + "] postDir [" +
                 this.getPostDir() + "] streetType [" + this.getStreetType() + "] city [" + this.getLocation() +
-                "] zip5 [" + this.getZip5() + "]";
+                "] state [" + this.getState() + "] zip5 [" + this.getZip5() + "]";
     }
 
     /** Getters / Setters */

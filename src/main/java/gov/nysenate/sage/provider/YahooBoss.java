@@ -44,7 +44,7 @@ public class YahooBoss implements GeocodeService
         GeocodedAddress geocodedAddress = this.yahooBossDao.getGeocodedAddress(address);
 
         /** Validate and set result */
-        if (!GeocodeServiceValidator.validateGeocodeResult(geocodedAddress, geocodeResult)) {
+        if (!GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
             logger.warn("Failed to geocode " + address.toString() + " using Yahoo Boss!");
         }
         return geocodeResult;

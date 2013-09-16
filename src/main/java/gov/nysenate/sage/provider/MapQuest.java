@@ -85,7 +85,7 @@ public class MapQuest implements AddressService, GeocodeService, RevGeocodeServi
         List<GeocodedAddress> geocodedAddresses = this.mapQuestDao.getGeocodedAddresses(addresses);
 
         /** Validate and return */
-        if (!validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults, geocodedAddresses)){
+        if (!validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults, geocodedAddresses, true)){
             logger.warn("Failed to batch geocode using MapQuest!");
         }
         return geocodeResults;

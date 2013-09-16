@@ -24,7 +24,8 @@ import java.util.*;
 
 /**
  * DistrictShapefileDao utilizes a PostGIS database loaded with Census shapefiles to
- * provide fast district resolution given a coordinate pair.
+ * provide fast district resolution given a coordinate pair. It also allows for determining
+ * overlaps and intersections between districts.
  */
 public class DistrictShapefileDao extends BaseDao
 {
@@ -39,6 +40,8 @@ public class DistrictShapefileDao extends BaseDao
     private static Map<DistrictType, List<DistrictMap>> districtMapCache;
     private static Map<DistrictType, Map<String, DistrictMap>> districtMapLookup;
 
+    /** Set of DistrictTypes that can't be cached effectively due to non-unique codes.
+     * These district maps are retrieved during getDistrictInfo() queries. */
     private static Set<DistrictType> retrieveMapSet = new HashSet<>();
     static {
         retrieveMapSet.add(DistrictType.SCHOOL);

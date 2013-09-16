@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -52,12 +53,12 @@ public class GeoCacheDao extends BaseDao
                         "AND gc.street = ? \n" +
                         "AND COALESCE(gc.postdir, '') = ? \n" +
                         "AND gc.streetType = ? \n" +
-                        "AND gc.state = ? \n" +
-                        "AND ((gc.zip5 = ? AND gc.zip5 != '') OR (? = '' AND gc.location = ? AND gc.location != ''))";
+                        "AND ((gc.zip5 = ? AND gc.zip5 != '') OR " +
+                            " (? = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
                 try {
                     return tigerRun.query(sql, new GeocodedStreetAddressHandler(),
                             sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
-                            sa.getStreetType(), sa.getState(), sa.getZip5(), sa.getZip5(), sa.getLocation());
+                            sa.getStreetType(), sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
                 }
                 catch (SQLException ex) {
                     logger.error("Error retrieving geo cache hit!", ex);
@@ -66,12 +67,12 @@ public class GeoCacheDao extends BaseDao
             /** PO BOX addresses can be looked up by just the location/zip */
             else {
                 logger.trace("Cache lookup without street");
-                sql += "WHERE gc.state = ? \n" +
-                       "AND gc.street = '' \n" +
-                       "AND ((gc.zip5 = ? AND gc.zip5 != '') OR (? = '' AND gc.location = ? AND gc.location != ''))";
+                sql += "WHERE gc.street = '' \n" +
+                       "AND ((gc.zip5 = ? AND gc.zip5 != '') " +
+                            " OR (? = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
                 try {
-                    return tigerRun.query(sql, new GeocodedStreetAddressHandler(), sa.getState(),
-                            sa.getZip5(), sa.getZip5(), sa.getLocation());
+                    return tigerRun.query(sql, new GeocodedStreetAddressHandler(), sa.getZip5(), sa.getZip5(),
+                            sa.getLocation(), sa.getState());
                 }
                 catch (SQLException ex) {
                     logger.error("Error retrieving geo cache hit!", ex);
@@ -83,25 +84,28 @@ public class GeoCacheDao extends BaseDao
 
     /**
      * Pushes a geocoded address to the buffer for saving to cache.
-     * @param geocodedAddress
+     * @param geocodedAddress GeocodedAddress to cache.
      */
     public void cacheGeocodedAddress(GeocodedAddress geocodedAddress)
     {
-        cacheBuffer.add(geocodedAddress);
-        if (cacheBuffer.size() > BUFFER_SIZE) {
-            flushCacheBuffer();
+        if (geocodedAddress != null && geocodedAddress.isValidAddress() && geocodedAddress.isValidGeocode()) {
+            cacheBuffer.add(geocodedAddress);
+            if (cacheBuffer.size() > BUFFER_SIZE) {
+                flushCacheBuffer();
+            }
         }
     }
 
     /**
      * Pushes a list of geocoded addresses to the buffer for saving to cache.
-     * @param geocodedAddresses
+     * @param geocodedAddresses GeocodedAddress List to cache.
      */
     public void cacheGeocodedAddresses(List<GeocodedAddress> geocodedAddresses)
     {
-        cacheBuffer.addAll(geocodedAddresses);
-        if (cacheBuffer.size() > BUFFER_SIZE) {
-            flushCacheBuffer();
+        if (geocodedAddresses != null) {
+            for (GeocodedAddress geocodedAddress : geocodedAddresses) {
+                cacheGeocodedAddress(geocodedAddress);
+            }
         }
     }
 
@@ -211,10 +215,9 @@ public class GeoCacheDao extends BaseDao
      */
     private boolean isCacheableStreetAddress(StreetAddress sa)
     {
-        return (!sa.getState().isEmpty() &&
-               (!sa.getStreet().isEmpty() && !sa.getStreet().startsWith("[") && sa.getBldgNum() > 0)
-                 ||(sa.getStreet().isEmpty() && sa.getBldgNum() == 0
-                    && (!sa.getLocation().isEmpty() || !sa.getZip5().isEmpty())));
+        return (!sa.getStreet().isEmpty() && !sa.getStreet().startsWith("[") && sa.getBldgNum() > 0)
+               || (sa.getStreet().isEmpty() && sa.getBldgNum() == 0 &&
+                  ((!sa.getLocation().isEmpty() && !sa.getState().isEmpty()) || !sa.getZip5().isEmpty()));
     }
 
     private boolean isStreetAddressRetrievable(StreetAddress sa)

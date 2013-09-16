@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
 
-public class ImageUtil
+public abstract class ImageUtil
 {
     private static Logger logger = Logger.getLogger(ImageUtil.class);
 

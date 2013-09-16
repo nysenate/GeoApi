@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class AddressUtil
+public abstract class AddressUtil
 {
     public AddressUtil() {}
 

@@ -26,34 +26,41 @@ public class Yahoo implements GeocodeService, RevGeocodeService
     @Override
     public GeocodeResult geocode(Address address)
     {
-        logger.debug("Performing geocoding using Yahoo Free");
+        logger.trace("Performing geocoding using Yahoo Free");
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
+        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+            return geocodeResult;
+        }
+
         /** Proceed only on valid input */
-        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) return geocodeResult;
+        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
+            return geocodeResult;
+        }
 
         /** Retrieve geocoded address from dao */
         GeocodedAddress geocodedAddress = this.yahooDao.getGeocodedAddress(address);
 
         /** Validate and set result */
-        if (!GeocodeServiceValidator.validateGeocodeResult(geocodedAddress, geocodeResult)) {
+        if (!GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
             logger.warn("Failed to geocode " + address.toString() + " using Yahoo Free!");
         }
+
         return geocodeResult;
     }
 
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        logger.debug("Performing batch geocoding using Yahoo Free");
+        logger.trace("Performing batch geocoding using Yahoo Free");
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
 
         /** Retrieve geocoded addresses from dao */
         List<GeocodedAddress> geocodedAddresses = this.yahooDao.getGeocodedAddresses(addresses);
 
         /** Validate batch */
-        if (!GeocodeServiceValidator.validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults,
-                geocodedAddresses)){
+        if (!GeocodeServiceValidator.validateBatchGeocodeResult(
+                this.getClass(), addresses, geocodeResults, geocodedAddresses, true)){
             logger.warn("Yahoo batch result is inconsistent with input addresses.");
         }
 
@@ -82,7 +89,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
 
         /** Validate and set response */
         if (!RevGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {
-            logger.warn("Reverse geocode failed for point " + point + " using Yahoo Free");
+            logger.debug("Reverse geocode failed for point " + point + " using Yahoo Free");
         }
         return geocodeResult;
     }

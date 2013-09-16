@@ -59,7 +59,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
 
             GeocodedAddress geocodedAddress = new GeocodedAddress(convertedAddress, geocode);
 
-            if (!GeocodeServiceValidator.validateGeocodeResult(geocodedAddress, geocodeResult)) {
+            if (!GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, false)) {
                 logger.debug("Failed to geocode " + address.toString() + " using Tiger!");
             }
         }

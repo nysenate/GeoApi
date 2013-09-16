@@ -7,7 +7,7 @@ import org.supercsv.prefs.CsvPreference;
 
 import java.io.*;
 
-public class JobFileUtil
+public abstract class JobFileUtil
 {
     private static Logger logger = Logger.getLogger(JobFileUtil.class);
 

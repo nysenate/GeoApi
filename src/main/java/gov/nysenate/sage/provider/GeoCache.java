@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeCacheService;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.log4j.Logger;
 
@@ -64,8 +65,10 @@ public class GeoCache implements GeocodeCacheService
         StreetAddress sa = StreetAddressParser.parseAddress(address);
         GeocodedStreetAddress geocodedStreetAddress = geoCacheDao.getCacheHit(sa);
 
+        FormatUtil.printObject(geocodedStreetAddress);
+
         /** Validate and return */
-        if (!validateGeocodeResult(geocodedStreetAddress, geocodeResult)) {
+        if (!validateGeocodeResult(this.getClass(), geocodedStreetAddress, geocodeResult, false)) {
             logger.trace("Failed to find cache hit for " + address.toString());
         }
         return geocodeResult;

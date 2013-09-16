@@ -20,7 +20,7 @@ import java.util.HashMap;
 /**
  * Utility class for performing JSON object serialization/de-serialization and mapping.
 */
-public class FormatUtil {
+public abstract class FormatUtil {
 
     protected static Logger logger = Logger.getLogger(FormatUtil.class);
     protected static ObjectMapper mapper = new ObjectMapper();
