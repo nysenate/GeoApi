@@ -107,6 +107,7 @@ public class ApplicationFactory
         try {
             factoryInstance.baseDB.getDataSource().close();
             factoryInstance.tigerDB.getDataSource().close();
+            return true;
         }
         catch (Exception ex) {
             logger.error("Failed to close data connections!", ex);
