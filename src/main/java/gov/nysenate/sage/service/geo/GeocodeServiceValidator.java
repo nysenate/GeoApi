@@ -1,15 +1,18 @@
 package gov.nysenate.sage.service.geo;
 
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
@@ -19,13 +22,25 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public abstract class GeocodeServiceValidator
 {
     private static final Logger logger = Logger.getLogger(GeocodeServiceValidator.class);
+    private static Config config = ApplicationFactory.getConfig();
 
     /** Keep track of GeocodeService implementations that are temporarily unavailable. */
-    private static Map<Class<? extends GeocodeService>, Timestamp> frozenGeocoders = new HashMap<>();
-    private static Map<Class<? extends GeocodeService>, Integer> failedRequests = new HashMap<>();
+    private static Map<Class<? extends GeocodeService>, Timestamp> frozenGeocoders = new ConcurrentHashMap<>();
+    private static Map<Class<? extends GeocodeService>, Integer> failedRequests = new ConcurrentHashMap<>();
     private static Integer FAILURE_THRESHOLD = 20;
     private static Integer RETRY_INTERVAL_SECS = 300;
 
+    static {
+        FAILURE_THRESHOLD = Integer.parseInt(config.getValue("geocoder.failure.threshold", "20"));
+        RETRY_INTERVAL_SECS = Integer.parseInt(config.getValue("geocoder.retry.interval", "300"));
+    }
+
+    /**
+     * Determine if geocode service is active by checking if it's been blocked due to failed requests.
+     * @param geocodeService GeocodeService to check
+     * @param geocodeResult GeocodeResult to set the result status if the service is in fact disabled.
+     * @return True if geocodeService is active, false otherwise.
+     */
     public static boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, GeocodeResult geocodeResult)
     {
         if (geocodeService != null) {
@@ -39,6 +54,7 @@ public abstract class GeocodeServiceValidator
                 /** If the geocoder's freeze time has expired, remove it from the disabled list */
                 if (freezeTime.compareTo(refreshTimestamp) < 0) {
                     frozenGeocoders.remove(geocodeService);
+                    failedRequests.remove(geocodeService);
                     return true;
                 }
 
@@ -54,26 +70,49 @@ public abstract class GeocodeServiceValidator
                 return true;
             }
         }
-        else {
-            return false;
-        }
+        return false;
     }
 
     /**
-     *
+     * Determine if geocode service is active by checking if it's been blocked due to failed requests.
+     * This method should be called prior to geocoding a batch set of addresses.
+     * @param geocodeService GeocodeService to check
+     * @param geocodeResultList GeocodeResult to set the result status if the service is in fact disabled.
+     * @param inputSize The number of failed results to set in geocodeResultList if service is not active.
+     * @return True if geocodeService is active, false otherwise.
+     */
+    public static boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, List<GeocodeResult> geocodeResultList, int inputSize)
+    {
+        /** If the geocode service is not active, populate the geocodeResults list with results indicating the
+         * disabled geocoder status. */
+        GeocodeResult result = new GeocodeResult(geocodeService);
+        if (!isGeocodeServiceActive(geocodeService, result)) {
+            geocodeResultList.clear();
+            for (int i = 0; i < inputSize; i++) {
+                geocodeResultList.add(new GeocodeResult(geocodeService, result.getStatusCode()));
+            }
+            return false;
+        }
+        /** Otherwise the geocode service is active. */
+        return true;
+    }
+
+    /**
+     * Will remove the geocoder from it's frozen state.
      * @param geocodeService GeocodeService that returned the successful result.
      */
-    public static void recordSuccessResult(Class<? extends GeocodeService> geocodeService)
+    public static void removeGeocoderBlock(Class<? extends GeocodeService> geocodeService)
     {
         failedRequests.remove(geocodeService);
         frozenGeocoders.remove(geocodeService);
     }
 
     /**
-     *
+     * If the number of consecutive failed results equals FAILURE_THRESHOLD, add the geocode service
+     * to the frozen list, thus making it temporarily disabled.
      * @param geocodeService GeocodeService that returned the failed result.
      */
-    public static void recordFailedResult(Class<? extends GeocodeService> geocodeService)
+    public synchronized static void recordFailedResult(Class<? extends GeocodeService> geocodeService)
     {
         if (geocodeService != null) {
             int failedCount = 0;
@@ -82,10 +121,10 @@ public abstract class GeocodeServiceValidator
             }
             failedRequests.put(geocodeService, ++failedCount);
 
-            /** If the failure count reaches the threshold, freeze the geocoder. */
-            if (failedCount >= FAILURE_THRESHOLD) {
+            /** If the failure count reaches the threshold, freeze the geocoder if not already. */
+            if (failedCount >= FAILURE_THRESHOLD && !frozenGeocoders.containsKey(geocodeService)) {
                 frozenGeocoders.put(geocodeService, TimeUtil.currentTimestamp());
-                logger.info("Freezing " + geocodeService.getSimpleName() + " due to consecutive failures.");
+                logger.info("Temporarily blocking " + geocodeService.getSimpleName() + " for " + RETRY_INTERVAL_SECS + " secs due to consecutive failures.");
             }
         }
     }
@@ -127,15 +166,19 @@ public abstract class GeocodeServiceValidator
                 if (geocodedAddress.getGeocode() != null) {
                     logger.trace("Geocode Response: " + FormatUtil.toJsonString(geocodedAddress.getGeocode()));
                 }
-                recordFailedResult(source);
+                if (freeze) {
+                    recordFailedResult(source);
+                }
                 return false;
             }
             geocodeResult.setStatusCode(SUCCESS);
-            recordSuccessResult(source);
+            removeGeocoderBlock(source);
             return true;
         }
         geocodeResult.setStatusCode(RESPONSE_PARSE_ERROR);
-        recordFailedResult(source);
+        if (freeze) {
+            recordFailedResult(source);
+        }
         return false;
     }
 
@@ -161,7 +204,8 @@ public abstract class GeocodeServiceValidator
     }
 
     /**
-     *
+     * Perform validation on a list of GeocodedAddresses. The entire batch is considered one request so
+     * if freeze is true, a single failed attempt will be recorded if no successful results exist.
      * @param source GeocodeService implementation that provided the results.
      * @param addresses List of input addresses to check results against.
      * @param geocodeResults List of GeocodeResults to store results in.
@@ -173,6 +217,8 @@ public abstract class GeocodeServiceValidator
     public static boolean validateBatchGeocodeResult(Class<? extends GeocodeService> source, ArrayList<Address> addresses, ArrayList<GeocodeResult> geocodeResults,
                                                       List<GeocodedAddress> geocodedAddresses, Boolean freeze)
     {
+        boolean hasValidResult = false;
+
         /** Make sure the result array is empty at first */
         geocodeResults.clear();
 
@@ -180,10 +226,11 @@ public abstract class GeocodeServiceValidator
         if (geocodedAddresses != null && geocodedAddresses.size() == addresses.size()) {
             for (GeocodedAddress geocodedAddress : geocodedAddresses) {
                 GeocodeResult geocodeResult = new GeocodeResult(source);
-                validateGeocodeResult(source, geocodedAddress, geocodeResult, freeze);
+                if (validateGeocodeResult(source, geocodedAddress, geocodeResult, false)) {
+                    hasValidResult = true;
+                }
                 geocodeResults.add(geocodeResult);
             }
-            return true;
         }
         /** If the batch is invalid, return a collection of invalidated geocode results. */
         else {
@@ -192,6 +239,13 @@ public abstract class GeocodeServiceValidator
                 geocodeResults.add(new GeocodeResult(source, NO_GEOCODE_RESULT, new GeocodedAddress(a)));
             }
         }
-        return false;
+
+        if (hasValidResult) {
+            removeGeocoderBlock(source);
+        }
+        else if (freeze) {
+            recordFailedResult(source);
+        }
+        return hasValidResult;
     }
 }

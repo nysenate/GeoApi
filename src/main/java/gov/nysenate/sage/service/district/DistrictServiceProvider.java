@@ -397,53 +397,56 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                             String shapeCode = shapeInfo.getDistCode(assignedType);
                             String streetCode = streetInfo.getDistCode(assignedType);
 
-                            /** If the street/shape files don't agree */
-                            if (fallbackSet.contains(assignedType) && !shapeCode.equalsIgnoreCase(streetCode)) {
+                            /** If the street file set assigned the district */
+                            if (fallbackSet.contains(assignedType)) {
+                                /** If the street/shape files don't agree */
+                                if (!shapeCode.equalsIgnoreCase(streetCode)) {
 
-                                /** Use neighbor matching only on the allowed districts (for performance) */
-                                if (allowNeighborAssignSet.contains(assignedType)) {
-                                    /** Check the neighbor districts to see if one of them is the district found in the street result */
-                                    List<DistrictMap> neighborMaps = shapeInfo.getNeighborMaps(assignedType);
-                                    DistrictMap neighborMap = getNeighborMapByCode(neighborMaps, streetCode);
+                                    /** Use neighbor matching only on the allowed districts (for performance) */
+                                    if (allowNeighborAssignSet.contains(assignedType)) {
+                                        /** Check the neighbor districts to see if one of them is the district found in the street result */
+                                        List<DistrictMap> neighborMaps = shapeInfo.getNeighborMaps(assignedType);
+                                        DistrictMap neighborMap = getNeighborMapByCode(neighborMaps, streetCode);
 
-                                    /** If there is a match in the neighboring districts, set the neighbor district as the actual one */
-                                    if (neighborMap != null) {
-                                        logger.debug("Consolidating " + assignedType + " district from " + shapeCode + " to " + streetCode + " for " + address);
+                                        /** If there is a match in the neighboring districts, set the neighbor district as the actual one */
+                                        if (neighborMap != null) {
+                                            logger.debug("Consolidating " + assignedType + " district from " + shapeCode + " to " + streetCode + " for " + address);
 
-                                        /** Preserve the original result as it will become the neighbor district */
-                                        DistrictMap original = new DistrictMap();
-                                        original.setDistrictType(assignedType);
-                                        original.setDistrictCode(shapeInfo.getDistCode(assignedType));
-                                        original.setDistrictName(shapeInfo.getDistName(assignedType));
+                                            /** Preserve the original result as it will become the neighbor district */
+                                            DistrictMap original = new DistrictMap();
+                                            original.setDistrictType(assignedType);
+                                            original.setDistrictCode(shapeInfo.getDistCode(assignedType));
+                                            original.setDistrictName(shapeInfo.getDistName(assignedType));
 
-                                        /** Apply the new info */
-                                        shapeInfo.setDistCode(assignedType, neighborMap.getDistrictCode());
-                                        shapeInfo.setDistName(assignedType, neighborMap.getDistrictName());
+                                            /** Apply the new info */
+                                            shapeInfo.setDistCode(assignedType, neighborMap.getDistrictCode());
+                                            shapeInfo.setDistName(assignedType, neighborMap.getDistrictName());
 
-                                        /** Replace the neighbor */
-                                        int index = shapeInfo.getNeighborMaps(assignedType).indexOf(neighborMap);
-                                        shapeInfo.getNeighborMaps(assignedType).remove(index);
-                                        if (shapeInfo.getNeighborMaps(assignedType).isEmpty()) {
-                                            shapeInfo.getNeighborMaps(assignedType).add(original);
+                                            /** Replace the neighbor */
+                                            int index = shapeInfo.getNeighborMaps(assignedType).indexOf(neighborMap);
+                                            shapeInfo.getNeighborMaps(assignedType).remove(index);
+                                            if (shapeInfo.getNeighborMaps(assignedType).isEmpty()) {
+                                                shapeInfo.getNeighborMaps(assignedType).add(original);
+                                            }
+                                            else {
+                                                shapeInfo.getNeighborMaps(assignedType).set(0, original);
+                                            }
                                         }
+                                        /** Otherwise there was a mismatch between the street and shape files that should be investigated.
+                                         *  TODO: Consider logging this better to allow for street file data corrections. */
                                         else {
-                                            shapeInfo.getNeighborMaps(assignedType).set(0, original);
+                                            logger.warn("Shapefile/Streetfile mismatch for district " + assignedType + " for address " + address);
                                         }
                                     }
-                                    /** Otherwise there was a mismatch between the street and shape files that should be investigated.
-                                     *  TODO: Consider logging this better. */
+                                    /** Since neighbor matching is not allowed for this district, just assume street file is correct */
                                     else {
-                                        logger.warn("Shapefile/Streetfile mismatch for district " + assignedType + " for address " + address);
+                                        /** Apply the street file data */
+                                        logger.debug("Replacing " + assignedType + " district from " + shapeCode + " to " + streetCode + " for " + address);
+                                        replaceShapeWithStreet(assignedType, shapeInfo, streetInfo);
                                     }
-                                }
-                                /** Since neighbor matching is not allowed for this district, just assume street file is correct */
-                                else {
-                                    /** Apply the street file data */
-                                    logger.debug("Replacing " + assignedType + " district from " + shapeCode + " to " + streetCode + " for " + address);
-                                    replaceShapeWithStreet(assignedType, shapeInfo, streetInfo);
                                 }
                             }
-                            /** No comparison available. */
+                            /** Otherwise no comparison available. */
                             else {
                                 logger.trace(assignedType + " district could not be verified for " + address);
                             }

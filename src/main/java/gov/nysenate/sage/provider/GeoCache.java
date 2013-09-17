@@ -65,8 +65,6 @@ public class GeoCache implements GeocodeCacheService
         StreetAddress sa = StreetAddressParser.parseAddress(address);
         GeocodedStreetAddress geocodedStreetAddress = geoCacheDao.getCacheHit(sa);
 
-        FormatUtil.printObject(geocodedStreetAddress);
-
         /** Validate and return */
         if (!validateGeocodeResult(this.getClass(), geocodedStreetAddress, geocodeResult, false)) {
             logger.trace("Failed to find cache hit for " + address.toString());

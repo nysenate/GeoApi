@@ -29,6 +29,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
         logger.trace("Performing geocoding using Yahoo Free");
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
+        /** Ensure that the geocoder is active, otherwise return error result. */
         if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
             return geocodeResult;
         }
@@ -54,6 +55,11 @@ public class Yahoo implements GeocodeService, RevGeocodeService
     {
         logger.trace("Performing batch geocoding using Yahoo Free");
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
+
+        /** Ensure that the geocoder is active, otherwise return list of error results. */
+        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResults, addresses.size())) {
+            return geocodeResults;
+        }
 
         /** Retrieve geocoded addresses from dao */
         List<GeocodedAddress> geocodedAddresses = this.yahooDao.getGeocodedAddresses(addresses);

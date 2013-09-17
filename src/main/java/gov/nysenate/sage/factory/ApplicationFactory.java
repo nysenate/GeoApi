@@ -18,8 +18,12 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
 
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Enumeration;
 
 /**
  * ApplicationFactory is responsible for instantiating all single-instance objects that are utilized
@@ -93,9 +97,16 @@ public class ApplicationFactory
     public static boolean close()
     {
         try {
+            factoryInstance.baseDB.getDataSource().purge();
+            factoryInstance.tigerDB.getDataSource().purge();
+        }
+        catch (Exception ex) {
+            logger.error("Failed to purge data connections!", ex);
+        }
+
+        try {
             factoryInstance.baseDB.getDataSource().close();
             factoryInstance.tigerDB.getDataSource().close();
-            return true;
         }
         catch (Exception ex) {
             logger.error("Failed to close data connections!", ex);

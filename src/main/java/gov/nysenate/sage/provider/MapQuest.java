@@ -8,10 +8,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressService;
-import gov.nysenate.sage.service.geo.GeocodeService;
-import gov.nysenate.sage.service.geo.ParallelRevGeocodeService;
-import gov.nysenate.sage.service.geo.RevGeocodeService;
-import gov.nysenate.sage.service.geo.RevGeocodeServiceValidator;
+import gov.nysenate.sage.service.geo.*;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 
@@ -78,8 +75,13 @@ public class MapQuest implements AddressService, GeocodeService, RevGeocodeServi
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        logger.debug("Performing geocoding using MapQuest");
+        logger.trace("Performing geocoding using MapQuest");
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
+
+        /** Ensure that the geocoder is active, otherwise return list of error results. */
+        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResults, addresses.size())) {
+            return geocodeResults;
+        }
 
         /** Retrieve geocoded addresses from dao */
         List<GeocodedAddress> geocodedAddresses = this.mapQuestDao.getGeocodedAddresses(addresses);
