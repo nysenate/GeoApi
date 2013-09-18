@@ -78,6 +78,32 @@
                         <div id="api-usage-stats"></div>
                     </div>
 
+                    <div ng-controller="JobStatusController" class="highlight-section fixed">
+                        <p class="blue-header">Batch Job Usage</p>
+                        <div>
+                            <table class="light-table">
+                                <tr>
+                                    <th>Job Id</th>
+                                    <th>Requestor</th>
+                                    <th>File Name</th>
+                                    <th>Record Count</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Condition</th>
+                                </tr>
+                                <tr ng-repeat="jobStatus in jobStatuses">
+                                    <td>{{jobStatus.processId}}</td>
+                                    <td>{{jobStatus.process.requestorEmail}}</td>
+                                    <td>{{jobStatus.process.sourceFileName}}</td>
+                                    <td>{{jobStatus.process.recordCount}}</td>
+                                    <td>{{jobStatus.startTime | date}}</td>
+                                    <td>{{jobStatus.completeTime | date}}</td>
+                                    <td>{{jobStatus.condition}}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
                     <div ng-controller="ApiUserStatsController" class="highlight-section fixed">
                         <p class="blue-header">Api User Request Stats</p>
                         <hr/>
@@ -145,10 +171,8 @@
                         </table>
                     </div>
 
-                    <div class="highlight-section fixed">
-
-                    </div>
-
+                    <br/>
+                    <br/>
                 </div>
 
                 <div ng-controller="UserConsoleController" ng-show="visible">
@@ -226,7 +250,6 @@
                             </form>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

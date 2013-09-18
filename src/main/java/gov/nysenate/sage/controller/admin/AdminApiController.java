@@ -1,6 +1,7 @@
 package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.client.response.base.GenericResponse;
+import gov.nysenate.sage.client.view.job.JobProcessStatusView;
 import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.dao.model.ApiUserDao;
 import gov.nysenate.sage.dao.model.JobProcessDao;
@@ -20,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -329,12 +331,18 @@ public class AdminApiController extends BaseAdminController
      *                                                     'to' (End timestamp value for job requestTime)
      * @return List<JobProcessStatus>
      */
-    private List<JobProcessStatus> getJobProcessStatusList(HttpServletRequest request)
+    private List<JobProcessStatusView> getJobProcessStatusList(HttpServletRequest request)
     {
+        List<JobProcessStatus> statuses = new ArrayList<>();
+        List<JobProcessStatusView> statusViews = new ArrayList<>();
         JobProcessDao jpd = new JobProcessDao();
         Timestamp from = getBeginTimestamp(request);
         Timestamp to = getEndTimestamp(request);
-        return jpd.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), null, from, to);
+        statuses = jpd.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), null, from, to);
+        for (JobProcessStatus jobProcessStatus : statuses) {
+            statusViews.add(new JobProcessStatusView(jobProcessStatus));
+        }
+        return statusViews;
     }
 
     private Map<Integer, ApiUserStats> getApiUserStats(HttpServletRequest request)

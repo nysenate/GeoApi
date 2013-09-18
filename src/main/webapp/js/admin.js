@@ -171,6 +171,32 @@ sageAdmin.controller('ApiUserStatsController', function($scope, $http, dataBus) 
     $scope.init();
 });
 
+sageAdmin.controller('JobStatusController', function($scope, $http, dataBus){
+    $scope.jobStatuses = [];
+
+    $scope.init = function() {
+        this.getJobStatuses();
+    };
+
+    $scope.getJobStatuses = function() {
+        $http.get(baseAdminApi + "/jobStatuses?from=" + (+$scope.from) + "&to=" + (+$scope.to))
+            .success(function(data){
+                if (data) {
+                    $scope.jobStatuses = data;
+                }
+            })
+            .error(function(){
+                console.log("Failed to retrieve job statuses!")
+            });
+    };
+
+    $scope.$on("update", function() {
+        $scope.init();
+    });
+
+    $scope.init();
+});
+
 sageAdmin.controller("GeocodeUsageController", function($scope, $http, dataBus){
 
     $scope.init = function() {
