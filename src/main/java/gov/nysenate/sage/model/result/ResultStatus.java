@@ -11,6 +11,7 @@ public enum ResultStatus
     GEOCODE_PROVIDER_NOT_SUPPORTED(5, "The requested geocoding provider is unsupported."),
     DISTRICT_PROVIDER_NOT_SUPPORTED(6, "The requested district assignment provider is unsupported."),
     GEOCODE_PROVIDER_TEMP_DISABLED(7, "The geocode provider is temporarily disabled."),
+    GEOCODE_PROVIDER_DISABLED(8, "The geocode provider is disabled."),
 
     API_KEY_INVALID(10, "The supplied API key could not be authenticated."),
     API_KEY_MISSING(11, "An API key is required."),

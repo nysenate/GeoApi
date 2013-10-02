@@ -7,7 +7,9 @@ import gov.nysenate.sage.provider.*;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.address.CityZipServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
+import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
@@ -18,12 +20,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
 
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
+import java.util.*;
 
 /**
  * ApplicationFactory is responsible for instantiating all single-instance objects that are utilized
@@ -135,43 +132,70 @@ public class ApplicationFactory
             this.baseDB = new DB(this.config, "db");
             this.tigerDB = new DB(this.config, "tiger.db");
 
-            /** Setup service providers */
+            /** Setup address service providers. */
             addressServiceProvider = new AddressServiceProvider();
             addressServiceProvider.registerDefaultProvider("usps", USPS.class);
             addressServiceProvider.registerProvider("mapquest", MapQuest.class);
             addressServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest"));
 
+            /** Setup geocode service providers. There are more options here so it's different
+             *  from the way other service providers are set up. */
+            Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
+            geoProviders.put("yahoo", Yahoo.class);
+            geoProviders.put("tiger", TigerGeocoder.class);
+            geoProviders.put("mapquest", MapQuest.class);
+            geoProviders.put("yahooboss", YahooBoss.class);
+            geoProviders.put("osm", OSM.class);
+            geoProviders.put("ruby", RubyGeocoder.class);
+
+            /** Register the providers mapped above. */
             geocodeServiceProvider = new GeocodeServiceProvider();
-            geocodeServiceProvider.registerDefaultProvider("yahoo", Yahoo.class);
-            geocodeServiceProvider.registerProvider("tiger", TigerGeocoder.class);
-            geocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
-            geocodeServiceProvider.registerProvider("yahooboss", YahooBoss.class);
-            geocodeServiceProvider.registerProvider("osm", OSM.class);
-            geocodeServiceProvider.registerProvider("ruby", RubyGeocoder.class);
-            geocodeServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest", "tiger"));
+            for (String key : geoProviders.keySet()) {
+                geocodeServiceProvider.registerProvider(key, geoProviders.get(key));
+            }
 
-            geocodeServiceProvider.registerProviderAsCacheable("yahoo");
-            geocodeServiceProvider.registerProviderAsCacheable("yahooboss");
-            geocodeServiceProvider.registerProviderAsCacheable("mapquest");
+            List<String> activeList = this.config.getList("geocoder.active", Arrays.asList("yahoo", "mapquest", "tiger"));
+            for (String provider : activeList) {
+                GeocodeServiceValidator.setGeocoderAsActive(geoProviders.get(provider));
+            }
 
+            List<String> geocoderRankList = this.config.getList("geocoder.rank", Arrays.asList("yahoo", "mapquest", "tiger"));
+            if (!geocoderRankList.isEmpty()) {
+                /** Set the first geocoder as the default. */
+                geocodeServiceProvider.setDefaultProvider(geocoderRankList.get(0));
+                /** Set the fallback chain in the order of the ranking. */
+                geocodeServiceProvider.setProviderFallbackChain(geocoderRankList);
+            }
+
+            /** Designate which geocoders are allowed to cache. */
+            List<String> cacheableProviderList = this.config.getList("geocoder.cacheable", Arrays.asList("yahoo", "mapquest", "yahooboss"));
+            for (String provider : cacheableProviderList) {
+                geocodeServiceProvider.registerProviderAsCacheable(provider);
+            }
+
+            /** Setup reverse geocode service providers. */
             revGeocodeServiceProvider = new RevGeocodeServiceProvider();
             revGeocodeServiceProvider.registerDefaultProvider("yahoo", Yahoo.class);
             revGeocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
             revGeocodeServiceProvider.registerProvider("tiger", TigerGeocoder.class);
-            revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest", "tiger"));
+            revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("tiger"));
 
+            /** Setup district lookup service providers. */
             districtServiceProvider = new DistrictServiceProvider();
             districtServiceProvider.registerDefaultProvider("shapefile", DistrictShapefile.class);
             districtServiceProvider.registerProvider("streetfile", StreetFile.class);
             districtServiceProvider.registerProvider("geoserver", Geoserver.class);
             districtServiceProvider.setProviderFallbackChain(Arrays.asList("streetfile"));
 
+            /** Setup map data service providers. */
             mapServiceProvider = new MapServiceProvider();
             mapServiceProvider.registerDefaultProvider("shapefile", DistrictShapefile.class);
 
+            /** Setup street data service providers. */
             streetLookupServiceProvider = new StreetLookupServiceProvider();
             streetLookupServiceProvider.registerDefaultProvider("streetfile", StreetFile.class);
 
+            /** Setup city/zip data service providers. */
             cityZipServiceProvider = new CityZipServiceProvider();
             cityZipServiceProvider.registerDefaultProvider("cityZipDB", CityZipDB.class);
 

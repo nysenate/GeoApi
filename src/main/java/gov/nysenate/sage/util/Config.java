@@ -7,6 +7,9 @@ import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.log4j.Logger;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Observer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -84,6 +87,30 @@ public class Config
     {
         String value = this.getValue(key);
         return (!value.isEmpty()) ? value : defaultValue;
+    }
+
+    /**
+     * Reads property file and returns a list of values for a given key.
+     *
+     * @param key - Property key to look up the value for.
+     * @return List<String>
+     */
+    public List<String> getList(String key)
+    {
+        return getList(key, new ArrayList<String>());
+    }
+
+    /**
+     * Reads property file and returns a list of values for a given key
+     * or the default value list if empty.
+     * @param key           - Property key to look up the value for.
+     * @param defaultValues - Default array to return if list is empty.
+     * @return  List<String>
+     */
+    public List<String> getList(String key, List<String> defaultValues)
+    {
+        List<String> values = Arrays.asList(this.config.getStringArray(key));
+        return (!values.isEmpty()) ? values : defaultValues;
     }
 
     /**

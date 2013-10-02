@@ -55,9 +55,16 @@ public class MapQuest implements AddressService, GeocodeService, RevGeocodeServi
     @Override
     public GeocodeResult geocode(Address address)
     {
-        GeocodeResult geocodeResult;
+        GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
+
+        /** Proceed only on valid input. */
+        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
+            return geocodeResult;
+        }
+
+        /** Delegate to the batch method. */
         ArrayList<GeocodeResult> results = geocode(new ArrayList<>(Arrays.asList(address)));
-        if (results != null && results.size() > 0){
+        if (results != null && results.size() > 0) {
             geocodeResult = results.get(0);
         }
         else {

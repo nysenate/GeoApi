@@ -136,9 +136,14 @@ public class DistrictController extends BaseApiController implements Observer
         districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
         districtRequest.setDistrictStrategy(districtStrategy);
 
-        logger.info("--------------------------------------");
-        logger.info(String.format("District Request | Mode: %s", apiRequest.getRequest()));
-        logger.info("--------------------------------------");
+        logger.info("=======================================================");
+        logger.info(String.format("| District Request %d | Mode: %s | IP: %s",
+                   apiRequest.getId(), apiRequest.getRequest(), apiRequest.getIpAddress()));
+        if (!apiRequest.isBatch()) {
+            logger.info("-------------------------------------------------------");
+            logger.info("| Input Address: " + districtRequest.getAddress());
+        }
+        logger.info("=======================================================");
 
         /**
          * If providers are specified then make sure they match the available providers. Send an

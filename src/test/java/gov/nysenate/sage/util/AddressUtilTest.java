@@ -16,8 +16,6 @@ public class AddressUtilTest
     @Test
     public void addPunctuationTest()
     {
-        Address a = new Address("43 Fairlawn Ave", "Smithtown", "NY", "12108");
-        logger.debug(FormatUtil.printObject(AddressUtil.addPunctuation(a)));
 
     }
 }

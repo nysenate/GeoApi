@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.log4j.Logger;
@@ -48,12 +49,19 @@ public class RubyGeocoder implements GeocodeService
     @Override
     public GeocodeResult geocode(Address address)
     {
-        if (address == null) {
-            return null;
-        }
-
         String url;
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
+
+        /** Ensure that the geocoder is active, otherwise return error result. */
+        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+            return geocodeResult;
+        }
+
+        /** Proceed if valid address */
+        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
+            return geocodeResult;
+        }
+
         if (address.isParsed()) {
             url = m_baseUrl+"?street="+address.getAddr1()+"&city="+address.getCity()+"&state="+address.getState()+"&zip="+address.getZip5();
         }

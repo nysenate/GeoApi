@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.*;
+import gov.nysenate.sage.util.TimeUtil;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -42,6 +43,11 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
         logger.debug("Performing geocoding using TigerGeocoder for address " + address.toString());
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
+        /** Ensure that the geocoder is active, otherwise return error result. */
+        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+            return geocodeResult;
+        }
+
         /** Proceed if valid address */
         if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
             return geocodeResult;
@@ -52,19 +58,16 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
 
         if (gsa != null) {
             Geocode geocode = gsa.getGeocode();
-
             StreetAddress streetAddress = gsa.getStreetAddress();
             Address convertedAddress = streetAddress.toAddress();
             geocode.setQuality(resolveGeocodeQuality(address, gsa));
-
             GeocodedAddress geocodedAddress = new GeocodedAddress(convertedAddress, geocode);
 
-            if (!GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, false)) {
-                logger.debug("Failed to geocode " + address.toString() + " using Tiger!");
-            }
+            GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, false);
         }
         else {
             geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
+            geocodeResult.setResultTime(TimeUtil.currentTimestamp());
         }
 
         return geocodeResult;

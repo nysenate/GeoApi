@@ -35,8 +35,13 @@ public class YahooBoss implements GeocodeService
         logger.debug("Performing geocoding using Yahoo Boss");
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
-        /** Proceed only on valid input */
-        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
+        /** Ensure that the geocoder is active, otherwise return error result. */
+        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+            return geocodeResult;
+        }
+
+        /** Proceed if valid address */
+        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
             return geocodeResult;
         }
 

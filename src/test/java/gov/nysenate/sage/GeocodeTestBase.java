@@ -79,7 +79,7 @@ public abstract class GeocodeTestBase
                 new Address("2012 E Rivr Road", "", "Olean", "NY", "14760", ""),
                 new Address("44 Fairlawn Ave", "Apt 2B", "Albany", "NY", "12203", ""),
                 new Address("18 Greenhaven Dr", "" ,"Port Jefferson Station", "NY", "11776", ""),
-                new Address("479 Deer Park AVE","", "Babylon", "NY", "11702", "")));
+                new Address("100 Nyroy Dr","", "", "", "", "")));
 
         ArrayList<Geocode> expectedGeocode = new ArrayList<>(Arrays.asList(
                 new Geocode(new Point(42.7352408, -73.6828174), null, null),

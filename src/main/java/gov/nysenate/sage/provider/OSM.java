@@ -9,9 +9,13 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.TimeUtil;
+import gov.nysenate.sage.util.UrlRequest;
 import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
 import org.apache.log4j.Logger;
@@ -56,25 +60,31 @@ public class OSM implements GeocodeService, Observer
     @Override
     public GeocodeResult geocode(Address address)
     {
-        if (address == null || address.isEmpty()) {
-            return null;
+        GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
+
+        /** Ensure that the geocoder is active, otherwise return error result. */
+        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+            return geocodeResult;
         }
 
-        GeocodeResult geocodeResult = new GeocodeResult();
+        /** Proceed only on valid input */
+        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
+            return geocodeResult;
+        }
 
         try {
             String url = baseUrl +"?format=json&q=" + URLEncoder.encode(address.toString(), "UTF-8")
                     + "&addressdetails=1&limit=3&viewbox=-1.99%2C52.02%2C0.78%2C50.94";
             logger.debug(url);
 
-            Content content = Request.Get(url).execute().returnContent();
-            String json = content.asString();
-            logger.debug(content.asString());
+            String json = UrlRequest.getResponseFromUrl(url);
+            logger.debug(json);
 
             /** TODO add proper status error code */
             if (json == null || json.isEmpty() || json.equals("[]")) {
                 logger.debug("No response from OSM");
-                return null;
+                geocodeResult.setStatusCode(ResultStatus.RESPONSE_ERROR);
+                return geocodeResult;
             }
 
             /** Parse the response from the first object in the json array */
@@ -101,23 +111,23 @@ public class OSM implements GeocodeService, Observer
 
                 Address resultAddress = new Address(addr1, city, state, postal);
                 Geocode geocode = new Geocode(new Point(lat,lon), GeocodeQuality.UNKNOWN, this.getClass().getSimpleName());
-                geocodeResult.setGeocodedAddress(new GeocodedAddress(resultAddress, geocode));
-            }
-            else {
-                geocodeResult.addMessage("Failed to retrieve a geocoded address from the response");
-            }
-            return geocodeResult;
-        }
+                GeocodedAddress geocodedAddress = new GeocodedAddress(resultAddress, geocode);
 
+                if (!GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
+                    logger.debug("Failed to geocode using OSM!");
+                }
+                else {
+                    return geocodeResult;
+                }
+            }
+        }
         catch (UnsupportedEncodingException e) {
             String msg = "UTF-8 encoding not supported!?";
             logger.error(msg);
-
         }
         catch (MalformedURLException e) {
             String msg = "Malformed URL. Check api key and address values.";
             logger.error(msg, e);
-
         }
         catch (IOException e) {
             String msg = "Error opening API resource.";
@@ -130,7 +140,11 @@ public class OSM implements GeocodeService, Observer
         catch (Exception ex) {
             logger.error(ex.getMessage());
         }
-        return null;
+
+        geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
+        geocodeResult.setResultTime(TimeUtil.currentTimestamp());
+        geocodeResult.addMessage("Failed to retrieve a geocoded address from the response.");
+        return geocodeResult;
     }
 
     @Override

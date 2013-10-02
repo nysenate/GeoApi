@@ -121,9 +121,10 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      * @param provider          Provider to perform geocoding
      * @param fallbackProviders Sequence of providers to fallback to
      * @param useFallback       Set true to use default fallback
+     * @param useCache          Set true to attempt cache lookup first
      * @return                  GeocodeResult
      */
-    GeocodeResult geocode(Address address, String provider, LinkedList<String> fallbackProviders, boolean useFallback,
+    public GeocodeResult geocode(Address address, String provider, LinkedList<String> fallbackProviders, boolean useFallback,
                           boolean useCache)
     {
         /** Clone the list of fall back providers */
@@ -134,11 +135,15 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         GeocodeResult geocodeResult = (CACHE_ENABLED && useCache) ? this.geocodeCache.geocode(address)
                                                  : new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
         boolean cacheHit = CACHE_ENABLED && useCache && geocodeResult.isSuccess();
-        logger.debug((CACHE_ENABLED) ? "Cache hit: " + cacheHit : "Cache disabled");
+        logger.debug((CACHE_ENABLED && useCache) ? "Cache hit: " + cacheHit : "Cache disabled");
 
         if (!cacheHit) {
             /** Geocode using the supplied provider if valid */
             if (this.isRegistered(provider)) {
+                /** Remove the provider if it's set in the fallback chain */
+                if (fallback.contains(provider)) {
+                    fallback.remove(provider);
+                }
                 geocodeResult = this.newInstance(provider).geocode(address);
             }
             else {
@@ -204,6 +209,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      * @param addresses         List of addresses to geocode
      * @param provider          Provider to perform geocoding
      * @param useFallback       Set true to use default fallback
+     * @param useCache          Set true to attempt cache lookup first
      * @return                  List<GeocodeResult> corresponding to the addresses list.
      */
     public List<GeocodeResult> geocode(List<Address> addresses, String provider, boolean useFallback, boolean useCache)
@@ -217,6 +223,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      * @param provider          Provider to perform geocoding
      * @param fallbackProviders Sequence of providers to fallback to
      * @param useFallback       Set true to use fallback
+     * @param useCache          Set true to attempt cache lookup first
      * @return                  List<GeocodeResult> corresponding to the addresses list.
      */
     public List<GeocodeResult> geocode(List<Address> addresses, String provider,

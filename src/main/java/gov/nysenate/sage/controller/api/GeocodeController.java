@@ -94,9 +94,14 @@ public class GeocodeController extends BaseApiController implements Observer
             return;
         }
 
-        logger.info("--------------------------------------");
-        logger.info(String.format("Geocode Request | Mode: %s", apiRequest.getRequest()));
-        logger.info("--------------------------------------");
+        logger.info("=======================================================");
+        logger.info(String.format("| Geocode Request %d | Mode: %s | IP: %s",
+                apiRequest.getId(), apiRequest.getRequest(), apiRequest.getIpAddress()));
+        if (!apiRequest.isBatch()) {
+            logger.info("-------------------------------------------------------");
+            logger.info("| Input Address: " + geocodeRequest.getAddress());
+        }
+        logger.info("=======================================================");
 
         switch (apiRequest.getRequest()) {
             case "geocode":

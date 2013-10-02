@@ -18,12 +18,23 @@ public class ServiceProviders<T>
 
     /**
      * Registers the default service as an instance of the given provider.
-     * @param provider  The service implementation that should be default.
+     * @param provider  The provider that should be default.
      */
     public void registerDefaultProvider(String providerName, Class<? extends T> provider)
     {
         defaultProvider = providerName;
         providers.put(defaultProvider, provider);
+    }
+
+    /**
+     * If providerName has already been registered, set it as the default provider.
+     * @param providerName The provider that should be default
+     */
+    public void setDefaultProvider(String providerName)
+    {
+        if (providers.containsKey(providerName)) {
+            defaultProvider = providerName;
+        }
     }
 
     /**
@@ -36,6 +47,11 @@ public class ServiceProviders<T>
         providers.put(providerName.toLowerCase(), provider);
     }
 
+    /**
+     * Sets the default fallback chain which is an ordered list of providers to
+     * use upon failure.
+     * @param fallbackChain List of provider names
+     */
     public void setProviderFallbackChain(List<String> fallbackChain)
     {
         defaultFallback = new LinkedList<>(fallbackChain);
@@ -71,7 +87,7 @@ public class ServiceProviders<T>
             return newInstance(defaultProvider);
         }
         else {
-            logger.debug("Default address provider not registered!");
+            logger.warn("Default service provider not registered!");
             return null;
         }
     }

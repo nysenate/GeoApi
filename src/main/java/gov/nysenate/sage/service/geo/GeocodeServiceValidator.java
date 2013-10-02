@@ -25,6 +25,7 @@ public abstract class GeocodeServiceValidator
     private static Config config = ApplicationFactory.getConfig();
 
     /** Keep track of GeocodeService implementations that are temporarily unavailable. */
+    private static Set<Class<? extends GeocodeService>> activeGeocoders = new HashSet<>();
     private static Map<Class<? extends GeocodeService>, Timestamp> frozenGeocoders = new ConcurrentHashMap<>();
     private static Map<Class<? extends GeocodeService>, Integer> failedRequests = new ConcurrentHashMap<>();
     private static Integer FAILURE_THRESHOLD = 20;
@@ -36,6 +37,16 @@ public abstract class GeocodeServiceValidator
     }
 
     /**
+     * Designate the geocodeService class as an active geocoder. Note that an active geocoder may
+     * still be blocked if it fails to return valid responses over a period of time.
+     * @param geocodeService GeocodeService implementation class to mark as active.
+     */
+    public static void setGeocoderAsActive(Class<? extends GeocodeService> geocodeService)
+    {
+        activeGeocoders.add(geocodeService);
+    }
+
+    /**
      * Determine if geocode service is active by checking if it's been blocked due to failed requests.
      * @param geocodeService GeocodeService to check
      * @param geocodeResult GeocodeResult to set the result status if the service is in fact disabled.
@@ -43,8 +54,18 @@ public abstract class GeocodeServiceValidator
      */
     public static boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, GeocodeResult geocodeResult)
     {
+        if (geocodeResult == null) {
+            geocodeResult = new GeocodeResult(geocodeService);
+        }
+
         if (geocodeService != null) {
-            if (frozenGeocoders.containsKey(geocodeService)) {
+            if (!activeGeocoders.contains(geocodeService)) {
+                logger.debug(geocodeService.getSimpleName() + " is disabled by configuration.");
+                geocodeResult.setStatusCode(GEOCODE_PROVIDER_DISABLED);
+                geocodeResult.setResultTime(TimeUtil.currentTimestamp());
+                return false;
+            }
+            else if (frozenGeocoders.containsKey(geocodeService)) {
                 /** Check if the freeze time has elapsed */
                 Timestamp freezeTime = frozenGeocoders.get(geocodeService);
                 Calendar refreshTime = Calendar.getInstance();
@@ -58,18 +79,17 @@ public abstract class GeocodeServiceValidator
                     return true;
                 }
 
-                if (geocodeResult == null) {
-                    geocodeResult = new GeocodeResult(geocodeService);
-                }
                 geocodeResult.setStatusCode(GEOCODE_PROVIDER_TEMP_DISABLED);
                 geocodeResult.setResultTime(TimeUtil.currentTimestamp());
-                logger.debug(geocodeService.getSimpleName() + " is currently disabled.");
+                logger.debug(geocodeService.getSimpleName() + " is temporarily disabled.");
                 return false;
             }
             else {
                 return true;
             }
         }
+        geocodeResult.setStatusCode(PROVIDER_NOT_SUPPORTED);
+        geocodeResult.setResultTime(TimeUtil.currentTimestamp());
         return false;
     }
 

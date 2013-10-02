@@ -7,8 +7,7 @@ import gov.nysenate.sage.util.FormatUtil;
 import org.junit.Test;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -115,6 +114,5 @@ public class AddressTest
 
     @Test
     public void test() {
-        FormatUtil.printObject(Yahoo.class.equals(MapQuest.class));
     }
 }
