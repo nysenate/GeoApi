@@ -736,7 +736,7 @@ sage.controller('CityStateController', function($scope, $http, mapService, menuS
     };
 
     $scope.getCityStateUrl = function() {
-        return contextPath + baseApi + "/address/citystate?provider=mapquest&zip5=" + this.zip5;
+        return contextPath + baseApi + "/address/citystate?zip5=" + this.zip5;
     };
 });
 
