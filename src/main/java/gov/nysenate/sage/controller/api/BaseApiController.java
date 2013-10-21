@@ -96,13 +96,13 @@ public abstract class BaseApiController extends HttpServlet
      *  [{"addr1":"", "addr2":"", "city":"", "state":"","zip5":"", "zip4":""} .. ]
      * </code>
      * @param json Json payload
-     * @return
+     * @return ArrayList<Address>
      */
     public static ArrayList<Address> getAddressesFromJsonBody(String json)
     {
         ArrayList<Address> addresses = new ArrayList<>();
         try {
-            logger.debug("Batch address json body " + json);
+            logger.debug("Batch address json body: " + json);
             ObjectMapper mapper = new ObjectMapper();
             return new ArrayList<>(Arrays.asList(mapper.readValue(json, Address[].class)));
         }

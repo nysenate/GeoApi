@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,9 +36,14 @@ public abstract class UrlRequest
     public static String getResponseFromUrl(String url) throws IOException
     {
         InputStream inputStream = getInputStreamFromUrl(url);
+        return getResponseFromInputStream(inputStream);
+    }
+
+    private static String getResponseFromInputStream(InputStream inputStream) throws IOException
+    {
         if (inputStream != null) {
             String response = IOUtils.toString(inputStream);
-            logger.debug("Retrieved string of length " + response.length());
+            logger.trace("Retrieved string of length " + response.length());
             logger.trace("Response: " + response);
             return response;
         }
@@ -66,7 +72,40 @@ public abstract class UrlRequest
         }
 
         InputStream inputStream = uc.getInputStream();
-        logger.debug("Retrieved input stream");
+        logger.trace("Retrieved input stream");
+        return inputStream;
+    }
+
+    public static String getResponseFromUrlUsingPOST(String url, String postBody) throws IOException
+    {
+        InputStream inputStream = getInputStreamFromUrlUsingPOST(url, postBody);
+        return getResponseFromInputStream(inputStream);
+    }
+
+    public static InputStream getInputStreamFromUrlUsingPOST(String url, String postBody) throws IOException
+    {
+        URL u = new URL(url);
+        logger.debug("Requesting connection to " + url.toString());
+        HttpURLConnection uc = (HttpURLConnection)u.openConnection();
+        uc.setRequestMethod("POST");
+        uc.setDoOutput(true);
+        uc.setRequestProperty("Content-Length", String.valueOf(postBody.length()));
+        uc.setRequestProperty("Content-Type", "text/javascript");
+        OutputStream os = uc.getOutputStream();
+        os.write(postBody.getBytes());
+        os.flush();
+        os.close();
+
+        int responseCode = uc.getResponseCode();
+        logger.debug("Connection replied with response code: " + responseCode);
+
+        if (responseCode >= 400) {
+            logger.error("Failed to get a successful response. Returning null input stream.");
+            return null;
+        }
+
+        InputStream inputStream = uc.getInputStream();
+        logger.trace("Retrieved input stream");
         return inputStream;
     }
 
@@ -79,11 +118,8 @@ public abstract class UrlRequest
     */
     public static String getResponseFromUrlUsingOauth(String url, String consumerKey, String consumerSecret) throws IOException
     {
-        InputStream is = getInputStreamFromUrlUsingOauth(url, consumerKey, consumerSecret);
-        if (is != null) {
-            return IOUtils.toString(is);
-        }
-        return null;
+        InputStream inputStream = getInputStreamFromUrlUsingOauth(url, consumerKey, consumerSecret);
+        return getResponseFromInputStream(inputStream);
     }
 
     /**

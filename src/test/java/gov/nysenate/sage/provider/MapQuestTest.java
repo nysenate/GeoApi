@@ -42,31 +42,6 @@ public class MapQuestTest extends TestBase
         assertNoResultReturnsNoGeocodeResultStatus(mapQuest);
     }
 
-    @Test
-    public void singleAddressValidate_ReturnsAddressResult() throws Exception
-    {
-        assertSingleAddressValidation(mapQuest);
-    }
-
-    @Test
-    public void multipleAddressValidate_ReturnsAddressResult() throws Exception
-    {
-        assertMultiAddressValidation(mapQuest);
-    }
-
-    @Test
-    public void badAddressValidate_ReturnsAddressResultError() throws Exception
-    {
-        assertMultiAddressValidation(mapQuest);
-    }
-
-    /** Not sure if necessary, simply proxies to validate */
-    @Test
-    public void testLookupCityState_ReturnsAddressResult() throws Exception
-    {
-        assertCityStateLookup(mapQuest);
-    }
-
     /** Not sure if necessary, simply proxies to validate */
     @Test
     public void testLookupZipCode() throws Exception {

@@ -582,7 +582,7 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
     $scope.showOptions = false;
     $scope.geoProvider = "default";
     $scope.provider = "default";
-    $scope.uspsValidate = "false";
+    $scope.uspsValidate = "true";
     $scope.showMaps = "true";
 
     mapService.makeAutocomplete($scope.inputId);
@@ -634,7 +634,6 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
      */
     $scope.getDistUrl = function () {
         var url = contextPath + baseApi + "/district/assign?addr=" + this.addr;
-        //url += (/\s(ny|new york)/i.test(this.addr)) ? "" : " NY"; (appends NY, not necessary)
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
         url += (this.uspsValidate != "false" && this.uspsValidate != "") ? "&uspsValidate=true" : "";

@@ -7,6 +7,7 @@ import gov.nysenate.sage.util.FormatUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -15,6 +16,18 @@ import static org.junit.Assert.*;
  */
 public abstract class AddressTestBase
 {
+    public static ArrayList<Address> addressList;
+    static {
+         addressList =  new ArrayList<>(Arrays.asList(
+                        new Address("71 14th Street", "", "Troy", "NY", "", ""),
+                        new Address("214 8th Street", "", "Troy", "NY", "12180", ""),
+                        new Address("101 East State Street", "", "Olean", "NY", "14760", ""),
+                        new Address("706 washington", "", "Olean", "NY", "14760", ""),
+                        new Address("2012 E Rivr Road", "", "Olean", "NY", "14760", ""),
+                        new Address("44 Fairlawn Ave", "Apt 2B", "Albany", "NY", "12203", ""),
+                        new Address("", "", "", "", "18542", "")));
+    }
+
     public static void assertSingleAddressValidation(AddressService addressService)
     {
         Address address = new Address("44 Fairlawn", "", "Albany", "ny", "12203", "");
@@ -31,16 +44,9 @@ public abstract class AddressTestBase
 
     public static void assertMultiAddressValidation(AddressService addressService)
     {
-        ArrayList<Address> addresses = new ArrayList<>(Arrays.asList(
-                new Address("71 14th Street", "", "Troy", "NY", "", ""),
-                new Address("214 8th Street", "", "Troy", "NY", "12180", ""),
-                new Address("101 East State Street", "", "Olean", "NY", "14760", ""),
-                new Address("706 washington", "", "Olean", "NY", "14760", ""),
-                new Address("2012 E Rivr Road", "", "Olean", "NY", "14760", ""),
-                new Address("44 Fairlawn Ave", "Apt 2B", "Albany", "NY", "12203", ""),
-                new Address("", "", "", "", "18542", "")));
+        List<Address> addresses = addressList;
 
-        ArrayList<AddressResult> addressResults = addressService.validate(addresses);
+        List<AddressResult> addressResults = addressService.validate(addresses);
         FormatUtil.printObject(addressResults);
 
         assertEquals(addressService.getClass().getSimpleName(), addressResults.get(0).getSource());
@@ -89,7 +95,7 @@ public abstract class AddressTestBase
                 new Address("44 Fairlawn Ave", "Apt 2B", "", "NY", "12203", "")
         ));
 
-        ArrayList<AddressResult> addressResults = addressService.lookupCityState(addresses);
+        List<AddressResult> addressResults = addressService.lookupCityState(addresses);
         assertEquals(6, addressResults.size());
         assertEquals(addressService.getClass().getSimpleName(), addressResults.get(0).getSource());
 

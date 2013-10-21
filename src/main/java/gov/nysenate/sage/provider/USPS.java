@@ -25,10 +25,7 @@ import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,8 +100,8 @@ public class USPS implements AddressService, Observer
     @Override
     public AddressResult validate(Address address)
     {
-        ArrayList<Address> addressList = new ArrayList<>(Arrays.asList(address));
-        ArrayList<AddressResult> resultList = validate(addressList);
+        List<Address> addressList = new ArrayList<>(Arrays.asList(address));
+        List<AddressResult> resultList = validate(addressList);
         if (resultList != null && !resultList.isEmpty()) {
             return resultList.get(0);
         }
@@ -117,7 +114,7 @@ public class USPS implements AddressService, Observer
      * @return ArrayList of AddressResult objects
      */
     @Override
-    public ArrayList<AddressResult> validate(ArrayList<Address> addresses)
+    public List<AddressResult> validate(List<Address> addresses)
     {
         /** Short circuit invalid input */
         if (addresses == null || addresses.size() == 0) return null;
@@ -263,8 +260,8 @@ public class USPS implements AddressService, Observer
     @Override
     public AddressResult lookupCityState(Address address)
     {
-        ArrayList<Address> addressList = new ArrayList<>(Arrays.asList(address));
-        ArrayList<AddressResult> resultList = lookupCityState(addressList);
+        List<Address> addressList = new ArrayList<>(Arrays.asList(address));
+        List<AddressResult> resultList = lookupCityState(addressList);
         if (resultList != null && !resultList.isEmpty()) {
             return resultList.get(0);
         }
@@ -273,7 +270,7 @@ public class USPS implements AddressService, Observer
 
 
     @Override
-    public ArrayList<AddressResult> lookupCityState(ArrayList<Address> addresses)
+    public List<AddressResult> lookupCityState(List<Address> addresses)
     {
         String url = "";
         Content page = null;
@@ -377,7 +374,7 @@ public class USPS implements AddressService, Observer
     /** ZipCode lookup for USPS has no advantage over address validation so just use the
      *  existing validation method to get the zipcode */
     @Override
-    public ArrayList<AddressResult> lookupZipCode(ArrayList<Address> addresses)
+    public List<AddressResult> lookupZipCode(List<Address> addresses)
     {
         return validate(addresses);
     }

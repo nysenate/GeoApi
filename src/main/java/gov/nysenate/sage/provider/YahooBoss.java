@@ -22,7 +22,6 @@ public class YahooBoss implements GeocodeService
     public YahooBoss()
     {
         this.yahooBossDao = new YahooBossDao();
-        logger.info("Initialized Yahoo Adapter");
     }
 
     /**

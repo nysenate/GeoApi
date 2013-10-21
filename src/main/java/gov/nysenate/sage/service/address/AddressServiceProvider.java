@@ -18,6 +18,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
     public AddressResult validate(Address address, String provider, Boolean usePunct)
     {
         AddressResult addressResult;
+
         /** Perform null check */
         if (address == null) {
             return new AddressResult(this.getClass(), ResultStatus.MISSING_ADDRESS);
@@ -35,10 +36,11 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
         else if (address.isEligibleForUSPS()) {
             addressResult = this.newInstance("usps").validate(address);
         }
-        /** Otherwise fallback to mapquest */
+        /** Otherwise address is insufficient */
         else {
-            addressResult = this.newInstance("mapquest").validate(address);
+            addressResult = new AddressResult(this.getClass(), ResultStatus.INSUFFICIENT_ADDRESS);
         }
+
         /** Apply punctuation to the address if requested */
         if (usePunct && addressResult != null && addressResult.isValidated()) {
             addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));

@@ -9,7 +9,6 @@ import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -26,7 +25,6 @@ public class GeoCacheDao extends BaseDao
 {
     protected Logger logger = Logger.getLogger(GeoCacheDao.class);
     protected Config config;
-    protected static TigerGeocoderDao tigerGeocoderDao = new TigerGeocoderDao();
     protected static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
     protected static int BUFFER_SIZE;
     protected QueryRunner tigerRun = getTigerQueryRunner();

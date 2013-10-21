@@ -25,9 +25,9 @@ import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateBatc
  *
  * @author Graylin Kim, Ash Islam
  */
-public class MapQuest implements AddressService, GeocodeService, RevGeocodeService
+public class MapQuest implements GeocodeService, RevGeocodeService
 {
-    private final Logger logger = Logger.getLogger(MapQuest.class);
+    private final Logger logger = Logger.getLogger(this.getClass());
     private MapQuestDao mapQuestDao;
     private Config config;
 
@@ -137,72 +137,5 @@ public class MapQuest implements AddressService, GeocodeService, RevGeocodeServi
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {
         return ParallelRevGeocodeService.reverseGeocode(this, points);
-    }
-
-    /** Address Service Implementation ------------------------------------------------------------------*/
-
-    /** Proxy to <code>validate(addresses)</code> */
-    @Override
-    public AddressResult validate(Address address)
-    {
-        ArrayList<AddressResult> addressResults = validate(new ArrayList<>(Arrays.asList(address)));
-        return (addressResults != null) ? addressResults.get(0) : null;
-    }
-
-    /** MapQuest's geocoding service auto corrects addresses so that service can be extended here. */
-    @Override
-    public ArrayList<AddressResult> validate(ArrayList<Address> addresses)
-    {
-        ArrayList<GeocodeResult> geocodeResults = this.geocode(addresses);
-        ArrayList<AddressResult> addressResults = new ArrayList<>();
-
-        /** Loop through the geocode results and retrieve the address objects. Perform sanity
-         *  checks to ensure that they are actually validated. */
-        for (GeocodeResult geocodeResult : geocodeResults) {
-            AddressResult addressResult = new AddressResult(this.getClass());
-            boolean valid = false;
-            if (geocodeResult.getStatusCode().equals(SUCCESS)){
-                GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
-                if (geocodedAddress.isValidAddress() && geocodedAddress.isValidGeocode()) {
-                    valid = true;
-                }
-                addressResult.setAddress(geocodedAddress.getAddress());
-                addressResult.setValidated(valid);
-            }
-            else {
-                addressResult.setValidated(false);
-                addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
-            }
-            addressResults.add(addressResult);
-        }
-        return addressResults;
-    }
-
-    /** Proxy to <code>validate</code> */
-    @Override
-    public AddressResult lookupCityState(Address address)
-    {
-        return validate(address);
-    }
-
-    /** Proxy to <code>validate</code> */
-    @Override
-    public ArrayList<AddressResult> lookupCityState(ArrayList<Address> addresses)
-    {
-        return validate(addresses);
-    }
-
-    /** Proxy to <code>validate</code> */
-    @Override
-    public AddressResult lookupZipCode(Address address)
-    {
-        return validate(address);
-    }
-
-    /** Proxy to <code>validate</code> */
-    @Override
-    public ArrayList<AddressResult> lookupZipCode(ArrayList<Address> addresses)
-    {
-        return validate(addresses);
     }
 }

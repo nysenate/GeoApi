@@ -134,9 +134,7 @@ public class ApplicationFactory
 
             /** Setup address service providers. */
             addressServiceProvider = new AddressServiceProvider();
-            addressServiceProvider.registerDefaultProvider("usps", USPS.class);
-            addressServiceProvider.registerProvider("mapquest", MapQuest.class);
-            addressServiceProvider.setProviderFallbackChain(Arrays.asList("mapquest"));
+            addressServiceProvider.registerDefaultProvider("usps", USPSAMS.class);
 
             /** Setup geocode service providers. There are more options here so it's different
              *  from the way other service providers are set up. */
