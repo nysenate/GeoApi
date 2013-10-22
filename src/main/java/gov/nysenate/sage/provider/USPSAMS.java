@@ -54,13 +54,29 @@ public class USPSAMS implements AddressService
     @Override
     public AddressResult lookupCityState(Address address) 
     {
-        return null;
+        if(address != null && !address.isEmpty() && address.getZip5() != null)
+        {
+             AddressResult result = uspsAmsDao.getCityStateResult(address);
+            if (result != null) {
+                result.setSource(this.getClass());
+                return result;
+            }
+        }
+        return new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
     @Override
     public List<AddressResult> lookupCityState(List<Address> addresses)
     {
-        return null;
+        if(addresses != null && !addresses.isEmpty())
+        {
+            List<AddressResult> results = uspsAmsDao.getCityStateResults(addresses);
+            if (results != null && results.size() == addresses.size()) {
+                return results;
+            }
+            return Arrays.asList(new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
+        }
+        return Arrays.asList(new AddressResult(this.getClass(), ResultStatus.MISSING_ADDRESS));
     }
 
     /**

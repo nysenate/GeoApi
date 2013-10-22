@@ -181,4 +181,104 @@ public class USPSAMSDao implements Observer
         }
         return null;
     }
+
+
+
+     public AddressResult getCityStateResult(Address address)
+     {
+         if (address != null && address.getZip5() != null)
+         {
+             StringBuilder urlParams = new StringBuilder();
+             urlParams.append("?initCaps=true");
+
+             try
+             {
+                 urlParams.append("&zip5=" + URLEncoder.encode(address.getZip5(), "UTF-8"));
+                 String url = DEFAULT_BASE_URL + CITYSTATE_METHOD + urlParams.toString();
+                 String response = UrlRequest.getResponseFromUrl(url);
+                 if (response != null && !response.isEmpty()) {
+                     JsonNode root = objectMapper.readTree(response);
+                     AddressResult addressResult = getAddressResultFromJsonCityState(root);
+                     return addressResult;
+                 }
+                 else
+                 {
+                     logger.error("Failed to obtain a valid response from USPS AMS!");
+                 }
+
+             }
+             catch (UnsupportedEncodingException ex) {
+                 logger.error("Failed to encode URL in UTF-8!", ex);
+             }
+             catch (IOException ex) {
+                 logger.error("Failed to obtain response!", ex);
+             }
+             catch (Exception ex) {
+                 logger.error("Failed to parse response!", ex);
+             }
+         }
+         return null;
+     }
+
+    public List<AddressResult> getCityStateResults (List<Address> addresses)
+    {
+        List<AddressResult> addressResults = new ArrayList<>();
+        if (addresses != null)
+        {
+            JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
+            ArrayNode requestRoot = jsonNodeFactory.arrayNode();
+            for (Address address : addresses) {
+                if(address.getZip5() != null)
+                {
+                    ObjectNode addressNode = jsonNodeFactory.objectNode();
+                    addressNode.put("zip5", address.getZip5());
+                    requestRoot.add(addressNode);
+                }
+            }
+                String jsonPayload = requestRoot.toString();
+                String url = DEFAULT_BASE_URL + CITYSTATE_METHOD + "?batch=true&initCaps=true";
+                try {
+                    String json = UrlRequest.getResponseFromUrlUsingPOST(url, jsonPayload);
+                    if (json != null && !json.isEmpty()) {
+                        JsonNode responseRoot = objectMapper.readTree(json);
+                        if (responseRoot != null) {
+                            int total = responseRoot.get("total").asInt();
+                            JsonNode resultsNode = responseRoot.get("results");
+                            for (int i = 0; i < total; i++) {
+                                JsonNode resultNode = resultsNode.get(i);
+                                addressResults.add(getAddressResultFromJsonCityState(resultNode));
+                            }
+                        }
+                    }
+                }
+                catch (IOException ex) {
+                    logger.error("Failed to get and parse response from batch validate request!", ex);
+                }
+        }
+        return addressResults;
+    }
+
+    private AddressResult getAddressResultFromJsonCityState(JsonNode root) throws IOException
+    {
+        if (root != null) {
+            AddressResult addressResult = new AddressResult();
+            boolean success = root.get("success").asBoolean(false);
+            addressResult.setValidated(success);
+            if(success)
+            {
+                Address cityState = new Address(null, null, root.get("cityName").asText(),
+                        root.get("stateAbbr").asText(),  root.get("zipCode").asText(), null);
+                cityState.setUspsValidated(true);
+
+                addressResult.setAddress(cityState);
+            }
+            else
+            {
+                addressResult.setValidated(false);
+            }
+            addressResult.setResultTime(TimeUtil.currentTimestamp());
+            return addressResult;
+        }
+        return null;
+    }
 }
