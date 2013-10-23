@@ -43,6 +43,7 @@
                                             <thead style="text-align:left;border-bottom: 1px solid #999">
                                             <tr>
                                                 <th width="450px">File name</th>
+                                                <th>USPS Validate</th>
                                                 <th>Geocode</th>
                                                 <th>District Assign</th>
                                                 <th>Record Count</th>
@@ -51,6 +52,7 @@
                                             </thead>
                                             <tr ng-repeat="process in processes">
                                                 <td>{{process.sourceFileName}}</td>
+                                                <td>{{process.validationRequired | yesno}}</td>
                                                 <td>{{process.geocodeRequired | yesno}}</td>
                                                 <td>{{process.districtRequired | yesno}}</td>
                                                 <td>{{process.recordCount}}</td>
@@ -120,6 +122,37 @@
                             <tr>
                                 <td>Zip4</td>
                                 <td><code>zip4 | postalSuffix | postalCodeSuffix</code></td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <p>If USPS address columns are specified, the processor will perform address correction.</p>
+                        <p>The Address columns above are used as input and the USPS Address columns will contain the corrected address.</p>
+                        <br/>
+                        <p><strong style="color:teal">USPS Address columns</strong></p>
+                        <table class="columnAliasTable">
+                            <tr>
+                                <th style="width:110px;">Column</th>
+                                <th>Aliases</th>
+                            </tr>
+                            <tr>
+                                <td>USPS Street</td>
+                                <td><code>uspsStreetAddress | uspsStreet</code></td>
+                            </tr>
+                            <tr>
+                                <td>USPS City</td>
+                                <td><code>uspsCity</code></td>
+                            </tr>
+                            <tr>
+                                <td>USPS State</td>
+                                <td><code>uspsState</code></td>
+                            </tr>
+                            <tr>
+                                <td>USPS Zip5</td>
+                                <td><code>uspsZip5</code></td>
+                            </tr>
+                            <tr>
+                                <td>USPS Zip4</td>
+                                <td><code>uspsZip4</code></td>
                             </tr>
                         </table>
                         <br/>

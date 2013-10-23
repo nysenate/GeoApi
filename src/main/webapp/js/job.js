@@ -123,6 +123,12 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
                         scope.addProcess(responseJSON.jobProcess);
                     });
                 }
+                else if (responseJSON.message) {
+                    alert(responseJSON.message);
+                }
+                else {
+                    alert("Server did not respond to upload request.");
+                }
             },
             onCancel: function(id, fileName){
                 //console.log("Cancel: " + fileName);

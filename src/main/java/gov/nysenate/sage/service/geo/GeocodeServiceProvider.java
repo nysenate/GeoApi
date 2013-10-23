@@ -11,6 +11,7 @@ import gov.nysenate.sage.provider.GeoCache;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.TimeUtil;
 import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
@@ -168,7 +169,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         }
 
         /** Set the timestamp */
-        geocodeResult.setResultTime(new Timestamp(new Date().getTime()));
+        geocodeResult.setResultTime(TimeUtil.currentTimestamp());
 
         /** Cache result */
         if (CACHE_ENABLED && !cacheHit) {
@@ -343,7 +344,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         /** Loop through results and set the timestamp */
         for (GeocodeResult geocodeResult : finalGeocodeResults) {
             if (geocodeResult != null) {
-                geocodeResult.setResultTime(new Timestamp(new Date().getTime()));
+                geocodeResult.setResultTime(TimeUtil.currentTimestamp());
             }
         }
 

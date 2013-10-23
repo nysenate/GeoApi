@@ -102,7 +102,7 @@ public abstract class BaseApiController extends HttpServlet
     {
         ArrayList<Address> addresses = new ArrayList<>();
         try {
-            logger.debug("Batch address json body: " + json);
+            logger.trace("Batch address json body: " + json);
             ObjectMapper mapper = new ObjectMapper();
             return new ArrayList<>(Arrays.asList(mapper.readValue(json, Address[].class)));
         }
@@ -127,7 +127,7 @@ public abstract class BaseApiController extends HttpServlet
     {
         ArrayList<Point> points = new ArrayList<>();
         try {
-            logger.debug("Batch points json body " + json);
+            logger.trace("Batch points json body " + json);
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
             for (int i = 0; i < node.size(); i++) {

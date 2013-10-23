@@ -129,7 +129,8 @@ public class JobController extends BaseJobController
     }
 
     /**
-     *
+     * Uploads the job file and verifies that it meets the criteria. If it does the file is copied
+     * to the upload dir and a success response is sent. Otherwise an error response is sent.
      * @param request
      * @param response
      */
@@ -196,9 +197,9 @@ public class JobController extends BaseJobController
                         uploadResponse = new JobUploadErrorResponse("Uploaded file does not have the required address columns!");
                     }
                     /** Check for geocoding or district assignment fields in header */
-                    else if(!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
-                        logger.error("Uploaded job file does not have any geocode or district assignment columns.");
-                        uploadResponse = new JobErrorResult("Uploaded job file does not have any geocode or district assignment columns!");
+                    else if (!jobFile.requiresAny()) {
+                        logger.error("Uploaded job file does not have any columns for populating data to.");
+                        uploadResponse = new JobErrorResult("Uploaded job file does not have any columns for populating data to!");
                     }
                     /** Save file into upload directory where it will be picked up by a job process */
                     else {
@@ -221,6 +222,7 @@ public class JobController extends BaseJobController
                         process.setFileName(targetFile.getName());
                         process.setRecordCount(recordCount);
                         process.setRequestor(getJobUser(request));
+                        process.setValidationRequired(jobFile.requiresAddressValidation());
                         process.setGeocodeRequired(jobFile.requiresGeocode());
                         process.setDistrictRequired(jobFile.requiresDistrictAssign());
                         jobRequest.addProcess(process);

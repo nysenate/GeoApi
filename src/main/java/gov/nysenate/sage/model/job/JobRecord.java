@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
+import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 
@@ -55,10 +56,6 @@ public class JobRecord
         this.address = new Address(street, "", city, state, zip5, zip4);
     }
 
-    /**
-     *
-     * @return
-     */
     public List<Object> getRow()
     {
         for (Column column : this.indexMap.keySet()) {
@@ -72,16 +69,24 @@ public class JobRecord
         return dataMap;
     }
 
+    public void applyAddressResult(AddressResult addressResult)
+    {
+        if (addressResult != null && addressResult.isValidated() && addressResult.getAddress() != null) {
+            this.correctedAddress = addressResult.getAddress();
+
+            this.dataMap.put(Column.uspsStreet, this.correctedAddress.getAddr1());
+            this.dataMap.put(Column.uspsCity, this.correctedAddress.getCity());
+            this.dataMap.put(Column.uspsState, this.correctedAddress.getState());
+            this.dataMap.put(Column.uspsZip5, this.correctedAddress.getZip5());
+            this.dataMap.put(Column.uspsZip4, this.correctedAddress.getZip4());
+        }
+    }
+
     public void applyGeocodeResult(GeocodeResult geocodeResult)
     {
         if (geocodeResult != null && geocodeResult.isSuccess() && geocodeResult.getGeocodedAddress() != null) {
             GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
             this.geocode = geocodedAddress.getGeocode();
-
-            /** If the quality is adequate, also set the address */
-            if (this.geocode.getQuality().compareTo(GeocodeQuality.HOUSE) >= 0 && geocodedAddress.isValidAddress()) {
-                this.correctedAddress = geocodeResult.getAddress();
-            }
 
             this.dataMap.put(Column.lat, this.geocode.getLat());
             this.dataMap.put(Column.lon, this.geocode.getLon());

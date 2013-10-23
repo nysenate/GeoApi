@@ -2,6 +2,7 @@ package gov.nysenate.sage.model.job;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 
@@ -35,6 +36,10 @@ public class JobBatch
         return toRecord;
     }
 
+    /**
+     * Retrieve list of input addresses for this batch.
+     * @return List<Address>
+     */
     public List<Address> getAddresses() {
         List<Address> addresses = new ArrayList<>();
         for (JobRecord jobRecord : jobRecords) {
@@ -43,6 +48,32 @@ public class JobBatch
         return addresses;
     }
 
+    /**
+     * Retrieve list of input addresses with option to instead return the usps corrected
+     * versions if they exist.
+     * @param swapWithValidatedAddress if true, perform swapping. otherwise delegate to getAddresses().
+     * @return List<Address>
+     */
+    public List<Address> getAddresses(boolean swapWithValidatedAddress) {
+        if (!swapWithValidatedAddress) {
+            return getAddresses();
+        }
+        List<Address> addresses = new ArrayList<>();
+        for (JobRecord jobRecord : jobRecords) {
+            if (jobRecord.getCorrectedAddress() != null && jobRecord.getCorrectedAddress().isUspsValidated()) {
+                addresses.add(jobRecord.getCorrectedAddress());
+            }
+            else {
+                addresses.add(jobRecord.getAddress());
+            }
+        }
+        return addresses;
+    }
+
+    /**
+     * Retrieve list of geocoded addresses for this batch.
+     * @return List<GeocodedAddress>
+     */
     public List<GeocodedAddress> getGeocodedAddresses() {
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
         for (JobRecord jobRecord : jobRecords) {
@@ -51,11 +82,21 @@ public class JobBatch
         return geocodedAddresses;
     }
 
+    public void setAddressResult(int index, AddressResult addressResult) {
+        if (this.jobRecords.get(index) != null) {
+            this.jobRecords.get(index).applyAddressResult(addressResult);
+        }
+    }
+
     public void setGeocodeResult(int index, GeocodeResult geocodeResult) {
-        this.jobRecords.get(index).applyGeocodeResult(geocodeResult);
+        if (this.jobRecords.get(index) != null) {
+            this.jobRecords.get(index).applyGeocodeResult(geocodeResult);
+        }
     }
 
     public void setDistrictResult(int index, DistrictResult districtResult) {
-        this.jobRecords.get(index).applyDistrictResult(districtResult);
+        if (this.jobRecords.get(index) != null) {
+            this.jobRecords.get(index).applyDistrictResult(districtResult);
+        }
     }
 }

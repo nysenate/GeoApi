@@ -8,14 +8,13 @@ import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.job.*;
+import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
-import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
-import gov.nysenate.sage.util.JobFileUtil;
-import gov.nysenate.sage.util.Mailer;
+import gov.nysenate.sage.util.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -46,6 +45,7 @@ public class ProcessBatchJobs
     private static String UPLOAD_DIR;
     private static String DOWNLOAD_DIR;
     private static String DOWNLOAD_URL;
+    private static Integer ADDRESS_THREAD_COUNT;
     private static Integer GEOCODE_THREAD_COUNT;
     private static Integer DISTRICT_THREAD_COUNT;
     private static Integer JOB_BATCH_SIZE;
@@ -57,6 +57,7 @@ public class ProcessBatchJobs
 
     public static Logger logger = Logger.getLogger(ProcessBatchJobs.class);
     public static Mailer mailer;
+    public static AddressServiceProvider addressProvider;
     public static GeocodeServiceProvider geocodeProvider;
     public static DistrictServiceProvider districtProvider;
     public static JobProcessDao jobProcessDao;
@@ -71,6 +72,7 @@ public class ProcessBatchJobs
         UPLOAD_DIR = config.getValue("job.upload.dir");
         DOWNLOAD_DIR = config.getValue("job.download.dir");
         DOWNLOAD_URL = BASE_URL + "/job/download/";
+        ADDRESS_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.validate", "1"));
         GEOCODE_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.geocode", "3"));
         DISTRICT_THREAD_COUNT = Integer.parseInt(config.getValue("job.threads.distassign", "3"));
         JOB_BATCH_SIZE = Integer.parseInt(config.getValue("job.batch.size", "95"));
@@ -78,6 +80,7 @@ public class ProcessBatchJobs
         LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("batch.detailed.logging.enabled", "false"));
 
         mailer = new Mailer();
+        addressProvider = ApplicationFactory.getAddressServiceProvider();
         geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
         districtProvider = ApplicationFactory.getDistrictServiceProvider();
         jobProcessDao = new JobProcessDao();
@@ -188,6 +191,7 @@ public class ProcessBatchJobs
         JobProcess jobProcess = jobStatus.getJobProcess();
         String fileName = jobProcess.getFileName();
 
+        ExecutorService addressExecutor = Executors.newFixedThreadPool(ADDRESS_THREAD_COUNT);
         ExecutorService geocodeExecutor = Executors.newFixedThreadPool(GEOCODE_THREAD_COUNT);
         ExecutorService districtExecutor = Executors.newFixedThreadPool(DISTRICT_THREAD_COUNT);
         ICsvListReader jobReader = null;
@@ -220,8 +224,8 @@ public class ProcessBatchJobs
             logger.info("Job Header: " + FormatUtil.toJsonString(header));
 
             /** Check if file can be skipped */
-            if (!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
-                logger.warn("Warning: Skipping job file - No geocode or dist assign columns!");
+            if (!jobFile.requiresAny()) {
+                logger.warn("Warning: Skipping job file - No usps, geocode, or dist assign columns!");
                 jobStatus.setCondition(SKIPPED);
                 jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
                 jobProcessDao.setJobProcessStatus(jobStatus);
@@ -273,13 +277,30 @@ public class ProcessBatchJobs
                     ArrayList<JobRecord> batchRecords = new ArrayList<>(jobFile.getRecords().subList(from, to));
                     JobBatch jobBatch = new JobBatch(batchRecords, from, to);
 
-                    Future<JobBatch> futureGeocodedJobBatch = geocodeExecutor.submit(new GeocodeJobBatch(jobBatch, jobProcess));
-                    if (jobFile.requiresDistrictAssign()) {
-                         Future<JobBatch> futureDistrictedJobBatch = districtExecutor.submit(new DistrictJobBatch(futureGeocodedJobBatch, districtTypes, jobProcess));
-                        jobResultsQueue.add(futureDistrictedJobBatch);
+                    Future<JobBatch> futureValidatedBatch = null;
+                    if (jobFile.requiresAddressValidation()) {
+                        futureValidatedBatch = addressExecutor.submit(new ValidateJobBatch(jobBatch, jobProcess));
+                    }
+
+                    if (jobFile.requiresGeocode() || jobFile.requiresDistrictAssign()) {
+                        Future<JobBatch> futureGeocodedBatch;
+                        if (jobFile.requiresAddressValidation() && futureValidatedBatch != null) {
+                            futureGeocodedBatch = geocodeExecutor.submit(new GeocodeJobBatch(futureValidatedBatch, jobProcess));
+                        }
+                        else {
+                            futureGeocodedBatch = geocodeExecutor.submit(new GeocodeJobBatch(jobBatch, jobProcess));
+                        }
+
+                        if (jobFile.requiresDistrictAssign() && futureGeocodedBatch != null) {
+                            Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new DistrictJobBatch(futureGeocodedBatch, districtTypes, jobProcess));
+                            jobResultsQueue.add(futureDistrictedBatch);
+                        }
+                        else {
+                            jobResultsQueue.add(futureGeocodedBatch);
+                        }
                     }
                     else {
-                        jobResultsQueue.add(futureGeocodedJobBatch);
+                        jobResultsQueue.add(futureValidatedBatch);
                     }
                 }
 
@@ -402,14 +423,14 @@ public class ProcessBatchJobs
     }
 
     /**
-     * A callable for the executor to perform geocoding for a JobBatch.
+     * A callable for the executor to perform address validation for a JobBatch.
      */
-    public static class GeocodeJobBatch implements Callable<JobBatch>
+    public static class ValidateJobBatch implements Callable<JobBatch>
     {
         private JobBatch jobBatch;
         private JobProcess jobProcess;
 
-        public GeocodeJobBatch(JobBatch jobBatch, JobProcess jobProcess) {
+        public ValidateJobBatch(JobBatch jobBatch, JobProcess jobProcess) {
             this.jobBatch = jobBatch;
             this.jobProcess = jobProcess;
         }
@@ -417,12 +438,48 @@ public class ProcessBatchJobs
         @Override
         public JobBatch call() throws Exception
         {
+            List<AddressResult> addressResults = addressProvider.validate(jobBatch.getAddresses(), "usps", false);
+            if (addressResults.size() == jobBatch.getAddresses().size()) {
+                for (int i = 0; i < addressResults.size(); i++) {
+                    jobBatch.setAddressResult(i, addressResults.get(i));
+                }
+            }
+            return this.jobBatch;
+        }
+    }
+
+    /**
+     * A callable for the executor to perform geocoding for a JobBatch.
+     */
+    public static class GeocodeJobBatch implements Callable<JobBatch>
+    {
+        private JobBatch jobBatch;
+        private Future<JobBatch> futureJobBatch;
+        private JobProcess jobProcess;
+
+        public GeocodeJobBatch(JobBatch jobBatch, JobProcess jobProcess) {
+            this.jobBatch = jobBatch;
+            this.jobProcess = jobProcess;
+        }
+
+        public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, JobProcess jobProcess) {
+            this.futureJobBatch = futureValidatedJobBatch;
+            this.jobProcess = jobProcess;
+        }
+
+        @Override
+        public JobBatch call() throws Exception
+        {
+            if (jobBatch == null && futureJobBatch != null) {
+                this.jobBatch = futureJobBatch.get();
+            }
+
             BatchGeocodeRequest batchGeoRequest = new BatchGeocodeRequest();
             batchGeoRequest.setJobProcess(this.jobProcess);
-            batchGeoRequest.setAddresses(this.jobBatch.getAddresses());
+            batchGeoRequest.setAddresses(this.jobBatch.getAddresses(true));
             batchGeoRequest.setUseCache(true);
             batchGeoRequest.setUseFallback(true);
-            batchGeoRequest.setRequestTime(new Timestamp(new Date().getTime()));
+            batchGeoRequest.setRequestTime(TimeUtil.currentTimestamp());
 
             List<GeocodeResult> geocodeResults = geocodeProvider.geocode(batchGeoRequest);
             if (geocodeResults.size() == jobBatch.getJobRecords().size()) {
@@ -438,6 +495,7 @@ public class ProcessBatchJobs
                     logMemoryUsage();
                 }
             }
+
             return this.jobBatch;
         }
     }
@@ -474,7 +532,7 @@ public class ProcessBatchJobs
             batchDistRequest.setJobProcess(this.jobProcess);
             batchDistRequest.setDistrictTypes(this.districtTypes);
             batchDistRequest.setGeocodedAddresses(jobBatch.getGeocodedAddresses());
-            batchDistRequest.setRequestTime(new Timestamp(new Date().getTime()));
+            batchDistRequest.setRequestTime(TimeUtil.currentTimestamp());
             batchDistRequest.setDistrictStrategy(this.districtStrategy);
 
             List<DistrictResult> districtResults = districtProvider.assignDistricts(batchDistRequest);
@@ -559,7 +617,7 @@ public class ProcessBatchJobs
         for (JobProcessStatus jobStatus : jobStatuses) {
             jobStatus.setCondition(CANCELLED);
             jobStatus.setMessages(Arrays.asList("Cancelled during cleanup."));
-            jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
+            jobStatus.setCompleteTime(TimeUtil.currentTimestamp());
             jobProcessDao.setJobProcessStatus(jobStatus);
         }
     }

@@ -1,9 +1,6 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.address.BatchValidateResponse;
-import gov.nysenate.sage.client.response.address.CityStateResponse;
-import gov.nysenate.sage.client.response.address.ValidateResponse;
-import gov.nysenate.sage.client.response.address.ZipcodeResponse;
+import gov.nysenate.sage.client.response.address.*;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
@@ -100,6 +97,7 @@ public final class AddressController extends BaseApiController
                 addressResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
             }
         }
+        /** Handle batch request */
         else {
             String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
             ArrayList<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
@@ -108,6 +106,11 @@ public final class AddressController extends BaseApiController
                     case "validate": {
                         AddressService addressService = addressProvider.newInstance(provider, "usps");
                         addressResponse = new BatchValidateResponse(addressService.validate(addresses));
+                        break;
+                    }
+                    case "citystate": {
+                        AddressService addressService = addressProvider.newInstance(provider, "usps");
+                        addressResponse = new BatchCityStateResponse(addressService.lookupCityState(addresses));
                         break;
                     }
                     default : {

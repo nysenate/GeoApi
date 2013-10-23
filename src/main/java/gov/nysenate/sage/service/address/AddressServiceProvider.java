@@ -6,10 +6,13 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.AddressUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AddressServiceProvider extends ServiceProviders<AddressService>
 {
     /**
-     * Validates an address using USPS or MapQuest depending on the level of input supplied.
+     * Validates an address using USPS or another provider if available.
      * @param address  Address to validate
      * @param provider Provide to use (if null, defaults will be used)
      * @param usePunct If true, validated address will have periods after abbreviations.
@@ -46,6 +49,41 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
             addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
         }
         return addressResult;
+    }
+
+    /**
+     * Validates addresses using USPS or another provider if available.
+     * @param addresses List of Addresses to validate
+     * @param provider Provider to use, default is usps if left null or empty
+     * @param usePunct Apply address punctuation to each result.
+     * @return List<AddressResult>
+     */
+    public List<AddressResult> validate(List<Address> addresses, String provider, Boolean usePunct)
+    {
+        List<AddressResult> addressResults = new ArrayList<>();
+
+        if (addresses != null && !addresses.isEmpty()) {
+            if (provider == null || provider.isEmpty()) {
+                provider = "usps";
+            }
+            if (this.isRegistered(provider)) {
+                addressResults = this.newInstance(provider).validate(addresses);
+                if (usePunct) {
+                    for (AddressResult addressResult : addressResults) {
+                        if (addressResult != null && addressResult.isValidated()) {
+                            addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
+                        }
+                    }
+                }
+            }
+            else {
+                for (int i = 0; i < addresses.size(); i++) {
+                    addressResults.add(new AddressResult(this.getClass(), ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED));
+                }
+            }
+        }
+
+        return addressResults;
     }
 
     /**

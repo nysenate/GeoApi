@@ -33,6 +33,12 @@ public class JobFile extends BaseJobFile<JobRecord>
         zip5(Arrays.asList("postalCode", "postal", "zip", "zip5"), Group.address),
         zip4(Arrays.asList("postalCodeSuffix", "postalSuffix", "zip4"), Group.address),
 
+        uspsStreet(Arrays.asList("uspsStreetAddress", "uspsStreet"), Group.validateAddress),
+        uspsCity(Arrays.asList("uspsCity"), Group.validateAddress),
+        uspsState(Arrays.asList("uspsState"), Group.validateAddress),
+        uspsZip5(Arrays.asList("uspsZip5", "uspsPostal", "uspsPostalCode"), Group.validateAddress),
+        uspsZip4(Arrays.asList("uspsZip4", "uspsPostalSuffix", "uspsPostalCodeSuffix"), Group.validateAddress),
+
         lat(Arrays.asList("lat", "geoCode1", "latitude"), Group.geocode, Type.doubleType),
         lon(Arrays.asList("lon", "lng", "geoCode2", "longitude"), Group.geocode, Type.doubleType),
         geoMethod(Arrays.asList("geoMethod", "geoSource"), Group.geocode),
@@ -81,6 +87,12 @@ public class JobFile extends BaseJobFile<JobRecord>
         return checkColumnsForGroup(Group.address);
     }
 
+    /** Indicates whether the job has USPS address columns to be filled in */
+    public boolean requiresAddressValidation()
+    {
+        return checkColumnsForGroup(Group.validateAddress);
+    }
+
     /** Indicates whether the job has geocoding columns to be filled in */
     public boolean requiresGeocode()
     {
@@ -91,6 +103,12 @@ public class JobFile extends BaseJobFile<JobRecord>
     public boolean requiresDistrictAssign()
     {
         return checkColumnsForGroup(Group.district);
+    }
+
+    /** Indicates whether the job has any columns to be filled in */
+    public boolean requiresAny()
+    {
+        return requiresAddressValidation() || requiresGeocode() || requiresDistrictAssign();
     }
 
     /**
