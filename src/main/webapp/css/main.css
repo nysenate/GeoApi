@@ -140,17 +140,18 @@ h3.slim {
 }
 
 #sageLogoText a {
-    color:#0E4E5A;
+    /*color:#0E4E5A;*/
+    color:#fff;
 }
 
 #header {
     display:block;
     height:40px;
-    background:#eeeeee;
+    background:#333;
     padding:0;
     margin:0;
     font-size:16px;
-    border-bottom:1px solid #bbb;
+    border-bottom:1px solid #444;
 }
 
 #header ul {
@@ -166,7 +167,7 @@ h3.slim {
 }
 
 #header ul li a {
-    color:#555;
+    color:#ddd;
     font-weight: 600;
     padding:11px 9px;
     outline:none;
@@ -175,7 +176,7 @@ h3.slim {
 #header ul li a:hover {
     text-decoration: none !important;
     color:white !important;
-    background:#aaa;
+    background:#555;
 }
 
 #header ul li a.active {
@@ -417,7 +418,7 @@ h3.slim {
 #resultsTab {
     cursor: pointer;
     height:20px;
-    border-top:1px solid #aaa;
+    border-top:1px solid #444;
     border-bottom:1px solid #aaa;
 }
 
