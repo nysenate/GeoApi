@@ -589,6 +589,9 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
 
     $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
+        if ($scope.visible) {
+            mapService.toggleMap(true);
+        }
     });
 
     /** Listens for requests to perform lookup */
@@ -647,7 +650,7 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
 /**
  * Controller for handling the `District Maps` function.
  */
-sage.controller("DistrictMapController", function($scope, $http, menuService, dataBus, uiBlocker){
+sage.controller("DistrictMapController", function($scope, $http, mapService, menuService, dataBus, uiBlocker){
     $scope.visible = false;
     $scope.id = 2;
     $scope.minimized = false;
@@ -661,6 +664,7 @@ sage.controller("DistrictMapController", function($scope, $http, menuService, da
     $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
         if ($scope.visible) {
+            mapService.toggleMap(true);
             $scope.minimized = false;
             $scope.showMemberList = false;
         }
@@ -718,26 +722,19 @@ sage.controller("DistrictMapController", function($scope, $http, menuService, da
     }
 });
 
-sage.controller('CityStateController', function($scope, $http, mapService, menuService, dataBus) {
-    $scope.id = 5;
+sage.controller("UspsLookupController", function($scope, $http, dataBus, mapService, menuService, uiBlocker) {
+    $scope.id = 6;
     $scope.visible = false;
-    $scope.zip5 = "";
 
     $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
+        if ($scope.visible) {
+            mapService.toggleMap(false);
+            dataBus.setBroadcast("hideResultTab", false);
+        }
     });
-
-    $scope.lookup = function() {
-        $http.get(this.getCityStateUrl())
-             .success(function(data, status, headers, config) {
-                dataBus.setBroadcastAndView("citystate", data, "citystate");
-            });
-    };
-
-    $scope.getCityStateUrl = function() {
-        return contextPath + baseApi + "/address/citystate?zip5=" + this.zip5;
-    };
 });
+
 
 sage.controller("StreetLookupController", function($scope, $http, dataBus, mapService, menuService, uiBlocker) {
     $scope.id = 3;
@@ -750,9 +747,6 @@ sage.controller("StreetLookupController", function($scope, $http, dataBus, mapSe
         if ($scope.visible) {
             mapService.toggleMap(false);
             dataBus.setBroadcast("hideResultTab", false);
-        }
-        else {
-            mapService.toggleMap(true);
         }
     });
 
@@ -772,7 +766,7 @@ sage.controller("StreetLookupController", function($scope, $http, dataBus, mapSe
     };
 });
 
-sage.controller("RevGeoController", function($scope, $http, menuService, dataBus) {
+sage.controller("RevGeoController", function($scope, $http, mapService, menuService, dataBus) {
     $scope.id = 4;
     $scope.visible = false;
     $scope.lat = "";
@@ -780,6 +774,9 @@ sage.controller("RevGeoController", function($scope, $http, menuService, dataBus
 
     $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
+        if ($scope.visible) {
+            mapService.toggleMap(true);
+        }
     });
 
     $scope.lookup = function() {
@@ -1057,27 +1054,6 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     };
 });
 
-sage.controller("CityStateView", function($scope, dataBus, mapService) {
-    $scope.visible = false;
-    $scope.viewId = "citystate";
-    $scope.error = false;
-
-    $scope.$on(dataBus.viewHandleEvent, function(){
-        $scope.visible = ($scope.viewId == dataBus.viewId);
-    });
-
-    $scope.$on("citystate", function() {
-        var cityState = dataBus.data;
-        $scope.error = cityState.statusCode != 0;
-        $scope = angular.extend($scope, cityState);
-        mapService.geocode(cityState.city + ", " + cityState.state + " " + cityState.zip5, function(latlng) {
-           mapService.toggleMap(true);
-           mapService.setMarker(latlng.lat(), latlng.lng(), '', true, true);
-        });
-        dataBus.setBroadcast("expandResults", true);
-    });
-});
-
 sage.controller("StreetViewController", function($scope, dataBus, uiBlocker, mapService) {
    $scope.visible = false;
    $scope.viewId = "street";
@@ -1246,7 +1222,7 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
 
 $(document).ready(function(){
     initVerticalMenu();
-    resizeContentColumn();
+    resizeContentHeights();
 
     $("#contentcolumn").show();
 
@@ -1301,17 +1277,25 @@ $(document).ready(function(){
     })(jQuery,'smartresize');
 
     $(window).smartresize(function(e){
-        resizeContentColumn();
+        resizeContentHeights();
     });
 
     /**
-     * Resize the page dynamically to avoid scrollbars.
+     * Resize the page dynamically to avoid scrollbars but only do so if the window isn't fixed size
+     * via query params.
      */
-    function resizeContentColumn() {
+    function resizeContentHeights() {
         if (typeof width == 'undefined' || typeof height == 'undefined' || width == null || width <= 0 || height == null || height <= 0) {
-            $('#contentcolumn').height($(window).height() - 42);
-            $('#mapcontentcolumn').height($(window).height() - 2);
-            $('.scrollable-content').height($(window).height() - 84);
+            var windowHeight = $(window).height();
+            var $contentColumn = $('#contentcolumn');
+            var $mapContentColumn = $('#mapcontentcolumn');
+            var $scrollableContent = $('.scrollable-content');
+            var $embeddedIframes = $('#uspsIframe');
+
+            $contentColumn.height(windowHeight - 42);
+            $mapContentColumn.height(windowHeight - 2);
+            $scrollableContent.height(windowHeight - 84);
+            $embeddedIframes.height($contentColumn.height() - 4);
         }
     }
 

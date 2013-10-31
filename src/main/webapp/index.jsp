@@ -28,6 +28,11 @@
                     </a>
                 </li>
                 <li>
+                    <a ng-click="toggleMethod(6)">
+                        <div ng-show="index == 6" class="icon-white-no-hover icon-mail"></div>&nbsp;&nbsp;USPS Lookup
+                    </a>
+                </li>
+                <li>
                     <a ng-click="toggleMethod(3)">
                         <div ng-show="index == 3" class="icon-white-no-hover icon-directions"></div>&nbsp;&nbsp;Street Finder
                     </a>
@@ -37,17 +42,14 @@
                         <div ng-show="index == 4" class="icon-white-no-hover icon-target"></div>&nbsp;&nbsp;Reverse Geocode
                     </a>
                 </li>
-                <li ng-click="toggleMethod(5)">
-                    <a>
-                        <div ng-show="index == 5" class="icon-white-no-hover icon-location"></div>&nbsp;&nbsp;City/State
+                <li>
+                    <a href="${contextPath}/job">Batch
                     </a>
                 </li>
                 <li>
-                    <a href="${contextPath}/job">Batch
-                    </a></li>
-                <li>
                     <a href="${contextPath}/docs/html/index.html">Developer API
-                    </a></li>
+                    </a>
+                </li>
             </ul>
         </div>
 
@@ -230,21 +232,8 @@
                     </div>
                 </form>
             </div>
-            <div id="cityStateSearch" class="search-container small" ng-show="visible" ng-controller="CityStateController">
-                <form id="cityStateForm" action="" method="post">
-                    <div class="icon-location icon-teal"></div>
-                    <label ng-hide="minimized" for="cityStateInput">Enter a zipcode</label>
-                    <label ng-show="minimized" ng-click="minimized=false;" class="expand-search">Show search</label>
-                    <div ng-click="minimized=true;" ng-hide="minimized" class="collapse-search icon-arrow-up4 icon-hover-teal small-right-icon"></div>
-                    <div ng-click="minimized=false;" ng-show="minimized" class="expand-search icon-arrow-down4 icon-hover-teal small-right-icon"></div>
-                    <div style='margin-top:2px' class="search-container-content">
-                        <input id="cityStateInput" type="text" ng-model="zip5" style="width:175px" maxlength="5" placeholder="e.g. 12210"/>
-                        <button ng-click="lookup()" class="submit mini">
-                            <div class="icon-search icon-white-no-hover"></div>
-                            <span></span>
-                        </button>
-                    </div>
-                </form>
+            <div id="uspsLookupView" style='width:100%;' ng-show="visible" ng-controller="UspsLookupController">
+                <iframe id="uspsIframe" src='http://localhost:8080/USPS-AMS' style='width:100%;border:0;outline:0;margin:0;'></iframe>
             </div>
             <div id="reverseGeocodeSearch" ng-show="visible" class="search-container small" ng-controller="RevGeoController">
                 <form id="revGeoForm" action="" method="post">
@@ -595,14 +584,6 @@
                     </div>
                     <div class="info-container connected" ng-show="districts.election.district">
                         <p class="district">Election District: {{districts.election.district}}</p>
-                    </div>
-                </div>
-            </div>
-            <div id="citystate-results" ng-controller="CityStateView">
-                <div ng-show="visible">
-                    <div class="info-container">
-                        <p ng-hide="error" class="member-name">{{city}}, {{state}} {{zip5}}</p>
-                        <p ng-show="error" style="color:orangered;">No city/state result!</p>
                     </div>
                 </div>
             </div>
