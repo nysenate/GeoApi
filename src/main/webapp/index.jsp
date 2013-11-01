@@ -232,8 +232,8 @@
                     </div>
                 </form>
             </div>
-            <div id="uspsLookupView" style='width:100%;' ng-show="visible" ng-controller="UspsLookupController">
-                <iframe id="uspsIframe" src='http://localhost:8080/USPS-AMS' style='width:100%;border:0;outline:0;margin:0;'></iframe>
+            <div id="uspsLookupView" ng-show="visible" ng-controller="UspsLookupController">
+                <iframe id="uspsIframe" src='http://localhost:8080/USPS-AMS'></iframe>
             </div>
             <div id="reverseGeocodeSearch" ng-show="visible" class="search-container small" ng-controller="RevGeoController">
                 <form id="revGeoForm" action="" method="post">

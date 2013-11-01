@@ -729,8 +729,8 @@ sage.controller("UspsLookupController", function($scope, $http, dataBus, mapServ
     $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
         if ($scope.visible) {
-            mapService.toggleMap(false);
             dataBus.setBroadcast("hideResultTab", false);
+            mapService.toggleMap(true);
         }
     });
 });
