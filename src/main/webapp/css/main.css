@@ -51,6 +51,22 @@ h3.slim {
     font-size: 20px;
 }
 
+h3.section-title {
+    font-size:16px;
+    margin:0;
+    padding:8px 0 8px 10px;
+    background:#efefef;
+    text-shadow: 0 0 1px #aaa;
+    font-weight: normal;
+    color:white;
+}
+
+hr.section-title-hr {
+    margin:0;
+    padding:0;
+    border-top:1px solid #666;
+}
+
 :focus {outline:none;}
 ::-moz-focus-inner {border:0;}
 
@@ -130,23 +146,12 @@ h3.slim {
 }
 
 /*-------------------------------------------------------
-  Top Headers
+  Header
 --------------------------------------------------------*/
-#sageLogoText {
-    font-size: 150%;
-    padding: 0;
-    font-weight: 600;
-    line-height: 40px;
-}
-
-#sageLogoText a {
-    /*color:#0E4E5A;*/
-    color:#fff;
-}
-
 #header {
-    display:block;
     height:40px;
+    width:100%;
+    display:block;
     background:#333;
     padding:0;
     margin:0;
@@ -193,24 +198,16 @@ h3.slim {
     color:white;
 }
 
-.top-header {
-    padding:0 15px;
-    margin:0;
-    font-size:16px;
-    background:#dfdfdf;
-    color:#005588 !important;
-    font-weight:600;
-    border-width:1px;
-    border-color:#aaa;
-    border-style: none none solid none;
+#sageLogoText {
+    font-size: 150%;
+    padding: 0;
+    font-weight: 600;
+    line-height: 40px;
 }
 
-.top-header .text {
-    padding:9px 0 11px 0;
-}
-
-.top-method-header {
-    white-space: nowrap;
+#sageLogoText a {
+    color:#fff;
+    /*color:#0E4E5A;*/
 }
 
 /*-------------------------------------------------------
@@ -365,37 +362,6 @@ h3.slim {
 }
 
 /*-------------------------------------------------------
-  Left Nav
-  ------------------------------------------------------*/
-.method-header, .result-header {
-    margin: 0;
-    padding: 10px 15px;
-    font-size: 100%;
-    color:#777;
-}
-
-.method-header {
-    cursor:pointer;
-    font-size:16px;
-}
-
-.method-header:hover{
-    color:#333;
-    background-color:#ddd;
-}
-
-.method-header.active {
-    color: white;
-    font-weight: 600;
-    background-color:#0E4E5A;
-}
-
-.input-container input, .input-container select {
-    color:#111;
-    font-size:14px;
-}
-
-/*-------------------------------------------------------
   Maps
   ------------------------------------------------------*/
 #mapView, #map_canvas {
@@ -405,6 +371,16 @@ h3.slim {
 /*-------------------------------------------------------
   Generic Results Display
   ------------------------------------------------------*/
+.success {
+    color: white;
+    background-color:#477326;
+    font-weight: 600;
+}
+
+.success-color {
+    color:#477326 !important;
+}
+
 #showResultsTab {
     width:120px;
     position:absolute;
@@ -424,6 +400,13 @@ h3.slim {
 
 #showResultsTab:hover, #resultsTab:hover {
     background-color:#005588 !important;
+}
+
+.result-header {
+    margin: 0;
+    padding: 10px 15px;
+    font-size: 100%;
+    color:#777;
 }
 
 .result-header.success {
@@ -501,16 +484,6 @@ h3.slim {
     border-top:1px solid #ddd;
     margin-top:4px;
     padding:5px;
-}
-
-.success {
-    color: white;
-    background-color:#477326;
-    font-weight: 600;
-}
-
-.success-color {
-    color:#477326 !important;
 }
 
 /*-------------------------------------------------------
@@ -684,6 +657,53 @@ hr.shadow {
 /*-------------------------------------------------------
   Street Finder Table
 --------------------------------------------------------*/
+#streetView {
+    position: absolute;
+    top:0;
+    background:rgba(229,229,229,0.7);
+    width:100%;
+    height:100%;
+}
+
+#streetViewFrame {
+    width:900px;
+    margin:20px auto;
+}
+
+#streetLookupSearch {
+    background:#fefefe;
+    box-shadow:2px 2px 10px #ccc;
+    width:960px;
+    border-radius:0;
+    min-height:500px;
+}
+
+#streetLookupSearch p {
+    font-size:13px;
+    color:#333;
+}
+
+#streetLookupSearch label {
+    font-size:13px;
+}
+
+#streetLookupSearch input[type="text"] {
+    outline: 0;
+    border: 1px solid #ddd;
+    border-radius: 2px 0 0 2px;
+    height: 35px;
+    line-height: 25px;
+    background: white;
+    padding-left: 5px;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+#streetViewTableContainer {
+    border-top: 1px solid #ddd;
+    margin: 10px 0;
+}
+
 table.dataTable tr.odd {
     background-color:transparent !important;
 }
@@ -723,11 +743,12 @@ table.dataTable tr.even td.sorting_1 {
 }
 
 #street-view-table tr td {
-    font-size:14px;
+    font-size:13px;
+    text-align: center;
 }
 
 #street-view-table.dataTable thead th {
-    font-size:14px;
+    font-size:12px;
     color:#005588;
 }
 
@@ -740,17 +761,6 @@ table.dataTable tr.even td.sorting_1 {
     outline: 0;
     border: 1px solid #999;
     padding: 5px;
-}
-
-#streetLookupSearch {
-    position:inherit;
-    top:0;
-    left:0;
-    width:100%;
-    border:0;
-    box-shadow: 0 2px 2px #eee;
-    border-radius:0;
-    margin:10px;
 }
 
 #streetLookupForm, #streetSearchFilter {

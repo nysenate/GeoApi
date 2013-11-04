@@ -745,7 +745,7 @@ sage.controller("StreetLookupController", function($scope, $http, dataBus, mapSe
     $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
         if ($scope.visible) {
-            mapService.toggleMap(false);
+            mapService.toggleMap(true);
             dataBus.setBroadcast("hideResultTab", false);
         }
     });

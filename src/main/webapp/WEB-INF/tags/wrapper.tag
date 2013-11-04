@@ -3,6 +3,7 @@
 <%@attribute name="ngApp" fragment="true" required="true" %>
 <%@attribute name="jsIncludes" fragment="true" required="false" %>
 <%@attribute name="cssIncludes" fragment="true" required="false"%>
+
 <% request.setAttribute("contextPath", request.getContextPath());  %>
 
 <!doctype html>
