@@ -1,5 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="gov.nysenate.sage.factory.ApplicationFactory" %>
 <%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
+
+<% request.setAttribute("amsUrl", ApplicationFactory.getConfig().getValue("usps.ams.ui.url")); %>
+
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage</jsp:attribute>
     <jsp:attribute name="title">SAGE</jsp:attribute>
@@ -14,7 +18,7 @@
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">
-        <div style="width:100%" id="header" ng-controller="MenuController">
+        <div id="header" ng-controller="MenuController">
             <sage:logo></sage:logo>
             <ul class="top-method-header">
                 <li>
@@ -58,44 +62,50 @@
                 <div id="map_canvas"></div>
             </div>
             <div id="streetView" ng-show="visible" ng-controller="StreetLookupController">
-                <div style="height:100%;">
-                    <div id="streetLookupSearch" class="search-container small">
-                        <form id="streetLookupForm" action="" method="post">
-                            <label>Enter a zipcode to find streets</label>
-                            <div style='margin-top:2px'>
-                                <input type="text" ng-model="zip5" style="width:175px" maxlength="5" placeholder="e.g. 12210"/>
-                                <button ng-click="lookup()" class="submit mini">
-                                    <div class="icon-search icon-white-no-hover"></div>
-                                    <span></span>
-                                </button>
+                <div id="streetViewFrame">
+                    <div id="streetLookupSearch">
+                        <h3 class='section-title' style='background:#005588;color:white;'>Board of Elections Street Finder</h3>
+                        <hr class='section-title-hr'/>
+                        <div style='padding:10px;'>
+                            <p>SAGE provides a database of NYS street ranges that are associated with legislative district codes.</p>
+                            <p>You can begin your search by entering the Zip 5 code to obtain a listing of street records.</p><br/>
+                            <form id="streetLookupForm" action="" method="post">
+                                <label>Zip 5</label>
+                                <div style='margin-top:2px'>
+                                    <input type="text" ng-model="zip5" style="width:175px" maxlength="5" placeholder="e.g. 12210"/>
+                                    <button ng-click="lookup()" class="submit mini">
+                                        <div class="icon-search icon-white-no-hover"></div>
+                                        <span></span>
+                                    </button>
+                                </div>
+                            </form>
+                            <div id="streetSearchFilter" ng-show="showFilter">
+                                <label for="street-search">Filter by street</label>
+                                <div style='margin-top:2px'>
+                                    <input id="street-search" type="text" style="width:175px"/>
+                                </div>
                             </div>
-                        </form>
-                        <div id="streetSearchFilter" ng-show="showFilter">
-                            <label for="street-search">Filter by street</label>
-                            <div style='margin-top:2px'>
-                                <input id="street-search" type="text" style="width:175px"/>
+                            <div style='clear:both;'></div>
+                            <div id="streetViewTableContainer" ng-controller="StreetViewController">
+                                <table id="street-view-table" my-table="overrideOptions" aa-data="streets"
+                                       ao-column-defs="columnDefs" aa-sorting="sortDefault">
+                                    <thead>
+                                    <th>From Bldg</th>
+                                    <th>To Bldg</th>
+                                    <th style="width:170px">Street</th>
+                                    <th>E/O</th>
+                                    <th>Location</th>
+                                    <th>Zip</th>
+                                    <th>Senate</th>
+                                    <th>Congress</th>
+                                    <th>Assembly</th>
+                                    <th>County</th>
+                                    <th>Town</th>
+                                    <th>Election</th>
+                                    </thead>
+                                </table>
                             </div>
                         </div>
-                        <div style="clear:both"></div>
-                    </div>
-                    <div style="padding:10px;" ng-controller="StreetViewController">
-                        <table id="street-view-table" my-table="overrideOptions" aa-data="streets"
-                               ao-column-defs="columnDefs" aa-sorting="sortDefault">
-                            <thead>
-                            <th>From Bldg</th>
-                            <th>To Bldg</th>
-                            <th style="width:250px;">Street</th>
-                            <th>E/O</th>
-                            <th>Location</th>
-                            <th>Zip</th>
-                            <th>Senate</th>
-                            <th>Congress</th>
-                            <th>Assembly</th>
-                            <th>County</th>
-                            <th>Town</th>
-                            <th>Election</th>
-                            </thead>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -233,7 +243,7 @@
                 </form>
             </div>
             <div id="uspsLookupView" ng-show="visible" ng-controller="UspsLookupController">
-                <iframe id="uspsIframe" src='http://localhost:8080/USPS-AMS'></iframe>
+                <iframe id="uspsIframe" src='${amsUrl}'></iframe>
             </div>
             <div id="reverseGeocodeSearch" ng-show="visible" class="search-container small" ng-controller="RevGeoController">
                 <form id="revGeoForm" action="" method="post">

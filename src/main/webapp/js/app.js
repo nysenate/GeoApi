@@ -1290,12 +1290,12 @@ $(document).ready(function(){
             var $contentColumn = $('#contentcolumn');
             var $mapContentColumn = $('#mapcontentcolumn');
             var $scrollableContent = $('.scrollable-content');
-            var $embeddedIframes = $('#uspsIframe');
+            var $embeddedFrames = $('#uspsIframe, #streetViewFrame');
 
             $contentColumn.height(windowHeight - 42);
             $mapContentColumn.height(windowHeight - 2);
             $scrollableContent.height(windowHeight - 84);
-            $embeddedIframes.height($contentColumn.height() - 4);
+            $embeddedFrames.height($contentColumn.height() - 4);
         }
     }
 
