@@ -22,8 +22,8 @@ public class ServiceProviders<T>
      */
     public void registerDefaultProvider(String providerName, Class<? extends T> provider)
     {
-        defaultProvider = providerName;
-        providers.put(defaultProvider, provider);
+        registerProvider(providerName, provider);
+        setDefaultProvider(providerName);
     }
 
     /**
@@ -32,8 +32,8 @@ public class ServiceProviders<T>
      */
     public void setDefaultProvider(String providerName)
     {
-        if (providers.containsKey(providerName)) {
-            defaultProvider = providerName;
+        if (providerName != null && providers.containsKey(providerName.toLowerCase())) {
+            defaultProvider = providerName.toLowerCase();
         }
     }
 

@@ -390,7 +390,7 @@ public class DistrictController extends BaseApiController implements Observer
     private Address performAddressCorrection(Address address)
     {
         logger.debug("USPS Validating: " + address.toString());
-        AddressResult addressResult = addressProvider.newInstance("usps").validate(address);
+        AddressResult addressResult = addressProvider.newInstance().validate(address);
         if (addressResult.isValidated()) {
             logger.trace("USPS Validated Address: " + addressResult.getAddress());
             return addressResult.getAddress();
@@ -477,7 +477,7 @@ public class DistrictController extends BaseApiController implements Observer
 
         /** Batch USPS validation */
         if (usingAddresses && batchDistrictRequest.isUspsValidate()) {
-            List<AddressResult> addressResults = addressProvider.newInstance("usps").validate((ArrayList<Address>) addresses);
+            List<AddressResult> addressResults = addressProvider.newInstance().validate(addresses);
             if (addressResults != null && addressResults.size() == addresses.size()) {
                 for (int i = 0; i < addressResults.size(); i++) {
                     if (addressResults.get(i).isValidated()) {

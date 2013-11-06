@@ -37,7 +37,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
         }
         /** Use USPS if address is eligible */
         else if (address.isEligibleForUSPS()) {
-            addressResult = this.newInstance("usps").validate(address);
+            addressResult = this.newInstance().validate(address);
         }
         /** Otherwise address is insufficient */
         else {
@@ -64,7 +64,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
 
         if (addresses != null && !addresses.isEmpty()) {
             if (provider == null || provider.isEmpty()) {
-                provider = "usps";
+                provider = this.defaultProvider;
             }
             if (this.isRegistered(provider)) {
                 addressResults = this.newInstance(provider).validate(addresses);
@@ -91,7 +91,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
      */
     public AddressResult lookupCityState(Address address, String provider)
     {
-        return this.newInstance(provider, "usps").lookupCityState(address);
+        return this.newInstance(provider, true).lookupCityState(address);
     }
 
     /**

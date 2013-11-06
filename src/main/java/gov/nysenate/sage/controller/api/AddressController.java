@@ -47,7 +47,7 @@ public final class AddressController extends BaseApiController
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        Object addressResponse = new ApiError(this.getClass(), RESPONSE_ERROR);
+        Object addressResponse;
 
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
@@ -104,12 +104,12 @@ public final class AddressController extends BaseApiController
             if (addresses != null && !addresses.isEmpty()) {
                 switch (apiRequest.getRequest()) {
                     case "validate": {
-                        AddressService addressService = addressProvider.newInstance(provider, "usps");
+                        AddressService addressService = addressProvider.newInstance(provider, true);
                         addressResponse = new BatchValidateResponse(addressService.validate(addresses));
                         break;
                     }
                     case "citystate": {
-                        AddressService addressService = addressProvider.newInstance(provider, "usps");
+                        AddressService addressService = addressProvider.newInstance(provider, true);
                         addressResponse = new BatchCityStateResponse(addressService.lookupCityState(addresses));
                         break;
                     }

@@ -97,7 +97,7 @@ public abstract class AddressTestBase
 
         List<AddressResult> addressResults = addressService.lookupCityState(addresses);
         assertEquals(6, addressResults.size());
-        assertEquals(addressService.getClass().getSimpleName(), addressResults.get(0).getSource());
+        assertEquals(addressService.getClass().getSimpleName(), addressResults.get(0).getSource().getSimpleName());
 
         Address expected = new Address("71 14TH ST", "", "TROY", "NY", "12180", "4209");
         assertTrue(addressResults.get(0).isValidated());

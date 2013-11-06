@@ -30,7 +30,7 @@ import java.util.Observer;
 public class USPSAMSDao implements Observer
 {
     private static final Config config = ApplicationFactory.getConfig();
-    private static String DEFAULT_BASE_URL = "http://127.0.0.1:8080/USPS-AMS/api/";
+    private static String DEFAULT_BASE_URL = "";
     private static String VALIDATE_METHOD = "validate";
     private static String CITYSTATE_METHOD = "citystate";
 
@@ -40,12 +40,13 @@ public class USPSAMSDao implements Observer
     public USPSAMSDao()
     {
         this.update(null, null);
+        config.notifyOnChange(this);
     }
 
     @Override
     public void update(Observable o, Object arg)
     {
-
+        DEFAULT_BASE_URL = config.getValue("usps.ams.api.url");
     }
 
     /**

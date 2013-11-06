@@ -3,7 +3,6 @@ package gov.nysenate.sage.provider;
 import static gov.nysenate.sage.AddressTestBase.*;
 import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 import org.junit.Before;
@@ -18,13 +17,13 @@ import static org.junit.Assert.assertEquals;
 public class USPS_Test extends TestBase
 {
     private static Logger logger = Logger.getLogger(USPS_Test.class);
-    private USPS usps;
+    private USPSAIS uspsais;
 
     @Before
     public void setUp()
     {
         try {
-            this.usps = new USPS();
+            this.uspsais = new USPSAIS();
         }
         catch(Exception ex){
             System.err.println(ex.getMessage());
@@ -34,31 +33,31 @@ public class USPS_Test extends TestBase
     @Test
     public void singleAddressValidate_ReturnsAddressResult()
     {
-        assertSingleAddressValidation(usps);
+        assertSingleAddressValidation(uspsais);
     }
 
     @Test
     public void multipleAddressValidate_ReturnsAddressResult()
     {
-        assertMultiAddressValidation(usps);
+        assertMultiAddressValidation(uspsais);
     }
 
     @Test
     public void cityStateLookup_ReturnsAddressResult()
     {
-        assertCityStateLookup(usps);
+        assertCityStateLookup(uspsais);
     }
 
     @Test
     public void singleInvalidAddressValidate_SetsIsValidatedFalse()
     {
-        assertBadAddressValidate(usps);
+        assertBadAddressValidate(uspsais);
     }
 
     @Test
     public void test()
     {
-        FormatUtil.printObject(usps.validate(new Address("200 yellow place", "Rockledge", "FL", "")));
+        FormatUtil.printObject(uspsais.validate(new Address("200 yellow place", "Rockledge", "FL", "")));
     }
 
 }

@@ -6,7 +6,6 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.client.fluent.Content;
@@ -70,23 +69,24 @@ import java.util.regex.Pattern;
  * Refer to the online documentation (link subject to change)
  * https://www.usps.com/webtools/_pdf/Address-Information-v3-1b.pdf
  */
-public class USPS implements AddressService, Observer
+public class USPSAIS implements AddressService, Observer
 {
     private static final int BATCH_SIZE = 5;
     private static final String DEFAULT_BASE_URL = "http://production.shippingapis.com/ShippingAPI.dll";
-    private final Logger logger = Logger.getLogger(USPS.class);
+    private final Logger logger = Logger.getLogger(USPSAIS.class);
     private Config config;
     private final DocumentBuilder xmlBuilder;
     private final XPath xpath;
     private String baseUrl;
     private String apiKey;
 
-    public USPS() throws Exception
+    public USPSAIS() throws Exception
     {
         config = ApplicationFactory.getConfig();
-        configure();
         xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         xpath = XPathFactory.newInstance().newXPath();
+        configure();
+        config.notifyOnChange(this);
     }
 
     public void update(Observable o, Object arg)
@@ -381,10 +381,8 @@ public class USPS implements AddressService, Observer
 
     private void configure()
     {
-        baseUrl = config.getValue("usps.url");
-        apiKey = config.getValue("usps.key");
-        config.notifyOnChange(this);
-
+        baseUrl = config.getValue("usps.ais.url");
+        apiKey = config.getValue("usps.ais.key");
         if (baseUrl.isEmpty()) {
             baseUrl = DEFAULT_BASE_URL;
         }

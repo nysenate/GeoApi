@@ -4,6 +4,7 @@ import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.provider.*;
+import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.address.CityZipServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
@@ -133,11 +134,17 @@ public class ApplicationFactory
             this.tigerDB = new DB(this.config, "tiger.db");
 
             /** Setup address service providers. */
+            String defaultUspsProvider = this.config.getValue("usps.default", "uspsams");
+            Map<String, Class<? extends AddressService>> addressProviders = new HashMap<>();
+            addressProviders.put("uspsams", USPSAMS.class);
+            addressProviders.put("uspsais", USPSAIS.class);
             addressServiceProvider = new AddressServiceProvider();
-            addressServiceProvider.registerDefaultProvider("usps", USPSAMS.class);
+            for (String key : addressProviders.keySet()) {
+                addressServiceProvider.registerProvider(key, addressProviders.get(key));
+            }
+            addressServiceProvider.setDefaultProvider(defaultUspsProvider);
 
-            /** Setup geocode service providers. There are more options here so it's different
-             *  from the way other service providers are set up. */
+            /** Setup geocode service providers. */
             Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
             geoProviders.put("yahoo", Yahoo.class);
             geoProviders.put("tiger", TigerGeocoder.class);
