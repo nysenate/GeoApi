@@ -438,7 +438,7 @@ public class ProcessBatchJobs
         @Override
         public JobBatch call() throws Exception
         {
-            List<AddressResult> addressResults = addressProvider.validate(jobBatch.getAddresses(), "usps", false);
+            List<AddressResult> addressResults = addressProvider.validate(jobBatch.getAddresses(), null, false);
             if (addressResults.size() == jobBatch.getAddresses().size()) {
                 for (int i = 0; i < addressResults.size(); i++) {
                     jobBatch.setAddressResult(i, addressResults.get(i));
