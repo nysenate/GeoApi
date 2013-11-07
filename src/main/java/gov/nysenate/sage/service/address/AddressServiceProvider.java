@@ -54,7 +54,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
     /**
      * Validates addresses using USPS or another provider if available.
      * @param addresses List of Addresses to validate
-     * @param provider Provider to use, default is usps if left null or empty
+     * @param provider Provider to use, default provider if left null or empty
      * @param usePunct Apply address punctuation to each result.
      * @return List<AddressResult>
      */

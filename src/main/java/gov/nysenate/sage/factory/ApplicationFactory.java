@@ -134,9 +134,9 @@ public class ApplicationFactory
             this.tigerDB = new DB(this.config, "tiger.db");
 
             /** Setup address service providers. */
-            String defaultUspsProvider = this.config.getValue("usps.default", "uspsams");
+            String defaultUspsProvider = this.config.getValue("usps.default", "usps");
             Map<String, Class<? extends AddressService>> addressProviders = new HashMap<>();
-            addressProviders.put("uspsams", USPSAMS.class);
+            addressProviders.put("usps", USPSAMS.class);
             addressProviders.put("uspsais", USPSAIS.class);
             addressServiceProvider = new AddressServiceProvider();
             for (String key : addressProviders.keySet()) {
