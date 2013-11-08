@@ -152,10 +152,10 @@ To supply a single address string use the parameter <tt class="docutils literal"
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>usps</td>
-<td>USPS Address Correction</td>
+<td>USPS AMS Address Correction</td>
 </tr>
-<tr class="row-odd"><td>mapquest</td>
-<td>MapQuest geocoding and address services</td>
+<tr class="row-odd"><td>uspsais</td>
+<td>USPS AIS Address Correction</td>
 </tr>
 </tbody>
 </table>
@@ -165,7 +165,7 @@ To supply a single address string use the parameter <tt class="docutils literal"
 <p>The validated response:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
   <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
   <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
   <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
     <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span>
@@ -184,7 +184,7 @@ To supply a single address string use the parameter <tt class="docutils literal"
 <p>A failed validation response:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
   <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;MapQuest&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
   <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
   <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
   <span class="s">&quot;validated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
@@ -206,7 +206,7 @@ to enable punctuation.</p>
 <p>The city/state response:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
   <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
   <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
   <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;ALBANY&quot;</span><span class="p">,</span>
   <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
@@ -219,7 +219,7 @@ to enable punctuation.</p>
 <p>A failed city/state response with invalid input:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
   <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
   <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s">&quot;Invalid Zip Code.&quot;</span> <span class="p">],</span>
   <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
   <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
@@ -235,7 +235,7 @@ to enable punctuation.</p>
 <p>The zipcode response:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
   <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPS&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
   <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
   <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12203&quot;</span><span class="p">,</span>
   <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;1914&quot;</span><span class="p">,</span>
@@ -247,7 +247,7 @@ to enable punctuation.</p>
 <p>A failed zipcode response, similar to the failed validate response:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
   <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;MapQuest&quot;</span><span class="p">,</span>
+  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
   <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
   <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
   <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
@@ -262,7 +262,7 @@ to enable punctuation.</p>
 </div>
 <p>To force the request to use a certain provider supply the query parameter <tt class="docutils literal"><span class="pre">provider</span></tt>:</p>
 <div class="highlight-python"><pre>/api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=usps
-/api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=mapquest</pre>
+/api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=uspsais</pre>
 </div>
 </div>
 <div class="section" id="geo">

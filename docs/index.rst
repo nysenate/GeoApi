@@ -97,9 +97,9 @@ The available providers are:
 +-------------+---------------------------------------------+
 | Provider    | Description                                 |
 +=============+=============================================+
-| usps        | USPS Address Correction                     |
+| usps        | USPS AMS Address Correction                 |
 +-------------+---------------------------------------------+
-| mapquest    | MapQuest geocoding and address services     |
+| uspsais     | USPS AIS Address Correction                 |
 +-------------+---------------------------------------------+
 
 The usage of ``validate`` with an address input::
@@ -110,7 +110,7 @@ The validated response::
 
     {
       "status" : "SUCCESS",
-      "source" : "USPS",
+      "source" : "USPSAMS",
       "messages" : [ ],
       "address" : {
         "addr1" : "44 Fairlawn Ave",
@@ -129,7 +129,7 @@ A failed validation response::
 
     {
       "status" : "NO_ADDRESS_VALIDATE_RESULT",
-      "source" : "MapQuest",
+      "source" : "USPSAMS",
       "messages" : [ ],
       "address" : null,
       "validated" : false,
@@ -151,7 +151,7 @@ The city/state response::
 
     {
       "status" : "SUCCESS",
-      "source" : "USPS",
+      "source" : "USPSAMS",
       "messages" : [ ],
       "city" : "ALBANY",
       "state" : "NY",
@@ -164,7 +164,7 @@ A failed city/state response with invalid input::
 
     {
       "status" : "NO_ADDRESS_VALIDATE_RESULT",
-      "source" : "USPS",
+      "source" : "USPSAMS",
       "messages" : [ "Invalid Zip Code." ],
       "city" : "",
       "state" : "",
@@ -181,7 +181,7 @@ The zipcode response::
 
     {
       "status" : "SUCCESS",
-      "source" : "USPS",
+      "source" : "USPSAMS",
       "messages" : [ ],
       "zip5" : "12203",
       "zip4" : "1914",
@@ -193,7 +193,7 @@ A failed zipcode response, similar to the failed validate response::
 
     {
       "status" : "NO_ADDRESS_VALIDATE_RESULT",
-      "source" : "MapQuest",
+      "source" : "USPSAMS",
       "messages" : [ ],
       "zip5" : null,
       "zip4" : null,
@@ -206,7 +206,7 @@ A failed zipcode response, similar to the failed validate response::
 To force the request to use a certain provider supply the query parameter ``provider``::
 
     /api/v2/address/<method>?<params..>&provider=usps
-    /api/v2/address/<method>?<params..>&provider=mapquest
+    /api/v2/address/<method>?<params..>&provider=uspsais
 
 Geo
 ---
