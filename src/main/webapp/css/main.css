@@ -648,6 +648,7 @@ hr.shadow {
 }
 
 #uspsIframe {
+    min-height:520px;
     width:100%;
     border:0;
     outline:0;
