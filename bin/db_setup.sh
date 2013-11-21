@@ -38,7 +38,7 @@ fi
 
 
 function check_if_db_exists() {
-  if psql -l | grep "^ *$1"; then
+  if psql -l | grep -w "$1"; then
     read -p "WARNING: $1 database already exists. Would you like to drop it and re-initialize? [y/n] " -n 1 -r RC
     echo
     if [[ $RC =~ ^[Yy] ]]; then
