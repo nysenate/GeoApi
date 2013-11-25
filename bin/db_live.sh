@@ -70,7 +70,7 @@ function backup() {
     GEOAPI_LIVE_DATA=$DATA_DIR/$GEOAPI_LIVE_DATA
     createEmptyFile $GEOAPI_LIVE_DATA $POSTGRES_USER
     echo "Backing up live GeoApi data into $GEOAPI_LIVE_DATA"
-    sudo su $POSTGRES_USER -c "pg_dump -a -t admin -t apiuser $GEOAPI_DB > $GEOAPI_LIVE_DATA"
+    sudo su $POSTGRES_USER -c "pg_dump -a -t admin -t apiuser -t assembly -t congressional -t senate -t senator $GEOAPI_DB > $GEOAPI_LIVE_DATA"
     sudo su $POSTGRES_USER -c "pg_dump -a -n job -n log $GEOAPI_DB >> $GEOAPI_LIVE_DATA"
     echo "Resetting search_path"
     sudo su $POSTGRES_USER -c "psql -c 'SET search_path=public' $GEOAPI_DB" 
