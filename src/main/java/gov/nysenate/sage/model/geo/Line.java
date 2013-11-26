@@ -10,7 +10,7 @@ public class Line
     protected List<Point> points;
 
     /**
-     * Construct a line object with the provided list of points.*
+     * Construct a line object with the provided list of points.
      * @param points list of points
      */
     public Line(List<Point> points)
@@ -19,7 +19,7 @@ public class Line
     }
 
     /**
-     * Return the list of points that comprise this line.*
+     * Return the list of points that comprise this line.
      * @return list of points that represent the line
      */
     public List<Point> getPoints()
@@ -28,7 +28,7 @@ public class Line
     }
 
     /**
-     * Sets the line to the provided list of points.*
+     * Sets the line to the provided list of points.
      * @param points list of points
      */
     public void setPoints(List<Point> points)
@@ -56,7 +56,7 @@ public class Line
     }
 
     /**
-     * Get the number of points that comprise this line.*
+     * Get the number of points that comprise this line.
      * @return number of points in this line
      */
     public int size()

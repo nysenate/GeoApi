@@ -1,6 +1,7 @@
 package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
@@ -129,7 +130,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
 
                 switch (districtStrategy) {
                     case neighborMatch:
-                        districtExecutor = Executors.newFixedThreadPool(2);
+                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("neighborMatch"));
 
                         Callable<DistrictResult> shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes);
                         Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes);
@@ -146,7 +147,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                         break;
 
                     case streetFallback:
-                        districtExecutor = Executors.newFixedThreadPool(2);
+                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("streetFallback"));
 
                         shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes);
                         streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes);
@@ -242,7 +243,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final String distProvider,
                                                 final List<DistrictType> districtTypes, DistrictStrategy districtStrategy)
     {
-        ExecutorService districtExecutor;
+        ExecutorService districtExecutor = null;
         List<DistrictResult> districtResults = new ArrayList<>(), streetFileResults, shapeFileResults;
 
         DistrictService streetFileService = this.newInstance("streetfile");
@@ -261,7 +262,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
             try {
                 switch (districtStrategy) {
                     case neighborMatch:
-                        districtExecutor = Executors.newFixedThreadPool(2);
+                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("neighborMatchBatch"));
 
                         Callable<List<DistrictResult>> streetFileCall = getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes);
                         Callable<List<DistrictResult>> shapeFileCall = getDistrictsCallable(geocodedAddresses, shapeFileService, districtTypes);
@@ -283,7 +284,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                         break;
 
                     case streetFallback:
-                        districtExecutor = Executors.newFixedThreadPool(2);
+                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("streetFallbackBatch"));
 
                         streetFileCall = getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes);
                         shapeFileCall = getDistrictsCallable(geocodedAddresses, shapeFileService, districtTypes);
@@ -332,6 +333,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
             }
             catch (ExecutionException ex) {
                 logger.error("Failed to get district results from future!", ex);
+            }
+            finally {
+                if (districtExecutor != null) {
+                    districtExecutor.shutdownNow();
+                }
             }
         }
 

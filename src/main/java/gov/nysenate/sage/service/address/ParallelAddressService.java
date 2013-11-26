@@ -1,6 +1,7 @@
 package gov.nysenate.sage.service.address;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.util.Config;
@@ -19,6 +20,7 @@ public abstract class ParallelAddressService {
     private static Logger logger = Logger.getLogger(ParallelAddressService.class);
     private static Config config = ApplicationFactory.getConfig();
     private static int THREAD_COUNT = Integer.parseInt(config.getValue("validate.threads", "3"));
+    private static ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("address"));
 
     private static class ParallelValidate implements Callable<AddressResult>
     {
@@ -41,7 +43,6 @@ public abstract class ParallelAddressService {
     public static List<AddressResult> validate(AddressService addressService, List<Address> addresses)
     {
         ArrayList<AddressResult> addressResults = new ArrayList<>();
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
         ArrayList<Future<AddressResult>> futureAddressResults = new ArrayList<>();
 
         logger.debug("Validating addresses using " + THREAD_COUNT + " threads");
@@ -60,7 +61,10 @@ public abstract class ParallelAddressService {
                 logger.error(ex.getMessage());
             }
         }
-        executor.shutdown();
         return addressResults;
+    }
+
+    public static void shutdownThread() {
+        executor.shutdownNow();
     }
 }

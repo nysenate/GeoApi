@@ -7,11 +7,10 @@ import gov.nysenate.sage.provider.*;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.address.CityZipServiceProvider;
+import gov.nysenate.sage.service.address.ParallelAddressService;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
-import gov.nysenate.sage.service.geo.GeocodeService;
-import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
-import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
-import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
+import gov.nysenate.sage.service.district.ParallelDistrictService;
+import gov.nysenate.sage.service.geo.*;
 import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
 import gov.nysenate.sage.util.Config;
@@ -110,6 +109,12 @@ public class ApplicationFactory
         catch (Exception ex) {
             logger.error("Failed to close data connections!", ex);
         }
+
+        ParallelDistrictService.shutdownThread();
+        ParallelGeocodeService.shutdownThread();
+        ParallelRevGeocodeService.shutdownThread();
+        ParallelAddressService.shutdownThread();
+
         return false;
     }
 

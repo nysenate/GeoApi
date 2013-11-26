@@ -174,8 +174,12 @@ public class DistrictController extends BaseApiController implements Observer
                 /** Handle batch district assign request using the supplied query parameters. */
                 else {
                     String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
-                    List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
-                    List<Point> points = getPointsFromJsonBody(batchJsonPayload);
+                    List<Address> addresses;
+                    List<Point> points = new ArrayList<>();
+                    addresses = getAddressesFromJsonBody(batchJsonPayload);
+                    if (addresses.isEmpty()) {
+                        points = getPointsFromJsonBody(batchJsonPayload);
+                    }
                     if (addresses.size() > 0 || points.size() > 0) {
                         BatchDistrictRequest batchDistrictRequest = new BatchDistrictRequest(districtRequest);
                         batchDistrictRequest.setAddresses(addresses);
@@ -477,7 +481,7 @@ public class DistrictController extends BaseApiController implements Observer
 
         /** Batch USPS validation */
         if (usingAddresses && batchDistrictRequest.isUspsValidate()) {
-            List<AddressResult> addressResults = addressProvider.newInstance().validate(addresses);
+            List<AddressResult> addressResults = addressProvider.validate(addresses, null, false);
             if (addressResults != null && addressResults.size() == addresses.size()) {
                 for (int i = 0; i < addressResults.size(); i++) {
                     if (addressResults.get(i).isValidated()) {

@@ -1,6 +1,7 @@
 package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.util.Config;
@@ -15,6 +16,7 @@ public class ParallelRevGeocodeService
     private static Logger logger = Logger.getLogger(ParallelRevGeocodeService.class);
     private static Config config = ApplicationFactory.getConfig();
     private static int THREAD_COUNT = Integer.parseInt(config.getValue("revgeocode.threads", "3"));
+    private static ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("revgeo"));
 
     /**
     * Callable for parallel reverse geocoding requests
@@ -46,7 +48,6 @@ public class ParallelRevGeocodeService
     public static ArrayList<GeocodeResult> reverseGeocode(RevGeocodeService revGeocodeService, List<Point> points)
     {
         ArrayList<GeocodeResult> revGeocodeResults = new ArrayList<>();
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
         ArrayList<Future<GeocodeResult>> futureRevGeocodeResults = new ArrayList<>();
 
         logger.debug("Reverse geocoding using " + THREAD_COUNT + " threads");
@@ -65,7 +66,10 @@ public class ParallelRevGeocodeService
                 logger.error(ex.getMessage());
             }
         }
-        executor.shutdown();
         return revGeocodeResults;
+    }
+
+    public static void shutdownThread() {
+        executor.shutdownNow();
     }
 }

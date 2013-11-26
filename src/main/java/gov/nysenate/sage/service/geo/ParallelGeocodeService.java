@@ -1,6 +1,7 @@
 package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.util.Config;
@@ -18,7 +19,8 @@ public abstract class ParallelGeocodeService
 {
     private static Logger logger = Logger.getLogger(ParallelGeocodeService.class);
     private static Config config = ApplicationFactory.getConfig();
-    private static int THREAD_COUNT = Integer.parseInt(config.getValue("geocode.threads", "3"));;
+    private static int THREAD_COUNT = Integer.parseInt(config.getValue("geocode.threads", "3"));
+    private static ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("geocode"));
 
     /**
     * Callable for parallel geocoding requests
@@ -43,7 +45,6 @@ public abstract class ParallelGeocodeService
     public static ArrayList<GeocodeResult> geocode(GeocodeService geocodeService, List<Address> addresses)
     {
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
         ArrayList<Future<GeocodeResult>> futureGeocodeResults = new ArrayList<>();
 
         logger.debug("Geocoding using " + THREAD_COUNT + " threads");
@@ -62,7 +63,10 @@ public abstract class ParallelGeocodeService
                 logger.error(ex.getMessage());
             }
         }
-        executor.shutdown();
         return geocodeResults;
+    }
+
+    public static void shutdownThread() {
+        executor.shutdownNow();
     }
 }
