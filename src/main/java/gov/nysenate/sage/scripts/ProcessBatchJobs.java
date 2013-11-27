@@ -400,6 +400,7 @@ public class ProcessBatchJobs
         finally {
             IOUtils.closeQuietly(jobReader);
             IOUtils.closeQuietly(jobWriter);
+            addressExecutor.shutdownNow();
             geocodeExecutor.shutdownNow();
             districtExecutor.shutdownNow();
             logger.info("Closed resources.");
