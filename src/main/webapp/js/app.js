@@ -690,8 +690,17 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
                     }
                 }
                 $scope.showMemberList = false;
-                data.districts.unshift({district:null, name:'All districts'});
-                $scope.districtList = data.districts;
+                /** Sort school, town, and county districts by name */
+                if ($scope.type == "school" || $scope.type == "town" || $scope.type == "county") {
+                    $scope.districtList = data.districts.sort(function(a,b) {
+                        return a.name.localeCompare(b.name);
+                    });
+                }
+                /** Otherwise keep the default sort order */
+                else {
+                    $scope.districtList = data.districts;
+                }
+                $scope.districtList.unshift({district:null, name:'All districts'});
             })
             .error(function(data){});
     };
