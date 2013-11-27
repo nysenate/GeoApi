@@ -185,7 +185,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
     public MapResult getDistrictMaps(DistrictType districtType)
     {
         MapResult mapResult = new MapResult(this.getClass());
-        List<DistrictMap> mapCollection = districtShapefileDao.getDistrictMaps().get(districtType);
+        List<DistrictMap> mapCollection = districtShapefileDao.getCachedDistrictMaps().get(districtType);
         if (mapCollection != null) {
             mapResult.setDistrictMaps(mapCollection);
             mapResult.setStatusCode(ResultStatus.SUCCESS);
@@ -197,9 +197,10 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
     }
 
     /**
-     *
-     * @param geocodedAddress
-     * @return
+     * Attempts to obtain overlapping district information when the geocoded address is ambiguous,
+     * e.g represents the center of the city or zip area.
+     * @param geocodedAddress GeocodedAddress
+     * @return DistrictResult with overlaps and street ranges set.
      */
     public DistrictResult getMultiMatchResult(GeocodedAddress geocodedAddress, Boolean zipProvided)
     {

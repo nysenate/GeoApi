@@ -99,11 +99,15 @@ public class DistrictShapefileDao extends BaseDao
     }
 
     /**
-     *
-     * @param targetDistrictType
-     * @param targetCodes
-     * @param refDistrictType
-     * @param refCodes
+     * Creates and returns a DistrictOverlap object which contains lists of all districts that contained
+     * within a collection of other districts and maps of intersections for senate districts. This is used
+     * for a zip/city level match where given a collection of zip codes, gather the other types of districts
+     * that overlap the zip area.
+     * @param targetDistrictType The DistrictType of get overlap info for.
+     * @param targetCodes        The list of codes that overlap the area (obtained through street files for performance)
+     * @param refDistrictType    The DistrictType to base the intersections of off.
+     * @param refCodes           The list of codes that represent the base area.
+     * @return DistrictOverlap
      */
     public DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType, Set<String> targetCodes,
                       DistrictType refDistrictType, Set<String> refCodes)
@@ -178,10 +182,12 @@ public class DistrictShapefileDao extends BaseDao
     }
 
     /**
-     *
-     * @param refDistrictType
-     * @param refCodes
-     * @return
+     * Generates a DistrictMap containing geometry that represents the area contained within the
+     * supplied reference district codes of type refDistrictType. Useful for obtaining the polygon that
+     * represents a collection of zip codes for example.
+     * @param refDistrictType The reference district type.
+     * @param refCodes        The reference district codes.
+     * @return DistrictMap
      */
     public DistrictMap getOverlapReferenceBoundary(DistrictType refDistrictType, Set<String> refCodes)
     {
@@ -228,7 +234,7 @@ public class DistrictShapefileDao extends BaseDao
      * Retrieves a mapped collection of DistrictMaps.
      * @return Map<DistrictType, List<DistrictMap>>
      */
-    public Map<DistrictType, List<DistrictMap>> getDistrictMaps()
+    public Map<DistrictType, List<DistrictMap>> getCachedDistrictMaps()
     {
         if (districtMapCache == null) {
             cacheDistrictMaps();
@@ -242,8 +248,9 @@ public class DistrictShapefileDao extends BaseDao
      */
     public boolean cacheDistrictMaps()
     {
-        String sql = "SELECT '%s' AS type, %s as name, %s as code, ST_AsGeoJson(geom) AS map " +
-                     "FROM " + SCHEMA + ".%s";
+        String sql = "SELECT '%s' AS type, %s as name, %s as code, ST_AsGeoJson(ST_Union(geom)) AS map " +
+                     "FROM " + SCHEMA + ".%s " +
+                     "GROUP BY %s, %s";
 
         /** Iterate through all the requested types and format the template sql */
         ArrayList<String> queryList = new ArrayList<>();
@@ -251,7 +258,8 @@ public class DistrictShapefileDao extends BaseDao
             if (DistrictShapeCode.contains(districtType)) {
                 String nameColumn = resolveNameColumn(districtType);
                 String codeColumn = resolveCodeColumn(districtType);
-                queryList.add(String.format(sql, districtType, nameColumn, codeColumn, districtType));
+                queryList.add(String.format(sql, districtType, nameColumn, codeColumn, districtType,
+                                                               nameColumn, codeColumn));
             }
         }
 
@@ -372,6 +380,7 @@ public class DistrictShapefileDao extends BaseDao
                 DistrictType type = DistrictType.resolveType(rs.getString("type"));
                 if (type != null) {
                     if (!districtMapCache.containsKey(type)) {
+                        logger.debug("Caching " + type.name());
                         districtMapCache.put(type, new ArrayList<DistrictMap>());
                         districtMapLookup.put(type, new HashMap<String, DistrictMap>());
                     }
@@ -389,10 +398,6 @@ public class DistrictShapefileDao extends BaseDao
                     }
                 }
             }
-            logger.debug("Cache size: " + districtMapCache.get(DistrictType.SCHOOL).size());
-            int lookupSize = 0;
-            lookupSize = districtMapLookup.get(DistrictType.SCHOOL).size();
-            logger.debug("Lookup cache size: " + lookupSize);
             return districtMapLookup;
         }
     }
