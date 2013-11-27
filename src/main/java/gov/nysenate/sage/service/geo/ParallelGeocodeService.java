@@ -47,7 +47,7 @@ public abstract class ParallelGeocodeService
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
         ArrayList<Future<GeocodeResult>> futureGeocodeResults = new ArrayList<>();
 
-        logger.debug("Geocoding using " + THREAD_COUNT + " threads");
+        logger.trace("Geocoding using " + THREAD_COUNT + " threads");
         for (Address address : addresses) {
             futureGeocodeResults.add(executor.submit(new ParallelGeocode(geocodeService, address)));
         }

@@ -48,7 +48,7 @@ public abstract class ParallelDistrictService
         ArrayList<DistrictResult> districtResults = new ArrayList<>();
         ArrayList<Future<DistrictResult>> futureDistrictResults = new ArrayList<>();
 
-        logger.debug("District Assigning using " + THREAD_COUNT + " threads.");
+        logger.trace("District Assigning using " + THREAD_COUNT + " threads.");
         for (GeocodedAddress geocodedAddress : geocodedAddresses) {
             futureDistrictResults.add(executor.submit(new ParallelDistAssign(districtService, geocodedAddress, types)));
         }

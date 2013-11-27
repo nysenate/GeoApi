@@ -50,7 +50,7 @@ public class ParallelRevGeocodeService
         ArrayList<GeocodeResult> revGeocodeResults = new ArrayList<>();
         ArrayList<Future<GeocodeResult>> futureRevGeocodeResults = new ArrayList<>();
 
-        logger.debug("Reverse geocoding using " + THREAD_COUNT + " threads");
+        logger.trace("Reverse geocoding using " + THREAD_COUNT + " threads");
         for (Point point: points) {
             futureRevGeocodeResults.add(executor.submit(new ParallelRevGeocode(revGeocodeService, point)));
         }

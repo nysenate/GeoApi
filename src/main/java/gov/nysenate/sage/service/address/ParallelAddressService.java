@@ -45,7 +45,7 @@ public abstract class ParallelAddressService {
         ArrayList<AddressResult> addressResults = new ArrayList<>();
         ArrayList<Future<AddressResult>> futureAddressResults = new ArrayList<>();
 
-        logger.debug("Validating addresses using " + THREAD_COUNT + " threads");
+        logger.trace("Validating addresses using " + THREAD_COUNT + " threads");
         for (Address address : addresses) {
             futureAddressResults.add(executor.submit(new ParallelValidate(addressService, address)));
         }

@@ -80,6 +80,7 @@
 
                     <div ng-controller="JobStatusController" class="highlight-section fixed">
                         <p class="blue-header">Batch Job Usage</p>
+                        <hr/>
                         <div>
                             <table class="light-table">
                                 <tr>
@@ -96,8 +97,8 @@
                                     <td>{{jobStatus.process.requestorEmail}}</td>
                                     <td>{{jobStatus.process.sourceFileName}}</td>
                                     <td>{{jobStatus.process.recordCount}}</td>
-                                    <td>{{jobStatus.startTime | date}}</td>
-                                    <td>{{jobStatus.completeTime | date}}</td>
+                                    <td>{{jobStatus.startTime | date:'medium'}}</td>
+                                    <td>{{jobStatus.completeTime | date:'medium'}}</td>
                                     <td>{{jobStatus.condition}}</td>
                                 </tr>
                             </table>
