@@ -700,6 +700,15 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
                 else {
                     $scope.districtList = data.districts;
                 }
+
+                /** Resolve city/town ambiguities */
+                if ($scope.type == "town") {
+                    $.each($scope.districtList, function(i,v){
+                        if (v.district.charAt(0) === '-') {
+                            v.name += ' (City)';
+                        }
+                    });
+                }
                 $scope.districtList.unshift({district:null, name:'All districts'});
             })
             .error(function(data){});
