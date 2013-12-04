@@ -104,7 +104,7 @@ public class OSM implements GeocodeService, Observer
                 if(type.equals("house") && jsonAddress.has("house_number")) {
                     street1 = jsonAddress.get("house_number").asText();
                 }
-                String addr1 = street1 + " " + jsonAddress.get("road").asText();
+                String addr1 = (jsonAddress.has("road") ? street1 + " " + jsonAddress.get("road").asText() : "");
                 String city = (jsonAddress.has("city") ? jsonAddress.get("city").asText() : "");
                 String state = (jsonAddress.has("state") ? jsonAddress.get("state").asText() : "");
                 String postal = (jsonAddress.has("postcode") ? jsonAddress.get("postcode").asText() : "");
