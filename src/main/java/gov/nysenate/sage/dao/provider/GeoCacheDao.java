@@ -54,7 +54,7 @@ public class GeoCacheDao extends BaseDao
                         "AND ((gc.zip5 = ? AND gc.zip5 != '') OR " +
                             " (? = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
                 try {
-                    return tigerRun.query(sql, new GeocodedStreetAddressHandler(),
+                    return tigerRun.query(sql, new GeocodedStreetAddressHandler(true),
                             sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
                             sa.getStreetType(), sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
                 }
@@ -69,8 +69,8 @@ public class GeoCacheDao extends BaseDao
                        "AND ((gc.zip5 = ? AND gc.zip5 != '') " +
                             " OR (? = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
                 try {
-                    return tigerRun.query(sql, new GeocodedStreetAddressHandler(), sa.getZip5(), sa.getZip5(),
-                            sa.getLocation(), sa.getState());
+                    return tigerRun.query(sql, new GeocodedStreetAddressHandler(false),
+                            sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
                 }
                 catch (SQLException ex) {
                     logger.error("Error retrieving geo cache hit!", ex);
@@ -150,12 +150,26 @@ public class GeoCacheDao extends BaseDao
 
     /**
      * Retrieves a GeocodedStreetAddress from the result set. This is the parsed format used for look-ups.
+     * If the constructor is initialized with true, the result will be null if the geocode is not of HOUSE quality.
+     * Otherwise the geocode quality won't be checked.
      */
     public class GeocodedStreetAddressHandler implements ResultSetHandler<GeocodedStreetAddress>
     {
+        private boolean buildingMatch;
+
+        public GeocodedStreetAddressHandler(boolean buildingMatch) {
+            this.buildingMatch = buildingMatch;
+        }
+
         @Override
         public GeocodedStreetAddress handle(ResultSet rs) throws SQLException {
             if (rs.next()) {
+                Geocode gc = getGeocodeFromResultSet(rs);
+                if (gc == null || gc.getQuality() == null ||
+                        (this.buildingMatch && gc.getQuality().compareTo(GeocodeQuality.HOUSE) < 0)) {
+                    return null;
+                }
+
                 StreetAddress sa = new StreetAddress();
                 sa.setBldgNum(rs.getInt("bldgnum"));
                 sa.setPreDir(rs.getString("predir"));
@@ -166,10 +180,6 @@ public class GeoCacheDao extends BaseDao
                 sa.setState(rs.getString("state"));
                 sa.setZip5(rs.getString("zip5"));
                 sa.setZip4(rs.getString("zip4"));
-                Geocode gc = getGeocodeFromResultSet(rs);
-                if (gc == null || gc.getQuality() == null || gc.getQuality().compareTo(GeocodeQuality.HOUSE) < 0) {
-                    return null;
-                }
                 return new GeocodedStreetAddress(sa, gc);
             }
             return null;
@@ -208,8 +218,8 @@ public class GeoCacheDao extends BaseDao
      * Determines if street address is cache-able. The goal is to cache unique street level addresses and
      * unique (location/zip only) addresses. The location/zip only addresses allow for caching PO BOX type
      * addresses where the geocode is likely going to be that of the (city, state, zip).
-     * @param sa
-     * @return
+     * @param sa StreetAddress
+     * @return true if street address is cacheable.
      */
     private boolean isCacheableStreetAddress(StreetAddress sa)
     {
@@ -218,6 +228,11 @@ public class GeoCacheDao extends BaseDao
                   ((!sa.getLocation().isEmpty() && !sa.getState().isEmpty()) || !sa.getZip5().isEmpty()));
     }
 
+    /**
+     * Determines if the street address has enough data to be retrievable from cache.
+     * @param sa StreetAddress
+     * @return true if street address is retrievable.
+     */
     private boolean isStreetAddressRetrievable(StreetAddress sa)
     {
         return isCacheableStreetAddress(sa);
