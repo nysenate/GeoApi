@@ -135,6 +135,7 @@ public abstract class StreetAddressParser
         else {
             String addrStr = normalize(addr.toString());
 
+            addrStr = extractUSA(addrStr);
             addrStr = extractZip(addrStr, stAddr);
             addrStr = extractState(addrStr, stAddr);
             addrStr = extractBldgNum(addrStr, stAddr);
@@ -145,11 +146,20 @@ public abstract class StreetAddressParser
     }
 
     /**
+     * Removes 'United States' or a variant from the end of the string
+     */
+    private static String extractUSA(String addressStr)
+    {
+        String countyPattern = "(?i)U((nited States( of America)?)|(\\.?S\\.?A?\\.?))$";
+        return addressStr.replaceFirst(countyPattern, "").trim();
+    }
+
+    /**
     * Extracts the zip and sets it to the supplied StreetAddress
     */
     private static String extractZip(String addressStr, StreetAddress streetAddress)
     {
-        String zipPattern = "(?<zip>(?<zip5>(?<![0-9])([-0-9]{5}))([ -](?<zip4>([0-9]{4})))?)$";
+        String zipPattern = "(?<zip>(?<zip5>(?<![0-9])([-0-9]{5}))([ -](?<zip4>([0-9]{4})))?)[, ]*$";
         Matcher zipMatcher = Pattern.compile(zipPattern).matcher(addressStr);
         if (zipMatcher.find()) {
             streetAddress.setZip5(zipMatcher.group("zip5"));
@@ -165,8 +175,8 @@ public abstract class StreetAddressParser
     */
     private static String extractState(String addressStr, StreetAddress streetAddress)
     {
-        String stateAbbrPattern = SEP + "(?<state>\\w{2})$";
-        String stateFullPattern = SEP + "(?<state>\\w+([ ]\\w+)?)$";
+        String stateAbbrPattern = SEP + "(?<state>\\w{2})[, ]*$";
+        String stateFullPattern = SEP + "(?<state>\\w+([ ]\\w+)?)[, ]*$";
 
         /** Check for state abbrev */
         Matcher stateMatcher = Pattern.compile(stateAbbrPattern).matcher(addressStr);
@@ -185,7 +195,7 @@ public abstract class StreetAddressParser
                     if (stateMatcher.group("state").equalsIgnoreCase(entry.getValue())) {
                         logger.debug("State: " + entry.getKey());
                         streetAddress.setState(entry.getKey());
-                        addressStr = addressStr.replaceFirst(entry.getValue() + "$", "").trim();
+                        addressStr = addressStr.replaceFirst(entry.getValue() + "[, ]*$", "").trim();
                     }
                 }
             }
