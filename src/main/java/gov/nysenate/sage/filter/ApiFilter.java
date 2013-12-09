@@ -322,7 +322,7 @@ public class ApiFilter implements Filter, Observer
     private void sendResponse(ServletRequest request, ServletResponse response)
     {
         Object formattedResponse = request.getAttribute(FORMATTED_RESPONSE_KEY);
-        logger.info("Sending Api response...");
+        logger.trace("Writing Api response...");
         try {
             if (formattedResponse != null) {
                 response.getWriter().write(formattedResponse.toString());
