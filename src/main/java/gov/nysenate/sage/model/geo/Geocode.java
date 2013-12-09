@@ -19,6 +19,9 @@ public class Geocode
     /** Unconverted geocoding quality metric returned by the geocoder */
     protected int rawQuality;
 
+    /** States whether the geocode was obtained from the cache */
+    protected boolean isCached;
+
     public Geocode()
     {
         this(new Point(0,0), GeocodeQuality.NOMATCH, "");
@@ -39,6 +42,8 @@ public class Geocode
         this.latlon = latlon;
         this.quality = quality;
         this.method = method;
+        this.rawQuality = 0;
+        this.isCached = false;
     }
 
     public Point getLatLon()
@@ -104,5 +109,13 @@ public class Geocode
     public int getRawQuality()
     {
         return this.rawQuality;
+    }
+
+    public boolean isCached() {
+        return isCached;
+    }
+
+    public void setCached(boolean cached) {
+        isCached = cached;
     }
 }

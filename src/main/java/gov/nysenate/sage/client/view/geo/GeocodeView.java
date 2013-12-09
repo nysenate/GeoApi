@@ -1,19 +1,18 @@
 package gov.nysenate.sage.client.view.geo;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 
 /**
  * GeocodeView represents the structure of a geocode on the response end of the API.
  */
-@JsonRootName("geocode")
 public class GeocodeView
 {
     protected double lat = 0.0;
     protected double lon = 0.0;
     protected String quality = GeocodeQuality.NOMATCH.name();
     protected String method = "";
+    protected boolean cached = false;
 
     public GeocodeView(Geocode geocode)
     {
@@ -22,6 +21,7 @@ public class GeocodeView
             this.lon = geocode.getLon();
             this.quality = geocode.getQuality().name();
             this.method = geocode.getMethod();
+            this.cached = geocode.isCached();
         }
     }
 
@@ -39,5 +39,9 @@ public class GeocodeView
 
     public String getMethod() {
         return method;
+    }
+
+    public boolean isCached() {
+        return cached;
     }
 }
