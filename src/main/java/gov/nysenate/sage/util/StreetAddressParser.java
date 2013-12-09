@@ -230,7 +230,7 @@ public abstract class StreetAddressParser
     public static String extractStreet(String addressStr, StreetAddress streetAddress)
     {
         /** Replace new lines/tabs with spaces */
-        addressStr = addressStr.replaceAll("\n", " ").replaceAll("\t", " ");
+        addressStr = addressStr.replaceAll("[\n\t]", " ");
 
         String[] addrParts = addressStr.split(",");
         if (addrParts.length >= 1) {
@@ -400,6 +400,13 @@ public abstract class StreetAddressParser
                     streetAddress.setStreetName(streetName);
                     logger.debug("StreetName: " + streetAddress.getStreetName());
                 }
+            }
+
+            /** If a 'street' was found but it doesn't have a building number and a street type, it's probably the location. */
+            if (streetAddress.getStreetType().isEmpty() && streetAddress.getBldgNum() == 0
+                && streetAddress.getLocation().isEmpty() && !streetAddress.getStreet().isEmpty()) {
+                streetAddress.setLocation(streetAddress.getStreet());
+                streetAddress.setStreetName("");
             }
         }
 
