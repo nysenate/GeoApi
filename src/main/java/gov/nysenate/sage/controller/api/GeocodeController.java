@@ -16,6 +16,7 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
@@ -24,6 +25,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -70,6 +72,7 @@ public class GeocodeController extends BaseApiController implements Observer
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
         Object geocodeResponse;
+        Timestamp startTime = TimeUtil.currentTimestamp();
 
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
@@ -95,10 +98,9 @@ public class GeocodeController extends BaseApiController implements Observer
         }
 
         logger.info("=======================================================");
-        logger.info(String.format("| Geocode Request %d | Mode: %s | IP: %s",
-                apiRequest.getId(), apiRequest.getRequest(), apiRequest.getIpAddress()));
-        if (!apiRequest.isBatch()) {
-            logger.info("-------------------------------------------------------");
+        logger.info(String.format("|%sGeocode Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
+        logger.info(String.format("| Mode: %s | IP: %s | Provider: %s", apiRequest.getRequest(), apiRequest.getIpAddress(), apiRequest.getProvider()));
+        if (!apiRequest.isBatch() && apiRequest.getRequest().equals("geocode")) {
             logger.info("| Input Address: " + geocodeRequest.getAddress());
         }
         logger.info("=======================================================");
@@ -192,6 +194,9 @@ public class GeocodeController extends BaseApiController implements Observer
                 geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
             }
         }
+
+        logger.info(String.format("Geo Response in %s ms.", TimeUtil.getElapsedMs(startTime)));
+
         /** Set response */
         setApiResponse(geocodeResponse, request);
     }

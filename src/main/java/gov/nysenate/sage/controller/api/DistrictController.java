@@ -19,7 +19,6 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
-import gov.nysenate.sage.service.address.CityZipServiceProvider;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
@@ -28,6 +27,7 @@ import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
+import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
@@ -54,7 +54,6 @@ public class DistrictController extends BaseApiController implements Observer
     private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
     private static RevGeocodeServiceProvider revGeocodeProvider = ApplicationFactory.getRevGeocodeServiceProvider();
     private static MapServiceProvider mapProvider = ApplicationFactory.getMapServiceProvider();
-    private static CityZipServiceProvider cityZipProvider = ApplicationFactory.getCityZipServiceProvider();
 
     /** Loggers */
     private static GeocodeRequestLogger geocodeRequestLogger;
@@ -97,6 +96,7 @@ public class DistrictController extends BaseApiController implements Observer
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
         Object districtResponse = null;
+        Timestamp startTime = TimeUtil.currentTimestamp();
 
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
@@ -113,6 +113,9 @@ public class DistrictController extends BaseApiController implements Observer
 
         /** Indicates whether address validation is required */
         Boolean uspsValidate = Boolean.parseBoolean(request.getParameter("uspsValidate"));
+
+        /** Indicates whether validated address should have punctuation */
+        Boolean usePunct = Boolean.parseBoolean(request.getParameter("punct"));
 
         /** Specify whether or not to geocode (Warning: If false, district assignment will be impaired) */
         Boolean skipGeocode = Boolean.parseBoolean(request.getParameter("skipGeocode"));
@@ -132,15 +135,15 @@ public class DistrictController extends BaseApiController implements Observer
         districtRequest.setShowMembers(showMembers);
         districtRequest.setShowMaps(showMaps);
         districtRequest.setUspsValidate(uspsValidate);
+        districtRequest.setUsePunct(usePunct);
         districtRequest.setSkipGeocode(skipGeocode);
         districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
         districtRequest.setDistrictStrategy(districtStrategy);
 
         logger.info("=======================================================");
-        logger.info(String.format("| District Request %d | Mode: %s | IP: %s",
-                   apiRequest.getId(), apiRequest.getRequest(), apiRequest.getIpAddress()));
+        logger.info(String.format("|%sDistrict '%s' Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getRequest(), apiRequest.getId()));
+        logger.info(String.format("| IP: %s | Maps: %s | Members: %s", apiRequest.getIpAddress(), districtRequest.isShowMaps(), districtRequest.isShowMembers()));
         if (!apiRequest.isBatch()) {
-            logger.info("-------------------------------------------------------");
             logger.info("| Input Address: " + districtRequest.getAddress());
         }
         logger.info("=======================================================");
@@ -180,7 +183,7 @@ public class DistrictController extends BaseApiController implements Observer
                     if (addresses.isEmpty()) {
                         points = getPointsFromJsonBody(batchJsonPayload);
                     }
-                    if (addresses.size() > 0 || points.size() > 0) {
+                    if (!addresses.isEmpty() || !points.isEmpty()) {
                         BatchDistrictRequest batchDistrictRequest = new BatchDistrictRequest(districtRequest);
                         batchDistrictRequest.setAddresses(addresses);
                         batchDistrictRequest.setPoints(points);
@@ -206,8 +209,11 @@ public class DistrictController extends BaseApiController implements Observer
                 else {
                     String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
                     List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
-                    List<Point> points = getPointsFromJsonBody(batchJsonPayload);
-                    if (addresses.size() > 0 || points.size() > 0) {
+                    List<Point> points = new ArrayList<>();
+                    if (addresses.isEmpty()) {
+                        points = getPointsFromJsonBody(batchJsonPayload);
+                    }
+                    if (!addresses.isEmpty() || !points.isEmpty()) {
                         DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, BLUEBIRD_DISTRICT_STRATEGY);
                         BatchDistrictRequest batchBluebirdRequest = new BatchDistrictRequest(bluebirdRequest);
                         batchBluebirdRequest.setAddresses(addresses);
@@ -226,7 +232,12 @@ public class DistrictController extends BaseApiController implements Observer
                 districtResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
             }
         }
+
         setApiResponse(districtResponse, request);
+
+        long elapsedTimeMs = TimeUtil.getElapsedMs(startTime);
+        logger.info(String.format("%sDistrict Response %d sent in %d ms.",
+                (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId(), elapsedTimeMs));
     }
 
     /**
@@ -268,7 +279,7 @@ public class DistrictController extends BaseApiController implements Observer
                     addressToValidate = streetAddress.toAddress();
                 }
                 if (addressToValidate != null) {
-                    validatedAddress = performAddressCorrection(addressToValidate);
+                    validatedAddress = performAddressCorrection(addressToValidate, districtRequest);
                 }
             }
 
@@ -309,7 +320,9 @@ public class DistrictController extends BaseApiController implements Observer
 
         /** Obtain district result */
         districtResult = performDistrictAssign(districtRequest, zipProvided, isPoBox);
-        logger.debug("Obtained district result with assigned districts: " + FormatUtil.toJsonString(districtResult.getAssignedDistricts()));
+        if (logger.isDebugEnabled()) {
+            logger.debug("Obtained district result with assigned districts: " + FormatUtil.toJsonString(districtResult.getAssignedDistricts()));
+        }
 
         /** Adjust address if it's a PO BOX and was not USPS validated */
         if (isPoBox && !districtResult.isUspsValidated() && districtResult.getAddress() != null) {
@@ -317,7 +330,7 @@ public class DistrictController extends BaseApiController implements Observer
         }
 
         /** Add map and boundary information to the district result */
-        if (districtResult.isSuccess()) {
+        if (districtRequest.isShowMaps() && districtResult.isSuccess()) {
             mapProvider.assignMapsToDistrictInfo(districtResult.getDistrictInfo(), districtResult.getDistrictMatchLevel(), false);
         }
 
@@ -391,12 +404,14 @@ public class DistrictController extends BaseApiController implements Observer
      * on the supplied geocodedAddress parameter.
      * @return GeocodedAddress the address corrected geocodedAddress.
      */
-    private Address performAddressCorrection(Address address)
+    private Address performAddressCorrection(Address address, DistrictRequest districtRequest)
     {
-        logger.debug("USPS Validating: " + address.toString());
-        AddressResult addressResult = addressProvider.newInstance().validate(address);
-        if (addressResult.isValidated()) {
-            logger.trace("USPS Validated Address: " + addressResult.getAddress());
+        boolean usePunct = (districtRequest != null) ? districtRequest.isUsePunct() : false;
+        AddressResult addressResult = addressProvider.validate(address, null, usePunct);
+        if (addressResult != null && addressResult.isValidated()) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("USPS Validated Address: " + addressResult.getAddress());
+            }
             return addressResult.getAddress();
         }
         return null;
@@ -420,8 +435,9 @@ public class DistrictController extends BaseApiController implements Observer
             if (geocodedAddress.isValidAddress()) {
                 if (geocodedAddress.isValidGeocode()) {
                     GeocodeQuality level = geocodedAddress.getGeocode().getQuality();
-                    Address address = geocodedAddress.getAddress();
-                    logger.trace(FormatUtil.toJsonString(geocodedAddress));
+                    if (logger.isTraceEnabled()) {
+                        logger.trace(FormatUtil.toJsonString(geocodedAddress));
+                    }
                     /** House level matches and above can utilize default district assignment behaviour */
                     if (level.compareTo(GeocodeQuality.HOUSE) >= 0 || isPoBox) {
                         districtResult = districtProvider.assignDistricts(geocodedAddress, districtRequest);
@@ -475,13 +491,13 @@ public class DistrictController extends BaseApiController implements Observer
         }
         else {
             /* No input, return empty result list */
-            logger.debug("No input for batch api request! Returning empty list.");
+            logger.warn("No input for batch api request! Returning empty list.");
             return new ArrayList<>();
         }
 
         /** Batch USPS validation */
         if (usingAddresses && batchDistrictRequest.isUspsValidate()) {
-            List<AddressResult> addressResults = addressProvider.validate(addresses, null, false);
+            List<AddressResult> addressResults = addressProvider.validate(addresses, null, batchDistrictRequest.isUsePunct());
             if (addressResults != null && addressResults.size() == addresses.size()) {
                 for (int i = 0; i < addressResults.size(); i++) {
                     if (addressResults.get(i).isValidated()) {
