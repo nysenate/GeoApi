@@ -19,6 +19,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
     public Yahoo()
     {
         this.yahooDao = new YahooDao();
+        logger.debug("Instantiated Yahoo.");
     }
 
     /** Geocode Service Implementation -----------------------------------------------------------*/

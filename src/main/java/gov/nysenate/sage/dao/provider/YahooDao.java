@@ -50,6 +50,7 @@ public class YahooDao implements Observer
 
     public YahooDao()
     {
+        config.notifyOnChange(this);
         this.update(null, null);
     }
 
@@ -103,12 +104,6 @@ public class YahooDao implements Observer
         /** Pre-populate the batch result with addresses */
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
         for (Address address : addresses) {
-
-            /** Remove PO Box since they tend to return multiple results */
-            if (address.getAddr1() != null && address.getAddr1().matches("(?i:po box)")) {
-                address.setAddr1("");
-            }
-
             geocodedAddresses.add(new GeocodedAddress(address));
         }
 
