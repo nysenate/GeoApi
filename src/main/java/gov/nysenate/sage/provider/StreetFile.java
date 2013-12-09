@@ -38,6 +38,7 @@ public class StreetFile implements DistrictService, StreetLookupService
 
     public StreetFile() {
         this.streetFileDao = new StreetFileDao();
+        logger.debug("Instantiated StreetFile.");
     }
 
     @Override
@@ -72,7 +73,9 @@ public class StreetFile implements DistrictService, StreetLookupService
         }
         /** Parse the address */
         StreetAddress streetAddr = StreetAddressParser.parseAddress(geocodedAddress.getAddress());
-        logger.trace("Streetfile lookup on " + streetAddr.toStringParsed());
+        if (logger.isTraceEnabled()) {
+            logger.trace("Streetfile lookup on " + streetAddr.toStringParsed());
+        }
 
         try {
             DistrictedAddress match = null;

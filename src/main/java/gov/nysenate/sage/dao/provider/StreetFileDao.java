@@ -55,7 +55,8 @@ public class StreetFileDao extends BaseDao
             StreetAddress streetAddr, boolean useStreet, boolean fuzzy, boolean useHouse) throws SQLException
     {
         ArrayList<Object> params = new ArrayList<>();
-        String sql = "SELECT * FROM streetfile WHERE 1=1 \n";
+        StringBuilder sqlBuilder = new StringBuilder(512);
+        sqlBuilder.append("SELECT * FROM streetfile WHERE 1=1 \n");
 
         boolean whereZip = (streetAddr.getZip5() != null && !streetAddr.getZip5().isEmpty());
         boolean whereState = (streetAddr.getState() != null && !streetAddr.getState().isEmpty());
@@ -64,12 +65,12 @@ public class StreetFileDao extends BaseDao
         boolean whereBldgChr = (useHouse && streetAddr.getBldgChar() != null && !streetAddr.getBldgChar().isEmpty());
 
         if (whereZip) {
-            sql += " AND zip5=? \n";
+            sqlBuilder.append(" AND zip5=? \n");
             params.add(Integer.valueOf(streetAddr.getZip5()));
         }
 
         if (whereState) {
-            sql += " AND state=? \n";
+            sqlBuilder.append(" AND state=? \n");
             params.add(streetAddr.getState());
         }
 
@@ -86,12 +87,12 @@ public class StreetFileDao extends BaseDao
                 /** Every one else gets a range check; sometimes the suffix is actually part of the street prefix. */
                 if (streetAddr.getBldgChar() != null) {
                     if (fuzzy) {
-                        sql += " AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
+                        sqlBuilder.append(" AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n");
                         params.add(streetAddr.getBldgChar() + " " + street + "%");
                         params.add(street + "%");
                     }
                     else {
-                        sql += " AND (street = ? OR (street = ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n";
+                        sqlBuilder.append(" AND (street = ? OR (street = ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n");
                         params.add(streetAddr.getBldgChar() + " " + street);
                         params.add(street);
                     }
@@ -102,29 +103,27 @@ public class StreetFileDao extends BaseDao
             else {
                 /** Loose street match */
                 if (fuzzy) {
-                    sql += " AND (street LIKE ? OR street LIKE ?) \n";
+                    sqlBuilder.append(" AND (street LIKE ? OR street LIKE ?) \n");
                     params.add(street + "%");
                     params.add(streetPrefixAbbr + "%");
                 }
                 /** Strict street match */
                 else {
-                    street += (streetAddr.getStreetType() != null && !streetAddr.getStreetType().isEmpty()) ? streetAddr.getStreetType() : "";
-                    street = street.toUpperCase();
-                    sql += " AND (street = ?) \n";
+                    sqlBuilder.append(" AND (street = ?) \n");
                     params.add(street);
                 }
             }
 
             if (whereBldg) {
-                sql += " AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity= "
-                        + (streetAddr.getBldgNum() % 2 == 0 ? "'EVENS'" : "'ODDS'") + ")) \n";
+                sqlBuilder.append(" AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity= "
+                        + (streetAddr.getBldgNum() % 2 == 0 ? "'EVENS'" : "'ODDS'") + ")) \n");
                 params.add(streetAddr.getBldgNum());
                 params.add(streetAddr.getBldgNum());
             }
         }
         /** Only do a lookup if we have meaningful filters on the query */
         if (whereZip || whereStreet) {
-            return run.query(sql, new DistrictStreetRangeMapHandler(), params.toArray());
+            return run.query(sqlBuilder.toString(), new DistrictStreetRangeMapHandler(), params.toArray());
         }
         else {
             logger.debug("Skipping address: no identifying information " + streetAddr);
@@ -213,7 +212,6 @@ public class StreetFileDao extends BaseDao
     public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List)
     {
         if ((zip5List == null || zip5List.isEmpty()) && (streetList == null || streetList.isEmpty())) return null;  // Short circuit on missing input
-        //logger.debug("get standard matches: zip5list: " + zip5List);
         String sqlTmpl = "SELECT DISTINCT %s::character varying AS code, '%s' AS type\n" +
                          "FROM streetfile\n" +
                          "WHERE (%s) AND (%s)";
