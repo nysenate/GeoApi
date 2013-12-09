@@ -76,7 +76,7 @@ public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeServic
                                                                   : new LinkedList<>(this.defaultFallback);
 
         if (provider != null && !provider.isEmpty()) {
-            geocodeResult = this.newInstance(provider).reverseGeocode(point);
+            geocodeResult = this.getInstance(provider).reverseGeocode(point);
         }
         else {
             fallbackProviders.addFirst(this.defaultProvider);
@@ -85,7 +85,7 @@ public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeServic
         if (!geocodeResult.isSuccess() && useFallback) {
             Iterator<String> fallbackIterator = fallback.iterator();
             while (!geocodeResult.isSuccess() && fallbackIterator.hasNext()) {
-                geocodeResult = this.newInstance(fallbackIterator.next()).reverseGeocode(point);
+                geocodeResult = this.getInstance(fallbackIterator.next()).reverseGeocode(point);
             }
         }
         geocodeResult.setResultTime(new Timestamp(new Date().getTime()));

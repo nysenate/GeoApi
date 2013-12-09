@@ -52,6 +52,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
         this.cityZipDBDao = new CityZipDB();
         this.tigerGeocoderDao = new TigerGeocoderDao();
         update(null, null);
+        logger.debug("Instantiated DistrictShapefile.");
     }
 
     @Override

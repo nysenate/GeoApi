@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
+import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.GeoCache;
@@ -14,6 +15,7 @@ import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.log4j.Logger;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -34,6 +36,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     public GeocodeServiceProvider() {
         config.notifyOnChange(this);
         update(null, null);
+        geocodeCache = newCacheInstance();
     }
 
     @Override
@@ -47,7 +50,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      */
     public void registerProviderAsCacheable(String providerName)
     {
-        GeocodeService provider = this.newInstance(providerName);
+        GeocodeService provider = this.getInstance(providerName);
         GeoCache.registerProviderAsCacheable(provider.getClass());
     }
 
@@ -132,20 +135,22 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
                                                                   : new LinkedList<>(this.defaultFallback);
         /** Set up and hit the cache */
-        this.geocodeCache = this.newCacheInstance();
+        if (this.geocodeCache == null) {
+            this.newCacheInstance();
+        }
+        Timestamp startTime = TimeUtil.currentTimestamp();
         GeocodeResult geocodeResult = (CACHE_ENABLED && useCache) ? this.geocodeCache.geocode(address)
                                                  : new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
         boolean cacheHit = CACHE_ENABLED && useCache && geocodeResult.isSuccess();
-        logger.debug((CACHE_ENABLED && useCache) ? "Cache hit: " + cacheHit : "Cache disabled");
 
         if (!cacheHit) {
             /** Geocode using the supplied provider if valid */
             if (this.isRegistered(provider)) {
                 /** Remove the provider if it's set in the fallback chain */
-                if (fallback.contains(provider)) {
-                    fallback.remove(provider);
-                }
-                geocodeResult = this.newInstance(provider).geocode(address);
+                fallback.remove(provider);
+                startTime = TimeUtil.currentTimestamp();
+                geocodeResult = this.getInstance(provider).geocode(address);
+                logger.info(String.format("%s response time: %d ms.", provider, TimeUtil.getElapsedMs(startTime)));
             }
             else {
                 logger.error("Supplied an invalid geocoding provider! " + provider);
@@ -155,17 +160,35 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
                 }
             }
         }
+        else {
+            logger.info(String.format("Cache hit in %d ms.", TimeUtil.getElapsedMs(startTime)));
+        }
+
         /** If attempt failed, use the fallback providers if allowed */
         if (geocodeResult != null && !geocodeResult.isSuccess() && useFallback) {
             Iterator<String> fallbackIterator = fallback.iterator();
             while (!geocodeResult.isSuccess() && fallbackIterator.hasNext()) {
                 provider = fallbackIterator.next();
-                geocodeResult = this.newInstance(provider).geocode(address);
+                logger.info(String.format("Sending through %s.", provider));
+                startTime = TimeUtil.currentTimestamp();
+                geocodeResult = this.getInstance(provider).geocode(address);
+                logger.info(String.format("%s response time: %d ms.", provider, TimeUtil.getElapsedMs(startTime)));
             }
         }
         /** Ensure we don't return a null response */
-        if (geocodeResult == null) {
+        if (geocodeResult == null || !geocodeResult.isSuccess()) {
+            logger.warn("No valid geocode result.");
             geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
+        }
+        /** Output result if log level is high enough */
+        else if (logger.isDebugEnabled()) {
+            Geocode gc = geocodeResult.getGeocode();
+            Address addr = geocodeResult.getAddress();
+            if (gc != null && addr != null) {
+                String source = (geocodeResult.getSource() != null) ? geocodeResult.getSource().getSimpleName() : "Missing";
+                logger.debug(String.format("Geocode Result - Source: '%s', Quality: '%s', Lat/Lon: '%s', Address: '%s'",
+                    source, gc.getQuality(), gc.getLatLon(), addr));
+            }
         }
 
         /** Set the timestamp */
@@ -230,16 +253,18 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     public List<GeocodeResult> geocode(List<Address> addresses, String provider,
                                        List<String> fallbackProviders, boolean useFallback, boolean useCache)
     {
-        logger.info("Performing batch geocode using provider: " + provider + " with fallback to: " +
-                    fallbackProviders + " with useFallback:" + useFallback + " and useCache:" + useCache);
+        if (this.geocodeCache == null) {
+            this.newCacheInstance();
+        }
 
-        this.geocodeCache = this.newCacheInstance();
+        long cacheElapsedMs = 0;
         final int addressCount = addresses.size();
 
         /** Clone the list of fall back providers */
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
                                                                   : new LinkedList<>(this.defaultFallback);
         List<GeocodeResult> geocodeResults = new ArrayList<>();
+        logger.info(String.format("Performing %d geocodes.", addressCount));
 
         /** Make note of the indices that contain empty addresses and create a new list of addresses
         * containing just the addresses with values. */
@@ -261,16 +286,21 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         /** If cache enabled, attempt to geocode batch and add the provider as the first fallback */
         if (CACHE_ENABLED && useCache) {
             logger.debug("Running batch through geo cache..");
+            Timestamp benchmark1 = TimeUtil.currentTimestamp();
+
             geocodeResults = this.geocodeCache.geocode((ArrayList<Address>) validAddresses);
-            fallback.add(0, provider);
+            cacheElapsedMs = TimeUtil.getElapsedMs(benchmark1);
+
+            if (!fallback.contains(provider)) {
+                fallback.add(0, provider);
+            }
         }
         /** Use the specified provider without cache */
         else if (this.isRegistered(provider)) {
             /** Remove the provider if it's set in the fallback chain */
-            if (fallback.contains(provider)) {
-                fallback.remove(provider);
-            }
-            geocodeResults = this.newInstance(provider).geocode((ArrayList<Address>) validAddresses);
+            fallback.remove(provider);
+            logger.info(String.format("Skipped cache lookup. Using %s.", provider));
+            geocodeResults = this.getInstance(provider).geocode((ArrayList<Address>) validAddresses);
         }
         /** Otherwise populate the results array with failed results so they get picked up
          *  during the fallback stage. */
@@ -286,22 +316,33 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
         /** Get the indices of results that were not successful */
         List<Integer> failedIndices = getFailedResultIndices(geocodeResults);
-        logger.debug("There were " + failedIndices.size() + " cache misses.");
-
-        Iterator<String> fallbackIterator = fallback.iterator();
+        if (CACHE_ENABLED && useCache) {
+            logger.info(String.format("Cache hits: %d/%d. Lookup time: %d ms.",(addressCount - failedIndices.size()), addressCount, cacheElapsedMs));
+        }
 
         /** Create new batches containing just the failed results and run them through the fallback providers.
          *  Recompute the failed results and repeat until all fallback providers specified have been used. */
+        Iterator<String> fallbackIterator = fallback.iterator();
         while (!failedIndices.isEmpty() && fallbackIterator.hasNext()) {
             provider = fallbackIterator.next();
-            logger.debug(failedIndices.size() + " geocodes are missing. Falling back to " + provider);
+            logger.info(failedIndices.size() + " geocodes remaining. Sending through " + provider + ".");
 
             ArrayList<Address> fallbackBatch = new ArrayList<>();
             for (int failedIndex : failedIndices) {
                 fallbackBatch.add(validAddresses.get(failedIndex));
             }
 
-            List<GeocodeResult> fallbackResults = this.newInstance(provider).geocode(fallbackBatch);
+            Timestamp startTime = TimeUtil.currentTimestamp();
+            List<GeocodeResult> fallbackResults = this.getInstance(provider).geocode(fallbackBatch);
+            long elapsedMs = TimeUtil.getElapsedMs(startTime);
+            String responseTimeMsg = String.format("%s response time: %d ms.", provider, elapsedMs);
+            if (elapsedMs > 10000) {
+                logger.warn(responseTimeMsg);
+            }
+            else {
+                logger.info(responseTimeMsg);
+            }
+
             Iterator<GeocodeResult> fallbackResultIterator = fallbackResults.iterator();
             for (int failedIndex : failedIndices) {
                 GeocodeResult fallbackResult = fallbackResultIterator.next();
@@ -310,6 +351,10 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
                 }
             }
             failedIndices = getFailedResultIndices(geocodeResults);
+        }
+
+        if (!failedIndices.isEmpty()) {
+            logger.info(String.format("%d addresses were not geocoded!", failedIndices.size()));
         }
 
         /** If the geocodeResults do not align with the valid input address set, produce error and return empty array. */

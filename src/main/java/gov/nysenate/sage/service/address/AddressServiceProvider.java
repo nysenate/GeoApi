@@ -5,12 +5,17 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.AddressUtil;
+import gov.nysenate.sage.util.TimeUtil;
+import org.apache.log4j.Logger;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AddressServiceProvider extends ServiceProviders<AddressService>
 {
+    private static Logger logger = Logger.getLogger(AddressServiceProvider.class);
+
     /**
      * Validates an address using USPS or another provider if available.
      * @param address  Address to validate
@@ -21,6 +26,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
     public AddressResult validate(Address address, String provider, Boolean usePunct)
     {
         AddressResult addressResult;
+        Timestamp startTime = TimeUtil.currentTimestamp();
 
         /** Perform null check */
         if (address == null) {
@@ -29,7 +35,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
         /** Use provider if specified */
         if (provider != null && !provider.isEmpty()) {
             if (this.isRegistered(provider)) {
-                addressResult = this.newInstance(provider).validate(address);
+                addressResult = this.getInstance(provider).validate(address);
             }
             else {
                 return new AddressResult(this.getClass(), ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED);
@@ -37,16 +43,19 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
         }
         /** Use USPS if address is eligible */
         else if (address.isEligibleForUSPS()) {
-            addressResult = this.newInstance().validate(address);
+            addressResult = this.getInstance().validate(address);
         }
         /** Otherwise address is insufficient */
         else {
             addressResult = new AddressResult(this.getClass(), ResultStatus.INSUFFICIENT_ADDRESS);
         }
 
-        /** Apply punctuation to the address if requested */
-        if (usePunct && addressResult != null && addressResult.isValidated()) {
-            addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
+        if (addressResult != null && addressResult.isValidated()) {
+            logger.info(String.format("USPS validate time: %d ms", TimeUtil.getElapsedMs(startTime)));
+            /** Apply punctuation to the address if requested */
+            if (usePunct) {
+                addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
+            }
         }
         return addressResult;
     }
@@ -61,13 +70,16 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
     public List<AddressResult> validate(List<Address> addresses, String provider, Boolean usePunct)
     {
         List<AddressResult> addressResults = new ArrayList<>();
-
+        Timestamp startTime = TimeUtil.currentTimestamp();
         if (addresses != null && !addresses.isEmpty()) {
+            logger.info(String.format("Performing USPS correction on %d addresses.", addresses.size()));
+
             if (provider == null || provider.isEmpty()) {
                 provider = this.defaultProvider;
             }
             if (this.isRegistered(provider)) {
-                addressResults = this.newInstance(provider).validate(addresses);
+                addressResults = this.getInstance(provider).validate(addresses);
+                logger.info(String.format("USPS validate time: %d ms.", TimeUtil.getElapsedMs(startTime)));
                 if (usePunct) {
                     for (AddressResult addressResult : addressResults) {
                         if (addressResult != null && addressResult.isValidated()) {
@@ -91,7 +103,10 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
      */
     public AddressResult lookupCityState(Address address, String provider)
     {
-        return this.newInstance(provider, true).lookupCityState(address);
+        if (provider == null || provider.isEmpty()) {
+            provider = this.defaultProvider;
+        }
+        return this.getInstance(provider).lookupCityState(address);
     }
 
     /**

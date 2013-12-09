@@ -184,7 +184,9 @@ public abstract class GeocodeServiceValidator
             if (!geocodedAddress.isValidGeocode()){
                 geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
                 if (geocodedAddress.getGeocode() != null) {
-                    logger.trace("Geocode Response: " + FormatUtil.toJsonString(geocodedAddress.getGeocode()));
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Geocode Response: " + FormatUtil.toJsonString(geocodedAddress.getGeocode()));
+                    }
                 }
                 if (freeze) {
                     recordFailedResult(source);

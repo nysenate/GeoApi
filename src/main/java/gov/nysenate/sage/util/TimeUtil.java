@@ -9,4 +9,12 @@ public abstract class TimeUtil
     {
         return new Timestamp(new Date().getTime());
     }
+
+    public static long getElapsedMs(Timestamp start)
+    {
+        if (start != null) {
+            return currentTimestamp().getTime() - start.getTime();
+        }
+        return 0;
+    }
 }

@@ -13,7 +13,8 @@ public class ServiceProviders<T>
 {
     private Logger logger = Logger.getLogger(this.getClass());
     protected Map<String,Class<? extends T>> providers = new HashMap<>();
-    protected String defaultProvider = "default";
+    protected Map<String,T> providerInstances = new HashMap<>();
+    protected String defaultProvider;
     protected LinkedList<String> defaultFallback = new LinkedList<>();
 
     /**
@@ -44,7 +45,13 @@ public class ServiceProviders<T>
      */
     public void registerProvider(String providerName, Class<? extends T> provider)
     {
-        providers.put(providerName.toLowerCase(), provider);
+        if (providerName != null && !isRegistered(providerName)) {
+            providers.put(providerName.toLowerCase(), provider);
+            providerInstances.put(providerName.toLowerCase(), newInstance(providerName));
+        }
+        else {
+            logger.warn(String.format("Cannot register %s. It's either empty or already registered.", provider));
+        }
     }
 
     /**
@@ -74,6 +81,40 @@ public class ServiceProviders<T>
     public boolean isRegistered(String providerName)
     {
         return (providerName != null && !providerName.isEmpty() && this.providers.containsKey(providerName.toLowerCase()));
+    }
+
+    /**
+     * Retrieves the default service instance.
+     * @return T if default provider is set.
+     *         null if default provider not set.
+     */
+    public T getInstance()
+    {
+        if (providerInstances.containsKey(defaultProvider)) {
+            return providerInstances.get(defaultProvider);
+        }
+        else {
+            logger.warn("Default service provider not registered!");
+            return null;
+        }
+    }
+
+    /**
+     * Retrieves the service instance that has been registered with the
+     * given providerName.
+     * @param providerName
+     * @return T instance specified by providerName.
+     *         null if provider is not specified/registered.
+     */
+    public T getInstance(String providerName)
+    {
+        if (providerInstances.containsKey(providerName.toLowerCase())) {
+            return providerInstances.get(providerName.toLowerCase());
+        }
+        else {
+            logger.warn(providerName + " is not a registered provider!");
+            return null;
+        }
     }
 
     /**

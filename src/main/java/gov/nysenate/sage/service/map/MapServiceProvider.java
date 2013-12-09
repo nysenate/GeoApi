@@ -20,7 +20,7 @@ public class MapServiceProvider extends ServiceProviders<MapService>
      */
     public DistrictInfo assignMapsToDistrictInfo(DistrictInfo districtInfo, DistrictMatchLevel matchLevel, boolean override)
     {
-        MapService mapService = this.newInstance();
+        MapService mapService = this.getInstance();
         if (districtInfo != null && mapService != null) {
             for (DistrictType districtType : districtInfo.getAssignedDistricts()) {
                 if (districtInfo.getDistMap(districtType) == null || override) {

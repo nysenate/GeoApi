@@ -12,6 +12,7 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.DistrictShapefile;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.TimeUtil;
 import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
@@ -111,18 +112,19 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final String distProvider,
                                           final List<DistrictType> districtTypes, DistrictStrategy districtStrategy)
     {
-        logger.info("Assigning districts " + ((geocodedAddress != null) ? geocodedAddress.getAddress() : ""));
+        logger.debug("Assigning districts " + ((geocodedAddress != null) ? geocodedAddress.getAddress() : ""));
+        Timestamp startTime = TimeUtil.currentTimestamp();
         DistrictResult districtResult = null, streetFileResult, shapeFileResult;
         ExecutorService districtExecutor = null;
 
         if (this.isRegistered(distProvider)) {
-            DistrictService districtService = this.newInstance(distProvider);
+            DistrictService districtService = this.getInstance(distProvider);
             districtResult = districtService.assignDistricts(geocodedAddress, districtTypes);
         }
         else {
             try {
-                DistrictService shapeFileService = this.newInstance("shapefile");
-                DistrictService streetFileService = this.newInstance("streetfile");
+                DistrictService shapeFileService = this.getInstance("shapefile");
+                DistrictService streetFileService = this.getInstance("streetfile");
                 if (districtStrategy == null) {
                     districtStrategy = SINGLE_DISTRICT_STRATEGY;
                 }
@@ -198,7 +200,13 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         districtResult.setGeocodedAddress(geocodedAddress);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
 
-        logger.debug("Completed district assignment.");
+        if (districtResult.isSuccess()) {
+            logger.info(String.format("District assigned in %d ms.", TimeUtil.getElapsedMs(startTime)));
+        }
+        else {
+            logger.warn("Failed to district assign!");
+        }
+
         return districtResult;
     }
 
@@ -243,21 +251,28 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final String distProvider,
                                                 final List<DistrictType> districtTypes, DistrictStrategy districtStrategy)
     {
+        if (geocodedAddresses != null) {
+            logger.info(String.format("Performing district assign for %d addresses.", geocodedAddresses.size()));
+        }
+
+        long districtElapsedMs = 0;
+        Timestamp startTime = TimeUtil.currentTimestamp();
+
         ExecutorService districtExecutor = null;
         List<DistrictResult> districtResults = new ArrayList<>(), streetFileResults, shapeFileResults;
 
-        DistrictService streetFileService = this.newInstance("streetfile");
-        DistrictService shapeFileService = this.newInstance("shapefile");
+        DistrictService streetFileService = this.getInstance("streetfile");
+        DistrictService shapeFileService = this.getInstance("shapefile");
 
         if (this.isRegistered(distProvider)) {
-            DistrictService districtService = this.newInstance(distProvider);
+            DistrictService districtService = this.getInstance(distProvider);
             districtResults = districtService.assignDistricts(geocodedAddresses, districtTypes);
         }
         else {
             if (districtStrategy == null) {
                 districtStrategy = BATCH_DISTRICT_STRATEGY;
             }
-            logger.debug("Using district assign strategy: " + districtStrategy);
+            logger.debug(String.format("Using district assign strategy: %s", districtStrategy));
 
             try {
                 switch (districtStrategy) {
@@ -341,6 +356,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
             }
         }
 
+        districtElapsedMs = TimeUtil.getElapsedMs(startTime);
+        logger.info(String.format("District assign time: %d ms.", districtElapsedMs));
+
         return districtResults;
     }
 
@@ -348,7 +366,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
 
     public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, Boolean zipProvided)
     {
-        DistrictShapefile districtShapeFile = new DistrictShapefile();
+        DistrictShapefile districtShapeFile = (DistrictShapefile) this.getInstance("shapefile");
         DistrictResult districtResult = districtShapeFile.getMultiMatchResult(geocodedAddress, zipProvided);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
         return districtResult;

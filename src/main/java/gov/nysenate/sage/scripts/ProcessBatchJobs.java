@@ -474,6 +474,7 @@ public class ProcessBatchJobs
             if (jobBatch == null && futureJobBatch != null) {
                 this.jobBatch = futureJobBatch.get();
             }
+            logger.info("Geocoding for records " + jobBatch.getFromRecord() + "-" + jobBatch.getToRecord());
 
             BatchGeocodeRequest batchGeoRequest = new BatchGeocodeRequest();
             batchGeoRequest.setJobProcess(this.jobProcess);
