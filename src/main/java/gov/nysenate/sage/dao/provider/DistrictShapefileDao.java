@@ -536,4 +536,12 @@ public class DistrictShapefileDao extends BaseDao
         }
         return null;
     }
+
+    public static void clearCache()
+    {
+        districtMapCache.clear();
+        districtMapLookup.clear();
+        districtMapCache = null;
+        districtMapLookup = null;
+    }
 }
