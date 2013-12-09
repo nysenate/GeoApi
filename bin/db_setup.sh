@@ -57,7 +57,7 @@ function check_if_db_exists() {
 }
 
 function create_db() {
-  echo 'Creating geoapi database...';
+  echo "Creating $1 database...";
   create_status="$(psql -c "CREATE DATABASE $1")"
   if [ "$create_status" == 'CREATE DATABASE' ]; then
     echo "Created $1 database."
