@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.StreetAddressParser;
+import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang3.text.WordUtils;
@@ -17,22 +18,47 @@ import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class GeoCacheDao extends BaseDao
 {
-    protected Logger logger = Logger.getLogger(GeoCacheDao.class);
-    protected Config config;
-    protected static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
-    protected static int BUFFER_SIZE;
-    protected QueryRunner tigerRun = getTigerQueryRunner();
+    private static Logger logger = Logger.getLogger(GeoCacheDao.class);
+    private static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
+    private static int BUFFER_SIZE;
+    private QueryRunner tigerRun = getTigerQueryRunner();
 
     public GeoCacheDao() {
-        this.config = ApplicationFactory.getConfig();
-        BUFFER_SIZE = Integer.parseInt(this.config.getValue("geocache.buffer.size", "100"));
+        Config config = ApplicationFactory.getConfig();
+        BUFFER_SIZE = Integer.parseInt(config.getValue("geocache.buffer.size", "100"));
     }
+
+    /**
+     * SQL Fragments for method getCacheHit(StreetAddress).
+     */
+    private final static String SQLFRAG_SELECT =
+        "SELECT gc.*, ST_Y(latlon) AS lat, ST_X(latlon) AS lon \n" +
+        "FROM cache.geocache AS gc \n";
+
+    private final static String SQLFRAG_WHERE_BUILDING_MATCH =
+        "WHERE gc.bldgnum = ? \n" +
+            "AND COALESCE(gc.predir, '') = ? \n" +
+            "AND gc.street = ? \n" +
+            "AND COALESCE(gc.postdir, '') = ? \n" +
+            "AND gc.streetType = ? \n" +
+            "AND ((gc.zip5 = ? AND gc.zip5 != '') OR " +
+            " (? = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
+
+    private final static String SQLFRAG_WHERE_CITY_ZIP_MATCH =
+        "WHERE gc.street = '' \n" +
+            "AND ((gc.zip5 = ? AND gc.zip5 != '') " +
+            " OR (? = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
+
+    private final static String SQL_CACHE_HIT_BUILDING = String.format("%s%s", SQLFRAG_SELECT, SQLFRAG_WHERE_BUILDING_MATCH);
+    private final static String SQL_CACHE_HIT_CITY_ZIP = String.format("%s%s", SQLFRAG_SELECT, SQLFRAG_WHERE_CITY_ZIP_MATCH);
 
     /**
      * Performs a lookup on the cache table and returns a GeocodedStreetAddress upon match.
@@ -41,22 +67,15 @@ public class GeoCacheDao extends BaseDao
      */
     public GeocodedStreetAddress getCacheHit(StreetAddress sa)
     {
-        logger.trace("Looking up " + sa.toStringParsed() + " in cache..");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Looking up " + sa.toStringParsed() + " in cache..");
+        }
         if (isStreetAddressRetrievable(sa)) {
-            String sql = "SELECT gc.*, ST_Y(latlon) AS lat, ST_X(latlon) AS lon\n" +
-                         "FROM cache.geocache AS gc \n";
             if (!sa.isPoBoxAddress() && !sa.isStreetEmpty()) {
-                sql += "WHERE gc.bldgnum = ? \n" +
-                        "AND COALESCE(gc.predir, '') = ? \n" +
-                        "AND gc.street = ? \n" +
-                        "AND COALESCE(gc.postdir, '') = ? \n" +
-                        "AND gc.streetType = ? \n" +
-                        "AND ((gc.zip5 = ? AND gc.zip5 != '') OR " +
-                            " (? = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
                 try {
-                    return tigerRun.query(sql, new GeocodedStreetAddressHandler(true),
-                            sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
-                            sa.getStreetType(), sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
+                    return tigerRun.query(SQL_CACHE_HIT_BUILDING, new GeocodedStreetAddressHandler(true),
+                        sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
+                        sa.getStreetType(), sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
                 }
                 catch (SQLException ex) {
                     logger.error("Error retrieving geo cache hit!", ex);
@@ -65,12 +84,9 @@ public class GeoCacheDao extends BaseDao
             /** PO BOX addresses can be looked up by just the location/zip */
             else {
                 logger.trace("Cache lookup without street");
-                sql += "WHERE gc.street = '' \n" +
-                       "AND ((gc.zip5 = ? AND gc.zip5 != '') " +
-                            " OR (? = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
                 try {
-                    return tigerRun.query(sql, new GeocodedStreetAddressHandler(false),
-                            sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
+                    return tigerRun.query(SQL_CACHE_HIT_CITY_ZIP, new GeocodedStreetAddressHandler(false),
+                        sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
                 }
                 catch (SQLException ex) {
                     logger.error("Error retrieving geo cache hit!", ex);
@@ -87,9 +103,12 @@ public class GeoCacheDao extends BaseDao
     public void cacheGeocodedAddress(GeocodedAddress geocodedAddress)
     {
         if (geocodedAddress != null && geocodedAddress.isValidAddress() && geocodedAddress.isValidGeocode()) {
-            cacheBuffer.add(geocodedAddress);
-            if (cacheBuffer.size() > BUFFER_SIZE) {
-                flushCacheBuffer();
+            Geocode gc = geocodedAddress.getGeocode();
+            if (!gc.isCached()) {
+                cacheBuffer.add(geocodedAddress);
+                if (cacheBuffer.size() > BUFFER_SIZE) {
+                    flushCacheBuffer();
+                }
             }
         }
     }
@@ -107,43 +126,54 @@ public class GeoCacheDao extends BaseDao
         }
     }
 
+    private final static String SQL_INSERT_CACHE_ENTRY =
+        "INSERT INTO cache.geocache (bldgnum, predir, street, streettype, postdir, location, state, zip5, " +
+                                    "latlon, method, quality, zip4) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?), ?, ?, ?)";
+
     /**
      * Saves any GeocodedAddress objects stored in the buffer into the database. The address is parsed into
      * a StreetAddress object so that look-up is more reliable given variations in the address.
      */
     public synchronized void flushCacheBuffer()
     {
-        String sql = "INSERT INTO cache.geocache (bldgnum, predir, street, streettype, postdir, location, state, zip5," +
-                                                " latlon, method, quality, zip4) " +
-                     "VALUES (?,?,?,?,?,?,?,?,ST_GeomFromText(?),?,?,?)";
+        if (!cacheBuffer.isEmpty()) {
+            Timestamp startTime = TimeUtil.currentTimestamp();
+            int startSize = cacheBuffer.size();
 
-        while (!cacheBuffer.isEmpty()) {
-            GeocodedAddress geocodedAddress = cacheBuffer.remove();
-
-            if (geocodedAddress != null && geocodedAddress.isValidAddress() && geocodedAddress.isValidGeocode()) {
-                Address address = geocodedAddress.getAddress();
-                Geocode gc = geocodedAddress.getGeocode();
-                StreetAddress sa = StreetAddressParser.parseAddress(address);
-                if (getCacheHit(sa) == null) {
+            while (!cacheBuffer.isEmpty()) {
+                GeocodedAddress geocodedAddress = cacheBuffer.remove();
+                if (geocodedAddress != null && geocodedAddress.isValidAddress() && geocodedAddress.isValidGeocode()) {
+                    Address address = geocodedAddress.getAddress();
+                    Geocode gc = geocodedAddress.getGeocode();
+                    StreetAddress sa = StreetAddressParser.parseAddress(address);
                     if (isCacheableStreetAddress(sa)) {
                         try {
-                            tigerRun.update(sql, Integer.valueOf(sa.getBldgNum()),
-                                    sa.getPreDir(), sa.getStreetName(), sa.getStreetType(), sa.getPostDir(), sa.getLocation(),
-                                    sa.getState(), sa.getZip5(), "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
-                                    gc.getMethod(), gc.getQuality().name(), sa.getZip4());
-                            logger.trace("Saved " + sa.toString() + " in cache.");
+                            tigerRun.update(SQL_INSERT_CACHE_ENTRY, Integer.valueOf(sa.getBldgNum()),
+                                sa.getPreDir(), sa.getStreetName(), sa.getStreetType(), sa.getPostDir(), sa.getLocation(),
+                                sa.getState(), sa.getZip5(), "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
+                                gc.getMethod(), gc.getQuality().name(), sa.getZip4());
+                            if (logger.isTraceEnabled()) {
+                                logger.trace("Saved " + sa.toString() + " in cache.");
+                            }
                         }
                         catch(SQLException ex) {
-                            logger.trace(ex); // Most likely a duplicate row warning
+                            // Duplicate row warnings are expected sometimes and can be suppressed.
+                            if (ex.getMessage().startsWith("ERROR: duplicate key")) {
+                                logger.trace(ex.getMessage());
+                            }
+                            else {
+                                logger.info(ex.getMessage());
+                            }
                         }
                         catch(Exception ex) {
                             logger.error(ex);
                         }
                     }
                 }
-                else {
-                    logger.trace(address + " already in cache.");
-                }
+            }
+            if (startSize > 1) {
+                logger.info(String.format("Cached %d geocodes in %d ms.", startSize, TimeUtil.getElapsedMs(startTime)));
             }
         }
     }
@@ -198,6 +228,7 @@ public class GeoCacheDao extends BaseDao
             gc.setLat(rs.getDouble("lat"));
             gc.setLon(rs.getDouble("lon"));
             gc.setMethod(rs.getString("method"));
+            gc.setCached(true);
             try {
                 if (rs.getString("quality") != null) {
                     gc.setQuality(GeocodeQuality.valueOf(rs.getString("quality").toUpperCase()));
@@ -205,11 +236,11 @@ public class GeoCacheDao extends BaseDao
                 else {
                     gc.setQuality(GeocodeQuality.UNKNOWN);
                 }
-                return gc;
             }
             catch (IllegalArgumentException ex) {
                 gc.setQuality(GeocodeQuality.UNKNOWN);
             }
+            return gc;
         }
         return null;
     }

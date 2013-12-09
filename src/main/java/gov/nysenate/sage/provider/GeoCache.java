@@ -29,6 +29,7 @@ public class GeoCache implements GeocodeCacheService
 
     public GeoCache() {
         this.geoCacheDao = new GeoCacheDao();
+        logger.debug("Instantiated GeoCache.");
     }
 
     /**
