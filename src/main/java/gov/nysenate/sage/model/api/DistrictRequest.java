@@ -42,6 +42,7 @@ public class DistrictRequest implements Cloneable
     private boolean showMembers = false;
     private boolean showMaps = false;
     private boolean uspsValidate = false;
+    private boolean usePunct = false;
     private boolean skipGeocode = false;
     private DistrictStrategy districtStrategy = DistrictStrategy.neighborMatch;
     private Timestamp requestTime;
@@ -195,6 +196,14 @@ public class DistrictRequest implements Cloneable
 
     public void setUspsValidate(boolean uspsValidate) {
         this.uspsValidate = uspsValidate;
+    }
+
+    public boolean isUsePunct() {
+        return usePunct;
+    }
+
+    public void setUsePunct(boolean usePunct) {
+        this.usePunct = usePunct;
     }
 
     public boolean isSkipGeocode() {
