@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.StreetAddressParser;
 import org.junit.Test;
 
 public class GeoCacheTest extends TestBase
@@ -16,12 +17,8 @@ public class GeoCacheTest extends TestBase
     @Test
     public void geocodeTest()
     {
-        StreetAddress sa = new StreetAddress();
-        sa.setBldgNum(101);
-        sa.setStreetName("NYROY");
-        sa.setStreetType("DR");
-        sa.setState("NY");
-        sa.setZip5("12180");
+        StreetAddress sa = StreetAddressParser.parseAddress(new Address("", "Jamaica", "NY", ""));
+        FormatUtil.printObject(sa.toStringParsed());
         FormatUtil.printObject(geoCacheDao.getCacheHit(sa));
     }
 
