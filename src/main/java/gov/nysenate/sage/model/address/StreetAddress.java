@@ -169,13 +169,11 @@ public class StreetAddress
     }
 
     public String getStreetName() {
-        return (streetName != null) ? streetName : "";
+        return (streetName != null && !streetName.equalsIgnoreCase("null")) ? streetName : "";
     }
 
     public void setStreetName(String streetName) {
-        if (streetName != null && !streetName.isEmpty() && !streetName.equalsIgnoreCase("null")){
-            this.streetName = streetName;
-        }
+        this.streetName = streetName;
     }
 
     public String getZip4() {
