@@ -30,6 +30,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
     public TigerGeocoder()
     {
         this.tigerGeocoderDao = new TigerGeocoderDao();
+        logger.debug("Instantiated TigerGeocoder.");
     }
 
     /**

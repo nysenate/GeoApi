@@ -139,10 +139,10 @@ public class TigerGeocoderDao extends BaseDao implements Observer
     }
 
     /**
-     *
+     * Retrieves JSON geometry for a street that is matched in the set of zip5s.
      * @param streetName
      * @param zip5List
-     * @return
+     * @return GeoJSON string or null if no match.
      */
     public String getStreetLineGeometryAsJson(String streetName, List<String> zip5List) {
         if (zip5List == null || zip5List.isEmpty()) return null; // short circuit
