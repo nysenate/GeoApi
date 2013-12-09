@@ -102,19 +102,19 @@ public class ApplicationFactory
         }
 
         try {
-            factoryInstance.baseDB.getDataSource().close();
-            factoryInstance.tigerDB.getDataSource().close();
+            factoryInstance.baseDB.getDataSource().close(true);
+            factoryInstance.tigerDB.getDataSource().close(true);
+
+            ParallelDistrictService.shutdownThread();
+            ParallelGeocodeService.shutdownThread();
+            ParallelRevGeocodeService.shutdownThread();
+            ParallelAddressService.shutdownThread();
+
             return true;
         }
         catch (Exception ex) {
-            logger.error("Failed to close data connections!", ex);
+            logger.error("Failed to close data connections/threads!", ex);
         }
-
-        ParallelDistrictService.shutdownThread();
-        ParallelGeocodeService.shutdownThread();
-        ParallelRevGeocodeService.shutdownThread();
-        ParallelAddressService.shutdownThread();
-
         return false;
     }
 
@@ -161,19 +161,20 @@ public class ApplicationFactory
             /** Register the providers mapped above. */
             geocodeServiceProvider = new GeocodeServiceProvider();
             for (String key : geoProviders.keySet()) {
+                logger.debug("Adding geocoder: " + key);
                 geocodeServiceProvider.registerProvider(key, geoProviders.get(key));
             }
 
-            List<String> activeList = this.config.getList("geocoder.active", Arrays.asList("yahoo", "mapquest", "tiger"));
+            List<String> activeList = this.config.getList("geocoder.active", Arrays.asList("yahoo", "tiger"));
             for (String provider : activeList) {
                 GeocodeServiceValidator.setGeocoderAsActive(geoProviders.get(provider));
             }
 
-            List<String> geocoderRankList = this.config.getList("geocoder.rank", Arrays.asList("yahoo", "mapquest", "tiger"));
+            LinkedList<String> geocoderRankList = new LinkedList<>(this.config.getList("geocoder.rank", Arrays.asList("yahoo", "tiger")));
             if (!geocoderRankList.isEmpty()) {
                 /** Set the first geocoder as the default. */
-                geocodeServiceProvider.setDefaultProvider(geocoderRankList.get(0));
-                /** Set the fallback chain in the order of the ranking. */
+                geocodeServiceProvider.setDefaultProvider(geocoderRankList.removeFirst());
+                /** Set the fallback chain in the order of the ranking (excluding first). */
                 geocodeServiceProvider.setProviderFallbackChain(geocoderRankList);
             }
 
@@ -222,8 +223,7 @@ public class ApplicationFactory
         }
         catch (Exception ex)
         {
-            logger.fatal("An exception occurred while building dependencies");
-            logger.fatal(ex.getMessage());
+            logger.fatal("An exception occurred while building dependencies", ex);
         }
         return false;
     }
