@@ -149,6 +149,9 @@ public class StreetFileDao extends BaseDao
      */
     public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<String> zip5List)
     {
+        if (zip5List == null || zip5List.isEmpty()) {
+            return null;
+        }
         if (street == null) street = "";
         if (!street.isEmpty()) {
             street = getFormattedStreet(street, false);
@@ -159,16 +162,14 @@ public class StreetFileDao extends BaseDao
             "WHERE CASE WHEN ? != '' THEN street = ? ELSE TRUE END " +
             "AND (%s) " +
             "ORDER BY street, bldg_lo_num";
-        String zip5WhereSql = "TRUE";
-        if (zip5List != null && !zip5List.isEmpty()) {
-            List<String> zip5WhereList = new ArrayList<>();
-            for (String zip5 : zip5List) {
-                if (zip5 != null && !zip5.isEmpty()) {
-                    zip5WhereList.add(String.format("zip5 = '%s'", StringEscapeUtils.escapeSql(zip5)));
-                }
+
+        List<String> zip5WhereList = new ArrayList<>();
+        for (String zip5 : zip5List) {
+            if (zip5 != null && !zip5.isEmpty()) {
+                zip5WhereList.add(String.format("zip5 = '%s'", StringEscapeUtils.escapeSql(zip5)));
             }
-            zip5WhereSql = StringUtils.join(zip5WhereList, " OR ");
         }
+        String zip5WhereSql = StringUtils.join(zip5WhereList, " OR ");
         sql = String.format(sql, zip5WhereSql);
         try {
             Map<StreetAddressRange, DistrictInfo> resultMap =

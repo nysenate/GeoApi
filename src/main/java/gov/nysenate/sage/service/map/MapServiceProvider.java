@@ -45,7 +45,7 @@ public class MapServiceProvider extends ServiceProviders<MapService>
             }
             /** Fill in senate overlap maps as well */
             if (!districtInfo.getDistrictOverlaps().isEmpty()) {
-                logger.debug("Getting overlap maps too!");
+                logger.trace("Getting overlap maps too!");
                 if (districtInfo.getDistrictOverlap(DistrictType.SENATE) != null) {
                     DistrictOverlap senateOverlap = districtInfo.getDistrictOverlap(DistrictType.SENATE);
                     for (String code : senateOverlap.getTargetOverlap().keySet()) {

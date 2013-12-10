@@ -203,7 +203,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
      * @param geocodedAddress GeocodedAddress
      * @return DistrictResult with overlaps and street ranges set.
      */
-    public DistrictResult getMultiMatchResult(GeocodedAddress geocodedAddress, Boolean zipProvided)
+        public DistrictResult getMultiMatchResult(GeocodedAddress geocodedAddress, Boolean zipProvided)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
         DistrictedAddress districtedAddress = new DistrictedAddress(geocodedAddress, null, DistrictMatchLevel.NOMATCH);
