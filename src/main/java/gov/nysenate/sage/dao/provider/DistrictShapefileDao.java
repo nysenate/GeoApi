@@ -29,8 +29,7 @@ import java.util.*;
  */
 public class DistrictShapefileDao extends BaseDao
 {
-    private static final String SCHEMA = "districts";   // Move to app.properties
-    private static final String SRID = "4326";
+    private static final String SCHEMA = "districts";
     private final Logger logger = Logger.getLogger(DistrictShapefileDao.class);
     private QueryRunner run = getQueryRunner();
 

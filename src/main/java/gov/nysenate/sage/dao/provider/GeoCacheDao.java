@@ -55,7 +55,7 @@ public class GeoCacheDao extends BaseDao
     private final static String SQLFRAG_WHERE_CITY_ZIP_MATCH =
         "WHERE gc.street = '' \n" +
             "AND ((gc.zip5 = ? AND gc.zip5 != '') " +
-            " OR (? = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
+            " OR (? = '' AND gc.zip5 = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
 
     private final static String SQL_CACHE_HIT_BUILDING = String.format("%s%s", SQLFRAG_SELECT, SQLFRAG_WHERE_BUILDING_MATCH);
     private final static String SQL_CACHE_HIT_CITY_ZIP = String.format("%s%s", SQLFRAG_SELECT, SQLFRAG_WHERE_CITY_ZIP_MATCH);

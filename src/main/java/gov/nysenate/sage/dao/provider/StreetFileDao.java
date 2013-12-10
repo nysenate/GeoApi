@@ -149,13 +149,17 @@ public class StreetFileDao extends BaseDao
      */
     public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<String> zip5List)
     {
+        /** Format the street name to aid in street file match */
+        street = (street != null) ? getFormattedStreet(street, false) : "";
+
+        /** Short circuit the request under conditions where lots of data would be retrieved. */
         if (zip5List == null || zip5List.isEmpty()) {
             return null;
         }
-        if (street == null) street = "";
-        if (!street.isEmpty()) {
-            street = getFormattedStreet(street, false);
+        else if (zip5List.size() > 1 && street.isEmpty()) {
+            return null;
         }
+
         String sql =
             "SELECT * " +
             "FROM streetfile " +
@@ -212,7 +216,9 @@ public class StreetFileDao extends BaseDao
      */
     public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List)
     {
-        if ((zip5List == null || zip5List.isEmpty()) && (streetList == null || streetList.isEmpty())) return null;  // Short circuit on missing input
+        /** Short circuit on missing input */
+        if ((zip5List == null || zip5List.isEmpty()) && (streetList == null || streetList.isEmpty())) return null;
+
         String sqlTmpl = "SELECT DISTINCT %s::character varying AS code, '%s' AS type\n" +
                          "FROM streetfile\n" +
                          "WHERE (%s) AND (%s)";

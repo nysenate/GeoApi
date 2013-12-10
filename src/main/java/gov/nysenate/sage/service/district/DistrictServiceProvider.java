@@ -366,9 +366,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
 
     public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, Boolean zipProvided)
     {
+        Timestamp startTime = TimeUtil.currentTimestamp();
         DistrictShapefile districtShapeFile = (DistrictShapefile) this.getInstance("shapefile");
         DistrictResult districtResult = districtShapeFile.getMultiMatchResult(geocodedAddress, zipProvided);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
+        logger.info(String.format("Multi-match district assign in %d ms.", TimeUtil.getElapsedMs(startTime)));
         return districtResult;
     }
 

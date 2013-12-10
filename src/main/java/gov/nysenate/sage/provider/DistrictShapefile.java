@@ -218,10 +218,9 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
 
         Address address = geocodedAddress.getAddress();
         GeocodeQuality geocodeQuality = geocodedAddress.getGeocode().getQuality();
-        Map<DistrictType, Set<String>> matches = new HashMap<>();
+        Map<DistrictType, Set<String>> matches;
         List<String> zip5List = new ArrayList<>();
         List<String> streetList = new ArrayList<>();
-        String streetLineJson = null;
 
         logger.debug("Zip Provided: " + zipProvided);
 
@@ -252,7 +251,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
                 if (matches != null && !matches.isEmpty()) {
                     /** Retrieve source map for city and zip match levels */
                     if (matchLevel.compareTo(DistrictMatchLevel.STREET) < 0) {
-                        DistrictMap sourceMap = districtShapefileDao.getOverlapReferenceBoundary(DistrictType.ZIP, new HashSet<String>(zip5List));
+                        DistrictMap sourceMap = districtShapefileDao.getOverlapReferenceBoundary(DistrictType.ZIP, new HashSet<>(zip5List));
                         districtInfo.setReferenceMap(sourceMap);
                     }
 
@@ -281,7 +280,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
                     resultStatus = ResultStatus.SUCCESS;
                     districtedAddress.setDistrictInfo(districtInfo);
                     districtedAddress.setDistrictMatchLevel(matchLevel);
-                    logger.info("Resulting match level: " + matchLevel);
+                    logger.info("District match level: " + matchLevel);
                 }
             }
         }
