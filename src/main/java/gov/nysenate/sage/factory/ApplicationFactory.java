@@ -218,7 +218,7 @@ public class ApplicationFactory
         }
         catch (ConfigurationException ce)
         {
-            logger.fatal("Failed to load configuration file " + defaultPropertyFileName);
+            logger.fatal("Failed to load configuration file "+propertyFileName);
             logger.fatal(ce.getMessage());
         }
         catch (Exception ex)
