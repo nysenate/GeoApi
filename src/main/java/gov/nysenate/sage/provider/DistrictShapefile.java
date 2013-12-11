@@ -262,9 +262,9 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
                             logger.trace("Matches for " + matchType + " " + distCodeSet);
 
                             /** Senate districts should always get overlap assigned */
-                            if (matchType.equals(DistrictType.SENATE) || distCodeSet.size() > 1) {
+                            if (matchType.equals(DistrictType.SENATE)) {
                                 overlap = districtShapefileDao.getDistrictOverlap(matchType, matches.get(matchType),
-                                                                                  DistrictType.ZIP, new HashSet<String>(zip5List));
+                                                                                  DistrictType.ZIP, new HashSet<>(zip5List));
                                 districtInfo.addDistrictOverlap(matchType, overlap);
                             }
                             /** If the district set from the street files is size 1, set it as the district */
