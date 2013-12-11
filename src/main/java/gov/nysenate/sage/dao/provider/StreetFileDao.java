@@ -142,7 +142,7 @@ public class StreetFileDao extends BaseDao
     }
 
     /**
-     * Returns a list of street ranges with district information for a given street and zip.
+     * Returns a list of street ranges with district information for a given street and zip5 list.
      * @param street
      * @param zip5List
      * @return List of DistrictedStreetRange
@@ -228,10 +228,10 @@ public class StreetFileDao extends BaseDao
             List<String> zip5WhereList = new ArrayList<>();
             for (String zip5 : zip5List) {
                 if (zip5 != null && !zip5.isEmpty()) {
-                    zip5WhereList.add(String.format("zip5 = '%s'", StringEscapeUtils.escapeSql(zip5)));
+                    zip5WhereList.add(String.format("'%s'", StringEscapeUtils.escapeSql(zip5)));
                 }
             }
-            zip5WhereSql = StringUtils.join(zip5WhereList, " OR ");
+            zip5WhereSql = String.format("zip5 IN (%s)", StringUtils.join(zip5WhereList, ","));
         }
 
         /** Create where clause for street names */
@@ -241,11 +241,11 @@ public class StreetFileDao extends BaseDao
             for (String stRaw : streetList) {
                 String street = getFormattedStreet(stRaw, false);
                 if (!street.isEmpty()) {
-                    streetWhereList.add(String.format("street = '%s'", StringEscapeUtils.escapeSql(street)));
+                    streetWhereList.add(String.format("'%s'", StringEscapeUtils.escapeSql(street)));
                 }
             }
             if (!streetWhereList.isEmpty()) {
-                streetWhereSql = StringUtils.join(streetWhereList, " OR ");
+                streetWhereSql = String.format("street IN (%s)", StringUtils.join(streetWhereList, ","));
             }
         }
 
