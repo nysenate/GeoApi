@@ -317,7 +317,8 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         /** Get the indices of results that were not successful */
         List<Integer> failedIndices = getFailedResultIndices(geocodeResults);
         if (CACHE_ENABLED && useCache) {
-            logger.info(String.format("Cache hits: %d/%d. Lookup time: %d ms.",(addressCount - failedIndices.size()), addressCount, cacheElapsedMs));
+            logger.info(String.format("Cache hits: %d/%d. Lookup time: %d ms.",
+                (validAddresses.size() - failedIndices.size()), validAddresses.size(), cacheElapsedMs));
         }
 
         /** Create new batches containing just the failed results and run them through the fallback providers.

@@ -163,7 +163,7 @@ public class GeoCacheDao extends BaseDao
                                 logger.trace(ex.getMessage());
                             }
                             else {
-                                logger.info(ex.getMessage());
+                                logger.warn(ex.getMessage());
                             }
                         }
                         catch(Exception ex) {

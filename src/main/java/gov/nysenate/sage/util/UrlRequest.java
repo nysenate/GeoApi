@@ -18,6 +18,8 @@ import java.net.URL;
 public abstract class UrlRequest
 {
     public static Logger logger = Logger.getLogger(UrlRequest.class);
+    private static int CONNECTION_TIMEOUT = 10000;
+    private static int RESPONSE_TIMEOUT = 30000;
 
     /**
     * Connects to a url and retrieves the body response in String representation.
@@ -62,7 +64,7 @@ public abstract class UrlRequest
     {
         URL u = new URL(url);
         logger.debug("Requesting connection to " + url.toString());
-        HttpURLConnection uc = (HttpURLConnection)u.openConnection();
+        HttpURLConnection uc = getHttpURLConnection(u);
         int responseCode = uc.getResponseCode();
         logger.debug("Connection replied with response code: " + responseCode);
 
@@ -86,7 +88,7 @@ public abstract class UrlRequest
     {
         URL u = new URL(url);
         logger.debug("Requesting connection to " + url.toString());
-        HttpURLConnection uc = (HttpURLConnection)u.openConnection();
+        HttpURLConnection uc = getHttpURLConnection(u);
         uc.setRequestMethod("POST");
         uc.setDoOutput(true);
         uc.setRequestProperty("Content-Length", String.valueOf(postBody.length()));
@@ -134,7 +136,7 @@ public abstract class UrlRequest
         try {
             logger.debug("Requesting connection to: " + url);
             URL u = new URL(url);
-            HttpURLConnection uc = (HttpURLConnection) u.openConnection();
+            HttpURLConnection uc = getHttpURLConnection(u);
             OAuthConsumer consumer = new DefaultOAuthConsumer(consumerKey, consumerSecret);
             consumer.sign(uc);
 
@@ -159,5 +161,19 @@ public abstract class UrlRequest
             logger.error(ex);
         }
         return null;
+    }
+
+    /**
+     * Returns a HttpURLConnection object using the URL supplied. Timeout options are set as well.
+     * @param u URL
+     * @return HttpURLConnection
+     * @throws IOException
+     */
+    private static HttpURLConnection getHttpURLConnection(URL u) throws IOException
+    {
+        HttpURLConnection uc = (HttpURLConnection) u.openConnection();
+        uc.setConnectTimeout(CONNECTION_TIMEOUT);
+        uc.setReadTimeout(RESPONSE_TIMEOUT);
+        return uc;
     }
 }

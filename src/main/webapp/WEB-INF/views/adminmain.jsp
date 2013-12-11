@@ -156,7 +156,7 @@
                         <ul class="horizontal">
                             <li><label>Total Geocodes: </label>{{totalGeocodes}}</li>
                             <li><label>Cache Hits: </label>{{totalCacheHits}}</li>
-                            <li><label>Cache Hit Rate: </label>{{(totalCacheHits / totalGeocodes) | number:2}}%</li>
+                            <li><label>Cache Hit Rate: </label>{{(totalCacheHits / totalGeocodes) * 100 | number:2}}%</li>
                         </ul>
                         <hr/>
                         <table class="light-table" style="width:650px;margin:auto;text-align: left;">

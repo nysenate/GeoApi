@@ -37,7 +37,7 @@ public class RubyGeocoder implements GeocodeService
         this.logger = Logger.getLogger(this.getClass());
         this.jsonMapper = new ObjectMapper();
         configure();
-        logger.info("Initialized RubyGeocoder Adapter");
+        logger.debug("Initialized RubyGeocoder Adapter");
     }
 
     private void configure()

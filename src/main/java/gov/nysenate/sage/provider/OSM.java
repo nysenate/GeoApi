@@ -41,7 +41,7 @@ public class OSM implements GeocodeService, Observer
         this.config = ApplicationFactory.getConfig();
         this.objectMapper = new ObjectMapper();
         configure();
-        logger.info("Initialized OSM Adapter");
+        logger.debug("Initialized OSM Adapter");
     }
 
     private void configure()
