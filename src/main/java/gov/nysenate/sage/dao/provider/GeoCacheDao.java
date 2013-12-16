@@ -19,7 +19,6 @@ import org.apache.log4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -43,22 +42,16 @@ public class GeoCacheDao extends BaseDao
         "SELECT gc.*, ST_Y(latlon) AS lat, ST_X(latlon) AS lon \n" +
         "FROM cache.geocache AS gc \n";
 
-    private final static String SQLFRAG_WHERE_BUILDING_MATCH =
+    private final static String SQLFRAG_WHERE_FULL_MATCH =
         "WHERE gc.bldgnum = ? \n" +
-            "AND COALESCE(gc.predir, '') = ? \n" +
+            "AND gc.predir = ? \n" +
             "AND gc.street = ? \n" +
-            "AND COALESCE(gc.postdir, '') = ? \n" +
+            "AND gc.postdir = ? \n" +
             "AND gc.streetType = ? \n" +
             "AND ((gc.zip5 = ? AND gc.zip5 != '') OR " +
-            " (? = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
+            " (? = '' AND gc.zip5 = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
 
-    private final static String SQLFRAG_WHERE_CITY_ZIP_MATCH =
-        "WHERE gc.street = '' \n" +
-            "AND ((gc.zip5 = ? AND gc.zip5 != '') " +
-            " OR (? = '' AND gc.zip5 = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
-
-    private final static String SQL_CACHE_HIT_BUILDING = String.format("%s%s", SQLFRAG_SELECT, SQLFRAG_WHERE_BUILDING_MATCH);
-    private final static String SQL_CACHE_HIT_CITY_ZIP = String.format("%s%s", SQLFRAG_SELECT, SQLFRAG_WHERE_CITY_ZIP_MATCH);
+    private final static String SQL_CACHE_HIT_FULL = String.format("%s%s LIMIT 1", SQLFRAG_SELECT, SQLFRAG_WHERE_FULL_MATCH);
 
     /**
      * Performs a lookup on the cache table and returns a GeocodedStreetAddress upon match.
@@ -71,26 +64,14 @@ public class GeoCacheDao extends BaseDao
             logger.trace("Looking up " + sa.toStringParsed() + " in cache..");
         }
         if (isStreetAddressRetrievable(sa)) {
-            if (!sa.isPoBoxAddress() && !sa.isStreetEmpty()) {
-                try {
-                    return tigerRun.query(SQL_CACHE_HIT_BUILDING, new GeocodedStreetAddressHandler(true),
-                        sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
-                        sa.getStreetType(), sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
-                }
-                catch (SQLException ex) {
-                    logger.error("Error retrieving geo cache hit!", ex);
-                }
+            boolean buildingMatch = (!sa.isPoBoxAddress() && !sa.isStreetEmpty());
+            try {
+                return tigerRun.query(SQL_CACHE_HIT_FULL, new GeocodedStreetAddressHandler(buildingMatch),
+                    sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
+                    sa.getStreetType(), sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
             }
-            /** PO BOX addresses can be looked up by just the location/zip */
-            else {
-                logger.trace("Cache lookup without street");
-                try {
-                    return tigerRun.query(SQL_CACHE_HIT_CITY_ZIP, new GeocodedStreetAddressHandler(false),
-                        sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
-                }
-                catch (SQLException ex) {
-                    logger.error("Error retrieving geo cache hit!", ex);
-                }
+            catch (SQLException ex) {
+                logger.error("Error retrieving geo cache hit!", ex);
             }
         }
         return null;
