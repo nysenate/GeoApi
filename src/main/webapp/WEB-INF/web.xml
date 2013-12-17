@@ -159,4 +159,14 @@
         <url-pattern>/admin/api/*</url-pattern>
     </servlet-mapping>
 
+    <!-- Meta Controller mapping -->
+    <servlet>
+        <servlet-name>MetaController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.api.MetaController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MetaController</servlet-name>
+        <url-pattern>/api/v2/meta/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>

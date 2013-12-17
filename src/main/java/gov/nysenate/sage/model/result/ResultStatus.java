@@ -15,6 +15,7 @@ public enum ResultStatus
 
     API_KEY_INVALID(10, "The supplied API key could not be authenticated."),
     API_KEY_MISSING(11, "An API key is required."),
+    CONFIG_FILE_MISSING(12, "The configuration file could not be located."),
 
     API_REQUEST_INVALID(20, "The request is not in a valid format. Check the documentation for proper usage."),
     API_INPUT_FORMAT_UNSUPPORTED(21, "The requested input format is currently not supported."),

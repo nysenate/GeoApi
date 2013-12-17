@@ -57,6 +57,9 @@ public class ApplicationFactory
     private StreetLookupServiceProvider streetLookupServiceProvider;
     private CityZipServiceProvider cityZipServiceProvider;
 
+    /** Meta Information */
+    private Map<String, Class<? extends GeocodeService>> activeGeoProviders = new HashMap<>();
+
     /** Default values */
     private static String defaultPropertyFileName = "app.properties";
     private static String defaultTestPropertyFileName = "test.app.properties";
@@ -168,6 +171,7 @@ public class ApplicationFactory
             List<String> activeList = this.config.getList("geocoder.active", Arrays.asList("yahoo", "tiger"));
             for (String provider : activeList) {
                 GeocodeServiceValidator.setGeocoderAsActive(geoProviders.get(provider));
+                activeGeoProviders.put(provider, geoProviders.get(provider));
             }
 
             LinkedList<String> geocoderRankList = new LinkedList<>(this.config.getList("geocoder.rank", Arrays.asList("yahoo", "tiger")));
@@ -288,5 +292,9 @@ public class ApplicationFactory
 
     public static CityZipServiceProvider getCityZipServiceProvider() {
         return factoryInstance.cityZipServiceProvider;
+    }
+
+    public static Map<String, Class<? extends GeocodeService>> getActiveGeoProviders() {
+        return factoryInstance.activeGeoProviders;
     }
 }

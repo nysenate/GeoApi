@@ -50,9 +50,13 @@ public class ApiFilter implements Filter, Observer
     private static Boolean API_LOGGING_ENABLED = false;
 
     /** The valid format of an api request */
-    private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map|street))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
+    private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map|street|meta))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
 
+    /** Api services that are designated as public */
     private static String publicApiFilter = "(map)";
+
+    /** Api services for which requests will be logged if logging is enabled. */
+    private static String loggedServices = "(address|district|geo|map|street)";
 
     /** String keys used for setting key value attributes in the request object */
     private static final String RESPONSE_OBJECT_KEY = "responseObject";
@@ -152,7 +156,7 @@ public class ApiFilter implements Filter, Observer
 
                 /** Log Api Request into the database */
                 int id = -1;
-                if (API_LOGGING_ENABLED) {
+                if (API_LOGGING_ENABLED && service.matches(loggedServices)) {
                     id = apiRequestLogger.logApiRequest(apiRequest);
                     apiRequest.setId(id);
                 }
