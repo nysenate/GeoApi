@@ -15,11 +15,17 @@
             <name>Ash Islam</name>
             <organization>NY Senate</organization>
             <email>islam@nysenate.gov</email>
+            <roles>
+                <role>Programmer</role>
+            </roles>
         </developer>
         <developer>
             <name>Ken Zalewski</name>
             <organization>NY Senate</organization>
             <email>zalewski@nysenate.gov</email>
+            <roles>
+                <role>Project Manager</role>
+            </roles>
         </developer>
     </developers>
 
