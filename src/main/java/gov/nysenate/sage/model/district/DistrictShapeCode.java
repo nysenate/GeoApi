@@ -6,6 +6,15 @@ import java.util.HashMap;
  * The district shapefiles each have their own table structure with different
  * column names that represent the district name and code. This class serves
  * as a reference lookup to obtain the column names on a DistrictType basis.
+ *
+ * Note that the SRID value may differ between shapefiles. In order to obtain the
+ * srid value inspect the .prj file located in the shapefile archive. You can then
+ * use an external webservice like http://prj2epsg.org/search to convert into espg
+ * code. From there you can use http://spatialreference.org/ref/epsg/{your espg code}
+ * and get the srid using the PostGIS output.
+ *
+ * Alternatively, you can inspect the .prj file and the spatial_ref_sys table in the
+ * geoapi database and try to find a match that way.
  */
 public enum DistrictShapeCode
 {
@@ -20,7 +29,7 @@ public enum DistrictShapeCode
         nameColumn.put(DistrictType.CONGRESSIONAL, "NAME");
         nameColumn.put(DistrictType.ASSEMBLY, "NAME");
         nameColumn.put(DistrictType.COUNTY, "NAMELSAD");
-        nameColumn.put(DistrictType.SCHOOL, "EANAME1");
+        nameColumn.put(DistrictType.SCHOOL, "NAME");
         nameColumn.put(DistrictType.TOWN, "NAME");
         nameColumn.put(DistrictType.ZIP, "ZCTA5CE10");
 
