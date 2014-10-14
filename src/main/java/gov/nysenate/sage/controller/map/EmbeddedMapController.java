@@ -43,6 +43,28 @@ public class EmbeddedMapController extends BaseMapController
             logger.debug("No width and height parameters supplied.");
         }
 
+        // Set custom map styles if requested
+        if (Boolean.parseBoolean(request.getParameter("customMapStyle"))) {
+            request.setAttribute("customMapStyle", true);
+            request.setAttribute("hue", "#" + request.getParameter("hue"));
+            request.setAttribute("saturation", (request.getParameter("saturation") != null) ?
+                                                request.getParameter("saturation") : 0);
+            request.setAttribute("lightness", (request.getParameter("lightness") != null) ?
+                                               request.getParameter("lightness") : 0);
+        }
+        else {
+            request.setAttribute("customStyle", false);
+        }
+
+        // Set custom polygon styles
+        if (Boolean.parseBoolean(request.getParameter("customPolyStyle"))) {
+            request.setAttribute("customPolyStyle", true);
+            request.setAttribute("polyHue", "#" + request.getParameter("polyHue"));
+        }
+        else {
+            request.setAttribute("customPolyStyle", false);
+        }
+
         if (path != null) {
             path = path.replaceFirst("/", "");
             List<String> pathList = new ArrayList<String>(Arrays.asList(path.split("/")));

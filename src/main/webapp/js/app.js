@@ -20,6 +20,23 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         nyLatLngBounds.extend(new google.maps.LatLng(v[0], v[1]));
     });
 
+    /** Styles */
+    var styles = [{
+        featureType: "transit",
+        stylers: [{ "visibility": "off"}, ]
+    }];
+
+    if (window.customMapStyle) {
+        styles.push(window.customMapStyle);
+    }
+
+    //                  teal      orangered    green      red        yellow     cyan       pink      purple     darkblue
+    var polyColors =  ["#008080", "#ff4500", "#639A00", "#CC333F", "#EDC951", "#09AA91", "#F56991", "#524656", "#547980"];
+
+    if (window.customPolyStyle) {
+        polyColors.unshift(window.customPolyStyle.hue);
+    }
+
     /** Initialization */
     var mapService = {};
     mapService.el = $("#mapView");
@@ -36,10 +53,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             style: google.maps.ZoomControlStyle.DEFAULT,
             position: google.maps.ControlPosition.LEFT_TOP
         },
-        styles: [
-            {featureType: "transit",
-            stylers: [{ "visibility": "off"}]}
-        ]
+        styles: styles
     };
     mapService.map = new google.maps.Map(document.getElementById("map_canvas"), mapService.mapOptions);
     mapService.autoComplete = new google.maps.places.AutocompleteService();
@@ -51,8 +65,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.activeMarker = null;
     mapService.districtData = null;
     mapService.mouseEventName = null;
-    //                    teal      orangered    green      red        yellow     cyan    pink         purple     darkblue
-    mapService.colors = ["#008080", "#ff4500", "#639A00", "#CC333F", "#EDC951", "#09AA91", "#F56991", "#524656", "#547980"];
+    mapService.colors = polyColors;
 
     /**
      * Resize when window size changes
@@ -1185,7 +1198,7 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
                                 function() {
                                     dataBus.setBroadcast("showEmbedSenator", v);
                                 }
-                            : null);
+                            : null, mapService.colors[0]);
                     }
                 });
                 mapService.setCenter(42.440510, -76.495460); // Centers the map nicely over NY
@@ -1195,7 +1208,7 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
             else if (data.map != null) {
                 $scope.senator = data.member;
                 $scope.district = data.district;
-                mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
+                mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, mapService.colors[0]);
                 if (data.type.toLowerCase() == "senate") {
                     $scope.setOfficeMarkers(data.member.offices);
                     $scope.showPrompt = false;

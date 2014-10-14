@@ -50,7 +50,7 @@ public class MapController extends BaseApiController
 
         /** Parameter to specify if member data should be retrieved if applicable */
         String showMembersStr = request.getParameter("showMembers");
-        Boolean showMembers = (showMembersStr != null && showMembersStr.equals("true")) ? true : false;
+        Boolean showMembers = (showMembersStr != null && showMembersStr.equals("true"));
 
         /** Meta data requests simply return listing info, no maps or members */
         boolean meta = requestParameterEquals(request, "meta", "true");

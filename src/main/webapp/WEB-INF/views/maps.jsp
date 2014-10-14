@@ -1,10 +1,30 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage</jsp:attribute>
     <jsp:attribute name="title">SAGE Map Viewer</jsp:attribute>
     <jsp:attribute name="jsIncludes">
+        <!-- Custom Map Styles -->
+        <script>
+            <c:if test="${customMapStyle == true}">
+                var customMapStyle = {
+                    "stylers" : [
+                        { "hue" : "${hue}" },
+                        { "saturation" : ${saturation}},
+                        { "lightness" : ${lightness}}
+                    ]
+                };
+            </c:if>
+
+            <c:if test="${customPolyStyle == true}">
+                var customPolyStyle = {
+                    "hue": "${polyHue}"
+                };
+            </c:if>
+        </script>
+
         <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false&libraries=places"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
