@@ -288,28 +288,24 @@ public class ApiFilter implements Filter, Observer
         }
 
         try {
+            String responseStr;
             if (format.equalsIgnoreCase(FormatType.XML.name())) {
-
-                String xml = xmlMapper.writeValueAsString(responseObj);
-                request.setAttribute(FORMATTED_RESPONSE_KEY, xml);
+                responseStr = xmlMapper.writeValueAsString(responseObj);
                 response.setContentType("application/xml");
-                response.setContentLength(xml.length());
             }
             else if (format.equalsIgnoreCase(FormatType.JSONP.name())) {
                 String callback = request.getParameter("callback");
                 String json = jsonMapper.writeValueAsString(responseObj);
-                String jsonp = String.format("%s(%s);", callback, json);
-                request.setAttribute(FORMATTED_RESPONSE_KEY, jsonp);
+                responseStr = String.format("%s(%s);", callback, json);
                 response.setContentType("application/javascript");
-                response.setContentLength(jsonp.length());
             }
             else {
-                String json = jsonMapper.writeValueAsString(responseObj);
-                request.setAttribute(FORMATTED_RESPONSE_KEY, json);
+                responseStr = jsonMapper.writeValueAsString(responseObj);
                 response.setContentType("application/json");
-                response.setContentLength(json.length());
             }
-
+            request.setAttribute(FORMATTED_RESPONSE_KEY, responseStr);
+            response.setContentLength(responseStr.length());
+            response.setCharacterEncoding("UTF-8");
             logger.trace("Completed serialization");
         }
         catch (JsonProcessingException ex) {
