@@ -38,6 +38,5 @@ public class SenateDaoTest extends TestBase
     {
         Senator senator = this.senateDao.getSenatorByDistrict(7);
         assertTrue(senator.getName().contains("Martins"));
-        assertEquals(7, senator.getDistrict().getNumber());
     }
 }

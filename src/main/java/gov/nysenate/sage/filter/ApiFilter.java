@@ -304,7 +304,6 @@ public class ApiFilter implements Filter, Observer
                 response.setContentType("application/json");
             }
             request.setAttribute(FORMATTED_RESPONSE_KEY, responseStr);
-            response.setContentLength(responseStr.length());
             response.setCharacterEncoding("UTF-8");
             logger.trace("Completed serialization");
         }
