@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Observable;
@@ -305,10 +306,15 @@ public class ApiFilter implements Filter, Observer
             }
             request.setAttribute(FORMATTED_RESPONSE_KEY, responseStr);
             response.setCharacterEncoding("UTF-8");
+            response.setContentLength(responseStr.getBytes("UTF-8").length);
             logger.trace("Completed serialization");
         }
         catch (JsonProcessingException ex) {
             logger.fatal("Failed to serialize response!", ex);
+            request.setAttribute(FORMATTED_RESPONSE_KEY, RESPONSE_SERIALIZATION_ERROR);
+        }
+        catch (UnsupportedEncodingException ex) {
+            logger.error("Failed to get UTF-8 bytes from response!", ex);
             request.setAttribute(FORMATTED_RESPONSE_KEY, RESPONSE_SERIALIZATION_ERROR);
         }
     }
