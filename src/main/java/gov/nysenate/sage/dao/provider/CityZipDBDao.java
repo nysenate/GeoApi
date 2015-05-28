@@ -32,7 +32,7 @@ public class CityZipDBDao extends BaseDao
         if (city == null || city.isEmpty()) return null; // Short circuit
         String sql = "SELECT DISTINCT zip5 \n" +
                      "FROM " + SCHEMA + "." + TABLE + "\n" +
-                     "WHERE city = upper(trim(?)) AND type = 'STANDARD' \n" +
+                     "WHERE city = upper(trim(?)) AND (type = 'STANDARD' OR type = 'PO BOX') \n" +
                      (!cityExceptions.contains(city) ? " AND (locationType = 'PRIMARY' OR locationType = 'ACCEPTABLE')"
                                                      : "");
         try {
