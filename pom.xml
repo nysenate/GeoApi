@@ -4,7 +4,7 @@
   <groupId>gov.nysenate</groupId>
   <artifactId>geoapi</artifactId>
   <name>GeoApi</name>
-  <version>2.2.5</version>
+  <version>2.2.6</version>
   <packaging>war</packaging>
 
   <repositories>
