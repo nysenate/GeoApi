@@ -426,9 +426,7 @@ sage.filter("districtName", function() {
 
 sage.filter("senatorPic", function() {
     return function(input) {
-        if (input) {
-            return "http://www.nysenate.gov/files/imagecache/senator_teaser/" + input.substring(30) ;
-        }
+        return input;
     }
 });
 
@@ -691,7 +689,8 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
             .success(function(data) {
                 $scope.showMemberOption = ($scope.type === 'senate' || $scope.type === 'congressional' || $scope.type === 'assembly');
                 if ($scope.showMemberOption) {
-                    $scope.sortedMemberList = data.districts.slice(0);
+                    // Filter out null members.
+                    $scope.sortedMemberList = data.districts.filter(function(resp) { return resp.member != null });
                     $scope.sortedMemberList = $scope.sortedMemberList.sort(function(a, b){
                         return (a.type == "SENATE") ? a.member.shortName.localeCompare(b.member.shortName)
                                                     : a.member.name.localeCompare(b.member.name);
@@ -1010,11 +1009,13 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
 
                     /** Draw the office markers */
                     mapService.clearMarkers();
-                    $.each(data.member.offices, function(i, office){
-                        if (office && office.name != null && office.name != "") {
-                            mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, false, false);
-                        }
-                    });
+                    if (data.member && data.member.offices) {
+                        $.each(data.member.offices, function(i, office){
+                            if (office && office.name != null && office.name != "") {
+                                mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, false, false);
+                            }
+                        });
+                    }
                 }
                 else {
                     dataBus.setBroadcast("hideResultTab");

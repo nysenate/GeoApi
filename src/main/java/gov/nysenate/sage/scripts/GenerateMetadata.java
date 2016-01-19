@@ -9,13 +9,12 @@ import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.CongressScraper;
-import gov.nysenate.services.MemoryCachedNYSenateClient;
-import gov.nysenate.services.model.District;
-import gov.nysenate.services.model.Office;
+import gov.nysenate.services.NYSenateClientService;
+import gov.nysenate.services.NYSenateJSONClient;
 import gov.nysenate.services.model.Senator;
 import org.apache.xmlrpc.XmlRpcException;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -159,37 +158,34 @@ public class GenerateMetadata
      * the database.
      * @throws XmlRpcException
      */
-    private boolean generateSenateData() throws XmlRpcException
-    {
+    private boolean generateSenateData() throws XmlRpcException, IOException {
         boolean updated = false;
 
-        MemoryCachedNYSenateClient senateClient;
+        NYSenateClientService senateClient;
         SenateDao senateDao = new SenateDao();
-
-        String key = config.getValue("nysenate.key");
-        String domain = config.getValue("nysenate.domain");
 
         System.out.println("Generating senate data from NY Senate client services");
 
         /** Obtain the senate client service */
-        senateClient = new MemoryCachedNYSenateClient(domain, key);
+        String domain = config.getValue("nysenate.domain", "http://www.nysenate.gov");
+        senateClient = new NYSenateJSONClient(domain);
 
         /** Retrieve the list of senators from the client API */
         List<Senator> senators = senateClient.getSenators();
 
         for (Senator senator : senators) {
             int district = senator.getDistrict().getNumber();
-            Senator existingSenator = senateDao.getSenatorByDistrict(district);
-
-            if (existingSenator == null) {
+            if (district > 0) {
+                Senator existingSenator = senateDao.getSenatorByDistrict(district);
+                if (existingSenator == null) {
+                    senateDao.insertSenate(senator.getDistrict());
+                    senateDao.insertSenator(senator);
+                }
+                else {
+                    senateDao.deleteSenator(district);
+                    senateDao.insertSenator(senator);
+                }
                 updated = true;
-                senateDao.insertSenate(senator.getDistrict());
-                senateDao.insertSenator(senator);
-            }
-            else if (isSenatorDataUpdated(existingSenator, senator)) {
-                updated = true;
-                senateDao.deleteSenator(district);
-                senateDao.insertSenator(senator);
             }
         }
         return updated;
@@ -222,69 +218,6 @@ public class GenerateMetadata
             }
         }
         else if (a1 == null && a2 != null) {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isSenatorDataUpdated(Senator s1, Senator s2) {
-        if (s1 != null && s2 != null) {
-            if (!(s1.getShortName().equals(s2.getShortName()) &&
-                s1.getImageUrl().equals(s2.getImageUrl()) &&
-                s1.getAdditionalContact().equals(s2.getAdditionalContact()) &&
-                s1.getEmail().equals(s2.getEmail()) &&
-                s1.getLastName().equals(s2.getLastName()) &&
-                s1.getName().equals(s2.getName()) &&
-                s1.getUrl().equals(s2.getUrl())))
-            {
-                System.out.println("Basic senator information has changed for " + s1.getName());
-                return true;
-            }
-
-            District d1 = s1.getDistrict();
-            District d2 = s2.getDistrict();
-            if (!(d1.getNumber() == d2.getNumber() &&
-                d1.getUrl().equals(d2.getUrl()) &&
-                d1.getImageUrl().equals(d2.getImageUrl()) &&
-                d1.getMapUrl().equals(d2.getMapUrl())))
-            {
-                System.out.println("District information has changed for " + s1.getName());
-                return true;
-            }
-
-            ArrayList<Office> offices1 = s1.getOffices();
-            ArrayList<Office> offices2 = s2.getOffices();
-            if (offices1.size() == offices2.size()) {
-                for (int i = 0; i < offices2.size(); i++) {
-                    Office office1 = offices1.get(i);
-                    Office office2 = offices2.get(i);
-
-                    if (!(office1.getName().equals(office2.getName()) &&
-                        office1.getAdditional().equals(office2.getAdditional()) &&
-                        office1.getStreet().equals(office2.getStreet()) &&
-                        office1.getCity().equals(office2.getCity()) &&
-                        office1.getPostalCode().equals(office2.getPostalCode()) &&
-                        office1.getCountry().equals(office2.getCountry()) &&
-                        office1.getCountryName().equals(office2.getCountryName()) &&
-                        office1.getLatitude() == office2.getLatitude() &&
-                        office1.getLongitude() == office2.getLongitude() &&
-                        office1.getPhone().equals(office2.getPhone()) &&
-                        office1.getOtherPhone().equals(office2.getOtherPhone()) &&
-                        office1.getFax().equals(office2.getFax()) &&
-                        office1.getProvince().equals(office2.getProvince()) &&
-                        office1.getProvinceName().equals(office2.getProvinceName())))
-                    {
-                        System.out.println("Office information has changed for " + s1.getName() + ": " + office1.getName());
-                        return true;
-                    }
-                }
-            }
-            else {
-                System.out.println("Offices did not match for " + s1.getName());
-                return true;
-            }
-        }
-        else if (s1 == null && s2 != null) {
             return true;
         }
         return false;

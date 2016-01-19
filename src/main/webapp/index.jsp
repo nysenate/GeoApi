@@ -213,6 +213,7 @@
                             <div style="float:left">
                                 <label for="districtTypeMenu" class="menu-overhead">Type</label>
                                 <select id="districtTypeMenu" class="menu" style="width:100px;" ng-model="type" ng-change="metaLookup();">
+                                    <option value="">Choose</option>
                                     <option value="senate">Senate</option>
                                     <option value="congressional">Congressional</option>
                                     <option value="assembly">Assembly</option>
@@ -222,21 +223,16 @@
                                     <option value="zip">Zip</option>
                                 </select>
                             </div>
-                            <div style="float:left">
+                            <div>
                                 <label for="districtCodeMenu" class="menu-overhead">District</label>
                                 <select id="districtCodeMenu" class="menu" ng-change="lookup()" style="width:220px;" ng-model="selectedDistrict" ng-options="d.name for d in districtList"></select>
                             </div>
                         </div>
-                        <div class="options-link-container" ng-show="showMemberOption" ng-click="showMemberList=true;showMemberOption=false;" style="padding-left:5px;">
-                            <a class="options-link" ng-click="">Show Senator/Member List</a>
-                        </div>
-                        <div class="options-link-container" ng-show="showMemberList" ng-click="showMemberList=false;showMemberOption=true;" style="padding-left:5px;">
-                            <a class="options-link" ng-click="">Hide Senator/Member List</a>
-                        </div>
-                        <div style="margin-top:4px;padding:5px;" ng-show="showMemberList">
+                        <div style="margin-top:4px;padding:5px;" ng-show="showMemberOption">
                             <div style="float:left">
                                 <label for="districtMemberMenu" class="menu-overhead">Member</label>
-                                <select id="districtMemberMenu" class="menu" style="width:325px;" ng-change="lookup()" ng-model="selectedDistrict" ng-options="d.member.name for d in sortedMemberList"></select>
+                                <select id="districtMemberMenu" class="menu" style="width:325px;" ng-change="lookup()" ng-model="selectedDistrict" ng-options="d.member.name for d in sortedMemberList">
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -339,11 +335,11 @@
                     <div class="info-container clickable connected senator" title="Show Senate District Map" ng-click="showDistrict('senate');">
                         <div class="senator-pic-holder">
                             <a target="_blank" ng-href="{{districts.senate.senator.url}}">
-                                <img ng-src="{{districts.senate.senator.imageUrl | senatorPic}}" class="senator-pic">
+                                <img ng-src="{{districts.senate.senator.imageUrl}}" class="senator-pic">
                             </a>
                         </div>
                         <div style='margin-top:10px'>
-                            <table style="width:230px;">
+                            <table class="senator-info-district-result">
                                 <tr>
                                     <td>
                                         <p class="senator member-name">

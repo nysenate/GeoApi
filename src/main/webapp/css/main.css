@@ -517,7 +517,12 @@ table.light-table tr {
 
 .senator-pic-holder {
     height:80px;
-    max-width:90px;
+    max-width:80px;
+    overflow: hidden;
+}
+
+.senator-info-district-result {
+    width: 220px;
 }
 
 .mini-senator-pic-holder {
@@ -526,8 +531,7 @@ table.light-table tr {
 }
 
 .senator-pic-holder img.senator-pic {
-    height:auto;
-    width:100%;
+    height: 70px;
 }
 
 .member-name.senator {
