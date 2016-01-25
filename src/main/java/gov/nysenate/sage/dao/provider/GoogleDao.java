@@ -134,6 +134,7 @@ public class GoogleDao implements Observer
     private GeocodeQuality resolveGeocodeQuality(String type)
     {
         switch (type) {
+            case "premise":
             case "street_address": return GeocodeQuality.HOUSE;
             case "route": return GeocodeQuality.STREET;
             case "neighborhood":
