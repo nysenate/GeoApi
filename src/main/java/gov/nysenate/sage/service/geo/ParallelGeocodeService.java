@@ -56,10 +56,7 @@ public abstract class ParallelGeocodeService
             try {
                 geocodeResults.add(geocodeResult.get());
             }
-            catch (InterruptedException ex) {
-                logger.error(ex.getMessage());
-            }
-            catch (ExecutionException ex) {
+            catch (InterruptedException | ExecutionException ex) {
                 logger.error(ex.getMessage());
             }
         }

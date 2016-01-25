@@ -151,13 +151,9 @@ public abstract class UrlRequest
         catch(MalformedURLException ex) {
             logger.error("Malformed Url in Oauth Request: " + ex.getMessage(), ex);
         }
-        catch (OAuthExpectationFailedException ex) {
-            logger.error(ex);
-        }
-        catch (OAuthCommunicationException ex) {
-            logger.error(ex);
-        }
-        catch (OAuthMessageSignerException ex) {
+        catch (OAuthExpectationFailedException |
+               OAuthCommunicationException |
+               OAuthMessageSignerException ex) {
             logger.error(ex);
         }
         return null;

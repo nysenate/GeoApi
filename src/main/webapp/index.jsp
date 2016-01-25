@@ -158,6 +158,7 @@
                                     <td>
                                         <select id="geocoderMenu" style="width: 100%;" ng-model="geoProvider">
                                             <option value="default">Default</option>
+                                            <option value="google">Google</option>
                                             <option value="yahoo">Yahoo</option>
                                             <option value="yahooboss">Yahoo Boss</option>
                                             <option value="tiger">Tiger</option>
