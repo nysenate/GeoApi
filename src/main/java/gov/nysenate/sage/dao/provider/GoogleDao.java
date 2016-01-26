@@ -25,6 +25,7 @@ public class GoogleDao implements Observer
     private static final Config config = ApplicationFactory.getConfig();
     private static final String DEFAULT_BASE_URL = "https://maps.googleapis.com/maps/api/geocode/json";
     private static final String GEOCODE_QUERY = "?address=%s&key=%s";
+    private static final String REV_GEOCODE_QUERY = "?latlng=%s&key=%s";
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private String baseUrl;
@@ -74,6 +75,26 @@ public class GoogleDao implements Observer
     }
 
     /**
+     * This method performs reverse geocoding.
+     * Retrieves a GeocodedAddress given a Point using Google.
+     *
+     * @param point Point to reverse geocode.
+     * @return      GeocodedAddress containing best matched Address.
+     */
+    public GeocodedAddress getGeocodedAddress(Point point) {
+        GeocodedAddress geocodedAddress = null;
+        try {
+            String formattedQuery = String.format(REV_GEOCODE_QUERY, point.toString(), apiKey);
+            String url = getBaseUrl() + formattedQuery;
+            geocodedAddress = getGeocodedAddress(url); // Response is identical to address->geocode response.
+        }
+        catch (NullPointerException ex) {
+            logger.error("Null pointer while performing google geocode!", ex);
+        }
+        return geocodedAddress;
+    }
+
+    /**
      * Sends out a request to google at the given url and returns a GeocodedAddress if successful.
      * @param url String
      * @return GeocodedAddress, or null if no match
@@ -96,17 +117,23 @@ public class GoogleDao implements Observer
                             String typeText = type.asText();
                             switch (typeText) {
                                 case "street_number":
-                                    streetNumber = component.get("long_name").asText(); break;
+                                    streetNumber = component.get("long_name").asText();
+                                    break;
                                 case "route":
-                                    street = component.get("long_name").asText(); break;
+                                    street = component.get("long_name").asText();
+                                    break;
                                 case "locality":
-                                    city = component.get("long_name").asText(); break;
+                                    city = component.get("long_name").asText();
+                                    break;
                                 case "administrative_area_level_1":
-                                    state = component.get("short_name").asText(); break;
+                                    state = component.get("short_name").asText();
+                                    break;
                                 case "postal_code":
-                                    zip5 = component.get("short_name").asText(); break;
+                                    zip5 = component.get("short_name").asText();
+                                    break;
                                 case "postal_code_suffix":
-                                    zip4 = component.get("short_name").asText(); break;
+                                    zip4 = component.get("short_name").asText();
+                                    break;
                             }
                         }
                     }
@@ -119,6 +146,9 @@ public class GoogleDao implements Observer
                     Geocode geocode = new Geocode(
                             new Point(lat, lon), resolveGeocodeQuality(geocodeType), GoogleDao.class.getSimpleName());
                     geocodedAddress = new GeocodedAddress(address, geocode);
+                }
+                else if (node.has("status") && node.get("status").asText().equals("OVER_QUERY_LIMIT")) {
+                    logger.warn("Google geocoder is reporting that we have exceeded the query limit!");
                 }
             }
         }
@@ -134,13 +164,26 @@ public class GoogleDao implements Observer
     private GeocodeQuality resolveGeocodeQuality(String type)
     {
         switch (type) {
+            // House matches
             case "premise":
+            case "subpremise":
+            case "point_of_interest":
+            case "park":
+            case "natural_feature":
+            case "airport":
             case "street_address": return GeocodeQuality.HOUSE;
-            case "route": return GeocodeQuality.STREET;
+            // Street level matches
+            case "route":
+            case "intersection": return GeocodeQuality.STREET;
+            // City matches
             case "neighborhood":
-            case "administrative_area_level_2":
+            case "sublocality":
             case "locality": return GeocodeQuality.CITY;
+            // County match
+            case "administrative_area_level_2": return GeocodeQuality.COUNTY;
+            // State matches
             case "administrative_area_level_1": return GeocodeQuality.STATE;
+            // Zip matches
             case "postal_code": return GeocodeQuality.ZIP;
             case "postal_code_suffix": return GeocodeQuality.ZIP_EXT;
         }

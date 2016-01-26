@@ -191,7 +191,7 @@ public class ApplicationFactory
 
             /** Setup reverse geocode service providers. */
             revGeocodeServiceProvider = new RevGeocodeServiceProvider();
-            revGeocodeServiceProvider.registerDefaultProvider("yahoo", Yahoo.class);
+            revGeocodeServiceProvider.registerDefaultProvider("google", GoogleGeocoder.class);
             revGeocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
             revGeocodeServiceProvider.registerProvider("tiger", TigerGeocoder.class);
             revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("tiger"));
