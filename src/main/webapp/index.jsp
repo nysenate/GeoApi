@@ -64,7 +64,7 @@
             <div id="streetView" ng-show="visible" ng-controller="StreetLookupController">
                 <div id="streetViewFrame">
                     <div id="streetLookupSearch">
-                        <h3 class='section-title' style='background:#005588;color:white;'>Board of Elections Street Finder</h3>
+                        <h3 class='section-title street-finder'>Board of Elections Street Finder</h3>
                         <hr class='section-title-hr'/>
                         <div style='padding:10px;'>
                             <p>SAGE provides a database of NYS street ranges that are associated with legislative district codes.</p>

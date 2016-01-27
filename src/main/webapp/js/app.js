@@ -1324,9 +1324,9 @@ $(document).ready(function(){
             var $scrollableContent = $('.scrollable-content');
             var $embeddedFrames = $('#uspsIframe, #streetViewFrame');
 
-            $contentColumn.height(windowHeight - 42);
+            $contentColumn.height(windowHeight - 62);
             $mapContentColumn.height(windowHeight - 2);
-            $scrollableContent.height(windowHeight - 84);
+            $scrollableContent.height(windowHeight - 124);
             $embeddedFrames.height($contentColumn.height() - 4);
         }
     }
