@@ -48,7 +48,9 @@ public class GeoCacheDao extends BaseDao
             "AND gc.street = ? \n" +
             "AND gc.postdir = ? \n" +
             "AND gc.streetType = ? \n" +
-            "AND ((gc.zip5 = ? AND gc.zip5 != '') OR " +
+            // Zip level match
+            "AND ((gc.zip5 = ? AND gc.zip5 != '' AND gc.quality = 'ZIP') OR " +
+            // City (location) match when zip is empty
             " (? = '' AND gc.zip5 = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
 
     private final static String SQL_CACHE_HIT_FULL = String.format("%s%s LIMIT 1", SQLFRAG_SELECT, SQLFRAG_WHERE_FULL_MATCH);
