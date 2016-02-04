@@ -1,8 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="gov.nysenate.sage.factory.ApplicationFactory" %>
-<%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
+<%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <% request.setAttribute("amsUrl", ApplicationFactory.getConfig().getValue("usps.ams.ui.url")); %>
+<% request.setAttribute("activeGeocoders", ApplicationFactory.getActiveGeoProviders()); %>
 
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage</jsp:attribute>
@@ -158,11 +160,9 @@
                                     <td>
                                         <select id="geocoderMenu" style="width: 100%;" ng-model="geoProvider">
                                             <option value="default">Default</option>
-                                            <option value="google">Google</option>
-                                            <option value="yahoo">Yahoo</option>
-                                            <option value="yahooboss">Yahoo Boss</option>
-                                            <option value="tiger">Tiger</option>
-                                            <option value="mapquest">MapQuest</option>
+                                            <c:forEach var="geocoder" items="${activeGeocoders}">
+                                                <option value="${geocoder.key}">${geocoder.value.simpleName}</option>
+                                            </c:forEach>
                                         </select>
                                     </td>
                                 </tr>
