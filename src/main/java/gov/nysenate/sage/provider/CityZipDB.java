@@ -1,9 +1,12 @@
 package gov.nysenate.sage.provider;
 
+import com.google.common.collect.Lists;
 import gov.nysenate.sage.dao.provider.CityZipDBDao;
 import gov.nysenate.sage.service.address.CityZipService;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CityZipDB implements CityZipService
@@ -21,7 +24,6 @@ public class CityZipDB implements CityZipService
      * Retrieves a list of zip5 codes that are contained within the given city.
      * @param city Name of the city
      * @return List of zip5 codes
-     *         null if input was null or empty.
      */
     @Override
     public List<String> getZipsByCity(String city)
@@ -29,6 +31,6 @@ public class CityZipDB implements CityZipService
         if (city != null && !city.isEmpty()) {
             return cityZipDBDao.getZipsByCity(city);
         }
-        return null;
+        return new ArrayList<>();
     }
 }
