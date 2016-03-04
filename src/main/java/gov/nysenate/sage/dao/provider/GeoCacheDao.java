@@ -40,7 +40,7 @@ public class GeoCacheDao extends BaseDao
      */
     private final static String SQLFRAG_SELECT =
         "SELECT gc.*, ST_Y(latlon) AS lat, ST_X(latlon) AS lon \n" +
-        "FROM cache.geocache AS gc \n";
+        "FROM cache.geocache AS gc";
 
     private final static String SQLFRAG_WHERE_FULL_MATCH =
         "WHERE gc.bldgnum = ? \n" +
@@ -49,11 +49,11 @@ public class GeoCacheDao extends BaseDao
             "AND gc.postdir = ? \n" +
             "AND gc.streetType = ? \n" +
             // Zip level match
-            "AND ((gc.zip5 = ? AND gc.zip5 != '' AND gc.quality = 'ZIP') OR " +
+            "AND (gc.zip5 = ? AND gc.zip5 != '' AND gc.quality NOT IN ('CITY', 'UNKNOWN')\n" +
             // City (location) match when zip is empty
-            " (? = '' AND gc.zip5 = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?))";
+            "  OR ? = '' AND gc.zip5 = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?)";
 
-    private final static String SQL_CACHE_HIT_FULL = String.format("%s%s LIMIT 1", SQLFRAG_SELECT, SQLFRAG_WHERE_FULL_MATCH);
+    private final static String SQL_CACHE_HIT_FULL = String.format("%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WHERE_FULL_MATCH);
 
     /**
      * Performs a lookup on the cache table and returns a GeocodedStreetAddress upon match.
@@ -75,6 +75,9 @@ public class GeoCacheDao extends BaseDao
             catch (SQLException ex) {
                 logger.error("Error retrieving geo cache hit!", ex);
             }
+        }
+        if (logger.isTraceEnabled()) {
+            logger.trace("Address " + sa.toStringParsed() + " is not retrievable");
         }
         return null;
     }
