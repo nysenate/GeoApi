@@ -25,7 +25,6 @@ public class CityZipDBDao extends BaseDao
      * Returns a list of zip codes given a city name.
      * @param city
      * @return List of matching zip5 strings.
-     *         null if city was null or empty.
      */
     public List<String> getZipsByCity(String city)
     {
@@ -50,6 +49,6 @@ public class CityZipDBDao extends BaseDao
         catch (SQLException ex) {
             logger.error("Failed to get zip5 list by city!", ex);
         }
-        return null;
+        return new ArrayList<>();
     }
 }

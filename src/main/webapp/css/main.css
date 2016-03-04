@@ -537,6 +537,10 @@ table.light-table tr {
     max-width:50px;
 }
 
+.mini-senator-pic-holder img.senator-pic {
+    height:50px;
+}
+
 .senator-pic-holder img.senator-pic {
     height: 70px;
 }
