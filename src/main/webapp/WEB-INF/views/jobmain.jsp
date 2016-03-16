@@ -6,7 +6,7 @@
     <jsp:attribute name="ngApp">sage-job</jsp:attribute>
     <jsp:attribute name="title">SAGE - Batch Services Main</jsp:attribute>
     <jsp:attribute name="cssIncludes">
-        <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/vendor/jquery.dataTables.css">
         <link href="${pageContext.request.contextPath}/css/vendor/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
