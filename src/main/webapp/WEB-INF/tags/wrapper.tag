@@ -20,7 +20,7 @@
     <!--[if lte IE 8]>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/json2.js"></script>
     <![endif]-->
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.min.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery-1.12.2.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/angular.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/common.js"></script>
         <jsp:invoke fragment="jsIncludes"/>

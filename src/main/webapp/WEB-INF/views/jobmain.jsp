@@ -6,12 +6,12 @@
     <jsp:attribute name="ngApp">sage-job</jsp:attribute>
     <jsp:attribute name="title">SAGE - Batch Services Main</jsp:attribute>
     <jsp:attribute name="cssIncludes">
-        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/vendor/jquery.dataTables.css">
+        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/vendor/jquery.dataTables-1.9.4.css">
         <link href="${pageContext.request.contextPath}/css/vendor/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script src="${pageContext.request.contextPath}/js/vendor/fileuploader.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables.min.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
         <script>
             downloadBaseUrl = "${downloadBaseUrl}";
