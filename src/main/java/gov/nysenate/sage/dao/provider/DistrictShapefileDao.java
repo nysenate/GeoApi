@@ -77,7 +77,7 @@ public class DistrictShapefileDao extends BaseDao
                                                                                              : ", null as map");
                 String proximityQuery = "100000 as proximity";
                 if (getProximity) {
-                    proximityQuery = "ST_Distance_Sphere(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity";
+                    proximityQuery = "ST_DistanceSphere(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity";
                     proximityQuery = String.format(proximityQuery, point.getLon(), point.getLat(), srid);
                 }
 
@@ -291,7 +291,7 @@ public class DistrictShapefileDao extends BaseDao
                 "SELECT '%s' AS type, %s as name, %s AS code, " + ((getMaps) ? "ST_AsGeoJson(geom) AS map " : "null as map \n") +
                 "FROM " + SCHEMA +".%s \n" +
                 "WHERE ST_Contains(geom, %s) = false \n" +
-                "AND ST_Distance_Sphere(%s, ST_ClosestPoint(geom, %s)) < %s \n" +
+                "AND ST_DistanceSphere(%s, ST_ClosestPoint(geom, %s)) < %s \n" +
                 "ORDER BY ST_ClosestPoint(geom, %s) <-> %s \n" +
                 "LIMIT %d;";
 
@@ -299,7 +299,7 @@ public class DistrictShapefileDao extends BaseDao
             String sqlQuery = String.format(tmpl, districtType.name(), resolveNameColumn(districtType), resolveCodeColumn(districtType),
                     districtType.name(),             // Table name
                     pointText,                       // ST_Contains -> Where clause
-                    pointText, pointText, proximity, // ST_Distance_Sphere -> Where clause
+                    pointText, pointText, proximity, // ST_DistanceSphere -> Where clause
                     pointText, pointText, count);    // ST_ClosestPoint -> Order By
 
             try {
