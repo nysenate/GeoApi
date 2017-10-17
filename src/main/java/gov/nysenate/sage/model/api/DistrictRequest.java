@@ -134,6 +134,10 @@ public class DistrictRequest implements Cloneable
         return address;
     }
 
+    public String getAdressString() {
+        return address.toString();
+    }
+
     public void setAddress(Address address) {
         this.address = address;
     }
