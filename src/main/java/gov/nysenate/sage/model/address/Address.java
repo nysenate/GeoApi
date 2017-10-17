@@ -66,14 +66,12 @@ public class Address implements Serializable, Cloneable
     @Override
     public String toString()
     {
-        if (isParsed()) {
-            return ((!addr1.equals("") ? addr1 : "") + (!addr2.equals("") ? " " + addr2 + "" : "")
-                    + (!addr1.equals("") || !addr2.equals("") ? "," : "")
-                    + (!city.equals("") ? " " + city + "," : "") + ( !state.equals("") ? " " + state : "")
-                    + (!zip5.equals("") ? " " + zip5 : "") + ( !zip4.equals("")  ? "-"+zip4 : "")).trim();
+        if (isParsed()) { //like a get request
+            return "addr1=" + addr1 +"&addr2=" + addr2 + "&city=" + city +
+                    "&state=" + state + "&zip5=" + zip5 + "&zip4=" + zip4;
         }
         else {
-            return addr1;
+            return "addr="+addr1;
         }
     }
 
