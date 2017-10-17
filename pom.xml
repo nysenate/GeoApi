@@ -25,6 +25,14 @@
       </roles>
     </developer>
     <developer>
+      <name>Anthony Calabrese</name>
+      <organization>NY Senate</organization>
+      <email>calabres@nysenate.gov</email>
+      <roles>
+        <role>Programmer</role>
+      </roles>
+    </developer>
+    <developer>
       <name>Ken Zalewski</name>
       <organization>NY Senate</organization>
       <email>zalewski@nysenate.gov</email>
@@ -72,7 +80,7 @@
   <properties>
     <log4j.version>1.2.17</log4j.version>
     <nysenate-java-client.version>2.0</nysenate-java-client.version>
-    <tomcat.version>8.0.23</tomcat.version>
+    <tomcat.version>8.0.29</tomcat.version>
   </properties>
 
   <dependencies>
@@ -103,7 +111,7 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
-      <version>3.1.1</version>
+      <version>3.5.0</version>
     </dependency>
 
     <!-- Core Dependencies -->
@@ -115,7 +123,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.1</version>
+      <version>3.3.2</version>
     </dependency>
     <dependency>
       <groupId>commons-fileupload</groupId>
