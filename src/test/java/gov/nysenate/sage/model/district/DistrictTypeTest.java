@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 public class DistrictTypeTest extends TestBase
 {

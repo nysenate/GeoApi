@@ -15,7 +15,7 @@ import org.junit.Test;
 import static gov.nysenate.sage.DistrictTestBase.assertMultipleAddressDistrictAssign;
 import static gov.nysenate.sage.DistrictTestBase.assertSingleAddressDistrictAssign;
 import static gov.nysenate.sage.DistrictTestBase.expected;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 public class StreetFileTest extends TestBase
 {
