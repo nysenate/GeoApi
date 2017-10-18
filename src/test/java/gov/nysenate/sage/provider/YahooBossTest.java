@@ -11,20 +11,20 @@ import static gov.nysenate.sage.GeocodeTestBase.assertSingleAddressGeocode;
 
 public class YahooBossTest extends TestBase
 {
-    private Logger logger = Logger.getLogger(YahooBossTest.class);
-    private YahooBoss yahooBoss;
-
-    @Before
-    public void setUp()
-    {
-        yahooBoss = new YahooBoss();
-    }
-
-    @Test
-    public void singleGeocode_ReturnsGeocodeResult()
-    {
-        //assertSingleAddressGeocode(yahooBoss);
-        FormatUtil.printObject(yahooBoss.geocode(new Address("43.12, -73.23")));
-    }
+//    private Logger logger = Logger.getLogger(YahooBossTest.class);
+//    private YahooBoss yahooBoss;
+//
+//    @Before
+//    public void setUp()
+//    {
+//        yahooBoss = new YahooBoss();
+//    }
+//
+//    @Test
+//    public void singleGeocode_ReturnsGeocodeResult()
+//    {
+//        //assertSingleAddressGeocode(yahooBoss);
+//        FormatUtil.printObject(yahooBoss.geocode(new Address("43.12, -73.23")));
+//    }
 }
 

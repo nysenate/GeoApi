@@ -10,20 +10,20 @@ import static gov.nysenate.sage.GeocodeTestBase.assertSingleAddressGeocode;
 
 public class RubyGeocodeTest extends TestBase
 {
-    RubyGeocoder rubyGeocoder = new RubyGeocoder();
-
-    @Test
-    public void singleGeocodeTest() {
-        assertSingleAddressGeocode(rubyGeocoder);
-    }
-
-    @Test
-    public void bulkGeocodeTest() {
-        assertMultipleAddressGeocode(rubyGeocoder);
-    }
-
-    @Test
-    public void test() {
-        FormatUtil.printObject(rubyGeocoder.geocode(new Address("100 nyroy dr", "troy", "ny", "12180")));
-    }
+//    RubyGeocoder rubyGeocoder = new RubyGeocoder();
+//
+//    @Test
+//    public void singleGeocodeTest() {
+//        assertSingleAddressGeocode(rubyGeocoder);
+//    }
+//
+//    @Test
+//    public void bulkGeocodeTest() {
+//        assertMultipleAddressGeocode(rubyGeocoder);
+//    }
+//
+//    @Test
+//    public void test() {
+//        FormatUtil.printObject(rubyGeocoder.geocode(new Address("100 nyroy dr", "troy", "ny", "12180")));
+//    }
 }
