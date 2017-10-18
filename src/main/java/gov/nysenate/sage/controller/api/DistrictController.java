@@ -144,7 +144,7 @@ public class DistrictController extends BaseApiController implements Observer
         logger.info(String.format("|%sDistrict '%s' Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getRequest(), apiRequest.getId()));
         logger.info(String.format("| IP: %s | Maps: %s | Members: %s", apiRequest.getIpAddress(), districtRequest.isShowMaps(), districtRequest.isShowMembers()));
         if (!apiRequest.isBatch()) {
-            logger.info("| Input Address: " + districtRequest.getAdressString());
+            logger.info("| Input Address: " + districtRequest.getAdressLogString());
         }
         logger.info("=======================================================");
 
