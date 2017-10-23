@@ -43,6 +43,10 @@ public class AddressResult extends BaseResult
         return address;
     }
 
+    public String getAdressLogString() {
+        return address.toLogString();
+    }
+
     public void setAddress(Address address)
     {
         this.address = address;

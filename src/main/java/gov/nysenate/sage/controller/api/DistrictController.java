@@ -411,7 +411,7 @@ public class DistrictController extends BaseApiController implements Observer
         AddressResult addressResult = addressProvider.validate(address, null, usePunct);
         if (addressResult != null && addressResult.isValidated()) {
             if (logger.isTraceEnabled()) {
-                logger.trace("USPS Validated Address: " + addressResult.getAddress());
+                logger.trace("USPS Validated Address: " + addressResult.getAdressLogString());
             }
             return addressResult.getAddress();
         }
