@@ -112,6 +112,7 @@ public class ApplicationFactory
             ParallelGeocodeService.shutdownThread();
             ParallelRevGeocodeService.shutdownThread();
             ParallelAddressService.shutdownThread();
+            logger.info("All data connections have closed successfully");
 
             return true;
         }
@@ -228,7 +229,9 @@ public class ApplicationFactory
         }
         catch (Exception ex)
         {
-            logger.fatal("An exception occurred while building dependencies", ex);
+            logger.fatal("An exception occurred while building dependencies. " +
+                    "Check app.properties / ApplicationFactory", ex.getCause());
+            logger.trace(ex);
         }
         return false;
     }

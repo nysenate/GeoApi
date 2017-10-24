@@ -26,12 +26,13 @@ public class SageContextListener implements ServletContextListener {
      * Starting up context
      * This method is invoked when the Servlet Context (the Web application) is (re)deployed.
      */
-    public void contextInitialized(ServletContextEvent sce)
+    public void contextInitialized(ServletContextEvent sce) throws RuntimeException
     {
         logger.info("Servlet Context Listener started.");
 
         /** Build instances, initialize cache, and set the init attribute to true if succeeded */
         boolean buildStatus = ApplicationFactory.bootstrap();
+        sce.getServletContext().setAttribute("init", buildStatus);
         if (buildStatus && ApplicationFactory.getConfig() != null) {
             if (Boolean.parseBoolean(ApplicationFactory.getConfig().getValue("init.caches"))) {
                 logger.info("Initializing caches in memory..");
@@ -43,7 +44,9 @@ public class SageContextListener implements ServletContextListener {
             logger.info("Bootstrapped using ApplicationFactory: " + buildStatus);
             sce.getServletContext().setAttribute("deploymentId", deploymentId);
         }
-        sce.getServletContext().setAttribute("init", buildStatus);
+        else {
+            throw new RuntimeException("Could not build from Application Factory");
+        }
     }
 
     /**
@@ -54,8 +57,9 @@ public class SageContextListener implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce)
     {
         logger.info("Closing data source");
+        deploymentLogger = new DeploymentLogger();
         Integer deploymentId = (Integer) sce.getServletContext().getAttribute("deploymentId");
         deploymentLogger.logDeploymentStatus(false, deploymentId, new Timestamp(new Date().getTime()));
-        boolean status = ApplicationFactory.close();
+        ApplicationFactory.close();
     }
 }
