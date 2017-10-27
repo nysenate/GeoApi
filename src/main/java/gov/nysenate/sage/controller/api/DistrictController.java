@@ -261,7 +261,7 @@ public class DistrictController extends BaseApiController implements Observer
             streetAddress = StreetAddressParser.parseAddress(address);
         }
         catch (Exception ex) {
-            logger.debug("Failed to parse input address");
+            logger.debug("Failed to parse input address" + address.toLogString());
         }
 
         /** This info about the address helps to decide how to process it */
