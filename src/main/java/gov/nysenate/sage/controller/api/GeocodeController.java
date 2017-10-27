@@ -101,7 +101,7 @@ public class GeocodeController extends BaseApiController implements Observer
         logger.info(String.format("|%sGeocode Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
         logger.info(String.format("| Mode: %s | IP: %s | Provider: %s", apiRequest.getRequest(), apiRequest.getIpAddress(), apiRequest.getProvider()));
         if (!apiRequest.isBatch() && apiRequest.getRequest().equals("geocode")) {
-            logger.info("| Input Address: " + geocodeRequest.getAddress());
+            logger.info("| Input Address: " + geocodeRequest.getAddress().toLogString());
         }
         logger.info("=======================================================");
 
