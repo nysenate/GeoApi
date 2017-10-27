@@ -47,7 +47,7 @@ public class GeoCache implements GeocodeCacheService
      * @param provider check name of this provider to see if it is registered as cacheable
      * @return true if it is allowed, false otherwise
      */
-    public static boolean isProviderCacheable(Class provider)
+    public static boolean isProviderCacheable(Class<? extends GeocodeService> provider)
     {
         return cacheableProviders.contains(provider);
     }
@@ -82,10 +82,8 @@ public class GeoCache implements GeocodeCacheService
     public void saveToCache(GeocodeResult geocodeResult)
     {
         if (geocodeResult != null && geocodeResult.isSuccess() && geocodeResult.getSource() != null) {
-            if ( geocodeResult.getSource().getSuperclass().equals(GeocodeService.class) ) {
-                if ( isProviderCacheable( geocodeResult.getSource() ) ) {
-                    geoCacheDao.cacheGeocodedAddress(geocodeResult.getGeocodedAddress());
-                }
+            if (isProviderCacheable(geocodeResult.getSource())) {
+                geoCacheDao.cacheGeocodedAddress(geocodeResult.getGeocodedAddress());
             }
         }
     }
@@ -103,10 +101,8 @@ public class GeoCache implements GeocodeCacheService
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
         for (GeocodeResult geocodeResult : geocodeResults) {
             if (geocodeResult != null && geocodeResult.isSuccess()) {
-                if ( geocodeResult.getSource().getSuperclass().equals(GeocodeService.class) ) {
-                    if (isProviderCacheable(geocodeResult.getSource())) {
-                        geocodedAddresses.add(geocodeResult.getGeocodedAddress());
-                    }
+                if (isProviderCacheable(geocodeResult.getSource())) {
+                    geocodedAddresses.add(geocodeResult.getGeocodedAddress());
                 }
             }
         }
