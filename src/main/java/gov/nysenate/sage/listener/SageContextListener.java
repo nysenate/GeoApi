@@ -1,6 +1,8 @@
 package gov.nysenate.sage.listener;
 
 import gov.nysenate.sage.dao.logger.DeploymentLogger;
+import gov.nysenate.sage.dao.logger.ExceptionLogger;
+import gov.nysenate.sage.dao.stats.ExceptionInfoDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import org.apache.log4j.Logger;
 
@@ -45,7 +47,10 @@ public class SageContextListener implements ServletContextListener {
             sce.getServletContext().setAttribute("deploymentId", deploymentId);
         }
         else {
-            throw new RuntimeException("Could not build from Application Factory");
+            ExceptionLogger exceptionLogger = new ExceptionLogger();
+            RuntimeException appFactoryBuildEx = new RuntimeException("Could not build from Application Factory");
+            exceptionLogger.logException(appFactoryBuildEx, new Timestamp(new Date().getTime()),null);
+            throw appFactoryBuildEx;
         }
     }
 
