@@ -157,8 +157,8 @@ public class ApplicationFactory
             Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
             geoProviders.put("google", GoogleGeocoder.class);
             geoProviders.put("tiger", TigerGeocoder.class);
-            geoProviders.put("mapquest", MapQuest.class);
-            geoProviders.put("osm", OSM.class);
+            //geoProviders.put("mapquest", MapQuest.class);
+            //geoProviders.put("osm", OSM.class);
             //geoProviders.put("ruby", RubyGeocoder.class);
             //geoProviders.put("yahoo", Yahoo.class);
             //geoProviders.put("yahooboss", YahooBoss.class);
@@ -176,7 +176,7 @@ public class ApplicationFactory
                 activeGeoProviders.put(provider, geoProviders.get(provider));
             }
 
-            LinkedList<String> geocoderRankList = new LinkedList<>(this.config.getList("geocoder.rank", Arrays.asList("tiger"))); //"yahoo"
+            LinkedList<String> geocoderRankList = new LinkedList<>(this.config.getList("geocoder.rank", Arrays.asList("tiger","google"))); //"yahoo"
             if (!geocoderRankList.isEmpty()) {
                 /** Set the first geocoder as the default. */
                 geocodeServiceProvider.setDefaultProvider(geocoderRankList.removeFirst());
@@ -185,7 +185,7 @@ public class ApplicationFactory
             }
 
             /** Designate which geocoders are allowed to cache. */
-            List<String> cacheableProviderList = this.config.getList("geocoder.cacheable", Arrays.asList("google","mapquest")); //"yahoo","yahooboss"
+            List<String> cacheableProviderList = this.config.getList("geocoder.cacheable", Arrays.asList("google")); //"yahoo","yahooboss","mapquest"
             for (String provider : cacheableProviderList) {
                 geocodeServiceProvider.registerProviderAsCacheable(provider);
             }
@@ -193,7 +193,7 @@ public class ApplicationFactory
             /** Setup reverse geocode service providers. */
             revGeocodeServiceProvider = new RevGeocodeServiceProvider();
             revGeocodeServiceProvider.registerDefaultProvider("google", GoogleGeocoder.class);
-            revGeocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
+            //revGeocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
             revGeocodeServiceProvider.registerProvider("tiger", TigerGeocoder.class);
             revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("tiger"));
 
