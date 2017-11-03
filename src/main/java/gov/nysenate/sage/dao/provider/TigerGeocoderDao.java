@@ -33,7 +33,7 @@ public class TigerGeocoderDao extends BaseDao implements Observer
     private static Logger logger = Logger.getLogger(TigerGeocoderDao.class);
     private static Config config = ApplicationFactory.getConfig();
     private QueryRunner run = getTigerQueryRunner();
-    private int GEOCODER_TIMEOUT = 3000; //ms
+    private int GEOCODER_TIMEOUT = 10000; //ms
 
     public TigerGeocoderDao() {
         update(null, null);
@@ -59,6 +59,9 @@ public class TigerGeocoderDao extends BaseDao implements Observer
         try {
             setTimeOut(conn, run, GEOCODER_TIMEOUT);
             geoStreetAddress = run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
+            if (geoStreetAddress != null) {
+                geoStreetAddress.setStreetAddress(getStreetAddress(address));
+            }
         }
         catch (SQLException ex){
             logger.warn(ex.getMessage());

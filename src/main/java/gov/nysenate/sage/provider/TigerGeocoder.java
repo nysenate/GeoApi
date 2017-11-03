@@ -41,36 +41,41 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
     @Override
     public GeocodeResult geocode(Address address)
     {
-        logger.debug("Performing geocoding using TigerGeocoder for address " + address.toString());
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
-
-        /** Ensure that the geocoder is active, otherwise return error result. */
-        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
-            return geocodeResult;
-        }
-
-        /** Proceed if valid address */
-        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
-            return geocodeResult;
-        }
-
-        /** Retrieve geocoded addresses from dao */
-        GeocodedStreetAddress gsa = tigerGeocoderDao.getGeocodedStreetAddress(address);
-
-        if (gsa != null) {
-            Geocode geocode = gsa.getGeocode();
-            StreetAddress streetAddress = gsa.getStreetAddress();
-            Address convertedAddress = streetAddress.toAddress();
-            geocode.setQuality(resolveGeocodeQuality(address, gsa));
-            GeocodedAddress geocodedAddress = new GeocodedAddress(convertedAddress, geocode);
-
-            GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, false);
-        }
-        else {
-            geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
+        if (address == null) {
+            geocodeResult.setStatusCode(ResultStatus.MISSING_ADDRESS);
             geocodeResult.setResultTime(TimeUtil.currentTimestamp());
         }
+        else {
+            logger.debug("Performing geocoding using TigerGeocoder for address " + address.toString());
 
+            /** Ensure that the geocoder is active, otherwise return error result. */
+            if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+                return geocodeResult;
+            }
+
+            /** Proceed if valid address */
+            if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
+                return geocodeResult;
+            }
+
+            /** Retrieve geocoded addresses from dao */
+            GeocodedStreetAddress gsa = tigerGeocoderDao.getGeocodedStreetAddress(address);
+
+            if (gsa != null) {
+                Geocode geocode = gsa.getGeocode();
+                StreetAddress streetAddress = gsa.getStreetAddress();
+                Address convertedAddress = streetAddress.toAddress();
+                geocode.setQuality(resolveGeocodeQuality(address, gsa));
+                GeocodedAddress geocodedAddress = new GeocodedAddress(convertedAddress, geocode);
+
+                GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, false);
+            }
+            else {
+                geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
+                geocodeResult.setResultTime(TimeUtil.currentTimestamp());
+            }
+        }
         return geocodeResult;
     }
 
