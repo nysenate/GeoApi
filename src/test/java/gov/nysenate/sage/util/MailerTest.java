@@ -21,7 +21,7 @@ public class MailerTest extends TestBase
     public void testSendMail()  throws Exception
     {
         System.out.print(new Timestamp(new Date().getTime()).toString());
-        mailer.sendMail("ashislam858@gmail.com", "IGNORE THIS (email testing)!", "...");
+        mailer.sendMail("calabres@nysenate.gov", "IGNORE THIS (email testing)!", "...");
     }
 
 }

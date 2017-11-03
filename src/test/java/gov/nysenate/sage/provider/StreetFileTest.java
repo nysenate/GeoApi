@@ -37,7 +37,6 @@ public class StreetFileTest extends TestBase
     @Test
     public void multipleAddressDistrictAssign_ReturnsDistrictResult()
     {
-        /** TODO: Fails because NYC addresses aren't parsed correcty atm.. */
         assertMultipleAddressDistrictAssign(streetFile);
     }
 
@@ -51,7 +50,8 @@ public class StreetFileTest extends TestBase
     @Test
     public void test()
     {
-        FormatUtil.printObject(this.streetFile.assignDistricts(new GeocodedAddress(new Address("161 ATTORNEY ST APT 3A" ,"", "NY", "10002"))));
+        assertNotNull(this.streetFile.assignDistricts(new GeocodedAddress(new Address("161 ATTORNEY ST APT 3A" ,"", "NY", "10002"))));
+        //FormatUtil.printObject(this.streetFile.assignDistricts(new GeocodedAddress(new Address("161 ATTORNEY ST APT 3A" ,"", "NY", "10002"))));
     }
 
 }

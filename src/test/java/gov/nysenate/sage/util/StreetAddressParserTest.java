@@ -11,6 +11,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.junit.Assert.assertNotNull;
 
 public class StreetAddressParserTest {
 
@@ -54,15 +55,13 @@ public class StreetAddressParserTest {
         //Address address = new Address("500 JOSEPH C WILSON BLVD # 272844", "", "ROCHESTER", "NY", "14627", "");
        // Address address = new Address("500 JOSEPH C WILSON BLVD APT 272844 ROCHESTER NY 14627");
 
-        FormatUtil.printObject(StreetAddressParser.parseAddress(address));
-
-        //assertStreetAddressesAreEqual(sa, StreetAddressParser.parseAddress(address));
+        assertNotNull(StreetAddressParser.parseAddress(address));
     }
 
     @Test
     public void edgeCases()
     {
-        FormatUtil.printObject(StreetAddressParser.parseAddress("Queens NY"));
+        assertNotNull(StreetAddressParser.parseAddress("Queens NY"));
     }
 
     @Test
@@ -73,7 +72,7 @@ public class StreetAddressParserTest {
         StreetAddress sa = new StreetAddress();
         StreetAddressParser.extractStreet(address.toString(), sa);
         StreetAddressParser.normalizeStreetAddress(sa);
-        FormatUtil.printObject(sa);
+        //FormatUtil.printObject(sa);
 
     }
 

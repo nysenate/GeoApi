@@ -1,13 +1,7 @@
 package gov.nysenate.sage.model.address;
 
-import gov.nysenate.sage.provider.MapQuest;
-import gov.nysenate.sage.provider.Yahoo;
-import gov.nysenate.sage.service.geo.GeocodeService;
-import gov.nysenate.sage.util.FormatUtil;
 import org.junit.Test;
 import org.mindrot.jbcrypt.BCrypt;
-
-import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -55,7 +49,8 @@ public class AddressTest
         assertEquals("NY", justState.toString());
 
         Address shortZip = new Address("Something", "", "City", "NJ", "8540", "5632");
-        System.out.println(shortZip.toString());
+        assertNotNull(shortZip.toString());
+        //System.out.println(shortZip.toString());
     }
 
 
@@ -84,11 +79,7 @@ public class AddressTest
     @Test
     public void zipTest()
     {
-        //Address a = new Address();
-        //a.setZip5("1132");
-
-        //assertEquals("01132", a.getZip5());
-        FormatUtil.printObject(BCrypt.hashpw("geoadmin1", BCrypt.gensalt()));
+        assertNotNull(BCrypt.hashpw("geoadmin1", BCrypt.gensalt()));
     }
 
     @Test
@@ -110,9 +101,5 @@ public class AddressTest
         assertEquals(false, notEligibile3.isEligibleForUSPS());
         assertEquals(false, notEligibile4.isEligibleForUSPS());
 
-    }
-
-    @Test
-    public void test() {
     }
 }

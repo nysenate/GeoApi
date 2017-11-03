@@ -31,10 +31,8 @@ public abstract class DistrictTestBase
     public static List<DistrictedAddress> expected = new ArrayList<>(Arrays.asList(
             new DistrictedAddress(new GeocodedAddress(new Address("44 Fairlawn Ave", "Albany", "NY", "12203"), new Geocode(new Point(42.670583, -73.799606))),
                     new DistrictInfo("20", "1", "44", "109", "-ALBAN", "005")),
-            new DistrictedAddress(new GeocodedAddress(new Address("2025 County Road 4", "Stanley", "NY", "14561"), new Geocode(new Point(42.885892, -77.0916801))),
-                    new DistrictInfo("23", "32", "54", "131", "SENECA", "493")),
             new DistrictedAddress(new GeocodedAddress(new Address("8450 169st", "Jamaica", "NY", "11432"), new Geocode(new Point(40.71515, -73.795274))),
-                    new DistrictInfo("6", "63", "11", "24", "-NYC", "519")),
+                    new DistrictInfo("6", "63", "14", "24", "-NYC", "519")),
             new DistrictedAddress(new GeocodedAddress(new Address("45 3rd St", "Troy", "NY", "12180"), new Geocode(new Point(42.730677, -73.690341))),
                     new DistrictInfo("20", "38", "44", "108", "-TROY", "642"))
     ));;
@@ -42,10 +40,7 @@ public abstract class DistrictTestBase
     /** Test basic method functionality */
     public static void assertSingleAddressDistrictAssign(DistrictService districtService)
     {
-        System.out.println(System.nanoTime());
         DistrictResult districtResult = districtService.assignDistricts(expected.get(0).getGeocodedAddress());
-        System.out.println(System.nanoTime());
-        FormatUtil.printObject(districtResult);
         assertDistrictInfoEquals(expected.get(0).getDistrictInfo(), districtResult.getDistrictedAddress().getDistrictInfo());
     }
 
@@ -64,7 +59,6 @@ public abstract class DistrictTestBase
     {
         ArrayList<DistrictType> types = new ArrayList<>(Arrays.asList(DistrictType.CONGRESSIONAL));
         DistrictResult districtResult = districtService.assignDistricts(expected.get(0).getGeocodedAddress(), types);
-        FormatUtil.printObject(districtResult);
         assertEquals(trimZeroes(expected.get(0).getDistrictInfo().getDistCode(CONGRESSIONAL)), trimZeroes(districtResult.getDistrictInfo().getDistCode(CONGRESSIONAL)));
         assertNull(districtResult.getDistrictInfo().getDistCode(ASSEMBLY));
         assertNull(districtResult.getDistrictInfo().getDistCode(SCHOOL));
@@ -125,13 +119,10 @@ public abstract class DistrictTestBase
     /** Helpers / Comparators */
     public static void assertDistrictInfoEquals(DistrictInfo expected, DistrictInfo actual)
     {
-        FormatUtil.printObject(actual);
-        //assertEquals(trimZeroes(expected.getDistCode(SCHOOL)), trimZeroes(actual.getDistCode(SCHOOL)));
         assertEquals(trimZeroes(expected.getDistCode(ASSEMBLY)), trimZeroes(actual.getDistCode(ASSEMBLY)));
         assertEquals(trimZeroes(expected.getDistCode(CONGRESSIONAL)), trimZeroes(actual.getDistCode(CONGRESSIONAL)));
         assertEquals(trimZeroes(expected.getDistCode(SENATE)), trimZeroes(actual.getDistCode(SENATE)));
         assertEquals(trimZeroes(expected.getDistCode(COUNTY)), trimZeroes(actual.getDistCode(COUNTY)));
-        //assertEquals(trimZeroes(expected.getDistCode(TOWN)), trimZeroes(actual.getDistCode(TOWN)));
     }
 
     private static String trimZeroes(String s){

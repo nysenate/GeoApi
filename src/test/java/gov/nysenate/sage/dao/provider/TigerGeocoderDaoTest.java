@@ -10,8 +10,7 @@ import gov.nysenate.sage.model.geo.Point;
 
 import static gov.nysenate.sage.GeocodeTestBase.*;
 
-import gov.nysenate.sage.util.FormatUtil;
-import org.apache.log4j.Logger;
+import gov.nysenate.sage.provider.TigerGeocoder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,7 +23,6 @@ import static org.junit.Assert.assertNull;
 
 public class TigerGeocoderDaoTest extends TestBase
 {
-    private static Logger logger = Logger.getLogger(TigerGeocoderDaoTest.class);
     private TigerGeocoderDao tigerGeocoderDao;
 
     @Before
@@ -36,7 +34,7 @@ public class TigerGeocoderDaoTest extends TestBase
     @Test
     public void testQueryTimeOut()
     {
-        /** This incorrect address causes the geocoder to search exhaustively if a
+        /* This incorrect address causes the geocoder to search exhaustively if a
          * time out is not set. */
         Address incorrectAddress = new Address("9264 224 st", "Queens", "NY", "11432");
         GeocodedStreetAddress timedOutGsa = tigerGeocoderDao.getGeocodedStreetAddress(incorrectAddress);
@@ -55,7 +53,7 @@ public class TigerGeocoderDaoTest extends TestBase
         assertNotNull(geocodedStreetAddress.getStreetAddress());
         assertGeocodesAreSimilar(new Geocode(new Point(42.7352408, -73.6828174)), geocodedStreetAddress.getGeocode());
         assertEquals(214, geocodedStreetAddress.getStreetAddress().getBldgNum());
-        assertEquals("8th", geocodedStreetAddress.getStreetAddress().getStreet());
+        assertEquals("8th st", geocodedStreetAddress.getStreetAddress().getStreet().toLowerCase());
         assertEquals("troy", geocodedStreetAddress.getStreetAddress().getLocation().toLowerCase());
         assertEquals("12180", geocodedStreetAddress.getStreetAddress().getZip5());
     }
@@ -72,14 +70,14 @@ public class TigerGeocoderDaoTest extends TestBase
     @Test
     public void TigerGeocoderSingleAddressParseTest_ReturnsStreetAddress()
     {
-        StreetAddress streetAddress = tigerGeocoderDao.getStreetAddress(new Address("214 8th Street", "Troy", "NY", "12180"));
+        StreetAddress streetAddress = tigerGeocoderDao.getStreetAddress(new Address("902 London Square Drive", "Clifton Park", "NY", "12065"));
         assertNotNull(streetAddress);
-        assertEquals(214, streetAddress.getBldgNum());
-        assertEquals("8th", streetAddress.getStreet());
-        assertEquals("st", streetAddress.getStreetType().toLowerCase());
-        assertEquals("troy", streetAddress.getLocation().toLowerCase());
+        assertEquals(902, streetAddress.getBldgNum());
+        assertEquals("london square dr", streetAddress.getStreet().toLowerCase());
+        assertEquals("dr", streetAddress.getStreetType().toLowerCase());
+        assertEquals("clifton park", streetAddress.getLocation().toLowerCase());
         assertEquals("NY", streetAddress.getState().toUpperCase());
-        assertEquals("12180", streetAddress.getZip5());
+        assertEquals("12065", streetAddress.getZip5());
     }
 
     @Test
@@ -94,18 +92,18 @@ public class TigerGeocoderDaoTest extends TestBase
     @Test
     public void miscTest()
     {
-        FormatUtil.printObject(tigerGeocoderDao.getGeocodedStreetAddress(new Address("100 Nyroy Dr Troy NY 12180")));
+        assertNotNull(tigerGeocoderDao.getGeocodedStreetAddress(new Address("100 Nyroy Dr Troy NY 12180")));
     }
 
     @Test
     public void getStreetsInZipTest() {
-        FormatUtil.printObject(tigerGeocoderDao.getStreetsInZip("12180"));
+        assertNotNull(tigerGeocoderDao.getStreetsInZip("12180"));
     }
 
     @Test
     public void getStreetLineGeometryTest()
     {
         List<Line> lines = tigerGeocoderDao.getStreetLineGeometry("State St", Arrays.asList("12203", "12210"));
-        FormatUtil.printObject(lines);
+        assertNotNull(lines);
     }
 }

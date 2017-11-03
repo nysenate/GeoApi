@@ -45,7 +45,7 @@ public class TigerGeocoderTest extends TestBase
     {
         Address incorrectAddress = new Address("9264 224 st", "Queens Village", "NY", "11432");
         GeocodeResult geocodeResult = tigerGeocoder.geocode(incorrectAddress);
-        FormatUtil.printObject(geocodeResult);
+        //FormatUtil.printObject(geocodeResult);
         assertEquals(ResultStatus.NO_GEOCODE_RESULT, geocodeResult.getStatusCode());
     }
 
@@ -67,7 +67,8 @@ public class TigerGeocoderTest extends TestBase
     @Test
     public void test()
     {
-        FormatUtil.printObject(tigerGeocoder.geocode(new Address("66 Becker Ave","Roxbury", "NY", "12434")));
+        assertNotNull(tigerGeocoder.geocode(new Address("66 Becker Ave","Roxbury", "NY", "12434")));
+        //FormatUtil.printObject(tigerGeocoder.geocode(new Address("66 Becker Ave","Roxbury", "NY", "12434")));
     }
 
 }

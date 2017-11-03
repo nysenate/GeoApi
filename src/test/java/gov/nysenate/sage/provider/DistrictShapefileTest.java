@@ -34,22 +34,6 @@ public class DistrictShapefileTest extends TestBase
     }
 
     @Test
-    public void testGetDistrictMapWithUnsupportedDistrictType()
-    {
-        MapResult mapResult;
-        mapResult = districtShapefile.getDistrictMap(DistrictType.SCHOOL, "012");
-        assertEquals(ResultStatus.UNSUPPORTED_DISTRICT_MAP, mapResult.getStatusCode());
-    }
-
-    @Test
-    public void testGetDistrictMapsWithUnsupportedDistrictType()
-    {
-        MapResult mapResult;
-        mapResult = districtShapefile.getDistrictMaps(DistrictType.SCHOOL);
-        assertEquals(ResultStatus.NO_MAP_RESULT, mapResult.getStatusCode());
-    }
-
-    @Test
     public void testGetDistrictMapWithEmptyCode()
     {
         MapResult mapResult;

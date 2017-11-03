@@ -21,6 +21,6 @@ public class GeocodeUtilTest
     {
         Geocode g1 = new Geocode(new Point(43.1750357028, -77.4981899685));
         Geocode g2 = new Geocode();
-        assertEquals(new Double(-1.0), GeocodeUtil.getDistanceInFeet(g1, g2));
+        assertEquals(new Double(8997562.248980697), GeocodeUtil.getDistanceInMeters(g1, g2));
     }
 }

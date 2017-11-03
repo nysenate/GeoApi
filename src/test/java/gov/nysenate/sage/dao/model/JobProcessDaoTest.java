@@ -4,7 +4,6 @@ import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
-import gov.nysenate.sage.util.FormatUtil;
 import org.junit.Test;
 
 import java.sql.Timestamp;
@@ -17,7 +16,7 @@ public class JobProcessDaoTest extends TestBase
 {
     private JobProcessDao jpDao = new JobProcessDao();
     private JobUserDao jobUserDao = new JobUserDao();
-    private JobUser jobUser = jobUserDao.getJobUserByEmail("ashislam858@gmail.com");
+    private JobUser jobUser = jobUserDao.getJobUserByEmail("zalewski@nysenate.gov");
 
     @Test
     public void addProcessTest()
@@ -29,7 +28,7 @@ public class JobProcessDaoTest extends TestBase
         jobProcess.setFileType("GeocodeTest");
 
         int res = jpDao.addJobProcess(jobProcess);
-        FormatUtil.printObject(res);
+        assertNotNull(res);
     }
 
     @Test
@@ -38,9 +37,8 @@ public class JobProcessDaoTest extends TestBase
         JobProcess jobProcess = jpDao.getJobProcessById(1);
         assertNotNull(jobProcess);
         assertEquals(1, jobProcess.getId());
-        assertEquals("ashislam858@gmail.com", jobProcess.getRequestor().getEmail());
-        assertEquals(1000, jobProcess.getRecordCount());
-        FormatUtil.printObject(jobProcess);
+        assertEquals("neison@nysenate.gov", jobProcess.getRequestor().getEmail());
+        assertEquals(19, jobProcess.getRecordCount());
     }
 
     @Test
@@ -55,20 +53,20 @@ public class JobProcessDaoTest extends TestBase
         jsp.setStartTime(new Timestamp(new Date().getTime()));
 
         jpDao.setJobProcessStatus(jsp);
-        FormatUtil.printObject(jpDao.getJobProcessStatus(2));
+        jpDao.getJobProcessStatus(2);
     }
 
     @Test
     public void getStatusTest()
     {
         JobProcessStatus jsp = jpDao.getJobProcessStatus(76);
-        FormatUtil.printObject(jsp);
+        assertNotNull(jsp);
     }
 
     @Test
     public void getJobProcessesByStatusTest()
     {
-        FormatUtil.printObject(jpDao.getJobStatusesByCondition(JobProcessStatus.Condition.WAITING_FOR_CRON, null));
+        jpDao.getJobStatusesByCondition(JobProcessStatus.Condition.WAITING_FOR_CRON, null);
     }
 
     @Test
@@ -76,19 +74,20 @@ public class JobProcessDaoTest extends TestBase
     {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MONTH, -1);
-        FormatUtil.printObject(jpDao.getJobStatusesByConditions(new ArrayList<JobProcessStatus.Condition>(), jobUser, new Timestamp(cal.getTimeInMillis()), null));
+        assertNotNull(jpDao.getJobStatusesByConditions(new ArrayList<JobProcessStatus.Condition>(), jobUser,
+                new Timestamp(cal.getTimeInMillis()), null));
     }
 
     @Test
     public void getActiveJobStatuses()
     {
-        FormatUtil.printObject(jpDao.getActiveJobStatuses(jobUser));
+        assertNotNull(jpDao.getActiveJobStatuses(jobUser));
     }
 
     @Test
     public void getInactiveJobStatuses()
     {
-        FormatUtil.printObject(jpDao.getInactiveJobStatuses(jobUser));
+        assertNotNull(jpDao.getInactiveJobStatuses(jobUser));
     }
 
     @Test
@@ -97,8 +96,9 @@ public class JobProcessDaoTest extends TestBase
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.MONTH, -1);
         Timestamp yesterday = new Timestamp(calendar.getTimeInMillis());
+        assertNotNull(jpDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED,
+                null, yesterday));
 
-        FormatUtil.printObject(jpDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, null, yesterday));
     }
 
 

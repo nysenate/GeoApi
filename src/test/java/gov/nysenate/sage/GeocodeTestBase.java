@@ -80,22 +80,20 @@ public abstract class GeocodeTestBase
                 new Address("101 East State Street", "", "Olean", "NY", "14760", ""),
                 new Address("2012 E Rivr Road", "", "Olean", "NY", "14760", ""),
                 new Address("44 Fairlawn Ave", "Apt 2B", "Albany", "NY", "12203", ""),
-                new Address("18 Greenhaven Dr", "" ,"Port Jefferson Station", "NY", "11776", ""),
-                new Address("100 Nyroy Dr","", "", "", "", "")));
+                new Address("18 Greenhaven Dr", "" ,"Port Jefferson Station", "NY", "11776", "")));
 
         ArrayList<Geocode> expectedGeocode = new ArrayList<>(Arrays.asList(
-                new Geocode(new Point(42.7352408, -73.6828174), null, null),
-                new Geocode(new Point(42.0775849, -78.4298556), null, null),
-                new Geocode(new Point(42.0685706, -78.4138262), null, null),
-                new Geocode(new Point(42.6716696, -73.7985770), null, null),
-                new Geocode(new Point(40.9144780, -73.0568423), null, null),
-                new Geocode(new Point(40.7056276, -73.3219653), null, null)));
+                new Geocode(new Point(42.735359, -73.682892), null, null),
+                new Geocode(new Point( 42.07761, -78.42807), null, null),
+                new Geocode(new Point(42.08185127057071, -78.43213916747527), null, null),
+                new Geocode(new Point(42.670583, -73.799606), null, null),
+                new Geocode(new Point(40.91449, -73.056679), null, null)));
 
         ArrayList<GeocodeResult> geocodeResults = geocodeService.geocode(addresses);
         logger.debug(FormatUtil.toJsonString(geocodeResults));
 
         assertNotNull(geocodeResults);
-        assertEquals(6, geocodeResults.size());
+        assertEquals(5, geocodeResults.size());
 
         for (int i = 0; i < addresses.size(); i++){
             Geocode geocode = geocodeResults.get(i).getGeocodedAddress().getGeocode();
@@ -121,7 +119,6 @@ public abstract class GeocodeTestBase
     public static void assertNoResultReturnsNoGeocodeResultStatus(GeocodeService geocodeService)
     {
         GeocodeResult geocodeResult = geocodeService.geocode(new Address("BLAH"));
-        FormatUtil.printObject(geocodeResult);
         assertEquals(ResultStatus.NO_GEOCODE_RESULT, geocodeResult.getStatusCode());
     }
 

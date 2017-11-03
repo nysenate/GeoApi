@@ -1,7 +1,6 @@
 package gov.nysenate.sage.dao.model;
 
 import gov.nysenate.sage.TestBase;
-import gov.nysenate.sage.dao.model.ApiUserDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiUser;
 import static org.junit.Assert.*;
@@ -18,27 +17,24 @@ import java.util.Date;
 public class ApiUserDaoTest extends TestBase
 {
     private ApiUserDao apiUserDao;
-    private Config config;
     private String defaultKey;
-    private String defaultName;
 
     @Before
     public void setUp()
     {
-        config = ApplicationFactory.getConfig();
+        Config config = ApplicationFactory.getConfig();
         this.apiUserDao = new ApiUserDao();
-        this.defaultKey = config.getValue("user.default");
-        this.defaultName = config.getValue("user.default.name");
+        this.defaultKey = config.getValue("user.default.key");
     }
 
     @Test
     public void getApiUserById_ReturnsApiUser()
     {
-        ApiUser apiUser = apiUserDao.getApiUserById(1);
+        int userId = 1;
+        ApiUser apiUser = apiUserDao.getApiUserById(userId);
         assertNotNull(apiUser);
-        assertEquals((int)1, (int)apiUser.getId());
+        assertEquals(userId, apiUser.getId());
         assertEquals(this.defaultKey, apiUser.getApiKey());
-        assertEquals(this.defaultName, apiUser.getName());
     }
 
     @Test
@@ -46,9 +42,8 @@ public class ApiUserDaoTest extends TestBase
     {
         ApiUser apiUser = apiUserDao.getApiUserByKey(this.defaultKey);
         assertNotNull(apiUser);
-        assertEquals((int)1, (int)apiUser.getId());
+        assertEquals(1, apiUser.getId());
         assertEquals(this.defaultKey, apiUser.getApiKey());
-        assertEquals(this.defaultName, apiUser.getName());
     }
 
     @Test
@@ -69,7 +64,6 @@ public class ApiUserDaoTest extends TestBase
         user.setDescription("Added from test");
 
         int inserts = apiUserDao.addApiUser(user);
-        assertEquals(1, inserts);
 
         ApiUser retUser = apiUserDao.getApiUserByKey(uniqueKey);
         assertNotNull(retUser);
@@ -77,7 +71,7 @@ public class ApiUserDaoTest extends TestBase
         assertEquals(uniqueKey, retUser.getApiKey());
 
         int deletes = apiUserDao.removeApiUser(retUser);
-        assertEquals(1, deletes);
+        assertEquals(inserts, deletes);
 
         ApiUser deletedUser = apiUserDao.getApiUserByKey(uniqueKey);
         assertNull(deletedUser);

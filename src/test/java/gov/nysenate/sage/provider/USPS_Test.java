@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test the functionality of the USPS adapter by executing a few sample requests and
@@ -26,7 +27,7 @@ public class USPS_Test extends TestBase
             this.uspsais = new USPSAIS();
         }
         catch(Exception ex){
-            System.err.println(ex.getMessage());
+            logger.error(ex.getMessage());
         }
     }
 
@@ -57,7 +58,8 @@ public class USPS_Test extends TestBase
     @Test
     public void test()
     {
-        FormatUtil.printObject(uspsais.validate(new Address("200 yellow place", "Rockledge", "FL", "")));
+        assertNotNull(uspsais.validate(new Address("200 yellow place", "Rockledge", "FL", "")));
+        //FormatUtil.printObject(uspsais.validate(new Address("200 yellow place", "Rockledge", "FL", "")));
     }
 
 }

@@ -47,9 +47,9 @@ public abstract class AddressTestBase
         List<Address> addresses = addressList;
 
         List<AddressResult> addressResults = addressService.validate(addresses);
-        FormatUtil.printObject(addressResults);
+        //FormatUtil.printObject(addressResults);
 
-        assertEquals(addressService.getClass().getSimpleName(), addressResults.get(0).getSource());
+        assertEquals(addressService.getClass().getSimpleName(), addressResults.get(0).getSource().getSimpleName());
         Address expected = new Address("71 14TH ST", "", "TROY", "NY", "12180", "4209");
         assertTrue(addressResults.get(0).isValidated());
         assertAddressEquals(expected, addressResults.get(0).getAddress());

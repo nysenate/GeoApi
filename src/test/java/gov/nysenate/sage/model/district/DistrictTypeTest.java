@@ -16,16 +16,16 @@ public class DistrictTypeTest extends TestBase
     public void getStandardTypesTest()
     {
         List<DistrictType> standardTypes = DistrictType.getStandardTypes();
-        List<DistrictType> expectedTypes = Arrays.asList(SENATE, CONGRESSIONAL, ASSEMBLY, SCHOOL, TOWN, COUNTY, ELECTION);
-        assertEquals(new HashSet<>(standardTypes), new HashSet<>(expectedTypes));
+        List<DistrictType> expectedTypes = Arrays.asList(SENATE, CONGRESSIONAL,ZIP, ASSEMBLY, SCHOOL, TOWN, COUNTY);
+        assertEquals(new HashSet<>(expectedTypes), new HashSet<>(standardTypes));
     }
 
     @Test
     public void getExtendedTypesTest()
     {
         List<DistrictType> extendedTypes = DistrictType.getExtendedTypes();
-        List<DistrictType> expectedTypes = Arrays.asList(FIRE, WARD, CITY, CLEG, VILLAGE);
-        assertEquals(new HashSet<>(extendedTypes), new HashSet<>(expectedTypes));
+        List<DistrictType> expectedTypes = Arrays.asList(FIRE, WARD, CITY, CLEG, VILLAGE, ELECTION);
+        assertEquals(new HashSet<>(expectedTypes), new HashSet<>(extendedTypes));
     }
 
     @Test
@@ -48,9 +48,4 @@ public class DistrictTypeTest extends TestBase
         assertEquals(CONGRESSIONAL,resolvedCongressional);
         assertNull(resolvedNull);
     }
-
-
-
-
-
 }

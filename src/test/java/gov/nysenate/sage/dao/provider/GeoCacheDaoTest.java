@@ -7,9 +7,8 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import java.sql.Timestamp;
@@ -18,12 +17,7 @@ import java.util.ArrayList;
 public class GeoCacheDaoTest extends TestBase
 {
     GeoCacheDao geoCacheDao = new GeoCacheDao();
-
-    @Test
-    public void testGetCacheHit()
-    {
-        //FormatUtil.printObject(geoCacheDao.getCacheHit(new Address("2012 East River Road, Olean, NY 14760")));
-    }
+    Logger logger = Logger.getLogger(GeoCacheDaoTest.class);
 
     @Test
     public void testCacheSave()
@@ -41,6 +35,6 @@ public class GeoCacheDaoTest extends TestBase
         Timestamp start = TimeUtil.currentTimestamp();
         geoCacheDao.cacheGeocodedAddresses(gcs);
         geoCacheDao.flushCacheBuffer();
-        System.out.println("Elapsed time: " + TimeUtil.getElapsedMs(start) + " ms.");
+        logger.info("Elapsed time: " + TimeUtil.getElapsedMs(start) + " ms.");
     }
 }

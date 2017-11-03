@@ -2,9 +2,10 @@ package gov.nysenate.sage.dao.logger;
 
 import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.util.FormatUtil;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
 
 public class AddressLoggerTest extends TestBase
 {
@@ -17,6 +18,6 @@ public class AddressLoggerTest extends TestBase
 
     @Test
     public void getAddressIdTest() {
-        FormatUtil.printObject(addressLogger.getAddressId(new Address("Nyroy Dr", "Troy", "NY", "12180")));
+        assertNotNull( addressLogger.getAddressId(new Address("Nyroy Dr", "Troy", "NY", "12180")));
     }
 }

@@ -9,6 +9,8 @@ import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.junit.Test;
 
+import static org.junit.Assert.assertNotNull;
+
 public class GeoCacheTest extends TestBase
 {
     GeoCache geoCache = new GeoCache();
@@ -18,8 +20,8 @@ public class GeoCacheTest extends TestBase
     public void geocodeTest()
     {
         StreetAddress sa = StreetAddressParser.parseAddress(new Address("", "Jamaica", "NY", ""));
-        FormatUtil.printObject(sa.toStringParsed());
-        FormatUtil.printObject(geoCacheDao.getCacheHit(sa));
+        assertNotNull(sa.toStringParsed());
+        assertNotNull(geoCacheDao.getCacheHit(sa));
     }
 
 }
