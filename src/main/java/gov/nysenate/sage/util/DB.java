@@ -57,9 +57,9 @@ public class DB implements Observer
         p.setPassword(config.getValue(dbPrefix + ".pass"));
 
         /** How big should the connection pool be? How big can it get? */
-        p.setInitialSize(10);
+        p.setInitialSize(1);
         p.setMaxActive(100);
-        p.setMinIdle(10);
+        p.setMinIdle(1);
         p.setMaxIdle(100);
 
         p.setDefaultAutoCommit(true);
@@ -92,9 +92,11 @@ public class DB implements Observer
         /** Interceptors implement hooks into the query process; like Tomcat filters.
          *  ConnectionState - Caches connection state information to avoid redundant queries.
          *  StatementFinalizer - Finalizes all related statements when a connection is closed.
+         *  ResetAbandonedTimer - Resets the abandoned timer on an execution or when a statement is prepared
          */
         p.setJdbcInterceptors("org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;" +
-                "org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer");
+                "org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer;"
+                + "org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer;");
 
         this.ds.setPoolProperties(p);
     }
