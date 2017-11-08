@@ -37,8 +37,7 @@ public class JobProcessDaoTest extends TestBase
         JobProcess jobProcess = jpDao.getJobProcessById(1);
         assertNotNull(jobProcess);
         assertEquals(1, jobProcess.getId());
-        assertEquals("neison@nysenate.gov", jobProcess.getRequestor().getEmail());
-        assertEquals(19, jobProcess.getRecordCount());
+        assertNotNull(jobProcess.getFileName());
     }
 
     @Test
