@@ -58,7 +58,7 @@ public class JobProcessDaoTest extends TestBase
     @Test
     public void getStatusTest()
     {
-        JobProcessStatus jsp = jpDao.getJobProcessStatus(76);
+        JobProcessStatus jsp = jpDao.getJobProcessStatus(1);
         assertNotNull(jsp);
     }
 
