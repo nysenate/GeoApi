@@ -59,9 +59,6 @@ public class TigerGeocoderDao extends BaseDao implements Observer
         try {
             setTimeOut(conn, run, GEOCODER_TIMEOUT);
             geoStreetAddress = run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
-            if (geoStreetAddress != null) {
-                geoStreetAddress.setStreetAddress(getStreetAddress(address));
-            }
         }
         catch (SQLException ex){
             logger.warn(ex.getMessage());
