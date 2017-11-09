@@ -83,11 +83,11 @@ public abstract class GeocodeTestBase
                 new Address("18 Greenhaven Dr", "" ,"Port Jefferson Station", "NY", "11776", "")));
 
         ArrayList<Geocode> expectedGeocode = new ArrayList<>(Arrays.asList(
-                new Geocode(new Point(42.735359, -73.682892), null, null),
-                new Geocode(new Point( 42.07761, -78.42807), null, null),
-                new Geocode(new Point(42.08185127057071, -78.43213916747527), null, null),
-                new Geocode(new Point(42.670583, -73.799606), null, null),
-                new Geocode(new Point(40.91449, -73.056679), null, null)));
+                new Geocode(new Point(42.735304,-73.682604), null, null),
+                new Geocode(new Point( 42.077854,-78.429005), null, null),
+                new Geocode(new Point(42.068408,-78.414054), null, null),
+                new Geocode(new Point(42.670583,-73.799606), null, null),
+                new Geocode(new Point(40.914464,-73.057044), null, null)));
 
         ArrayList<GeocodeResult> geocodeResults = geocodeService.geocode(addresses);
         logger.debug(FormatUtil.toJsonString(geocodeResults));
