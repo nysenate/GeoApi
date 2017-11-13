@@ -41,15 +41,6 @@ public class TigerGeocoderTest extends TestBase
     }
 
     @Test
-    public void noMatchGeocode_ReturnsNoGeocodeResponseStatus()
-    {
-        Address incorrectAddress = new Address("9264 224 st", "Queens Village", "NY", "11432");
-        GeocodeResult geocodeResult = tigerGeocoder.geocode(incorrectAddress);
-        //FormatUtil.printObject(geocodeResult);
-        assertEquals(ResultStatus.NO_GEOCODE_RESULT, geocodeResult.getStatusCode());
-    }
-
-    @Test
     public void invalidInputGeocode_ReturnsErrorStatus()
     {
         assertNoResultReturnsNoGeocodeResultStatus(tigerGeocoder);

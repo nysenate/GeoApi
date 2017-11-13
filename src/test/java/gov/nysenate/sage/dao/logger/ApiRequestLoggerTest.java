@@ -29,7 +29,7 @@ public class ApiRequestLoggerTest extends TestBase
 
     @Test
     public void getApiRequestByIdTest() {
-        ApiRequest apiRequest = apiRequestLogger.getApiRequest(1494);
+        ApiRequest apiRequest = apiRequestLogger.getApiRequest(1);
         assertNotNull(apiRequest);
     }
 }

@@ -24,7 +24,7 @@ public class DistrictServiceProviderTest extends TestBase
 
     @Test
     public void assignNeighborsTest() {
-        GeocodeResult geocodeResult = gsp.geocode(new Address("84-50 169st", "Jamaica", "NY", "11432"));
+        GeocodeResult geocodeResult = gsp.geocode(new Address("350 5th Ave", "New York", "NY", "10118"));
         assertNotNull(geocodeResult);
     }
 }

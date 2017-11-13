@@ -42,7 +42,6 @@ public class ApiUserDaoTest extends TestBase
     {
         ApiUser apiUser = apiUserDao.getApiUserByKey(this.defaultKey);
         assertNotNull(apiUser);
-        assertEquals(1, apiUser.getId());
         assertEquals(this.defaultKey, apiUser.getApiKey());
     }
 

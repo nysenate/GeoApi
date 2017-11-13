@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 
 import static gov.nysenate.sage.GeocodeTestBase.*;
+import static org.junit.Assert.*;
 
 import gov.nysenate.sage.provider.TigerGeocoder;
 import org.junit.Before;
@@ -16,10 +17,6 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 public class TigerGeocoderDaoTest extends TestBase
 {
@@ -30,17 +27,6 @@ public class TigerGeocoderDaoTest extends TestBase
     {
         tigerGeocoderDao = new TigerGeocoderDao();
     }
-
-    @Test
-    public void testQueryTimeOut()
-    {
-        /* This incorrect address causes the geocoder to search exhaustively if a
-         * time out is not set. */
-        Address incorrectAddress = new Address("9264 224 st", "Queens", "NY", "11432");
-        GeocodedStreetAddress timedOutGsa = tigerGeocoderDao.getGeocodedStreetAddress(incorrectAddress);
-        assertNull(timedOutGsa);
-    }
-
 
     @Test
     public void TigerGeocoderSingleAddressGeocodeTest_ReturnsGeocodedStreetAddress()
