@@ -41,7 +41,7 @@ public class TigerGeocoderDao extends BaseDao implements Observer
 
     @Override
     public void update(Observable o, Object arg) {
-        GEOCODER_TIMEOUT = Integer.parseInt(config.getValue("tiger.geocoder.timeout", "3000"));
+        GEOCODER_TIMEOUT = Integer.parseInt(config.getValue("tiger.geocoder.timeout", "10000"));
     }
 
     /**
