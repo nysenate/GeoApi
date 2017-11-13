@@ -123,6 +123,13 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
         int rawQuality = gsa.getGeocode().getRawQuality();
         StreetAddress sa = gsa.getStreetAddress();
 
+        /*
+        If the raw quality is 0, then it is an exact match
+         */
+        if (rawQuality == 0) {
+            return GeocodeQuality.POINT;
+        }
+
         /** A matching building number usually means its a house quality match. Also we don't want to
          *  perform any zipcode corrections for house level matches. If the zipcodes don't match it is
          *  not a house level match */
