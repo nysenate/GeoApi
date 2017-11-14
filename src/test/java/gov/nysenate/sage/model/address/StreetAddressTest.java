@@ -20,7 +20,7 @@ public class StreetAddressTest extends TestBase
         sa.setZip5("10075");
 
         Address a = sa.toAddress();
-        assertEquals("185 E 79th St", a.getAddr1());
+        assertEquals("185 E 79th", a.getAddr1());
         assertEquals("Suite 20", a.getAddr2());
         assertEquals("New York", a.getCity());
         assertEquals("NY", a.getState());
