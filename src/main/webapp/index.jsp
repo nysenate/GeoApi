@@ -550,7 +550,7 @@
                         <table style="width:100%">
                             <tr>
                                 <td>
-                                    <p class="member-name" ng-show="districts.town.name">Town of {{districts.town.name}}</p>
+                                    <p class="member-name" ng-show="districts.town.name">City/Town: {{districts.town.name}}</p>
                                     <p class="district">Town Code: {{districts.town.district}}</p></td>
                                 <td class="right-icon-placeholder">
                                     <a title="Show Map" ng-show="districts.town.map" ng-click="showDistrict('town');">
