@@ -33,7 +33,7 @@ public class TigerGeocoderDao extends BaseDao implements Observer
     private static Logger logger = Logger.getLogger(TigerGeocoderDao.class);
     private static Config config = ApplicationFactory.getConfig();
     private QueryRunner run = getTigerQueryRunner();
-    private int GEOCODER_TIMEOUT = 10000; //ms
+    private int GEOCODER_TIMEOUT = 15000; //ms
 
     public TigerGeocoderDao() {
         update(null, null);
@@ -41,7 +41,7 @@ public class TigerGeocoderDao extends BaseDao implements Observer
 
     @Override
     public void update(Observable o, Object arg) {
-        GEOCODER_TIMEOUT = Integer.parseInt(config.getValue("tiger.geocoder.timeout", "10000"));
+        GEOCODER_TIMEOUT = Integer.parseInt(config.getValue("tiger.geocoder.timeout", "15000"));
     }
 
     /**

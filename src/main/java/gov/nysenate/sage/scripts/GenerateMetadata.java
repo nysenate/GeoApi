@@ -38,10 +38,10 @@ public class GenerateMetadata
     {
         boolean updated = false;
 
-        if (args.length == 0) {
-            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
-            System.exit(1);
-        }
+//        if (args.length == 0) {
+//            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
+//            System.exit(1);
+//        }
 
         /** Load up the configuration settings */
         if (!ApplicationFactory.bootstrap()){
@@ -51,9 +51,9 @@ public class GenerateMetadata
 
         GenerateMetadata generateMetadata = new GenerateMetadata();
 
-        boolean processAssembly = false;
-        boolean processCongress = false;
-        boolean processSenate = false;
+        boolean processAssembly = true;
+        boolean processCongress = true;
+        boolean processSenate = true;
 
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
