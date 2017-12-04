@@ -170,13 +170,13 @@ public class ApplicationFactory
                 geocodeServiceProvider.registerProvider(key, geoProviders.get(key));
             }
 
-            List<String> activeList = this.config.getList("geocoder.active", Arrays.asList( "tiger")); //"yahoo"
+            List<String> activeList = this.config.getList("geocoder.active", Arrays.asList( "google","tiger")); //"yahoo"
             for (String provider : activeList) {
                 GeocodeServiceValidator.setGeocoderAsActive(geoProviders.get(provider));
                 activeGeoProviders.put(provider, geoProviders.get(provider));
             }
 
-            LinkedList<String> geocoderRankList = new LinkedList<>(this.config.getList("geocoder.rank", Arrays.asList("tiger","google"))); //"yahoo"
+            LinkedList<String> geocoderRankList = new LinkedList<>(this.config.getList("geocoder.rank", Arrays.asList("google","tiger"))); //"yahoo"
             if (!geocoderRankList.isEmpty()) {
                 /** Set the first geocoder as the default. */
                 geocodeServiceProvider.setDefaultProvider(geocoderRankList.removeFirst());
