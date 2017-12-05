@@ -226,15 +226,9 @@ The available providers ordered from most accurate to least are:
 +-------------+---------------------------------------------+-------------+
 | Provider    | Description                                 | API Limits  |
 +=============+=============================================+=============+
-| yahoo       | Free YQL service from Yahoo. (recommended)  | ~20000 day  |
-+-------------+---------------------------------------------+-------------+
-| mapquest    | Free MapQuest geocoding service             | 5000 day?   |
+| google      | Free Google geocoding service               | 2500 a day  |
 +-------------+---------------------------------------------+-------------+
 | tiger       | In-database geocoding using census data     | Unlimited   |
-+-------------+---------------------------------------------+-------------+
-| ruby        | Ruby implementation using census data       | Unlimited   |
-+-------------+---------------------------------------------+-------------+
-| osm         | Open Street Maps API                        | 1 per sec?  |
 +-------------+---------------------------------------------+-------------+
 
 Methods have the following optional parameters:
@@ -317,7 +311,7 @@ Reverse Geocode
 
 The usage of ``revgeocode`` with a coordinate pair input::
 
-    api/v2/geo/revgeocode?lat=42.652030&lon=-73.757590
+    /api/v2/geo/revgeocode?lat=42.652030&lon=-73.757590
 
 The reverse geocode response::
 
