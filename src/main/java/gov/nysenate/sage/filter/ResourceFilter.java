@@ -4,6 +4,7 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import java.io.File;
@@ -12,6 +13,7 @@ import java.io.IOException;
 /**
  * ResourceFilter is used to refresh the configuration properties stored in resource files.
  */
+@Component
 public class ResourceFilter implements Filter
 {
     private final Logger logger = Logger.getLogger(ResourceFilter.class);

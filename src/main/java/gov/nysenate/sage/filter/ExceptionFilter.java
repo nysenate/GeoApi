@@ -2,11 +2,13 @@ package gov.nysenate.sage.filter;
 
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import java.sql.Timestamp;
 import java.util.Date;
 
+@Component
 public class ExceptionFilter implements Filter
 {
     private static Logger logger = Logger.getLogger(ExceptionFilter.class);
