@@ -15,6 +15,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ import java.util.*;
  * provide fast district resolution given a coordinate pair. It also allows for determining
  * overlaps and intersections between districts.
  */
+@Repository
 public class DistrictShapefileDao extends BaseDao
 {
     private static final String SCHEMA = "districts";

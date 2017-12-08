@@ -12,6 +12,7 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -29,6 +30,7 @@ import java.util.Observer;
  *  Documentation available here:
  *  http://developer.yahoo.com/boss/geo/docs/free_YQL.html#table_pf
  */
+@Repository
 public class YahooDao implements Observer
 {
     private static final Config config = ApplicationFactory.getConfig();

@@ -4,11 +4,13 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+@Repository
 public class CityZipDBDao extends BaseDao
 {
     private Logger logger = Logger.getLogger(CityZipDBDao.class);

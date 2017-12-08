@@ -5,12 +5,14 @@ import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
+@Repository
 public class ExceptionLogger extends BaseDao
 {
     private static Logger logger = Logger.getLogger(ExceptionLogger.class);

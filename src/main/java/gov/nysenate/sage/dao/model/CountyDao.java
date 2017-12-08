@@ -7,6 +7,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import java.util.Map;
 /**
  * Simple Dao to retrieve county information.
  */
+@Repository
 public class CountyDao extends BaseDao
 {
     private Logger logger = Logger.getLogger(CountyDao.class);

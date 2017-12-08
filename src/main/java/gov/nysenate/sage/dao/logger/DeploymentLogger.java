@@ -4,10 +4,12 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
+@Repository
 public class DeploymentLogger extends BaseDao
 {
     private static Logger logger = Logger.getLogger(DeploymentLogger.class);

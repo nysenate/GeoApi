@@ -10,6 +10,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,6 +25,7 @@ import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
 /**
  * JobProcessDao provides persistence for submitted requests and process statuses.
  */
+@Repository
 public class JobProcessDao extends BaseDao
 {
     private static String SCHEMA = "job";

@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -20,6 +21,7 @@ import java.util.List;
 
 import static gov.nysenate.sage.model.geo.GeocodeQuality.*;
 
+@Repository
 public class MapQuestDao
 {
     private static final String DEFAULT_GEO_URL = "http://www.mapquestapi.com/geocoding/v1/batch";

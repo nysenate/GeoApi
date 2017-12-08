@@ -7,6 +7,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 /**
  * ApiUserDao provides database persistence for the ApiUser model.
  */
+@Repository
 public class ApiUserDao extends BaseDao
 {
     private Logger logger = Logger.getLogger(ApiUserDao.class);

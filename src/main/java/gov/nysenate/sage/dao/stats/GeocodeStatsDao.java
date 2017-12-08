@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.stats.GeocodeStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,6 +14,7 @@ import java.sql.Timestamp;
 /**
  * Retrieves stats pertaining to geocoder usage.
  */
+@Repository
 public class GeocodeStatsDao extends BaseDao
 {
     private static Logger logger = Logger.getLogger(GeocodeStatsDao.class);

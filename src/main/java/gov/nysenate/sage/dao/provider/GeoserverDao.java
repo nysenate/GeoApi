@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -25,6 +26,7 @@ import static gov.nysenate.sage.model.district.DistrictType.COUNTY;
  * Geoserver WFS Documentation:
  * http://docs.geoserver.org/stable/en/user/services/wfs/reference.html
  */
+@Repository
 public class GeoserverDao extends BaseDao
 {
     private static final String DEFAULT_BASE_URL = "http://geoserver.nysenate.gov:8080/wfs";

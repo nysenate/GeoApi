@@ -14,6 +14,7 @@ import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -27,6 +28,7 @@ import java.util.Observer;
  * Data abstraction layer for querying the USPS AMS web service to perform address and city/state
  * lookups.
  */
+@Repository
 public class USPSAMSDao implements Observer
 {
     private static final Config config = ApplicationFactory.getConfig();

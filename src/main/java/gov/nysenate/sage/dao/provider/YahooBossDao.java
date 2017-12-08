@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -18,6 +19,7 @@ import java.net.URLEncoder;
 import java.util.Observable;
 import java.util.Observer;
 
+@Repository
 public class YahooBossDao implements Observer
 {
     private static final Logger logger = Logger.getLogger(YahooBossDao.class);

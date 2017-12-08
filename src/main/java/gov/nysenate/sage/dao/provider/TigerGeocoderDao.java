@@ -16,6 +16,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -28,6 +29,7 @@ import java.util.*;
  *
  * http://postgis.net/docs/Extras.html
  */
+@Repository
 public class TigerGeocoderDao extends BaseDao implements Observer
 {
     private static Logger logger = Logger.getLogger(TigerGeocoderDao.class);

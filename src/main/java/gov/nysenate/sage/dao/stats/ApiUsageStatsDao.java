@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.stats.ApiUsageStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,6 +15,7 @@ import java.util.List;
 
 import static gov.nysenate.sage.model.stats.ApiUsageStats.IntervalUsage;
 
+@Repository
 public class ApiUsageStatsDao extends BaseDao
 {
     private static Logger logger = Logger.getLogger(ApiUsageStatsDao.class);

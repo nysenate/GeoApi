@@ -5,9 +5,11 @@ import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.address.Address;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 
+@Repository
 public class AddressLogger extends BaseDao
 {
     private static Logger logger = Logger.getLogger(AddressLogger.class);

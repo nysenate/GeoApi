@@ -7,12 +7,14 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 
 /**
  * AdminUserDao provides database persistence for the AdminUser model.
  */
+@Repository
 public class AdminUserDao extends BaseDao
 {
     private Logger logger = Logger.getLogger(AdminUserDao.class);

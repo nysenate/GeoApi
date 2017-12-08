@@ -6,12 +6,14 @@ import gov.nysenate.sage.model.stats.ExceptionInfo;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class ExceptionInfoDao extends BaseDao
 {
     private static Logger logger = Logger.getLogger(DeploymentStatsDao.class);

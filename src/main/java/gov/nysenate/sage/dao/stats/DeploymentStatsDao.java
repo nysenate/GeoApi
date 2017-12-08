@@ -7,11 +7,13 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
+@Repository
 public class DeploymentStatsDao extends BaseDao
 {
     private static Logger logger = Logger.getLogger(DeploymentStatsDao.class);

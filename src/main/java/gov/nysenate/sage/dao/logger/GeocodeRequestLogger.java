@@ -7,9 +7,11 @@ import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.job.JobProcess;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 
+@Repository
 public class GeocodeRequestLogger extends BaseDao
 {
     private static Logger logger = Logger.getLogger(GeocodeRequestLogger.class);

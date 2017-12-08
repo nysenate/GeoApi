@@ -11,6 +11,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +19,7 @@ import java.util.*;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
+@Repository
 public class StreetFileDao extends BaseDao
 {
     private Logger logger = Logger.getLogger(StreetFileDao.class);
