@@ -19,6 +19,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.CsvListWriter;
 import org.supercsv.prefs.CsvPreference;
@@ -33,6 +34,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+@Controller
 public class JobController extends BaseJobController
 {
     private Logger logger = Logger.getLogger(JobController.class);

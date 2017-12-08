@@ -2,6 +2,7 @@ package gov.nysenate.sage.controller.error;
 
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Date;
 
+@Controller
 public class ExceptionController extends HttpServlet
 {
     private static Logger logger = Logger.getLogger(ExceptionController.class);

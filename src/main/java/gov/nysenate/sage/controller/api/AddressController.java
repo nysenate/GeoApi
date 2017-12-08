@@ -9,6 +9,7 @@ import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -25,6 +26,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
  *  - City State Lookup
  *  - ZipCode Lookup
  */
+@Controller
 public final class AddressController extends BaseApiController
 {
     private Logger logger = Logger.getLogger(AddressController.class);

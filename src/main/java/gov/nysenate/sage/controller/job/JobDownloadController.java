@@ -4,6 +4,7 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -16,6 +17,7 @@ import java.io.InputStream;
 import java.util.Observable;
 import java.util.Observer;
 
+@Controller
 public class JobDownloadController extends BaseJobController implements Observer
 {
     private static Logger logger = Logger.getLogger(JobDownloadController.class);

@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.model.result.StreetResult;
 import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
+@Controller
 public class StreetController extends BaseApiController
 {
     private static Logger logger = Logger.getLogger(StreetController.class);

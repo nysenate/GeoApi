@@ -14,6 +14,7 @@ import gov.nysenate.sage.model.stats.*;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.auth.JobUserAuth;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -26,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+@Controller
 public class AdminApiController extends BaseAdminController
 {
     private Logger logger = Logger.getLogger(AdminApiController.class);

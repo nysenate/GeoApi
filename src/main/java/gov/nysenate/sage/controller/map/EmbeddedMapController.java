@@ -1,6 +1,7 @@
 package gov.nysenate.sage.controller.map;
 
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -14,6 +15,7 @@ import java.util.List;
 /**
  * Provides a map view of a given district without any wrapper user interface elements.
  */
+@Controller
 public class EmbeddedMapController extends BaseMapController
 {
     private static Logger logger = Logger.getLogger(EmbeddedMapController.class);

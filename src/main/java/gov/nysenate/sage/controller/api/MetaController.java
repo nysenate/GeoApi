@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -19,6 +20,7 @@ import java.io.IOException;
 
 import static gov.nysenate.sage.model.result.ResultStatus.SERVICE_NOT_SUPPORTED;
 
+@Controller
 public class MetaController extends BaseApiController
 {
     private static Logger logger = Logger.getLogger(MetaController.class);

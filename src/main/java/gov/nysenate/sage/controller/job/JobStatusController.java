@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,6 +30,7 @@ import java.util.List;
  *    /job/status/inactive              - Get all inactive processes
  *    /job/status/all                   - Get all processes (basically a job history)
  */
+@Controller
 public class JobStatusController extends BaseJobController
 {
     private static Logger logger = Logger.getLogger(JobStatusController.class);

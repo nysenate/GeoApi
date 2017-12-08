@@ -14,6 +14,7 @@ import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.service.map.MapServiceProvider;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -21,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@Controller
 public class MapController extends BaseApiController
 {
     private static Logger logger = Logger.getLogger(MapController.class);
