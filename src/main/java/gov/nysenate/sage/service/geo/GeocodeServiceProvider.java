@@ -14,6 +14,7 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -24,6 +25,7 @@ import java.util.*;
  * geocoding providers and contains logic for distributing requests and collecting responses
  * from the providers.
  */
+@Service
 public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> implements Observer
 {
     private final Logger logger = Logger.getLogger(GeocodeServiceProvider.class);

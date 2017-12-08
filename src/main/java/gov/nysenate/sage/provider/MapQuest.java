@@ -11,6 +11,7 @@ import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.geo.*;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +26,7 @@ import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateBatc
  *
  * @author Graylin Kim, Ash Islam
  */
+@Service
 public class MapQuest implements GeocodeService, RevGeocodeService
 {
     private final Logger logger = Logger.getLogger(this.getClass());

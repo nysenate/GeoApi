@@ -14,6 +14,7 @@ import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -23,6 +24,7 @@ import java.util.concurrent.*;
  * Point of access for all district assignment requests. This class maintains a collection of available
  * district providers and contains logic for distributing requests and collecting responses from the providers.
  */
+@Service
 public class DistrictServiceProvider extends ServiceProviders<DistrictService> implements Observer
 {
     public enum DistrictStrategy {

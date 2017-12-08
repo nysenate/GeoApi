@@ -4,11 +4,13 @@ import com.google.common.collect.Lists;
 import gov.nysenate.sage.dao.provider.CityZipDBDao;
 import gov.nysenate.sage.service.address.CityZipService;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Service
 public class CityZipDB implements CityZipService
 {
     private static Logger logger = Logger.getLogger(CityZipDB.class);

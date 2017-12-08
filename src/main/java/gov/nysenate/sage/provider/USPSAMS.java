@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressService;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +15,7 @@ import java.util.List;
 /**
  * Provider implementation for the USPS AMS WebService.
  */
+@Service
 public class USPSAMS implements AddressService
 {
     private final Logger logger = Logger.getLogger(this.getClass());

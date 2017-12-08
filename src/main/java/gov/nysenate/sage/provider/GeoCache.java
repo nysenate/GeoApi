@@ -11,6 +11,7 @@ import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,6 +21,7 @@ import java.util.Set;
 import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateGeocodeInput;
 import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateGeocodeResult;
 
+@Service
 public class GeoCache implements GeocodeCacheService
 {
     private final Logger logger = Logger.getLogger(GeoCache.class);

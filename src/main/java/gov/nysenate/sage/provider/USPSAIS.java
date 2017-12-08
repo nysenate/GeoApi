@@ -10,6 +10,7 @@ import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.client.fluent.Content;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -69,6 +70,7 @@ import java.util.regex.Pattern;
  * Refer to the online documentation (link subject to change)
  * https://www.usps.com/webtools/_pdf/Address-Information-v3-1b.pdf
  */
+@Service
 public class USPSAIS implements AddressService, Observer
 {
     private static final int BATCH_SIZE = 5;

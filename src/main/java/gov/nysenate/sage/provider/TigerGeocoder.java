@@ -13,6 +13,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.*;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 
@@ -22,6 +23,7 @@ import java.util.ArrayList;
  * implements fuzzy matching. This service primarily relays requests to the TigerGeocoderDao
  * and performs validation and result formatting.
  */
+@Service
 public class TigerGeocoder implements GeocodeService, RevGeocodeService
 {
     private static Logger logger = Logger.getLogger(TigerGeocoder.class);

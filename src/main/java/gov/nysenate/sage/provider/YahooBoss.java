@@ -8,12 +8,14 @@ import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 
 /**
 * Yahoo Boss - Commercial geo-coding service from Yahoo
 */
+@Service
 public class YahooBoss implements GeocodeService
 {
     private final Logger logger = Logger.getLogger(YahooBoss.class);

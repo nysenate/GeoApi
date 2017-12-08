@@ -4,10 +4,12 @@ import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
 import java.util.List;
 
+@Service
 public class MapServiceProvider extends ServiceProviders<MapService>
 {
     protected Logger logger = Logger.getLogger(MapServiceProvider.class);

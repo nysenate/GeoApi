@@ -3,9 +3,11 @@ package gov.nysenate.sage.service.geo;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import org.springframework.stereotype.Service;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
+@Service
 public class RevGeocodeServiceValidator
 {
     /**

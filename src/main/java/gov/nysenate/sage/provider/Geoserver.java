@@ -15,6 +15,7 @@ import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.Config;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
  * and feature information from source data such as Census Shapefiles. Note that a coordinate pair
  * is required to perform district assignment using this implementation.
  */
+@Service
 public class Geoserver implements DistrictService, Observer
 {
     private static Logger logger = Logger.getLogger(Geoserver.class);

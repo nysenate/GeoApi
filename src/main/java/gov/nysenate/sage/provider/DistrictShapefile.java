@@ -20,6 +20,7 @@ import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -27,6 +28,7 @@ import java.util.*;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
 
+@Service
 public class DistrictShapefile implements DistrictService, MapService, Observer
 {
     private static Logger logger = Logger.getLogger(DistrictShapefile.class);

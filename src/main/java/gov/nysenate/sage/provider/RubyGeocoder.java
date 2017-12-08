@@ -15,12 +15,14 @@ import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
+@Service
 public class RubyGeocoder implements GeocodeService
 {
     private static final String DEFAULT_BASE_URL = "http://geocoder.nysenate.gov/GeoRubyAdapter/api";

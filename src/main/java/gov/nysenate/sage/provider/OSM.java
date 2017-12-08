@@ -19,6 +19,7 @@ import gov.nysenate.sage.util.UrlRequest;
 import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
+@Service
 public class OSM implements GeocodeService, Observer
 {
     private static final String DEFAULT_BASE_URL = "http://open.mapquestapi.com/nominatim/v1/search";

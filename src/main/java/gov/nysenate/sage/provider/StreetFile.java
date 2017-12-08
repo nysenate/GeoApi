@@ -13,6 +13,7 @@ import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.service.street.StreetLookupService;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -31,6 +32,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
    District information can be obtained quickly by matching a given address to an
    address range stored in the street file database.
  */
+@Service
 public class StreetFile implements DistrictService, StreetLookupService
 {
     private Logger logger = Logger.getLogger(StreetFile.class);
