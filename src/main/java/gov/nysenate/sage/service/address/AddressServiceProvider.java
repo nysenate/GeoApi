@@ -108,7 +108,9 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
         if (BATCH_LOGGING_ENABLED) {
             for (AddressResult addressResult: addressResults) {
                 try {
-                    addressLogger.logAddress(addressResult.getAddress());
+                    if (addressResult.getAddress() != null) {
+                        addressLogger.logAddress(addressResult.getAddress());
+                    }
                 }
                 catch (Exception e) {
                     logger.warn("Failed to insert address result in the DB " + e.getMessage());
@@ -143,7 +145,9 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
     private void logAddressResult(AddressResult addressResult) {
         if (SINGLE_LOGGING_ENABLED) {
             try {
-                addressLogger.logAddress(addressResult.getAddress());
+                if (addressResult.getAddress() != null) {
+                    addressLogger.logAddress(addressResult.getAddress());
+                }
             }
             catch (Exception e) {
                 logger.warn("Failed to insert address result in the DB " + e.getMessage());
