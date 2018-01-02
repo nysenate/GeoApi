@@ -43,7 +43,7 @@ public class StreetController extends BaseApiController
         String zip5 = request.getParameter("zip5");
 
         logger.info("--------------------------------------");
-        logger.info(String.format("|%Street Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
+        logger.info(String.format("|%s Street Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
         logger.info(String.format("| Mode: %s | zip5: %s", apiRequest.getRequest(), zip5));
         logger.info("--------------------------------------");
 

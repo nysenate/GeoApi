@@ -59,7 +59,7 @@ public final class AddressController extends BaseApiController
         logger.info("--------------------------------------");
         logger.info(String.format("|%sAddress Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
         logger.info(String.format("| Mode: %s | Punct: %s", apiRequest.getRequest(), usePunctuation));
-        if (!apiRequest.isBatch() && apiRequest.getRequest().equals("geocode")) {
+        if (!apiRequest.isBatch()) {
             logger.info("| Input Address: " + getAddressFromParams(request).toLogString());
         }
         logger.info("--------------------------------------");
