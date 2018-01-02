@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.util.Config;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
@@ -55,6 +56,14 @@ public final class AddressController extends BaseApiController
 
         Boolean usePunctuation = Boolean.parseBoolean(request.getParameter("punct"));
 
+        logger.info("--------------------------------------");
+        logger.info(String.format("|%sAddress Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
+        logger.info(String.format("| Mode: %s | Punct: %s", apiRequest.getRequest(), usePunctuation));
+        if (!apiRequest.isBatch() && apiRequest.getRequest().equals("geocode")) {
+            logger.info("| Input Address: " + getAddressFromParams(request).toLogString());
+        }
+        logger.info("--------------------------------------");
+
         /**
          * If provider is specified then make sure it matches the available providers. Send an
          * api error and return if the provider is not supported.
@@ -66,11 +75,6 @@ public final class AddressController extends BaseApiController
                 return;
             }
         }
-
-        logger.info("--------------------------------------");
-        logger.info(String.format("|%sAddress Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
-        logger.info(String.format("| Mode: %s | Punct: %s", apiRequest.getRequest(), usePunctuation));
-        logger.info("--------------------------------------");
 
         /** Handle single request */
         if (!apiRequest.isBatch()) {

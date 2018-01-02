@@ -1,10 +1,13 @@
 package gov.nysenate.sage.service.address;
 
+import gov.nysenate.sage.dao.logger.AddressLogger;
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.AddressUtil;
+import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.log4j.Logger;
 
@@ -15,6 +18,12 @@ import java.util.List;
 public class AddressServiceProvider extends ServiceProviders<AddressService>
 {
     private static Logger logger = Logger.getLogger(AddressServiceProvider.class);
+    AddressLogger addressLogger = new AddressLogger();
+
+    private static Config config = ApplicationFactory.getConfig();
+    private Boolean API_LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled", "false"));
+    private boolean SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("detailed.logging.enabled", "false"));
+    private boolean BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("batch.detailed.logging.enabled", "false"));
 
     /**
      * Validates an address using USPS or another provider if available.
@@ -57,6 +66,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
                 addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
             }
         }
+        logAddressResult(addressResult);
         return addressResult;
     }
 
@@ -94,7 +104,17 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
                 }
             }
         }
-
+        //log batch results here
+        if (BATCH_LOGGING_ENABLED) {
+            for (AddressResult addressResult: addressResults) {
+                try {
+                    addressLogger.logAddress(addressResult.getAddress());
+                }
+                catch (Exception e) {
+                    logger.warn("Failed to insert address result in the DB " + e.getMessage());
+                }
+            }
+        }
         return addressResults;
     }
 
@@ -106,7 +126,9 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
         if (provider == null || provider.isEmpty()) {
             provider = this.defaultProvider;
         }
-        return this.getInstance(provider).lookupCityState(address);
+        AddressResult addressResult = this.getInstance(provider).lookupCityState(address);
+        logAddressResult(addressResult);
+        return addressResult;
     }
 
     /**
@@ -115,5 +137,17 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
     public AddressResult lookupZipcode(Address address, String provider)
     {
         return validate(address, provider, false);
+    }
+
+
+    private void logAddressResult(AddressResult addressResult) {
+        if (SINGLE_LOGGING_ENABLED) {
+            try {
+                addressLogger.logAddress(addressResult.getAddress());
+            }
+            catch (Exception e) {
+                logger.warn("Failed to insert address result in the DB " + e.getMessage());
+            }
+        }
     }
 }
