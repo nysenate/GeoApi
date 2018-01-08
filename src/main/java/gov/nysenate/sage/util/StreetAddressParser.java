@@ -32,9 +32,10 @@ public abstract class StreetAddressParser
     public static String unitRegex;
     public static String poBoxRegex;
 
+    public static Pattern poBoxPattern = Pattern.compile("(?:Po|P.o|P.o.|Po-|po|p.o|p.o.|po-|PO|PO-|P.O|P.O.)\\s?(?:Box|box|BOX)[#-:\\\\+]?\\s?(\\d+)");
+
     static {
         unitRegex = "(" + StringUtils.join(unitSet, "|") + ")";
-        poBoxRegex = "(?i)(?:PO |PO|PO-|P.O |P.O. )BOX[ #-:]*?(\\d+)";
 
         if (!DEBUG) {
             logger.setLevel(Level.OFF);
@@ -376,7 +377,7 @@ public abstract class StreetAddressParser
 
             /** Check for PO BOX addresses */
             String streetName = StringUtils.join(stParts, " ");
-            Matcher m = Pattern.compile(poBoxRegex).matcher(streetName);
+            Matcher m = poBoxPattern.matcher(streetName);
             if (m.find()) {
                 streetAddress.setPoBox(m.group(1));
                 logger.debug("PO BOX: " + streetAddress.getPoBox());

@@ -86,8 +86,23 @@ public class GeocodeController extends BaseApiController implements Observer
         /** Only want to use cache when the provider is not specified */
         boolean useCache = (provider == null);
 
+        int requestId = -1;
+
         /** Construct a GeocodeRequest using the supplied params */
         GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider, useFallback, useCache);
+
+
+        logger.info("=======================================================");
+        logger.info(String.format("|%sGeocode Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
+        logger.info(String.format("| Mode: %s | IP: %s | Provider: %s", apiRequest.getRequest(), apiRequest.getIpAddress(), apiRequest.getProvider()));
+        if (!apiRequest.isBatch() && apiRequest.getRequest().equals("geocode")) {
+            logger.info("| Input Address: " + geocodeRequest.getAddress().toLogString());
+        }
+        logger.info("=======================================================");
+
+        if (SINGLE_LOGGING_ENABLED) {
+            requestId = geocodeRequestLogger.logGeocodeRequest(geocodeRequest);
+        }
 
         /**
          * If provider is specified then make sure it matches the available providers. Send an
@@ -98,14 +113,6 @@ public class GeocodeController extends BaseApiController implements Observer
             setApiResponse(geocodeResponse, request);
             return;
         }
-
-        logger.info("=======================================================");
-        logger.info(String.format("|%sGeocode Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
-        logger.info(String.format("| Mode: %s | IP: %s | Provider: %s", apiRequest.getRequest(), apiRequest.getIpAddress(), apiRequest.getProvider()));
-        if (!apiRequest.isBatch() && apiRequest.getRequest().equals("geocode")) {
-            logger.info("| Input Address: " + geocodeRequest.getAddress().toLogString());
-        }
-        logger.info("=======================================================");
 
         switch (apiRequest.getRequest()) {
             case "geocode":
@@ -120,9 +127,9 @@ public class GeocodeController extends BaseApiController implements Observer
                         geocodeResponse = new GeocodeResponse(geocodeResult);
 
                         /** Log geocode request/result to database */
-                        if (SINGLE_LOGGING_ENABLED) {
-                            int requestId = geocodeRequestLogger.logGeocodeRequest(geocodeRequest);
+                        if (SINGLE_LOGGING_ENABLED && requestId != -1) {
                             geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
+                            requestId = -1;
                         }
                     }
                     else {
@@ -163,7 +170,8 @@ public class GeocodeController extends BaseApiController implements Observer
 
                         /** Log rev geocode request/result to database */
                         if (SINGLE_LOGGING_ENABLED) {
-                            geocodeResultLogger.logGeocodeRequestAndResult(geocodeRequest, revGeocodeResult);
+                            geocodeResultLogger.logGeocodeResult(requestId, revGeocodeResult);
+                            requestId = -1;
                         }
                     }
                     else {

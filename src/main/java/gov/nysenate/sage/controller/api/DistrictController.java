@@ -128,6 +128,9 @@ public class DistrictController extends BaseApiController implements Observer
         /** Specify district strategy */
         String districtStrategy = request.getParameter("districtStrategy");
 
+        //RequestID for the incoming request
+        int requestId = -1;
+
         DistrictRequest districtRequest = new DistrictRequest();
         districtRequest.setApiRequest(apiRequest);
         districtRequest.setAddress(getAddressFromParams(request));
@@ -150,6 +153,10 @@ public class DistrictController extends BaseApiController implements Observer
         }
         logger.info("=======================================================");
 
+        if (SINGLE_LOGGING_ENABLED) {
+            requestId = districtRequestLogger.logDistrictRequest(districtRequest);
+        }
+
         /**
          * If providers are specified then make sure they match the available providers. Send an
          * api error and return if the provider is not supported.
@@ -168,7 +175,7 @@ public class DistrictController extends BaseApiController implements Observer
             case "assign": {
                 /** Handle single district assign request using the supplied query parameters. */
                 if (!apiRequest.isBatch()) {
-                    DistrictResult districtResult = handleDistrictRequest(districtRequest);
+                    DistrictResult districtResult = handleDistrictRequest(districtRequest,requestId);
                     if (districtResult.isMultiMatch() && showMultiMatch) {
                         districtResponse = (showMaps) ? new MappedMultiDistrictResponse(districtResult) : new MultiDistrictResponse(districtResult);
                     }
@@ -204,7 +211,7 @@ public class DistrictController extends BaseApiController implements Observer
                 /** Handle single bluebird assign */
                 if (!apiRequest.isBatch()) {
                     DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, BLUEBIRD_DISTRICT_STRATEGY);
-                    DistrictResult districtResult = handleDistrictRequest(bluebirdRequest);
+                    DistrictResult districtResult = handleDistrictRequest(bluebirdRequest, requestId);
                     districtResponse = new DistrictResponse(districtResult);
                 }
                 /** Handle batch bluebird assign */
@@ -247,7 +254,7 @@ public class DistrictController extends BaseApiController implements Observer
      * @param districtRequest   Contains the various parameters for the District Assign/Bluebird API
      * @return  DistrictResult
      */
-    private DistrictResult handleDistrictRequest(DistrictRequest districtRequest)
+    private DistrictResult handleDistrictRequest(DistrictRequest districtRequest, int requestId)
     {
         Address address = districtRequest.getAddress();
         Point point = districtRequest.getPoint();
@@ -342,9 +349,9 @@ public class DistrictController extends BaseApiController implements Observer
             DistrictMemberProvider.assignDistrictMembers(districtResult);
         }
 
-        if (SINGLE_LOGGING_ENABLED) {
-            int requestId = districtRequestLogger.logDistrictRequest(districtRequest);
+        if (SINGLE_LOGGING_ENABLED && requestId != -1) {
             districtResultLogger.logDistrictResult(requestId, districtResult);
+            requestId = -1;
         }
 
         return districtResult;
@@ -378,9 +385,9 @@ public class DistrictController extends BaseApiController implements Observer
         /** Address-to-point geocoding */
         if (!geoRequest.isReverse()) {
             /** Geocoding for Po Box works better when the address line is empty */
-            if (isPoBox && address != null && address.isParsed()) {
-                address.setAddr1("");
-            }
+//            if (isPoBox && address != null && address.isParsed()) {
+//                address.setAddr1("");
+//            }
             /** Do not fallback to other geocoders if provider is specified */
             if (geoProvider != null && !geoProvider.isEmpty()) {
                 geoRequest.setUseFallback(false);
@@ -442,7 +449,10 @@ public class DistrictController extends BaseApiController implements Observer
                         logger.trace(FormatUtil.toJsonString(geocodedAddress));
                     }
                     /** House level matches and above can utilize default district assignment behaviour */
-                    if (level.compareTo(GeocodeQuality.HOUSE) >= 0 || isPoBox) {
+                    if (isPoBox) {
+                        districtResult = districtProvider.assignMultiMatchDistricts(geocodedAddress, zipProvided);
+                    }
+                    else if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
                         districtResult = districtProvider.assignDistricts(geocodedAddress, districtRequest);
                     }
                     /** All other level matches are routed to the overlap assignment method */
