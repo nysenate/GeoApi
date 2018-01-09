@@ -383,9 +383,9 @@ public class DistrictController extends BaseApiController implements Observer
         /** Address-to-point geocoding */
         if (!geoRequest.isReverse()) {
             /** Geocoding for Po Box works better when the address line is empty */
-//            if (isPoBox && address != null && address.isParsed()) {
-//                address.setAddr1("");
-//            }
+            if (isPoBox && address != null && address.isParsed()) {
+                address.setAddr1("");
+            }
             /** Do not fallback to other geocoders if provider is specified */
             if (geoProvider != null && !geoProvider.isEmpty()) {
                 geoRequest.setUseFallback(false);
@@ -447,10 +447,7 @@ public class DistrictController extends BaseApiController implements Observer
                         logger.trace(FormatUtil.toJsonString(geocodedAddress));
                     }
                     /** House level matches and above can utilize default district assignment behaviour */
-                    if (isPoBox) {
-                        districtResult = districtProvider.assignMultiMatchDistricts(geocodedAddress, zipProvided);
-                    }
-                    else if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
+                     if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
                         districtResult = districtProvider.assignDistricts(geocodedAddress, districtRequest);
                     }
                     /** All other level matches are routed to the overlap assignment method */
