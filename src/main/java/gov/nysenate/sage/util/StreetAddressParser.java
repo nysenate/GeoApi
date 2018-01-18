@@ -32,7 +32,7 @@ public abstract class StreetAddressParser
     public static String unitRegex;
     public static String poBoxRegex;
 
-    public static Pattern poBoxPattern = Pattern.compile("(?i)(?:PO|PO-|P.O|P.O.)\\s?(?:BOX)[#-:\\\\+]?\\s?(\\d+)");
+    public static Pattern poBoxPattern = Pattern.compile("(?i)(?:PO|PO-|P\\.O|P\\.O\\.)\\s?(?:BOX)[#-:\\\\+]?\\s?(\\d+)");
 
     static {
         unitRegex = "(" + StringUtils.join(unitSet, "|") + ")";
