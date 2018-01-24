@@ -224,28 +224,6 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
 
         logger.debug("Zip Provided: " + zipProvided);
 
-        switch(geocodeQuality) {
-            case NOMATCH: matchLevel = DistrictMatchLevel.NOMATCH;
-                break;
-            case STATE: matchLevel = DistrictMatchLevel.STATE;
-                break;
-            case COUNTY: matchLevel = DistrictMatchLevel.STATE;
-                break;
-            case CITY: matchLevel = DistrictMatchLevel.CITY;
-                break;
-            case ZIP: matchLevel = DistrictMatchLevel.ZIP5;
-                break;
-            case ZIP_EXT: matchLevel = DistrictMatchLevel.ZIP5;
-                break;
-            case STREET: matchLevel = DistrictMatchLevel.STREET;
-                break;
-            case HOUSE: matchLevel = DistrictMatchLevel.HOUSE;
-                break;
-            case POINT: matchLevel = DistrictMatchLevel.HOUSE;
-                break;
-        }
-        districtedAddress.setDistrictMatchLevel(matchLevel);
-
         if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) { //40 quality or more
             if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 &&!address.getZip5().isEmpty()) { //64 or more
                 if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) { //72 or more
