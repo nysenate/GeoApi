@@ -226,9 +226,9 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
 
         logger.debug("Zip Provided: " + zipProvided);
 
-        if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) {
-            if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 &&!address.getZip5().isEmpty()) {
-                if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) {
+        if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) { //40 quality or more
+            if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 &&!address.getZip5().isEmpty()) { //64 or more
+                if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) { //72 or more
                     logger.debug("Determining street level district overlap");
                     matchLevel = DistrictMatchLevel.STREET;
                     streetList.add(address.getAddr1());
@@ -238,7 +238,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
                 }
                 else {
                     logger.debug("Determining zip level district overlap");
-                    matchLevel = DistrictMatchLevel.ZIP5;
+                    matchLevel = DistrictMatchLevel.ZIP5; //if inbetween 40 and 72
                     zip5List = Arrays.asList(address.getZip5());
                 }
             }
@@ -252,7 +252,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
                 matches = streetFileDao.getAllStandardDistrictMatches(streetList, zip5List);
                 if (matches != null && !matches.isEmpty()) {
                     /** Retrieve source map for city and zip match levels */
-                    if (matchLevel.compareTo(DistrictMatchLevel.STREET) < 0) {
+                    if (matchLevel.compareTo(DistrictMatchLevel.STREET) < 0) { //less than 64
                         DistrictMap sourceMap = districtShapefileDao.getOverlapReferenceBoundary(DistrictType.ZIP, new HashSet<>(zip5List));
                         districtInfo.setReferenceMap(sourceMap);
                     }
