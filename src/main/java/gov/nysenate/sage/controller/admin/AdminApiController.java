@@ -15,6 +15,7 @@ import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.auth.JobUserAuth;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -41,13 +42,17 @@ public class AdminApiController extends BaseAdminController
     private static String ADMIN_LOGIN_JSP = "/WEB-INF/views/adminlogin.jsp";
     private static String ADMIN_MAIN_JSP = "/WEB-INF/views/adminmain.jsp";
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        apiRequestLogger = new ApiRequestLogger();
-        apiUserStatsDao = new ApiUserStatsDao();
-        apiUsageStatsDao = new ApiUsageStatsDao();
-        deploymentStatsDao = new DeploymentStatsDao();
+    @Autowired
+    public AdminApiController(ApiRequestLogger apiRequestLogger, ApiUserStatsDao apiUserStatsDao,
+                              ApiUsageStatsDao apiUsageStatsDao, DeploymentStatsDao deploymentStatsDao) {
+        this.apiRequestLogger = apiRequestLogger;
+        this.apiUserStatsDao = apiUserStatsDao;
+        this.apiUsageStatsDao = apiUsageStatsDao;
+        this.deploymentStatsDao = deploymentStatsDao;
     }
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {}
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException

@@ -2,11 +2,14 @@ package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.dao.model.AdminUserDao;
+import gov.nysenate.sage.dao.model.ApiUserDao;
 import gov.nysenate.sage.dao.stats.ApiUsageStatsDao;
 import gov.nysenate.sage.dao.stats.ApiUserStatsDao;
 import gov.nysenate.sage.dao.stats.DeploymentStatsDao;
+import gov.nysenate.sage.model.stats.ApiUserStats;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -30,13 +33,17 @@ public class AdminController extends BaseAdminController
     private static String ADMIN_MAIN_PATH = "/admin";
     private static String ADMIN_MAIN_JSP = "/WEB-INF/views/adminmain.jsp";
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        apiRequestLogger = new ApiRequestLogger();
-        apiUserStatsDao = new ApiUserStatsDao();
-        apiUsageStatsDao = new ApiUsageStatsDao();
-        deploymentStatsDao = new DeploymentStatsDao();
+    @Autowired
+    public AdminController(ApiRequestLogger apiRequestLogger, ApiUserStatsDao apiUserStatsDao,
+                           ApiUsageStatsDao apiUsageStatsDao, DeploymentStatsDao deploymentStatsDao) {
+        this.apiRequestLogger = apiRequestLogger;
+        this.apiUserStatsDao = apiUserStatsDao;
+        this.apiUsageStatsDao = apiUsageStatsDao;
+        this.deploymentStatsDao = deploymentStatsDao;
     }
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {}
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
