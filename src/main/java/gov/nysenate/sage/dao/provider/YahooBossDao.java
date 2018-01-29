@@ -10,7 +10,8 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ import java.util.Observer;
 @Repository
 public class YahooBossDao implements Observer
 {
-    private static final Logger logger = Logger.getLogger(YahooBossDao.class);
+    private static final Logger logger = LogManager.getLogger(YahooBossDao.class);
     private static final Config config = ApplicationFactory.getConfig();
     private static final String DEFAULT_BASE_URL = "http://yboss.yahooapis.com/geo/placefinder";
     private static String CONSUMER_KEY;

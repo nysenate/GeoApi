@@ -5,7 +5,8 @@ import gov.nysenate.sage.model.district.Congressional;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
@@ -14,7 +15,7 @@ import java.util.List;
 @Repository
 public class CongressionalDao extends BaseDao
 {
-    private Logger logger = Logger.getLogger(CongressionalDao.class);
+    private Logger logger = LogManager.getLogger(CongressionalDao.class);
     private QueryRunner run = getQueryRunner();
 
     public List<Congressional> getCongressionals()

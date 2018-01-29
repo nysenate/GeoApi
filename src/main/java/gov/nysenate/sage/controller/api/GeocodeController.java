@@ -18,7 +18,8 @@ import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -37,7 +38,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 @Controller
 public class GeocodeController extends BaseApiController implements Observer
 {
-    private static Logger logger = Logger.getLogger(GeocodeController.class);
+    private static Logger logger = LogManager.getLogger(GeocodeController.class);
     private static Config config = ApplicationFactory.getConfig();
     private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
     private static RevGeocodeServiceProvider revGeocodeServiceProvider = ApplicationFactory.getRevGeocodeServiceProvider();

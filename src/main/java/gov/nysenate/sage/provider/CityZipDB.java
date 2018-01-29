@@ -3,7 +3,8 @@ package gov.nysenate.sage.provider;
 import com.google.common.collect.Lists;
 import gov.nysenate.sage.dao.provider.CityZipDBDao;
 import gov.nysenate.sage.service.address.CityZipService;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.List;
 @Service
 public class CityZipDB implements CityZipService
 {
-    private static Logger logger = Logger.getLogger(CityZipDB.class);
+    private static Logger logger = LogManager.getLogger(CityZipDB.class);
     private static CityZipDBDao cityZipDBDao = new CityZipDBDao();
 
     @Override

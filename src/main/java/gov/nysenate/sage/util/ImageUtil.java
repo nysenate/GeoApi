@@ -1,6 +1,7 @@
 package gov.nysenate.sage.util;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -10,7 +11,7 @@ import java.net.URL;
 
 public abstract class ImageUtil
 {
-    private static Logger logger = Logger.getLogger(ImageUtil.class);
+    private static Logger logger = LogManager.getLogger(ImageUtil.class);
 
     public static void saveResizedImage(String uri, String format, File path, int height)
     {

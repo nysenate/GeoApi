@@ -5,7 +5,8 @@ import gov.nysenate.sage.model.admin.AdminUser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +18,7 @@ import java.sql.SQLException;
 @Repository
 public class AdminUserDao extends BaseDao
 {
-    private Logger logger = Logger.getLogger(AdminUserDao.class);
+    private Logger logger = LogManager.getLogger(AdminUserDao.class);
     private ResultSetHandler<AdminUser> handler = new BeanHandler<>(AdminUser.class);
     private QueryRunner run = getQueryRunner();
 

@@ -5,7 +5,8 @@ import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.util.Config;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.concurrent.*;
 @Service
 public class ParallelRevGeocodeService
 {
-    private static Logger logger = Logger.getLogger(ParallelRevGeocodeService.class);
+    private static Logger logger = LogManager.getLogger(ParallelRevGeocodeService.class);
     private static Config config = ApplicationFactory.getConfig();
     private static int THREAD_COUNT = Integer.parseInt(config.getValue("revgeocode.threads", "3"));
     private static ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("revgeo"));

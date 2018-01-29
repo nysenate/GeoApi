@@ -3,8 +3,10 @@ package gov.nysenate.sage.util;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.StreetAddress;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -21,7 +23,7 @@ import java.util.regex.Pattern;
 public abstract class StreetAddressParser
 {
     public static boolean DEBUG = false;
-    public static Logger logger = Logger.getLogger(StreetAddressParser.class);
+    public static Logger logger = LogManager.getLogger(StreetAddressParser.class);
     public static final String SEP = "[ ,]+";
 
     public static Set<String> streetTypeSet = AddressDictionary.streetTypeMap.keySet();
@@ -38,7 +40,7 @@ public abstract class StreetAddressParser
         unitRegex = "(" + StringUtils.join(unitSet, "|") + ")";
 
         if (!DEBUG) {
-            logger.setLevel(Level.OFF);
+            Configurator.setLevel(logger.getName(), Level.OFF);
         }
     }
 

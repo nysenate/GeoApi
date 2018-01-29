@@ -14,7 +14,8 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.Config;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,7 +35,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 @Service
 public class Geoserver implements DistrictService, Observer
 {
-    private static Logger logger = Logger.getLogger(Geoserver.class);
+    private static Logger logger = LogManager.getLogger(Geoserver.class);
     private GeoserverDao geoserverDao;
     private Config config;
     private boolean fetchMaps = false;

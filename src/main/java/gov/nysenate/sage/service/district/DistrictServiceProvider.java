@@ -13,7 +13,8 @@ import gov.nysenate.sage.provider.DistrictShapefile;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -35,7 +36,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         shapeOnly       /** Perform shape lookup only */
     }
 
-    private final Logger logger = Logger.getLogger(DistrictServiceProvider.class);
+    private final Logger logger = LogManager.getLogger(DistrictServiceProvider.class);
     private final Config config = ApplicationFactory.getConfig();
 
     private static DistrictStrategy SINGLE_DISTRICT_STRATEGY;

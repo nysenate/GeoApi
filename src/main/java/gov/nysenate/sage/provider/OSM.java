@@ -18,7 +18,8 @@ import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ import java.util.Observer;
 public class OSM implements GeocodeService, Observer
 {
     private static final String DEFAULT_BASE_URL = "http://open.mapquestapi.com/nominatim/v1/search";
-    private final Logger logger = Logger.getLogger(OSM.class);
+    private final Logger logger = LogManager.getLogger(OSM.class);
     private Config config;
     private ObjectMapper objectMapper;
     private String baseUrl;

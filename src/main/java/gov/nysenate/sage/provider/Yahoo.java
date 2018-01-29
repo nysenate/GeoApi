@@ -6,7 +6,8 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.List;
 @Service
 public class Yahoo implements GeocodeService, RevGeocodeService
 {
-    private final Logger logger = Logger.getLogger(Yahoo.class);
+    private final Logger logger = LogManager.getLogger(Yahoo.class);
     private YahooDao yahooDao;
 
     public Yahoo()

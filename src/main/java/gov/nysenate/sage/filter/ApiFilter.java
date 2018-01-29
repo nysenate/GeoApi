@@ -11,7 +11,8 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
@@ -43,7 +44,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 @Component
 public class ApiFilter implements Filter, Observer
 {
-    private static Logger logger = Logger.getLogger(ApiFilter.class);
+    private static Logger logger = LogManager.getLogger(ApiFilter.class);
     private static ApiRequestLogger apiRequestLogger;
     private static Config config;
     private static String ipFilter;

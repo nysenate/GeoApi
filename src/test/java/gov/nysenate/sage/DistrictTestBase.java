@@ -13,7 +13,8 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +27,7 @@ import static org.junit.Assert.assertNull;
 
 public abstract class DistrictTestBase
 {
-    private static Logger logger = Logger.getLogger(DistrictTestBase.class);
+    private static Logger logger = LogManager.getLogger(DistrictTestBase.class);
 
     public static List<DistrictedAddress> expected = new ArrayList<>(Arrays.asList(
             new DistrictedAddress(new GeocodedAddress(new Address("44 Fairlawn Ave", "Albany", "NY", "12203"), new Geocode(new Point(42.670583, -73.799606))),

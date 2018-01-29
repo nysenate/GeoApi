@@ -18,7 +18,8 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.CsvListWriter;
@@ -37,7 +38,7 @@ import java.util.List;
 @Controller
 public class JobController extends BaseJobController
 {
-    private Logger logger = Logger.getLogger(JobController.class);
+    private Logger logger = LogManager.getLogger(JobController.class);
     private Config config = ApplicationFactory.getConfig();
 
     private static String JOB_MAIN_JSP = "/WEB-INF/views/jobmain.jsp";

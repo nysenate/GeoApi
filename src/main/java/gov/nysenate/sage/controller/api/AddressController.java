@@ -9,7 +9,8 @@ import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.util.Config;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -30,7 +31,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 @Controller
 public final class AddressController extends BaseApiController
 {
-    private Logger logger = Logger.getLogger(AddressController.class);
+    private Logger logger = LogManager.getLogger(AddressController.class);
     private static AddressServiceProvider addressProvider;
 
     @Override

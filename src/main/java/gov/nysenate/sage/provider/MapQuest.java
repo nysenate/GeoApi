@@ -10,7 +10,8 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.geo.*;
 import gov.nysenate.sage.util.Config;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateBatc
 @Service
 public class MapQuest implements GeocodeService, RevGeocodeService
 {
-    private final Logger logger = Logger.getLogger(this.getClass());
+    private final Logger logger = LogManager.getLogger(this.getClass());
     private MapQuestDao mapQuestDao;
     private Config config;
 

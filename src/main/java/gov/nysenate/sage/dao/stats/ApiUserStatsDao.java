@@ -5,7 +5,8 @@ import gov.nysenate.sage.dao.model.ApiUserDao;
 import gov.nysenate.sage.model.stats.ApiUserStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -17,7 +18,7 @@ import java.util.Map;
 @Repository
 public class ApiUserStatsDao extends BaseDao
 {
-    private static Logger logger = Logger.getLogger(ApiUserStatsDao.class);
+    private static Logger logger = LogManager.getLogger(ApiUserStatsDao.class);
     private static ApiUserDao apiUserDao = new ApiUserDao();
 
     private QueryRunner run = getQueryRunner();

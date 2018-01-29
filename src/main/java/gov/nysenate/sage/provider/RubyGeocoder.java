@@ -14,7 +14,8 @@ import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -36,7 +37,7 @@ public class RubyGeocoder implements GeocodeService
     public RubyGeocoder()
     {
         this.config = ApplicationFactory.getConfig();
-        this.logger = Logger.getLogger(this.getClass());
+        this.logger = LogManager.getLogger(this.getClass());
         this.jsonMapper = new ObjectMapper();
         configure();
         logger.debug("Initialized RubyGeocoder Adapter");

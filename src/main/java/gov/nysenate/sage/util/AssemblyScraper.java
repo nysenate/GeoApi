@@ -1,7 +1,8 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.district.Assembly;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
  */
 public class AssemblyScraper
 {
-    private static final Logger logger = Logger.getLogger(AssemblyScraper.class);
+    private static final Logger logger = LogManager.getLogger(AssemblyScraper.class);
 
     static final String ASSEMBLY_URL = "http://assembly.state.ny.us";
     static final String ASSEMBLY_DIRECTORY_URL = ASSEMBLY_URL+"/mem/?sh=email";

@@ -4,7 +4,8 @@ import static gov.nysenate.sage.AddressTestBase.*;
 import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,7 +18,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class USPS_Test extends TestBase
 {
-    private static Logger logger = Logger.getLogger(USPS_Test.class);
+    private static Logger logger = LogManager.getLogger(USPS_Test.class);
     private USPSAIS uspsais;
 
     @Before

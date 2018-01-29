@@ -1,7 +1,8 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.district.Congressional;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
  */
 public class CongressScraper
 {
-    private static final Logger logger = Logger.getLogger(CongressScraper.class);
+    private static final Logger logger = LogManager.getLogger(CongressScraper.class);
     private static final String HOUSE_URL = "http://www.house.gov/representatives/";
 
     public static List<Congressional> getCongressionals()

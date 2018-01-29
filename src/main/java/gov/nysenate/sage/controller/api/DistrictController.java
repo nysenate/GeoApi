@@ -29,7 +29,8 @@ import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -47,7 +48,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceProvider.Distric
 @Controller
 public class DistrictController extends BaseApiController implements Observer
 {
-    private static Logger logger = Logger.getLogger(DistrictController.class);
+    private static Logger logger = LogManager.getLogger(DistrictController.class);
     private static Config config = ApplicationFactory.getConfig();
 
     /** Service Providers */

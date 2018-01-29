@@ -5,7 +5,8 @@ import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.util.Config;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.concurrent.*;
  */
 public abstract class ParallelAddressService {
 
-    private static Logger logger = Logger.getLogger(ParallelAddressService.class);
+    private static Logger logger = LogManager.getLogger(ParallelAddressService.class);
     private static Config config = ApplicationFactory.getConfig();
     private static int THREAD_COUNT = Integer.parseInt(config.getValue("validate.threads", "3"));
     private static ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("address"));

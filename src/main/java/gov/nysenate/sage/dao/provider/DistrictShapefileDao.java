@@ -14,7 +14,8 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -32,7 +33,7 @@ import java.util.*;
 public class DistrictShapefileDao extends BaseDao
 {
     private static final String SCHEMA = "districts";
-    private final Logger logger = Logger.getLogger(DistrictShapefileDao.class);
+    private final Logger logger = LogManager.getLogger(DistrictShapefileDao.class);
     private QueryRunner run = getQueryRunner();
 
     private static CountyDao countyDao = new CountyDao();

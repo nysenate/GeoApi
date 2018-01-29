@@ -15,7 +15,8 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
@@ -32,7 +33,7 @@ import java.util.*;
 @Repository
 public class TigerGeocoderDao extends BaseDao implements Observer
 {
-    private static Logger logger = Logger.getLogger(TigerGeocoderDao.class);
+    private static Logger logger = LogManager.getLogger(TigerGeocoderDao.class);
     private static Config config = ApplicationFactory.getConfig();
     private QueryRunner run = getTigerQueryRunner();
     private int GEOCODER_TIMEOUT = 15000; //ms

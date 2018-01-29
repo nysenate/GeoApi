@@ -9,7 +9,8 @@ import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -19,7 +20,7 @@ import java.util.List;
 @Service
 public class AddressServiceProvider extends ServiceProviders<AddressService>
 {
-    private static Logger logger = Logger.getLogger(AddressServiceProvider.class);
+    private static Logger logger = LogManager.getLogger(AddressServiceProvider.class);
     AddressLogger addressLogger = new AddressLogger();
 
     private static Config config = ApplicationFactory.getConfig();
