@@ -8,6 +8,7 @@ import gov.nysenate.sage.model.job.JobProcess;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
@@ -16,13 +17,19 @@ import java.sql.SQLException;
 public class GeocodeRequestLogger extends BaseDao
 {
     private static Logger logger = LogManager.getLogger(GeocodeRequestLogger.class);
-    private static AddressLogger addressLogger = new AddressLogger();
-    private static PointLogger pointLogger = new PointLogger();
+    private static AddressLogger addressLogger;
+    private static PointLogger pointLogger;
 
     private static String SCHEMA = "log";
     private static String TABLE = "geocodeRequest";
 
     private QueryRunner run = getQueryRunner();
+
+    @Autowired
+    public GeocodeRequestLogger(AddressLogger addressLogger, PointLogger pointLogger) {
+        this.addressLogger = addressLogger;
+        this.pointLogger =pointLogger;
+    }
 
     /**
     * Log a GeocodeRequest to the database

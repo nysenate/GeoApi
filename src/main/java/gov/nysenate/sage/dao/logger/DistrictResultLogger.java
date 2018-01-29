@@ -13,6 +13,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
@@ -24,13 +25,18 @@ import java.util.List;
 public class DistrictResultLogger extends BaseDao
 {
     private static Logger logger = LogManager.getLogger(DistrictResultLogger.class);
-    private static DistrictRequestLogger distRequestLogger = new DistrictRequestLogger();
+    private static DistrictRequestLogger distRequestLogger;
 
     private static String SCHEMA = "log";
     private static String TABLE = "districtResult";
     private static Boolean SAVE_LOCK = false;
 
     private QueryRunner run = getQueryRunner();
+
+    @Autowired
+    public DistrictResultLogger(DistrictRequestLogger distRequestLogger) {
+        this.distRequestLogger = distRequestLogger;
+    }
 
     /** Batch cache */
     private static List<Pair<DistrictRequest, DistrictResult>> batchDistLogCache = new ArrayList<>();

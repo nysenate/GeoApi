@@ -2,11 +2,11 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.district.*;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.DistrictRequestLogger;
 import gov.nysenate.sage.dao.logger.DistrictResultLogger;
 import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
 import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
@@ -24,13 +24,13 @@ import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.map.MapServiceProvider;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -49,14 +49,13 @@ import static gov.nysenate.sage.service.district.DistrictServiceProvider.Distric
 public class DistrictController extends BaseApiController implements Observer
 {
     private static Logger logger = LogManager.getLogger(DistrictController.class);
-    private static Config config = ApplicationFactory.getConfig();
 
     /** Service Providers */
-    private static AddressServiceProvider addressProvider = ApplicationFactory.getAddressServiceProvider();
-    private static DistrictServiceProvider districtProvider = ApplicationFactory.getDistrictServiceProvider();
-    private static GeocodeServiceProvider geocodeProvider = ApplicationFactory.getGeocodeServiceProvider();
-    private static RevGeocodeServiceProvider revGeocodeProvider = ApplicationFactory.getRevGeocodeServiceProvider();
-    private static MapServiceProvider mapProvider = ApplicationFactory.getMapServiceProvider();
+    private static AddressServiceProvider addressProvider;
+    private static DistrictServiceProvider districtProvider;
+    private static GeocodeServiceProvider geocodeProvider;
+    private static RevGeocodeServiceProvider revGeocodeProvider;
+    private static MapServiceProvider mapProvider;
 
     /** Loggers */
     private static GeocodeRequestLogger geocodeRequestLogger;
@@ -66,27 +65,42 @@ public class DistrictController extends BaseApiController implements Observer
 
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
+    private final Environment env;
+
     private static Boolean SINGLE_LOGGING_ENABLED = false;
     private static Boolean BATCH_LOGGING_ENABLED = false;
 
+    @Autowired
+    public DistrictController(AddressServiceProvider addressProvider, DistrictServiceProvider districtProvider,
+                              GeocodeServiceProvider geocodeProvider, RevGeocodeServiceProvider revGeocodeProvider,
+                              MapServiceProvider mapProvider, Environment env, GeocodeRequestLogger geocodeRequestLogger,
+                              GeocodeResultLogger geocodeResultLogger,DistrictRequestLogger districtRequestLogger,
+                              DistrictResultLogger districtResultLogger) {
+
+        this.addressProvider = addressProvider;
+        this.districtProvider = districtProvider;
+        this.geocodeProvider = geocodeProvider;
+        this.revGeocodeProvider = revGeocodeProvider;
+        this.mapProvider = mapProvider;
+        this.env = env;
+        this.geocodeRequestLogger = geocodeRequestLogger;
+        this.geocodeResultLogger = geocodeResultLogger;
+        this.districtRequestLogger = districtRequestLogger;
+        this.districtResultLogger = districtResultLogger;
+    }
+
     @Override
     public void update(Observable o, Object arg) {
-        BLUEBIRD_DISTRICT_STRATEGY = config.getValue("district.strategy.bluebird");
-
-        Boolean API_LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled", "false"));
-        SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("detailed.logging.enabled", "false"));
-        BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("batch.detailed.logging.enabled", "false"));
+        BLUEBIRD_DISTRICT_STRATEGY = env.getDistrictStrategyBluebird();
+        boolean API_LOGGING_ENABLED = env.isApiLoggingEnabled();
+        SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isDetailedLoggingEnabled();
+        BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
     }
 
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        DistrictController.config.notifyOnChange(this);
         update(null, null);
-        geocodeRequestLogger = new GeocodeRequestLogger();
-        geocodeResultLogger = new GeocodeResultLogger();
-        districtRequestLogger = new DistrictRequestLogger();
-        districtResultLogger = new DistrictResultLogger();
     }
 
     @Override

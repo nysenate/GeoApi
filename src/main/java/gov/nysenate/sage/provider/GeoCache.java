@@ -12,6 +12,7 @@ import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,8 +30,9 @@ public class GeoCache implements GeocodeCacheService
     private static Set<Class<? extends GeocodeService>> cacheableProviders = new HashSet<>();
     private GeoCacheDao geoCacheDao;
 
-    public GeoCache() {
-        this.geoCacheDao = new GeoCacheDao();
+    @Autowired
+    public GeoCache(GeoCacheDao geoCacheDao) {
+        this.geoCacheDao = geoCacheDao;
         logger.debug("Instantiated GeoCache.");
     }
 

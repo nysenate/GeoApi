@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.geo;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -15,6 +16,7 @@ import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,21 +32,22 @@ import java.util.*;
 public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> implements Observer
 {
     private final Logger logger = LogManager.getLogger(GeocodeServiceProvider.class);
-    private final static Config config = ApplicationFactory.getConfig();
+    private final Environment env;
 
     /** Caching members */
     private GeocodeCacheService geocodeCache;
-    private Boolean CACHE_ENABLED = true;
+    private boolean CACHE_ENABLED = true;
 
-    public GeocodeServiceProvider() {
-        config.notifyOnChange(this);
+    @Autowired
+    public GeocodeServiceProvider(Environment env, GeocodeCacheService geocodeCache) {
+        this.env = env;
+        this.geocodeCache = geocodeCache;
         update(null, null);
-        geocodeCache = newCacheInstance();
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        CACHE_ENABLED = Boolean.parseBoolean(config.getValue("geocache.enabled"));
+        CACHE_ENABLED = env.getGeocahceEnabled();
     }
 
     /**
@@ -55,15 +58,6 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     {
         GeocodeService provider = this.getInstance(providerName);
         GeoCache.registerProviderAsCacheable(provider.getClass());
-    }
-
-    /**
-     * Returns a new instance of the geocode caching service.
-     * @return GeocodeCacheService
-     */
-    public GeocodeCacheService newCacheInstance()
-    {
-        return new GeoCache();
     }
 
     /**
@@ -137,10 +131,6 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         /** Clone the list of fall back providers */
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
                                                                   : new LinkedList<>(this.defaultFallback);
-        /** Set up and hit the cache */
-        if (this.geocodeCache == null) {
-            this.newCacheInstance();
-        }
         Timestamp startTime = TimeUtil.currentTimestamp();
         GeocodeResult geocodeResult = (CACHE_ENABLED && useCache) ? this.geocodeCache.geocode(address)
                                                  : new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
@@ -256,9 +246,6 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     public List<GeocodeResult> geocode(List<Address> addresses, String provider,
                                        List<String> fallbackProviders, boolean useFallback, boolean useCache)
     {
-        if (this.geocodeCache == null) {
-            this.newCacheInstance();
-        }
 
         long cacheElapsedMs = 0;
         final int addressCount = addresses.size();

@@ -8,6 +8,7 @@ import gov.nysenate.sage.model.job.JobProcess;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
@@ -16,10 +17,15 @@ import java.sql.SQLException;
 public class DistrictRequestLogger extends BaseDao
 {
     private static Logger logger = LogManager.getLogger(DistrictRequestLogger.class);
-    private static AddressLogger addressLogger = new AddressLogger();
+    private static AddressLogger addressLogger;
     private static String SCHEMA = "log";
     private static String TABLE = "districtRequest";
     private QueryRunner run = getQueryRunner();
+
+    @Autowired
+    public DistrictRequestLogger(AddressLogger addressLogger) {
+        this.addressLogger = addressLogger;
+    }
 
     /**
      * Log a DistrictRequest to the database

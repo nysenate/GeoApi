@@ -14,6 +14,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
@@ -27,7 +28,7 @@ public class GeocodeResultLogger extends BaseDao
     private static Logger logger = LogManager.getLogger(GeocodeResultLogger.class);
     private static AddressLogger addressLogger = new AddressLogger();
     private static PointLogger pointLogger = new PointLogger();
-    private static GeocodeRequestLogger geocodeRequestLogger = new GeocodeRequestLogger();
+    private static GeocodeRequestLogger geocodeRequestLogger;
 
     private static String SCHEMA = "log";
     private static String TABLE = "geocodeResult";
@@ -40,6 +41,13 @@ public class GeocodeResultLogger extends BaseDao
 
     /** Temporary cache for when the data is being saved to the database */
     private static List<Pair<GeocodeRequest, GeocodeResult>> tempCache = new ArrayList<>();
+
+    @Autowired
+    public GeocodeResultLogger(AddressLogger addressLogger, PointLogger pointLogger, GeocodeRequestLogger geocodeRequestLogger) {
+        this.addressLogger = addressLogger;
+        this.pointLogger = pointLogger;
+        this.geocodeRequestLogger = geocodeRequestLogger;
+    }
 
     /**
      * Logs a GeocodeRequest and the corresponding GeocodeResult to the database.

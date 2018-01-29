@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.district;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -15,6 +16,7 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -37,10 +39,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     }
 
     private final Logger logger = LogManager.getLogger(DistrictServiceProvider.class);
-    private final Config config = ApplicationFactory.getConfig();
+    //private final Config config = ApplicationFactory.getConfig();
+    private final Environment env;
 
-    private static DistrictStrategy SINGLE_DISTRICT_STRATEGY;
-    private static DistrictStrategy BATCH_DISTRICT_STRATEGY;
+    private static DistrictStrategy SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf("neighborMatch");
+    private static DistrictStrategy BATCH_DISTRICT_STRATEGY = DistrictStrategy.valueOf("shapeFallback");
 
     /** Specifies the distance (meters) to a district boundary in which the accuracy of shapefiles is uncertain */
     private static Integer PROXIMITY_THRESHOLD = 300;
@@ -52,18 +55,18 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         allowNeighborAssignSet.add(DistrictType.SENATE);
     }
 
-    public DistrictServiceProvider()
+    @Autowired
+    public DistrictServiceProvider(Environment env)
     {
-        config.notifyOnChange(this);
-        update(null, null);
+        this.env = env;
     }
 
     @Override
     public void update(Observable o, Object arg)
     {
-        PROXIMITY_THRESHOLD = Integer.parseInt(this.config.getValue("border.proximity", "300"));
-        SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf(this.config.getValue("district.strategy.single", "neighborMatch"));
-        BATCH_DISTRICT_STRATEGY = DistrictStrategy.valueOf(this.config.getValue("district.strategy.batch", "shapeFallback"));
+        PROXIMITY_THRESHOLD = env.getBorderProximity();
+        SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf(env.getDistrictStrategySingle());
+        BATCH_DISTRICT_STRATEGY = DistrictStrategy.valueOf(env.getDistrictStrategyBatch());
     }
 
     /** Single District Assign ---------------------------------------------------------------------------------------*/

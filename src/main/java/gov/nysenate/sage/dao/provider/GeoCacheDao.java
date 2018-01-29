@@ -1,14 +1,13 @@
 package gov.nysenate.sage.dao.provider;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.dbutils.QueryRunner;
@@ -16,6 +15,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -30,12 +30,14 @@ public class GeoCacheDao extends BaseDao
 {
     private static Logger logger = LogManager.getLogger(GeoCacheDao.class);
     private static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
-    private static int BUFFER_SIZE;
+    private static int BUFFER_SIZE = 100;
     private QueryRunner tigerRun = getTigerQueryRunner();
+    private final Environment env;
 
-    public GeoCacheDao() {
-        Config config = ApplicationFactory.getConfig();
-        BUFFER_SIZE = Integer.parseInt(config.getValue("geocache.buffer.size", "100"));
+    @Autowired
+    public GeoCacheDao(Environment env) {
+        this.env = env;
+        BUFFER_SIZE = env.getGeocahceBufferSize();
     }
 
     /**
