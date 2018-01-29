@@ -4,9 +4,9 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.geo.BatchGeocodeResponse;
 import gov.nysenate.sage.client.response.geo.GeocodeResponse;
 import gov.nysenate.sage.client.response.geo.RevGeocodeResponse;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
 import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
@@ -15,11 +15,11 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -39,30 +39,39 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public class GeocodeController extends BaseApiController implements Observer
 {
     private static Logger logger = LogManager.getLogger(GeocodeController.class);
-    private static Config config = ApplicationFactory.getConfig();
-    private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
-    private static RevGeocodeServiceProvider revGeocodeServiceProvider = ApplicationFactory.getRevGeocodeServiceProvider();
+    private static GeocodeServiceProvider geocodeServiceProvider;
+    private static RevGeocodeServiceProvider revGeocodeServiceProvider;
 
     /** Usage loggers */
     private static Boolean SINGLE_LOGGING_ENABLED = false;
     private static Boolean BATCH_LOGGING_ENABLED = false;
     private static GeocodeRequestLogger geocodeRequestLogger;
     private static GeocodeResultLogger geocodeResultLogger;
+    private final Environment env;
+
+    @Autowired
+    public GeocodeController(Environment env, GeocodeRequestLogger geocodeRequestLogger,
+                             GeocodeResultLogger geocodeResultLogger, GeocodeServiceProvider geocodeServiceProvider,
+                             RevGeocodeServiceProvider revGeocodeServiceProvider) {
+        this.env = env;
+        this.geocodeRequestLogger = geocodeRequestLogger;
+        this.geocodeResultLogger = geocodeResultLogger;
+        this.geocodeServiceProvider = geocodeServiceProvider;
+        this.revGeocodeServiceProvider = revGeocodeServiceProvider;
+    }
 
     @Override
     public void init(ServletConfig config) throws ServletException
     {
         logger.debug("Initialized " + this.getClass().getSimpleName());
-        geocodeRequestLogger = new GeocodeRequestLogger();
-        geocodeResultLogger = new GeocodeResultLogger();
         update(null, null);
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        Boolean API_LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled", "false"));
-        SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("detailed.logging.enabled", "true"));
-        BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("batch.detailed.logging.enabled", "false"));
+        boolean API_LOGGING_ENABLED = env.isApiLoggingEnabled();
+        SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isDetailedLoggingEnabled();
+        BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
     }
 
     @Override
