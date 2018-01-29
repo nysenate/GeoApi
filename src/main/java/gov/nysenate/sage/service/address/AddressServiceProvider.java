@@ -1,16 +1,16 @@
 package gov.nysenate.sage.service.address;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.AddressLogger;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.AddressUtil;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -21,12 +21,21 @@ import java.util.List;
 public class AddressServiceProvider extends ServiceProviders<AddressService>
 {
     private static Logger logger = LogManager.getLogger(AddressServiceProvider.class);
-    AddressLogger addressLogger = new AddressLogger();
+    private AddressLogger addressLogger;
+    private Environment env;
 
-    private static Config config = ApplicationFactory.getConfig();
-    private Boolean API_LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled", "false"));
-    private boolean SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("detailed.logging.enabled", "false"));
-    private boolean BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && Boolean.parseBoolean(config.getValue("batch.detailed.logging.enabled", "false"));
+    private boolean API_LOGGING_ENABLED = false;
+    private boolean SINGLE_LOGGING_ENABLED = false;
+    private boolean BATCH_LOGGING_ENABLED = false;
+
+    @Autowired
+    public AddressServiceProvider(AddressLogger addressLogger, Environment env) {
+        this.addressLogger = addressLogger;
+        this.env = env;
+        API_LOGGING_ENABLED = env.isApiLoggingEnabled();
+        SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isDetailedLoggingEnabled();
+        BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
+    }
 
     /**
      * Validates an address using USPS or another provider if available.

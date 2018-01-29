@@ -2,15 +2,14 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.address.*;
 import gov.nysenate.sage.client.response.base.ApiError;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
-import gov.nysenate.sage.util.Config;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -34,10 +33,14 @@ public final class AddressController extends BaseApiController
     private Logger logger = LogManager.getLogger(AddressController.class);
     private static AddressServiceProvider addressProvider;
 
+    @Autowired
+    public AddressController(AddressServiceProvider addressProvider) {
+        this.addressProvider = addressProvider;
+    }
+
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        addressProvider = ApplicationFactory.getAddressServiceProvider();
         logger.debug("Initialized " + this.getClass().getSimpleName());
     }
 

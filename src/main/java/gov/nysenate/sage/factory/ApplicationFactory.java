@@ -1,5 +1,7 @@
 package gov.nysenate.sage.factory;
 
+import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.dao.logger.AddressLogger;
 import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.listener.SageConfigurationListener;
@@ -148,7 +150,7 @@ public class ApplicationFactory
             Map<String, Class<? extends AddressService>> addressProviders = new HashMap<>();
             addressProviders.put("usps", USPSAMS.class);
             addressProviders.put("uspsais", USPSAIS.class);
-            addressServiceProvider = new AddressServiceProvider();
+            addressServiceProvider = new AddressServiceProvider(new AddressLogger(), new Environment());
             for (String key : addressProviders.keySet()) {
                 addressServiceProvider.registerProvider(key, addressProviders.get(key));
             }
