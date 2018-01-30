@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.api;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.meta.MetaInfoResponse;
 import gov.nysenate.sage.client.response.meta.MetaProviderResponse;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -11,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -27,6 +29,12 @@ public class MetaController extends BaseApiController
     private static Logger logger = LogManager.getLogger(MetaController.class);
     private static MavenXpp3Reader pomReader = new MavenXpp3Reader();
     private static Model pomModel = null;
+    private final Environment env;
+
+    @Autowired
+    public MetaController(Environment env) {
+        this.env = env;
+    }
 
     @Override
     public void init(ServletConfig config) throws ServletException
