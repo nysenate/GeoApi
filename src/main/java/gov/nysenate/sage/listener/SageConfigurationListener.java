@@ -6,6 +6,7 @@ import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Observable;
 
@@ -13,6 +14,8 @@ import java.util.Observable;
  * SageConfigurationListener listens to any changes to property files that have been loaded with
  * the {@link org.apache.commons.configuration.PropertiesConfiguration} class.
  */
+
+@Component
 public class SageConfigurationListener extends Observable
                                        implements ConfigurationListener, ConfigurationErrorListener
 {

@@ -5,6 +5,8 @@ import gov.nysenate.sage.dao.logger.AddressLogger;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.USPSAIS;
+import gov.nysenate.sage.provider.USPSAMS;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.TimeUtil;
@@ -15,7 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AddressServiceProvider extends ServiceProviders<AddressService>
@@ -35,6 +39,15 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
         API_LOGGING_ENABLED = env.isApiLoggingEnabled();
         SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isDetailedLoggingEnabled();
         BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
+
+        String defaultUspsProvider = env.getUspsDefault();
+        Map<String, Class<? extends AddressService>> addressProviders = new HashMap<>();
+        addressProviders.put("usps", USPSAMS.class);
+        addressProviders.put("uspsais", USPSAIS.class);
+        for (String key : addressProviders.keySet()) {
+            registerProvider(key, addressProviders.get(key));
+        }
+        setDefaultProvider(defaultUspsProvider);
     }
 
     /**

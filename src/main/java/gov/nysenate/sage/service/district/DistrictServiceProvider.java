@@ -11,6 +11,8 @@ import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.DistrictShapefile;
+import gov.nysenate.sage.provider.Geoserver;
+import gov.nysenate.sage.provider.StreetFile;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
@@ -59,6 +61,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     public DistrictServiceProvider(Environment env)
     {
         this.env = env;
+
+        registerDefaultProvider("shapefile", DistrictShapefile.class);
+        registerProvider("streetfile", StreetFile.class);
+        registerProvider("geoserver", Geoserver.class);
+        setProviderFallbackChain(Arrays.asList("streetfile"));
     }
 
     @Override

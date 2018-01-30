@@ -3,14 +3,24 @@ package gov.nysenate.sage.dao.base;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.model.geo.GeometryTypes;
 import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.service.address.ParallelAddressService;
+import gov.nysenate.sage.service.district.ParallelDistrictService;
+import gov.nysenate.sage.service.geo.ParallelGeocodeService;
+import gov.nysenate.sage.service.geo.ParallelRevGeocodeService;
+import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.DB;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.dbutils.AsyncQueryRunner;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -19,16 +29,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+@Repository
 public class BaseDao
 {
     private static Logger logger = LogManager.getLogger(BaseDao.class);
+    /** Dependency instances */
+    private Config config;
+    private DB baseDB;
+    private DB tigerDB;
     protected DataSource dataSource;
     protected DataSource tigerDataSource;
 
+    @Autowired
     public BaseDao()
     {
-        this.dataSource = ApplicationFactory.getDataSource();
-        this.tigerDataSource = ApplicationFactory.getTigerDataSource();
+        try {
+            SageConfigurationListener configurationListener = new SageConfigurationListener();
+            this.config = new Config("app.properties", configurationListener);
+            this.baseDB = new DB(this.config, "db");
+            this.tigerDB = new DB(this.config, "tiger.db");
+        }
+        catch(ConfigurationException e) {
+            throw new RuntimeException("Failed to connect to DB's");
+        }
+        this.dataSource = baseDB.getDataSource();
+        this.tigerDataSource = tigerDB.getDataSource();
     }
 
     public QueryRunner getQueryRunner()
@@ -151,5 +176,37 @@ public class BaseDao
             }
         }
         return null;
+    }
+
+    public boolean close()
+    {
+        try {
+            baseDB.getDataSource().purge();
+            tigerDB.getDataSource().purge();
+        }
+        catch (Exception ex) {
+            logger.error("Failed to purge data connections!", ex);
+        }
+
+        try {
+            baseDB.getDataSource().close(true);
+            tigerDB.getDataSource().close(true);
+
+            ParallelDistrictService.shutdownThread();
+            ParallelGeocodeService.shutdownThread();
+            ParallelRevGeocodeService.shutdownThread();
+            ParallelAddressService.shutdownThread();
+            logger.info("All data connections have closed successfully");
+
+            return true;
+        }
+        catch (Exception ex) {
+            logger.error("Failed to close data connections/threads!", ex);
+        }
+        return false;
+    }
+
+    public Config getConfig() {
+        return config;
     }
 }

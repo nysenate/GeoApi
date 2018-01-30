@@ -2,9 +2,11 @@ package gov.nysenate.sage.service.map;
 
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.result.MapResult;
+import gov.nysenate.sage.provider.DistrictShapefile;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
@@ -14,6 +16,11 @@ import java.util.List;
 public class MapServiceProvider extends ServiceProviders<MapService>
 {
     protected Logger logger = LogManager.getLogger(MapServiceProvider.class);
+
+    @Autowired
+    public MapServiceProvider() {
+        registerDefaultProvider("shapefile", DistrictShapefile.class);
+    }
 
     /**
      * Assigns district maps to a DistrictInfo result.

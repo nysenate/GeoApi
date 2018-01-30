@@ -1,9 +1,8 @@
 package gov.nysenate.sage.dao.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Senator;
@@ -11,6 +10,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -22,7 +22,6 @@ import java.util.*;
 public class SenateDao extends BaseDao implements Observer
 {
     private static Logger logger = LogManager.getLogger(SenateDao.class);
-    private static Config config = ApplicationFactory.getConfig();
     private QueryRunner run = getQueryRunner();
 
     /** Mapper used to serialize into json */
@@ -33,9 +32,11 @@ public class SenateDao extends BaseDao implements Observer
     protected static Integer refreshIntervalHours = 12;
     protected static Timestamp cacheUpdated;
 
+    private final Environment env;
+
     @Override
     public void update(Observable o, Object arg) {
-        refreshIntervalHours = Integer.parseInt(config.getValue("senator.cache.refresh.hours", "12"));
+        refreshIntervalHours = env.getSenatorCacheRefreshHours();
     }
 
     /**
@@ -66,9 +67,12 @@ public class SenateDao extends BaseDao implements Observer
         }
     }
 
-    public SenateDao()
+    @Autowired
+    public SenateDao(Environment env)
     {
+        this.env = env;
         getSenatorMap();
+        update(null, null);
     }
 
     /**

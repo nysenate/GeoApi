@@ -10,6 +10,8 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.GeoCache;
+import gov.nysenate.sage.provider.GoogleGeocoder;
+import gov.nysenate.sage.provider.TigerGeocoder;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
@@ -33,6 +35,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 {
     private final Logger logger = LogManager.getLogger(GeocodeServiceProvider.class);
     private final Environment env;
+    private Map<String, Class<? extends GeocodeService>> activeGeoProviders = new HashMap<>();
 
     /** Caching members */
     private GeocodeCacheService geocodeCache;
@@ -42,6 +45,36 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     public GeocodeServiceProvider(Environment env, GeocodeCacheService geocodeCache) {
         this.env = env;
         this.geocodeCache = geocodeCache;
+        /** Setup geocode service providers. */
+        Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
+        geoProviders.put("google", GoogleGeocoder.class);
+        geoProviders.put("tiger", TigerGeocoder.class);
+
+        for (String key : geoProviders.keySet()) {
+            logger.debug("Adding geocoder: " + key);
+            registerProvider(key, geoProviders.get(key));
+        }
+
+        String[] activeList = env.getGeocoderActive().split(",");
+        for (String provider : activeList) {
+            GeocodeServiceValidator.setGeocoderAsActive(geoProviders.get(provider));
+            activeGeoProviders.put(provider, geoProviders.get(provider));
+        }
+
+        LinkedList<String> geocoderRankList = new LinkedList<>(Arrays.asList(env.getGeocoderRank().split(",")));
+        if (!geocoderRankList.isEmpty()) {
+            /** Set the first geocoder as the default. */
+            setDefaultProvider(geocoderRankList.removeFirst());
+            /** Set the fallback chain in the order of the ranking (excluding first). */
+            setProviderFallbackChain(geocoderRankList);
+        }
+
+        /** Designate which geocoders are allowed to cache. */
+        List<String> cacheableProviderList = Arrays.asList(env.getGeocoderCacheable().split(","));
+        for (String provider : cacheableProviderList) {
+            registerProviderAsCacheable(provider);
+        }
+
         update(null, null);
     }
 
