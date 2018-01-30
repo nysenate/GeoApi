@@ -17,7 +17,6 @@ import java.sql.Timestamp;
 public class ExceptionLogger extends BaseDao
 {
     private static Logger logger = LogManager.getLogger(ExceptionLogger.class);
-    private static ApiRequestLogger apiRequestLogger = new ApiRequestLogger();
     private static String SCHEMA = "log";
     private static String TABLE = "exception";
     private QueryRunner run = getQueryRunner();

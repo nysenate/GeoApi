@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.error;
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.RequestDispatcher;
@@ -21,10 +22,13 @@ public class ExceptionController extends HttpServlet
     private static Logger logger = LogManager.getLogger(ExceptionController.class);
     private ExceptionLogger exceptionLogger;
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        exceptionLogger = new ExceptionLogger();
+    @Autowired
+    public ExceptionController(ExceptionLogger exceptionLogger) {
+        this.exceptionLogger = exceptionLogger;
     }
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {}
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
