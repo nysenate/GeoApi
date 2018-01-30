@@ -5,7 +5,6 @@ import gov.nysenate.sage.client.response.map.MapResponse;
 import gov.nysenate.sage.client.response.map.MetadataResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapResponse;
 import gov.nysenate.sage.client.response.map.MultipleMetadataResponse;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
@@ -15,6 +14,7 @@ import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.service.map.MapServiceProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -27,7 +27,12 @@ import java.io.IOException;
 public class MapController extends BaseApiController
 {
     private static Logger logger = LogManager.getLogger(MapController.class);
-    private static MapServiceProvider mapServiceProvider = ApplicationFactory.getMapServiceProvider();
+    private static MapServiceProvider mapServiceProvider;
+
+    @Autowired
+    public MapController(MapServiceProvider mapServiceProvider) {
+        this.mapServiceProvider = mapServiceProvider;
+    }
 
     @Override
     public void init(ServletConfig config) throws ServletException {}
