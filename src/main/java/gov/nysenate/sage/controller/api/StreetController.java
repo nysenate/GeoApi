@@ -2,7 +2,7 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.street.StreetResponse;
-import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.result.StreetResult;
 import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -23,7 +24,12 @@ import java.util.List;
 public class StreetController extends BaseApiController
 {
     private static Logger logger = LogManager.getLogger(StreetController.class);
-    private static StreetLookupServiceProvider streetProvider = ApplicationFactory.getStreetLookupServiceProvider();
+    private static StreetLookupServiceProvider streetProvider;
+
+    @Autowired
+    public StreetController(StreetLookupServiceProvider streetProvider, Environment env) {
+        this.streetProvider = streetProvider;
+    }
 
     @Override
     public void init(ServletConfig config) throws ServletException {}

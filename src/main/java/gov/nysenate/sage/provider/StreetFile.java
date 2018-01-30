@@ -14,6 +14,7 @@ import gov.nysenate.sage.service.street.StreetLookupService;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
@@ -39,8 +40,9 @@ public class StreetFile implements DistrictService, StreetLookupService
     private Logger logger = LogManager.getLogger(StreetFile.class);
     private StreetFileDao streetFileDao;
 
-    public StreetFile() {
-        this.streetFileDao = new StreetFileDao();
+    @Autowired
+    public StreetFile(StreetFileDao streetFileDao) {
+        this.streetFileDao = streetFileDao;
         logger.debug("Instantiated StreetFile.");
     }
 
