@@ -3,11 +3,10 @@ package gov.nysenate.sage.controller.job;
 import gov.nysenate.sage.client.response.job.JobActionResponse;
 import gov.nysenate.sage.client.response.job.JobUploadErrorResponse;
 import gov.nysenate.sage.client.response.job.JobUploadSuccessResponse;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.JobProcessDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.JobErrorResult;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.JobFileUtil;
 import gov.nysenate.sage.util.auth.JobUserAuth;
@@ -20,9 +19,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.supercsv.io.CsvListReader;
-import org.supercsv.io.CsvListWriter;
 import org.supercsv.prefs.CsvPreference;
 
 import javax.servlet.ServletConfig;
@@ -39,11 +38,16 @@ import java.util.List;
 public class JobController extends BaseJobController
 {
     private Logger logger = LogManager.getLogger(JobController.class);
-    private Config config = ApplicationFactory.getConfig();
+    private final Environment env;
 
     private static String JOB_MAIN_JSP = "/WEB-INF/views/jobmain.jsp";
     private static String JOB_LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
     private static String DOWNLOAD_BASE_URL = "/job/download/";
+
+    @Autowired
+    public JobController(Environment env) {
+        this.env = env;
+    }
 
     @Override
     public void init(ServletConfig config) throws ServletException {}
@@ -139,7 +143,7 @@ public class JobController extends BaseJobController
      */
     public void doUpload(HttpServletRequest request, HttpServletResponse response)
     {
-        String uploadDir = config.getValue("job.upload.dir");
+        String uploadDir = env.getJobUploadDir();
 
         JobRequest jobRequest = getJobRequest(request);
         Object uploadResponse = null;

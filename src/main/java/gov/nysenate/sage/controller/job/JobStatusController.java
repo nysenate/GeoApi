@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -35,9 +36,14 @@ import java.util.List;
 public class JobStatusController extends BaseJobController
 {
     private static Logger logger = LogManager.getLogger(JobStatusController.class);
-    private static JobProcessDao jobProcessDao = new JobProcessDao();
+    private static JobProcessDao jobProcessDao;
     private static String TEMP_DIR = "/tmp";
     private static String LOCK_FILENAME = "batchJobProcess.lock";
+
+    @Autowired
+    public JobStatusController(JobProcessDao jobProcessDao) {
+        this.jobProcessDao = jobProcessDao;
+    }
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException

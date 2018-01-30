@@ -1,10 +1,10 @@
 package gov.nysenate.sage.controller.job;
 
-import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.config.Environment;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.ServletConfig;
@@ -22,8 +22,13 @@ import java.util.Observer;
 public class JobDownloadController extends BaseJobController implements Observer
 {
     private static Logger logger = LogManager.getLogger(JobDownloadController.class);
-    private static Config config = ApplicationFactory.getConfig();
     private static String DOWNLOAD_DIR;
+    private final Environment env;
+
+    @Autowired
+    public JobDownloadController(Environment env) {
+        this.env = env;
+    }
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -32,7 +37,7 @@ public class JobDownloadController extends BaseJobController implements Observer
 
     @Override
     public void update(Observable o, Object arg) {
-        DOWNLOAD_DIR = config.getValue("job.download.dir");
+        DOWNLOAD_DIR = env.getJobDownloadDir();
     }
 
     @Override
