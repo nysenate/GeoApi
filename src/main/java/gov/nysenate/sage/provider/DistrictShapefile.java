@@ -1,9 +1,9 @@
 package gov.nysenate.sage.provider;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.dao.provider.StreetFileDao;
 import gov.nysenate.sage.dao.provider.TigerGeocoderDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -17,10 +17,10 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.service.map.MapService;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -33,7 +33,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 public class DistrictShapefile implements DistrictService, MapService, Observer
 {
     private static Logger logger = LogManager.getLogger(DistrictShapefile.class);
-    private static Config config = ApplicationFactory.getConfig();
+    private final Environment env;
     private DistrictShapefileDao districtShapefileDao;
 
     /** The street file and cityzip daos are needed to determine overlap */
@@ -48,19 +48,23 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
     /** Specifies the maximum number of nearby neighbors that will be returned by default. */
     private static Integer MAX_NEIGHBORS = 2;
 
-    public DistrictShapefile()
+    @Autowired
+    public DistrictShapefile(DistrictShapefileDao districtShapefileDao, StreetFileDao streetFileDao,
+                             CityZipDB cityZipDB, TigerGeocoderDao tigerGeocoderDao,
+                             Environment env)
     {
         this.districtShapefileDao = new DistrictShapefileDao();
         this.streetFileDao = new StreetFileDao();
-        this.cityZipDBDao = new CityZipDB();
-        this.tigerGeocoderDao = new TigerGeocoderDao();
+        this.cityZipDBDao = cityZipDB;
+        this.tigerGeocoderDao = tigerGeocoderDao;
+        this.env = env;
         update(null, null);
         logger.debug("Instantiated DistrictShapefile.");
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        NEIGHBOR_PROXIMITY = Integer.parseInt(config.getValue("neighbor.proximity", "500"));
+        NEIGHBOR_PROXIMITY = env.getNeighborProximity();
     }
 
     @Override

@@ -5,6 +5,7 @@ import gov.nysenate.sage.dao.provider.CityZipDBDao;
 import gov.nysenate.sage.service.address.CityZipService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,7 +16,12 @@ import java.util.List;
 public class CityZipDB implements CityZipService
 {
     private static Logger logger = LogManager.getLogger(CityZipDB.class);
-    private static CityZipDBDao cityZipDBDao = new CityZipDBDao();
+    private static CityZipDBDao cityZipDBDao;
+
+    @Autowired
+    public CityZipDB(CityZipDBDao cityZipDBDao) {
+        this.cityZipDBDao = cityZipDBDao;
+    }
 
     @Override
     public String getCityByZip(String zip5)
