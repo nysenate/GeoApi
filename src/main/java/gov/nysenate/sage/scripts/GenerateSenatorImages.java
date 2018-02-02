@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.ImageUtil;
@@ -21,8 +22,7 @@ public class GenerateSenatorImages
         String path = args[1];
         Integer height = Integer.parseInt(args[2]);
 
-        ApplicationFactory.bootstrap();
-        SenateDao senateDao = new SenateDao();
+        SenateDao senateDao = new SenateDao(new Environment());
         Collection<Senator> senators = senateDao.getSenators();
         for (Senator senator : senators) {
             String filePath =  path + senator.getShortName() + ".png";

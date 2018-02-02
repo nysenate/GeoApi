@@ -2,6 +2,9 @@ package gov.nysenate.sage.dao.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.controller.api.BaseApiController;
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -12,6 +15,7 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -21,11 +25,11 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Repository
-public class GoogleDao implements Observer
+public class GoogleDao extends BaseDao implements Observer
 {
     private static final Logger logger = LogManager.getLogger(GoogleDao.class);
 
-    private static final Config config = ApplicationFactory.getConfig();
+    private final Environment env;
     private static final String DEFAULT_BASE_URL = "https://maps.googleapis.com/maps/api/geocode/json";
     private static final String GEOCODE_QUERY = "?address=%s&key=%s";
     private static final String REV_GEOCODE_QUERY = "?latlng=%s&key=%s";
@@ -34,16 +38,17 @@ public class GoogleDao implements Observer
     private String baseUrl;
     private String apiKey;
 
-    public GoogleDao() {
-        config.notifyOnChange(this);
+    @Autowired
+    public GoogleDao(Environment env) {
+        this.env = env;
         this.update(null, null);
     }
 
     @Override
     public void update(Observable o, Object arg)
     {
-        this.baseUrl = config.getValue("google.geocoder.url", DEFAULT_BASE_URL);
-        this.apiKey = config.getValue("google.geocoder.key", "");
+        this.baseUrl = env.getGoogleGeocoderUrl();
+        this.apiKey = env.getGoogleGeocoderKey();
     }
 
     public String getBaseUrl()

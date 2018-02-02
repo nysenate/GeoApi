@@ -2,6 +2,7 @@ package gov.nysenate.sage.dao.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -12,6 +13,7 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -21,10 +23,10 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Repository
-public class YahooBossDao implements Observer
+public class YahooBossDao extends BaseDao implements Observer
 {
     private static final Logger logger = LogManager.getLogger(YahooBossDao.class);
-    private static final Config config = ApplicationFactory.getConfig();
+    private final Config config = getConfig();
     private static final String DEFAULT_BASE_URL = "http://yboss.yahooapis.com/geo/placefinder";
     private static String CONSUMER_KEY;
     private static String CONSUMER_SECRET;
@@ -32,6 +34,7 @@ public class YahooBossDao implements Observer
     private String baseUrl;
     private ObjectMapper objectMapper;
 
+    @Autowired
     public YahooBossDao()
     {
         this.objectMapper = new ObjectMapper();

@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
  * which delegates the Observer to SageConfigurationListener. File change modifications
  * are not checked continuously but rather any time the Config object is read from.
  *
- * @see gov.nysenate.sage.factory.ApplicationFactory
  * @see gov.nysenate.sage.listener.SageConfigurationListener
  */
 

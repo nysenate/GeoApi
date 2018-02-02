@@ -7,6 +7,7 @@ import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.maven.model.Model;
@@ -30,10 +31,12 @@ public class MetaController extends BaseApiController
     private static MavenXpp3Reader pomReader = new MavenXpp3Reader();
     private static Model pomModel = null;
     private final Environment env;
+    private GeocodeServiceProvider geocodeServiceProvider;
 
     @Autowired
-    public MetaController(Environment env) {
+    public MetaController(Environment env, GeocodeServiceProvider geocodeServiceProvider) {
         this.env = env;
+        this.geocodeServiceProvider = geocodeServiceProvider;
     }
 
     @Override
@@ -76,7 +79,7 @@ public class MetaController extends BaseApiController
                 break;
             }
             case "provider" : {
-                metaResponse = new MetaProviderResponse(ApplicationFactory.getActiveGeoProviders());
+                metaResponse = new MetaProviderResponse(geocodeServiceProvider.getActiveGeoProviders());
                 break;
             }
             default : {

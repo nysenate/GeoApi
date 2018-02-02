@@ -1,5 +1,7 @@
 package gov.nysenate.sage.scripts;
 
+import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.AssemblyDao;
 import gov.nysenate.sage.dao.model.CongressionalDao;
 import gov.nysenate.sage.dao.model.SenateDao;
@@ -25,18 +27,19 @@ import java.util.List;
  *
  * @author Ken Zalewski, Ash Islam
  */
-public class GenerateMetadata
+public class GenerateMetadata extends BaseDao
 {
     private Config config;
 
     public GenerateMetadata()
     {
-        config = ApplicationFactory.getConfig();
+        config = getConfig();
     }
 
     public static void main(String[] args) throws Exception
     {
         boolean updated = false;
+        BaseDao baseDao = new BaseDao();
 
         if (args.length == 0) {
             System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
@@ -44,7 +47,7 @@ public class GenerateMetadata
         }
 
         /** Load up the configuration settings */
-        if (!ApplicationFactory.bootstrap()){
+        if (baseDao == null){
             System.err.println("Failed to configure application");
             System.exit(-1);
         }
@@ -89,7 +92,7 @@ public class GenerateMetadata
             updated = generateMetadata.generateSenateData();
         }
 
-        ApplicationFactory.close();
+        baseDao.close();
         if (updated) System.exit(0);
         else System.exit(1);
     }
@@ -162,7 +165,7 @@ public class GenerateMetadata
         boolean updated = false;
 
         NYSenateClientService senateClient;
-        SenateDao senateDao = new SenateDao();
+        SenateDao senateDao = new SenateDao(new Environment());
 
         System.out.println("Generating senate data from NY Senate client services");
 

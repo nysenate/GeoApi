@@ -1,5 +1,6 @@
 package gov.nysenate.sage.provider;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.client.fluent.Content;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -77,19 +79,19 @@ public class USPSAIS implements AddressService, Observer
     private static final int BATCH_SIZE = 5;
     private static final String DEFAULT_BASE_URL = "http://production.shippingapis.com/ShippingAPI.dll";
     private final Logger logger = LogManager.getLogger(USPSAIS.class);
-    private Config config;
+    private Environment env;
     private final DocumentBuilder xmlBuilder;
     private final XPath xpath;
     private String baseUrl;
     private String apiKey;
 
-    public USPSAIS() throws Exception
+    @Autowired
+    public USPSAIS(Environment env) throws Exception
     {
-        config = ApplicationFactory.getConfig();
+        this.env = env;
         xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         xpath = XPathFactory.newInstance().newXPath();
         configure();
-        config.notifyOnChange(this);
     }
 
     public void update(Observable o, Object arg)
@@ -384,8 +386,8 @@ public class USPSAIS implements AddressService, Observer
 
     private void configure()
     {
-        baseUrl = config.getValue("usps.ais.url");
-        apiKey = config.getValue("usps.ais.key");
+        baseUrl = env.getUspsAisUrl();
+        apiKey = env.getUspsAisKey();
         if (baseUrl.isEmpty()) {
             baseUrl = DEFAULT_BASE_URL;
         }

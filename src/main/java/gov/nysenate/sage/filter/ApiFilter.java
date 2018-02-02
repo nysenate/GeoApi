@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
@@ -13,6 +14,7 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
@@ -46,7 +48,6 @@ public class ApiFilter implements Filter, Observer
 {
     private static Logger logger = LogManager.getLogger(ApiFilter.class);
     private static ApiRequestLogger apiRequestLogger;
-    private static Config config;
     private static String ipFilter;
     private static String defaultKey;
     private static String publicKey;
@@ -75,24 +76,25 @@ public class ApiFilter implements Filter, Observer
     /** Available format types */
     public enum FormatType { JSON, XML, JSONP }
 
+    @Autowired
+    Environment env;
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
     {
-        config = ApplicationFactory.getConfig();
         apiRequestLogger = new ApiRequestLogger();
         jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
         xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        config.notifyOnChange(this);
         configure();
     }
 
     public void configure()
     {
-        ipFilter = config.getValue("user.ip.filter");
-        defaultKey = config.getValue("user.default.key");
-        publicApiFilter = config.getValue("public.api.filter");
-        publicKey = config.getValue("user.public.key");
-        API_LOGGING_ENABLED = Boolean.parseBoolean(config.getValue("api.logging.enabled", "true"));
+        ipFilter = env.getUserIpFilter();
+        defaultKey = env.getUserDefaultKey();
+        publicApiFilter = env.getPublicApiFilter();
+        publicKey = env.getUserPublicKey();
+        API_LOGGING_ENABLED = env.isApiLoggingEnabled();
         logger.info(String.format("Configured default access on %s via key %s", ipFilter, defaultKey));
     }
 

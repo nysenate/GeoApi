@@ -440,4 +440,8 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         }
         return failedIndices;
     }
+
+    public Map<String, Class<? extends GeocodeService>> getActiveGeoProviders() {
+        return activeGeoProviders;
+    }
 }

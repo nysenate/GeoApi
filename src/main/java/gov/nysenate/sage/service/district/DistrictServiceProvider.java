@@ -41,7 +41,6 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     }
 
     private final Logger logger = LogManager.getLogger(DistrictServiceProvider.class);
-    //private final Config config = ApplicationFactory.getConfig();
     private final Environment env;
 
     private static DistrictStrategy SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf("neighborMatch");

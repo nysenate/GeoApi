@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.district;
 
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -17,12 +18,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Parallel district assignment for use in a provider's batch district implementation.
  */
-public abstract class ParallelDistrictService
+public abstract class ParallelDistrictService extends BaseDao
 {
     private static Logger logger = LogManager.getLogger(ParallelDistrictService.class);
-    private static Config config = ApplicationFactory.getConfig();
-    private static int THREAD_COUNT = Integer.parseInt(config.getValue("distassign.threads", "3"));
-    private static ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("district"));
+    private Config config = getConfig();
+    private int THREAD_COUNT = Integer.parseInt(config.getValue("distassign.threads", "3"));
+    private ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("district"));
 
     private static class ParallelDistAssign implements Callable<DistrictResult>
     {
@@ -44,7 +45,7 @@ public abstract class ParallelDistrictService
         }
     }
 
-    public static List<DistrictResult> assignDistricts(DistrictService districtService, List<GeocodedAddress> geocodedAddresses, List<DistrictType> types)
+    public List<DistrictResult> assignDistricts(DistrictService districtService, List<GeocodedAddress> geocodedAddresses, List<DistrictType> types)
     {
         ArrayList<DistrictResult> districtResults = new ArrayList<>();
         ArrayList<Future<DistrictResult>> futureDistrictResults = new ArrayList<>();
@@ -68,7 +69,7 @@ public abstract class ParallelDistrictService
         return districtResults;
     }
 
-    public static void shutdownThread() {
+    public void shutdownThread() {
         executor.shutdownNow();
     }
 }

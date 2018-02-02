@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.district;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.AssemblyDao;
 import gov.nysenate.sage.dao.model.CongressionalDao;
 import gov.nysenate.sage.dao.model.SenateDao;
@@ -29,7 +30,7 @@ public abstract class DistrictMemberProvider
      */
     public static void assignDistrictMembers(DistrictResult districtResult)
     {
-        SenateDao senateDao = new SenateDao();
+        SenateDao senateDao = new SenateDao(new Environment());
 
         /** Proceed on either a success or partial result */
         if (districtResult.isSuccess()) {
@@ -80,7 +81,7 @@ public abstract class DistrictMemberProvider
             for (DistrictMap map : mapResult.getDistrictMaps()) {
                 if (map.getDistrictType().equals(SENATE)) {
                     int senateCode = Integer.parseInt(map.getDistrictCode());
-                    map.setSenator(new SenateDao().getSenatorByDistrict(senateCode));
+                    map.setSenator(new SenateDao(new Environment()).getSenatorByDistrict(senateCode));
                 }
                 else if (map.getDistrictType().equals(CONGRESSIONAL)) {
                     int congressionalCode = Integer.parseInt(map.getDistrictCode());

@@ -1,8 +1,11 @@
 package gov.nysenate.sage.util;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
@@ -13,10 +16,10 @@ import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+@Component
 public class Mailer
 {
     private Logger logger = LogManager.getLogger(Mailer.class);
-    private Config config = ApplicationFactory.getConfig();
     private String SMTP_HOST_NAME;
     private String SMTP_DEBUG;
     private String SMTP_ACTIVE;
@@ -27,19 +30,21 @@ public class Mailer
     private String SMTP_TLS_ENABLE;
     private String SMTP_SSL_ENABLE;
     private String SMTP_CONTEXT;
+    private Environment env;
 
-    public Mailer()
+    @Autowired
+    public Mailer(Environment env)
     {
-        SMTP_HOST_NAME = config.getValue("smtp.host");
-        SMTP_DEBUG = config.getValue("smtp.debug");
-        SMTP_ACTIVE = config.getValue("smtp.active");
-        SMTP_PORT = config.getValue("smtp.port");
-        SMTP_ACCOUNT_USER = config.getValue("smtp.user");
-        SMTP_ACCOUNT_PASS = config.getValue("smtp.pass");
-        SMTP_ADMIN = config.getValue("smtp.admin");
-        SMTP_TLS_ENABLE = config.getValue("smtp.tls.enable");
-        SMTP_SSL_ENABLE = config.getValue("smtp.ssl.enable");
-        SMTP_CONTEXT = config.getValue("smtp.context");
+        SMTP_HOST_NAME = env.getSmtpHost();//config.getValue("smtp.host");
+        SMTP_DEBUG = env.getSmtpDebug().toString();//config.getValue("smtp.debug");
+        SMTP_ACTIVE = env.getSmtpActive().toString();//config.getValue("smtp.active");
+        SMTP_PORT = Integer.toString(env.getSmtpPort());//config.getValue("smtp.port");
+        SMTP_ACCOUNT_USER = env.getSmtpUser();//config.getValue("smtp.user");
+        SMTP_ACCOUNT_PASS = env.getSmtpPass();//config.getValue("smtp.pass");
+        SMTP_ADMIN = env.getSmtpAdmin();//config.getValue("smtp.admin");
+        SMTP_TLS_ENABLE = String.valueOf(env.getSmtpTlsEnable());//config.getValue("smtp.tls.enable");
+        SMTP_SSL_ENABLE = String.valueOf(env.getSmtpSslEnable());//config.getValue("smtp.ssl.enable");
+        SMTP_CONTEXT = env.getSmtpContext();//config.getValue("smtp.context");
     }
 
     public String getContext() {

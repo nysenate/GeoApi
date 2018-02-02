@@ -1,11 +1,14 @@
 package gov.nysenate.sage.listener;
 
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.logger.DeploymentLogger;
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
 import gov.nysenate.sage.dao.stats.ExceptionInfoDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -18,11 +21,13 @@ import java.util.Date;
  * perform cleanup when the context is being shut down.
  */
 @WebListener()
-public class SageContextListener implements ServletContextListener {
+@Component
+public class SageContextListener extends BaseDao implements ServletContextListener {
 
     public Logger logger = LogManager.getLogger(this.getClass());
     public DeploymentLogger deploymentLogger;
 
+    @Autowired
     public SageContextListener() {}
 
     /**
@@ -34,22 +39,16 @@ public class SageContextListener implements ServletContextListener {
         logger.info("Servlet Context Listener started.");
 
         /** Build instances, initialize cache, and set the init attribute to true if succeeded */
-        boolean buildStatus = ApplicationFactory.bootstrap();
-        sce.getServletContext().setAttribute("init", buildStatus);
-        if (buildStatus && ApplicationFactory.getConfig() != null) {
-            if (Boolean.parseBoolean(ApplicationFactory.getConfig().getValue("init.caches"))) {
-                logger.info("Initializing caches in memory..");
-                ApplicationFactory.initializeCache();
-            }
-
+        sce.getServletContext().setAttribute("init", true);
+        if ( getConfig() != null) {
             deploymentLogger = new DeploymentLogger();
             Integer deploymentId = deploymentLogger.logDeploymentStatus(true, -1, new Timestamp(new Date().getTime()));
-            logger.info("Bootstrapped using ApplicationFactory: " + buildStatus);
+            logger.info("Successfully logged deployment" + deploymentId);
             sce.getServletContext().setAttribute("deploymentId", deploymentId);
         }
         else {
             ExceptionLogger exceptionLogger = new ExceptionLogger();
-            RuntimeException appFactoryBuildEx = new RuntimeException("Could not build from Application Factory");
+            RuntimeException appFactoryBuildEx = new RuntimeException("Could not build deploy");
             exceptionLogger.logException(appFactoryBuildEx, new Timestamp(new Date().getTime()),null);
             throw appFactoryBuildEx;
         }
@@ -66,6 +65,6 @@ public class SageContextListener implements ServletContextListener {
         deploymentLogger = new DeploymentLogger();
         Integer deploymentId = (Integer) sce.getServletContext().getAttribute("deploymentId");
         deploymentLogger.logDeploymentStatus(false, deploymentId, new Timestamp(new Date().getTime()));
-        ApplicationFactory.close();
+        close();
     }
 }

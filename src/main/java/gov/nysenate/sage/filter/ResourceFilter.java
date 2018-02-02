@@ -1,5 +1,7 @@
 package gov.nysenate.sage.filter;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
 import org.apache.logging.log4j.LogManager;
@@ -15,10 +17,10 @@ import java.io.IOException;
  * ResourceFilter is used to refresh the configuration properties stored in resource files.
  */
 @Component
-public class ResourceFilter implements Filter
+public class ResourceFilter extends BaseDao implements Filter
 {
     private final Logger logger = LogManager.getLogger(ResourceFilter.class);
-    private Config config = ApplicationFactory.getConfig();
+    private Config config = getConfig();
     private String log4jConfigFileName = "log4j.xml";
     private File log4jConfigFile;
     private long timeLoaded;

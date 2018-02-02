@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.geo;
 
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.geo.Point;
@@ -14,12 +15,12 @@ import java.util.List;
 import java.util.concurrent.*;
 
 @Service
-public class ParallelRevGeocodeService
+public class ParallelRevGeocodeService extends BaseDao
 {
     private static Logger logger = LogManager.getLogger(ParallelRevGeocodeService.class);
-    private static Config config = ApplicationFactory.getConfig();
-    private static int THREAD_COUNT = Integer.parseInt(config.getValue("revgeocode.threads", "3"));
-    private static ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("revgeo"));
+    private Config config = getConfig();
+    private int THREAD_COUNT = Integer.parseInt(config.getValue("revgeocode.threads", "3"));
+    private ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("revgeo"));
 
     /**
     * Callable for parallel reverse geocoding requests
@@ -48,7 +49,7 @@ public class ParallelRevGeocodeService
     * @param points            List of points to lookup addresses for
     * @return                  ArrayList<GeocodeResult>
     */
-    public static ArrayList<GeocodeResult> reverseGeocode(RevGeocodeService revGeocodeService, List<Point> points)
+    public ArrayList<GeocodeResult> reverseGeocode(RevGeocodeService revGeocodeService, List<Point> points)
     {
         ArrayList<GeocodeResult> revGeocodeResults = new ArrayList<>();
         ArrayList<Future<GeocodeResult>> futureRevGeocodeResults = new ArrayList<>();
@@ -72,7 +73,7 @@ public class ParallelRevGeocodeService
         return revGeocodeResults;
     }
 
-    public static void shutdownThread() {
+    public void shutdownThread() {
         executor.shutdownNow();
     }
 }

@@ -2,7 +2,6 @@ package gov.nysenate.sage.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -12,7 +11,6 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,14 +27,12 @@ public class RubyGeocoder implements GeocodeService
     private static final String DEFAULT_BASE_URL = "http://geocoder.nysenate.gov/GeoRubyAdapter/api";
     private final ObjectMapper jsonMapper;
     private final Logger logger;
-    private final Config config;
     private final int BATCH_SIZE = 24;
     private String m_baseUrl;
     private String m_baseBulkUrl;
 
     public RubyGeocoder()
     {
-        this.config = ApplicationFactory.getConfig();
         this.logger = LogManager.getLogger(this.getClass());
         this.jsonMapper = new ObjectMapper();
         configure();

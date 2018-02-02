@@ -2,6 +2,7 @@ package gov.nysenate.sage.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -31,7 +32,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Service
-public class OSM implements GeocodeService, Observer
+public class OSM extends BaseDao implements GeocodeService, Observer
 {
     private static final String DEFAULT_BASE_URL = "http://open.mapquestapi.com/nominatim/v1/search";
     private final Logger logger = LogManager.getLogger(OSM.class);
@@ -41,7 +42,7 @@ public class OSM implements GeocodeService, Observer
 
     public OSM()
     {
-        this.config = ApplicationFactory.getConfig();
+        this.config = getConfig();
         this.objectMapper = new ObjectMapper();
         configure();
         logger.debug("Initialized OSM Adapter");

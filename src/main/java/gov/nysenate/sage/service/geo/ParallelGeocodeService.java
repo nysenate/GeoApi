@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.geo;
 
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
@@ -16,12 +17,12 @@ import java.util.concurrent.*;
  * Parallel geocoding for use when a GeocodeService implementation does not provide
  * native batch methods.
  */
-public abstract class ParallelGeocodeService
+public abstract class ParallelGeocodeService extends BaseDao
 {
     private static Logger logger = LogManager.getLogger(ParallelGeocodeService.class);
-    private static Config config = ApplicationFactory.getConfig();
-    private static int THREAD_COUNT = Integer.parseInt(config.getValue("geocode.threads", "3"));
-    private static ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("geocode"));
+    private Config config = getConfig();
+    private int THREAD_COUNT = Integer.parseInt(config.getValue("geocode.threads", "3"));
+    private ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("geocode"));
 
     /**
     * Callable for parallel geocoding requests
@@ -43,7 +44,7 @@ public abstract class ParallelGeocodeService
         }
     }
 
-    public static ArrayList<GeocodeResult> geocode(GeocodeService geocodeService, List<Address> addresses)
+    public ArrayList<GeocodeResult> geocode(GeocodeService geocodeService, List<Address> addresses)
     {
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
         ArrayList<Future<GeocodeResult>> futureGeocodeResults = new ArrayList<>();
@@ -64,7 +65,7 @@ public abstract class ParallelGeocodeService
         return geocodeResults;
     }
 
-    public static void shutdownThread() {
+    public void shutdownThread() {
         executor.shutdownNow();
     }
 }

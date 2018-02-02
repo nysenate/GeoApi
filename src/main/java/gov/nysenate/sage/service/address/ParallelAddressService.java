@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.address;
 
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
@@ -16,12 +17,12 @@ import java.util.concurrent.*;
  * Parallel address validation for use when an AddressService implementation does not provide
  * native batch methods.
  */
-public abstract class ParallelAddressService {
+public abstract class ParallelAddressService extends BaseDao {
 
     private static Logger logger = LogManager.getLogger(ParallelAddressService.class);
-    private static Config config = ApplicationFactory.getConfig();
-    private static int THREAD_COUNT = Integer.parseInt(config.getValue("validate.threads", "3"));
-    private static ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("address"));
+    private Config config = getConfig();
+    private int THREAD_COUNT = Integer.parseInt(config.getValue("validate.threads", "3"));
+    private ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("address"));
 
     private static class ParallelValidate implements Callable<AddressResult>
     {
@@ -41,7 +42,7 @@ public abstract class ParallelAddressService {
         }
     }
 
-    public static List<AddressResult> validate(AddressService addressService, List<Address> addresses)
+    public List<AddressResult> validate(AddressService addressService, List<Address> addresses)
     {
         ArrayList<AddressResult> addressResults = new ArrayList<>();
         ArrayList<Future<AddressResult>> futureAddressResults = new ArrayList<>();
@@ -65,7 +66,7 @@ public abstract class ParallelAddressService {
         return addressResults;
     }
 
-    public static void shutdownThread() {
+    public void shutdownThread() {
         executor.shutdownNow();
     }
 }

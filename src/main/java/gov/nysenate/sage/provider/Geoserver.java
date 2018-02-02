@@ -1,5 +1,6 @@
 package gov.nysenate.sage.provider;
 
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.GeoserverDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.DistrictedAddress;
@@ -33,7 +34,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
  * is required to perform district assignment using this implementation.
  */
 @Service
-public class Geoserver implements DistrictService, Observer
+public class Geoserver extends BaseDao implements DistrictService, Observer
 {
     private static Logger logger = LogManager.getLogger(Geoserver.class);
     private GeoserverDao geoserverDao;
@@ -43,7 +44,7 @@ public class Geoserver implements DistrictService, Observer
     public Geoserver()
     {
         this.geoserverDao = new GeoserverDao();
-        this.config = ApplicationFactory.getConfig();
+        this.config = getConfig();
         this.config.notifyOnChange(this);
         configure();
         logger.debug("Geoserver instantiated");

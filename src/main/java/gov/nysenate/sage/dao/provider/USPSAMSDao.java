@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
@@ -15,24 +17,23 @@ import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 
 /**
  * Data abstraction layer for querying the USPS AMS web service to perform address and city/state
  * lookups.
  */
 @Repository
-public class USPSAMSDao implements Observer
+public class USPSAMSDao extends BaseDao implements Observer
 {
-    private static final Config config = ApplicationFactory.getConfig();
+    private final Config config = getConfig();
+    private Environment env;
     private static String DEFAULT_BASE_URL = "";
     private static String VALIDATE_METHOD = "validate";
     private static String CITYSTATE_METHOD = "citystate";
@@ -40,8 +41,10 @@ public class USPSAMSDao implements Observer
     private Logger logger = LogManager.getLogger(this.getClass());
     private static ObjectMapper objectMapper = new ObjectMapper();
 
-    public USPSAMSDao()
+    @Autowired
+    public USPSAMSDao(Environment env)
     {
+        this.env = env;
         this.update(null, null);
         config.notifyOnChange(this);
     }
@@ -49,7 +52,7 @@ public class USPSAMSDao implements Observer
     @Override
     public void update(Observable o, Object arg)
     {
-        DEFAULT_BASE_URL = config.getValue("usps.ams.api.url");
+        DEFAULT_BASE_URL = env.getUspsAmsApiUrl();
     }
 
     /**

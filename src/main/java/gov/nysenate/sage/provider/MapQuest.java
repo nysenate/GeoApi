@@ -1,5 +1,6 @@
 package gov.nysenate.sage.provider;
 
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.MapQuestDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
@@ -28,7 +29,7 @@ import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateBatc
  * @author Graylin Kim, Ash Islam
  */
 @Service
-public class MapQuest implements GeocodeService, RevGeocodeService
+public class MapQuest extends BaseDao implements GeocodeService, RevGeocodeService
 {
     private final Logger logger = LogManager.getLogger(this.getClass());
     private MapQuestDao mapQuestDao;
@@ -36,7 +37,7 @@ public class MapQuest implements GeocodeService, RevGeocodeService
 
     public MapQuest()
     {
-        this.config = ApplicationFactory.getConfig();
+        this.config = getConfig();
         this.mapQuestDao = new MapQuestDao();
         configure();
     }

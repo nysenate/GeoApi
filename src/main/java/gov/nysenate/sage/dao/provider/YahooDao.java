@@ -2,6 +2,7 @@ package gov.nysenate.sage.dao.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -13,6 +14,7 @@ import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -32,9 +34,9 @@ import java.util.Observer;
  *  http://developer.yahoo.com/boss/geo/docs/free_YQL.html#table_pf
  */
 @Repository
-public class YahooDao implements Observer
+public class YahooDao extends BaseDao implements Observer
 {
-    private static final Config config = ApplicationFactory.getConfig();
+    private final Config config = getConfig();
     private static final String DEFAULT_BASE_URL = "http://query.yahooapis.com/v1/public/yql";
     private static final String SET_QUERY_AS = "?format=json&crossProduct=optimized&q=";
     private static final String GEOCODE_QUERY = "select line1, city, statecode, postal, quality, latitude, longitude " +
@@ -51,6 +53,7 @@ public class YahooDao implements Observer
     private String baseUrl;
     private static ObjectMapper objectMapper = new ObjectMapper();
 
+    @Autowired
     public YahooDao()
     {
         config.notifyOnChange(this);

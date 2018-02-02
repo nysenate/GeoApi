@@ -1,5 +1,6 @@
 package gov.nysenate.sage.dao.provider;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
@@ -17,6 +18,7 @@ import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
@@ -34,17 +36,19 @@ import java.util.*;
 public class TigerGeocoderDao extends BaseDao implements Observer
 {
     private static Logger logger = LogManager.getLogger(TigerGeocoderDao.class);
-    private static Config config = ApplicationFactory.getConfig();
+    private Environment env;
     private QueryRunner run = getTigerQueryRunner();
     private int GEOCODER_TIMEOUT = 15000; //ms
 
-    public TigerGeocoderDao() {
+    @Autowired
+    public TigerGeocoderDao(Environment env) {
+        this.env = env;
         update(null, null);
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        GEOCODER_TIMEOUT = Integer.parseInt(config.getValue("tiger.geocoder.timeout", "15000"));
+        GEOCODER_TIMEOUT = env.getTigerGeocoderTimeout();
     }
 
     /**

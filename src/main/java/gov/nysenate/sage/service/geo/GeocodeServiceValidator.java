@@ -1,5 +1,7 @@
 package gov.nysenate.sage.service.geo;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -20,22 +22,17 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 /**
 * Utility class for validating geocode requests and responses.
 */
-public abstract class GeocodeServiceValidator
+public abstract class GeocodeServiceValidator extends BaseDao
 {
     private static final Logger logger = LogManager.getLogger(GeocodeServiceValidator.class);
-    private static Config config = ApplicationFactory.getConfig();
+    private Config config = getConfig();
 
     /** Keep track of GeocodeService implementations that are temporarily unavailable. */
     private static Set<Class<? extends GeocodeService>> activeGeocoders = new HashSet<>();
     private static Map<Class<? extends GeocodeService>, Timestamp> frozenGeocoders = new ConcurrentHashMap<>();
     private static Map<Class<? extends GeocodeService>, Integer> failedRequests = new ConcurrentHashMap<>();
-    private static Integer FAILURE_THRESHOLD = 20;
-    private static Integer RETRY_INTERVAL_SECS = 300;
-
-    static {
-        FAILURE_THRESHOLD = Integer.parseInt(config.getValue("geocoder.failure.threshold", "20"));
-        RETRY_INTERVAL_SECS = Integer.parseInt(config.getValue("geocoder.retry.interval", "300"));
-    }
+    private Integer FAILURE_THRESHOLD = Integer.parseInt(config.getValue("geocoder.failure.threshold", "20"));
+    private Integer RETRY_INTERVAL_SECS = Integer.parseInt(config.getValue("geocoder.retry.interval", "300"));
 
     /**
      * Designate the geocodeService class as an active geocoder. Note that an active geocoder may
@@ -53,7 +50,7 @@ public abstract class GeocodeServiceValidator
      * @param geocodeResult GeocodeResult to set the result status if the service is in fact disabled.
      * @return True if geocodeService is active, false otherwise.
      */
-    public static boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, GeocodeResult geocodeResult)
+    public boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, GeocodeResult geocodeResult)
     {
         if (geocodeResult == null) {
             geocodeResult = new GeocodeResult(geocodeService);
@@ -102,7 +99,7 @@ public abstract class GeocodeServiceValidator
      * @param inputSize The number of failed results to set in geocodeResultList if service is not active.
      * @return True if geocodeService is active, false otherwise.
      */
-    public static boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, List<GeocodeResult> geocodeResultList, int inputSize)
+    public boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, List<GeocodeResult> geocodeResultList, int inputSize)
     {
         /** If the geocode service is not active, populate the geocodeResults list with results indicating the
          * disabled geocoder status. */
@@ -133,7 +130,7 @@ public abstract class GeocodeServiceValidator
      * to the frozen list, thus making it temporarily disabled.
      * @param geocodeService GeocodeService that returned the failed result.
      */
-    public synchronized static void recordFailedResult(Class<? extends GeocodeService> geocodeService)
+    public synchronized void recordFailedResult(Class<? extends GeocodeService> geocodeService)
     {
         if (geocodeService != null) {
             int failedCount = 0;
@@ -177,7 +174,7 @@ public abstract class GeocodeServiceValidator
      * @param geocodeResult The GeocodeResult to set
      * @return True if valid GeocodedAddress, false otherwise
      */
-    public static boolean validateGeocodeResult(Class<? extends GeocodeService> source, GeocodedAddress geocodedAddress,
+    public boolean validateGeocodeResult(Class<? extends GeocodeService> source, GeocodedAddress geocodedAddress,
                                                 GeocodeResult geocodeResult, Boolean freeze)
     {
         if (geocodedAddress != null) {
@@ -214,7 +211,7 @@ public abstract class GeocodeServiceValidator
      *               if it keeps returning error results.
      * @return GeocodeResult
      */
-    public static boolean validateGeocodeResult(Class<? extends GeocodeService> source, GeocodedStreetAddress geoStreetAddress, GeocodeResult geocodeResult, Boolean freeze)
+    public boolean validateGeocodeResult(Class<? extends GeocodeService> source, GeocodedStreetAddress geoStreetAddress, GeocodeResult geocodeResult, Boolean freeze)
     {
         Boolean success = false;
         if (geoStreetAddress != null) {
@@ -237,7 +234,7 @@ public abstract class GeocodeServiceValidator
      * if it keeps returning error results.
      * @return GeocodeResult
      */
-    public static boolean validateBatchGeocodeResult(Class<? extends GeocodeService> source, ArrayList<Address> addresses, ArrayList<GeocodeResult> geocodeResults,
+    public boolean validateBatchGeocodeResult(Class<? extends GeocodeService> source, ArrayList<Address> addresses, ArrayList<GeocodeResult> geocodeResults,
                                                       List<GeocodedAddress> geocodedAddresses, Boolean freeze)
     {
         boolean hasValidResult = false;

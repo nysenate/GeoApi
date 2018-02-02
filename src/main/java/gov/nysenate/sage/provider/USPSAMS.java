@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,7 +21,12 @@ import java.util.List;
 public class USPSAMS implements AddressService
 {
     private final Logger logger = LogManager.getLogger(this.getClass());
-    private USPSAMSDao uspsAmsDao = new USPSAMSDao();
+    private USPSAMSDao uspsAmsDao;
+
+    @Autowired
+    public USPSAMS(USPSAMSDao uspsAmsDao) {
+        this.uspsAmsDao = uspsAmsDao;
+    }
 
     /**
      * Performs USPS validation for a single address using the AMS Web Service.
