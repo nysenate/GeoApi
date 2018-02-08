@@ -113,7 +113,7 @@ public class StreetFile implements DistrictService, StreetLookupService
         }
 
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
-        logger.info(FormatUtil.toJsonString(districtResult));
+        logger.info(FormatUtil.toJsonString(districtResult).substring(0,1200));
         return districtResult;
     }
 

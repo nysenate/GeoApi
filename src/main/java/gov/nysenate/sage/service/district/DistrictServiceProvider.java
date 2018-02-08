@@ -147,7 +147,6 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                         streetFileResult = streetFileFuture.get();
                         districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
                                 streetFileResult, DistrictStrategy.neighborMatch);
-                        logger.info(FormatUtil.toJsonString(districtResult));
                         break;
 
                     case streetFallback:
@@ -164,24 +163,20 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
 
                         districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
                                 streetFileResult, DistrictStrategy.streetFallback);
-                        logger.info(FormatUtil.toJsonString(districtResult));
                         break;
 
                     case shapeFallback:
                         streetFileResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
                         districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, null, streetFileResult,
                                 DistrictStrategy.shapeFallback);
-                        logger.info(FormatUtil.toJsonString(districtResult));
                         break;
 
                     case streetOnly:
                         districtResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
-                        logger.info(FormatUtil.toJsonString(districtResult));
                         break;
 
                     case shapeOnly:
                         districtResult = shapeFileService.assignDistricts(geocodedAddress, districtTypes);
-                        logger.info(FormatUtil.toJsonString(districtResult));
                         break;
 
                     default:
@@ -212,7 +207,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         else {
             logger.warn("Failed to district assign!");
         }
-
+        logger.info(FormatUtil.toJsonString(districtResult).substring(0,1200));
         return districtResult;
     }
 
@@ -300,7 +295,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.neighborMatch);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
-                            logger.info(FormatUtil.toJsonString(consolidated));
+                            logger.info(FormatUtil.toJsonString(consolidated).substring(0,1200));
                             districtResults.add(consolidated);
                         }
                         break;
@@ -322,7 +317,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.streetFallback);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
-                            logger.info(FormatUtil.toJsonString(consolidated));
+                            logger.info(FormatUtil.toJsonString(consolidated).substring(0,1200));
                             districtResults.add(consolidated);
                         }
                         break;
@@ -334,7 +329,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, null, streetFileResults.get(i),
                                             DistrictStrategy.shapeFallback);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
-                            logger.info(FormatUtil.toJsonString(consolidated));
+                            logger.info(FormatUtil.toJsonString(consolidated).substring(0,1200));
                             districtResults.add(consolidated);
                         }
                         break;

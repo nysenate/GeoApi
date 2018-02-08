@@ -61,7 +61,7 @@ public abstract class ParallelGeocodeService
                 logger.error(ex.getMessage());
             }
         }
-        logger.info(FormatUtil.toJsonString(geocodeResults));
+        logger.info(FormatUtil.toJsonString(geocodeResults).substring(0,1200));
         return geocodeResults;
     }
 
