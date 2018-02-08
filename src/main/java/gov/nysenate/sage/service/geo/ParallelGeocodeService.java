@@ -5,6 +5,7 @@ import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ public abstract class ParallelGeocodeService
                 logger.error(ex.getMessage());
             }
         }
+        logger.info(FormatUtil.toJsonString(geocodeResults));
         return geocodeResults;
     }
 

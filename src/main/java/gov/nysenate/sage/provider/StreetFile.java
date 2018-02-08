@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.service.street.StreetLookupService;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.log4j.Logger;
 
@@ -112,6 +113,7 @@ public class StreetFile implements DistrictService, StreetLookupService
         }
 
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
+        logger.info(FormatUtil.toJsonString(districtResult));
         return districtResult;
     }
 

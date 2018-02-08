@@ -12,6 +12,7 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.DistrictShapefile;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.log4j.Logger;
 
@@ -146,6 +147,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                         streetFileResult = streetFileFuture.get();
                         districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
                                 streetFileResult, DistrictStrategy.neighborMatch);
+                        logger.info(FormatUtil.toJsonString(districtResult));
                         break;
 
                     case streetFallback:
@@ -162,20 +164,24 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
 
                         districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
                                 streetFileResult, DistrictStrategy.streetFallback);
+                        logger.info(FormatUtil.toJsonString(districtResult));
                         break;
 
                     case shapeFallback:
                         streetFileResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
                         districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, null, streetFileResult,
                                 DistrictStrategy.shapeFallback);
+                        logger.info(FormatUtil.toJsonString(districtResult));
                         break;
 
                     case streetOnly:
                         districtResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
+                        logger.info(FormatUtil.toJsonString(districtResult));
                         break;
 
                     case shapeOnly:
                         districtResult = shapeFileService.assignDistricts(geocodedAddress, districtTypes);
+                        logger.info(FormatUtil.toJsonString(districtResult));
                         break;
 
                     default:
@@ -294,6 +300,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.neighborMatch);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
+                            logger.info(FormatUtil.toJsonString(consolidated));
                             districtResults.add(consolidated);
                         }
                         break;
@@ -315,6 +322,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.streetFallback);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
+                            logger.info(FormatUtil.toJsonString(consolidated));
                             districtResults.add(consolidated);
                         }
                         break;
@@ -326,6 +334,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, null, streetFileResults.get(i),
                                             DistrictStrategy.shapeFallback);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
+                            logger.info(FormatUtil.toJsonString(consolidated));
                             districtResults.add(consolidated);
                         }
                         break;
