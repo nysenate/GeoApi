@@ -207,7 +207,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         else {
             logger.warn("Failed to district assign!");
         }
-        logger.info(FormatUtil.toJsonString(districtResult).substring(0,1200));
+        if (districtResult.getGeocodedAddress() != null) {
+            logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
+        }
         return districtResult;
     }
 
@@ -295,7 +297,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.neighborMatch);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
-                            logger.info(FormatUtil.toJsonString(consolidated).substring(0,1200));
+                            if (consolidated.getGeocodedAddress() != null) {
+                                logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
+                            }
                             districtResults.add(consolidated);
                         }
                         break;
@@ -317,7 +321,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.streetFallback);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
-                            logger.info(FormatUtil.toJsonString(consolidated).substring(0,1200));
+                            if (consolidated.getGeocodedAddress() != null) {
+                                logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
+                            }
                             districtResults.add(consolidated);
                         }
                         break;
@@ -329,7 +335,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, null, streetFileResults.get(i),
                                             DistrictStrategy.shapeFallback);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
-                            logger.info(FormatUtil.toJsonString(consolidated).substring(0,1200));
+                            if (consolidated.getGeocodedAddress() != null) {
+                                logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
+                            }
                             districtResults.add(consolidated);
                         }
                         break;
