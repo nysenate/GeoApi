@@ -1,12 +1,10 @@
 package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.address.AddressService;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.client.fluent.Content;

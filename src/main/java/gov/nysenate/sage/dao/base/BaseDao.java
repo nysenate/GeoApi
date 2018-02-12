@@ -2,7 +2,6 @@ package gov.nysenate.sage.dao.base;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.model.geo.GeometryTypes;
 import gov.nysenate.sage.model.geo.Line;
@@ -39,6 +38,11 @@ public class BaseDao
     private DB tigerDB;
     protected DataSource dataSource;
     protected DataSource tigerDataSource;
+
+    @Autowired ParallelDistrictService parallelDistrictService;
+    @Autowired ParallelGeocodeService parallelGeocodeService;
+    @Autowired ParallelRevGeocodeService parallelRevGeocodeService;
+    @Autowired ParallelAddressService parallelAddressService;
 
     @Autowired
     public BaseDao()
@@ -192,10 +196,10 @@ public class BaseDao
             baseDB.getDataSource().close(true);
             tigerDB.getDataSource().close(true);
 
-            ParallelDistrictService.shutdownThread();
-            ParallelGeocodeService.shutdownThread();
-            ParallelRevGeocodeService.shutdownThread();
-            ParallelAddressService.shutdownThread();
+            parallelDistrictService.shutdownThread();
+            parallelGeocodeService.shutdownThread();
+            parallelRevGeocodeService.shutdownThread();
+            parallelAddressService.shutdownThread();
             logger.info("All data connections have closed successfully");
 
             return true;

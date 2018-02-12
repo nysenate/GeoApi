@@ -1,7 +1,6 @@
 package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -9,15 +8,16 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.util.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Parallel district assignment for use in a provider's batch district implementation.
  */
+@Service
 public abstract class ParallelDistrictService extends BaseDao
 {
     private static Logger logger = LogManager.getLogger(ParallelDistrictService.class);

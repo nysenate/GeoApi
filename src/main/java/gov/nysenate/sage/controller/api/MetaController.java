@@ -4,7 +4,6 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.meta.MetaInfoResponse;
 import gov.nysenate.sage.client.response.meta.MetaProviderResponse;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;

@@ -2,7 +2,6 @@ package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.GeoserverDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
@@ -17,6 +16,7 @@ import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,6 +40,8 @@ public class Geoserver extends BaseDao implements DistrictService, Observer
     private GeoserverDao geoserverDao;
     private Config config;
     private boolean fetchMaps = false;
+
+    @Autowired ParallelDistrictService parallelDistrictService;
 
     public Geoserver()
     {
@@ -107,7 +109,7 @@ public class Geoserver extends BaseDao implements DistrictService, Observer
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes)
     {
-        return ParallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
+        return parallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
     }
 
     @Override

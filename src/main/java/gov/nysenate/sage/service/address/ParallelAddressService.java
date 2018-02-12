@@ -1,13 +1,13 @@
 package gov.nysenate.sage.service.address;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.util.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +17,7 @@ import java.util.concurrent.*;
  * Parallel address validation for use when an AddressService implementation does not provide
  * native batch methods.
  */
+@Service
 public abstract class ParallelAddressService extends BaseDao {
 
     private static Logger logger = LogManager.getLogger(ParallelAddressService.class);

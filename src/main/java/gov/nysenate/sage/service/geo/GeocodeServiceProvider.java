@@ -1,7 +1,6 @@
 package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
@@ -13,8 +12,6 @@ import gov.nysenate.sage.provider.GeoCache;
 import gov.nysenate.sage.provider.GoogleGeocoder;
 import gov.nysenate.sage.provider.TigerGeocoder;
 import gov.nysenate.sage.service.base.ServiceProviders;
-import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

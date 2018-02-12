@@ -1,7 +1,6 @@
 package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
@@ -14,7 +13,6 @@ import gov.nysenate.sage.provider.DistrictShapefile;
 import gov.nysenate.sage.provider.Geoserver;
 import gov.nysenate.sage.provider.StreetFile;
 import gov.nysenate.sage.service.base.ServiceProviders;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

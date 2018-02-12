@@ -43,7 +43,6 @@ import java.util.*;
 @Component
 public class ApplicationFactory
 {
-    private static final Logger logger = LogManager.getLogger(ApplicationFactory.class);
 
     /** Dependency instances */
     private Config config;

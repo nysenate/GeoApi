@@ -2,17 +2,15 @@ package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.MapQuestDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.geo.*;
 import gov.nysenate.sage.util.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,7 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
-import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateBatchGeocodeResult;
 
 /**
  * MapQuest Geocoding provider implementation
@@ -34,6 +31,9 @@ public class MapQuest extends BaseDao implements GeocodeService, RevGeocodeServi
     private final Logger logger = LogManager.getLogger(this.getClass());
     private MapQuestDao mapQuestDao;
     private Config config;
+
+    @Autowired GeocodeServiceValidator geocodeServiceValidator;
+    @Autowired ParallelRevGeocodeService parallelRevGeocodeService;
 
     public MapQuest()
     {
@@ -90,7 +90,7 @@ public class MapQuest extends BaseDao implements GeocodeService, RevGeocodeServi
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
 
         /** Ensure that the geocoder is active, otherwise return list of error results. */
-        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResults, addresses.size())) {
+        if (!geocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResults, addresses.size())) {
             return geocodeResults;
         }
 
@@ -98,7 +98,7 @@ public class MapQuest extends BaseDao implements GeocodeService, RevGeocodeServi
         List<GeocodedAddress> geocodedAddresses = this.mapQuestDao.getGeocodedAddresses(addresses);
 
         /** Validate and return */
-        if (!validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults, geocodedAddresses, true)){
+        if (!geocodeServiceValidator.validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults, geocodedAddresses, true)){
             logger.warn("Failed to batch geocode using MapQuest!");
         }
         return geocodeResults;
@@ -140,6 +140,6 @@ public class MapQuest extends BaseDao implements GeocodeService, RevGeocodeServi
     @Override
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {
-        return ParallelRevGeocodeService.reverseGeocode(this, points);
+        return parallelRevGeocodeService.reverseGeocode(this, points);
     }
 }

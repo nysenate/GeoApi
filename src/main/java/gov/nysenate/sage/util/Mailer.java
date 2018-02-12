@@ -1,7 +1,6 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -3,7 +3,6 @@ package gov.nysenate.sage.provider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -17,10 +16,9 @@ import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.http.client.fluent.Content;
-import org.apache.http.client.fluent.Request;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -39,6 +37,9 @@ public class OSM extends BaseDao implements GeocodeService, Observer
     private Config config;
     private ObjectMapper objectMapper;
     private String baseUrl;
+
+    @Autowired GeocodeServiceValidator geocodeServiceValidator;
+    @Autowired ParallelGeocodeService parallelGeocodeService;
 
     public OSM()
     {
@@ -67,7 +68,7 @@ public class OSM extends BaseDao implements GeocodeService, Observer
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Ensure that the geocoder is active, otherwise return error result. */
-        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+        if (!geocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
             return geocodeResult;
         }
 
@@ -117,7 +118,7 @@ public class OSM extends BaseDao implements GeocodeService, Observer
                 Geocode geocode = new Geocode(new Point(lat,lon), GeocodeQuality.UNKNOWN, this.getClass().getSimpleName());
                 GeocodedAddress geocodedAddress = new GeocodedAddress(resultAddress, geocode);
 
-                if (!GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
+                if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
                     logger.debug("Failed to geocode using OSM!");
                 }
                 else {
@@ -154,6 +155,6 @@ public class OSM extends BaseDao implements GeocodeService, Observer
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        return ParallelGeocodeService.geocode(this, addresses);
+        return parallelGeocodeService.geocode(this, addresses);
     }
 }

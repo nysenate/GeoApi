@@ -1,8 +1,6 @@
 package gov.nysenate.sage.filter;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
