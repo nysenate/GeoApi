@@ -116,6 +116,9 @@ public class StreetFile implements DistrictService, StreetLookupService
         if (districtResult.getGeocodedAddress() != null) {
             logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
         }
+        else {
+            logger.info("The geocoded address was null");
+        }
         return districtResult;
     }
 

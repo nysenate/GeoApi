@@ -210,6 +210,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         if (districtResult.getGeocodedAddress() != null) {
             logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
         }
+        else {
+            logger.info("The geocoded address was null");
+        }
         return districtResult;
     }
 
@@ -257,6 +260,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         if (geocodedAddresses != null) {
             logger.info(String.format("Performing district assign for %d addresses.", geocodedAddresses.size()));
         }
+        else {
+            logger.info("The geocoded address was null");
+        }
 
         long districtElapsedMs = 0;
         Timestamp startTime = TimeUtil.currentTimestamp();
@@ -300,6 +306,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                             if (consolidated.getGeocodedAddress() != null) {
                                 logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
                             }
+                            else {
+                                logger.info("The geocoded address was null");
+                            }
                             districtResults.add(consolidated);
                         }
                         break;
@@ -324,6 +333,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                             if (consolidated.getGeocodedAddress() != null) {
                                 logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
                             }
+                            else {
+                                logger.info("The geocoded address was null");
+                            }
                             districtResults.add(consolidated);
                         }
                         break;
@@ -337,6 +349,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
                             if (consolidated.getGeocodedAddress() != null) {
                                 logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
+                            }
+                            else {
+                                logger.info("The geocoded address was null");
                             }
                             districtResults.add(consolidated);
                         }
