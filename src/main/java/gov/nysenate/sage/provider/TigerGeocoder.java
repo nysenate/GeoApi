@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.*;
+import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -128,12 +129,16 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
         int rawQuality = gsa.getGeocode().getRawQuality();
         StreetAddress sa = gsa.getStreetAddress();
 
+        StreetAddress isa = StreetAddressParser.parseAddress(inputAddress);
+
         /*
         If the raw quality is 0, then it is an exact match
          */
         if (rawQuality == 0) {
             return GeocodeQuality.POINT;
         }
+
+        //The following comparisons are based on the Address object inputAddress
 
         /** A matching building number usually means its a house quality match. Also we don't want to
          *  perform any zipcode corrections for house level matches. If the zipcodes don't match it is
@@ -147,12 +152,32 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
         /** If the zip code matches, we can check to see if the streets match. If they don't match, we
          * can't be sure if it's the correct street or not so it becomes a zip level geocode. */
         if (!inputAddress.getZip5().isEmpty() && inputAddress.getZip5().equals( sa.getZip5() ) ) {
-            if (inputAddress.getAddr1().contains(sa.getStreet()) && rawQuality <= 60 ) { return GeocodeQuality.STREET; }
+            if (inputAddress.getAddr1().contains(sa.getStreetName()) && rawQuality <= 60 ) { return GeocodeQuality.STREET; }
             return GeocodeQuality.ZIP;
         }
 
         /** Check to see if the cities match */
         if (inputAddress.getCity().equalsIgnoreCase(sa.getLocation())) { return GeocodeQuality.CITY; }
+
+
+        /**
+         * The following comparisons are based on the StreetAddress object isa. This is necessary because an address
+            given to tiger might not all be in the addr field. To compare specifics for a slit apart addr, It is
+            converted to an StreetAddress
+         */
+        if (sa.getBldgNum() != 0 && isa.getBldgNum() == sa.getBldgNum()) {
+            if(isa.getZip5().isEmpty() || isa.getZip5().equals(sa.getZip5())) {
+                return GeocodeQuality.HOUSE;
+            }
+        }
+
+        if (!isa.getZip5().isEmpty() && isa.getZip5().equals( sa.getZip5() ) ) {
+            if (isa.getStreetName().contains(sa.getStreetName()) && rawQuality <= 60 ) { return GeocodeQuality.STREET; }
+            return GeocodeQuality.ZIP;
+        }
+
+        if (isa.getLocation().equalsIgnoreCase(sa.getLocation())) { return GeocodeQuality.CITY; }
+
 
         /** Failed to determine if the geocode is accurate, so it's safer to return no match */
         return GeocodeQuality.NOMATCH;

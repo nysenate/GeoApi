@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.service.street.StreetLookupService;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -117,6 +118,12 @@ public class StreetFile implements DistrictService, StreetLookupService
         }
 
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
+        if (districtResult.getGeocodedAddress() != null) {
+            logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
+        }
+        else {
+            logger.info("The geocoded address was null");
+        }
         return districtResult;
     }
 

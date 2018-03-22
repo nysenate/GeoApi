@@ -13,6 +13,8 @@ import gov.nysenate.sage.provider.DistrictShapefile;
 import gov.nysenate.sage.provider.Geoserver;
 import gov.nysenate.sage.provider.StreetFile;
 import gov.nysenate.sage.service.base.ServiceProviders;
+import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -216,7 +218,12 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         else {
             logger.warn("Failed to district assign!");
         }
-
+        if (districtResult.getGeocodedAddress() != null) {
+            logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
+        }
+        else {
+            logger.info("The geocoded address was null");
+        }
         return districtResult;
     }
 
@@ -264,6 +271,9 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         if (geocodedAddresses != null) {
             logger.info(String.format("Performing district assign for %d addresses.", geocodedAddresses.size()));
         }
+        else {
+            logger.info("The geocoded address was null");
+        }
 
         long districtElapsedMs = 0;
         Timestamp startTime = TimeUtil.currentTimestamp();
@@ -304,6 +314,12 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.neighborMatch);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
+                            if (consolidated.getGeocodedAddress() != null) {
+                                logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
+                            }
+                            else {
+                                logger.info("The geocoded address was null");
+                            }
                             districtResults.add(consolidated);
                         }
                         break;
@@ -325,6 +341,12 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.streetFallback);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
+                            if (consolidated.getGeocodedAddress() != null) {
+                                logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
+                            }
+                            else {
+                                logger.info("The geocoded address was null");
+                            }
                             districtResults.add(consolidated);
                         }
                         break;
@@ -336,6 +358,12 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, null, streetFileResults.get(i),
                                             DistrictStrategy.shapeFallback);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
+                            if (consolidated.getGeocodedAddress() != null) {
+                                logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
+                            }
+                            else {
+                                logger.info("The geocoded address was null");
+                            }
                             districtResults.add(consolidated);
                         }
                         break;

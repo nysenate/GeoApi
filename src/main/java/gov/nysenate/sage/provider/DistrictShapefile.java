@@ -89,6 +89,12 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
             /** Set the result */
             districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
             districtResult.setResultTime(new Timestamp(new Date().getTime()));
+            if (districtResult.getGeocodedAddress() != null) {
+                logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
+            }
+            else {
+                logger.info("The geocoded address was null");
+            }
         }
         catch (Exception ex) {
             districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
@@ -294,6 +300,12 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
         districtResult.setStatusCode(resultStatus);
         districtResult.setDistrictedAddress(districtedAddress);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
+        if (districtResult.getGeocodedAddress() != null) {
+            logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
+        }
+        else {
+            logger.info("The geocoded address was null");
+        }
         return districtResult;
     }
 }
