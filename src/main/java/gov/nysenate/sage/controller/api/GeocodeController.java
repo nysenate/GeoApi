@@ -71,7 +71,7 @@ public class GeocodeController extends BaseApiController implements Observer
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        Object geocodeResponse;
+        Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = TimeUtil.currentTimestamp();
 
         /** Get the ApiRequest */
@@ -93,7 +93,7 @@ public class GeocodeController extends BaseApiController implements Observer
         logger.info("=======================================================");
         logger.info(String.format("|%sGeocode Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
         logger.info(String.format("| Mode: %s | IP: %s | Provider: %s", apiRequest.getRequest(), apiRequest.getIpAddress(), apiRequest.getProvider()));
-        if (!apiRequest.isBatch() && apiRequest.getRequest().equals("geocode")) {
+        if (!apiRequest.isBatch() && apiRequest.getRequest().equals("geocode") || apiRequest.getRequest().equals("geocache")) {
             logger.info("| Input Address: " + geocodeRequest.getAddress().toLogString());
         }
         logger.info("=======================================================");
@@ -194,6 +194,28 @@ public class GeocodeController extends BaseApiController implements Observer
                     }
                     else {
                         geocodeResponse = new ApiError(this.getClass(), INVALID_BATCH_POINTS);
+                    }
+                }
+                break;
+            }
+            case "geocache": {
+                /** Handle single geocoding requests */
+                if (!apiRequest.isBatch()) {
+                    if (geocodeRequest.getAddress() != null && !geocodeRequest.getAddress().isEmpty()) {
+                        geocodeRequest.setUseCache(false);
+                        /** Obtain geocode result */
+                        GeocodeResult geocodeResult = geocodeServiceProvider.geocode(geocodeRequest);
+
+                        /** Construct response from request */
+                        geocodeResponse = new GeocodeResponse(geocodeResult);
+
+                        /** Log geocode request/result to database */
+                        if (SINGLE_LOGGING_ENABLED && requestId != -1) {
+                            geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
+                            requestId = -1;
+                        }
+                    } else {
+                        geocodeResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
                     }
                 }
                 break;

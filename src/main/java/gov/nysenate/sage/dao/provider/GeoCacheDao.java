@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -117,6 +118,10 @@ public class GeoCacheDao extends BaseDao
                                     "latlon, method, quality, zip4) " +
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?), ?, ?, ?)";
 
+    private final static String SQL_UPDATE_CACHE_ENTRY = "update cache.geocache\n" +
+            "set latlon = ST_GeomFromText(?), method = ?, quality = ?, zip5 = ?, zip4 = ?, updated = now()\n" +
+            "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ?;";
+
     /**
      * Saves any GeocodedAddress objects stored in the buffer into the database. The address is parsed into
      * a StreetAddress object so that look-up is more reliable given variations in the address.
@@ -147,6 +152,27 @@ public class GeoCacheDao extends BaseDao
                             // Duplicate row warnings are expected sometimes and can be suppressed.
                             if (ex.getMessage().startsWith("ERROR: duplicate key")) {
                                 logger.trace(ex.getMessage());
+                                try {
+                                    tigerRun.update(SQL_UPDATE_CACHE_ENTRY,
+                                            "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
+                                            gc.getMethod(),
+                                            gc.getQuality().name(),
+                                            sa.getZip5(),
+                                            sa.getZip4(),
+
+                                            Integer.valueOf(sa.getBldgNum()),
+                                            sa.getStreetName(),
+                                            sa.getStreetType(),
+                                            sa.getPreDir(),
+                                            sa.getPostDir()
+                                            );
+                                    if (logger.isTraceEnabled()) {
+                                        logger.trace("Saved " + sa.toString() + " in cache.");
+                                    }
+                                }
+                                catch (SQLException e) {
+                                    logger.warn(e.getMessage());
+                                }
                             }
                             else {
                                 logger.warn(ex.getMessage());
