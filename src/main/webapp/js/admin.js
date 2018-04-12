@@ -230,7 +230,8 @@ sageAdmin.controller("GeocodeUsageController", function($scope, $http, dataBus){
 sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus){
 
     $scope.init = function() {
-
+        $scope.geocache_status_text = "";
+        $scope.geocache_status = false;
     };
     $scope.geocache_addr1 = "";
     $scope.geocache_city = "";
