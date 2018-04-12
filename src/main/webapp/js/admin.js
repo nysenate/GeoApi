@@ -1,5 +1,6 @@
 var sageAdmin = angular.module('sage-admin', ['sage-common']);
 var baseAdminApi = contextPath + "/admin/api";
+var baseApi = contextPath + "/api/v2/";
 
 sageAdmin.filter("code", function(){
     return function(input) {
@@ -222,6 +223,56 @@ sageAdmin.controller("GeocodeUsageController", function($scope, $http, dataBus){
     $scope.$on("update", function() {
         $scope.init();
     });
+
+    $scope.init();
+});
+
+sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus){
+
+    $scope.init = function() {
+
+    };
+    $scope.geocache_addr1 = "";
+    $scope.geocache_city = "";
+    $scope.geocache_zip5 = "";
+
+    $scope.geocache_status_text = "";
+    $scope.geocache_status = false;
+
+
+
+    $scope.commenceGeocache = function() {
+
+
+        $http.get(baseApi + "geo/geocache?addr1=" + $scope.geocache_addr1 +
+            "&city=" + $scope.geocache_city + "&state=NY&zip5=" + $scope.geocache_zip5 )
+            .success(function(data){
+                if (data) {
+                    console.log('status = ' + data.status);
+                    $scope.geocache_status_text = data.status;
+                    $scope.geocache_status = true;
+                }
+            })
+            .error(function(data){
+                console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
+            });
+    };
+
+    $scope.getBarStyle = function(hits, total) {
+        return {width: (hits/total) * 100 + "%"}
+    };
+
+    $scope.$on("update", function() {
+        $scope.init();
+    });
+
+    $scope.isValidInfo = function() {
+      var isValid = false;
+      if ($scope.geocache_addr1 !== "" && $scope.geocache_city !== "" && $scope.geocache_zip5.length === 5 ) {
+          isValid = true;
+      }
+      return isValid;
+    };
 
     $scope.init();
 });
