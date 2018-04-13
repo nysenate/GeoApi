@@ -1,0 +1,18 @@
+
+
+/* Create an active/current tablink class */
+.tablinks li.active {
+    background: #007095;
+}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    /*padding: 6px 12px;*/
+    /*border: 1px solid #ccc;*/
+    /*border-top: none;*/
+}
+
+.tablinks div:hover {
+    background: #007095;
+}
