@@ -5,7 +5,7 @@
     <jsp:attribute name="ngApp">sage-admin</jsp:attribute>
     <jsp:attribute name="title">SAGE - Admin Console</jsp:attribute>
     <jsp:attribute name="cssIncludes">
-        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/jquery.dataTables-1.9.4.css">
+        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/vendor/jquery.dataTables-1.9.4.css">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script src="${pageContext.request.contextPath}/js/vendor/highcharts.js" type="text/javascript"></script>
