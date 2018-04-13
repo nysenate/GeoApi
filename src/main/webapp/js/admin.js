@@ -259,15 +259,11 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
             });
     };
 
-    $scope.getBarStyle = function(hits, total) {
-        return {width: (hits/total) * 100 + "%"}
-    };
-
     $scope.$on("update", function() {
         $scope.init();
     });
 
-    $scope.isValidInfo = function() {
+    $scope.isValidSeperatedInfo = function() {
       var isValid = false;
       if ($scope.geocache_addr1 !== "" && $scope.geocache_city !== "" && $scope.geocache_zip5.length === 5 ) {
           isValid = true;

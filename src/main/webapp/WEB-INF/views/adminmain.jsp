@@ -221,7 +221,7 @@
                             <label for="geocache_zip5_input">Zip5: </label>
                             <input id="geocache_zip5_input" ng-model="geocache_zip5" type="text">
 
-                            <button type="submit" class="submit" style="width: auto;padding: 5px 10px;" ng-click="commenceGeocache()" ng-disabled="!isValidInfo()">Commence Geocache</button>
+                            <button type="submit" class="submit" style="width: auto;padding: 5px 10px;" ng-click="commenceGeocache()" ng-disabled="!isValidSeperatedInfo()">Commence Geocache</button>
                         </form>
                         <hr ng-show="geocache_status"/>
                         <p ng-show="geocache_status">{{geocache_status_text}}</p>
