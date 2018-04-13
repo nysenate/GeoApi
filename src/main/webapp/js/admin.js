@@ -245,8 +245,8 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.commenceGeocache = function() {
 
 
-        $http.get(baseApi + "geo/geocache?addr1=" + $scope.geocache_addr1 +
-            "&city=" + $scope.geocache_city + "&state=NY&zip5=" + $scope.geocache_zip5 )
+        $http.get(baseApi + "geo/geocode?addr1=" + $scope.geocache_addr1 +
+            "&city=" + $scope.geocache_city + "&state=NY&zip5=" + $scope.geocache_zip5 + "&bypassCache=true" )
             .success(function(data){
                 if (data) {
                     console.log('status = ' + data.status);

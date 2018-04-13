@@ -81,8 +81,13 @@ public class GeocodeController extends BaseApiController implements Observer
         /** Check whether or not to fallback */
         boolean useFallback = requestParameterEquals(request, "useFallback", "false") ? false : true;
 
+        boolean bypassCache = requestParameterEquals(request, "bypassCache", "false") ? false : true;
+
         /** Only want to use cache when the provider is not specified */
         boolean useCache = (provider == null);
+        if (bypassCache) {
+            useCache = false;
+        }
 
         int requestId = -1;
 
@@ -197,31 +202,6 @@ public class GeocodeController extends BaseApiController implements Observer
                     }
                 }
                 break;
-            }
-            case "geocache": {
-                /** Handle single geocoding requests */
-                if (!apiRequest.isBatch()) {
-                    if (geocodeRequest.getAddress() != null && !geocodeRequest.getAddress().isEmpty()) {
-                        geocodeRequest.setUseCache(false);
-                        /** Obtain geocode result */
-                        GeocodeResult geocodeResult = geocodeServiceProvider.geocode(geocodeRequest);
-
-                        /** Construct response from request */
-                        geocodeResponse = new GeocodeResponse(geocodeResult);
-
-                        /** Log geocode request/result to database */
-                        if (SINGLE_LOGGING_ENABLED && requestId != -1) {
-                            geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
-                            requestId = -1;
-                        }
-                    } else {
-                        geocodeResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
-                    }
-                }
-                break;
-            }
-            default: {
-                geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
             }
         }
 
