@@ -28,6 +28,26 @@
                 <div ng-controller='DashboardController' ng-show='visible'>
                     <h3 class="slim">SAGE Dashboard</h3>
                     <div ng-controller="DeploymentStatsController" id="uptime-stats" class="highlight-section fixed">
+
+                        <div >
+                            <span>The time frame to view stats is between &nbsp;</span>
+                            <input ng-model="fromMonth" style="width:35px;" min="1" max="12" maxlength="2" type="number"/>/
+                            <input ng-model="fromDate" style="width:35px;" min="1" max="31" maxlength="2" type="number"/>/
+                            <input ng-model="fromYear" style="width:70px;" min="2013" max="2020" maxlength="4" type="number"/>
+
+                            <span>&nbsp; and &nbsp;</span>
+
+                            <input ng-model="toMonth" style="width:35px;" min="1" max="12" maxlength="2" type="number"/>/
+                            <input ng-model="toDate" style="width:35px;" min="1" max="31" maxlength="2" type="number"/>/
+                            <input ng-model="toYear" style="width:70px;" min="2013" max="2020" maxlength="4" type="number"/>
+
+                            <button ng-click="update()" class="submit" style="width:auto; padding:5px 10px;">
+                                <span>Update</span>
+                            </button>
+                        </div>
+
+                        <hr/>
+
                         <ul class="horizontal">
                             <li><label>Last Deployed | </label> {{lastDeployment.deployTime | date:'medium'}}</li>
                             <li><label>Latest Uptime | </label>{{latestUptime / 3600000 | number:3}} hours</li>
@@ -35,22 +55,7 @@
                         </ul>
                     </div>
 
-                    <div class="highlight-section fixed">
-                        <span>The time frame to view stats is between &nbsp;</span>
-                        <input ng-model="fromMonth" style="width:35px;" min="1" max="12" maxlength="2" type="number"/>/
-                        <input ng-model="fromDate" style="width:35px;" min="1" max="31" maxlength="2" type="number"/>/
-                        <input ng-model="fromYear" style="width:70px;" min="2013" max="2020" maxlength="4" type="number"/>
 
-                        <span>&nbsp; and &nbsp;</span>
-
-                        <input ng-model="toMonth" style="width:35px;" min="1" max="12" maxlength="2" type="number"/>/
-                        <input ng-model="toDate" style="width:35px;" min="1" max="31" maxlength="2" type="number"/>/
-                        <input ng-model="toYear" style="width:70px;" min="2013" max="2020" maxlength="4" type="number"/>
-
-                        <button ng-click="update()" class="submit" style="width:auto; padding:5px 10px;">
-                            <span>Update</span>
-                        </button>
-                    </div>
 
                     <!-- Exception viewer -->
                     <div ng-controller="ExceptionViewController" ng-show="exceptions" class="highlight-section fixed">
