@@ -14,29 +14,34 @@
         <script src="${pageContext.request.contextPath}/js/admin.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
-        <%--<div style="width:100%" id="header" ng-controller="MenuController">--%>
-            <%--<sage:logo></sage:logo>--%>
-            <%--<ul class="top-method-header">--%>
-                <%--<li><a ng-click='toggleMethod(1)' class="active">--%>
-                    <%--<div ng-show="index == 1" class="icon-white-no-hover icon-house"></div>&nbsp;Dashboard</a></li>--%>
-                <%--&lt;%&ndash;<li><a ng-click='toggleMethod(3)'>&ndash;%&gt;--%>
-                    <%--&lt;%&ndash;<div ng-show="index == 3" class="icon-white-no-hover icon-user-add"></div>&nbsp;User Console</a></li>&ndash;%&gt;--%>
-                <%--<li><a ng-href="${pageContext.request.contextPath}/admin/logout">Logout</a></li>--%>
-            <%--</ul>--%>
-        <%--</div>--%>
 
         <div style="width:100%" id="header">
             <sage:logo></sage:logo>
             <ul class="top-method-header">
-                <%--<li><div class="icon-white-hover icon-house"></div>&nbsp;Dashboard</li>--%>
-                    <li class="tablinks"><a><div class=" icon-erase" id="defaultOpen"></div>&nbsp;Exceptions</a></li>
-                    <li class="tablinks"><a><div class=" icon-graph"></div>&nbsp;Api Usage</a></li>
-                    <li class="tablinks"><a><div class=" icon-users"></div>&nbsp;Api User Stats</a></li>
-                    <li class="tablinks"><a><div class=" icon-map"></div>&nbsp;Job Status</a></li>
-                    <li class="tablinks"><a><div class=" icon-compass"></div>&nbsp;Geocode Usage</a></li>
-                    <li class="tablinks"><a><div class=" icon-location"></div>&nbsp;Geocaching</a></li>
-                    <li class="tablinks"><a><div class=" icon-user-add"></div>&nbsp;User Console</a></li>
-                    <li class="tablinks"><a><div class=" icon-statistics"></div>&nbsp;Uptime Stats</a></li>
+                    <li class="tablinks" onclick="openTab(event,'exception-viewer')">
+                        <a><div class=" icon-erase" id="defaultOpen"></div>&nbsp;Exceptions</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'api-usage')">
+                        <a><div class=" icon-graph"></div>&nbsp;Api Usage</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'api-user-stats')">
+                        <a><div class=" icon-users"></div>&nbsp;Api User Stats</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'job-status')">
+                        <a><div class=" icon-map"></div>&nbsp;Job Status</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'geocode-usage')">
+                        <a><div class=" icon-compass"></div>&nbsp;Geocode Usage</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'geocaching')">
+                        <a><div class=" icon-location"></div>&nbsp;Geocaching</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'user-console')">
+                        <a><div class=" icon-user-add"></div>&nbsp;User Console</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'uptime-stats')">
+                        <a><div class=" icon-statistics"></div>&nbsp;Uptime Stats</a></li>
+
                     <li><a ng-href="${pageContext.request.contextPath}/admin/logout">Logout</a></li>
             </ul>
         </div>
@@ -50,7 +55,7 @@
                 <div ng-controller='DashboardController' ng-show='visible'>
                     <h3 class="slim">SAGE Dashboard</h3>
 
-                    <div ng-controller="DeploymentStatsController" id="uptime-stats" class="highlight-section fixed">
+                    <div ng-controller="DeploymentStatsController" id="uptime-stats" class="highlight-section fixed tabcontent">
 
                         <div >
                             <span>The time frame to view stats is between &nbsp;</span>
@@ -81,7 +86,7 @@
 
 
                     <!-- Exception viewer -->
-                    <div ng-controller="ExceptionViewController" ng-show="exceptions" id="exception-viewer" class="highlight-section fixed">
+                    <div ng-controller="ExceptionViewController" ng-show="exceptions" id="exception-viewer" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Application Exceptions</p>
                         <hr/>
                         <div style="text-align: left;">
@@ -101,12 +106,12 @@
                         </div>
                     </div>
 
-                    <div ng-controller="ApiUsageController" id="api-usage" class="highlight-section fixed">
+                    <div ng-controller="ApiUsageController" id="api-usage" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Api Hourly Usage</p>
                         <div id="api-usage-stats"></div>
                     </div>
 
-                    <div ng-controller="JobStatusController" id="job-status" class="highlight-section fixed">
+                    <div ng-controller="JobStatusController" id="job-status" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Batch Job Usage</p>
                         <hr/>
                         <div>
@@ -133,7 +138,7 @@
                         </div>
                     </div>
 
-                    <div ng-controller="ApiUserStatsController" id="api-user-stats" class="highlight-section fixed">
+                    <div ng-controller="ApiUserStatsController" id="api-user-stats" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Api User Request Stats</p>
                         <hr/>
                         <table class="light-table">
@@ -178,7 +183,7 @@
                         </div>
                     </div>
 
-                    <div ng-controller="GeocodeUsageController"  id="geocode-usage" class="highlight-section fixed">
+                    <div ng-controller="GeocodeUsageController"  id="geocode-usage" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Geocoder Usage</p>
                         <hr/>
                         <ul class="horizontal">
@@ -201,7 +206,7 @@
                     </div>
 
 
-                    <div ng-controller="GeocacheSubmitController" id="geocaching" class="highlight-section fixed" >
+                    <div ng-controller="GeocacheSubmitController" id="geocaching" class="highlight-section fixed tabcontent" >
                         <p class="blue-header">Geocache Address</p>
                         <hr/>
                         <p>The state is assumed to be NY</p>
@@ -224,7 +229,7 @@
 
 
 
-                    <div ng-controller="UserConsoleController" id="user-console" class="highlight-section fixed">
+                    <div ng-controller="UserConsoleController" id="user-console" class="highlight-section fixed tabcontent">
                         <h3 class="slim">User Console</h3>
                         <!-- Current Api Users -->
                         <div>
