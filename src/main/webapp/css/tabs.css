@@ -13,6 +13,6 @@
     /*border-top: none;*/
 }
 
-.tablinks div:hover {
+.tablinks a:hover {
     background: #007095;
 }
