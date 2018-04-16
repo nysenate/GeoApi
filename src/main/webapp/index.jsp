@@ -2,7 +2,9 @@
 <%@ page import="gov.nysenate.sage.factory.ApplicationFactory" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 
+<fmt:setLocale value = "es_ES"/>
 <% request.setAttribute("amsUrl", ApplicationFactory.getConfig().getValue("usps.ams.ui.url")); %>
 <% request.setAttribute("activeGeocoders", ApplicationFactory.getActiveGeoProviders()); %>
 
