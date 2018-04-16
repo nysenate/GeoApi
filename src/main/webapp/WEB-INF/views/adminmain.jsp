@@ -211,9 +211,25 @@
                     <div ng-controller="GeocacheSubmitController" id="geocaching" class="highlight-section fixed tabcontent" >
                         <p class="blue-header">Geocache Address</p>
                         <hr/>
-                        <p>The state is assumed to be NY</p>
+                        <p>The state is assumed to be NY, in the seperated input form</p>
                         <hr/>
-                        <form>
+                        <button class="submit" style="width: auto;padding: 5px 10px;" ng-click="toggleInputSeperation()">Toggle Input Seperation</button>
+                        <br>
+                        <br>
+                        <form ng-show="!seperatedInput">
+                            <label for="geocache_addr_input">Address: </label>
+                            <input id="geocache_addr_input" ng-model="geocache_addr" type="text">
+
+                            <br>
+                            <br>
+
+                            <button type="submit" name="district_assign" class="submit" style="width: auto;padding: 5px 10px;"
+                                    ng-click="admin_district_assign()" ng-disabled="!isValidInfo()">District Assign</button>
+
+                            <button type="submit" name="update_geocache" class="submit" style="width: auto;padding: 5px 10px;"
+                                    ng-click="updateGeocache()" ng-disabled="!isValidInfo()">Update Geocache</button>
+                        </form>
+                        <form ng-show="seperatedInput">
                             <label for="geocache_addr1_input">Addr1: </label>
                             <input id="geocache_addr1_input" ng-model="geocache_addr1" type="text">
 
@@ -223,10 +239,41 @@
                             <label for="geocache_zip5_input">Zip5: </label>
                             <input id="geocache_zip5_input" ng-model="geocache_zip5" type="text">
 
-                            <button type="submit" class="submit" style="width: auto;padding: 5px 10px;" ng-click="commenceGeocache()" ng-disabled="!isValidSeperatedInfo()">Commence Geocache</button>
+                            <br>
+                            <br>
+
+                            <button type="submit" name="district_assign" class="submit" style="width: auto;padding: 5px 10px;"
+                                    ng-click="admin_district_assign()" ng-disabled="!isValidInfo()">District Assign</button>
+
+                            <button type="submit" name="update_geocache" class="submit" style="width: auto;padding: 5px 10px;"
+                                    ng-click="updateGeocache()" ng-disabled="!isValidInfo()">Update Geocache</button>
                         </form>
+                        <hr ng-show="district_assign_status"/>
+                        <div ng-show="district_assign_status">
+                            <p ng-show="district_assign_status">{{district_assign_json.status}} </p>
+                            <p ng-show="district_assign_status">{{district_assign_url}}</p>
+                            <br>
+                            <p ng-show="district_assign_geocode_status">Lat: {{district_assign_json.geocode.lat}}  Lon: {{district_assign_json.geocode.lon}}
+                                <br>
+                                Quality: {{district_assign_json.geocode.quality}}  Method:{{district_assign_json.geocode.method}}</p></p>
+                            <br>
+                            <p ng-show="district_assign_district_status">{{district_assign_json.districts}}</p>
+                            <br>
+                            <p ng-show="district_assign_status">{{district_assign_json}}</p>
+                        </div>
                         <hr ng-show="geocache_status"/>
-                        <p ng-show="geocache_status">{{geocache_status_text}}</p>
+                        <div ng-show="geocache_status">
+                            <p ng-show="geocache_status">{{geocache_json.status}}</p>
+                            <p ng-show="geocache_status">{{contextPath}}{{geocache_url}}</p>
+                            <br>
+                            <p ng-show="geocode_status = true;">The address was inserted into the geocache as: <br>
+                                Lat: {{geocache_json.geocode.lat}}  Lon: {{geocache_json.geocode.lon}} <br>
+                                Quality: {{geocache_json.geocode.quality}}  Method:{{geocache_json.geocode.method}}</p>
+                            <br>
+                            <p ng-show="geocache_status">{{geocache_json}}</p>
+                        </div>
+
+
                     </div>
 
 

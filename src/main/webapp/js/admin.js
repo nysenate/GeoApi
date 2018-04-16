@@ -230,28 +230,53 @@ sageAdmin.controller("GeocodeUsageController", function($scope, $http, dataBus){
 sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus){
 
     $scope.init = function() {
-        $scope.geocache_status_text = "";
         $scope.geocache_status = false;
+        $scope.district_assign_status = false;
+        $scope.seperatedInput = false;
+
     };
+    //These 4 vars can be shared by district assignment and geocaching
+    $scope.geocache_addr = "";
     $scope.geocache_addr1 = "";
     $scope.geocache_city = "";
     $scope.geocache_zip5 = "";
+    $scope.seperatedInput = false;
 
-    $scope.geocache_status_text = "";
+    //These vars are specific to geocaching only
+    $scope.geocache_url = "";
+    $scope.geocache_json = "";
     $scope.geocache_status = false;
+    $scope.geocode_status = false;
+
+    //These vars are specific to district assignment only
+    $scope.district_assign_url = "";
+    $scope.district_assign_json = "";
+    $scope.district_assign_status = false;
+    $scope.district_assign_geocode_status = false;
+    $scope.district_assign_district_status = false;
 
 
-
-    $scope.commenceGeocache = function() {
-
-
-        $http.get(baseApi + "geo/geocode?addr1=" + $scope.geocache_addr1 +
-            "&city=" + $scope.geocache_city + "&state=NY&zip5=" + $scope.geocache_zip5 + "&bypassCache=true" )
+    $scope.admin_district_assign = function() {
+        if (!$scope.seperatedInput) {
+            $scope.district_assign_url = baseApi + "district/assign?addr=" + $scope.geocache_addr;
+        }
+        else {
+            $scope.district_assign_url = baseApi + "district/assign?addr1=" + $scope.geocache_addr1 +
+            "&city=" + $scope.geocache_city + "&state=NY&zip5=" + $scope.geocache_zip5 + "&bypassCache=true";
+        }
+        $http.get($scope.district_assign_url)
             .success(function(data){
                 if (data) {
                     console.log('status = ' + data.status);
-                    $scope.geocache_status_text = data.status;
-                    $scope.geocache_status = true;
+                    $scope.district_assign_json = data;
+                    $scope.district_assign_status = true;
+
+                    if ($scope.district_assign_json.geocode != null) {
+                        $scope.district_assign_geocode_status = true;
+                    }
+                    if ($scope.district_assign_json.districts != null) {
+                        $scope.district_assign_district_status = true;
+                    }
                 }
             })
             .error(function(data){
@@ -259,16 +284,49 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
             });
     };
 
+    $scope.updateGeocache = function() {
+
+        if (!$scope.seperatedInput) {
+            $scope.geocache_url = baseApi + "geo/geocode?addr=" + $scope.geocache_addr + "&bypassCache=true";
+        }
+        else {
+           $scope.geocache_url = baseApi + "geo/geocode?addr1=" + $scope.geocache_addr1 +
+               "&city=" + $scope.geocache_city + "&state=NY&zip5=" + $scope.geocache_zip5 + "&bypassCache=true";
+        }
+        $http.get($scope.geocache_url)
+            .success(function(data){
+                if (data) {
+                    console.log('status = ' + data.status);
+                    $scope.geocache_json = data;
+                    $scope.geocache_status = true;
+
+                    if ($scope.geocache_json.geocode != null) {
+                        geocode_status = true;
+                    }
+                }
+            })
+            .error(function(data){
+                console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
+            });
+
+    };
+
     $scope.$on("update", function() {
         $scope.init();
     });
 
-    $scope.isValidSeperatedInfo = function() {
-      var isValid = false;
-      if ($scope.geocache_addr1 !== "" && $scope.geocache_city !== "" && $scope.geocache_zip5.length === 5 ) {
-          isValid = true;
-      }
-      return isValid;
+    $scope.isValidInfo = function() {
+        if (!$scope.seperatedInput) {
+            return $scope.geocache_addr !== "";
+        }
+        else {
+            return $scope.geocache_addr1 !== "" && $scope.geocache_city !== "" && $scope.geocache_zip5.length === 5;
+        }
+
+    };
+
+    $scope.toggleInputSeperation = function() {
+        $scope.seperatedInput = !$scope.seperatedInput;
     };
 
     $scope.init();
