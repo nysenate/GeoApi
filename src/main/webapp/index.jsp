@@ -308,11 +308,8 @@
                         <tr>
                             <td><div class="icon-target icon-teal"></div></td>
                             <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}})</p></td>
-                            <td style="text-align:right;"><small style="color:teal;">{{geocode.method | remove:'Dao'}}</small></td>
-                        </tr>
-                        <tr>
-                            <td><div class="icon-database icon-teal" style="color:teal;"></div></td>
-                            <td><small>{{geocode.cached}}</small></td>
+                            <td style="text-align:right;"><small style="color:teal;">{{geocode.method | remove:'Dao'}}</small>
+                                <p ng-if="{{geocode.cached}}" class="icon-database icon-teal" style="color:teal;"></p></td>
                         </tr>
                     </table>
                 </div>
