@@ -300,8 +300,10 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                     $scope.geocache_json = data;
                     $scope.geocache_status = true;
 
+                    console.log(data.geocode);
+
                     if ($scope.geocache_json.geocode != null) {
-                        geocode_status = true;
+                        $scope.geocode_status = true;
                     }
                 }
             })
@@ -327,6 +329,13 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
     $scope.toggleInputSeperation = function() {
         $scope.seperatedInput = !$scope.seperatedInput;
+        $scope.district_assign_status = false;
+        $scope.geocache_status = false;
+    };
+
+    $scope.resetOnChange = function() {
+        $scope.district_assign_status = false;
+        $scope.geocache_status = false;
     };
 
     $scope.init();
