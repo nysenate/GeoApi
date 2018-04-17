@@ -271,7 +271,7 @@
 
                             </p>
                             <br>
-                            <p >{{district_assign_json}}</p>
+                            <p style="word-wrap: break-word">{{district_assign_json}}</p>
                         </div>
                         <hr ng-show="geocache_status"/>
                         <div ng-show="geocache_status">
@@ -282,7 +282,7 @@
                                 Lat: {{geocache_json.geocode.lat}}  Lon: {{geocache_json.geocode.lon}} <br>
                                 Quality: {{geocache_json.geocode.quality}}  Method:{{geocache_json.geocode.method}}</p>
                             <br>
-                            <p>{{geocache_json}}</p>
+                            <p style="word-wrap: break-word">{{geocache_json}}</p>
                         </div>
 
 
