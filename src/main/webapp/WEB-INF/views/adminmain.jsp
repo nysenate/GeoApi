@@ -21,7 +21,7 @@
             <sage:logo></sage:logo>
             <ul class="top-method-header">
                     <li class="tablinks" onclick="openTab(event,'exception-viewer')">
-                        <a><div class=" icon-erase" id="defaultOpen"></div>&nbsp;Exceptions</a></li>
+                        <a><div class=" icon-new" id="defaultOpen"></div>&nbsp;Exceptions</a></li>
 
                     <li class="tablinks" onclick="openTab(event,'api-usage')">
                         <a><div class=" icon-graph"></div>&nbsp;Api Usage</a></li>
