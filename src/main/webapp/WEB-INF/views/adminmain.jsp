@@ -213,7 +213,7 @@
                         <hr/>
                         <p>The state is assumed to be NY, in the seperated input form</p>
                         <hr/>
-                        <button class="submit" style="width: auto;padding: 5px 10px;" ng-click="toggleInputSeperation()">Toggle Input Seperation</button>
+                        <button class="toggle" style="width: auto;padding: 5px 10px;" ng-click="toggleInputSeperation()">Toggle Input Seperation</button>
                         <br>
                         <br>
                         <form ng-show="!seperatedInput">
@@ -226,7 +226,7 @@
                             <button type="submit" name="district_assign" class="submit" style="width: auto;padding: 5px 10px;"
                                     ng-click="admin_district_assign()" ng-disabled="!isValidInfo()">District Assign</button>
 
-                            <button type="submit" name="update_geocache" class="submit" style="width: auto;padding: 5px 10px;"
+                            <button type="submit" name="update_geocache" class="geocache" style="width: auto;padding: 5px 10px;"
                                     ng-click="updateGeocache()" ng-disabled="!isValidInfo()">Update Geocache</button>
                         </form>
                         <form ng-show="seperatedInput">
@@ -245,7 +245,7 @@
                             <button type="submit" name="district_assign" class="submit" style="width: auto;padding: 5px 10px;"
                                     ng-click="admin_district_assign()" ng-disabled="!isValidInfo()">District Assign</button>
 
-                            <button type="submit" name="update_geocache" class="submit" style="width: auto;padding: 5px 10px;"
+                            <button type="submit" name="update_geocache" class="geocache" style="width: auto;padding: 5px 10px;"
                                     ng-click="updateGeocache()" ng-disabled="!isValidInfo()">Update Geocache</button>
                         </form>
                         <hr ng-show="district_assign_status"/>
