@@ -216,9 +216,25 @@
                         <button class="toggle" style="width: auto;padding: 5px 10px;" ng-click="toggleInputSeperation()">Toggle Input Seperation</button>
                         <br>
                         <br>
-                        <form ng-show="!seperatedInput">
-                            <label for="geocache_addr_input">Address: </label>
-                            <input id="geocache_addr_input" ng-model="geocache_addr" type="text" size="50" ng-change="resetOnChange()">
+                        <form >
+
+                            <div ng-show="!seperatedInput">
+                                <label for="geocache_addr_input">Address: </label>
+                                <input id="geocache_addr_input" ng-model="geocache_addr" type="text" size="50" ng-change="resetOnChange()">
+
+
+                            </div>
+
+                            <div ng-show="seperatedInput">
+                                <label for="geocache_addr1_input">Addr1: </label>
+                                <input id="geocache_addr1_input" ng-model="geocache_addr1" type="text" size="28" ng-change="resetOnChange()">
+
+                                <label for="geocache_city_input">City: </label>
+                                <input id="geocache_city_input" ng-model="geocache_city" type="text" ng-change="resetOnChange()">
+
+                                <label for="geocache_zip5_input">Zip5: </label>
+                                <input id="geocache_zip5_input" ng-model="geocache_zip5" type="text" ng-change="resetOnChange()">
+                            </div>
 
                             <br>
                             <br>
@@ -228,25 +244,7 @@
 
                             <button type="submit" name="update_geocache" class="geocache" style="width: auto;padding: 5px 10px;"
                                     ng-click="updateGeocache()" ng-disabled="!isValidInfo()">Update Geocache</button>
-                        </form>
-                        <form ng-show="seperatedInput">
-                            <label for="geocache_addr1_input">Addr1: </label>
-                            <input id="geocache_addr1_input" ng-model="geocache_addr1" type="text" size="28" ng-change="resetOnChange()">
 
-                            <label for="geocache_city_input">City: </label>
-                            <input id="geocache_city_input" ng-model="geocache_city" type="text" ng-change="resetOnChange()">
-
-                            <label for="geocache_zip5_input">Zip5: </label>
-                            <input id="geocache_zip5_input" ng-model="geocache_zip5" type="text" ng-change="resetOnChange()">
-
-                            <br>
-                            <br>
-
-                            <button type="submit" name="district_assign" class="submit" style="width: auto;padding: 5px 10px;"
-                                    ng-click="admin_district_assign()" ng-disabled="!isValidInfo()">District Assign</button>
-
-                            <button type="submit" name="update_geocache" class="geocache" style="width: auto;padding: 5px 10px;"
-                                    ng-click="updateGeocache()" ng-disabled="!isValidInfo()">Update Geocache</button>
                         </form>
                         <hr ng-show="district_assign_status"/>
                         <div ng-show="district_assign_status">
