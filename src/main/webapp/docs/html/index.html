@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>SAGE API v2 Reference &mdash; Sage  2.0 documentation</title>
+    <title>SAGE API v2 Reference &#8212; Sage  2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,56 +17,62 @@
         VERSION:     '2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Sage  2.0 documentation" href="#" /> 
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="#">Sage  2.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="#">Sage  2.0 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="sage-api-v2-reference">
 <h1>SAGE API v2 Reference<a class="headerlink" href="#sage-api-v2-reference" title="Permalink to this headline">¶</a></h1>
 <p>The SAGE API exposes methods for geocoding, address correction, and district assignment given addresses or geo-coordinates
-as input. The API supports <tt class="docutils literal"><span class="pre">JSON</span></tt>, <tt class="docutils literal"><span class="pre">JSON-P</span></tt>, and <tt class="docutils literal"><span class="pre">XML</span></tt> output formats.</p>
+as input. The API supports <code class="docutils literal"><span class="pre">JSON</span></code>, <code class="docutils literal"><span class="pre">JSON-P</span></code>, and <code class="docutils literal"><span class="pre">XML</span></code> output formats.</p>
 <p>SAGE is also able to handle <a class="reference internal" href="#bluebirdcrm">BluebirdCRM</a> district assignment requests.</p>
 <div class="section" id="basics">
 <h2>Basics<a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h2>
 <p>The API requests must be crafted to match the following structure:</p>
-<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?params..</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/&lt;group&gt;/&lt;method&gt;?params..
+</pre></div>
 </div>
 <p>All API requests need to be validated using an assigned API key however it is not required when requests are made from
-within the NY Senate&#8217;s network. The key is supplied using the query parameter <tt class="docutils literal"><span class="pre">key</span></tt>:</p>
-<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?&lt;params..&gt;&amp;key=YOUR KEY HERE</pre>
+within the NY Senate&#8217;s network. The key is supplied using the query parameter <code class="docutils literal"><span class="pre">key</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/&lt;group&gt;/&lt;method&gt;?&lt;params..&gt;&amp;key=YOUR KEY HERE
+</pre></div>
 </div>
-<p>The default output format is <tt class="docutils literal"><span class="pre">JSON</span></tt>. To change the output to <tt class="docutils literal"><span class="pre">XML</span></tt> or <tt class="docutils literal"><span class="pre">JSON-P</span></tt> simply set the <tt class="docutils literal"><span class="pre">format</span></tt> query
-parameter to <tt class="docutils literal"><span class="pre">xml</span></tt> or <tt class="docutils literal"><span class="pre">jsonp</span></tt>. For example to set to xml:</p>
-<div class="highlight-python"><pre>/api/v2/geo/geocode?addr=200 State St, Albany NY&amp;format=xml</pre>
+<p>The default output format is <code class="docutils literal"><span class="pre">JSON</span></code>. To change the output to <code class="docutils literal"><span class="pre">XML</span></code> or <code class="docutils literal"><span class="pre">JSON-P</span></code> simply set the <code class="docutils literal"><span class="pre">format</span></code> query
+parameter to <code class="docutils literal"><span class="pre">xml</span></code> or <code class="docutils literal"><span class="pre">jsonp</span></code>. For example to set to xml:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/geo/geocode?addr=200 State St, Albany NY&amp;format=xml
+</pre></div>
 </div>
 <p>To output JSON-P a callback must also be specified.:</p>
-<div class="highlight-python"><pre>/api/v2/geo/geocode?addr=200 State St, Albany NY&amp;format=jsonp&amp;callback=methodName</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/geo/geocode?addr=200 State St, Albany NY&amp;format=jsonp&amp;callback=methodName
+</pre></div>
 </div>
 </div>
 <div class="section" id="groups">
 <h2>Groups<a class="headerlink" href="#groups" title="Permalink to this headline">¶</a></h2>
 <p>Each API method belongs in a logical group in order to make it easy to understand the goal of the request. The supported
-types for the <tt class="docutils literal"><span class="pre">group</span></tt> segment are as follows:</p>
+types for the <code class="docutils literal"><span class="pre">group</span></code> segment are as follows:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="25%" />
@@ -101,17 +107,21 @@ types for the <tt class="docutils literal"><span class="pre">group</span></tt> s
 <div class="section" id="common-query-parameters">
 <span id="id1"></span><h3>Common Query Parameters<a class="headerlink" href="#common-query-parameters" title="Permalink to this headline">¶</a></h3>
 <p>Many of the methods listed below follow a similar convention for inputting addresses or geo-coordinates.
-To supply a single address string use the parameter <tt class="docutils literal"><span class="pre">addr</span></tt>:</p>
-<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?addr=200 State St, Albany NY 12210</pre>
+To supply a single address string use the parameter <code class="docutils literal"><span class="pre">addr</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/&lt;group&gt;/&lt;method&gt;?addr=200 State St, Albany NY 12210
+</pre></div>
 </div>
-<p>To supply the individual components use the following parameters: <tt class="docutils literal"><span class="pre">addr1</span></tt>, <tt class="docutils literal"><span class="pre">addr2</span></tt>, <tt class="docutils literal"><span class="pre">city</span></tt>, <tt class="docutils literal"><span class="pre">state</span></tt>, <tt class="docutils literal"><span class="pre">zip5</span></tt>, <tt class="docutils literal"><span class="pre">zip4</span></tt>. The above query would be written as:</p>
-<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?addr1=200 State St&amp;city=Albany&amp;state=NY&amp;zip5=12210</pre>
+<p>To supply the individual components use the following parameters: <code class="docutils literal"><span class="pre">addr1</span></code>, <code class="docutils literal"><span class="pre">addr2</span></code>, <code class="docutils literal"><span class="pre">city</span></code>, <code class="docutils literal"><span class="pre">state</span></code>, <code class="docutils literal"><span class="pre">zip5</span></code>, <code class="docutils literal"><span class="pre">zip4</span></code>. The above query would be written as:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/&lt;group&gt;/&lt;method&gt;?addr1=200 State St&amp;city=Albany&amp;state=NY&amp;zip5=12210
+</pre></div>
 </div>
-<p>Geo-coordinate pairs can be supplied to the appropriate method using <tt class="docutils literal"><span class="pre">lat</span></tt> and <tt class="docutils literal"><span class="pre">lon</span></tt>:</p>
-<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?lat=43.00&amp;lon=-73.10</pre>
+<p>Geo-coordinate pairs can be supplied to the appropriate method using <code class="docutils literal"><span class="pre">lat</span></code> and <code class="docutils literal"><span class="pre">lon</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/&lt;group&gt;/&lt;method&gt;?lat=43.00&amp;lon=-73.10
+</pre></div>
 </div>
-<p>Address, Geo, and District API calls allow for specifying a <tt class="docutils literal"><span class="pre">provider</span></tt> to carry out the request:</p>
-<div class="highlight-python"><pre>/api/v2/&lt;group&gt;/&lt;method&gt;?provider=PROVIDER_NAME</pre>
+<p>Address, Geo, and District API calls allow for specifying a <code class="docutils literal"><span class="pre">provider</span></code> to carry out the request:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/&lt;group&gt;/&lt;method&gt;?provider=PROVIDER_NAME
+</pre></div>
 </div>
 </div>
 <div class="section" id="address">
@@ -159,37 +169,38 @@ To supply a single address string use the parameter <tt class="docutils literal"
 </tr>
 </tbody>
 </table>
-<p>The usage of <tt class="docutils literal"><span class="pre">validate</span></tt> with an address input:</p>
-<div class="highlight-python"><pre>/api/v2/address/validate?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY</pre>
+<p>The usage of <code class="docutils literal"><span class="pre">validate</span></code> with an address input:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/address/validate?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY
+</pre></div>
 </div>
 <p>The validated response:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span>
-    <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-    <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Albany&quot;</span><span class="p">,</span>
-    <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
-    <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12203&quot;</span><span class="p">,</span>
-    <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;1914&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;USPSAMS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;1914&quot;</span>
   <span class="p">},</span>
-  <span class="s">&quot;validated&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+  <span class="s2">&quot;validated&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>A failed validation response:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s">&quot;validated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">73</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;The address could not be validated.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;USPSAMS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;validated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">73</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;The address could not be validated.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -198,61 +209,63 @@ To supply a single address string use the parameter <tt class="docutils literal"
 <p class="last">USPS address validation requires addr1, city and state explicitly specified in the query parameters. Given a query that
 is missing those fields, USPS will not be used to perform validation and another provider will be used instead.</p>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">punct</span></tt> parameter can be supplied if abbreviations require a period appended to them. Simply add <tt class="docutils literal"><span class="pre">punct=true</span></tt> to the url
+<p>The <code class="docutils literal"><span class="pre">punct</span></code> parameter can be supplied if abbreviations require a period appended to them. Simply add <code class="docutils literal"><span class="pre">punct=true</span></code> to the url
 to enable punctuation.</p>
-<p>The usage of <tt class="docutils literal"><span class="pre">citystate</span></tt> with a zip code input:</p>
-<div class="highlight-python"><pre>/api/v2/address/citystate?zip5=12210</pre>
+<p>The usage of <code class="docutils literal"><span class="pre">citystate</span></code> with a zip code input:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/address/citystate?zip5=12210
+</pre></div>
 </div>
 <p>The city/state response:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;ALBANY&quot;</span><span class="p">,</span>
-  <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
-  <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12210&quot;</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;USPSAMS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;ALBANY&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12210&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>A failed city/state response with invalid input:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s">&quot;Invalid Zip Code.&quot;</span> <span class="p">],</span>
-  <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-  <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-  <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">73</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;The address could not be validated.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;USPSAMS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;Invalid Zip Code.&quot;</span> <span class="p">],</span>
+  <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">73</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;The address could not be validated.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The usage of <tt class="docutils literal"><span class="pre">zipcode</span></tt>:</p>
-<div class="highlight-python"><pre>/api/v2/address/zipcode?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY</pre>
+<p>The usage of <code class="docutils literal"><span class="pre">zipcode</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/address/zipcode?addr1=44 Fairlawn Avenue&amp;city=Albany&amp;state=NY
+</pre></div>
 </div>
 <p>The zipcode response:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12203&quot;</span><span class="p">,</span>
-  <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;1914&quot;</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;USPSAMS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;1914&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>A failed zipcode response, similar to the failed validate response:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;USPSAMS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">73</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;The address could not be validated.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;USPSAMS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">73</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;The address could not be validated.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -260,9 +273,10 @@ to enable punctuation.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">Zipcode lookup has the same USPS constraints as the validate method</p>
 </div>
-<p>To force the request to use a certain provider supply the query parameter <tt class="docutils literal"><span class="pre">provider</span></tt>:</p>
-<div class="highlight-python"><pre>/api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=usps
-/api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=uspsais</pre>
+<p>To force the request to use a certain provider supply the query parameter <code class="docutils literal"><span class="pre">provider</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=usps
+/api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=uspsais
+</pre></div>
 </div>
 </div>
 <div class="section" id="geo">
@@ -301,25 +315,13 @@ to enable punctuation.</p>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>yahoo</td>
-<td>Free YQL service from Yahoo. (recommended)</td>
-<td>~20000 day</td>
+<tr class="row-even"><td>google</td>
+<td>Free Google geocoding service</td>
+<td>2500 a day</td>
 </tr>
-<tr class="row-odd"><td>mapquest</td>
-<td>Free MapQuest geocoding service</td>
-<td>5000 day?</td>
-</tr>
-<tr class="row-even"><td>tiger</td>
+<tr class="row-odd"><td>tiger</td>
 <td>In-database geocoding using census data</td>
 <td>Unlimited</td>
-</tr>
-<tr class="row-odd"><td>ruby</td>
-<td>Ruby implementation using census data</td>
-<td>Unlimited</td>
-</tr>
-<tr class="row-even"><td>osm</td>
-<td>Open Street Maps API</td>
-<td>1 per sec?</td>
 </tr>
 </tbody>
 </table>
@@ -344,42 +346,45 @@ to enable punctuation.</p>
 </tbody>
 </table>
 <p>For example to use just yahoo without falling back to other providers in case of error:</p>
-<div class="highlight-python"><pre>/api/v2/geo/&lt;method&gt;?&lt;params..&gt;&amp;provider=yahoo&amp;useFallback=false</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/geo/&lt;method&gt;?&lt;params..&gt;&amp;provider=yahoo&amp;useFallback=false
+</pre></div>
 </div>
 <div class="section" id="geocode">
 <h4>Geocode<a class="headerlink" href="#geocode" title="Permalink to this headline">¶</a></h4>
-<p>The usage of <tt class="docutils literal"><span class="pre">geocode</span></tt> with an address input:</p>
-<div class="highlight-python"><pre>/api/v2/geo/geocode?addr=200 State St, Albany NY 12210
-/api/v2/geo/geocode?addr1=200 State St&amp;city=Albany&amp;state=NY&amp;zip5=12210</pre>
+<p>The usage of <code class="docutils literal"><span class="pre">geocode</span></code> with an address input:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/geo/geocode?addr=200 State St, Albany NY 12210
+/api/v2/geo/geocode?addr1=200 State St&amp;city=Albany&amp;state=NY&amp;zip5=12210
+</pre></div>
 </div>
 <p>The geocode response:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;GeoCache&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;200 State St&quot;</span><span class="p">,</span>
-    <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-    <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Albany&quot;</span><span class="p">,</span>
-    <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
-    <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12210&quot;</span><span class="p">,</span>
-    <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span>
-  <span class="p">},</span>
-  <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.65203</span><span class="p">,</span>
-    <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.75759</span><span class="p">,</span>
-    <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
-    <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span>
-  <span class="p">},</span>
-  <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">status</span><span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+    <span class="n">source</span><span class="p">:</span> <span class="s2">&quot;GoogleGeocoder&quot;</span><span class="p">,</span>
+    <span class="n">messages</span><span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+    <span class="n">address</span><span class="p">:</span> <span class="p">{</span>
+        <span class="n">addr1</span><span class="p">:</span> <span class="s2">&quot;200 State Street&quot;</span><span class="p">,</span>
+        <span class="n">addr2</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">city</span><span class="p">:</span> <span class="s2">&quot;Albany&quot;</span><span class="p">,</span>
+        <span class="n">state</span><span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+        <span class="n">zip5</span><span class="p">:</span> <span class="s2">&quot;12210&quot;</span><span class="p">,</span>
+        <span class="n">zip4</span><span class="p">:</span> <span class="s2">&quot;&quot;</span>
+    <span class="p">},</span>
+    <span class="n">geocode</span><span class="p">:</span> <span class="p">{</span>
+        <span class="n">lat</span><span class="p">:</span> <span class="mf">42.6533668</span><span class="p">,</span>
+        <span class="n">lon</span><span class="p">:</span> <span class="o">-</span><span class="mf">73.7599828</span><span class="p">,</span>
+        <span class="n">quality</span><span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
+        <span class="n">method</span><span class="p">:</span> <span class="s2">&quot;GoogleDao&quot;</span><span class="p">,</span>
+        <span class="n">cached</span><span class="p">:</span> <span class="n">false</span>
+    <span class="p">},</span>
+    <span class="n">geocoded</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;Success.&quot;</span><span class="p">,</span>
+    <span class="n">statusCode</span><span class="p">:</span> <span class="mi">0</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">source</span></tt> indicates where the response was returned from whereas <tt class="docutils literal"><span class="pre">geocode.method</span></tt> indicates where the geocode was computed.</p>
-<p>The <tt class="docutils literal"><span class="pre">address</span></tt> is typically a normalized representation of the input address but it depends on the geocode provider used.</p>
-<p>The <tt class="docutils literal"><span class="pre">geocode.quality</span></tt> metric indicates the accuracy/confidence level of the geocode. A successful geocode response will have
+<p>The <code class="docutils literal"><span class="pre">source</span></code> indicates where the response was returned from whereas <code class="docutils literal"><span class="pre">geocode.method</span></code> indicates where the geocode was computed.</p>
+<p>The <code class="docutils literal"><span class="pre">address</span></code> is typically a normalized representation of the input address but it depends on the geocode provider used.</p>
+<p>The <code class="docutils literal"><span class="pre">geocode.quality</span></code> metric indicates the accuracy/confidence level of the geocode. A successful geocode response will have
 one of the following quality levels ordered from most accurate to least:</p>
 <ul class="simple">
 <li>POINT</li>
@@ -389,131 +394,137 @@ one of the following quality levels ordered from most accurate to least:</p>
 <li>ZIP</li>
 </ul>
 <p>An unsuccessful response will resemble the following:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_GEOCODE_RESULT&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;TigerGeocoder&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">71</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Geocode service returned no results.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;NO_GEOCODE_RESULT&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;TigerGeocoder&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">71</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Geocode service returned no results.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>A <tt class="docutils literal"><span class="pre">RESPONSE_PARSE_ERROR</span></tt> status will also indicate a failed geocode operation.</p>
+<p>A <code class="docutils literal"><span class="pre">RESPONSE_PARSE_ERROR</span></code> status will also indicate a failed geocode operation.</p>
 </div>
 <div class="section" id="reverse-geocode">
 <h4>Reverse Geocode<a class="headerlink" href="#reverse-geocode" title="Permalink to this headline">¶</a></h4>
-<p>The usage of <tt class="docutils literal"><span class="pre">revgeocode</span></tt> with a coordinate pair input:</p>
-<div class="highlight-python"><pre>api/v2/geo/revgeocode?lat=42.652030&amp;lon=-73.757590</pre>
+<p>The usage of <code class="docutils literal"><span class="pre">revgeocode</span></code> with a coordinate pair input:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/geo/revgeocode?lat=42.652030&amp;lon=-73.757590
+</pre></div>
 </div>
 <p>The reverse geocode response:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;Yahoo&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;200 State St&quot;</span><span class="p">,</span>
-    <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-    <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Albany&quot;</span><span class="p">,</span>
-    <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
-    <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12210&quot;</span><span class="p">,</span>
-    <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span>
-  <span class="p">},</span>
-  <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.65204</span><span class="p">,</span>
-    <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.757602</span><span class="p">,</span>
-    <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
-    <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span>
-  <span class="p">},</span>
-  <span class="s">&quot;revGeocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">status</span><span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+    <span class="n">source</span><span class="p">:</span> <span class="s2">&quot;TigerGeocoder&quot;</span><span class="p">,</span>
+    <span class="n">messages</span><span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+    <span class="n">address</span><span class="p">:</span> <span class="p">{</span>
+        <span class="n">addr1</span><span class="p">:</span> <span class="s2">&quot;155 State St&quot;</span><span class="p">,</span>
+        <span class="n">addr2</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">city</span><span class="p">:</span> <span class="s2">&quot;Albany&quot;</span><span class="p">,</span>
+        <span class="n">state</span><span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+        <span class="n">zip5</span><span class="p">:</span> <span class="s2">&quot;12210&quot;</span><span class="p">,</span>
+        <span class="n">zip4</span><span class="p">:</span> <span class="s2">&quot;&quot;</span>
+    <span class="p">},</span>
+    <span class="n">geocode</span><span class="p">:</span> <span class="p">{</span>
+        <span class="n">lat</span><span class="p">:</span> <span class="mi">42</span><span class="o">-.</span><span class="mi">65203</span><span class="p">,</span>
+        <span class="n">lon</span><span class="p">:</span> <span class="o">-</span><span class="mf">73.75759</span><span class="p">,</span>
+        <span class="n">quality</span><span class="p">:</span> <span class="s2">&quot;POINT&quot;</span><span class="p">,</span>
+        <span class="n">method</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">cached</span><span class="p">:</span> <span class="n">false</span>
+    <span class="p">},</span>
+    <span class="n">revGeocoded</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;Success.&quot;</span><span class="p">,</span>
+    <span class="n">statusCode</span><span class="p">:</span> <span class="mi">0</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>It is identical to the geocode response except for the <tt class="docutils literal"><span class="pre">revGeocoded</span></tt> field that indicates whether the reverse geocoding succeeded.</p>
+<p>It is identical to the geocode response except for the <code class="docutils literal"><span class="pre">revGeocoded</span></code> field that indicates whether the reverse geocoding succeeded.</p>
 </div>
 <div class="section" id="batch-geocode">
 <span id="id2"></span><h4>Batch Geocode<a class="headerlink" href="#batch-geocode" title="Permalink to this headline">¶</a></h4>
 <p>Multiple addresses can be geocoded with a single query using the batch api call.
 The format of the batch geocoding call is:</p>
-<div class="highlight-python"><pre>/api/v2/geo/geocode/batch</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">geo</span><span class="o">/</span><span class="n">geocode</span><span class="o">/</span><span class="n">batch</span>
+</pre></div>
 </div>
 <p>The format of the batch reverse geocoding call is:</p>
-<div class="highlight-python"><pre>/api/v2/geo/revgeocode/batch</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">geo</span><span class="o">/</span><span class="n">revgeocode</span><span class="o">/</span><span class="n">batch</span>
+</pre></div>
 </div>
 <p>The addresses for geocoding and points for reverse geocoding must be JSON encoded and sent in the POST request payload.
 The fields are identical to the query parameter fields for both address and point. Likewise any options can be specified
 the same way as the single request version. For example to specify provider:</p>
-<div class="highlight-python"><pre>/api/v2/geo/geocode/batch?provider=PROVIDER_NAME</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/geo/geocode/batch?provider=PROVIDER_NAME
+</pre></div>
 </div>
 <p>A sample batch geocoding request in PHP:</p>
-<div class="highlight-python"><pre>&lt;?php
+<div class="highlight-default"><div class="highlight"><pre><span></span>&lt;?php
 $addresses = array(
     array(
-        "addr1" =&gt; "100 Nyroy Dr",
-        "city" =&gt; "Troy",
-        "state" =&gt; "NY",
-        "zip5" =&gt; "12180"
+        &quot;addr1&quot; =&gt; &quot;100 Nyroy Dr&quot;,
+        &quot;city&quot; =&gt; &quot;Troy&quot;,
+        &quot;state&quot; =&gt; &quot;NY&quot;,
+        &quot;zip5&quot; =&gt; &quot;12180&quot;
     ),
     array(
-        "addr1" =&gt; "44 Fairlawn Ave",
-        "city" =&gt; "Albany",
-        "state" =&gt; "NY",
-        "zip5" =&gt; "12203"
+        &quot;addr1&quot; =&gt; &quot;44 Fairlawn Ave&quot;,
+        &quot;city&quot; =&gt; &quot;Albany&quot;,
+        &quot;state&quot; =&gt; &quot;NY&quot;,
+        &quot;zip5&quot; =&gt; &quot;12203&quot;
     )
 );
 
 $post_body = json_encode($addresses);
 
-$ch = curl_init("http://localhost:8080/GeoApi/geo/geocode/batch");
-curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+$ch = curl_init(&quot;http://localhost:8080/GeoApi/geo/geocode/batch&quot;);
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, &quot;POST&quot;);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-    'Content-Type: application/json',
-    'Content-Length: ' . strlen($post_body)
+    &#39;Content-Type: application/json&#39;,
+    &#39;Content-Length: &#39; . strlen($post_body)
 ));
 
-$result = curl_exec($ch);</pre>
+$result = curl_exec($ch);
+</pre></div>
 </div>
 <p>And the response:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>  <span class="s">&quot;results&quot;</span> <span class="p">:[</span>
-    <span class="p">{</span> <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-      <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;GeoCache&quot;</span><span class="p">,</span> <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-      <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;100 Nyroy Dr&quot;</span><span class="p">,</span> <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Troy&quot;</span><span class="p">,</span> <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span> <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12180&quot;</span><span class="p">,</span> <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span> <span class="p">},</span>
-      <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.741112</span><span class="p">,</span> <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.668762</span><span class="p">,</span> <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span> <span class="p">},</span> <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-      <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-      <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>  <span class="s2">&quot;results&quot;</span> <span class="p">:[</span>
+    <span class="p">{</span> <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;GeoCache&quot;</span><span class="p">,</span> <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+      <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;100 Nyroy Dr&quot;</span><span class="p">,</span> <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Troy&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span> <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12180&quot;</span><span class="p">,</span> <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span> <span class="p">},</span>
+      <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.741112</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.668762</span><span class="p">,</span> <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;YahooDao&quot;</span> <span class="p">},</span> <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
     <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-      <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;GeoCache&quot;</span><span class="p">,</span>
-      <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-      <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span> <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Albany&quot;</span><span class="p">,</span> <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span> <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12203&quot;</span><span class="p">,</span> <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span> <span class="p">},</span>
-      <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.670583</span><span class="p">,</span> <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.799606</span><span class="p">,</span> <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span> <span class="p">},</span>
-      <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span> <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+    <span class="p">{</span> <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;GeoCache&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+      <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span> <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span> <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span><span class="p">,</span> <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span> <span class="p">},</span>
+      <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.670583</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.799606</span><span class="p">,</span> <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;YahooDao&quot;</span> <span class="p">},</span>
+      <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span> <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
     <span class="p">}</span>
   <span class="p">],</span>
-  <span class="s">&quot;total&quot;</span> <span class="p">:</span> <span class="mi">2</span>
+  <span class="s2">&quot;total&quot;</span> <span class="p">:</span> <span class="mi">2</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>The results array consists of the same geocode responses that would be returned using the single geocode call.
-The <tt class="docutils literal"><span class="pre">total</span></tt> field simply indicates the number of records returned. The order of the results should match the
+The <code class="docutils literal"><span class="pre">total</span></code> field simply indicates the number of records returned. The order of the results should match the
 order of the addresses in the JSON payload.</p>
 <p>In the event that the payload fails to parse, the response will be:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;INVALID_BATCH_ADDRESSES&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;GeocodeController&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">55</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;The supplied batch address list could not be parsed.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;INVALID_BATCH_ADDRESSES&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;GeocodeController&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">55</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;The supplied batch address list could not be parsed.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Refer to <a class="reference internal" href="#common-query-parameters"><em>Common Query Parameters</em></a> to ensure that the correct fields are being used.</p>
+<p>Refer to <a class="reference internal" href="#common-query-parameters"><span class="std std-ref">Common Query Parameters</span></a> to ensure that the correct fields are being used.</p>
 </div>
 </div>
 <div class="section" id="district">
@@ -566,7 +577,7 @@ order of the addresses in the JSON payload.</p>
 </tr>
 </tbody>
 </table>
-<p><tt class="docutils literal"><span class="pre">assign</span></tt> has the following optional parameters:</p>
+<p><code class="docutils literal"><span class="pre">assign</span></code> has the following optional parameters:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="19%" />
@@ -630,7 +641,7 @@ order of the addresses in the JSON payload.</p>
 </tr>
 </tbody>
 </table>
-<p>Unlike the <tt class="docutils literal"><span class="pre">geo</span></tt> service, specifying a <tt class="docutils literal"><span class="pre">provider</span></tt> or <tt class="docutils literal"><span class="pre">geoProvider</span></tt> will by default disable any fallback. If the provider
+<p>Unlike the <code class="docutils literal"><span class="pre">geo</span></code> service, specifying a <code class="docutils literal"><span class="pre">provider</span></code> or <code class="docutils literal"><span class="pre">geoProvider</span></code> will by default disable any fallback. If the provider
 is not specified the service will utilize multiple providers to provide the most accurate result. If the geoProvider is not
 specified, the service will iterate through a series of providers if needed until a geocode match is obtained. Specifying
 provider or geoProvider is not recommended as it may reduce the accuracy of the results.</p>
@@ -641,89 +652,90 @@ provider or geoProvider is not recommended as it may reduce the accuracy of the 
 <div class="section" id="assign">
 <h4>Assign<a class="headerlink" href="#assign" title="Permalink to this headline">¶</a></h4>
 <p>The default query usage is as follows:</p>
-<div class="highlight-python"><pre>Unparsed Format:
+<div class="highlight-default"><div class="highlight"><pre><span></span>Unparsed Format:
 /api/v2/district/assign?addr=280 Madison Ave, New York, NY
 
 Parsed Format:
-/api/v2/district/assign?addr1=280 Madison Ave&amp;city=New York&amp;state=NY</pre>
+/api/v2/district/assign?addr1=280 Madison Ave&amp;city=New York&amp;state=NY
+</pre></div>
 </div>
 <p>The district assignment response:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;DistrictServiceProvider&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;280 Madison Ave&quot;</span><span class="p">,</span>
-    <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-    <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;New York&quot;</span><span class="p">,</span>
-    <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
-    <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;10016&quot;</span><span class="p">,</span>
-    <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;0802&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;DistrictServiceProvider&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;280 Madison Ave&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;10016&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;0802&quot;</span>
   <span class="p">},</span>
-  <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">40.751352</span><span class="p">,</span>
-    <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.980335</span><span class="p">,</span>
-    <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
-    <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span>
+  <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">40.751352</span><span class="p">,</span>
+    <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.980335</span><span class="p">,</span>
+    <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;YahooDao&quot;</span>
   <span class="p">},</span>
-  <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-  <span class="s">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
-  <span class="s">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;NY Senate District 27&quot;</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;27&quot;</span><span class="p">,</span>
-      <span class="s">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
+  <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Senate District 27&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;27&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
     <span class="p">},</span>
-    <span class="s">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;NY Congressional District 12&quot;</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;12&quot;</span><span class="p">,</span>
-      <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Congressional District 12&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
     <span class="p">},</span>
-    <span class="s">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;NY Assembly District 73&quot;</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;73&quot;</span><span class="p">,</span>
-      <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Assembly District 73&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;73&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
     <span class="p">},</span>
-    <span class="s">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;New York County&quot;</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;62&quot;</span>
+    <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York County&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;62&quot;</span>
     <span class="p">},</span>
-    <span class="s">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;6&quot;</span>
+    <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;6&quot;</span>
     <span class="p">},</span>
-    <span class="s">&quot;school&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;Manhattan School District&quot;</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;369&quot;</span>
+    <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Manhattan School District&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;369&quot;</span>
     <span class="p">},</span>
-    <span class="s">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;New York&quot;</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;-NYC&quot;</span>
+    <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;-NYC&quot;</span>
     <span class="p">},</span>
-    <span class="s">&quot;zip&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;10016&quot;</span><span class="p">,</span>
-      <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;10016&quot;</span>
+    <span class="s2">&quot;zip&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;10016&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;10016&quot;</span>
     <span class="p">},</span>
-    <span class="s">&quot;cleg&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-    <span class="s">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-    <span class="s">&quot;village&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="s2">&quot;cleg&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="n">null</span>
   <span class="p">},</span>
-  <span class="s">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+  <span class="s2">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">districtAssigned</span></tt> field will be true if any districts were assigned.
-The <tt class="docutils literal"><span class="pre">senateAssigned</span></tt> field will be true if the senate district was assigned.</p>
-<p>The main components of the response are <tt class="docutils literal"><span class="pre">address</span></tt>, <tt class="docutils literal"><span class="pre">geocode</span></tt>, and <tt class="docutils literal"><span class="pre">districts</span></tt>. The <tt class="docutils literal"><span class="pre">address</span></tt> typically contains
-a corrected address response from the geocode provider or is the result of USPS correction if <tt class="docutils literal"><span class="pre">uspsValidated</span></tt> is true.
-The <tt class="docutils literal"><span class="pre">geocode</span></tt> contains the coordinates that were used to perform district assignment. The <tt class="docutils literal"><span class="pre">districts</span></tt> object contains all
-the district types supported by the service. <tt class="docutils literal"><span class="pre">district</span></tt> refers to the code or number that represents the district.</p>
-<p>The <tt class="docutils literal"><span class="pre">matchLevel</span></tt> indicates how granular the district assignment is. The following table describes the different <tt class="docutils literal"><span class="pre">matchLevel</span></tt> values:</p>
+<p>The <code class="docutils literal"><span class="pre">districtAssigned</span></code> field will be true if any districts were assigned.
+The <code class="docutils literal"><span class="pre">senateAssigned</span></code> field will be true if the senate district was assigned.</p>
+<p>The main components of the response are <code class="docutils literal"><span class="pre">address</span></code>, <code class="docutils literal"><span class="pre">geocode</span></code>, and <code class="docutils literal"><span class="pre">districts</span></code>. The <code class="docutils literal"><span class="pre">address</span></code> typically contains
+a corrected address response from the geocode provider or is the result of USPS correction if <code class="docutils literal"><span class="pre">uspsValidated</span></code> is true.
+The <code class="docutils literal"><span class="pre">geocode</span></code> contains the coordinates that were used to perform district assignment. The <code class="docutils literal"><span class="pre">districts</span></code> object contains all
+the district types supported by the service. <code class="docutils literal"><span class="pre">district</span></code> refers to the code or number that represents the district.</p>
+<p>The <code class="docutils literal"><span class="pre">matchLevel</span></code> indicates how granular the district assignment is. The following table describes the different <code class="docutils literal"><span class="pre">matchLevel</span></code> values:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="22%" />
@@ -749,274 +761,278 @@ the district types supported by the service. <tt class="docutils literal"><span 
 </tr>
 </tbody>
 </table>
-<p>If the <tt class="docutils literal"><span class="pre">matchLevel</span></tt> is not HOUSE, the <tt class="docutils literal"><span class="pre">multiMatch</span></tt> field will be true. The assigned districts for a non HOUSE match will
+<p>If the <code class="docutils literal"><span class="pre">matchLevel</span></code> is not HOUSE, the <code class="docutils literal"><span class="pre">multiMatch</span></code> field will be true. The assigned districts for a non HOUSE match will
 be those that completely encompass that geographic region. If a street spans multiple senate districts, it will not have it&#8217;s
 senate district assigned. However if a street is contained fully by a senate district, it will have been assigned with that district.
-The same applies to ZIP5 and CITY level lookups. Optionally the <tt class="docutils literal"><span class="pre">showMultiMatch</span></tt> parameter can be set to true to view all possible
+The same applies to ZIP5 and CITY level lookups. Optionally the <code class="docutils literal"><span class="pre">showMultiMatch</span></code> parameter can be set to true to view all possible
 overlap boundaries and street ranges. The output of that is described below.</p>
-<p>If <tt class="docutils literal"><span class="pre">showMultiMatch</span></tt> is set to true:</p>
-<div class="highlight-python"><pre>(Note that just the street is supplied to trigger a matchLevel of STREET)
-/api/v2/district/assign?addr=Madison Ave, NY&amp;showMultiMatch=true</pre>
+<p>If <code class="docutils literal"><span class="pre">showMultiMatch</span></code> is set to true:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>(Note that just the street is supplied to trigger a matchLevel of STREET)
+/api/v2/district/assign?addr=Madison Ave, NY&amp;showMultiMatch=true
+</pre></div>
 </div>
 <p>The response will resemble the following (truncated for brevity):</p>
-<div class="highlight-python"><pre>{
-  "status" : "SUCCESS",
-  "source" : "DistrictShapefile",
-  "messages" : [ ],
-  "address" : {
-    "addr1" : "Madison Ave",
-    "addr2" : "",
-    "city" : "New York",
-    "state" : "NY",
-    "zip5" : "10010",
-    "zip4" : ""
-  },
-  "geocode" : {
-    "lat" : 40.742119,
-    "lon" : -73.987076,
-    "quality" : "STREET",
-    "method" : "YahooDao"
-  },
-  "geocoded" : true,
-  "districtAssigned" : true,
-  "senateAssigned" : false,
-  "uspsValidated" : false,
-  "matchLevel" : "STREET",
-  "districts" : {
-    "senate" : null,
-    "congressional" : null,
-    "assembly" : null,
-    "county" : {
-      "name" : "New York County",
-      "district" : "62"
-    },
-    "election" : null,
-    "school" : null,
-    "town" : null,
-    "zip" : null,
-    "cleg" : null,
-    "ward" : null,
-    "village" : null
-  },
-  "overlaps" : {
-    "assembly" : [ {
-      "name" : null,
-      "district" : "68",
-      "intersectionArea" : 6240510.4531401154,
-      "areaPercentage" : 0.11
-    }, {
-      "name" : null,
-      "district" : "70",
-      "intersectionArea" : 4577779.5892158523,
-      "areaPercentage" : 0.08
-    }, {
-      "name" : null,
-      "district" : "73",
-      "intersectionArea" : 4175298.2836983129,
-      "areaPercentage" : 0.07
-    }, {
-      "name" : null,
-      "district" : "75",
-      "intersectionArea" : 6626512.6820231033,
-      "areaPercentage" : 0.12
-    } ],
-    "congressional" : [ {
-      "name" : null,
-      "district" : "13",
-      "intersectionArea" : 18492568.968741294,
-      "areaPercentage" : 0.33
-    }, {
-      "name" : null,
-      "district" : "12",
-      "intersectionArea" : 17861734.376638968,
-      "areaPercentage" : 0.32
-    } ],
-    "senate" : [ {
-      "name" : "NY Senate District 30",
-      "district" : "30",
-      "intersectionArea" : 9377715.5224368814,
-      "areaPercentage" : 0.17
-    }, {
-      "name" : "NY Senate District 27",
-      "district" : "27",
-      "intersectionArea" : 11881916.930670122,
-      "areaPercentage" : 0.21
-    }, {
-      "name" : "NY Senate District 28",
-      "district" : "28",
-      "intersectionArea" : 7893341.056081377,
-      "areaPercentage" : 0.14
-    }, {
-      "name" : "NY Senate District 29",
-      "district" : "29",
-      "intersectionArea" : 5834177.0993249146,
-      "areaPercentage" : 0.10
-    } ]
-  },
-  "totalReferenceArea" : 55823719.26265686,
-  "areaUnit" : "SQ_METERS",
-  "streets" : [ {
-    "bldgLoNum" : 1,
-    "bldgHiNum" : 43,
-    "street" : "MADISON AVE",
-    "location" : "MANHATTAN",
-    "zip5" : "10010",
-    "parity" : "ODDS",
-    "congressional" : "12",
-    "senate" : "28",
-    "assembly" : "75",
-    "county" : "62",
-    "election" : "30",
-    "town" : null
-  }, {
-    "bldgLoNum" : 2,
-    "bldgHiNum" : 2,
-    "street" : "MADISON AVE",
-    "location" : "MANHATTAN",
-    "zip5" : "10010",
-    "parity" : "EVENS",
-    "congressional" : "12",
-    "senate" : "28",
-    "assembly" : "75",
-    "county" : "62",
-    "election" : "29",
-    "town" : null
-  }, (114 more entries..) ],
-  "multiMatch" : true,
-  "statusCode" : 0,
-  "description" : "Success."
-}</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;DistrictShapefile&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;Madison Ave&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;10010&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">40.742119</span><span class="p">,</span>
+    <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.987076</span><span class="p">,</span>
+    <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREET&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;YahooDao&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREET&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York County&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;62&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;zip&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;cleg&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="n">null</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;overlaps&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;68&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;intersectionArea&quot;</span> <span class="p">:</span> <span class="mf">6240510.4531401154</span><span class="p">,</span>
+      <span class="s2">&quot;areaPercentage&quot;</span> <span class="p">:</span> <span class="mf">0.11</span>
+    <span class="p">},</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;70&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;intersectionArea&quot;</span> <span class="p">:</span> <span class="mf">4577779.5892158523</span><span class="p">,</span>
+      <span class="s2">&quot;areaPercentage&quot;</span> <span class="p">:</span> <span class="mf">0.08</span>
+    <span class="p">},</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;73&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;intersectionArea&quot;</span> <span class="p">:</span> <span class="mf">4175298.2836983129</span><span class="p">,</span>
+      <span class="s2">&quot;areaPercentage&quot;</span> <span class="p">:</span> <span class="mf">0.07</span>
+    <span class="p">},</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;75&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;intersectionArea&quot;</span> <span class="p">:</span> <span class="mf">6626512.6820231033</span><span class="p">,</span>
+      <span class="s2">&quot;areaPercentage&quot;</span> <span class="p">:</span> <span class="mf">0.12</span>
+    <span class="p">}</span> <span class="p">],</span>
+    <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;intersectionArea&quot;</span> <span class="p">:</span> <span class="mf">18492568.968741294</span><span class="p">,</span>
+      <span class="s2">&quot;areaPercentage&quot;</span> <span class="p">:</span> <span class="mf">0.33</span>
+    <span class="p">},</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;intersectionArea&quot;</span> <span class="p">:</span> <span class="mf">17861734.376638968</span><span class="p">,</span>
+      <span class="s2">&quot;areaPercentage&quot;</span> <span class="p">:</span> <span class="mf">0.32</span>
+    <span class="p">}</span> <span class="p">],</span>
+    <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Senate District 30&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;30&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;intersectionArea&quot;</span> <span class="p">:</span> <span class="mf">9377715.5224368814</span><span class="p">,</span>
+      <span class="s2">&quot;areaPercentage&quot;</span> <span class="p">:</span> <span class="mf">0.17</span>
+    <span class="p">},</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Senate District 27&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;27&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;intersectionArea&quot;</span> <span class="p">:</span> <span class="mf">11881916.930670122</span><span class="p">,</span>
+      <span class="s2">&quot;areaPercentage&quot;</span> <span class="p">:</span> <span class="mf">0.21</span>
+    <span class="p">},</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Senate District 28&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;28&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;intersectionArea&quot;</span> <span class="p">:</span> <span class="mf">7893341.056081377</span><span class="p">,</span>
+      <span class="s2">&quot;areaPercentage&quot;</span> <span class="p">:</span> <span class="mf">0.14</span>
+    <span class="p">},</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Senate District 29&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;29&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;intersectionArea&quot;</span> <span class="p">:</span> <span class="mf">5834177.0993249146</span><span class="p">,</span>
+      <span class="s2">&quot;areaPercentage&quot;</span> <span class="p">:</span> <span class="mf">0.10</span>
+    <span class="p">}</span> <span class="p">]</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;totalReferenceArea&quot;</span> <span class="p">:</span> <span class="mf">55823719.26265686</span><span class="p">,</span>
+  <span class="s2">&quot;areaUnit&quot;</span> <span class="p">:</span> <span class="s2">&quot;SQ_METERS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;streets&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+    <span class="s2">&quot;bldgLoNum&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;bldgHiNum&quot;</span> <span class="p">:</span> <span class="mi">43</span><span class="p">,</span>
+    <span class="s2">&quot;street&quot;</span> <span class="p">:</span> <span class="s2">&quot;MADISON AVE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;location&quot;</span> <span class="p">:</span> <span class="s2">&quot;MANHATTAN&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;10010&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;parity&quot;</span> <span class="p">:</span> <span class="s2">&quot;ODDS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="s2">&quot;28&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="s2">&quot;75&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="s2">&quot;62&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="s2">&quot;30&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="n">null</span>
+  <span class="p">},</span> <span class="p">{</span>
+    <span class="s2">&quot;bldgLoNum&quot;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">&quot;bldgHiNum&quot;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">&quot;street&quot;</span> <span class="p">:</span> <span class="s2">&quot;MADISON AVE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;location&quot;</span> <span class="p">:</span> <span class="s2">&quot;MANHATTAN&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;10010&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;parity&quot;</span> <span class="p">:</span> <span class="s2">&quot;EVENS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="s2">&quot;28&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="s2">&quot;75&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="s2">&quot;62&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="s2">&quot;29&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="n">null</span>
+  <span class="p">},</span> <span class="p">(</span><span class="mi">114</span> <span class="n">more</span> <span class="n">entries</span><span class="o">..</span><span class="p">)</span> <span class="p">],</span>
+  <span class="s2">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
 </div>
-<p>Any districts that were successfully assigned (fully contain the specified street/city/zip) will appear under the <tt class="docutils literal"><span class="pre">districts</span></tt> field
+<p>Any districts that were successfully assigned (fully contain the specified street/city/zip) will appear under the <code class="docutils literal"><span class="pre">districts</span></code> field
 as previously described. If there is contention between multiple districts of a certain type (senate, assembly, etc) they will be
-enumerated within the <tt class="docutils literal"><span class="pre">overlaps</span></tt> field. The <tt class="docutils literal"><span class="pre">areaPercentage</span></tt> field provides a rough estimate of the geographic area it occupies
-relative to the other districts of the given type. The <tt class="docutils literal"><span class="pre">areaPercentage</span></tt> is only applicable for CITY and ZIP5 matchLevel responses.</p>
-<p>The <tt class="docutils literal"><span class="pre">streets</span></tt> field is applicable when matchLevel = STREET. It is an array that contains objects representing discrete street ranges
+enumerated within the <code class="docutils literal"><span class="pre">overlaps</span></code> field. The <code class="docutils literal"><span class="pre">areaPercentage</span></code> field provides a rough estimate of the geographic area it occupies
+relative to the other districts of the given type. The <code class="docutils literal"><span class="pre">areaPercentage</span></code> is only applicable for CITY and ZIP5 matchLevel responses.</p>
+<p>The <code class="docutils literal"><span class="pre">streets</span></code> field is applicable when matchLevel = STREET. It is an array that contains objects representing discrete street ranges
 and the associated districts within that range. This information can be used to determine where district boundaries change within a given
 street. If the zip5 is specified in the input, the range will be limited to that zip. Otherwise the range will be contained within the
 zip boundaries the represent the city.</p>
 <p>Map polygon data can be retrieved for purposes of rendering to a 3rd party mapping application.</p>
-<p>If <tt class="docutils literal"><span class="pre">showMaps</span></tt> is set to true:</p>
-<div class="highlight-python"><pre>/api/v2/district/assign?addr=280 Madison Ave, NY&amp;showMaps=true</pre>
+<p>If <code class="docutils literal"><span class="pre">showMaps</span></code> is set to true:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/district/assign?addr=280 Madison Ave, NY&amp;showMaps=true
+</pre></div>
 </div>
-<p>the <tt class="docutils literal"><span class="pre">districts</span></tt> portion of the response will be different:</p>
-<div class="highlight-python"><pre>...
-  "districts" : {
-    "senate" : {
-      "name" : "State Senate District 27",
-      "district" : "27",
-      "map" : {
-        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
-      },
-      "nearBorder" : true,
-      "neighbors" : [ {
-        "name" : "State Senate District 28",
-        "district" : "28",
-        "member" : null,
-        "map" : {
-          "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
-        }
-      } ],
-      "senator" : null
-    },
-    "congressional" : {
-      "name" : "State Congressional District 12",
-      "district" : "12",
-      "map" : {
-        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
-      },
-      "nearBorder" : false,
-      "neighbors" : [ ],
-      "member" : null
-    },
-    "assembly" : {
-      "name" : "State Assembly District 73",
-      "district" : "73",
-      "map" : {
-        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
-      },
-      "nearBorder" : true,
-      "neighbors" : [ {
-        "name" : null,
-        "district" : "75",
-        "member" : null,
-        "map" : {
-          "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
-        }
-      }, {
-        "name" : null,
-        "district" : "74",
-        "member" : null,
-        "map" : {
-          "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
-        }
-      } ],
-      "member" : null
-    },
-    "county" : {
-      "name" : "New York County",
-      "district" : "62",
-      "map" : {
-        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
-      },
-      "nearBorder" : false,
-      "neighbors" : [ ]
-    },
-    "election" : {
-      "name" : null,
-      "district" : "6",
-      "map" : null,
-      "nearBorder" : false,
-      "neighbors" : [ ]
-    },
-    "school" : {
-      "name" : "Manhattan School District",
-      "district" : "369",
-      "map" : {
-        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
-       },
-      "nearBorder" : false,
-      "neighbors" : [ ]
-    },
-    "town" : {
-      "name" : "New York",
-      "district" : "-NYC",
-      "map" : {
-        "geom" : [[[ &lt;lat&gt;, &lt;lon&gt;], ]]
-      },
-      "nearBorder" : false,
-      "neighbors" : [ ]
-    },
-    "cleg" : {
-      "name" : null,
-      "district" : null,
-      "map" : null,
-      "nearBorder" : false,
-      "neighbors" : [ ]
-    },
-    "ward" : {
-      "name" : null,
-      "district" : null,
-      "map" : null,
-      "nearBorder" : false,
-      "neighbors" : [ ]
-    },
-    "village" : {
-      "name" : null,
-      "district" : null,
-      "map" : null,
-      "nearBorder" : false,
-      "neighbors" : [ ]
-    }
-  },
-  ...</pre>
+<p>the <code class="docutils literal"><span class="pre">districts</span></code> portion of the response will be different:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">...</span>
+  <span class="s2">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;State Senate District 27&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;27&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[[[</span> <span class="o">&lt;</span><span class="n">lat</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">lon</span><span class="o">&gt;</span><span class="p">],</span> <span class="p">]]</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s2">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;State Senate District 28&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;28&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+        <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[[[</span> <span class="o">&lt;</span><span class="n">lat</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">lon</span><span class="o">&gt;</span><span class="p">],</span> <span class="p">]]</span>
+        <span class="p">}</span>
+      <span class="p">}</span> <span class="p">],</span>
+      <span class="s2">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;State Congressional District 12&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[[[</span> <span class="o">&lt;</span><span class="n">lat</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">lon</span><span class="o">&gt;</span><span class="p">],</span> <span class="p">]]</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s2">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+      <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;State Assembly District 73&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;73&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[[[</span> <span class="o">&lt;</span><span class="n">lat</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">lon</span><span class="o">&gt;</span><span class="p">],</span> <span class="p">]]</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s2">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+        <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;75&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+        <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[[[</span> <span class="o">&lt;</span><span class="n">lat</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">lon</span><span class="o">&gt;</span><span class="p">],</span> <span class="p">]]</span>
+        <span class="p">}</span>
+      <span class="p">},</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+        <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;74&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+        <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[[[</span> <span class="o">&lt;</span><span class="n">lat</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">lon</span><span class="o">&gt;</span><span class="p">],</span> <span class="p">]]</span>
+        <span class="p">}</span>
+      <span class="p">}</span> <span class="p">],</span>
+      <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York County&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;62&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[[[</span> <span class="o">&lt;</span><span class="n">lat</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">lon</span><span class="o">&gt;</span><span class="p">],</span> <span class="p">]]</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s2">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;6&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s2">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Manhattan School District&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;369&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[[[</span> <span class="o">&lt;</span><span class="n">lat</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">lon</span><span class="o">&gt;</span><span class="p">],</span> <span class="p">]]</span>
+       <span class="p">},</span>
+      <span class="s2">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s2">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;-NYC&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[[[</span> <span class="o">&lt;</span><span class="n">lat</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">lon</span><span class="o">&gt;</span><span class="p">],</span> <span class="p">]]</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s2">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;cleg&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s2">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s2">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;nearBorder&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s2">&quot;neighbors&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="o">...</span>
+</pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">map.geom</span></tt> will contain polygon data if <tt class="docutils literal"><span class="pre">showMaps</span></tt> is true. <tt class="docutils literal"><span class="pre">nearBorder</span></tt> indicates that the address is very close
-to a district boundary. If <tt class="docutils literal"><span class="pre">nearBorder</span></tt> is true it suggests that the result for that district may be not be certain although
-by default the service will automatically attempt to correct the uncertain districts. <tt class="docutils literal"><span class="pre">neighbors</span></tt> will contain a list of
-districts that are near the geocode location but for performance reasons will only be populated if <tt class="docutils literal"><span class="pre">nearBorder</span></tt> was true
+<p><code class="docutils literal"><span class="pre">map.geom</span></code> will contain polygon data if <code class="docutils literal"><span class="pre">showMaps</span></code> is true. <code class="docutils literal"><span class="pre">nearBorder</span></code> indicates that the address is very close
+to a district boundary. If <code class="docutils literal"><span class="pre">nearBorder</span></code> is true it suggests that the result for that district may be not be certain although
+by default the service will automatically attempt to correct the uncertain districts. <code class="docutils literal"><span class="pre">neighbors</span></code> will contain a list of
+districts that are near the geocode location but for performance reasons will only be populated if <code class="docutils literal"><span class="pre">nearBorder</span></code> was true
 for that district. The application may also limit neighbor matches to just the senate district to improve performance.
-Any district that does not have any map data associated with it will have <tt class="docutils literal"><span class="pre">map</span></tt> : null;</p>
+Any district that does not have any map data associated with it will have <code class="docutils literal"><span class="pre">map</span></code> : null;</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last">&#8216;geom&#8217; is an array containing an array of coordinate pairs which are represented as two floats in an array,
@@ -1028,45 +1044,48 @@ e.g geom[0] -&gt; array of coordinate pairs (represented as [lat, lon]) of the f
 and school maps are available. However the other district types may be supported in the future.</p>
 </div>
 <p>District assignment via coordinate pairs is also supported:</p>
-<div class="highlight-python"><pre>/api/v2/district/assign?lat=40.751352&amp;lon=-73.980335</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/district/assign?lat=40.751352&amp;lon=-73.980335
+</pre></div>
 </div>
 <p>The supplied point will automatically be reverse geocoded by the service and will match the response given by an address input.</p>
 </div>
 <div class="section" id="bluebirdcrm">
 <h4>BluebirdCRM<a class="headerlink" href="#bluebirdcrm" title="Permalink to this headline">¶</a></h4>
 <p>For integration with Bluebird CRM, the bluebird method can be used instead:</p>
-<div class="highlight-python"><pre>Unparsed Format:
+<div class="highlight-default"><div class="highlight"><pre><span></span>Unparsed Format:
 /api/v2/district/bluebird?addr=280 Madison Ave NY
 
 Parsed Format:
-/api/v2/district/bluebird?addr1=280 Madison Ave&amp;state=NY</pre>
+/api/v2/district/bluebird?addr1=280 Madison Ave&amp;state=NY
+</pre></div>
 </div>
 <p>Bluebird district assign is similar to the default assign except that the options are fixed:</p>
-<div class="highlight-python"><pre>showMaps:         false
-showMembers:      false
-skipGeocode:      false
-uspsValidate:     true
-showMultiMatch:   false
-districtStrategy: (application setting)</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">showMaps</span><span class="p">:</span>         <span class="n">false</span>
+<span class="n">showMembers</span><span class="p">:</span>      <span class="n">false</span>
+<span class="n">skipGeocode</span><span class="p">:</span>      <span class="n">false</span>
+<span class="n">uspsValidate</span><span class="p">:</span>     <span class="n">true</span>
+<span class="n">showMultiMatch</span><span class="p">:</span>   <span class="n">false</span>
+<span class="n">districtStrategy</span><span class="p">:</span> <span class="p">(</span><span class="n">application</span> <span class="n">setting</span><span class="p">)</span>
+</pre></div>
 </div>
 <p>The response is identical to that of a default district assign with those parameters. The
 district assignment strategy for the bluebird method can be configured by the application so that
-district assignment for <tt class="docutils literal"><span class="pre">district/assign</span></tt> and <tt class="docutils literal"><span class="pre">district/bluebird</span></tt> can follow different execution paths, either to favor
+district assignment for <code class="docutils literal"><span class="pre">district/assign</span></code> and <code class="docutils literal"><span class="pre">district/bluebird</span></code> can follow different execution paths, either to favor
 performance or completeness.</p>
 <p>An unsuccessful district assign response will look similar to the following:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_DISTRICT_RESULT&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;StreetFile&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s">&quot;districts&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-  <span class="s">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-  <span class="s">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-  <span class="s">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">70</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;District assignment returned no results.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;NO_DISTRICT_RESULT&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;StreetFile&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;districts&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">70</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;District assignment returned no results.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1074,175 +1093,177 @@ performance or completeness.</p>
 <div class="section" id="batch-district-assign">
 <h4>Batch District Assign<a class="headerlink" href="#batch-district-assign" title="Permalink to this headline">¶</a></h4>
 <p>Both <a class="reference internal" href="#assign">Assign</a> and <a class="reference internal" href="#bluebirdcrm">BluebirdCRM</a> methods can handle batch requests as well. The format is:</p>
-<div class="highlight-python"><pre>/api/v2/district/assign/batch
-/api/v2/district/bluebird/batch</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">district</span><span class="o">/</span><span class="n">assign</span><span class="o">/</span><span class="n">batch</span>
+<span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">district</span><span class="o">/</span><span class="n">bluebird</span><span class="o">/</span><span class="n">batch</span>
+</pre></div>
 </div>
-<p>The addresses must be JSON encoded and sent along the POST payload in the same way as <a class="reference internal" href="#batch-geocode"><em>Batch Geocode</em></a>.</p>
+<p>The addresses must be JSON encoded and sent along the POST payload in the same way as <a class="reference internal" href="#batch-geocode"><span class="std std-ref">Batch Geocode</span></a>.</p>
 <p>A sample batch district assign in PHP:</p>
-<div class="highlight-python"><pre>&lt;?php
+<div class="highlight-default"><div class="highlight"><pre><span></span>&lt;?php
 
 $addresses = array(
         array(
-                "addr1" =&gt; "100 Nyroy Dr",
-                "city" =&gt; "Troy",
-                "state" =&gt; "NY",
-                "zip5" =&gt; "12180"
+                &quot;addr1&quot; =&gt; &quot;100 Nyroy Dr&quot;,
+                &quot;city&quot; =&gt; &quot;Troy&quot;,
+                &quot;state&quot; =&gt; &quot;NY&quot;,
+                &quot;zip5&quot; =&gt; &quot;12180&quot;
         ),
         array(
-                "addr1" =&gt; "44 Fairlawn Ave",
-                "city" =&gt; "Albany",
-                "state" =&gt; "NY",
-                "zip5" =&gt; "12203"
+                &quot;addr1&quot; =&gt; &quot;44 Fairlawn Ave&quot;,
+                &quot;city&quot; =&gt; &quot;Albany&quot;,
+                &quot;state&quot; =&gt; &quot;NY&quot;,
+                &quot;zip5&quot; =&gt; &quot;12203&quot;
         )
 );
 
 $post_body = json_encode($addresses);
 
-$ch = curl_init("http://localhost:8080/GeoApi/api/v2/district/assign/batch");
-curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+$ch = curl_init(&quot;http://localhost:8080/GeoApi/api/v2/district/assign/batch&quot;);
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, &quot;POST&quot;);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($post_body)
+        &#39;Content-Type: application/json&#39;,
+        &#39;Content-Length: &#39; . strlen($post_body)
 ));
 
 $result = curl_exec($ch);
 
-print_r($result);</pre>
+print_r($result);
+</pre></div>
 </div>
 <p>And the response:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;results&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
-    <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-    <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;StreetFile&quot;</span><span class="p">,</span>
-    <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-    <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;100 Nyroy Dr&quot;</span><span class="p">,</span>
-      <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-      <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Troy&quot;</span><span class="p">,</span>
-      <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
-      <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12180&quot;</span><span class="p">,</span>
-      <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;1921&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;results&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+    <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;StreetFile&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+    <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;100 Nyroy Dr&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Troy&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12180&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;1921&quot;</span>
     <span class="p">},</span>
-    <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.741112</span><span class="p">,</span>
-      <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.668762</span><span class="p">,</span>
-      <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
-      <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span>
+    <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.741112</span><span class="p">,</span>
+      <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.668762</span><span class="p">,</span>
+      <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;YahooDao&quot;</span>
     <span class="p">},</span>
-    <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-    <span class="s">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-    <span class="s">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-    <span class="s">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-    <span class="s">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
-    <span class="s">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;NY Senate District 44&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;44&quot;</span><span class="p">,</span> <span class="s">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s2">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s2">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s2">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+    <span class="s2">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Senate District 44&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;44&quot;</span><span class="p">,</span> <span class="s2">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
       <span class="p">},</span>
-      <span class="s">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;NY Congressional District 20&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;20&quot;</span><span class="p">,</span> <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+      <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Congressional District 20&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span> <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
       <span class="p">},</span>
-      <span class="s">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;NY Assembly District 107&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;107&quot;</span><span class="p">,</span> <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+      <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Assembly District 107&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;107&quot;</span><span class="p">,</span> <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
       <span class="p">},</span>
-      <span class="s">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;38&quot;</span>
+      <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;38&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;12&quot;</span>
+      <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;school&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;-TROY&quot;</span>
+      <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;-TROY&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;zip&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;12180&quot;</span>
+      <span class="s2">&quot;zip&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12180&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;cleg&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;1&quot;</span>
+      <span class="s2">&quot;cleg&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;ward&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span>
+      <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span>
       <span class="p">},</span>
-      <span class="s">&quot;village&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span>
+      <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span>
       <span class="p">}</span>
     <span class="p">},</span>
-    <span class="s">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-    <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+    <span class="s2">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+    <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
   <span class="p">},</span> <span class="p">{</span>
-    <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-    <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;StreetFile&quot;</span><span class="p">,</span>
-    <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-    <span class="s">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span>
-      <span class="s">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-      <span class="s">&quot;city&quot;</span> <span class="p">:</span> <span class="s">&quot;Albany&quot;</span><span class="p">,</span>
-      <span class="s">&quot;state&quot;</span> <span class="p">:</span> <span class="s">&quot;NY&quot;</span><span class="p">,</span>
-      <span class="s">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s">&quot;12203&quot;</span><span class="p">,</span>
-      <span class="s">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s">&quot;1933&quot;</span>
+    <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;StreetFile&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+    <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;1933&quot;</span>
     <span class="p">},</span>
-    <span class="s">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.670583</span><span class="p">,</span>
-      <span class="s">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.799606</span><span class="p">,</span>
-      <span class="s">&quot;quality&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
-      <span class="s">&quot;method&quot;</span> <span class="p">:</span> <span class="s">&quot;YahooDao&quot;</span>
+    <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.670583</span><span class="p">,</span>
+      <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.799606</span><span class="p">,</span>
+      <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;YahooDao&quot;</span>
     <span class="p">},</span>
-    <span class="s">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-    <span class="s">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-    <span class="s">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-    <span class="s">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-    <span class="s">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s">&quot;HOUSE&quot;</span><span class="p">,</span>
-    <span class="s">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;NY Senate District 44&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;44&quot;</span><span class="p">,</span> <span class="s">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s2">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s2">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s2">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+    <span class="s2">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Senate District 44&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;44&quot;</span><span class="p">,</span> <span class="s2">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
       <span class="p">},</span>
-      <span class="s">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;NY Congressional District 20&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;20&quot;</span><span class="p">,</span> <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+      <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Congressional District 20&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span> <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
       <span class="p">},</span>
-      <span class="s">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;NY Assembly District 109&quot;</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;109&quot;</span><span class="p">,</span> <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+      <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Assembly District 109&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;109&quot;</span><span class="p">,</span> <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
       <span class="p">},</span>
-      <span class="s">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;1&quot;</span>
+      <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;5&quot;</span>
+      <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;5&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;school&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;-ALBAN&quot;</span>
+      <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;-ALBAN&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;zip&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;12203&quot;</span>
+      <span class="s2">&quot;zip&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;cleg&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;13&quot;</span>
+      <span class="s2">&quot;cleg&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;ward&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;13&quot;</span>
+      <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span>
       <span class="p">},</span>
-      <span class="s">&quot;village&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span>
+      <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span>
       <span class="p">}</span>
     <span class="p">},</span>
-    <span class="s">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-    <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+    <span class="s2">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+    <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
   <span class="p">}</span> <span class="p">],</span>
- <span class="s">&quot;total&quot;</span> <span class="p">:</span> <span class="mi">2</span>
+ <span class="s2">&quot;total&quot;</span> <span class="p">:</span> <span class="mi">2</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>And a parse error response in case of invalid input:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span><span class="p">:</span> <span class="s">&quot;INVALID_BATCH_ADDRESSES&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span><span class="p">:</span> <span class="s">&quot;DistrictController&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[],</span>
-  <span class="s">&quot;statusCode&quot;</span><span class="p">:</span> <span class="mi">55</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="s">&quot;The supplied batch address list could not be parsed.&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;INVALID_BATCH_ADDRESSES&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;DistrictController&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="s2">&quot;statusCode&quot;</span><span class="p">:</span> <span class="mi">55</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The supplied batch address list could not be parsed.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1270,49 +1291,51 @@ Board of Election Street File data and can be searched via zip code.</p>
 </tbody>
 </table>
 <p>A request is of the following form:</p>
-<div class="highlight-python"><pre>/api/v2/street/lookup?zip5=12210</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/street/lookup?zip5=12210
+</pre></div>
 </div>
 <p>The response is:</p>
-<div class="highlight-python"><pre>{
-  "status" : "SUCCESS",
-  "source" : "StreetController",
-  "messages" : [ ],
-  "streets" : [ {
-    "bldgLoNum" : 2,
-    "bldgHiNum" : 40,
-    "street" : "1 ST",
-    "location" : "ALBANY",
-    "zip5" : "12210",
-    "senate" : "44",
-    "congressional" : "20",
-    "assembly" : "108",
-    "county" : "1",
-    "election" : "7",
-    "town" : "-ALBAN"
-  }, {
-    "bldgLoNum" : 5,
-    "bldgHiNum" : 191,
-    "street" : "1 ST",
-    "location" : "ALBANY",
-    "zip5" : "12210",
-    "senate" : "44",
-    "congressional" : "20",
-    "assembly" : "108",
-    "county" : "1",
-    "election" : "7",
-    "town" : "-ALBAN"
-  },
-  ... ]
-}</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;StreetController&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;streets&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+    <span class="s2">&quot;bldgLoNum&quot;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">&quot;bldgHiNum&quot;</span> <span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+    <span class="s2">&quot;street&quot;</span> <span class="p">:</span> <span class="s2">&quot;1 ST&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;location&quot;</span> <span class="p">:</span> <span class="s2">&quot;ALBANY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12210&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="s2">&quot;44&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="s2">&quot;108&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="s2">&quot;7&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="s2">&quot;-ALBAN&quot;</span>
+  <span class="p">},</span> <span class="p">{</span>
+    <span class="s2">&quot;bldgLoNum&quot;</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="s2">&quot;bldgHiNum&quot;</span> <span class="p">:</span> <span class="mi">191</span><span class="p">,</span>
+    <span class="s2">&quot;street&quot;</span> <span class="p">:</span> <span class="s2">&quot;1 ST&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;location&quot;</span> <span class="p">:</span> <span class="s2">&quot;ALBANY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12210&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="s2">&quot;44&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="s2">&quot;108&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="s2">&quot;7&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="s2">&quot;-ALBAN&quot;</span>
+  <span class="p">},</span>
+  <span class="o">...</span> <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 <p>An invalid response, typically due to a non matching zip code is:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;NO_STREET_LOOKUP_RESULT&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;StreetController&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;streets&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">74</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Street lookup returned no results for the given zip5&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;NO_STREET_LOOKUP_RESULT&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;StreetController&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;streets&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">74</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Street lookup returned no results for the given zip5&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1373,90 +1396,94 @@ actually represent the district type to retrieve maps for. The available methods
 </tbody>
 </table>
 <p>To retrieve map and member data for all senate districts:</p>
-<div class="highlight-python"><pre>/api/v2/map/senate?showMembers=true</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/map/senate?showMembers=true
+</pre></div>
 </div>
 <p>To retrieve map data for just senate district 1:</p>
-<div class="highlight-python"><pre>/api/v2/map/senate?district=1</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/map/senate?district=1
+</pre></div>
 </div>
 <p>The response of the second query is:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="s">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s">&quot;source&quot;</span> <span class="p">:</span> <span class="s">&quot;DistrictShapefile&quot;</span><span class="p">,</span>
-  <span class="s">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-  <span class="s">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">[</span> <span class="p">[</span> <span class="mf">41.052309</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.141594</span> <span class="p">],</span>  <span class="p">(</span><span class="n">truncated</span><span class="p">)</span> <span class="p">]]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;DistrictShapefile&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">[</span> <span class="p">[</span> <span class="mf">41.052309</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.141594</span> <span class="p">],</span>  <span class="p">(</span><span class="n">truncated</span><span class="p">)</span> <span class="p">]]</span>
   <span class="p">},</span>
-  <span class="s">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s">&quot;district&quot;</span> <span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>
-  <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;State Senate District 1&quot;</span><span class="p">,</span>
-  <span class="s">&quot;type&quot;</span> <span class="p">:</span> <span class="s">&quot;SENATE&quot;</span><span class="p">,</span>
-  <span class="s">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-  <span class="s">&quot;description&quot;</span> <span class="p">:</span> <span class="s">&quot;Success.&quot;</span>
+  <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;State Senate District 1&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;SENATE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>The member data for senate districts will have the same senator output as in district assignment:</p>
-<div class="highlight-python"><pre>"member" : {
-    "name" : "Kenneth P. LaValle",
-    "lastName" : "LaValle",
-    "shortName" : "lavalle",
-    "email" : "lavalle@nysenate.gov",
-    "additionalContact" : "",
-    "imageUrl" : "http://www.nysenate.gov/files/profile-pictures/NewHeadShotLavalle2.jpg",
-    "url" : "http://www.nysenate.gov/senator/kenneth-p-lavalle",
-    "partyAffiliations" : [ "R" ],
-    "offices" : [ {
-      "name" : "Albany Office",
-      "street" : "188 State Street",
-      "city" : "Albany",
-      "postalCode" : "12247",
-      "provinceName" : "New York",
-      "province" : "NY",
-      "countryName" : "United States",
-      "country" : "us",
-      "phone" : "(518) 455-3121",
-      "fax" : "",
-      "otherPhone" : "",
-      "additional" : "Room 806, Legislative Office Building",
-      "latitude" : 42.652855,
-      "longitude" : -73.759091
-    }, {
-      "name" : "District Office",
-      "street" : "28 North Country Rd",
-      "city" : "Mount Sinai",
-      "postalCode" : "11766",
-      "provinceName" : "New York",
-      "province" : "NY",
-      "countryName" : "United States",
-      "country" : "us",
-      "phone" : "(631) 473-1461",
-      "fax" : "(631) 473-1513",
-      "otherPhone" : "",
-      "additional" : "Suite 203",
-      "latitude" : 40.938617,
-      "longitude" : -73.035149
-    } ],
-    "district" : {
-      "number" : 1,
-      "url" : "http://www.nysenate.gov/district/01",
-      "imageUrl" : "http://www.nysenate.gov/files/sd1_1.jpg",
-      "mapUrl" : "http://geo.nysenate.gov/maps/regular.jsp?x=850&amp;y=595&amp;sd=01"
-    },
-    "social" : {
-      "twitter" : "http://twitter.com/senatorlavalle",
-      "youtube" : "http://www.youtube.com/user/KPLSenate",
-      "myspace" : "",
-      "picasa" : "",
-      "flickr" : "",
-      "facebook" : "https://www.facebook.com/kenneth.p.lavalle"
-    }
-}</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Kenneth P. LaValle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;lastName&quot;</span> <span class="p">:</span> <span class="s2">&quot;LaValle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;shortName&quot;</span> <span class="p">:</span> <span class="s2">&quot;lavalle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;email&quot;</span> <span class="p">:</span> <span class="s2">&quot;lavalle@nysenate.gov&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;additionalContact&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;imageUrl&quot;</span> <span class="p">:</span> <span class="s2">&quot;http://www.nysenate.gov/files/profile-pictures/NewHeadShotLavalle2.jpg&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;url&quot;</span> <span class="p">:</span> <span class="s2">&quot;http://www.nysenate.gov/senator/kenneth-p-lavalle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;partyAffiliations&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;R&quot;</span> <span class="p">],</span>
+    <span class="s2">&quot;offices&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany Office&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;street&quot;</span> <span class="p">:</span> <span class="s2">&quot;188 State Street&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;postalCode&quot;</span> <span class="p">:</span> <span class="s2">&quot;12247&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;provinceName&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;province&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;countryName&quot;</span> <span class="p">:</span> <span class="s2">&quot;United States&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;country&quot;</span> <span class="p">:</span> <span class="s2">&quot;us&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;phone&quot;</span> <span class="p">:</span> <span class="s2">&quot;(518) 455-3121&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;fax&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;otherPhone&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;additional&quot;</span> <span class="p">:</span> <span class="s2">&quot;Room 806, Legislative Office Building&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;latitude&quot;</span> <span class="p">:</span> <span class="mf">42.652855</span><span class="p">,</span>
+      <span class="s2">&quot;longitude&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.759091</span>
+    <span class="p">},</span> <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;District Office&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;street&quot;</span> <span class="p">:</span> <span class="s2">&quot;28 North Country Rd&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Mount Sinai&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;postalCode&quot;</span> <span class="p">:</span> <span class="s2">&quot;11766&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;provinceName&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;province&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;countryName&quot;</span> <span class="p">:</span> <span class="s2">&quot;United States&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;country&quot;</span> <span class="p">:</span> <span class="s2">&quot;us&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;phone&quot;</span> <span class="p">:</span> <span class="s2">&quot;(631) 473-1461&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;fax&quot;</span> <span class="p">:</span> <span class="s2">&quot;(631) 473-1513&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;otherPhone&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;additional&quot;</span> <span class="p">:</span> <span class="s2">&quot;Suite 203&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;latitude&quot;</span> <span class="p">:</span> <span class="mf">40.938617</span><span class="p">,</span>
+      <span class="s2">&quot;longitude&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.035149</span>
+    <span class="p">}</span> <span class="p">],</span>
+    <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;number&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="s2">&quot;url&quot;</span> <span class="p">:</span> <span class="s2">&quot;http://www.nysenate.gov/district/01&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;imageUrl&quot;</span> <span class="p">:</span> <span class="s2">&quot;http://www.nysenate.gov/files/sd1_1.jpg&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;mapUrl&quot;</span> <span class="p">:</span> <span class="s2">&quot;http://geo.nysenate.gov/maps/regular.jsp?x=850&amp;y=595&amp;sd=01&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;social&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;twitter&quot;</span> <span class="p">:</span> <span class="s2">&quot;http://twitter.com/senatorlavalle&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;youtube&quot;</span> <span class="p">:</span> <span class="s2">&quot;http://www.youtube.com/user/KPLSenate&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;myspace&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;picasa&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;flickr&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;facebook&quot;</span> <span class="p">:</span> <span class="s2">&quot;https://www.facebook.com/kenneth.p.lavalle&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 <p>Sample member data for assembly and congressional districts:</p>
-<div class="highlight-python"><pre>"member" : {
-    "name" : "Thiele, Jr., Fred ",
-    "url" : "http://assembly.state.ny.us/mem/Fred-W-Thiele-Jr"
-}</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Thiele, Jr., Fred &quot;</span><span class="p">,</span>
+    <span class="s2">&quot;url&quot;</span> <span class="p">:</span> <span class="s2">&quot;http://assembly.state.ny.us/mem/Fred-W-Thiele-Jr&quot;</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 </div>
 </div>
@@ -1664,8 +1691,6 @@ generally error statuses:</p>
 </tbody>
 </table>
 <div class="toctree-wrapper compound">
-<ul class="simple">
-</ul>
 </div>
 </div>
 </div>
@@ -1674,7 +1699,7 @@ generally error statuses:</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
@@ -1700,47 +1725,44 @@ generally error statuses:</p>
 <li><a class="reference internal" href="#map">Map</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#status-codes">Status Codes</a><ul>
-</ul>
-</li>
+<li><a class="reference internal" href="#status-codes">Status Codes</a></li>
 </ul>
 </li>
 </ul>
 
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/index.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="#">Sage  2.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="#">Sage  2.0 documentation</a> &#187;</li> 
       </ul>
     </div>
-    <div class="footer">
-        &copy; Copyright 2013, NY Senate.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2013, NY Senate.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
     </div>
   </body>
 </html>
