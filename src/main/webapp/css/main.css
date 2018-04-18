@@ -609,7 +609,7 @@ table.light-table tr {
 
 button.submit, button.submit.mini {
     text-align: center;
-    background: #799933;
+    background: #00DD00;
     color: white;
     border: 0;
     outline: 0;
@@ -630,10 +630,70 @@ button.submit.mini {
 }
 
 button.submit:hover{
-    background: #7BA838;
+    background: #008800;
 }
 
 button.submit[disabled] {
+    background: #aaa;
+}
+
+button.toggle, button.toggle.mini {
+    text-align: center;
+    background: #0000FF;
+    color: white;
+    border: 0;
+    outline: 0;
+    font-size: 14px;
+    font-family: 'Source Sans Pro', sans-serif;
+    padding: 7px 20px;
+    width: 264px;
+    font-weight: bold;
+    border-radius: 2px;
+}
+
+button.toggle.mini {
+    height:35px;
+    width: 52px;
+    font-weight: bold;
+    border-radius: 0 2px 2px 0;
+    box-sizing: border-box;
+}
+
+button.toggle:hover{
+    background: #000088;
+}
+
+button.toggle[disabled] {
+    background: #aaa;
+}
+
+button.geocache, button.geocache.mini {
+    text-align: center;
+    background: #FF0000;
+    color: white;
+    border: 0;
+    outline: 0;
+    font-size: 14px;
+    font-family: 'Source Sans Pro', sans-serif;
+    padding: 7px 20px;
+    width: 264px;
+    font-weight: bold;
+    border-radius: 2px;
+}
+
+button.geocache.mini {
+    height:35px;
+    width: 52px;
+    font-weight: bold;
+    border-radius: 0 2px 2px 0;
+    box-sizing: border-box;
+}
+
+button.geocache:hover{
+    background: #880000;
+}
+
+button.geocache[disabled] {
     background: #aaa;
 }
 

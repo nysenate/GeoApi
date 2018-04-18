@@ -256,26 +256,27 @@ The usage of ``geocode`` with an address input::
 The geocode response::
 
     {
-      "status" : "SUCCESS",
-      "source" : "GeoCache",
-      "messages" : [ ],
-      "address" : {
-        "addr1" : "200 State St",
-        "addr2" : "",
-        "city" : "Albany",
-        "state" : "NY",
-        "zip5" : "12210",
-        "zip4" : ""
-      },
-      "geocode" : {
-        "lat" : 42.65203,
-        "lon" : -73.75759,
-        "quality" : "HOUSE",
-        "method" : "YahooDao"
-      },
-      "geocoded" : true,
-      "statusCode" : 0,
-      "description" : "Success."
+        status: "SUCCESS",
+        source: "GoogleGeocoder",
+        messages: [ ],
+        address: {
+            addr1: "200 State Street",
+            addr2: "",
+            city: "Albany",
+            state: "NY",
+            zip5: "12210",
+            zip4: ""
+        },
+        geocode: {
+            lat: 42.6533668,
+            lon: -73.7599828,
+            quality: "HOUSE",
+            method: "GoogleDao",
+            cached: false
+        },
+        geocoded: true,
+        description: "Success.",
+        statusCode: 0
     }
 
 The ``source`` indicates where the response was returned from whereas ``geocode.method`` indicates where the geocode was computed.
@@ -316,26 +317,27 @@ The usage of ``revgeocode`` with a coordinate pair input::
 The reverse geocode response::
 
     {
-      "status" : "SUCCESS",
-      "source" : "Yahoo",
-      "messages" : [ ],
-      "address" : {
-        "addr1" : "200 State St",
-        "addr2" : "",
-        "city" : "Albany",
-        "state" : "NY",
-        "zip5" : "12210",
-        "zip4" : ""
-      },
-      "geocode" : {
-        "lat" : 42.65204,
-        "lon" : -73.757602,
-        "quality" : "HOUSE",
-        "method" : "YahooDao"
-      },
-      "revGeocoded" : true,
-      "statusCode" : 0,
-      "description" : "Success."
+        status: "SUCCESS",
+        source: "TigerGeocoder",
+        messages: [ ],
+        address: {
+            addr1: "155 State St",
+            addr2: "",
+            city: "Albany",
+            state: "NY",
+            zip5: "12210",
+            zip4: ""
+        },
+        geocode: {
+            lat: 42-.65203,
+            lon: -73.75759,
+            quality: "POINT",
+            method: "",
+            cached: false
+        },
+        revGeocoded: true,
+        description: "Success.",
+        statusCode: 0
     }
 
 It is identical to the geocode response except for the ``revGeocoded`` field that indicates whether the reverse geocoding succeeded.

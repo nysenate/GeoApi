@@ -83,7 +83,7 @@ public class GeocodeController extends BaseApiController implements Observer
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        Object geocodeResponse;
+        Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = TimeUtil.currentTimestamp();
 
         /** Get the ApiRequest */
@@ -93,8 +93,13 @@ public class GeocodeController extends BaseApiController implements Observer
         /** Check whether or not to fallback */
         boolean useFallback = requestParameterEquals(request, "useFallback", "false") ? false : true;
 
+        boolean bypassCache = requestParameterEquals(request, "bypassCache", "false") ? false : true;
+
         /** Only want to use cache when the provider is not specified */
         boolean useCache = (provider == null);
+        if (bypassCache) {
+            useCache = false;
+        }
 
         int requestId = -1;
 
@@ -105,7 +110,7 @@ public class GeocodeController extends BaseApiController implements Observer
         logger.info("=======================================================");
         logger.info(String.format("|%sGeocode Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
         logger.info(String.format("| Mode: %s | IP: %s | Provider: %s", apiRequest.getRequest(), apiRequest.getIpAddress(), apiRequest.getProvider()));
-        if (!apiRequest.isBatch() && apiRequest.getRequest().equals("geocode")) {
+        if (!apiRequest.isBatch() && apiRequest.getRequest().equals("geocode") || apiRequest.getRequest().equals("geocache")) {
             logger.info("| Input Address: " + geocodeRequest.getAddress().toLogString());
         }
         logger.info("=======================================================");
@@ -209,9 +214,6 @@ public class GeocodeController extends BaseApiController implements Observer
                     }
                 }
                 break;
-            }
-            default: {
-                geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
             }
         }
 

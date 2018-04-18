@@ -1,11 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 
+<fmt:setLocale value = "es_ES"/>
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage-admin</jsp:attribute>
     <jsp:attribute name="title">SAGE - Admin Console</jsp:attribute>
     <jsp:attribute name="cssIncludes">
-        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/jquery.dataTables-1.9.4.css">
+        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/vendor/jquery.dataTables-1.9.4.css">
+        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/tabs.css">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script src="${pageContext.request.contextPath}/js/vendor/highcharts.js" type="text/javascript"></script>
@@ -13,21 +16,68 @@
         <script src="${pageContext.request.contextPath}/js/admin.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
-        <div style="width:100%" id="header" ng-controller="MenuController">
+
+        <div style="width:100%" id="header">
             <sage:logo></sage:logo>
             <ul class="top-method-header">
-                <li><a ng-click='toggleMethod(1)' class="active">
-                    <div ng-show="index == 1" class="icon-white-no-hover icon-house"></div>&nbsp;Dashboard</a></li>
-                <li><a ng-click='toggleMethod(3)'>
-                    <div ng-show="index == 3" class="icon-white-no-hover icon-user-add"></div>&nbsp;User Console</a></li>
-                <li><a ng-href="${pageContext.request.contextPath}/admin/logout">Logout</a></li>
+                    <li class="tablinks" onclick="openTab(event,'exception-viewer')">
+                        <a><div class=" icon-new" id="defaultOpen"></div>&nbsp;Exceptions</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'api-usage')">
+                        <a><div class=" icon-graph"></div>&nbsp;Api Usage</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'api-user-stats')">
+                        <a><div class=" icon-users"></div>&nbsp;Api User Stats</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'job-status')">
+                        <a><div class=" icon-map"></div>&nbsp;Job Status</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'geocode-usage')">
+                        <a><div class=" icon-compass"></div>&nbsp;Geocode Usage</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'geocaching')">
+                        <a><div class=" icon-location"></div>&nbsp;Geocaching</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'user-console')">
+                        <a><div class=" icon-user-add"></div>&nbsp;User Console</a></li>
+
+                    <li class="tablinks" onclick="openTab(event,'uptime-stats')">
+                        <a><div class=" icon-statistics"></div>&nbsp;Uptime Stats</a></li>
+
+                    <li><a ng-href="${pageContext.request.contextPath}/admin/logout">Logout</a></li>
             </ul>
         </div>
+
+
+
         <div id="contentwrapper">
+
             <div id="contentcolumn" style="text-align:center;">
+
                 <div ng-controller='DashboardController' ng-show='visible'>
                     <h3 class="slim">SAGE Dashboard</h3>
-                    <div ng-controller="DeploymentStatsController" id="uptime-stats" class="highlight-section fixed">
+
+                    <div ng-controller="DeploymentStatsController" id="uptime-stats" class="highlight-section fixed tabcontent">
+
+                        <div >
+                            <span>The time frame to view stats is between &nbsp;</span>
+                            <input ng-model="fromMonth" style="width:35px;" min="1" max="12" maxlength="2" type="number"/>/
+                            <input ng-model="fromDate" style="width:35px;" min="1" max="31" maxlength="2" type="number"/>/
+                            <input ng-model="fromYear" style="width:70px;" min="2013" max="2020" maxlength="4" type="number"/>
+
+                            <span>&nbsp; and &nbsp;</span>
+
+                            <input ng-model="toMonth" style="width:35px;" min="1" max="12" maxlength="2" type="number"/>/
+                            <input ng-model="toDate" style="width:35px;" min="1" max="31" maxlength="2" type="number"/>/
+                            <input ng-model="toYear" style="width:70px;" min="2013" max="2020" maxlength="4" type="number"/>
+
+                            <button ng-click="update()" class="submit" style="width:auto; padding:5px 10px;">
+                                <span>Update</span>
+                            </button>
+                        </div>
+
+                        <hr/>
+
                         <ul class="horizontal">
                             <li><label>Last Deployed | </label> {{lastDeployment.deployTime | date:'medium'}}</li>
                             <li><label>Latest Uptime | </label>{{latestUptime / 3600000 | number:3}} hours</li>
@@ -35,25 +85,10 @@
                         </ul>
                     </div>
 
-                    <div class="highlight-section fixed">
-                        <span>The time frame to view stats is between &nbsp;</span>
-                        <input ng-model="fromMonth" style="width:35px;" min="1" max="12" maxlength="2" type="number"/>/
-                        <input ng-model="fromDate" style="width:35px;" min="1" max="31" maxlength="2" type="number"/>/
-                        <input ng-model="fromYear" style="width:70px;" min="2013" max="2020" maxlength="4" type="number"/>
 
-                        <span>&nbsp; and &nbsp;</span>
-
-                        <input ng-model="toMonth" style="width:35px;" min="1" max="12" maxlength="2" type="number"/>/
-                        <input ng-model="toDate" style="width:35px;" min="1" max="31" maxlength="2" type="number"/>/
-                        <input ng-model="toYear" style="width:70px;" min="2013" max="2020" maxlength="4" type="number"/>
-
-                        <button ng-click="update()" class="submit" style="width:auto; padding:5px 10px;">
-                            <span>Update</span>
-                        </button>
-                    </div>
 
                     <!-- Exception viewer -->
-                    <div ng-controller="ExceptionViewController" ng-show="exceptions" class="highlight-section fixed">
+                    <div ng-controller="ExceptionViewController" ng-show="exceptions" id="exception-viewer" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Application Exceptions</p>
                         <hr/>
                         <div style="text-align: left;">
@@ -73,12 +108,12 @@
                         </div>
                     </div>
 
-                    <div ng-controller="ApiUsageController" class="highlight-section fixed">
+                    <div ng-controller="ApiUsageController" id="api-usage" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Api Hourly Usage</p>
                         <div id="api-usage-stats"></div>
                     </div>
 
-                    <div ng-controller="JobStatusController" class="highlight-section fixed">
+                    <div ng-controller="JobStatusController" id="job-status" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Batch Job Usage</p>
                         <hr/>
                         <div>
@@ -105,7 +140,7 @@
                         </div>
                     </div>
 
-                    <div ng-controller="ApiUserStatsController" class="highlight-section fixed">
+                    <div ng-controller="ApiUserStatsController" id="api-user-stats" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Api User Request Stats</p>
                         <hr/>
                         <table class="light-table">
@@ -150,7 +185,7 @@
                         </div>
                     </div>
 
-                    <div class="highlight-section fixed" ng-controller="GeocodeUsageController">
+                    <div ng-controller="GeocodeUsageController"  id="geocode-usage" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Geocoder Usage</p>
                         <hr/>
                         <ul class="horizontal">
@@ -172,87 +207,190 @@
                         </table>
                     </div>
 
+
+                    <div ng-controller="GeocacheSubmitController" id="geocaching" class="highlight-section fixed tabcontent" >
+                        <p class="blue-header">Geocache Address</p>
+                        <hr/>
+                        <p>The state is assumed to be NY, in the seperated input form</p>
+                        <hr/>
+                        <button class="toggle" style="width: auto;padding: 5px 10px;" ng-click="toggleInputSeperation()">Toggle Input Seperation</button>
+                        <br>
+                        <br>
+                        <form >
+
+                            <div ng-show="!seperatedInput">
+                                <label for="geocache_addr_input">Address: </label>
+                                <input id="geocache_addr_input" ng-model="geocache_addr" type="text" size="50" ng-change="resetOnChange()">
+
+
+                            </div>
+
+                            <div ng-show="seperatedInput">
+                                <label for="geocache_addr1_input">Addr1: </label>
+                                <input id="geocache_addr1_input" ng-model="geocache_addr1" type="text" size="28" ng-change="resetOnChange()">
+
+                                <label for="geocache_city_input">City: </label>
+                                <input id="geocache_city_input" ng-model="geocache_city" type="text" ng-change="resetOnChange()">
+
+                                <label for="geocache_zip5_input">Zip5: </label>
+                                <input id="geocache_zip5_input" ng-model="geocache_zip5" type="text" ng-change="resetOnChange()">
+                            </div>
+
+                            <br>
+                            <br>
+
+                            <button type="submit" name="district_assign" class="submit" style="width: auto;padding: 5px 10px;"
+                                    ng-click="admin_district_assign()" ng-disabled="!isValidInfo()">District Assign</button>
+
+                            <button type="submit" name="update_geocache" class="geocache" style="width: auto;padding: 5px 10px;"
+                                    ng-click="updateGeocache()" ng-disabled="!isValidInfo()">Update Geocache</button>
+
+                        </form>
+                        <hr ng-show="district_assign_status"/>
+                        <div ng-show="district_assign_status">
+                            <p >{{district_assign_json.status}} </p>
+                            <p >{{district_assign_url}}</p>
+                            <br>
+                            <p ng-show="district_assign_geocode_status">Lat: {{district_assign_json.geocode.lat}}  Lon: {{district_assign_json.geocode.lon}}
+                                <br>
+                                Quality: {{district_assign_json.geocode.quality}}  Method:{{district_assign_json.geocode.method}}</p></p>
+                            <br>
+                            <p ng-show="district_assign_district_status">Senate District: {{(district_assign_json.districts.senate.district || "" )}} <br>
+                                Congressional District: {{(district_assign_json.districts.congressional.district || "" )}} <br>
+                                Assembly District: {{(district_assign_json.districts.assembly.district || "" )}} <br>
+                                County District: {{(district_assign_json.districts.county.district || "" )}} <br>
+                                Election District: {{(district_assign_json.districts.election.district || "" )}} <br>
+                                School District: {{(district_assign_json.districts.school.district || "" )}} <br>
+                                Town District: {{(district_assign_json.districts.town.district || "" )}} <br>
+                                Zip District: {{(district_assign_json.districts.zip.district || "" )}} <br>
+                                Cleg: {{(district_assign_json.districts.cleg.district || "" )}} <br>
+                                Ward: {{(district_assign_json.districts.ward.district || "" )}} <br>
+                                Village: {{(district_assign_json.districts.village.district || "" )}} <br>
+
+                            </p>
+                            <br>
+                            <p style="word-wrap: break-word">{{district_assign_json}}</p>
+                        </div>
+                        <hr ng-show="geocache_status"/>
+                        <div ng-show="geocache_status">
+                            <p >{{geocache_json.status}}</p>
+                            <p >{{geocache_url}}</p>
+                            <br>
+                            <p ng-show="geocode_status">The address was inserted into the geocache as: <br>
+                                Lat: {{geocache_json.geocode.lat}}  Lon: {{geocache_json.geocode.lon}} <br>
+                                Quality: {{geocache_json.geocode.quality}}  Method:{{geocache_json.geocode.method}}</p>
+                            <br>
+                            <p style="word-wrap: break-word">{{geocache_json}}</p>
+                        </div>
+
+
+                    </div>
+
+
+
+                    <div ng-controller="UserConsoleController" id="user-console" class="highlight-section fixed tabcontent">
+                        <h3 class="slim">User Console</h3>
+                        <!-- Current Api Users -->
+                        <div>
+                            <p class="title">Registered API Users</p>
+                            <table class="admin-table" style="margin-top:10px;">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Api Key</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                                <tr ng-repeat="apiUser in currentApiUsers">
+                                    <td>{{apiUser.id}}</td>
+                                    <td>{{apiUser.apiKey}}</td>
+                                    <td>{{apiUser.name}}</td>
+                                    <td>{{apiUser.description}}</td>
+                                    <td><a style="color:#CC333F;font-size: 13px;" ng-click="deleteApiUser(apiUser.id);">Delete</a></td>
+                                </tr>
+                            </table>
+                            <br/>
+                            <p class="title" style="color:#639A00">Create new API User</p>
+                            <div class="create-entity">
+                                <form ng-submit="createApiUser();">
+                                    <label for="new_apiUserName">Name</label>
+                                    <input ng-model="apiUserName" type="text" name="name" id="new_apiUserName"/>
+                                    <label for="new_apiUserDesc">Description</label>
+                                    <input ng-model="apiUserDesc" type="text" name="desc" id="new_apiUserDesc"/>
+                                    <button style="width:80px;" class="submit">Create</button>
+                                </form>
+                            </div>
+                        </div>
+                        <hr/>
+                        <!-- Current Batch Job Users -->
+                        <div>
+                            <p class="title">Registered Job Users</p>
+                            <table class="admin-table" style="margin-top:10px;">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Email</th>
+                                    <th>Active</th>
+                                    <th>Admin</th>
+                                    <th>Actions</th>
+                                </tr>
+                                <tr ng-repeat="jobUser in currentJobUsers">
+                                    <td>{{jobUser.id}}</td>
+                                    <td>{{jobUser.firstname}}</td>
+                                    <td>{{jobUser.lastname}}</td>
+                                    <td>{{jobUser.email}}</td>
+                                    <td>{{jobUser.active}}</td>
+                                    <td>{{jobUser.admin}}</td>
+                                    <td><a style="color:#CC333F;font-size: 13px;" ng-click="deleteJobUser(jobUser.id);">Delete</a></td>
+                                </tr>
+                            </table>
+                            <br/>
+                            <p class="title" style="color:#639A00">Create new Job User</p>
+                            <div class="create-entity">
+                                <form ng-submit="createJobUser();">
+                                    <label>First Name</label>
+                                    <input ng-model="jobFirstName" style="width:120px" type="text" name="firstname"/>
+                                    <label>Last Name</label>
+                                    <input ng-model="jobLastName" style="width:120px" type="text" name="lastname"/>
+                                    <label>Email</label>
+                                    <input ng-model="jobEmail" type="text" name="email"/><br/>
+                                    <br/>
+                                    <label>Password</label>
+                                    <input ng-model="jobPassword" style="width:126px" type="password" name="password"/>
+                                    <label>Admin</label>
+                                    <input ng-model="jobAdmin" type="checkbox"/>
+                                    <button style="width:80px;" class="submit">Create</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
                     <br/>
                     <br/>
                 </div>
 
-                <div ng-controller="UserConsoleController" ng-show="visible">
-                    <h3 class="slim">User Console</h3>
-                    <!-- Current Api Users -->
-                    <div class="highlight-section fixed">
-                        <p class="title">Registered API Users</p>
-                        <table class="admin-table" style="margin-top:10px;">
-                            <tr>
-                                <th>ID</th>
-                                <th>Api Key</th>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                            <tr ng-repeat="apiUser in currentApiUsers">
-                                <td>{{apiUser.id}}</td>
-                                <td>{{apiUser.apiKey}}</td>
-                                <td>{{apiUser.name}}</td>
-                                <td>{{apiUser.description}}</td>
-                                <td><a style="color:#CC333F;font-size: 13px;" ng-click="deleteApiUser(apiUser.id);">Delete</a></td>
-                            </tr>
-                        </table>
-                        <br/>
-                        <p class="title" style="color:#639A00">Create new API User</p>
-                        <div class="create-entity">
-                            <form ng-submit="createApiUser();">
-                                <label for="new_apiUserName">Name</label>
-                                <input ng-model="apiUserName" type="text" name="name" id="new_apiUserName"/>
-                                <label for="new_apiUserDesc">Description</label>
-                                <input ng-model="apiUserDesc" type="text" name="desc" id="new_apiUserDesc"/>
-                                <button style="width:80px;" class="submit">Create</button>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- Current Batch Job Users -->
-                    <div class="highlight-section fixed">
-                        <p class="title">Registered Job Users</p>
-                        <table class="admin-table" style="margin-top:10px;">
-                            <tr>
-                                <th>ID</th>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Email</th>
-                                <th>Active</th>
-                                <th>Admin</th>
-                                <th>Actions</th>
-                            </tr>
-                            <tr ng-repeat="jobUser in currentJobUsers">
-                                <td>{{jobUser.id}}</td>
-                                <td>{{jobUser.firstname}}</td>
-                                <td>{{jobUser.lastname}}</td>
-                                <td>{{jobUser.email}}</td>
-                                <td>{{jobUser.active}}</td>
-                                <td>{{jobUser.admin}}</td>
-                                <td><a style="color:#CC333F;font-size: 13px;" ng-click="deleteJobUser(jobUser.id);">Delete</a></td>
-                            </tr>
-                        </table>
-                        <br/>
-                        <p class="title" style="color:#639A00">Create new Job User</p>
-                        <div class="create-entity">
-                            <form ng-submit="createJobUser();">
-                                <label>First Name</label>
-                                <input ng-model="jobFirstName" style="width:120px" type="text" name="firstname"/>
-                                <label>Last Name</label>
-                                <input ng-model="jobLastName" style="width:120px" type="text" name="lastname"/>
-                                <label>Email</label>
-                                <input ng-model="jobEmail" type="text" name="email"/><br/>
-                                <br/>
-                                <label>Password</label>
-                                <input ng-model="jobPassword" style="width:126px" type="password" name="password"/>
-                                <label>Admin</label>
-                                <input ng-model="jobAdmin" type="checkbox"/>
-                                <button style="width:80px;" class="submit">Create</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
+
+
+        <script>
+            function openTab(evt, tabName) {
+                var i, tabcontent, tablinks;
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+                tablinks = document.getElementsByClassName("tablinks");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+                document.getElementById(tabName).style.display = "block";
+                evt.currentTarget.className += " active";
+            }
+
+            // Get the element with id="defaultOpen" and click on it
+            document.getElementById("defaultOpen").click();
+        </script>
     </jsp:body>
 </sage:wrapper>

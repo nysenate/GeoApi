@@ -2,7 +2,9 @@
 <%@ page import="gov.nysenate.sage.config.ApplicationFactory" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 
+<fmt:setLocale value = "es_ES"/>
 <% request.setAttribute("amsUrl", ApplicationFactory.getConfig().getValue("usps.ams.ui.url")); %>
 <% request.setAttribute("activeGeocoders", ApplicationFactory.getActiveGeoProviders()); %>
 
@@ -308,7 +310,10 @@
                         <tr>
                             <td><div class="icon-target icon-teal"></div></td>
                             <td><p style="font-size: 16px;color:teal;">({{geocode.lat | number:6}}, {{geocode.lon | number:6}})</p></td>
-                            <td style="text-align:right;"><small style="color:teal;">{{geocode.method | remove:'Dao'}}</small></td>
+                            <td style="text-align:right;">
+                                <small style="color:teal;">{{geocode.method | remove:'Dao'}}</small>
+                                <p ng-show="geocode.cached" class="icon-database icon-teal" style="color:teal;"></p>
+                            </td>
                         </tr>
                     </table>
                 </div>
