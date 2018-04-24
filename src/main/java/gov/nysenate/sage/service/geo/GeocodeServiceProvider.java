@@ -181,12 +181,12 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
         }
         /** Output result if log level is high enough */
-        else if (logger.isDebugEnabled()) {
+        else if (logger.isInfoEnabled()) {
             Geocode gc = geocodeResult.getGeocode();
             Address addr = geocodeResult.getAddress();
             if (gc != null && addr != null) {
                 String source = (geocodeResult.getSource() != null) ? geocodeResult.getSource().getSimpleName() : "Missing";
-                logger.debug(String.format("Geocode Result - Source: '%s', Quality: '%s', Lat/Lon: '%s', Address: '%s'",
+                logger.info(String.format("Geocode Result - Source: '%s', Quality: '%s', Lat/Lon: '%s', Address: '%s'",
                     source, gc.getQuality(), gc.getLatLon(), addr));
             }
         }
