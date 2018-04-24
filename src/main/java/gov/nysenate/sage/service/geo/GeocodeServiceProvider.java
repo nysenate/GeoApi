@@ -143,7 +143,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
                                                  : new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
         boolean cacheHit = CACHE_ENABLED && useCache && geocodeResult.isSuccess();
 
-        if (!cacheHit) {
+        if (!cacheHit && !provider.equals("geocache")) {
             /** Geocode using the supplied provider if valid */
             if (this.isRegistered(provider)) {
                 /** Remove the provider if it's set in the fallback chain */

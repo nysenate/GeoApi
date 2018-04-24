@@ -88,6 +88,10 @@ public class GeocodeController extends BaseApiController implements Observer
         if (bypassCache) {
             useCache = false;
         }
+        if (provider != null && provider.equals("geocache")) {
+            useCache = true;
+        }
+
 
         int requestId = -1;
 
@@ -111,7 +115,7 @@ public class GeocodeController extends BaseApiController implements Observer
          * If provider is specified then make sure it matches the available providers. Send an
          * api error and return if the provider is not supported.
          */
-        if (provider != null && !provider.isEmpty() && !geocodeServiceProvider.isRegistered(provider)) {
+        if (provider != null && !provider.isEmpty() && !geocodeServiceProvider.isRegistered(provider) && !provider.equals("geocache")) {
             geocodeResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
             setApiResponse(geocodeResponse, request);
             return;
