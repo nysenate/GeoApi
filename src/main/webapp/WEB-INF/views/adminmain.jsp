@@ -211,78 +211,174 @@
                     <div ng-controller="GeocacheSubmitController" id="geocaching" class="highlight-section fixed tabcontent" >
                         <p class="blue-header">Geocache Address</p>
                         <hr/>
-                        <p>The state is assumed to be NY, in the seperated input form</p>
+                        <p ng-show="!seperatedInput">Be sure to seperate input with commas, (i.e. 200 State Street, Albany, NY, 12210)</p>
+                        <p ng-show="seperatedInput">The state is assumed to be NY</p>
                         <hr/>
                         <button class="toggle" style="width: auto;padding: 5px 10px;" ng-click="toggleInputSeperation()">Toggle Input Seperation</button>
                         <br>
                         <br>
+
                         <form >
 
                             <div ng-show="!seperatedInput">
-                                <label for="geocache_addr_input">Address: </label>
-                                <input id="geocache_addr_input" ng-model="geocache_addr" type="text" size="50" ng-change="resetOnChange()">
+                                <label for="input_addr_input">Address: </label>
+                                <input id="input_addr_input" ng-model="input_addr" type="text" size="50" ng-change="resetOnChange()">
 
 
                             </div>
 
                             <div ng-show="seperatedInput">
-                                <label for="geocache_addr1_input">Addr1: </label>
-                                <input id="geocache_addr1_input" ng-model="geocache_addr1" type="text" size="28" ng-change="resetOnChange()">
+                                <label for="input_addr1_input">Addr1: </label>
+                                <input id="input_addr1_input" ng-model="input_addr1" type="text" size="28" ng-change="resetOnChange()">
 
-                                <label for="geocache_city_input">City: </label>
-                                <input id="geocache_city_input" ng-model="geocache_city" type="text" ng-change="resetOnChange()">
+                                <label for="input_city_input">City: </label>
+                                <input id="input_city_input" ng-model="input_city" type="text" ng-change="resetOnChange()">
 
-                                <label for="geocache_zip5_input">Zip5: </label>
-                                <input id="geocache_zip5_input" ng-model="geocache_zip5" type="text" ng-change="resetOnChange()">
+                                <label for="input_zip5_input">Zip5: </label>
+                                <input id="input_zip5_input" ng-model="input_zip5" type="text" ng-change="resetOnChange()">
                             </div>
 
                             <br>
-                            <br>
 
-                            <button type="submit" name="district_assign" class="submit" style="width: auto;padding: 5px 10px;"
-                                    ng-click="admin_district_assign()" ng-disabled="!isValidInfo()">District Assign</button>
-
-                            <button type="submit" name="update_geocache" class="geocache" style="width: auto;padding: 5px 10px;"
-                                    ng-click="updateGeocache()" ng-disabled="!isValidInfo()">Update Geocache</button>
-
+                            <button type="submit" name="lookup" class="submit" style="width: auto;padding: 5px 10px;"
+                                    ng-click="look_up()" ng-disabled="!isValidInfo()">Look Up</button>
                         </form>
-                        <hr ng-show="district_assign_status"/>
-                        <div ng-show="district_assign_status">
-                            <p >{{district_assign_json.status}} </p>
-                            <p >{{district_assign_url}}</p>
-                            <br>
-                            <p ng-show="district_assign_geocode_status">Lat: {{district_assign_json.geocode.lat}}  Lon: {{district_assign_json.geocode.lon}}
-                                <br>
-                                Quality: {{district_assign_json.geocode.quality}}  Method:{{district_assign_json.geocode.method}}</p></p>
-                            <br>
-                            <p ng-show="district_assign_district_status">Senate District: {{(district_assign_json.districts.senate.district || "" )}} <br>
-                                Congressional District: {{(district_assign_json.districts.congressional.district || "" )}} <br>
-                                Assembly District: {{(district_assign_json.districts.assembly.district || "" )}} <br>
-                                County District: {{(district_assign_json.districts.county.district || "" )}} <br>
-                                Election District: {{(district_assign_json.districts.election.district || "" )}} <br>
-                                School District: {{(district_assign_json.districts.school.district || "" )}} <br>
-                                Town District: {{(district_assign_json.districts.town.district || "" )}} <br>
-                                Zip District: {{(district_assign_json.districts.zip.district || "" )}} <br>
-                                Cleg: {{(district_assign_json.districts.cleg.district || "" )}} <br>
-                                Ward: {{(district_assign_json.districts.ward.district || "" )}} <br>
-                                Village: {{(district_assign_json.districts.village.district || "" )}} <br>
 
-                            </p>
-                            <br>
-                            <p style="word-wrap: break-word">{{district_assign_json}}</p>
+
+                        <hr ng-show="geo_comparison_status"/>
+                        <div>
+                            <form ng-show="geo_comparison_status">
+
+                                <p ng-show="geocache_status">Geocache: <br>Lat: {{geocache_json.geocode.lat || ""}}  Lon: {{geocache_json.geocode.lon || ""}} <br>
+                                    Quality: {{geocache_json.geocode.quality || ""}}  Method:{{geocache_json.geocode.method || ""}} </p>
+
+                                <label for="google_coords">Google:
+                                    <p ng-show="geo_google_status">Lat: {{geo_google_json.geocode.lat || ""}}  Lon: {{geo_google_json.geocode.lon || ""}} <br>
+                                    Quality: {{geo_google_json.geocode.quality || ""}}  Method:{{geo_google_json.geocode.method || ""}} </p>
+                                </label>
+                                <input ng-show="geo_google_status" type="radio" id="google_coords" ng-model="geo_provider_to_use" value="Google">
+                                <br>
+                                <label for="tiger_coords">Tiger:
+                                    <p ng-show="geo_tiger_status">Lat: {{geo_tiger_json.geocode.lat || ""}}  Lon: {{geo_tiger_json.geocode.lon || ""}} <br>
+                                        Quality: {{geo_tiger_json.geocode.quality || ""}}  Method:{{geo_tiger_json.geocode.method || ""}} </p>
+                                </label>
+                                <input ng-show="geo_tiger_status" type="radio" ng-model="geo_provider_to_use" id="tiger_coords" value="Tiger"> <br><br>
+                                <button type="submit" name="update_geocache" class="geocache" style="width: auto;padding: 5px 10px;"
+                                        ng-click="updateGeocache()" ng-disabled="!isProviderSelected()">Update Geocache</button>
+                            </form>
                         </div>
+
+                        <%--Geocache result status--%>
+                        <hr ng-show="geocache_result_status"/>
+                        <div ng-show="geocache_result_status">
+                            <p>Updated Geocache</p>
+                            <p >{{geocache_result_json.status}}</p>
+                            <p >{{geocache_result_url}}</p>
+                            <br>
+                            <p ng-show="geocode_result_status">The address was inserted into the geocache as: <br>
+                                Lat: {{geocache_result_json.geocode.lat}}  Lon: {{geocache_result_json.geocode.lon}} <br>
+                                Quality: {{geocache_result_json.geocode.quality}}  Method:{{geocache_result_json.geocode.method}}</p>
+                            <br>
+                            <p style="word-wrap: break-word">{{geocache_result_json}}</p>
+                        </div>
+
+                            <%--Geocache status--%>
                         <hr ng-show="geocache_status"/>
                         <div ng-show="geocache_status">
+                            <p>Currently geocached</p>
                             <p >{{geocache_json.status}}</p>
                             <p >{{geocache_url}}</p>
                             <br>
-                            <p ng-show="geocode_status">The address was inserted into the geocache as: <br>
+                            <p ng-show="geocache_json"><br>
                                 Lat: {{geocache_json.geocode.lat}}  Lon: {{geocache_json.geocode.lon}} <br>
                                 Quality: {{geocache_json.geocode.quality}}  Method:{{geocache_json.geocode.method}}</p>
                             <br>
                             <p style="word-wrap: break-word">{{geocache_json}}</p>
                         </div>
 
+                            <%--Google status--%>
+                        <hr ng-show="geo_google_result_status"/>
+                        <div ng-show="geo_google_result_status">
+                            <p>Google coordinates</p>
+                            <p >{{geo_google_json.status}}</p>
+                            <p >{{geo_google_url}}</p>
+                            <br>
+                            <p ng-show="geo_google_result_status"><br>
+                                Lat: {{geo_google_json.geocode.lat}}  Lon: {{geo_google_json.geocode.lon}} <br>
+                                Quality: {{geo_google_json.geocode.quality}}  Method:{{geo_google_json.geocode.method}}</p>
+                            <br>
+                            <p style="word-wrap: break-word">{{geocache_result_json}}</p>
+                        </div>
+
+                            <%--Tiger result status--%>
+                        <hr ng-show="geo_tiger_result_status"/>
+                        <div ng-show="geo_tgier_result_status">
+                            <p>Update Geocache Request</p>
+                            <p >{{geo_tiger_json.status}}</p>
+                            <p >{{geo_tiger_url}}</p>
+                            <br>
+                            <p ng-show="geo_tiger_result_status">The address was inserted into the geocache as: <br>
+                                Lat: {{geo_tiger_json.geocode.lat}}  Lon: {{geo_tiger_json.geocode.lon}} <br>
+                                Quality: {{geo_tiger_json.geocode.quality}}  Method:{{geo_tiger_json.geocode.method}}</p>
+                            <br>
+                            <p style="word-wrap: break-word">{{geo_tiger_json}}</p>
+                        </div>
+
+                        <%--STREEET DISTRICT ASSIGNMENT--%>
+                        <hr ng-show="district_assign_street_status"/>
+                        <div ng-show="district_assign_street_status">
+                            <p> District Assignment</p>
+                            <p >{{district_assign_street_json.status}} </p>
+                            <p >{{district_assign_street_url}}</p>
+                            <br>
+                            <p ng-show="district_assign_street_geocode_status">Lat: {{district_assign_street_json.geocode.lat}}  Lon: {{district_assign_street_json.geocode.lon}}
+                                <br>
+                                Quality: {{district_assign_street_json.geocode.quality}}  Method:{{district_assign_street_json.geocode.method}}</p></p>
+                            <br>
+                            <p ng-show="district_assign_street_district_status">Senate District: {{(district_assign_street_json.districts.senate.district || "" )}} <br>
+                                Congressional District: {{(district_assign_street_json.districts.congressional.district || "" )}} <br>
+                                Assembly District: {{(district_assign_street_json.districts.assembly.district || "" )}} <br>
+                                County District: {{(district_assign_street_json.districts.county.district || "" )}} <br>
+                                Election District: {{(district_assign_street_json.districts.election.district || "" )}} <br>
+                                School District: {{(district_assign_street_json.districts.school.district || "" )}} <br>
+                                Town District: {{(district_assign_street_json.districts.town.district || "" )}} <br>
+                                Zip District: {{(district_assign_street_json.districts.zip.district || "" )}} <br>
+                                Cleg: {{(district_assign_street_json.districts.cleg.district || "" )}} <br>
+                                Ward: {{(district_assign_street_json.districts.ward.district || "" )}} <br>
+                                Village: {{(district_assign_street_json.districts.village.district || "" )}} <br>
+
+                            </p>
+                            <br>
+                            <p style="word-wrap: break-word">{{district_assign_street_json}}</p>
+                        </div>
+
+                            <%--SHAPE DISTRICT ASSIGNMENT--%>
+                        <hr ng-show="district_assign_shape_district_status"/>
+                        <div ng-show="district_assign_shape_district_status">
+                            <p> District Assignment</p>
+                            <p >{{district_assign_shape_json.status}} </p>
+                            <p >{{district_assign_shape_url}}</p>
+                            <br>
+                            <p ng-show="district_assign_shape_geocode_status">Lat: {{district_assign_shape_json.geocode.lat}}  Lon: {{district_assign_shape_json.geocode.lon}}
+                                <br>
+                                Quality: {{district_assign_shape_json.geocode.quality}}  Method:{{district_shape_assign_json.geocode.method}}</p></p>
+                            <br>
+                            <p ng-show="district_assign_shape_district_status">Senate District: {{(district_assign_shape_json.districts.senate.district || "" )}} <br>
+                                Congressional District: {{(district_assign_shape_json.districts.congressional.district || "" )}} <br>
+                                Assembly District: {{(district_assign_shape_json.districts.assembly.district || "" )}} <br>
+                                County District: {{(district_assign_shape_json.districts.county.district || "" )}} <br>
+                                Election District: {{(district_assign_shape_json.districts.election.district || "" )}} <br>
+                                School District: {{(district_assign_shape_json.districts.school.district || "" )}} <br>
+                                Town District: {{(district_assign_shape_json.districts.town.district || "" )}} <br>
+                                Zip District: {{(district_assign_shape_json.districts.zip.district || "" )}} <br>
+                                Cleg: {{(district_assign_shape_json.districts.cleg.district || "" )}} <br>
+                                Ward: {{(district_assign_shape_json.districts.ward.district || "" )}} <br>
+                                Village: {{(district_assign_shape_json.districts.village.district || "" )}} <br>
+
+                            </p>
+                            <br>
+                            <p style="word-wrap: break-word">{{district_assign_shape_json}}</p>
+                        </div>
 
                     </div>
 
