@@ -245,8 +245,9 @@
                         </form>
 
 
-                        <hr ng-show="geo_comparison_status"/>
+
                         <div>
+                            <hr ng-show="geo_comparison_status"/>
                             <form ng-show="geo_comparison_status">
 
                                 <p ng-show="geocache_status">Geocache: <br>Lat: {{geocache_json.geocode.lat || ""}}  Lon: {{geocache_json.geocode.lon || ""}} <br>
@@ -269,8 +270,9 @@
                         </div>
 
                         <%--Geocache result status--%>
-                        <hr ng-show="geocache_result_status"/>
+
                         <div ng-show="geocache_result_status">
+                            <hr ng-show="geocache_result_status"/>
                             <p>Updated Geocache</p>
                             <p >{{geocache_result_json.status}}</p>
                             <p >{{geocache_result_url}}</p>
@@ -283,10 +285,19 @@
                             <p class="panel" style="word-wrap: break-word">{{geocache_result_json}}</p>
                         </div>
 
+                        <hr ng-show="geo_comparison_status"/>
+                        <div class="tab" ng-show="geo_comparison_status">
+                            <button class="datatabs" onclick="openDataTab(event, 'geocache_status')">Geocache</button>
+                            <button class="datatabs" onclick="openDataTab(event, 'google')">Google</button>
+                            <button class="datatabs" onclick="openDataTab(event, 'tiger')">Tiger</button>
+                            <button class="datatabs" onclick="openDataTab(event, 'street_district_assign')">Street District Assign</button>
+                        </div>
+
                             <%--Geocache status--%>
-                        <hr ng-show="geocache_status"/>
-                        <div ng-show="geocache_status">
-                            <p>Currently geocached</p>
+
+                        <div ng-show="geocache_status" id="geocache_status" class="datacontent">
+                            <hr ng-show="geocache_status"/>
+                            <p>Currently Geocached</p>
                             <p >{{geocache_json.status}}</p>
                             <p >{{geocache_url}}</p>
                             <br>
@@ -299,28 +310,30 @@
                         </div>
 
                             <%--Google status--%>
-                        <hr ng-show="geo_google_result_status"/>
-                        <div ng-show="geo_google_result_status">
-                            <p>Google coordinates</p>
+
+                        <div ng-show="geo_google_status" id="google" class="datacontent">
+                            <hr ng-show="geo_google_status"/>
+                            <p>Google Coordinates</p>
                             <p >{{geo_google_json.status}}</p>
                             <p >{{geo_google_url}}</p>
                             <br>
-                            <p ng-show="geo_google_result_status"><br>
+                            <p ng-show="geo_google_geocode_status"><br>
                                 Lat: {{geo_google_json.geocode.lat}}  Lon: {{geo_google_json.geocode.lon}} <br>
                                 Quality: {{geo_google_json.geocode.quality}}  Method:{{geo_google_json.geocode.method}}</p>
                             <br>
                             <button class="accordion" onclick="doAccordian()">Toggle Json</button>
-                            <p class="panel" style="word-wrap: break-word">{{geocache_result_json}}</p>
+                            <p class="panel" style="word-wrap: break-word">{{geo_google_json}}</p>
                         </div>
 
                             <%--Tiger result status--%>
-                        <hr ng-show="geo_tiger_result_status"/>
-                        <div ng-show="geo_tgier_result_status">
-                            <p>Update Geocache Request</p>
+
+                        <div ng-show="geo_tiger_status" id="tiger" class="datacontent">
+                            <hr ng-show="geo_tiger_status"/>
+                            <p>Tiger Coordinates</p>
                             <p >{{geo_tiger_json.status}}</p>
                             <p >{{geo_tiger_url}}</p>
                             <br>
-                            <p ng-show="geo_tiger_result_status">The address was inserted into the geocache as: <br>
+                            <p ng-show="geo_tiger_geocode_status">
                                 Lat: {{geo_tiger_json.geocode.lat}}  Lon: {{geo_tiger_json.geocode.lon}} <br>
                                 Quality: {{geo_tiger_json.geocode.quality}}  Method:{{geo_tiger_json.geocode.method}}</p>
                             <br>
@@ -329,9 +342,10 @@
                         </div>
 
                         <%--STREEET DISTRICT ASSIGNMENT--%>
-                        <hr ng-show="district_assign_street_status"/>
-                        <div ng-show="district_assign_street_status">
-                            <p> District Assignment</p>
+
+                        <div ng-show="district_assign_street_status" id="street_district_assign" class="datacontent">
+                            <hr ng-show="district_assign_street_status"/>
+                            <p>Street District Assignment</p>
                             <p >{{district_assign_street_json.status}} </p>
                             <p >{{district_assign_street_url}}</p>
                             <br>
@@ -358,15 +372,16 @@
                         </div>
 
                             <%--SHAPE DISTRICT ASSIGNMENT--%>
-                        <hr ng-show="district_assign_shape_district_status"/>
-                        <div ng-show="district_assign_shape_district_status">
-                            <p> District Assignment</p>
+
+                        <div ng-show="district_assign_shape_district_status" id="shape_district_assign">
+                            <hr ng-show="district_assign_shape_district_status"/>
+                            <p>Shape District Assignment</p>
                             <p >{{district_assign_shape_json.status}} </p>
                             <p >{{district_assign_shape_url}}</p>
                             <br>
                             <p ng-show="district_assign_shape_geocode_status">Lat: {{district_assign_shape_json.geocode.lat}}  Lon: {{district_assign_shape_json.geocode.lon}}
                                 <br>
-                                Quality: {{district_assign_shape_json.geocode.quality}}  Method:{{district_shape_assign_json.geocode.method}}</p></p>
+                                Quality: {{district_assign_shape_json.geocode.quality}}  Method:{{district_assign_shape_json.geocode.method}}</p></p>
                             <br>
                             <p ng-show="district_assign_shape_district_status">Senate District: {{(district_assign_shape_json.districts.senate.district || "" )}} <br>
                                 Congressional District: {{(district_assign_shape_json.districts.congressional.district || "" )}} <br>
@@ -507,8 +522,23 @@
                 document.getElementById(tabName).style.display = "block";
                 evt.currentTarget.className += " active";
             }
+
+            function openDataTab(evt, tabName) {
+                var i, tabcontent, tablinks;
+                tabcontent = document.getElementsByClassName("datacontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+                tablinks = document.getElementsByClassName("data-tab");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+                document.getElementById(tabName).style.display = "block";
+                evt.currentTarget.className += " active";
+            }
             // Get the element with id="defaultOpen" and click on it
             document.getElementById("defaultOpen").click();
+            document.getElementById("geocache_status").click();
         </script>
     </jsp:body>
 </sage:wrapper>

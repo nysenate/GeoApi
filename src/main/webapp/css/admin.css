@@ -1,12 +1,12 @@
 
 
-/* Create an active/current tablink class */
+/* For the tabs for the SAGE admin menu*/
 .tablinks li.active {
     background: #007095;
 }
 
 /* Style the tab content */
-.tabcontent {
+.tabcontent{
     display: none;
 }
 
@@ -14,6 +14,46 @@
     background: #007095;
 }
 
+/*For the data tabs in the geocaching admin panel*/
+.datatabs li.active {
+    background: #007095;
+}
+
+/* Style the tab content */
+.datacontent{
+    display: none;
+}
+
+.datatabs a:hover {
+    background: #007095;
+}
+
+/* Style the tab */
+.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+    background-color: inherit;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+    text-align: center !important;
+    margin: auto;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+    background-color: #ddd;
+}
+
+/*For the geocaching admin panel json blocks*/
 .accordion {
     background-color: #eee;
     color: #444;
