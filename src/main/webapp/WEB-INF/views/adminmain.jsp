@@ -211,7 +211,7 @@
                     <div ng-controller="GeocacheSubmitController" id="geocaching" class="highlight-section fixed tabcontent" >
                         <p class="blue-header">Geocache Address</p>
                         <hr/>
-                        <p ng-show="!seperatedInput">Be sure to seperate input with commas, (i.e. 200 State Street, Albany, NY, 12210)</p>
+                        <p ng-show="!seperatedInput">Be sure to separate input with commas, (i.e. 200 State Street, Albany, NY, 12210)</p>
                         <p ng-show="seperatedInput">The state is assumed to be NY</p>
                         <hr/>
                         <button class="toggle" style="width: auto;padding: 5px 10px;" ng-click="toggleInputSeperation()">Toggle Input Seperation</button>
