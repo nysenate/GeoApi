@@ -357,7 +357,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
                     console.log(data.geocode);
 
-                    if ($scope.geo-geo_google_json.geocode != null) {
+                    if ($scope.geo_google_json.geocode != null) {
                         $scope.geo_google_geocode_status = true;
                     }
                 }

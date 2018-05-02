@@ -8,7 +8,7 @@
     <jsp:attribute name="title">SAGE - Admin Console</jsp:attribute>
     <jsp:attribute name="cssIncludes">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/vendor/jquery.dataTables-1.9.4.css">
-        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/tabs.css">
+        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/admin.css">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <script src="${pageContext.request.contextPath}/js/vendor/highcharts.js" type="text/javascript"></script>
@@ -279,7 +279,8 @@
                                 Lat: {{geocache_result_json.geocode.lat}}  Lon: {{geocache_result_json.geocode.lon}} <br>
                                 Quality: {{geocache_result_json.geocode.quality}}  Method:{{geocache_result_json.geocode.method}}</p>
                             <br>
-                            <p style="word-wrap: break-word">{{geocache_result_json}}</p>
+                            <button class="accordion" onclick="doAccordian()">Toggle Json</button>
+                            <p class="panel" style="word-wrap: break-word">{{geocache_result_json}}</p>
                         </div>
 
                             <%--Geocache status--%>
@@ -293,7 +294,8 @@
                                 Lat: {{geocache_json.geocode.lat}}  Lon: {{geocache_json.geocode.lon}} <br>
                                 Quality: {{geocache_json.geocode.quality}}  Method:{{geocache_json.geocode.method}}</p>
                             <br>
-                            <p style="word-wrap: break-word">{{geocache_json}}</p>
+                            <button class="accordion" onclick="doAccordian()">Toggle Json</button>
+                            <p class="panel" style="word-wrap: break-word">{{geocache_json}}</p>
                         </div>
 
                             <%--Google status--%>
@@ -307,7 +309,8 @@
                                 Lat: {{geo_google_json.geocode.lat}}  Lon: {{geo_google_json.geocode.lon}} <br>
                                 Quality: {{geo_google_json.geocode.quality}}  Method:{{geo_google_json.geocode.method}}</p>
                             <br>
-                            <p style="word-wrap: break-word">{{geocache_result_json}}</p>
+                            <button class="accordion" onclick="doAccordian()">Toggle Json</button>
+                            <p class="panel" style="word-wrap: break-word">{{geocache_result_json}}</p>
                         </div>
 
                             <%--Tiger result status--%>
@@ -321,7 +324,8 @@
                                 Lat: {{geo_tiger_json.geocode.lat}}  Lon: {{geo_tiger_json.geocode.lon}} <br>
                                 Quality: {{geo_tiger_json.geocode.quality}}  Method:{{geo_tiger_json.geocode.method}}</p>
                             <br>
-                            <p style="word-wrap: break-word">{{geo_tiger_json}}</p>
+                            <button class="accordion" onclick="doAccordian()">Toggle Json</button>
+                            <p class="panel" style="word-wrap: break-word">{{geo_tiger_json}}</p>
                         </div>
 
                         <%--STREEET DISTRICT ASSIGNMENT--%>
@@ -349,7 +353,8 @@
 
                             </p>
                             <br>
-                            <p style="word-wrap: break-word">{{district_assign_street_json}}</p>
+                            <button class="accordion" onclick="doAccordian()">Toggle Json</button>
+                            <p class="panel" style="word-wrap: break-word">{{district_assign_street_json}}</p>
                         </div>
 
                             <%--SHAPE DISTRICT ASSIGNMENT--%>
@@ -377,7 +382,8 @@
 
                             </p>
                             <br>
-                            <p style="word-wrap: break-word">{{district_assign_shape_json}}</p>
+                            <button class="accordion" onclick="doAccordian()">Toggle Json</button>
+                            <p class="panel" style="word-wrap: break-word">{{district_assign_shape_json}}</p>
                         </div>
 
                     </div>
@@ -471,6 +477,23 @@
 
 
         <script>
+            function doAccordian() {
+                var acc = document.getElementsByClassName("accordion");
+                var i;
+
+                for (i = 0; i < acc.length; i++) {
+                    acc[i].addEventListener("click", function() {
+                        this.classList.toggle("active");
+                        var panel = this.nextElementSibling;
+                        if (panel.style.display === "block") {
+                            panel.style.display = "none";
+                        } else {
+                            panel.style.display = "block";
+                        }
+                    });
+                }
+            }
+
             function openTab(evt, tabName) {
                 var i, tabcontent, tablinks;
                 tabcontent = document.getElementsByClassName("tabcontent");
@@ -484,7 +507,6 @@
                 document.getElementById(tabName).style.display = "block";
                 evt.currentTarget.className += " active";
             }
-
             // Get the element with id="defaultOpen" and click on it
             document.getElementById("defaultOpen").click();
         </script>

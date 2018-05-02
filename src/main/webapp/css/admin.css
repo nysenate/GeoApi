@@ -1,0 +1,38 @@
+
+
+/* Create an active/current tablink class */
+.tablinks li.active {
+    background: #007095;
+}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+}
+
+.tablinks a:hover {
+    background: #007095;
+}
+
+.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    text-align: center !important;
+    /*transition: 0.4s;*/
+}
+ .accordion:hover {
+    background-color: #ccc;
+}
+
+.panel {
+    padding: 0 18px;
+    display: none;
+    background-color: white;
+    overflow: hidden;
+}
