@@ -20,29 +20,37 @@
         <div style="width:100%" id="header">
             <sage:logo></sage:logo>
             <ul class="top-method-header">
-                    <li class="tablinks" onclick="openTab(event,'exception-viewer')">
-                        <a><div class=" icon-new" id="defaultOpen"></div>&nbsp;Exceptions</a></li>
+                    <li>
+                        <a class="tablinks" id="defaultOpen" onclick="openTab(event,'exceptions')">
+                            <div class=" icon-new"></div>&nbsp;Exceptions</a></li>
 
-                    <li class="tablinks" onclick="openTab(event,'api-usage')">
-                        <a><div class=" icon-graph"></div>&nbsp;Api Usage</a></li>
+                    <li>
+                        <a class="tablinks" onclick="openTab(event,'api-usage')">
+                            <div class=" icon-graph"></div>&nbsp;Api Usage</a></li>
 
-                    <li class="tablinks" onclick="openTab(event,'api-user-stats')">
-                        <a><div class=" icon-users"></div>&nbsp;Api User Stats</a></li>
+                    <li>
+                        <a class="tablinks" onclick="openTab(event,'api-user-stats')">
+                            <div class=" icon-users"></div>&nbsp;Api User Stats</a></li>
 
-                    <li class="tablinks" onclick="openTab(event,'job-status')">
-                        <a><div class=" icon-map"></div>&nbsp;Job Status</a></li>
+                    <li>
+                        <a class="tablinks" onclick="openTab(event,'job-status')">
+                            <div class=" icon-map"></div>&nbsp;Job Status</a></li>
 
-                    <li class="tablinks" onclick="openTab(event,'geocode-usage')">
-                        <a><div class=" icon-compass"></div>&nbsp;Geocode Usage</a></li>
+                    <li>
+                        <a class="tablinks" onclick="openTab(event,'geocode-usage')">
+                            <div class=" icon-compass"></div>&nbsp;Geocode Usage</a></li>
 
-                    <li class="tablinks" onclick="openTab(event,'geocaching')">
-                        <a><div class=" icon-location"></div>&nbsp;Geocaching</a></li>
+                    <li>
+                        <a class="tablinks" onclick="openTab(event,'geocaching')">
+                            <div class=" icon-location"></div>&nbsp;Geocaching</a></li>
 
-                    <li class="tablinks" onclick="openTab(event,'user-console')">
-                        <a><div class=" icon-user-add"></div>&nbsp;User Console</a></li>
+                    <li>
+                        <a class="tablinks" onclick="openTab(event,'user-console')">
+                            <div class=" icon-user-add"></div>&nbsp;User Console</a></li>
 
-                    <li class="tablinks" onclick="openTab(event,'uptime-stats')">
-                        <a><div class=" icon-statistics"></div>&nbsp;Uptime Stats</a></li>
+                    <li>
+                        <a class="tablinks" onclick="openTab(event,'uptime-stats')">
+                            <div class=" icon-statistics"></div>&nbsp;Uptime Stats</a></li>
 
                     <li><a ng-href="${pageContext.request.contextPath}/admin/logout">Logout</a></li>
             </ul>
@@ -55,7 +63,6 @@
             <div id="contentcolumn" style="text-align:center;">
 
                 <div ng-controller='DashboardController' ng-show='visible'>
-                    <h3 class="slim">SAGE Dashboard</h3>
 
                     <div ng-controller="DeploymentStatsController" id="uptime-stats" class="highlight-section fixed tabcontent">
 
@@ -88,7 +95,7 @@
 
 
                     <!-- Exception viewer -->
-                    <div ng-controller="ExceptionViewController" ng-show="exceptions" id="exception-viewer" class="highlight-section fixed tabcontent">
+                    <div ng-controller="ExceptionViewController" ng-show="exceptions" id="exceptions" class="highlight-section fixed tabcontent">
                         <p class="blue-header">Application Exceptions</p>
                         <hr/>
                         <div style="text-align: left;">
@@ -290,7 +297,7 @@
                             <button class="datatabs" onclick="openDataTab(event, 'geocache_status')">Geocache</button>
                             <button class="datatabs" onclick="openDataTab(event, 'google')">Google</button>
                             <button class="datatabs" onclick="openDataTab(event, 'tiger')">Tiger</button>
-                            <button class="datatabs" onclick="openDataTab(event, 'street_district_assign')">Street District Assign</button>
+                            <button class="datatabs" id="sda" onclick="openDataTab(event, 'street_district_assign')">Street District Assign</button>
                         </div>
 
                             <%--Geocache status--%>
@@ -509,7 +516,7 @@
                 }
             }
 
-            function openTab(evt, tabName) {
+            function openTab(evt, id) {
                 var i, tabcontent, tablinks;
                 tabcontent = document.getElementsByClassName("tabcontent");
                 for (i = 0; i < tabcontent.length; i++) {
@@ -519,26 +526,26 @@
                 for (i = 0; i < tablinks.length; i++) {
                     tablinks[i].className = tablinks[i].className.replace(" active", "");
                 }
-                document.getElementById(tabName).style.display = "block";
+                document.getElementById(id).style.display = "block";
                 evt.currentTarget.className += " active";
             }
 
-            function openDataTab(evt, tabName) {
+            function openDataTab(evt, id) {
                 var i, tabcontent, tablinks;
                 tabcontent = document.getElementsByClassName("datacontent");
                 for (i = 0; i < tabcontent.length; i++) {
                     tabcontent[i].style.display = "none";
                 }
-                tablinks = document.getElementsByClassName("data-tab");
+                tablinks = document.getElementsByClassName("datatabs");
                 for (i = 0; i < tablinks.length; i++) {
                     tablinks[i].className = tablinks[i].className.replace(" active", "");
                 }
-                document.getElementById(tabName).style.display = "block";
+                document.getElementById(id).style.display = "block";
                 evt.currentTarget.className += " active";
             }
             // Get the element with id="defaultOpen" and click on it
             document.getElementById("defaultOpen").click();
-            document.getElementById("geocache_status").click();
+            document.getElementById("sda").click();
         </script>
     </jsp:body>
 </sage:wrapper>
