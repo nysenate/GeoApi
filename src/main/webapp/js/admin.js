@@ -51,6 +51,20 @@ sageAdmin.controller('DashboardController', function($scope, $http, menuService,
     };
 });
 
+sageAdmin.controller('AdminPageController', function($scope, $http, dataBus) {
+    $scope.activeTab = "exceptions";
+
+    $scope.exceptionTab = true;
+
+    $scope.changeTab = function(newTab) {
+        $scope.activeTab = newTab;
+    };
+
+    $scope.determineActiveTab = function (inputTab) {
+        return $scope.activeTab === inputTab;
+    };
+});
+
 sageAdmin.controller('DeploymentStatsController', function($scope, $http, dataBus) {
 
     $scope.init = function() {
@@ -253,21 +267,25 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.geocache_json = "";
     $scope.geocache_status = false;
     $scope.geocode_status = false;
+    $scope.geocache_show_json = false;
 
     $scope.geocache_result_url = "";
     $scope.geocache_result_json = "";
     $scope.geocache_result_status = false;
     $scope.geocode_result_status = false;
+    $scope.geocache_result_show_json = false;
 
     $scope.geo_google_url = "";
     $scope.geo_google_json = "";
     $scope.geo_google_status = false;
     $scope.geo_google_geocode_status = false;
+    $scope.geo_google_show_json = false;
 
     $scope.geo_tiger_url = "";
     $scope.geo_tiger_json = "";
     $scope.geo_tiger_status = false;
     $scope.geo_tiger_geocode_status = false;
+    $scope.geo_tiger_show_json = false;
 
     //These vars are specific to district assignment only
     $scope.district_assign_shape_url = "";
@@ -275,13 +293,14 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.district_assign_shape_status = false;
     $scope.district_assign_shape_geocode_status = false;
     $scope.district_assign_shape_district_status = false;
+    $scope.district_assign_shape_show_json = false;
 
     $scope.district_assign_street_url = "";
     $scope.district_assign_street_json = "";
     $scope.district_assign_street_status = false;
     $scope.district_assign_street_geocode_status = false;
     $scope.district_assign_street_district_status = false;
-
+    $scope.district_assign_street_show_json = false;
 
     $scope.admin_district_assign_shape = function() {
         if (!$scope.seperatedInput) {
