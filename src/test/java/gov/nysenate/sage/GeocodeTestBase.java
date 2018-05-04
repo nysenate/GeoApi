@@ -27,7 +27,7 @@ public abstract class GeocodeTestBase
 {
     private static Logger logger = Logger.getLogger(GeocodeTestBase.class);
     /** Indicates how far apart two lat or lon values can be and yet considered similar. */
-    private static double GEOCODE_EPSILON = 0.01;
+    private static double GEOCODE_EPSILON = 0.1;
 
     public static ArrayList<Address> addresses = new ArrayList<>(Arrays.asList(
             new Address("214 8th Street", "", "Troy", "NY", "12180", ""),
@@ -38,12 +38,12 @@ public abstract class GeocodeTestBase
             new Address("479 Deer Park AVE","", "Babylon", "NY", "11702", "")));
 
     public static ArrayList<Geocode> expectedGeocode = new ArrayList<>(Arrays.asList(
-            new Geocode(new Point(42.7352408, -73.6828174), GeocodeQuality.POINT, "Test"),
-            new Geocode(new Point(42.0775849, -78.4298556), GeocodeQuality.POINT, "Test"),
-            new Geocode(new Point(42.0685706, -78.4138262), GeocodeQuality.POINT, "Test"),
-            new Geocode(new Point(42.6716696, -73.7985770), GeocodeQuality.POINT, "Test"),
-            new Geocode(new Point(40.9144780, -73.0568423), GeocodeQuality.POINT, "Test"),
-            new Geocode(new Point(40.7056276, -73.3219653), GeocodeQuality.POINT, "Test")));
+            new Geocode(new Point(42.735240846109576, -73.68281736214925), GeocodeQuality.POINT, "Test"),
+            new Geocode(new Point(42.07758488174446, -78.42985558117132), GeocodeQuality.POINT, "Test"),
+            new Geocode(new Point(42.06857062361315, -78.41382617654084), GeocodeQuality.POINT, "Test"),
+            new Geocode(new Point(42.67166963437981, -73.79857701653509), GeocodeQuality.POINT, "Test"),
+            new Geocode(new Point(40.91447799244534, -73.05684231135687), GeocodeQuality.POINT, "Test"),
+            new Geocode(new Point(40.70562763769997, -73.32196531833924), GeocodeQuality.POINT, "Test")));
 
     public static void assertSingleAddressGeocode(GeocodeService geocodeService)
     {
