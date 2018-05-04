@@ -250,6 +250,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.seperatedInput = false;
         $scope.geo_comparison_status = false;
         $scope.geo_provider_to_use = "";
+        $scope.activeComparisonTab = "";
 
     };
     //These 4 vars can be shared by district assignment and geocaching
@@ -261,19 +262,20 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.selected_provider = "";
     $scope.geo_comparison_status = false;
     $scope.geo_provider_to_use = "";
+    $scope.activeComparisonTab = "";
 
     //These vars are specific to geocaching only
-    $scope.geocache_url = "";
-    $scope.geocache_json = "";
-    $scope.geocache_status = false;
-    $scope.geocode_status = false;
-    $scope.geocache_show_json = false;
-
     $scope.geocache_result_url = "";
     $scope.geocache_result_json = "";
     $scope.geocache_result_status = false;
     $scope.geocode_result_status = false;
     $scope.geocache_result_show_json = false;
+
+    $scope.geocache_url = "";
+    $scope.geocache_json = "";
+    $scope.geocache_status = false;
+    $scope.geocode_status = false;
+    $scope.geocache_show_json = false;
 
     $scope.geo_google_url = "";
     $scope.geo_google_json = "";
@@ -301,6 +303,38 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.district_assign_street_geocode_status = false;
     $scope.district_assign_street_district_status = false;
     $scope.district_assign_street_show_json = false;
+
+    $scope.toggleGeocacheResultJson = function() {
+        $scope.geocache_result_show_json = !$scope.geocache_result_show_json;
+    };
+
+    $scope.toggleGeocacheJson = function() {
+        $scope.geocache_show_json = !$scope.geocache_show_json;
+    };
+
+    $scope.toggleGoogleJson = function() {
+        $scope.geo_google_show_json = !$scope.geo_google_show_json;
+    };
+
+    $scope.toggleTigerJson = function() {
+        $scope.geo_tiger_show_json = !$scope.geo_tiger_show_json;
+    };
+    $scope.toggleStreetDistAssignJson = function() {
+        $scope.district_assign_street_show_json = !$scope.district_assign_street_show_json;
+    };
+
+    $scope.toggleShapeDistAssignJson = function() {
+        $scope.district_assign_shape_show_json = !$scope.district_assign_shape_show_json;
+    };
+
+    $scope.changeCompTab = function(inputTab) {
+        $scope.activeComparisonTab = inputTab;
+    };
+
+    $scope.determineActiveCompTab = function(input) {
+        return input === $scope.activeComparisonTab;
+    };
+
 
     $scope.admin_district_assign_shape = function() {
         if (!$scope.seperatedInput) {
@@ -485,6 +519,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.callTiger();
         console.log("callTiger");
         $scope.geo_comparison_status = true;
+        $scope.activeComparisonTab = "geocache"
     };
 
     $scope.$on("update", function() {
@@ -518,6 +553,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.geo_provider_to_use = "";
         $scope.district_assign_street_status = false;
         $scope.district_assign_shape_district_status = false;
+        $scope.activeComparisonTab = "";
     };
 
     $scope.init();

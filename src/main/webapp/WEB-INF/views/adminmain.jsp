@@ -262,8 +262,6 @@
                                     <label for="input_addr_input">Address: </label>
                                     <input id="input_addr_input" ng-model="input_addr" type="text" size="50"
                                            ng-change="resetOnChange()">
-
-
                                 </div>
 
                                 <div ng-show="seperatedInput">
@@ -342,53 +340,48 @@
                             </div>
 
                             <hr ng-show="geo_comparison_status"/>
-                            <div class="tab" ng-show="geo_comparison_status">
-                                <button class="datatabs" onclick="openDataTab(event, 'geocache_status')">Geocache
-                                </button>
-                                <button class="datatabs" onclick="openDataTab(event, 'google')">Google</button>
-                                <button class="datatabs" onclick="openDataTab(event, 'tiger')">Tiger</button>
-                                <button class="datatabs" id="sda"
-                                        onclick="openDataTab(event, 'street_district_assign')">Street District Assign
-                                </button>
+                            <div ng-show="geo_comparison_status">
+                                <button ng-click="changeCompTab('geocache')">Geocache</button>
+                                <button ng-click="changeCompTab('google')">Google</button>
+                                <button ng-click="changeCompTab('tiger')">Tiger</button>
+                                <button ng-click="changeCompTab('street')">Street District Assign</button>
                             </div>
 
                                 <%--Geocache status--%>
 
-                            <div ng-show="geocache_status" id="geocache_status" class="datacontent">
-                                <hr ng-show="geocache_status"/>
+                            <div ng-show="determineActiveCompTab('geocache')" id="geocache_status" class="datacontent">
+                                <hr ng-show="determineActiveCompTab('geocache')"/>
                                 <p>Currently Geocached</p>
                                 <p>{{geocache_json.status}}</p>
                                 <p>{{geocache_url}}</p>
-                                <br>
-                                <p ng-show="geocache_json"><br>
+                                <p ng-show="geocode_status"><br>
                                     Lat: {{geocache_json.geocode.lat}} Lon: {{geocache_json.geocode.lon}} <br>
                                     Quality: {{geocache_json.geocode.quality}} Method:{{geocache_json.geocode.method}}
                                 </p>
                                 <br>
-                                <button class="accordion" onclick="doAccordian()">Toggle Json</button>
-                                <p class="panel" style="word-wrap: break-word">{{geocache_json}}</p>
+                                <button ng-click="toggleGeocacheJson()">Toggle Json</button>
+                                <p ng-show="geocache_show_json" style="word-wrap: break-word">{{geocache_json}}</p>
                             </div>
 
                                 <%--Google status--%>
 
-                            <div ng-show="geo_google_status" id="google" class="datacontent">
+                            <div ng-show="determineActiveCompTab('google')" id="google" class="datacontent">
                                 <hr ng-show="geo_google_status"/>
                                 <p>Google Coordinates</p>
                                 <p>{{geo_google_json.status}}</p>
                                 <p>{{geo_google_url}}</p>
-                                <br>
                                 <p ng-show="geo_google_geocode_status"><br>
                                     Lat: {{geo_google_json.geocode.lat}} Lon: {{geo_google_json.geocode.lon}} <br>
                                     Quality: {{geo_google_json.geocode.quality}}
                                     Method:{{geo_google_json.geocode.method}}</p>
                                 <br>
-                                <button class="accordion" onclick="doAccordian()">Toggle Json</button>
-                                <p class="panel" style="word-wrap: break-word">{{geo_google_json}}</p>
+                                <button ng-click="toggleGoogleJson()">Toggle Json</button>
+                                <p ng-show="geo_google_show_json" style="word-wrap: break-word">{{geo_google_json}}</p>
                             </div>
 
                                 <%--Tiger result status--%>
 
-                            <div ng-show="geo_tiger_status" id="tiger" class="datacontent">
+                            <div ng-show="determineActiveCompTab('tiger')" id="tiger" class="datacontent">
                                 <hr ng-show="geo_tiger_status"/>
                                 <p>Tiger Coordinates</p>
                                 <p>{{geo_tiger_json.status}}</p>
@@ -399,13 +392,13 @@
                                     Quality: {{geo_tiger_json.geocode.quality}} Method:{{geo_tiger_json.geocode.method}}
                                 </p>
                                 <br>
-                                <button class="accordion" onclick="doAccordian()">Toggle Json</button>
-                                <p class="panel" style="word-wrap: break-word">{{geo_tiger_json}}</p>
+                                <button ng-click="toggleTigerJson()">Toggle Json</button>
+                                <p ng-show="geo_tiger_show_json" style="word-wrap: break-word">{{geo_tiger_json}}</p>
                             </div>
 
                                 <%--STREEET DISTRICT ASSIGNMENT--%>
 
-                            <div ng-show="district_assign_street_status" id="street_district_assign"
+                            <div ng-show="determineActiveCompTab('street')" id="street_district_assign"
                                  class="datacontent">
                                 <hr ng-show="district_assign_street_status"/>
                                 <p>Street District Assignment</p>
@@ -423,12 +416,10 @@
                                     {{(district_assign_street_json.districts.senate.district || "" )}} <br>
                                     Congressional District:
                                     {{(district_assign_street_json.districts.congressional.district || "" )}} <br>
-                                    Assembly District: {{(district_assign_street_json.districts.assembly.district || ""
-                                    )}} <br>
+                                    Assembly District: {{(district_assign_street_json.districts.assembly.district || "" )}} <br>
                                     County District: {{(district_assign_street_json.districts.county.district || "" )}}
                                     <br>
-                                    Election District: {{(district_assign_street_json.districts.election.district || ""
-                                    )}} <br>
+                                    Election District: {{(district_assign_street_json.districts.election.district || "" )}} <br>
                                     School District: {{(district_assign_street_json.districts.school.district || "" )}}
                                     <br>
                                     Town District: {{(district_assign_street_json.districts.town.district || "" )}} <br>
@@ -439,8 +430,8 @@
 
                                 </p>
                                 <br>
-                                <button class="accordion" onclick="doAccordian()">Toggle Json</button>
-                                <p class="panel" style="word-wrap: break-word">{{district_assign_street_json}}</p>
+                                <button ng-click="toggleStreetDistAssignJson()">Toggle Json</button>
+                                <p ng-show="district_assign_street_show_json" style="word-wrap: break-word">{{district_assign_street_json}}</p>
                             </div>
 
                                 <%--SHAPE DISTRICT ASSIGNMENT--%>
@@ -462,12 +453,10 @@
                                     {{(district_assign_shape_json.districts.senate.district || "" )}} <br>
                                     Congressional District:
                                     {{(district_assign_shape_json.districts.congressional.district || "" )}} <br>
-                                    Assembly District: {{(district_assign_shape_json.districts.assembly.district || ""
-                                    )}} <br>
+                                    Assembly District: {{(district_assign_shape_json.districts.assembly.district || "" )}} <br>
                                     County District: {{(district_assign_shape_json.districts.county.district || "" )}}
                                     <br>
-                                    Election District: {{(district_assign_shape_json.districts.election.district || ""
-                                    )}} <br>
+                                    Election District: {{(district_assign_shape_json.districts.election.district || "" )}} <br>
                                     School District: {{(district_assign_shape_json.districts.school.district || "" )}}
                                     <br>
                                     Town District: {{(district_assign_shape_json.districts.town.district || "" )}} <br>
@@ -478,8 +467,8 @@
 
                                 </p>
                                 <br>
-                                <button class="accordion" onclick="doAccordian()">Toggle Json</button>
-                                <p class="panel" style="word-wrap: break-word">{{district_assign_shape_json}}</p>
+                                <button ng-click="toggleShapeDistAssignJson()">Toggle Json</button>
+                                <p ng-show="district_assign_shape_show_json" style="word-wrap: break-word" >{{district_assign_shape_json}}</p>
                             </div>
 
                         </div>
@@ -578,39 +567,39 @@
 
 
         <script>
-            function doAccordian() {
-                var acc = document.getElementsByClassName("accordion");
-                var i;
+            // function doAccordian() {
+            //     var acc = document.getElementsByClassName("accordion");
+            //     var i;
+            //
+            //     for (i = 0; i < acc.length; i++) {
+            //         acc[i].addEventListener("click", function () {
+            //             this.classList.toggle("active");
+            //             var panel = this.nextElementSibling;
+            //             if (panel.style.display === "block") {
+            //                 panel.style.display = "none";
+            //             } else {
+            //                 panel.style.display = "block";
+            //             }
+            //         });
+            //     }
+            // }
 
-                for (i = 0; i < acc.length; i++) {
-                    acc[i].addEventListener("click", function () {
-                        this.classList.toggle("active");
-                        var panel = this.nextElementSibling;
-                        if (panel.style.display === "block") {
-                            panel.style.display = "none";
-                        } else {
-                            panel.style.display = "block";
-                        }
-                    });
-                }
-            }
-
-            function openDataTab(evt, id) {
-                var i, tabcontent, tablinks;
-                tabcontent = document.getElementsByClassName("datacontent");
-                for (i = 0; i < tabcontent.length; i++) {
-                    tabcontent[i].style.display = "none";
-                }
-                tablinks = document.getElementsByClassName("datatabs");
-                for (i = 0; i < tablinks.length; i++) {
-                    tablinks[i].className = tablinks[i].className.replace(" active", "");
-                }
-                document.getElementById(id).style.display = "block";
-                evt.currentTarget.className += " active";
-            }
-
-            // Get the element with id="defaultOpen" and click on it
-            document.getElementById("defaultOpen").click();
+            // function openDataTab(evt, id) {
+            //     var i, tabcontent, tablinks;
+            //     tabcontent = document.getElementsByClassName("datacontent");
+            //     for (i = 0; i < tabcontent.length; i++) {
+            //         tabcontent[i].style.display = "none";
+            //     }
+            //     tablinks = document.getElementsByClassName("datatabs");
+            //     for (i = 0; i < tablinks.length; i++) {
+            //         tablinks[i].className = tablinks[i].className.replace(" active", "");
+            //     }
+            //     document.getElementById(id).style.display = "block";
+            //     evt.currentTarget.className += " active";
+            // }
+            //
+            // // Get the element with id="defaultOpen" and click on it
+            // document.getElementById("defaultOpen").click();
         </script>
     </jsp:body>
 </sage:wrapper>
