@@ -42,10 +42,10 @@ public class GenerateMetadata {
     public static void main(String[] args) throws Exception {
         boolean updated = false;
 
-        if (args.length == 0) {
-            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
-            System.exit(1);
-        }
+//        if (args.length == 0) {
+//            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
+//            System.exit(1);
+//        }
 
         /** Load up the configuration settings */
         if (!ApplicationFactory.bootstrap()) {
@@ -57,29 +57,29 @@ public class GenerateMetadata {
 
         boolean processAssembly = false;
         boolean processCongress = false;
-        boolean processSenate = false;
+        boolean processSenate = true;
 
-        for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
-            if (arg.equals("--all")) {
-                processAssembly = true;
-                processSenate = true;
-                processCongress = true;
-            }
-            else if (arg.equals("--assembly") || arg.equals("-a")) {
-                processAssembly = true;
-            }
-            else if (arg.equals("--congress") || arg.equals("-c")) {
-                processCongress = true;
-            }
-            else if (arg.equals("--senate") || arg.equals("-s")) {
-                processSenate = true;
-            }
-            else {
-                System.err.println(arg+": Invalid option");
-                System.exit(1);
-            }
-        }
+//        for (int i = 0; i < args.length; i++) {
+//            String arg = args[i];
+//            if (arg.equals("--all")) {
+//                processAssembly = true;
+//                processSenate = true;
+//                processCongress = true;
+//            }
+//            else if (arg.equals("--assembly") || arg.equals("-a")) {
+//                processAssembly = true;
+//            }
+//            else if (arg.equals("--congress") || arg.equals("-c")) {
+//                processCongress = true;
+//            }
+//            else if (arg.equals("--senate") || arg.equals("-s")) {
+//                processSenate = true;
+//            }
+//            else {
+//                System.err.println(arg+": Invalid option");
+//                System.exit(1);
+//            }
+//        }
 
         if (processAssembly) {
             updated = generateMetadata.generateAssemblyData();
@@ -225,7 +225,7 @@ public class GenerateMetadata {
     private void getUpdatedGeocode(Office senatorOffice) {
         String urlString = ApplicationFactory.getConfig().getValue("base.url") + "/api/v2/geo/geocode?addr1=" +
                 senatorOffice.getStreet() + "&city=" + senatorOffice.getCity() +
-                "&state=NY&zip5=" + senatorOffice.getPostalCode();
+                "&state=NY&zip5=" + senatorOffice.getPostalCode()  + "&bypassCache=false&useFallBack=true";
         urlString = urlString.replaceAll(" ", "%20");
         try {
             URL url = new URL(urlString);
