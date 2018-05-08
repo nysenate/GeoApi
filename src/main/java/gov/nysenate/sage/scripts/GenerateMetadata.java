@@ -42,10 +42,10 @@ public class GenerateMetadata {
     public static void main(String[] args) throws Exception {
         boolean updated = false;
 
-//        if (args.length == 0) {
-//            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
-//            System.exit(1);
-//        }
+        if (args.length == 0) {
+            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
+            System.exit(1);
+        }
 
         /** Load up the configuration settings */
         if (!ApplicationFactory.bootstrap()) {
@@ -59,27 +59,27 @@ public class GenerateMetadata {
         boolean processCongress = false;
         boolean processSenate = true;
 
-//        for (int i = 0; i < args.length; i++) {
-//            String arg = args[i];
-//            if (arg.equals("--all")) {
-//                processAssembly = true;
-//                processSenate = true;
-//                processCongress = true;
-//            }
-//            else if (arg.equals("--assembly") || arg.equals("-a")) {
-//                processAssembly = true;
-//            }
-//            else if (arg.equals("--congress") || arg.equals("-c")) {
-//                processCongress = true;
-//            }
-//            else if (arg.equals("--senate") || arg.equals("-s")) {
-//                processSenate = true;
-//            }
-//            else {
-//                System.err.println(arg+": Invalid option");
-//                System.exit(1);
-//            }
-//        }
+        for (int i = 0; i < args.length; i++) {
+            String arg = args[i];
+            if (arg.equals("--all")) {
+                processAssembly = true;
+                processSenate = true;
+                processCongress = true;
+            }
+            else if (arg.equals("--assembly") || arg.equals("-a")) {
+                processAssembly = true;
+            }
+            else if (arg.equals("--congress") || arg.equals("-c")) {
+                processCongress = true;
+            }
+            else if (arg.equals("--senate") || arg.equals("-s")) {
+                processSenate = true;
+            }
+            else {
+                System.err.println(arg+": Invalid option");
+                System.exit(1);
+            }
+        }
 
         if (processAssembly) {
             updated = generateMetadata.generateAssemblyData();
