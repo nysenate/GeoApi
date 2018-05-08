@@ -238,7 +238,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      */
     public List<GeocodeResult> geocode(List<Address> addresses, String provider, boolean useFallback, boolean useCache)
     {
-        return this.geocode(addresses, provider, this.defaultFallback, useFallback, true);
+        return this.geocode(addresses, provider, this.defaultFallback, useFallback, useCache);
     }
 
     /**
