@@ -74,7 +74,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             String provider = (geocodeRequest.getProvider() != null && !geocodeRequest.getProvider().isEmpty())
                               ? geocodeRequest.getProvider() : this.defaultProvider;
             return this.geocode(geocodeRequest.getAddress(), provider, this.defaultFallback,
-                                geocodeRequest.isUseFallback(), geocodeRequest.isUseCache());
+                                geocodeRequest.isUseFallback(), geocodeRequest.isUseCache(), geocodeRequest.isBypassCache());
         }
         return null;
     }
@@ -86,7 +86,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      */
     public GeocodeResult geocode(Address address)
     {
-        return this.geocode(address, this.defaultProvider, this.defaultFallback, true, true);
+        return this.geocode(address, this.defaultProvider, this.defaultFallback, true, true, false);
     }
 
     /**
@@ -116,7 +116,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         if (provider == null || provider.isEmpty()) {
             provider = this.defaultProvider;
         }
-        return this.geocode(address, provider, this.defaultFallback, useFallback, useCache);
+        return this.geocode(address, provider, this.defaultFallback, useFallback, useCache, false);
     }
 
     /**
@@ -129,7 +129,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      * @return                  GeocodeResult
      */
     public GeocodeResult geocode(Address address, String provider, LinkedList<String> fallbackProviders, boolean useFallback,
-                          boolean useCache)
+                          boolean useCache, boolean bypassCache)
     {
         /** Clone the list of fall back providers */
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
@@ -195,7 +195,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         geocodeResult.setResultTime(TimeUtil.currentTimestamp());
 
         /** Cache result */
-        if (CACHE_ENABLED && !cacheHit) {
+        if (CACHE_ENABLED && !cacheHit && !bypassCache) {
             geocodeCache.saveToCacheAndFlush(geocodeResult);
         }
         return geocodeResult;
