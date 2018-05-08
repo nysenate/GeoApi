@@ -325,7 +325,7 @@
 
                             <div ng-show="geocache_result_status">
                                 <hr ng-show="geocache_result_status"/>
-                                <p>Updated Geocache</p>
+                                <strong>Updated Geocache</strong>
                                 <p>{{geocache_result_json.status}}</p>
                                 <p>{{geocache_result_url}}</p>
                                 <br>
@@ -341,134 +341,157 @@
 
                             <hr ng-show="geo_comparison_status"/>
                             <div ng-show="geo_comparison_status">
-                                <button ng-click="changeCompTab('geocache')">Geocache</button>
-                                <button ng-click="changeCompTab('google')">Google</button>
-                                <button ng-click="changeCompTab('tiger')">Tiger</button>
-                                <button ng-click="changeCompTab('street')">Street District Assign</button>
+                                <button ng-click="changeCompTab('geocache')" class="toggle" style="width: auto;padding: 5px 10px;">Geocache</button>
+                                <button ng-click="changeCompTab('google')" class="toggle" style="width: auto;padding: 5px 10px;">Google</button>
+                                <button ng-click="changeCompTab('tiger')" class="toggle" style="width: auto;padding: 5px 10px;">Tiger</button>
+                                <button ng-click="changeCompTab('street')" class="toggle" style="width: auto;padding: 5px 10px;">Street District Assign</button>
                             </div>
 
-                                <%--Geocache status--%>
 
-                            <div ng-show="determineActiveCompTab('geocache')" id="geocache_status" class="datacontent">
-                                <hr ng-show="determineActiveCompTab('geocache')"/>
-                                <p>Currently Geocached</p>
-                                <p>{{geocache_json.status}}</p>
-                                <p>{{geocache_url}}</p>
-                                <p ng-show="geocode_status"><br>
-                                    Lat: {{geocache_json.geocode.lat}} Lon: {{geocache_json.geocode.lon}} <br>
-                                    Quality: {{geocache_json.geocode.quality}} Method:{{geocache_json.geocode.method}}
-                                </p>
-                                <br>
-                                <button ng-click="toggleGeocacheJson()">Toggle Json</button>
-                                <p ng-show="geocache_show_json" style="word-wrap: break-word">{{geocache_json}}</p>
-                            </div>
-
-                                <%--Google status--%>
-
-                            <div ng-show="determineActiveCompTab('google')" id="google" class="datacontent">
-                                <hr ng-show="geo_google_status"/>
-                                <p>Google Coordinates</p>
-                                <p>{{geo_google_json.status}}</p>
-                                <p>{{geo_google_url}}</p>
-                                <p ng-show="geo_google_geocode_status"><br>
-                                    Lat: {{geo_google_json.geocode.lat}} Lon: {{geo_google_json.geocode.lon}} <br>
-                                    Quality: {{geo_google_json.geocode.quality}}
-                                    Method:{{geo_google_json.geocode.method}}</p>
-                                <br>
-                                <button ng-click="toggleGoogleJson()">Toggle Json</button>
-                                <p ng-show="geo_google_show_json" style="word-wrap: break-word">{{geo_google_json}}</p>
-                            </div>
-
-                                <%--Tiger result status--%>
-
-                            <div ng-show="determineActiveCompTab('tiger')" id="tiger" class="datacontent">
-                                <hr ng-show="geo_tiger_status"/>
-                                <p>Tiger Coordinates</p>
-                                <p>{{geo_tiger_json.status}}</p>
-                                <p>{{geo_tiger_url}}</p>
-                                <br>
-                                <p ng-show="geo_tiger_geocode_status">
-                                    Lat: {{geo_tiger_json.geocode.lat}} Lon: {{geo_tiger_json.geocode.lon}} <br>
-                                    Quality: {{geo_tiger_json.geocode.quality}} Method:{{geo_tiger_json.geocode.method}}
-                                </p>
-                                <br>
-                                <button ng-click="toggleTigerJson()">Toggle Json</button>
-                                <p ng-show="geo_tiger_show_json" style="word-wrap: break-word">{{geo_tiger_json}}</p>
-                            </div>
-
-                                <%--STREEET DISTRICT ASSIGNMENT--%>
-
-                            <div ng-show="determineActiveCompTab('street')" id="street_district_assign"
-                                 class="datacontent">
-                                <hr ng-show="district_assign_street_status"/>
-                                <p>Street District Assignment</p>
-                                <p>{{district_assign_street_json.status}} </p>
-                                <p>{{district_assign_street_url}}</p>
-                                <br>
-                                <p ng-show="district_assign_street_geocode_status">Lat:
-                                    {{district_assign_street_json.geocode.lat}} Lon:
-                                    {{district_assign_street_json.geocode.lon}}
+                            <div class="row">
+                                    <%--Geocache status--%>
+                                <div ng-show="determineActiveCompTab('geocache')" id="geocache_status" class="column">
+                                    <hr ng-show="determineActiveCompTab('geocache')"/>
+                                    <strong>Currently Geocached</strong>
+                                    <p>{{geocache_json.status}}</p>
+                                    <p>{{geocache_url}}</p>
+                                    <p ng-show="geocode_status"><br>
+                                        Lat: {{geocache_json.geocode.lat}} Lon: {{geocache_json.geocode.lon}} <br>
+                                        Quality: {{geocache_json.geocode.quality}}
+                                        Method:{{geocache_json.geocode.method}}
+                                    </p>
                                     <br>
-                                    Quality: {{district_assign_street_json.geocode.quality}}
-                                    Method:{{district_assign_street_json.geocode.method}}</p></p>
-                                <br>
-                                <p ng-show="district_assign_street_district_status">Senate District:
-                                    {{(district_assign_street_json.districts.senate.district || "" )}} <br>
-                                    Congressional District:
-                                    {{(district_assign_street_json.districts.congressional.district || "" )}} <br>
-                                    Assembly District: {{(district_assign_street_json.districts.assembly.district || "" )}} <br>
-                                    County District: {{(district_assign_street_json.districts.county.district || "" )}}
-                                    <br>
-                                    Election District: {{(district_assign_street_json.districts.election.district || "" )}} <br>
-                                    School District: {{(district_assign_street_json.districts.school.district || "" )}}
-                                    <br>
-                                    Town District: {{(district_assign_street_json.districts.town.district || "" )}} <br>
-                                    Zip District: {{(district_assign_street_json.districts.zip.district || "" )}} <br>
-                                    Cleg: {{(district_assign_street_json.districts.cleg.district || "" )}} <br>
-                                    Ward: {{(district_assign_street_json.districts.ward.district || "" )}} <br>
-                                    Village: {{(district_assign_street_json.districts.village.district || "" )}} <br>
+                                    <button ng-click="toggleGeocacheJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                    <p ng-show="geocache_show_json" style="word-wrap: break-word">{{geocache_json}}</p>
+                                </div>
 
-                                </p>
-                                <br>
-                                <button ng-click="toggleStreetDistAssignJson()">Toggle Json</button>
-                                <p ng-show="district_assign_street_show_json" style="word-wrap: break-word">{{district_assign_street_json}}</p>
-                            </div>
+                                    <%--Google status--%>
 
-                                <%--SHAPE DISTRICT ASSIGNMENT--%>
+                                <div ng-show="determineActiveCompTab('google')" id="google" class="column">
+                                    <hr ng-show="geo_google_status"/>
+                                    <strong>Google Coordinates</strong>
+                                    <p>{{geo_google_json.status}}</p>
+                                    <p>{{geo_google_url}}</p>
+                                    <p ng-show="geo_google_geocode_status"><br>
+                                        Lat: {{geo_google_json.geocode.lat}} Lon: {{geo_google_json.geocode.lon}} <br>
+                                        Quality: {{geo_google_json.geocode.quality}}
+                                        Method:{{geo_google_json.geocode.method}}</p>
+                                    <br>
+                                    <button ng-click="toggleGoogleJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                    <p ng-show="geo_google_show_json" style="word-wrap: break-word">
+                                        {{geo_google_json}}</p>
+                                </div>
 
-                            <div ng-show="district_assign_shape_district_status" id="shape_district_assign">
-                                <hr ng-show="district_assign_shape_district_status"/>
-                                <p>Shape District Assignment</p>
-                                <p>{{district_assign_shape_json.status}} </p>
-                                <p>{{district_assign_shape_url}}</p>
-                                <br>
-                                <p ng-show="district_assign_shape_geocode_status">Lat:
-                                    {{district_assign_shape_json.geocode.lat}} Lon:
-                                    {{district_assign_shape_json.geocode.lon}}
-                                    <br>
-                                    Quality: {{district_assign_shape_json.geocode.quality}}
-                                    Method:{{district_assign_shape_json.geocode.method}}</p></p>
-                                <br>
-                                <p ng-show="district_assign_shape_district_status">Senate District:
-                                    {{(district_assign_shape_json.districts.senate.district || "" )}} <br>
-                                    Congressional District:
-                                    {{(district_assign_shape_json.districts.congressional.district || "" )}} <br>
-                                    Assembly District: {{(district_assign_shape_json.districts.assembly.district || "" )}} <br>
-                                    County District: {{(district_assign_shape_json.districts.county.district || "" )}}
-                                    <br>
-                                    Election District: {{(district_assign_shape_json.districts.election.district || "" )}} <br>
-                                    School District: {{(district_assign_shape_json.districts.school.district || "" )}}
-                                    <br>
-                                    Town District: {{(district_assign_shape_json.districts.town.district || "" )}} <br>
-                                    Zip District: {{(district_assign_shape_json.districts.zip.district || "" )}} <br>
-                                    Cleg: {{(district_assign_shape_json.districts.cleg.district || "" )}} <br>
-                                    Ward: {{(district_assign_shape_json.districts.ward.district || "" )}} <br>
-                                    Village: {{(district_assign_shape_json.districts.village.district || "" )}} <br>
+                                    <%--Tiger result status--%>
 
-                                </p>
-                                <br>
-                                <button ng-click="toggleShapeDistAssignJson()">Toggle Json</button>
-                                <p ng-show="district_assign_shape_show_json" style="word-wrap: break-word" >{{district_assign_shape_json}}</p>
+                                <div ng-show="determineActiveCompTab('tiger')" id="tiger" class="column">
+                                    <hr ng-show="geo_tiger_status"/>
+                                    <strong>Tiger Coordinates</strong>
+                                    <p>{{geo_tiger_json.status}}</p>
+                                    <p>{{geo_tiger_url}}</p>
+                                    <br>
+                                    <p ng-show="geo_tiger_geocode_status">
+                                        Lat: {{geo_tiger_json.geocode.lat}} Lon: {{geo_tiger_json.geocode.lon}} <br>
+                                        Quality: {{geo_tiger_json.geocode.quality}}
+                                        Method:{{geo_tiger_json.geocode.method}}
+                                    </p>
+                                    <br>
+                                    <button ng-click="toggleTigerJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                    <p ng-show="geo_tiger_show_json" style="word-wrap: break-word">
+                                        {{geo_tiger_json}}</p>
+                                </div>
+
+                                    <%--STREEET DISTRICT ASSIGNMENT--%>
+
+                                <div ng-show="determineActiveCompTab('street')" id="street_district_assign"
+                                     class="column">
+                                    <hr ng-show="district_assign_street_status"/>
+                                    <strong>Street District Assignment</strong>
+                                    <p>{{district_assign_street_json.status}} </p>
+                                    <p>{{district_assign_street_url}}</p>
+                                    <br>
+                                    <p ng-show="district_assign_street_geocode_status">Lat:
+                                        {{district_assign_street_json.geocode.lat}} Lon:
+                                        {{district_assign_street_json.geocode.lon}}
+                                        <br>
+                                        Quality: {{district_assign_street_json.geocode.quality}}
+                                        Method:{{district_assign_street_json.geocode.method}}</p></p>
+                                    <br>
+                                    <p ng-show="district_assign_street_district_status">Senate District:
+                                        {{(district_assign_street_json.districts.senate.district || "" )}} <br>
+                                        Congressional District:
+                                        {{(district_assign_street_json.districts.congressional.district || "" )}} <br>
+                                        Assembly District: {{(district_assign_street_json.districts.assembly.district ||
+                                        "" )}} <br>
+                                        County District: {{(district_assign_street_json.districts.county.district || ""
+                                        )}}
+                                        <br>
+                                        Election District: {{(district_assign_street_json.districts.election.district ||
+                                        "" )}} <br>
+                                        School District: {{(district_assign_street_json.districts.school.district || ""
+                                        )}}
+                                        <br>
+                                        Town District: {{(district_assign_street_json.districts.town.district || "" )}}
+                                        <br>
+                                        Zip District: {{(district_assign_street_json.districts.zip.district || "" )}}
+                                        <br>
+                                        Cleg: {{(district_assign_street_json.districts.cleg.district || "" )}} <br>
+                                        Ward: {{(district_assign_street_json.districts.ward.district || "" )}} <br>
+                                        Village: {{(district_assign_street_json.districts.village.district || "" )}}
+                                        <br>
+
+                                    </p>
+                                    <br>
+                                    <button ng-click="toggleStreetDistAssignJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                    <p ng-show="district_assign_street_show_json" style="word-wrap: break-word">
+                                        {{district_assign_street_json}}</p>
+                                </div>
+
+                                    <%--SHAPE DISTRICT ASSIGNMENT--%>
+
+                                <div ng-show="district_assign_shape_district_status" id="shape_district_assign"
+                                     class="column-right">
+                                    <hr ng-show="district_assign_shape_district_status"/>
+                                    <strong>Shape District Assignment</strong>
+                                    <p>{{district_assign_shape_json.status}} </p>
+                                    <p>{{district_assign_shape_url}}</p>
+                                    <br>
+                                    <p ng-show="district_assign_shape_geocode_status">Lat:
+                                        {{district_assign_shape_json.geocode.lat}} Lon:
+                                        {{district_assign_shape_json.geocode.lon}}
+                                        <br>
+                                        Quality: {{district_assign_shape_json.geocode.quality}}
+                                        Method:{{district_assign_shape_json.geocode.method}}</p></p>
+                                    <br>
+                                    <p ng-show="district_assign_shape_district_status">Senate District:
+                                        {{(district_assign_shape_json.districts.senate.district || "" )}} <br>
+                                        Congressional District:
+                                        {{(district_assign_shape_json.districts.congressional.district || "" )}} <br>
+                                        Assembly District: {{(district_assign_shape_json.districts.assembly.district ||
+                                        "" )}} <br>
+                                        County District: {{(district_assign_shape_json.districts.county.district || ""
+                                        )}}
+                                        <br>
+                                        Election District: {{(district_assign_shape_json.districts.election.district ||
+                                        "" )}} <br>
+                                        School District: {{(district_assign_shape_json.districts.school.district || ""
+                                        )}}
+                                        <br>
+                                        Town District: {{(district_assign_shape_json.districts.town.district || "" )}}
+                                        <br>
+                                        Zip District: {{(district_assign_shape_json.districts.zip.district || "" )}}
+                                        <br>
+                                        Cleg: {{(district_assign_shape_json.districts.cleg.district || "" )}} <br>
+                                        Ward: {{(district_assign_shape_json.districts.ward.district || "" )}} <br>
+                                        Village: {{(district_assign_shape_json.districts.village.district || "" )}} <br>
+
+                                    </p>
+                                    <br>
+                                    <button ng-click="toggleShapeDistAssignJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                    <p ng-show="district_assign_shape_show_json" style="word-wrap: break-word">
+                                        {{district_assign_shape_json}}</p>
+                                </div>
+
                             </div>
 
                         </div>
