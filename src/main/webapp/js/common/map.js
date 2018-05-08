@@ -118,8 +118,10 @@ map.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         var marker = new google.maps.Marker({
             map: mapService.map,
             draggable:false,
-            position: new google.maps.LatLng(lat, lon)
+            position: new google.maps.LatLng(lat, lon),
+            zIndex: google.maps.Marker.MAX_ZINDEX + 1
         });
+        marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
 
         if (clickContent) {
             var infowindow = new google.maps.InfoWindow({
@@ -135,12 +137,18 @@ map.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         if (center) {
             this.map.setCenter(this.activeMarker.position);
         }
-        if (title) {
-            google.maps.event.addListener(marker, "mouseover", function(){
-                mapService.tooltipEl.show();
+        console.log("Titles comp: " + title !== '');
+        if (title !== '') {
+            marker.addListener('mouseover', function() {
+                console.log("Got inside mouseover event");
                 mapService.tooltipEl.text(title);
+                mapService.tooltipEl.show();
             });
-            google.maps.event.addListener(marker, "mouseout", function(){
+            marker.addListener('click', function() {
+                mapService.tooltipEl.text(title);
+                mapService.tooltipEl.show();
+            });
+            marker.addListener('mouseout', function() {
                 mapService.tooltipEl.hide();
             });
         }

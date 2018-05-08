@@ -136,11 +136,12 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         if (clear) {
             this.clearMarkers();
         }
+        console.log(title);
 
         var marker = new google.maps.Marker({
             map: mapService.map,
-            draggable:false,
-            position: new google.maps.LatLng(lat, lon)
+            position: new google.maps.LatLng(lat, lon),
+            draggable:false
         });
 
         if (clickContent) {
@@ -157,12 +158,18 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         if (center) {
             this.map.setCenter(this.activeMarker.position);
         }
-        if (title) {
-            google.maps.event.addListener(marker, "mouseover", function(){
-                mapService.tooltipEl.show();
+        console.log("Titles comp: " + (title !== ''));
+        if (title !== '') {
+            marker.addListener('mouseover', function() {
+                console.log("Got inside mouseover event");
                 mapService.tooltipEl.text(title);
+                mapService.tooltipEl.show();
             });
-            google.maps.event.addListener(marker, "mouseout", function(){
+            marker.addListener('click', function() {
+                mapService.tooltipEl.text(title);
+                mapService.tooltipEl.show();
+            });
+            marker.addListener('mouseout', function() {
                 mapService.tooltipEl.hide();
             });
         }
@@ -988,6 +995,8 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                                 /** Draw the office markers */
                                 mapService.clearMarkers();
                                 $.each(v.member.offices, function(i, office){
+                                    console.log(office);
+
                                     if (office && office.name != null && office.name != "") {
                                         mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, false, false);
                                     }
@@ -1011,6 +1020,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                     mapService.clearMarkers();
                     if (data.member && data.member.offices) {
                         $.each(data.member.offices, function(i, office){
+                            console.log(office);
                             if (office && office.name != null && office.name != "") {
                                 mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, false, false);
                             }
