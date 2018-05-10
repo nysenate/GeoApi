@@ -161,7 +161,6 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         console.log("Titles comp: " + (title !== ''));
         if (title !== '') {
             marker.addListener('mouseover', function() {
-                console.log("Got inside mouseover event");
                 mapService.tooltipEl.text(title);
                 mapService.tooltipEl.show();
             });
