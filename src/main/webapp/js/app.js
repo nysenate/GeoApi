@@ -1019,7 +1019,6 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                     mapService.clearMarkers();
                     if (data.member && data.member.offices) {
                         $.each(data.member.offices, function(i, office){
-                            console.log(office);
                             if (office && office.name != null && office.name != "") {
                                 mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, false, false);
                             }
