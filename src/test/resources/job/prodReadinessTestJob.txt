@@ -1,0 +1,45 @@
+id	first_name	middle_name	last_name	prefix_id	suffix_id	full_name	street_number	street_name	street_unit	street_address	supplemental_address_1	supplemental_address_2	city	state_province_id	postal_code	postal_code_suffix	country_id	birth_date	gender_id	phone	town_52	ward_53	election_district_49	congressional_district_46	ny_senate_district_47	ny_assembly_district_48	school_district_54	county_50	email	boe_date_of_registration_24	current_employer	job_title	note	keywords	geo_code_1	geo_code_2	is_deleted	address_id	email_id	phone_id	districtinfo_id	constinfo_id	location_type_id	address_is_primary
+	Nicholas	A	Fearby							10481 RIDGE RD			MEDINA	NY	14103	9423		19910301	M		RIDGEW		7	27	62	139	387	34							43.258492	-78.443321								
+	Dakota	B	Johnson							14724 E LEE RD			ALBION	NY	14411	9550		19930725	M		ALBION		5	27	62	139	6	34							43.216709	-78.169357								
+	Alisha	E	Stanton							273 OAK ORCHARD EST			ALBION	NY	14411	1057		19990604	F		GAINES			27	62	139	6	34							43.254695	-78.196204								
+	Statira	L	Holtfoth							311 OAK ORCHARD EST			ALBION	NY	14411	1053		19850927	F		GAINES			27	62	139	6	34							43.254754	-78.196181								
+	Joseph	T	Bedard		III					415 OAK ORCHARD EST			ALBION	NY	14411	1036		19940203	M		GAINES			27	62	139	6	34							43.254918	-78.196116								
+	Kelly	L	Snook							486 OAK ORCHARD EST			ALBION	NY	14411	1041		19770522	F		GAINES			27	62	139	6	34							43.255031	-78.196071								
+	Diane	L	Brothers							PO BOX 14582			ROCHESTER	NY	14614	0582		19551209	F		-ROCHE	25		25	56	137	538	26							43.1558	-77.616318								
+	Larry	D	Snyder							PO BOX 14582			ROCHESTER	NY	14614	0582		19560724	M		-ROCHE	25		25	56	137	538	26							43.1558	-77.616318								
+	Jamel	D	Brereton							PO BOX 172			WATERPORT	NY	14571	0172		19971203	M		CARLTO			27	62	139	6	34							43.32061	-78.251408								
+	Robert		Owens							PO BOX 241			ELBA	NY	14058	0241		19681021	M		ELBA			27	61	139	177	18							43.102915	-78.165424								
+	Stacy	M	Lynaugh							PO BOX 284			KENDALL	NY	14476	0284		19640321	F		KENDAL			27	62	139	318	34							43.330496	-78.037815								
+	Richard	S	Zsebehazy							PO BOX 305			ALBION	NY	14411	0305		19801119	M		ALBION			27	62	139	6	34							43.245615	-78.188145								
+	Clyde	D	Holloway							PO BOX 53			MEDINA	NY	14103	0053		19630626	M		RIDGEW			27	62	139	387	34							43.21975	-78.386871								
+	John	G	Neureuther							1109 LOCKWOOD DR			LOCKPORT	NY	14094	7122		19640224	M		LOCKPO		6	27	62	144	351	29							43.120091	-78.689499								
+	Antonio	M	Cicelske							128 CARMEL RD			BUFFALO	NY	14214	1008		19940606	M		-BUFFA		5	26	63	141	73	14							42.951149	-78.83773								
+	Ruth	C	Greene							13056 HEMLOCK RIDGE RD			ALBION	NY	14411	9333		19811027	F		BARRE		2	27	62	139	6	34							43.162234	-78.279833								
+	Robert	J	Ramsdell							155 DEPEW AVE			BUFFALO	NY	14214	1619		19760603	M		-BUFFA		21	26	60	141	73	14							42.943828	-78.843532								
+	Derek	A	Mort							180 69TH ST			NIAGARA FALLS	NY	14304	3918		19921228	M		-NIAGA	6	10	26	62	145	437	29							43.077099	-78.984703								
+	Robert	K	Hald		Jr.					1876 SOUTH AVE			NIAGARA FALLS	NY	14305	3028		19890407	M		-NIAGA			26	62	145	437	29							43.105888	-79.036797								
+	Hannah	L	Travis							1958 YATES CARLTON TOWNLINE RD			LYNDONVILLE	NY	14098	9617		19970316	F		YATES			27	62	139	359	34							43.32003	-78.31012								
+	Christian	A	Cooper							212 W OAK ORCHARD ST			MEDINA	NY	14103	1548		19980103	M		SHELBY		3	27	62	144	387	34							43.215431	-78.389648								
+	Jacek	P	Mazur							259 4TH ST			NIAGARA FALLS	NY	14303	1208		19750908	M		-NIAGA	6	6	26	62	145	437	29							43.085079	-79.057709								
+	Rebecca		Haney							50 OLIVER ST			LOCKPORT	NY	14094	4616		19820315	F		-LOCKP	2	1	27	62	144	351	29							43.165402	-78.68383								
+	Olivia	I	Beilein Hunt							PO BOX 204			OLCOTT	NY	14126	0204		19990828	F		NEWFAN			27	62	144	435	29							43.33799	-78.713791								
+	Vandra	L	Ruppel							PO BOX 107			BARKER	NY	14012	0107		19881107	F		SOMERT			27	62	144	35	29							43.33011	-78.554257								
+	Jeana	M	Franjoine							PO BOX 154			LEWISTON	NY	14092	0154		19970308	F		LEWIST			27	62	145	341	29							43.174068	-79.044418								
+	Anmoldeep	SINGH	Sekhon							PO BOX 1931			NIAGARA FALLS	NY	14302	1931		19900915	M		-NIAGA			26	62	145	437	29							43.09548	-79.055821								
+	Paulette	B	Cochrane							PO BOX 201			GASPORT	NY	14067	0201		19541013	F		ROYALT			27	62	144	548	29							43.19731	-78.574417								
+	Philip	B	Penepent							PO BOX 204			LOCKPORT	NY	14095	0204		19890217	M		-LOCKP			27	62	144	351	29							43.16749	-78.701111								
+	Hannah	R	Ryvolt Acer							PO BOX 214			BARKER	NY	14012	0214		19970611	F		SOMERT			27	62	144	35	29							43.33011	-78.554257								
+	Dillynn	M	Taylor							PO BOX 22			BARKER	NY	14012	0022		19960513	F		SOMERT			27	62	144	35	29							43.33011	-78.554257								
+	A		Alexander							PO BOX 2206			NIAGARA FALLS	NY	14303			19910319	F		-NIAGA			26	62	145	437	29							43.08506	-79.041854								
+	Stephanie	A	Jones							PO BOX 246			GASPORT	NY	14067	0246		19870120	F		ROYALT			27	62	144	548	29							43.19731	-78.574417								
+	Betsy	LYNN	Pratt							PO BOX 27			GASPORT	NY	14067	0027		19591015	F		ROYALT			27	62	144	548	29							43.19731	-78.574417								
+	Timothy	L	Pratt							PO BOX 27			GASPORT	NY	14067	0027		19570530	M		ROYALT			27	62	144	548	29							43.19731	-78.574417								
+	Sadie	L	Miles							PO BOX 2764			NIAGARA FALLS	NY	14302	2764		19620305	F		-NIAGA			26	62	145	437	29							43.09548	-79.055821								
+	Brandon	T	Castro							PO BOX 3			OLCOTT	NY	14126	0003		19860516	M		NEWFAN			27	62	144	435	29							43.33799	-78.713791								
+	Douglas	R	Blazak							PO BOX 339			N TONAWANDA	NY	14120	0339		19490331	M		-N TON			26	62	140	450	29							43.046026	-78.865681								
+	Jennifer	L	Noble							PO BOX 35			LOCKPORT	NY	14095	0035		19840807	F		-LOCKP			27	62	144	351	29							43.16749	-78.701111								
+	Jane	M	Joseph							PO BOX 352			SANBORN	NY	14132	0352		19540605	F		CAMBRI			27	62	145	621	29							43.16378	-78.817337								
+	Deborah	D	Cruser							PO BOX 37			AMHERST	NY	14226	0037		19500721	F		AMHERS			26	61	146	719	14							42.97623	-78.791584								
+	Roxie		Smith							PO BOX 453			NIAGARA FALLS	NY	14304	0453		19640407	F		NIAGAR			27	62	145	438	29							43.09932	-78.950058								
+	Amy	L	Gruntz							PO BOX 76			LOCKPORT	NY	14095	0076		19680924	F		-LOCKP			27	62	144	351	29							43.16749	-78.701111								
+	Rosanna		Granata							PO BOX 9			LEWISTON	NY	14092	0009		19831229	F		LEWIST			27	62	145	341	29							43.174068	-79.044418								
