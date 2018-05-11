@@ -303,7 +303,7 @@
                                             Method:{{geo_google_json.geocode.method || ""}} </p>
                                     </label>
                                     <input ng-show="geo_google_status" type="radio" id="google_coords"
-                                           ng-model="geo_provider_to_use" value="Google">
+                                           ng-model="selected_provider" value="Google">
                                     <br>
                                     <label for="tiger_coords">Tiger:
                                         <p ng-show="geo_tiger_status">Lat: {{geo_tiger_json.geocode.lat || ""}} Lon:
@@ -311,7 +311,7 @@
                                             Quality: {{geo_tiger_json.geocode.quality || ""}}
                                             Method:{{geo_tiger_json.geocode.method || ""}} </p>
                                     </label>
-                                    <input ng-show="geo_tiger_status" type="radio" ng-model="geo_provider_to_use"
+                                    <input ng-show="geo_tiger_status" type="radio" ng-model="selected_provider"
                                            id="tiger_coords" value="Tiger"> <br><br>
                                     <button type="submit" name="update_geocache" class="geocache"
                                             style="width: auto;padding: 5px 10px;"
@@ -335,8 +335,8 @@
                                     Quality: {{geocache_result_json.geocode.quality}}
                                     Method:{{geocache_result_json.geocode.method}}</p>
                                 <br>
-                                <button class="accordion" onclick="doAccordian()">Toggle Json</button>
-                                <p class="panel" style="word-wrap: break-word">{{geocache_result_json}}</p>
+                                <button ng-click="toggleGeocacheResultJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                <p ng-show="geocache_result_show_json" class="panel" style="word-wrap: break-word">{{geocache_result_json}}</p>
                             </div>
 
                             <hr ng-show="geo_comparison_status"/>

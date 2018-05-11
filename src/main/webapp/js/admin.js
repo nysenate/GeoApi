@@ -261,7 +261,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.seperatedInput = false;
     $scope.selected_provider = "";
     $scope.geo_comparison_status = false;
-    $scope.geo_provider_to_use = "";
     $scope.activeComparisonTab = "";
 
     //These vars are specific to geocaching only
@@ -537,7 +536,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     };
 
     $scope.isProviderSelected = function() {
-        return $scope.geo_provider_to_use !== "";
+        return $scope.selected_provider !== "";
     };
 
     $scope.toggleInputSeperation = function() {
@@ -550,7 +549,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.geocache_status = false;
         $scope.geo_comparison_status = false;
         $scope.geocache_result_status = false;
-        $scope.geo_provider_to_use = "";
+        $scope.selected_provider = "";
         $scope.district_assign_street_status = false;
         $scope.district_assign_shape_district_status = false;
         $scope.activeComparisonTab = "";
