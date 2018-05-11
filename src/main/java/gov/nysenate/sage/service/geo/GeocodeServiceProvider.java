@@ -195,7 +195,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         geocodeResult.setResultTime(TimeUtil.currentTimestamp());
 
         /** Cache result */
-        if (CACHE_ENABLED && !cacheHit && !bypassCache) {
+        if (CACHE_ENABLED && !cacheHit && bypassCache) {
             geocodeCache.saveToCacheAndFlush(geocodeResult);
         }
         return geocodeResult;
