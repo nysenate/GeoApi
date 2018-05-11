@@ -83,9 +83,12 @@ public class GeocodeController extends BaseApiController implements Observer
 
         boolean bypassCache = requestParameterEquals(request, "bypassCache", "false") ? false : true;
 
+        boolean doNotCache = requestParameterEquals(request, "doNotCache", "false") ? false : true;
+
+
         /** Only want to use cache when the provider is not specified */
         boolean useCache = (provider == null);
-        if (bypassCache) {
+        if (bypassCache || doNotCache) {
             useCache = false;
         }
         if (provider != null && provider.equals("geocache")) {
@@ -96,7 +99,7 @@ public class GeocodeController extends BaseApiController implements Observer
         int requestId = -1;
 
         /** Construct a GeocodeRequest using the supplied params */
-        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider, useFallback, useCache, bypassCache);
+        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider, useFallback, useCache, bypassCache, doNotCache);
 
 
         logger.info("=======================================================");

@@ -74,7 +74,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             String provider = (geocodeRequest.getProvider() != null && !geocodeRequest.getProvider().isEmpty())
                               ? geocodeRequest.getProvider() : this.defaultProvider;
             return this.geocode(geocodeRequest.getAddress(), provider, this.defaultFallback,
-                                geocodeRequest.isUseFallback(), geocodeRequest.isUseCache(), geocodeRequest.isBypassCache());
+                                geocodeRequest.isUseFallback(), geocodeRequest.isUseCache(), geocodeRequest.isDoNotCache());
         }
         return null;
     }
@@ -129,7 +129,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
      * @return                  GeocodeResult
      */
     public GeocodeResult geocode(Address address, String provider, LinkedList<String> fallbackProviders, boolean useFallback,
-                          boolean useCache, boolean bypassCache)
+                          boolean useCache, boolean doNotCache)
     {
         /** Clone the list of fall back providers */
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
@@ -195,7 +195,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         geocodeResult.setResultTime(TimeUtil.currentTimestamp());
 
         /** Cache result */
-        if (CACHE_ENABLED && !cacheHit && bypassCache) {
+        if (CACHE_ENABLED && !cacheHit && !doNotCache) {
             geocodeCache.saveToCacheAndFlush(geocodeResult);
         }
         return geocodeResult;

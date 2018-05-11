@@ -26,6 +26,7 @@ public class GeocodeRequest implements Cloneable
     private boolean useCache;
     private Timestamp requestTime;
     private boolean bypassCache;
+    private boolean doNotCache;
 
     public GeocodeRequest() {}
 
@@ -41,7 +42,7 @@ public class GeocodeRequest implements Cloneable
         this.bypassCache = false;
     }
 
-    public GeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache, boolean bypassCache)
+    public GeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache, boolean bypassCache, boolean doNotCache)
     {
         this.apiRequest = apiRequest;
         this.address = address;
@@ -51,6 +52,7 @@ public class GeocodeRequest implements Cloneable
         this.isReverse = false;
         this.requestTime = new Timestamp(new Date().getTime());
         this.bypassCache = bypassCache;
+        this.doNotCache = doNotCache;
     }
 
     public int getId() {
@@ -147,6 +149,14 @@ public class GeocodeRequest implements Cloneable
 
     public void setBypassCache(boolean bypassCache) {
         this.bypassCache = bypassCache;
+    }
+
+    public boolean isDoNotCache() {
+        return doNotCache;
+    }
+
+    public void setDoNotCache(boolean doNotCache) {
+        this.doNotCache = doNotCache;
     }
 
     @Override

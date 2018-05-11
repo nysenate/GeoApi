@@ -394,11 +394,11 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.callGoogle = function() {
 
         if (!$scope.seperatedInput) {
-            $scope.geo_google_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=google&useFallback=false";
+            $scope.geo_google_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=google&useFallback=false&doNotCache=true";
         }
         else {
             $scope.geo_google_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
-                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=google&useFallback=false";
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=google&useFallback=false&doNotCache=true";
         }
         $http.get($scope.geo_google_url)
             .success(function(data){
@@ -423,11 +423,11 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.callTiger = function() {
 
         if (!$scope.seperatedInput) {
-            $scope.geo_tiger_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=tiger&useFallback=false";
+            $scope.geo_tiger_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true";
         }
         else {
             $scope.geo_tiger_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
-                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=tiger&useFallback=false";
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true";
         }
         $http.get($scope.geo_tiger_url)
             .success(function(data){
@@ -480,11 +480,11 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.updateGeocache = function() {
 
         if (!$scope.seperatedInput) {
-            $scope.geocache_result_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=" + $scope.selected_provider;
+            $scope.geocache_result_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&doNotCache=false&provider=" + $scope.selected_provider;
         }
         else {
            $scope.geocache_result_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
-               "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=" + $scope.selected_provider;
+               "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&doNotCache=false&provider=" + $scope.selected_provider;
         }
         $http.get($scope.geocache_result_url)
             .success(function(data){
