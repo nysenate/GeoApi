@@ -61,6 +61,7 @@ sageAdmin.controller('AdminPageController', function($scope, $http, dataBus) {
     };
 
     $scope.determineActiveTab = function (inputTab) {
+        // console.log(inputTab);
         return $scope.activeTab === inputTab;
     };
 });
@@ -262,6 +263,10 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.selected_provider = "";
     $scope.geo_comparison_status = false;
     $scope.activeComparisonTab = "";
+    $scope.markers = [];
+    $scope.activeMarker;
+    $scope.map;
+    $scope.el = $("#geocache_map");
 
     //These vars are specific to geocaching only
     $scope.geocache_result_url = "";
@@ -346,7 +351,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $http.get($scope.district_assign_shape_url)
             .success(function(data){
                 if (data) {
-                    console.log('Shape DA status = ' + data.status);
                     $scope.district_assign_shape_json = data;
                     $scope.district_assign_shape_status = true;
 
@@ -374,7 +378,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $http.get($scope.district_assign_street_url)
             .success(function(data){
                 if (data) {
-                    console.log('Street DA status = ' + data.status);
                     $scope.district_assign_street_json = data;
                     $scope.district_assign_street_status = true;
 
@@ -403,7 +406,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $http.get($scope.geo_google_url)
             .success(function(data){
                 if (data) {
-                    console.log('Google status = ' + data.status);
                     $scope.geo_google_json = data;
                     $scope.geo_google_status = true;
 
@@ -411,6 +413,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
                     if ($scope.geo_google_json.geocode != null) {
                         $scope.geo_google_geocode_status = true;
+                        $scope.setMarker($scope.geo_google_json.geocode.lat,$scope.geo_google_json.geocode.lon,"Google",false,true);
                     }
                 }
             })
@@ -432,7 +435,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $http.get($scope.geo_tiger_url)
             .success(function(data){
                 if (data) {
-                    console.log('Tiger status = ' + data.status);
                     $scope.geo_tiger_json = data;
                     $scope.geo_tiger_status = true;
 
@@ -440,6 +442,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
                     if ($scope.geo_tiger_json.geocode != null) {
                         $scope.geo_tiger_geocode_status = true;
+                        $scope.setMarker($scope.geo_tiger_json.geocode.lat,$scope.geo_tiger_json.geocode.lon,"Tiger",false,true);
                     }
                 }
             })
@@ -461,13 +464,13 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $http.get($scope.geocache_url)
             .success(function(data){
                 if (data) {
-                    console.log('Geocache status = ' + data.status);
                     $scope.geocache_json = data;
                     $scope.geocache_status = true;
                     console.log($scope.geocache_json.geocode);
 
                     if ($scope.geocache_json.geocode != null) {
                         $scope.geocode_status = true;
+                        $scope.setMarker($scope.geocache_json.geocode.lat,$scope.geocache_json.geocode.lon,"Geocache",false,true);
                     }
                 }
             })
@@ -489,7 +492,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $http.get($scope.geocache_result_url)
             .success(function(data){
                 if (data) {
-                    console.log('updated geocache status = ' + data.status);
                     $scope.geocache_result_json = data;
                     $scope.geocache_result_status = true;
 
@@ -503,20 +505,14 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
             .error(function(data){
                 console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
             });
-
     };
 
     $scope.look_up = function() {
         $scope.admin_district_assign_shape();
-        console.log("admin_district_assign_shape");
         $scope.admin_district_assign_street();
-        console.log("admin_district_assign_street");
         $scope.callGeocache();
-        console.log("callGeocache");
         $scope.callGoogle();
-        console.log("callGoogle");
         $scope.callTiger();
-        console.log("callTiger");
         $scope.geo_comparison_status = true;
         $scope.activeComparisonTab = "geocache"
     };
@@ -553,9 +549,83 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.district_assign_street_status = false;
         $scope.district_assign_shape_district_status = false;
         $scope.activeComparisonTab = "";
+        $scope.handleMapReset();
     };
 
     $scope.init();
+
+    $scope.resizeMap = function() {
+        google.maps.event.trigger(document.getElementById('geocache_map'), 'resize');
+    };
+
+
+    $scope.displayMap = function() {
+        var mapOptions = {
+            center: new google.maps.LatLng(42.440510, -76.495460), // Centers the map nicely over NY
+            zoom: 7,
+            mapTypeControl: false,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            streetViewControl: false
+        };
+        $scope.map = new google.maps.Map(document.getElementById('geocache_map'), mapOptions);
+
+    };
+
+    $scope.setMarker = function(lat, lon, title, clear, center) {
+        if (clear) {
+            $scope.clearMarkers();
+        }
+        console.log(title);
+
+        var marker = new google.maps.Marker({
+            map: $scope.map,
+            position: new google.maps.LatLng(lat, lon),
+            draggable:false,
+            label: title
+        });
+        $scope.map.setZoom(15);
+
+        $scope.activeMarker = marker;
+        $scope.markers.push(marker);
+        if (center) {
+            $scope.map.setCenter($scope.activeMarker.position);
+        }
+        if (title !== '') {
+            marker.addListener('mouseover', function() {
+                $scope.tooltipEl.text(title);
+                $scope.tooltipEl.show();
+            });
+            marker.addListener('click', function() {
+                $scope.tooltipEl.text(title);
+                $scope.tooltipEl.show();
+            });
+            marker.addListener('mouseout', function() {
+                $scope.tooltipEl.hide();
+            });
+        }
+    };
+
+    $scope.clearMarkers = function() {
+        $.each($scope.markers, function(i, v){
+            v.setMap(null);
+        });
+        $scope.markers = [];
+    };
+
+    $scope.setCenter = function(lat, lon) {
+        $scope.map.setCenter(new google.maps.LatLng(lat, lon));
+    };
+
+    $scope.handleMapReset = function() {
+        $scope.clearMarkers();
+        $scope.setCenter(42.440510, -76.495460);
+        $scope.map.setZoom(7);
+    };
+
+    window.onload = function() {
+        $scope.displayMap();
+        $scope.resizeMap();
+    };
 });
 
 sageAdmin.controller('UserConsoleController', function($scope, $http, menuService, dataBus) {
