@@ -51,6 +51,21 @@ sageAdmin.controller('DashboardController', function($scope, $http, menuService,
     };
 });
 
+sageAdmin.controller('AdminPageController', function($scope, $http, dataBus) {
+    $scope.activeTab = "exceptions";
+
+    $scope.exceptionTab = true;
+
+    $scope.changeTab = function(newTab) {
+        $scope.activeTab = newTab;
+    };
+
+    $scope.determineActiveTab = function (inputTab) {
+        // console.log(inputTab);
+        return $scope.activeTab === inputTab;
+    };
+});
+
 sageAdmin.controller('DeploymentStatsController', function($scope, $http, dataBus) {
 
     $scope.init = function() {
@@ -230,87 +245,276 @@ sageAdmin.controller("GeocodeUsageController", function($scope, $http, dataBus){
 sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus){
 
     $scope.init = function() {
+        $scope.selected_provider = "";
         $scope.geocache_status = false;
         $scope.district_assign_status = false;
         $scope.seperatedInput = false;
+        $scope.geo_comparison_status = false;
+        $scope.geo_provider_to_use = "";
+        $scope.activeComparisonTab = "";
 
     };
     //These 4 vars can be shared by district assignment and geocaching
-    $scope.geocache_addr = "";
-    $scope.geocache_addr1 = "";
-    $scope.geocache_city = "";
-    $scope.geocache_zip5 = "";
+    $scope.input_addr = "";
+    $scope.input_addr1 = "";
+    $scope.input_city = "";
+    $scope.input_zip5 = "";
     $scope.seperatedInput = false;
+    $scope.selected_provider = "";
+    $scope.geo_comparison_status = false;
+    $scope.activeComparisonTab = "";
+    $scope.markers = [];
+    $scope.activeMarker;
+    $scope.map;
+    $scope.el = $("#geocache_map");
 
     //These vars are specific to geocaching only
+    $scope.geocache_result_url = "";
+    $scope.geocache_result_json = "";
+    $scope.geocache_result_status = false;
+    $scope.geocode_result_status = false;
+    $scope.geocache_result_show_json = false;
+
     $scope.geocache_url = "";
     $scope.geocache_json = "";
     $scope.geocache_status = false;
     $scope.geocode_status = false;
+    $scope.geocache_show_json = false;
+
+    $scope.geo_google_url = "";
+    $scope.geo_google_json = "";
+    $scope.geo_google_status = false;
+    $scope.geo_google_geocode_status = false;
+    $scope.geo_google_show_json = false;
+
+    $scope.geo_tiger_url = "";
+    $scope.geo_tiger_json = "";
+    $scope.geo_tiger_status = false;
+    $scope.geo_tiger_geocode_status = false;
+    $scope.geo_tiger_show_json = false;
 
     //These vars are specific to district assignment only
-    $scope.district_assign_url = "";
-    $scope.district_assign_json = "";
-    $scope.district_assign_status = false;
-    $scope.district_assign_geocode_status = false;
-    $scope.district_assign_district_status = false;
+    $scope.district_assign_shape_url = "";
+    $scope.district_assign_shape_json = "";
+    $scope.district_assign_shape_status = false;
+    $scope.district_assign_shape_geocode_status = false;
+    $scope.district_assign_shape_district_status = false;
+    $scope.district_assign_shape_show_json = false;
+
+    $scope.district_assign_street_url = "";
+    $scope.district_assign_street_json = "";
+    $scope.district_assign_street_status = false;
+    $scope.district_assign_street_geocode_status = false;
+    $scope.district_assign_street_district_status = false;
+    $scope.district_assign_street_show_json = false;
+
+    $scope.toggleGeocacheResultJson = function() {
+        $scope.geocache_result_show_json = !$scope.geocache_result_show_json;
+    };
+
+    $scope.toggleGeocacheJson = function() {
+        $scope.geocache_show_json = !$scope.geocache_show_json;
+    };
+
+    $scope.toggleGoogleJson = function() {
+        $scope.geo_google_show_json = !$scope.geo_google_show_json;
+    };
+
+    $scope.toggleTigerJson = function() {
+        $scope.geo_tiger_show_json = !$scope.geo_tiger_show_json;
+    };
+    $scope.toggleStreetDistAssignJson = function() {
+        $scope.district_assign_street_show_json = !$scope.district_assign_street_show_json;
+    };
+
+    $scope.toggleShapeDistAssignJson = function() {
+        $scope.district_assign_shape_show_json = !$scope.district_assign_shape_show_json;
+    };
+
+    $scope.changeCompTab = function(inputTab) {
+        $scope.activeComparisonTab = inputTab;
+    };
+
+    $scope.determineActiveCompTab = function(input) {
+        return input === $scope.activeComparisonTab;
+    };
 
 
-    $scope.admin_district_assign = function() {
+    $scope.admin_district_assign_shape = function() {
         if (!$scope.seperatedInput) {
-            $scope.district_assign_url = baseApi + "district/assign?addr=" + $scope.geocache_addr;
+            $scope.district_assign_shape_url = baseApi + "district/assign?addr=" + $scope.input_addr + "&provider=shapefile";
         }
         else {
-            $scope.district_assign_url = baseApi + "district/assign?addr1=" + $scope.geocache_addr1 +
-            "&city=" + $scope.geocache_city + "&state=NY&zip5=" + $scope.geocache_zip5 + "&bypassCache=true";
+            $scope.district_assign_shape_url = baseApi + "district/assign?addr1=" + $scope.input_addr1 +
+            "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=shapefile&uspsValidate=true";
         }
-        $http.get($scope.district_assign_url)
+        $http.get($scope.district_assign_shape_url)
             .success(function(data){
                 if (data) {
-                    console.log('status = ' + data.status);
-                    $scope.district_assign_json = data;
-                    $scope.district_assign_status = true;
+                    $scope.district_assign_shape_json = data;
+                    $scope.district_assign_shape_status = true;
 
-                    if ($scope.district_assign_json.geocode != null) {
-                        $scope.district_assign_geocode_status = true;
+                    if ($scope.district_assign_shape_json.geocode != null) {
+                        $scope.district_assign_shape_geocode_status = true;
                     }
-                    if ($scope.district_assign_json.districts != null) {
-                        $scope.district_assign_district_status = true;
+                    if ($scope.district_assign_shape_json.districts != null) {
+                        $scope.district_assign_shape_district_status = true;
+                    }
+                }
+            })
+            .error(function(data){
+                console.log("Failed to district assign submitted address - check Input / Google Geocodes / Server Status ");
+            });
+    };
+
+    $scope.admin_district_assign_street = function() {
+        if (!$scope.seperatedInput) {
+            $scope.district_assign_street_url = baseApi + "district/assign?addr=" + $scope.input_addr + "&provider=streetfile";
+        }
+        else {
+            $scope.district_assign_street_url = baseApi + "district/assign?addr1=" + $scope.input_addr1 +
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=streetfile&uspsValidate=true";
+        }
+        $http.get($scope.district_assign_street_url)
+            .success(function(data){
+                if (data) {
+                    $scope.district_assign_street_json = data;
+                    $scope.district_assign_street_status = true;
+
+                    if ($scope.district_assign_street_json.geocode != null) {
+                        $scope.district_assign_street_geocode_status = true;
+                    }
+                    if ($scope.district_assign_street_json.districts != null) {
+                        $scope.district_assign_street_district_status = true;
+                    }
+                }
+            })
+            .error(function(data){
+                console.log("Failed to district assign submitted address - check Input / Google Geocodes / Server Status ");
+            });
+    };
+
+    $scope.callGoogle = function() {
+
+        if (!$scope.seperatedInput) {
+            $scope.geo_google_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=google&useFallback=false&doNotCache=true";
+        }
+        else {
+            $scope.geo_google_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=google&useFallback=false&doNotCache=true";
+        }
+        $http.get($scope.geo_google_url)
+            .success(function(data){
+                if (data) {
+                    $scope.geo_google_json = data;
+                    $scope.geo_google_status = true;
+
+                    console.log($scope.geo_google_json.geocode);
+
+                    if ($scope.geo_google_json.geocode != null) {
+                        $scope.geo_google_geocode_status = true;
+                        $scope.setMarker($scope.geo_google_json.geocode.lat,$scope.geo_google_json.geocode.lon,"Google",false,true);
                     }
                 }
             })
             .error(function(data){
                 console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
             });
+
+    };
+
+    $scope.callTiger = function() {
+
+        if (!$scope.seperatedInput) {
+            $scope.geo_tiger_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true";
+        }
+        else {
+            $scope.geo_tiger_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true";
+        }
+        $http.get($scope.geo_tiger_url)
+            .success(function(data){
+                if (data) {
+                    $scope.geo_tiger_json = data;
+                    $scope.geo_tiger_status = true;
+
+                    console.log($scope.geo_tiger_json.geocode);
+
+                    if ($scope.geo_tiger_json.geocode != null) {
+                        $scope.geo_tiger_geocode_status = true;
+                        $scope.setMarker($scope.geo_tiger_json.geocode.lat,$scope.geo_tiger_json.geocode.lon,"Tiger",false,true);
+                    }
+                }
+            })
+            .error(function(data){
+                console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
+            });
+
+    };
+
+    $scope.callGeocache = function() {
+
+        if (!$scope.seperatedInput) {
+            $scope.geocache_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&provider=geocache&useFallback=false";
+        }
+        else {
+            $scope.geocache_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=geocache&useFallback=false";
+        }
+        $http.get($scope.geocache_url)
+            .success(function(data){
+                if (data) {
+                    $scope.geocache_json = data;
+                    $scope.geocache_status = true;
+                    console.log($scope.geocache_json.geocode);
+
+                    if ($scope.geocache_json.geocode != null) {
+                        $scope.geocode_status = true;
+                        $scope.setMarker($scope.geocache_json.geocode.lat,$scope.geocache_json.geocode.lon,"Geocache",false,true);
+                    }
+                }
+            })
+            .error(function(data){
+                console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
+            });
+
     };
 
     $scope.updateGeocache = function() {
 
         if (!$scope.seperatedInput) {
-            $scope.geocache_url = baseApi + "geo/geocode?addr=" + $scope.geocache_addr + "&bypassCache=true";
+            $scope.geocache_result_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&doNotCache=false&provider=" + $scope.selected_provider;
         }
         else {
-           $scope.geocache_url = baseApi + "geo/geocode?addr1=" + $scope.geocache_addr1 +
-               "&city=" + $scope.geocache_city + "&state=NY&zip5=" + $scope.geocache_zip5 + "&bypassCache=true";
+           $scope.geocache_result_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
+               "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&doNotCache=false&provider=" + $scope.selected_provider;
         }
-        $http.get($scope.geocache_url)
+        $http.get($scope.geocache_result_url)
             .success(function(data){
                 if (data) {
-                    console.log('status = ' + data.status);
-                    $scope.geocache_json = data;
-                    $scope.geocache_status = true;
+                    $scope.geocache_result_json = data;
+                    $scope.geocache_result_status = true;
 
-                    console.log(data.geocode);
+                    console.log($scope.geocache_result_json.geocode);
 
-                    if ($scope.geocache_json.geocode != null) {
-                        $scope.geocode_status = true;
+                    if ($scope.geocache_result_json.geocode != null) {
+                        $scope.geocode_result_status = true;
                     }
                 }
             })
             .error(function(data){
                 console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
             });
+    };
 
+    $scope.look_up = function() {
+        $scope.admin_district_assign_shape();
+        $scope.admin_district_assign_street();
+        $scope.callGeocache();
+        $scope.callGoogle();
+        $scope.callTiger();
+        $scope.geo_comparison_status = true;
+        $scope.activeComparisonTab = "geocache"
     };
 
     $scope.$on("update", function() {
@@ -319,26 +523,124 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
     $scope.isValidInfo = function() {
         if (!$scope.seperatedInput) {
-            return $scope.geocache_addr !== "";
+            return $scope.input_addr !== "";
         }
         else {
-            return $scope.geocache_addr1 !== "" && $scope.geocache_city !== "" && $scope.geocache_zip5.length === 5;
+            return $scope.input_addr1 !== "" && $scope.input_city !== "" && $scope.input_zip5.length === 5;
         }
 
     };
 
+    $scope.isProviderSelected = function() {
+        return $scope.selected_provider !== "";
+    };
+
     $scope.toggleInputSeperation = function() {
         $scope.seperatedInput = !$scope.seperatedInput;
-        $scope.district_assign_status = false;
-        $scope.geocache_status = false;
+       $scope.resetOnChange();
     };
 
     $scope.resetOnChange = function() {
         $scope.district_assign_status = false;
         $scope.geocache_status = false;
+        $scope.geo_comparison_status = false;
+        $scope.geocache_result_status = false;
+        $scope.selected_provider = "";
+        $scope.district_assign_street_status = false;
+        $scope.district_assign_shape_district_status = false;
+        $scope.activeComparisonTab = "";
+        $scope.handleMapReset();
     };
 
     $scope.init();
+
+    $scope.resizeMap = function() {
+        google.maps.event.trigger(document.getElementById('geocache_map'), 'resize');
+    };
+
+
+    $scope.displayMap = function() {
+        var mapOptions = {
+            center: new google.maps.LatLng(42.440510, -76.495460), // Centers the map nicely over NY
+            zoom: 7,
+            mapTypeControl: false,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            streetViewControl: false
+        };
+        $scope.map = new google.maps.Map(document.getElementById('geocache_map'), mapOptions);
+
+    };
+
+    $scope.setMarker = function(lat, lon, title, clear, center) {
+        if (clear) {
+            $scope.clearMarkers();
+        }
+        console.log(title);
+
+        var marker = new google.maps.Marker({
+            map: $scope.map,
+            position: new google.maps.LatLng(lat, lon),
+            draggable:false,
+            label: title
+        });
+        $scope.map.setZoom(15);
+
+        $scope.activeMarker = marker;
+
+        if (center) {
+            $scope.map.setCenter($scope.activeMarker.position);
+        }
+
+        $scope.compareMarkerLocation(marker);
+        $scope.markers.push(marker);
+    };
+
+    $scope.compareMarkerLocation = function(marker) {
+        // console.log(marker.getPosition());
+        // console.log(marker.getPosition().lat());
+        // console.log(marker.getPosition().lng());
+
+        if ($scope.markers.length > 1) {
+            var i;
+            for (i = 0; i < $scope.markers.length; i++) {
+                if ( ( $scope.markers[i].getPosition().lat() ===  marker.getPosition().lat() ) &&
+                    ( $scope.markers[i].getPosition().lng() === marker.getPosition().lng() )
+                    && ( $scope.markers[i].label !== marker.label )
+                ) {
+                    var combinedLabel =  $scope.markers[i].label + " & " + marker.label;
+                    $scope.markers[i].label = combinedLabel;
+                    console.log($scope.markers[i].label);
+                    marker.label = combinedLabel;
+                    console.log(marker.label);
+
+                    $scope.markers[i].setMap(null);
+                    $scope.markers[i].setMap($scope.map);
+                }
+            }
+        }
+    };
+
+    $scope.clearMarkers = function() {
+        $.each($scope.markers, function(i, v){
+            v.setMap(null);
+        });
+        $scope.markers = [];
+    };
+
+    $scope.setCenter = function(lat, lon) {
+        $scope.map.setCenter(new google.maps.LatLng(lat, lon));
+    };
+
+    $scope.handleMapReset = function() {
+        $scope.clearMarkers();
+        $scope.setCenter(42.440510, -76.495460);
+        $scope.map.setZoom(7);
+    };
+
+    window.onload = function() {
+        $scope.displayMap();
+        $scope.resizeMap();
+    };
 });
 
 sageAdmin.controller('UserConsoleController', function($scope, $http, menuService, dataBus) {

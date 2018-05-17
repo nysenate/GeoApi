@@ -95,16 +95,23 @@ public class GeocodeController extends BaseApiController implements Observer
 
         boolean bypassCache = requestParameterEquals(request, "bypassCache", "false") ? false : true;
 
+        boolean doNotCache = requestParameterEquals(request, "doNotCache", "false") ? false : true;
+
+
         /** Only want to use cache when the provider is not specified */
         boolean useCache = (provider == null);
-        if (bypassCache) {
+        if (bypassCache || doNotCache) {
             useCache = false;
         }
+        if (provider != null && provider.equals("geocache")) {
+            useCache = true;
+        }
+
 
         int requestId = -1;
 
         /** Construct a GeocodeRequest using the supplied params */
-        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider, useFallback, useCache);
+        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider, useFallback, useCache, bypassCache, doNotCache);
 
 
         logger.info("=======================================================");
@@ -123,7 +130,7 @@ public class GeocodeController extends BaseApiController implements Observer
          * If provider is specified then make sure it matches the available providers. Send an
          * api error and return if the provider is not supported.
          */
-        if (provider != null && !provider.isEmpty() && !geocodeServiceProvider.isRegistered(provider)) {
+        if (provider != null && !provider.isEmpty() && !geocodeServiceProvider.isRegistered(provider) && !provider.equals("geocache")) {
             geocodeResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
             setApiResponse(geocodeResponse, request);
             return;

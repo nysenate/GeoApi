@@ -130,6 +130,11 @@ public class GoogleDao extends BaseDao implements Observer
                                 case "locality":
                                     city = component.get("long_name").asText();
                                     break;
+                                case "administrative_area_level_3":
+                                    if (city.equals("")) {
+                                        city = component.get("short_name").asText();
+                                    }
+                                    break;
                                 case "administrative_area_level_1":
                                     state = component.get("short_name").asText();
                                     break;

@@ -135,12 +135,16 @@ map.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         if (center) {
             this.map.setCenter(this.activeMarker.position);
         }
-        if (title) {
-            google.maps.event.addListener(marker, "mouseover", function(){
-                mapService.tooltipEl.show();
+        if (title !== '') {
+            marker.addListener('mouseover', function() {
                 mapService.tooltipEl.text(title);
+                mapService.tooltipEl.show();
             });
-            google.maps.event.addListener(marker, "mouseout", function(){
+            marker.addListener('click', function() {
+                mapService.tooltipEl.text(title);
+                mapService.tooltipEl.show();
+            });
+            marker.addListener('mouseout', function() {
                 mapService.tooltipEl.hide();
             });
         }

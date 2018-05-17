@@ -1,22 +1,27 @@
 package gov.nysenate.sage.scripts;
 
-import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.base.BaseDao;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.model.AssemblyDao;
 import gov.nysenate.sage.dao.model.CongressionalDao;
 import gov.nysenate.sage.dao.model.SenateDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
+import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.services.NYSenateClientService;
 import gov.nysenate.services.NYSenateJSONClient;
+import gov.nysenate.services.model.Office;
 import gov.nysenate.services.model.Senator;
+import org.apache.commons.io.IOUtils;
 import org.apache.xmlrpc.XmlRpcException;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -27,19 +32,15 @@ import java.util.List;
  *
  * @author Ken Zalewski, Ash Islam
  */
-public class GenerateMetadata extends BaseDao
-{
+public class GenerateMetadata {
     private Config config;
 
-    public GenerateMetadata()
-    {
-        config = getConfig();
+    public GenerateMetadata() {
+        config = ApplicationFactory.getConfig();
     }
 
-    public static void main(String[] args) throws Exception
-    {
+    public static void main(String[] args) throws Exception {
         boolean updated = false;
-        BaseDao baseDao = new BaseDao();
 
         if (args.length == 0) {
             System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
@@ -47,7 +48,7 @@ public class GenerateMetadata extends BaseDao
         }
 
         /** Load up the configuration settings */
-        if (baseDao == null){
+        if (!ApplicationFactory.bootstrap()) {
             System.err.println("Failed to configure application");
             System.exit(-1);
         }
@@ -56,7 +57,7 @@ public class GenerateMetadata extends BaseDao
 
         boolean processAssembly = false;
         boolean processCongress = false;
-        boolean processSenate = false;
+        boolean processSenate = true;
 
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
@@ -92,17 +93,16 @@ public class GenerateMetadata extends BaseDao
             updated = generateMetadata.generateSenateData();
         }
 
-        baseDao.close();
+        ApplicationFactory.close();
         if (updated) System.exit(0);
         else System.exit(1);
     }
 
-     /**
+    /**
      * Retrieves Congressional member data from an external source and updates the
      * relevant data in the database.
      */
-    private boolean generateCongressionalData()
-    {
+    private boolean generateCongressionalData() {
         boolean updated = false;
 
         System.out.println("Indexing NY Congress by scraping its website...");
@@ -117,8 +117,7 @@ public class GenerateMetadata extends BaseDao
             if (existingCongressional == null) {
                 updated = true;
                 congressionalDao.insertCongressional(congressional);
-            }
-            else if (isCongressionalDataUpdated(existingCongressional, congressional)) {
+            } else if (isCongressionalDataUpdated(existingCongressional, congressional)) {
                 updated = true;
                 congressionalDao.deleteCongressional(district);
                 congressionalDao.insertCongressional(congressional);
@@ -131,8 +130,7 @@ public class GenerateMetadata extends BaseDao
      * Retrieves Assembly member data from an external source and updates the
      * relevant data in the database.
      */
-    private boolean generateAssemblyData()
-    {
+    private boolean generateAssemblyData() {
         System.out.println("Indexing NY Assembly by scraping its website...");
         boolean updated = false;
         AssemblyDao assemblyDao = new AssemblyDao();
@@ -146,8 +144,7 @@ public class GenerateMetadata extends BaseDao
             if (existingAssembly == null) {
                 updated = true;
                 assemblyDao.insertAssembly(assembly);
-            }
-            else if (isAssemblyDataUpdated(existingAssembly, assembly)) {
+            } else if (isAssemblyDataUpdated(existingAssembly, assembly)) {
                 updated = true;
                 assemblyDao.deleteAssemblies(district);
                 assemblyDao.insertAssembly(assembly);
@@ -159,13 +156,14 @@ public class GenerateMetadata extends BaseDao
     /**
      * Retrieves senate data from the NY Senate API Client and stores it in
      * the database.
+     *
      * @throws XmlRpcException
      */
     private boolean generateSenateData() throws XmlRpcException, IOException {
         boolean updated = false;
 
         NYSenateClientService senateClient;
-        SenateDao senateDao = new SenateDao(new Environment());
+        SenateDao senateDao = new SenateDao();
 
         System.out.println("Generating senate data from NY Senate client services");
 
@@ -180,11 +178,13 @@ public class GenerateMetadata extends BaseDao
             int district = senator.getDistrict().getNumber();
             if (district > 0) {
                 Senator existingSenator = senateDao.getSenatorByDistrict(district);
+                for (Office office : senator.getOffices()) {
+                    getUpdatedGeocode(office);
+                }
                 if (existingSenator == null) {
                     senateDao.insertSenate(senator.getDistrict());
                     senateDao.insertSenator(senator);
-                }
-                else {
+                } else {
                     senateDao.deleteSenator(district);
                     senateDao.insertSenator(senator);
                 }
@@ -198,13 +198,11 @@ public class GenerateMetadata extends BaseDao
         if (c1 != null && c2 != null) {
             if (!(c1.getDistrict() == c2.getDistrict() &&
                     c1.getMemberName().equals(c2.getMemberName()) &&
-                    c1.getMemberUrl().equals(c2.getMemberUrl())))
-            {
+                    c1.getMemberUrl().equals(c2.getMemberUrl()))) {
                 System.out.println("Congressional " + c1.getDistrict() + "updated.");
                 return true;
             }
-        }
-        else if (c1 == null && c2 != null) {
+        } else if (c1 == null && c2 != null) {
             return true;
         }
         return false;
@@ -213,17 +211,36 @@ public class GenerateMetadata extends BaseDao
     private boolean isAssemblyDataUpdated(Assembly a1, Assembly a2) {
         if (a1 != null && a2 != null) {
             if (!(a1.getDistrict() == a2.getDistrict() &&
-                a1.getMemberName().equals(a2.getMemberName()) &&
-                a1.getMemberUrl().equals(a2.getMemberUrl())))
-            {
+                    a1.getMemberName().equals(a2.getMemberName()) &&
+                    a1.getMemberUrl().equals(a2.getMemberUrl()))) {
                 System.out.println("Assembly " + a1.getDistrict() + " updated.");
                 return true;
             }
-        }
-        else if (a1 == null && a2 != null) {
+        } else if (a1 == null && a2 != null) {
             return true;
         }
         return false;
+    }
+
+    private void getUpdatedGeocode(Office senatorOffice) {
+        String urlString = ApplicationFactory.getConfig().getValue("base.url") + "/api/v2/geo/geocode?addr1=" +
+                senatorOffice.getStreet() + "&city=" + senatorOffice.getCity() +
+                "&state=NY&zip5=" + senatorOffice.getPostalCode()  + "&bypassCache=false&useFallBack=true";
+        urlString = urlString.replaceAll(" ", "%20");
+        try {
+            URL url = new URL(urlString);
+            InputStream is = url.openStream();
+            String sageReponse = IOUtils.toString(is, "UTF-8");
+            JsonNode jsonResonse = new ObjectMapper().readTree(sageReponse);
+            IOUtils.closeQuietly(is);
+            Geocode geocodedOffice = new ObjectMapper().readValue(jsonResonse.get("geocode").toString(), Geocode.class);
+            senatorOffice.setLatitude( geocodedOffice.getLat() );
+            senatorOffice.setLongitude( geocodedOffice.getLon() );
+        }
+        catch (IOException e) {
+            System.err.println("Unable to complete geocoding request to Senate Office " + senatorOffice.getStreet() +
+                   ", " + senatorOffice.getCity() + ", NY " + senatorOffice.getPostalCode() + " " +e.getMessage());
+        }
     }
 }
 

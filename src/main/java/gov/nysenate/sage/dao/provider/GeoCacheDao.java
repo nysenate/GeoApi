@@ -124,7 +124,7 @@ public class GeoCacheDao extends BaseDao
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?), ?, ?, ?)";
 
     private final static String SQL_UPDATE_CACHE_ENTRY = "update cache.geocache\n" +
-            "set latlon = ST_GeomFromText(?), method = ?, quality = ?, zip5 = ?, zip4 = ?, updated = now()\n" +
+            "set latlon = ST_GeomFromText(?), method = ?, quality = ?, zip4 = ?, updated = now()\n" +
             "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ?;";
 
     /**
@@ -155,17 +155,15 @@ public class GeoCacheDao extends BaseDao
                         }
                         catch(SQLException ex) {
                             // Duplicate row warnings are expected sometimes and can be suppressed.
-                            if (ex.getMessage().startsWith("ERROR: duplicate key")) {
-                                logger.trace(ex.getMessage());
+                            if (ex.getMessage().contains("duplicate key")) {
                                 try {
                                     tigerRun.update(SQL_UPDATE_CACHE_ENTRY,
                                             "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
                                             gc.getMethod(),
                                             gc.getQuality().name(),
-                                            sa.getZip5(),
                                             sa.getZip4(),
 
-                                            Integer.valueOf(sa.getBldgNum()),
+                                            sa.getBldgNum(),
                                             sa.getStreetName(),
                                             sa.getStreetType(),
                                             sa.getPreDir(),
@@ -176,10 +174,12 @@ public class GeoCacheDao extends BaseDao
                                     }
                                 }
                                 catch (SQLException e) {
+                                    logger.info("SQL EXCEPTION WHILE UPDATE DUP");
                                     logger.warn(e.getMessage());
                                 }
                             }
                             else {
+                                logger.warn("NON UPDATE DUP SQL EXCEPTION");
                                 logger.warn(ex.getMessage());
                             }
                         }
