@@ -586,22 +586,37 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.map.setZoom(15);
 
         $scope.activeMarker = marker;
-        $scope.markers.push(marker);
+
         if (center) {
             $scope.map.setCenter($scope.activeMarker.position);
         }
-        if (title !== '') {
-            marker.addListener('mouseover', function() {
-                $scope.tooltipEl.text(title);
-                $scope.tooltipEl.show();
-            });
-            marker.addListener('click', function() {
-                $scope.tooltipEl.text(title);
-                $scope.tooltipEl.show();
-            });
-            marker.addListener('mouseout', function() {
-                $scope.tooltipEl.hide();
-            });
+
+        $scope.compareMarkerLocation(marker);
+        $scope.markers.push(marker);
+    };
+
+    $scope.compareMarkerLocation = function(marker) {
+        // console.log(marker.getPosition());
+        // console.log(marker.getPosition().lat());
+        // console.log(marker.getPosition().lng());
+
+        if ($scope.markers.length > 1) {
+            var i;
+            for (i = 0; i < $scope.markers.length; i++) {
+                if ( ( $scope.markers[i].getPosition().lat() ===  marker.getPosition().lat() ) &&
+                    ( $scope.markers[i].getPosition().lng() === marker.getPosition().lng() )
+                    && ( $scope.markers[i].label !== marker.label )
+                ) {
+                    var combinedLabel =  $scope.markers[i].label + " & " + marker.label;
+                    $scope.markers[i].label = combinedLabel;
+                    console.log($scope.markers[i].label);
+                    marker.label = combinedLabel;
+                    console.log(marker.label);
+
+                    $scope.markers[i].setMap(null);
+                    $scope.markers[i].setMap($scope.map);
+                }
+            }
         }
     };
 
