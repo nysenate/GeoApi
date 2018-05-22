@@ -395,7 +395,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         }
 
         /** Cache results */
-        if (CACHE_ENABLED && useCache) {
+        if (CACHE_ENABLED) {
             geocodeCache.saveToCacheAndFlush(finalGeocodeResults);
         }
 

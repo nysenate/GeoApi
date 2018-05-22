@@ -30,20 +30,16 @@ public class DoBatchGeocache {
 
     public String createJsonForAddress(String addr1, String city, String state, String zip5) {
         return "{\"addr1\": " + "\"" + addr1 + "\"" + "," + "\"city\": " + "\"" + city + "\"" + "," + "\"state\": " + "\"" + state + "\"" + "," + "\"zip5\": " + "\"" + zip5 + "\"" + "},";
-//                "\"addr2\": " + "\"" + addr2 + "\"" + "," +
-
-
-
     }
 
     public static void main(String[] args) {
         /*
         Make sure that there were 2 arguments supplied to the script
          */
-//        if (args.length != 2) {
-//            System.err.println("Usage: DoBatchGeocache offset_number amount_to_geocode_number EX. DoBatchGeocache 0 100");
-//            System.exit(1);
-//        }
+        if (args.length != 2) {
+            System.err.println("Usage: DoBatchGeocache offset_number amount_to_geocode_number EX. DoBatchGeocache 0 100");
+            System.exit(1);
+        }
 
         /* Load up the configuration settings */
         if (!ApplicationFactory.bootstrap()) {
@@ -74,8 +70,8 @@ public class DoBatchGeocache {
         Ensure that the arugments passed in are actually numbers
          */
         try {
-//            offset = Long.parseLong(args[0]);
-//            limit = Long.parseLong(args[1]);
+            offset = Long.parseLong(args[0]);
+            limit = Long.parseLong(args[1]);
             logger.info("DoBatchGeocache input offset: " + offset + "\n" +
                     "DoBatchGeocache input limit: " + limit);
         }
