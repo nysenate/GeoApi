@@ -81,7 +81,7 @@
 
   <properties>
     <log4j.version>2.10.0</log4j.version>
-    <nysenate-java-client.version>2.0</nysenate-java-client.version>
+    <nysenate-java-client.version>2.1</nysenate-java-client.version>
     <tomcat.version>8.0.29</tomcat.version>
 
     <maven-core.version>3.5.0</maven-core.version>
