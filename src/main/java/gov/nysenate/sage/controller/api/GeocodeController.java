@@ -95,7 +95,7 @@ public class GeocodeController extends BaseApiController implements Observer
 
         boolean bypassCache = requestParameterEquals(request, "bypassCache", "false") ? false : true;
 
-        boolean doNotCache = requestParameterEquals(request, "doNotCache", "false") ? false : true;
+        boolean doNotCache = requestParameterEquals(request, "doNotCache", "false") ? true : false;
 
 
         /** Only want to use cache when the provider is not specified */
