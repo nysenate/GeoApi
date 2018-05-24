@@ -2,24 +2,31 @@ package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.dao.model.AdminUserDao;
-import gov.nysenate.sage.dao.model.ApiUserDao;
 import gov.nysenate.sage.dao.stats.ApiUsageStatsDao;
 import gov.nysenate.sage.dao.stats.ApiUserStatsDao;
 import gov.nysenate.sage.dao.stats.DeploymentStatsDao;
-import gov.nysenate.sage.model.stats.ApiUserStats;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAuthenticated;
+import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_LOGIN_JSP;
+import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_MAIN_JSP;
+import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_MAIN_PATH;
+
 @Controller
-public class AdminController extends BaseAdminController
+@RequestMapping(value = ConstantUtil.REST_PATH + "admin")
+public class AdminController
 {
     private Logger logger = LogManager.getLogger(AdminController.class);
 
@@ -27,11 +34,6 @@ public class AdminController extends BaseAdminController
     private ApiUserStatsDao apiUserStatsDao;
     private ApiUsageStatsDao apiUsageStatsDao;
     private DeploymentStatsDao deploymentStatsDao;
-
-    private static String ADMIN_LOGIN_PATH = "/admin/login";
-    private static String ADMIN_LOGIN_JSP = "/WEB-INF/views/adminlogin.jsp";
-    private static String ADMIN_MAIN_PATH = "/admin";
-    private static String ADMIN_MAIN_JSP = "/WEB-INF/views/adminmain.jsp";
 
     @Autowired
     public AdminController(ApiRequestLogger apiRequestLogger, ApiUserStatsDao apiUserStatsDao,
@@ -42,46 +44,6 @@ public class AdminController extends BaseAdminController
         this.deploymentStatsDao = deploymentStatsDao;
     }
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {}
-
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        String method = request.getPathInfo();
-        if (method != null) {
-            switch (method) {
-                case "/login" : {
-                    doLogin(request, response); break;
-                }
-            }
-        }
-    }
-
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        if (!isAuthenticated(request)) {
-            request.getRequestDispatcher(ADMIN_LOGIN_JSP).forward(request, response);
-        }
-        else {
-            String method = (request.getPathInfo() != null) ? request.getPathInfo() : "";
-            switch (method) {
-                case "/login": {
-                    /** Fall through to logout */
-                }
-                case "/logout" : {
-                    doLogout(request, response);
-                    request.getRequestDispatcher(ADMIN_LOGIN_JSP).forward(request, response);
-                    break;
-                }
-                default: {
-                    request.getRequestDispatcher(ADMIN_MAIN_JSP).forward(request, response);
-                }
-            }
-        }
-    }
-
     /**
      * Attempt to log in using the supplied admin credentials.
      * @param request
@@ -89,10 +51,10 @@ public class AdminController extends BaseAdminController
      * @throws ServletException
      * @throws IOException
      */
-    public void doLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    public void adminLogin(HttpServletRequest request, HttpServletResponse response,
+                           @RequestParam String username, @RequestParam String password)
+            throws ServletException, IOException {
 
         AdminUserDao adminUserDao = new AdminUserDao();
         if (adminUserDao.checkAdminUser(username, password)) {
@@ -113,8 +75,10 @@ public class AdminController extends BaseAdminController
      * @param response
      * @throws IOException
      */
-    public void doLogout(HttpServletRequest request, HttpServletResponse response) throws IOException
-    {
+    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    public void adminLogout(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         setAuthenticated(request, false, null);
+        request.getRequestDispatcher(ADMIN_MAIN_JSP).forward(request, response);
     }
 }

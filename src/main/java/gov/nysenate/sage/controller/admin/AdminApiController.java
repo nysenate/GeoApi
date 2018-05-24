@@ -13,24 +13,27 @@ import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.stats.*;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.auth.JobUserAuth;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
+
 @Controller
-public class AdminApiController extends BaseAdminController
+@RequestMapping(value = ConstantUtil.REST_PATH + "admin")
+public class AdminApiController
 {
     private Logger logger = LogManager.getLogger(AdminApiController.class);
 
@@ -38,9 +41,6 @@ public class AdminApiController extends BaseAdminController
     private ApiUserStatsDao apiUserStatsDao;
     private ApiUsageStatsDao apiUsageStatsDao;
     private DeploymentStatsDao deploymentStatsDao;
-
-    private static String ADMIN_LOGIN_JSP = "/WEB-INF/views/adminlogin.jsp";
-    private static String ADMIN_MAIN_JSP = "/WEB-INF/views/adminmain.jsp";
 
     @Autowired
     public AdminApiController(ApiRequestLogger apiRequestLogger, ApiUserStatsDao apiUserStatsDao,
@@ -51,100 +51,179 @@ public class AdminApiController extends BaseAdminController
         this.deploymentStatsDao = deploymentStatsDao;
     }
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {}
-
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        Object adminResponse = null;
-        if (isAuthenticated(request)) {
-            String method = request.getPathInfo();
-            if (method != null) {
-                switch (method) {
-                    case "/currentApiUsers" : {
-                        adminResponse = getCurrentApiUsers(request);
-                        break;
-                    }
-                    case "/currentJobUsers" : {
-                        adminResponse = getCurrentJobUsers(request);
-                        break;
-                    }
-                    case "/apiUserUsage" : {
-                        adminResponse = getApiUserStats(request);
-                        break;
-                    }
-                    case "/usage" : {
-                        adminResponse = getApiUsageStats(request);
-                        break;
-                    }
-                    case "/geocodeUsage" : {
-                        adminResponse = getGeocodeUsageStats(request);
-                        break;
-                    }
-                    case "/jobStatuses" : {
-                        adminResponse = getJobProcessStatusList(request);
-                        break;
-                    }
-                    case "/deployment" : {
-                        adminResponse = getDeploymentStats(request);
-                        break;
-                    }
-                    case "/exception" : {
-                        adminResponse = getExceptionStats(request);
-                        break;
-                    }
-                    default : {
-                        adminResponse = new GenericResponse(false, "Invalid admin API request.");
-                    }
-                }
-            }
+    @RequestMapping(value = "/currentApiUsers", method = RequestMethod.GET)
+    public void currentApiUsers(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = getCurrentApiUsers(request);
         }
         else {
-            adminResponse = new GenericResponse(false, "You must be logged in as an administrator to access this API.");
+            adminResponse = invalidAuthResponse();
         }
         setAdminResponse(adminResponse, response);
+
     }
 
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        Object adminResponse = null;
-        if (isAuthenticated(request)) {
-            String method = request.getPathInfo();
-            if (method != null) {
-                switch (method) {
-                    case "/createApiUser" : {
-                        adminResponse = createApiUser(request);
-                        break;
-                    }
-                    case "/deleteApiUser" : {
-                        adminResponse = deleteApiUser(request);
-                        break;
-                    }
-                    case "/createJobUser" : {
-                        adminResponse = createJobUser(request);
-                        break;
-                    }
-                    case "/deleteJobUser" : {
-                        adminResponse = deleteJobUser(request);
-                        break;
-                    }
-                    case "/hideException" : {
-                        adminResponse = hideException(request);
-                        break;
-                    }
-                    default : {
-                        adminResponse = new GenericResponse(false, "Invalid admin API request.");
-                    }
-                }
-            }
+    @RequestMapping(value = "/currentJobUsers", method = RequestMethod.GET)
+    public void currentJobUsers(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse =  getCurrentJobUsers(request);
         }
         else {
-            adminResponse = new GenericResponse(false, "You must be logged in as an administrator to access this API.");
+            adminResponse = invalidAuthResponse();
         }
         setAdminResponse(adminResponse, response);
+
     }
+
+    @RequestMapping(value = "/apiUserUsage", method = RequestMethod.GET)
+    public void apiUserUsage(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = getApiUserStats(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+    }
+
+    @RequestMapping(value = "/usage", method = RequestMethod.GET)
+    public void usage(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = getApiUsageStats(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+    }
+
+    @RequestMapping(value = "/geocodeUsage", method = RequestMethod.GET)
+    public void geocodeUsage(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = getGeocodeUsageStats(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+    }
+
+    @RequestMapping(value = "/jobStatuses", method = RequestMethod.GET)
+    public void jobStatuses(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = getJobProcessStatusList(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+    }
+
+    @RequestMapping(value = "/deployment", method = RequestMethod.GET)
+    public void deployment(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = getDeploymentStats(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+    }
+
+    @RequestMapping(value = "/exception", method = RequestMethod.GET)
+    public void exception(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = getExceptionStats(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+    }
+
+
+
+    @RequestMapping(value = "/createApiUser", method = RequestMethod.POST)
+    public void createApiUser(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = createApiUser(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+
+    }
+    @RequestMapping(value = "/deleteApiUser", method = RequestMethod.POST)
+    public void deleteApiUser(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = deleteApiUser(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+    }
+    @RequestMapping(value = "/createJobUser", method = RequestMethod.POST)
+    public void createJobUser(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = createJobUser(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+    }
+    @RequestMapping(value = "/deleteJobUser", method = RequestMethod.POST)
+    public void deleteJobUser(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = deleteJobUser(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+    }
+    @RequestMapping(value = "/hideException", method = RequestMethod.POST)
+    public void hideException(HttpServletRequest request, HttpServletResponse response) {
+        Object adminResponse;
+        if (isAuthenticated(request) ) {
+            adminResponse = hideException(request);
+        }
+        else {
+            adminResponse = invalidAuthResponse();
+        }
+        setAdminResponse(adminResponse, response);
+
+    }
+
+    private GenericResponse invalidAuthResponse() {
+        return new GenericResponse(false, "You must be logged in as an administrator to access this API.");
+    }
+
+    //adminResponse = new GenericResponse(false, "Invalid admin API request.");
 
     /**
      * Retrieves all registered Api Users. This method should not be exposed through a non-admin API as it contains

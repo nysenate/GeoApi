@@ -12,6 +12,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.sage.util.ImageUtil;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import gov.nysenate.services.NYSenateClientService;
 import gov.nysenate.services.NYSenateJSONClient;
 import gov.nysenate.services.model.Office;
@@ -33,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 
 @RestController
+@RequestMapping(value = ConstantUtil.REST_PATH + "gen-meta-data")
 public class GenerateMetaDataController {
 
     @Autowired
@@ -40,7 +42,7 @@ public class GenerateMetaDataController {
 
     private Logger logger = LogManager.getLogger(GenerateMetaDataController.class);
 
-    @RequestMapping(value = "/gen-meta-data/senator-images", method = RequestMethod.GET)
+    @RequestMapping(value = "/senator-images", method = RequestMethod.GET)
     public void generateSenatorImages(@RequestParam String path, @RequestParam int height) {
         //Bad input return usage
         if (path == null || height > 0) {
@@ -68,14 +70,14 @@ public class GenerateMetaDataController {
         }
     }
 
-    @RequestMapping(value = "/gen-meta-data/all", method = RequestMethod.GET)
+    @RequestMapping(value = "/all", method = RequestMethod.GET)
     public void generateAll() {
         generateSenateData();
         generateAssemblyData();
         generateCongressData();
     }
 
-    @RequestMapping(value = "/gen-meta-data/senate", method = RequestMethod.GET)
+    @RequestMapping(value = "/senate", method = RequestMethod.GET)
     public void generateSenateData() {
         NYSenateClientService senateClient;
         SenateDao senateDao = new SenateDao(env);
@@ -114,7 +116,7 @@ public class GenerateMetaDataController {
 
     }
 
-    @RequestMapping(value = "/gen-meta-data/assembly", method = RequestMethod.GET)
+    @RequestMapping(value = "/assembly", method = RequestMethod.GET)
     public void generateAssemblyData() {
         logger.info("Indexing NY Assembly by scraping its website...");
         AssemblyDao assemblyDao = new AssemblyDao();
@@ -134,7 +136,7 @@ public class GenerateMetaDataController {
         }
     }
 
-    @RequestMapping(value = "/gen-meta-data/congress", method = RequestMethod.GET)
+    @RequestMapping(value = "/congress", method = RequestMethod.GET)
     public void generateCongressData() {
         logger.info("Indexing NY Congress by scraping its website...");
         CongressionalDao congressionalDao = new CongressionalDao();
