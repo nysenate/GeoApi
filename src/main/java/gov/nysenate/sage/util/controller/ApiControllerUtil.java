@@ -3,6 +3,7 @@ package gov.nysenate.sage.util.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.filter.ApiFilter;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
@@ -181,6 +182,15 @@ public class ApiControllerUtil {
         catch(IOException ex) {
             logger.error("Failed to write admin response", ex);
         }
+    }
+
+    /**
+     * Creates an error response message for an api user that is not authenticated as an admin trying to
+     * access and admin api
+     * @return GenericResponse
+     */
+    public static GenericResponse invalidAuthResponse() {
+        return new GenericResponse(false, "You must be logged in as an administrator to access this API.");
     }
 
     /**
