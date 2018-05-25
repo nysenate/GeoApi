@@ -219,10 +219,6 @@ public class AdminApiController
 
     }
 
-    private GenericResponse invalidAuthResponse() {
-        return new GenericResponse(false, "You must be logged in as an administrator to access this API.");
-    }
-
     //adminResponse = new GenericResponse(false, "Invalid admin API request.");
 
     /**
