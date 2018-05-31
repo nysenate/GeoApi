@@ -51,6 +51,33 @@ public class ApiControllerUtil {
     }
 
     /**
+     * Constructs a new Address object using the query parameters of the supplied input.
+     * This method exists to provide consistency among the different controllers when retrieving an
+     * address from the api.
+     * @param addr  complete address in 1 param
+     * @param addr1
+     * @param addr2
+     * @param city
+     * @param state
+     * @param zip5
+     * @param zip4
+     * @return      new Address instance if r was valid
+     *              null if r was null
+     */
+    public static Address getAddressFromParams(String addr, String addr1, String addr2 , String city,
+                                               String state, String zip5, String zip4)
+    {
+        Address address = null;
+            if (addr != null) {
+                address = new Address(addr);
+            }
+            else {
+                address = new Address(addr1, addr2, city, state, zip5, zip4);
+            }
+        return address;
+    }
+
+    /**
      * Constructs a new Point object using the query parameters of the supplied HttpServletRequest
      * @param r     HttpServletRequest
      * @return      new Point instance or null
