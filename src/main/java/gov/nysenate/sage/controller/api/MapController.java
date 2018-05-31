@@ -9,13 +9,18 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.DistrictShapefile;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.service.map.MapServiceProvider;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -23,72 +28,111 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
+import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
+
 @Controller
-public class MapController extends BaseApiController
+@RequestMapping(value = ConstantUtil.REST_PATH + "map")
+public class MapController
 {
     private static Logger logger = LogManager.getLogger(MapController.class);
-    private static MapServiceProvider mapServiceProvider;
+    private DistrictShapefile districtShapefile;
 
     @Autowired
-    public MapController(MapServiceProvider mapServiceProvider) {
-        this.mapServiceProvider = mapServiceProvider;
+    public MapController(DistrictShapefile districtShapefile) {
+        this.districtShapefile = districtShapefile;
     }
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {}
+    @RequestMapping(value = "/senate", method = RequestMethod.GET)
+    public void mapSenate(HttpServletRequest request, HttpServletResponse response,
+                                @RequestParam String district, @RequestParam boolean showMembers,
+                                @RequestParam boolean meta) {
 
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doGet(request, response);
+        /** Get the ApiRequest */
+        ApiRequest apiRequest = getApiRequest(request);
+        Object mapResponse = getDistrictMap(district,"senate",showMembers,meta);
+        setApiResponse(mapResponse, request);
     }
 
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        Object mapResponse = null;
+    @RequestMapping(value = "/assembly", method = RequestMethod.GET)
+    public void mapAssembly(HttpServletRequest request, HttpServletResponse response,
+                          @RequestParam String district, @RequestParam boolean showMembers,
+                          @RequestParam boolean meta) {
 
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
 
-        /** The request represents the district type */
-        String type = apiRequest.getRequest();
+        Object mapResponse = getDistrictMap(district,"assembly",showMembers,meta);
+        setApiResponse(mapResponse, request);
+    }
 
-        /** Get the district code if exists */
-        String districtCode = request.getParameter("district");
+    @RequestMapping(value = "/congressional", method = RequestMethod.GET)
+    public void mapCongressional(HttpServletRequest request, HttpServletResponse response,
+                          @RequestParam String district, @RequestParam boolean showMembers,
+                          @RequestParam boolean meta) {
 
-        /** Parameter to specify if member data should be retrieved if applicable */
-        String showMembersStr = request.getParameter("showMembers");
-        Boolean showMembers = (showMembersStr != null && showMembersStr.equals("true"));
+        /** Get the ApiRequest*/
+        ApiRequest apiRequest = getApiRequest(request);
 
-        /** Meta data requests simply return listing info, no maps or members */
-        boolean meta = requestParameterEquals(request, "meta", "true");
+        Object mapResponse = getDistrictMap(district,"congressional",showMembers,meta);
+        setApiResponse(mapResponse, request);
+    }
 
-        /** Get a new map service instance */
-        MapService mapService = mapServiceProvider.newInstance();
+    @RequestMapping(value = "/county", method = RequestMethod.GET)
+    public void mapCounty(HttpServletRequest request, HttpServletResponse response,
+                          @RequestParam String district, @RequestParam boolean showMembers,
+                          @RequestParam boolean meta) {
 
-        DistrictType districtType = DistrictType.resolveType(type);
-        if (districtType != null) {
-            MapResult mapResult;
-            if (districtCode != null) {
-                logger.info("Retrieving " + districtType.name() + " district " + districtCode + " map.");
-                mapResult = mapService.getDistrictMap(districtType, districtCode);
-                if (showMembers || meta) {
-                    DistrictMemberProvider.assignDistrictMembers(mapResult);
-                }
-                mapResponse = (meta) ? new MetadataResponse(mapResult) : new MapResponse(mapResult);
+        /** Get the ApiRequest */
+        ApiRequest apiRequest = getApiRequest(request);
+
+        Object mapResponse = getDistrictMap(district,"county",showMembers,meta);
+        setApiResponse(mapResponse, request);
+    }
+
+    @RequestMapping(value = "/town", method = RequestMethod.GET)
+    public void mapTown(HttpServletRequest request, HttpServletResponse response,
+                          @RequestParam String district, @RequestParam boolean showMembers,
+                          @RequestParam boolean meta) {
+        /** Get the ApiRequest */
+        ApiRequest apiRequest = getApiRequest(request);
+
+        Object mapResponse = getDistrictMap(district,"town",showMembers,meta);
+        setApiResponse(mapResponse, request);
+    }
+
+    @RequestMapping(value = "/school", method = RequestMethod.GET)
+    public void mapSchool(HttpServletRequest request, HttpServletResponse response,
+                          @RequestParam String district, @RequestParam boolean showMembers,
+                          @RequestParam boolean meta) {
+        /** Get the ApiRequest */
+        ApiRequest apiRequest = getApiRequest(request);
+
+        Object mapResponse = getDistrictMap(district,"school",showMembers,meta);
+        setApiResponse(mapResponse, request);
+    }
+
+    private Object getDistrictMap(String districtCode, String distType,
+                                boolean showMembers, boolean meta) {
+        Object mapResponse;
+        MapResult mapResult;
+        DistrictType districtType = DistrictType.resolveType(distType);
+        if (districtCode != null) {
+            logger.info("Retrieving " + districtType.name() + " district " + districtCode + " map.");
+            mapResult = districtShapefile.getDistrictMap(districtType, districtCode);
+            if (showMembers || meta) {
+                DistrictMemberProvider.assignDistrictMembers(mapResult);
             }
-            else {
-                logger.info("Retrieving all " + districtType.name() + " district maps.");
-                mapResult = mapService.getDistrictMaps(districtType);
-                if (showMembers || meta) {
-                    DistrictMemberProvider.assignDistrictMembers(mapResult);
-                }
-                mapResponse = (meta) ? new MultipleMetadataResponse(mapResult) : new MultipleMapResponse(mapResult);
-            }
+            mapResponse = (meta) ? new MetadataResponse(mapResult) : new MapResponse(mapResult);
         }
         else {
-            mapResponse = new ApiError(this.getClass(), ResultStatus.UNSUPPORTED_DISTRICT_MAP);
+            logger.info("Retrieving all " + districtType.name() + " district maps.");
+            mapResult = districtShapefile.getDistrictMaps(districtType);
+            if (showMembers || meta) {
+                DistrictMemberProvider.assignDistrictMembers(mapResult);
+            }
+            mapResponse = (meta) ? new MultipleMetadataResponse(mapResult) : new MultipleMapResponse(mapResult);
         }
-        setApiResponse(mapResponse, request);
+        return mapResponse;
     }
 }
