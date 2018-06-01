@@ -94,6 +94,23 @@ public class ApiControllerUtil {
         return point;
     }
 
+    /**
+     * Constructs a new Point object using the query parameters of the supplied HttpServletRequest
+     * @param r     HttpServletRequest
+     * @return      new Point instance or null
+     */
+    public static Point getPointFromParams(String lat, String lon)
+    {
+        Point point = null;
+        if (lat != null && lon != null){
+            try {
+                point = new Point(Double.parseDouble(lat), Double.parseDouble(lon));
+            }
+            catch (Exception ex) { /** Ignored Exception */ }
+        }
+        return point;
+    }
+
     /** Delegates response to ApiFilter */
     public static void setApiResponse(Object response, HttpServletRequest request)
     {

@@ -139,7 +139,7 @@ public class GeocodeController
             return;
         }
 
-        Point point = getPointFromParams(request);
+        Point point = getPointFromParams(lat,lon);
         if (point != null ) {
             geocodeRequest.setReverse(true);
             geocodeRequest.setPoint(point);
