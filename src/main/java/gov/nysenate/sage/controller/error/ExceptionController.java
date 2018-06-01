@@ -1,10 +1,13 @@
 package gov.nysenate.sage.controller.error;
 
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -17,7 +20,8 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 @Controller
-public class ExceptionController extends HttpServlet
+
+public class ExceptionController
 {
     private static Logger logger = LogManager.getLogger(ExceptionController.class);
     private ExceptionLogger exceptionLogger;
@@ -27,18 +31,9 @@ public class ExceptionController extends HttpServlet
         this.exceptionLogger = exceptionLogger;
     }
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {}
-
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doGet(request, response);
-    }
-
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    @RequestMapping(value ="/exception")
+    public void doGet(HttpServletRequest request, HttpServletResponse response, @RequestParam int apiRequestId) throws IOException
     {
-        Integer apiRequestId = (Integer) request.getAttribute("apiRequestId");
         Exception ex = (Exception) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
         if (ex != null) {
             exceptionLogger.logException(ex, new Timestamp(new Date().getTime()), apiRequestId);
