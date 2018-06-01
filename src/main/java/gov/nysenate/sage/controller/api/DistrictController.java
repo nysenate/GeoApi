@@ -1,5 +1,6 @@
 package gov.nysenate.sage.controller.api;
 
+import gov.nysenate.sage.client.response.address.ValidateResponse;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.district.*;
 import gov.nysenate.sage.config.Environment;
@@ -27,11 +28,15 @@ import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -41,12 +46,15 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
+import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
+import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 /** Handles District Api requests */
 @Controller
-public class DistrictController extends BaseApiController implements Observer
+@RequestMapping(value = ConstantUtil.REST_PATH + "district")
+public class DistrictController
 {
     private static Logger logger = LogManager.getLogger(DistrictController.class);
 
@@ -87,69 +95,34 @@ public class DistrictController extends BaseApiController implements Observer
         this.geocodeResultLogger = geocodeResultLogger;
         this.districtRequestLogger = districtRequestLogger;
         this.districtResultLogger = districtResultLogger;
-    }
 
-    @Override
-    public void update(Observable o, Object arg) {
         BLUEBIRD_DISTRICT_STRATEGY = env.getDistrictStrategyBluebird();
         boolean API_LOGGING_ENABLED = env.isApiLoggingEnabled();
         SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isDetailedLoggingEnabled();
         BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
     }
 
-    @Override
-    public void init(ServletConfig config) throws ServletException
-    {
-        update(null, null);
-    }
-
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        this.doGet(request, response);
-    }
-
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
+    @RequestMapping(value = "/assign", method = RequestMethod.GET)
+    public void districtAssign(HttpServletRequest request, HttpServletResponse response,
+                                @RequestParam String provider, @RequestParam String geoProvider,
+                                @RequestParam boolean showMembers, @RequestParam boolean showMaps,
+                                @RequestParam boolean uspsValidate, @RequestParam boolean skipGeocode,
+                                @RequestParam boolean showMultiMatch, @RequestParam String districtStrategy,
+                                @RequestParam boolean usePunct, @RequestParam String lat, @RequestParam String lon,
+                                @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
+                                @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
+                                @RequestParam String zip4) {
         Object districtResponse = null;
-        Timestamp startTime = TimeUtil.currentTimestamp();
+        Timestamp startTime = getCurrentTimeStamp();
+        int requestId = -1;
 
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
-        String provider = apiRequest.getProvider();
-
-        /** Allow for specifying which geocoder to use */
-        String geoProvider = request.getParameter("geoProvider");
-
-        /** Fetch senator and other member info if true */
-        Boolean showMembers = Boolean.parseBoolean(request.getParameter("showMembers"));
-
-        /** Specify whether or not to return map data */
-        Boolean showMaps = Boolean.parseBoolean(request.getParameter("showMaps"));
-
-        /** Indicates whether address validation is required */
-        Boolean uspsValidate = Boolean.parseBoolean(request.getParameter("uspsValidate"));
-
-        /** Indicates whether validated address should have punctuation */
-        Boolean usePunct = Boolean.parseBoolean(request.getParameter("punct"));
-
-        /** Specify whether or not to geocode (Warning: If false, district assignment will be impaired) */
-        Boolean skipGeocode = Boolean.parseBoolean(request.getParameter("skipGeocode"));
-
-        /** Indicates whether info for multiple possible districts should be shown. */
-        Boolean showMultiMatch = Boolean.parseBoolean(request.getParameter("showMultiMatch"));
-
-        /** Specify district strategy */
-        String districtStrategy = request.getParameter("districtStrategy");
-
-        //RequestID for the incoming request
-        int requestId = -1;
 
         DistrictRequest districtRequest = new DistrictRequest();
         districtRequest.setApiRequest(apiRequest);
-        districtRequest.setAddress(getAddressFromParams(request));
-        districtRequest.setPoint(getPointFromParams(request));
+        districtRequest.setAddress(getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4));
+        districtRequest.setPoint(getPointFromParams(lat,lon));
         districtRequest.setProvider(provider);
         districtRequest.setGeoProvider(geoProvider);
         districtRequest.setShowMembers(showMembers);
@@ -160,6 +133,174 @@ public class DistrictController extends BaseApiController implements Observer
         districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
         districtRequest.setDistrictStrategy(districtStrategy);
 
+        logDistrictRequest(apiRequest, districtRequest, requestId);
+
+        if(!checkProviders(provider, geoProvider, request)) {
+            return;
+        }
+
+        DistrictResult districtResult = handleDistrictRequest(districtRequest,requestId);
+        if (districtResult.isMultiMatch() && showMultiMatch) {
+            districtResponse = (showMaps) ? new MappedMultiDistrictResponse(districtResult) : new MultiDistrictResponse(districtResult);
+        }
+        else {
+            districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
+        }
+
+
+        setApiResponse(districtResponse, request);
+
+        logElapsedTime(startTime, apiRequest);
+    }
+
+    @RequestMapping(value = "/batch/assign", method = RequestMethod.GET)
+    public void districtBatchAssign(HttpServletRequest request, HttpServletResponse response,
+                                @RequestParam String provider, @RequestParam String geoProvider,
+                                @RequestParam boolean showMembers, @RequestParam boolean showMaps,
+                                @RequestParam boolean uspsValidate, @RequestParam boolean skipGeocode,
+                                    @RequestParam String districtStrategy, @RequestParam boolean usePunct)
+            throws IOException {
+        Object districtResponse = null;
+        Timestamp startTime = getCurrentTimeStamp();
+        int requestId = -1;
+
+        /** Get the ApiRequest */
+        ApiRequest apiRequest = getApiRequest(request);
+
+
+        DistrictRequest districtRequest = new DistrictRequest();
+        districtRequest.setApiRequest(apiRequest);
+        districtRequest.setProvider(provider);
+        districtRequest.setGeoProvider(geoProvider);
+        districtRequest.setShowMembers(showMembers);
+        districtRequest.setShowMaps(showMaps);
+        districtRequest.setUspsValidate(uspsValidate);
+        districtRequest.setUsePunct(usePunct);
+        districtRequest.setSkipGeocode(skipGeocode);
+        districtRequest.setRequestTime(startTime);
+        districtRequest.setDistrictStrategy(districtStrategy);
+
+        logDistrictRequest(apiRequest, districtRequest, requestId);
+
+        if(!checkProviders(provider, geoProvider, request)) {
+            return;
+        }
+
+        String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
+        List<Address> addresses;
+        List<Point> points = new ArrayList<>();
+        addresses = getAddressesFromJsonBody(batchJsonPayload);
+        if (addresses.isEmpty()) {
+            points = getPointsFromJsonBody(batchJsonPayload);
+        }
+        if (!addresses.isEmpty() || !points.isEmpty()) {
+            BatchDistrictRequest batchDistrictRequest = new BatchDistrictRequest(districtRequest);
+            batchDistrictRequest.setAddresses(addresses);
+            batchDistrictRequest.setPoints(points);
+
+            List<DistrictResult> districtResults = handleBatchDistrictRequest(batchDistrictRequest);
+            districtResponse = new BatchDistrictResponse(districtResults);
+        }
+        else {
+            districtResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
+        }
+
+        setApiResponse(districtResponse, request);
+
+        logElapsedTime(startTime, apiRequest);
+    }
+
+    @RequestMapping(value = "/bluebird", method = RequestMethod.GET)
+    public void bluebirdAssign(HttpServletRequest request, HttpServletResponse response,
+                               @RequestParam String provider, @RequestParam String geoProvider,
+                               @RequestParam boolean usePunct, @RequestParam String lat, @RequestParam String lon,
+                               @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
+                               @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
+                               @RequestParam String zip4) {
+        Object districtResponse = null;
+        Timestamp startTime = getCurrentTimeStamp();
+        int requestId = -1;
+
+        /** Get the ApiRequest */
+        ApiRequest apiRequest = getApiRequest(request);
+
+        DistrictRequest districtRequest = new DistrictRequest();
+        districtRequest.setApiRequest(apiRequest);
+        districtRequest.setAddress(getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4));
+        districtRequest.setPoint(getPointFromParams(lat,lon));
+        districtRequest.setProvider(provider);
+        districtRequest.setGeoProvider(geoProvider);
+        districtRequest.setUsePunct(usePunct);
+        districtRequest.setRequestTime(startTime);
+
+        logDistrictRequest(apiRequest, districtRequest, requestId);
+
+        if(!checkProviders(provider, geoProvider, request)) {
+            return;
+        }
+
+        DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, BLUEBIRD_DISTRICT_STRATEGY);
+        DistrictResult districtResult = handleDistrictRequest(bluebirdRequest, requestId);
+        districtResponse = new DistrictResponse(districtResult);
+
+        setApiResponse(districtResponse, request);
+
+        logElapsedTime(startTime, apiRequest);
+    }
+
+    @RequestMapping(value = "/batch/bluebird", method = RequestMethod.GET)
+    public void bluebirdBatchAssign(HttpServletRequest request, HttpServletResponse response,
+                                    @RequestParam String provider, @RequestParam String geoProvider,
+                                    @RequestParam boolean usePunct) throws IOException {
+        Object districtResponse = null;
+        Timestamp startTime = getCurrentTimeStamp();
+        int requestId = -1;
+
+        /** Get the ApiRequest */
+        ApiRequest apiRequest = getApiRequest(request);
+
+        DistrictRequest districtRequest = new DistrictRequest();
+        districtRequest.setApiRequest(apiRequest);
+        districtRequest.setProvider(provider);
+        districtRequest.setGeoProvider(geoProvider);
+        districtRequest.setUsePunct(usePunct);
+        districtRequest.setRequestTime(startTime);
+
+        logDistrictRequest(apiRequest, districtRequest, requestId);
+
+        if(!checkProviders(provider, geoProvider, request)) {
+            return;
+        }
+
+        String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
+        List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
+        List<Point> points = new ArrayList<>();
+        if (addresses.isEmpty()) {
+            points = getPointsFromJsonBody(batchJsonPayload);
+        }
+        if (!addresses.isEmpty() || !points.isEmpty()) {
+            DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, BLUEBIRD_DISTRICT_STRATEGY);
+            BatchDistrictRequest batchBluebirdRequest = new BatchDistrictRequest(bluebirdRequest);
+            batchBluebirdRequest.setAddresses(addresses);
+            batchBluebirdRequest.setPoints(points);
+
+            List<DistrictResult> districtResults = handleBatchDistrictRequest(batchBluebirdRequest);
+            districtResponse = new BatchDistrictResponse(districtResults);
+        }
+        else {
+            districtResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
+        }
+
+        setApiResponse(districtResponse, request);
+
+        logElapsedTime(startTime, apiRequest);
+    }
+
+    private Timestamp getCurrentTimeStamp() {
+        return TimeUtil.currentTimestamp();
+    }
+
+    private void logDistrictRequest(ApiRequest apiRequest, DistrictRequest districtRequest , int requestId) {
         logger.info("=======================================================");
         logger.info(String.format("|%sDistrict '%s' Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getRequest(), apiRequest.getId()));
         logger.info(String.format("| IP: %s | Maps: %s | Members: %s", apiRequest.getIpAddress(), districtRequest.isShowMaps(), districtRequest.isShowMembers()));
@@ -171,94 +312,26 @@ public class DistrictController extends BaseApiController implements Observer
         if (SINGLE_LOGGING_ENABLED) {
             requestId = districtRequestLogger.logDistrictRequest(districtRequest);
         }
+    }
 
+    private boolean checkProviders(String provider, String geoProvider, HttpServletRequest request) {
         /**
          * If providers are specified then make sure they match the available providers. Send an
          * api error and return if the provider is not supported.
          */
+        boolean validProviders = true;
         if (provider != null && !provider.isEmpty() && !districtProvider.isRegistered(provider)) {
             setApiResponse(new ApiError(this.getClass(), DISTRICT_PROVIDER_NOT_SUPPORTED), request);
-            return;
+            validProviders = false;
         }
         if (geoProvider != null && !geoProvider.isEmpty() && !geocodeProvider.isRegistered(geoProvider)) {
             setApiResponse(new ApiError(this.getClass(), GEOCODE_PROVIDER_NOT_SUPPORTED), request);
-            return;
+            validProviders = false;
         }
+        return validProviders;
+    }
 
-        switch (apiRequest.getRequest())
-        {
-            case "assign": {
-                /** Handle single district assign request using the supplied query parameters. */
-                if (!apiRequest.isBatch()) {
-                    DistrictResult districtResult = handleDistrictRequest(districtRequest,requestId);
-                    if (districtResult.isMultiMatch() && showMultiMatch) {
-                        districtResponse = (showMaps) ? new MappedMultiDistrictResponse(districtResult) : new MultiDistrictResponse(districtResult);
-                    }
-                    else {
-                        districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
-                    }
-                }
-                /** Handle batch district assign request using the supplied query parameters. */
-                else {
-                    String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
-                    List<Address> addresses;
-                    List<Point> points = new ArrayList<>();
-                    addresses = getAddressesFromJsonBody(batchJsonPayload);
-                    if (addresses.isEmpty()) {
-                        points = getPointsFromJsonBody(batchJsonPayload);
-                    }
-                    if (!addresses.isEmpty() || !points.isEmpty()) {
-                        BatchDistrictRequest batchDistrictRequest = new BatchDistrictRequest(districtRequest);
-                        batchDistrictRequest.setAddresses(addresses);
-                        batchDistrictRequest.setPoints(points);
-
-                        List<DistrictResult> districtResults = handleBatchDistrictRequest(batchDistrictRequest);
-                        districtResponse = new BatchDistrictResponse(districtResults);
-                    }
-                    else {
-                        districtResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
-                    }
-                }
-                break;
-            }
-            case "bluebird":
-            {
-                /** Handle single bluebird assign */
-                if (!apiRequest.isBatch()) {
-                    DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, BLUEBIRD_DISTRICT_STRATEGY);
-                    DistrictResult districtResult = handleDistrictRequest(bluebirdRequest, requestId);
-                    districtResponse = new DistrictResponse(districtResult);
-                }
-                /** Handle batch bluebird assign */
-                else {
-                    String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
-                    List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
-                    List<Point> points = new ArrayList<>();
-                    if (addresses.isEmpty()) {
-                        points = getPointsFromJsonBody(batchJsonPayload);
-                    }
-                    if (!addresses.isEmpty() || !points.isEmpty()) {
-                        DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, BLUEBIRD_DISTRICT_STRATEGY);
-                        BatchDistrictRequest batchBluebirdRequest = new BatchDistrictRequest(bluebirdRequest);
-                        batchBluebirdRequest.setAddresses(addresses);
-                        batchBluebirdRequest.setPoints(points);
-
-                        List<DistrictResult> districtResults = handleBatchDistrictRequest(batchBluebirdRequest);
-                        districtResponse = new BatchDistrictResponse(districtResults);
-                    }
-                    else {
-                        districtResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
-                    }
-                }
-                break;
-            }
-            default : {
-                districtResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
-            }
-        }
-
-        setApiResponse(districtResponse, request);
-
+    private void logElapsedTime(Timestamp startTime, ApiRequest apiRequest) {
         long elapsedTimeMs = TimeUtil.getElapsedMs(startTime);
         logger.info(String.format("%sDistrict Response %d sent in %d ms.",
                 (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId(), elapsedTimeMs));
