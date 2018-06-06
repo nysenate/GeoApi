@@ -1,11 +1,15 @@
 package gov.nysenate.sage.controller.job;
 
 import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -19,7 +23,8 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Controller
-public class JobDownloadController extends BaseJobController implements Observer
+@RequestMapping(value = ConstantUtil.REST_PATH + "job")
+public class JobDownloadController
 {
     private static Logger logger = LogManager.getLogger(JobDownloadController.class);
     private static String DOWNLOAD_DIR;
@@ -28,27 +33,11 @@ public class JobDownloadController extends BaseJobController implements Observer
     @Autowired
     public JobDownloadController(Environment env) {
         this.env = env;
-    }
-
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        update(null,null);
-    }
-
-    @Override
-    public void update(Observable o, Object arg) {
         DOWNLOAD_DIR = env.getJobDownloadDir();
     }
 
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doGet(request, response);
-    }
-
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        String fileName = request.getPathInfo();
+    @RequestMapping(value = "/download", method = RequestMethod.GET)
+    public void jobDownload(HttpServletRequest request, HttpServletResponse response, @RequestParam String fileName) throws IOException {
         if (fileName != null) {
             fileName = fileName.replaceFirst("/", "");
             File file = new File(DOWNLOAD_DIR + fileName);
