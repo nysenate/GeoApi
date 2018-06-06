@@ -57,7 +57,7 @@ public class GenerateMetadata {
 
         boolean processAssembly = false;
         boolean processCongress = false;
-        boolean processSenate = true;
+        boolean processSenate = false;
 
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
@@ -225,7 +225,7 @@ public class GenerateMetadata {
     private void getUpdatedGeocode(Office senatorOffice) {
         String urlString = ApplicationFactory.getConfig().getValue("base.url") + "/api/v2/geo/geocode?addr1=" +
                 senatorOffice.getStreet() + "&city=" + senatorOffice.getCity() +
-                "&state=NY&zip5=" + senatorOffice.getPostalCode()  + "&bypassCache=false&useFallBack=true";
+                "&state=NY&zip5=" + senatorOffice.getPostalCode();
         urlString = urlString.replaceAll(" ", "%20");
         try {
             URL url = new URL(urlString);
@@ -234,8 +234,14 @@ public class GenerateMetadata {
             JsonNode jsonResonse = new ObjectMapper().readTree(sageReponse);
             IOUtils.closeQuietly(is);
             Geocode geocodedOffice = new ObjectMapper().readValue(jsonResonse.get("geocode").toString(), Geocode.class);
-            senatorOffice.setLatitude( geocodedOffice.getLat() );
-            senatorOffice.setLongitude( geocodedOffice.getLon() );
+            if (geocodedOffice != null) {
+                senatorOffice.setLatitude( geocodedOffice.getLat() );
+                senatorOffice.setLongitude( geocodedOffice.getLon() );
+            }
+            else {
+                System.out.println("SAGE was unable to geocode the address in the url: " + urlString);
+            }
+
         }
         catch (IOException e) {
             System.err.println("Unable to complete geocoding request to Senate Office " + senatorOffice.getStreet() +
