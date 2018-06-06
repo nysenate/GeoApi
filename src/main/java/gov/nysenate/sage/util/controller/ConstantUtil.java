@@ -20,4 +20,8 @@ public class ConstantUtil {
     public static final String ADMIN_REST_PATH = "/admin/";
 
     public static String MAPS_JSP = "/WEB-INF/views/maps.jsp";
+
+    public static String JOB_MAIN_JSP = "/WEB-INF/views/jobmain.jsp";
+    public static String JOB_LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
+    public static String DOWNLOAD_BASE_URL = "/job/download/";
 }

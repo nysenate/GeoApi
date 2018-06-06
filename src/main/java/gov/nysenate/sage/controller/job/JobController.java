@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.result.JobErrorResult;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.JobFileUtil;
 import gov.nysenate.sage.util.auth.JobUserAuth;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.FileUploadException;
@@ -21,6 +22,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 
@@ -34,79 +38,72 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
+import static gov.nysenate.sage.util.controller.ConstantUtil.JOB_LOGIN_JSP;
+import static gov.nysenate.sage.util.controller.ConstantUtil.JOB_MAIN_JSP;
+import static gov.nysenate.sage.util.controller.JobControllerUtil.*;
+
 @Controller
-public class JobController extends BaseJobController
+@RequestMapping(value = ConstantUtil.REST_PATH + "job")
+public class JobController
 {
     private Logger logger = LogManager.getLogger(JobController.class);
     private final Environment env;
 
-    private static String JOB_MAIN_JSP = "/WEB-INF/views/jobmain.jsp";
-    private static String JOB_LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
-    private static String DOWNLOAD_BASE_URL = "/job/download/";
+
 
     @Autowired
     public JobController(Environment env) {
         this.env = env;
     }
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {}
+    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
+        doLogout(request, response);
+        request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
+    }
 
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        String method = request.getPathInfo();
-
-        /* Handle log out */
-        if (method != null && method.equalsIgnoreCase("/logout")) {
-            doLogout(request, response);
-            request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
+    @RequestMapping(value = "/main", method = RequestMethod.GET)
+    public void jobMain(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
+        if (isAuthenticated(request)) {
+            logger.debug("Authenticated! Sending to main job page");
+            /* Clear out previous info */
+            getJobRequest(request).clear();
+            request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
+            request.getRequestDispatcher(JOB_MAIN_JSP).forward(request, response);
         }
-        /* Handle all other requests */
         else {
-            if (isAuthenticated(request)) {
-                logger.debug("Authenticated! Sending to main job page");
-                /* Clear out previous info */
-                getJobRequest(request).clear();
-                request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
-                request.getRequestDispatcher(JOB_MAIN_JSP).forward(request, response);
-            }
-            else {
-                logger.debug("Authentication failed! Sending to login page");
-                request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
-            }
+            logger.debug("Authentication failed! Sending to login page");
+            request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
         }
     }
 
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        String method = request.getPathInfo();
-        if (method != null) {
-            switch (method) {
-                case "/login" : {
-                    doLogin(request, response); break;
-                }
-                case "/upload" : {
-                    doUpload(request, response); break;
-                }
-                case "/submit" : {
-                    doSubmit(request, response); break;
-                }
-                case "/remove" : {
-                    doRemove(request, response); break;
-                }
-                case "/cancel" : {
-                    doCancel(request, response); break;
-                }
-                case "/logout" : {
-                    doLogout(request, response); break;
-                }
-                default : {
-                    request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
-                }
-            }
-        }
+
+
+    //post requests
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    public void jobLogin(HttpServletRequest request, HttpServletResponse response, @RequestParam String email, @RequestParam String password) throws ServletException,IOException {
+        doLogin(request, response, email, password);
+    }
+
+    @RequestMapping(value = "/upload", method = RequestMethod.POST)
+    public void jobUpload(HttpServletRequest request, HttpServletResponse response, @RequestParam String qqfile) {
+        doUpload(request, response, qqfile);
+    }
+
+    @RequestMapping(value = "/submit", method = RequestMethod.POST)
+    public void jobSubmit(HttpServletRequest request, HttpServletResponse response) {
+        doSubmit(request, response);
+    }
+
+    @RequestMapping(value = "/remove", method = RequestMethod.POST)
+    public void jobRemove(HttpServletRequest request, HttpServletResponse response, @RequestParam String fileName) {
+        doRemove(request, response, fileName);
+    }
+
+    @RequestMapping(value = "/cancel", method = RequestMethod.POST)
+    public void jobCancel(HttpServletRequest request, HttpServletResponse response, @RequestParam int id) {
+        doCancel(request, response, id);
     }
 
     /**
@@ -116,11 +113,8 @@ public class JobController extends BaseJobController
      * @throws ServletException An exception containing a message about the root cause
      * @throws IOException An exception containing a message about the root cause
      */
-    public void doLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    public void doLogin(HttpServletRequest request, HttpServletResponse response, String email, String password) throws ServletException, IOException
     {
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-
         JobUserAuth jobUserAuth = new JobUserAuth();
         JobUser jobUser = jobUserAuth.getJobUser(email, password);
         if (jobUser != null) {
@@ -141,13 +135,13 @@ public class JobController extends BaseJobController
      * @param request http request from client
      * @param response http response from sage
      */
-    public void doUpload(HttpServletRequest request, HttpServletResponse response)
+    public void doUpload(HttpServletRequest request, HttpServletResponse response, String qqfile)
     {
         String uploadDir = env.getJobUploadDir();
 
         JobRequest jobRequest = getJobRequest(request);
         Object uploadResponse = null;
-        String sourceFilename = request.getParameter("qqfile");
+        String sourceFilename = qqfile;
 
         BufferedReader sourceReader = null;
         CsvListReader jobReader = null;
@@ -256,10 +250,9 @@ public class JobController extends BaseJobController
         setJobResponse(uploadResponse, response);
     }
 
-    private void doRemove(HttpServletRequest request, HttpServletResponse response)
+    private void doRemove(HttpServletRequest request, HttpServletResponse response, String fileName)
     {
         logger.info("User requested job file removal prior to submission");
-        String fileName = request.getParameter("fileName");
         JobRequest jobRequest = getJobRequest(request);
         if (fileName != null && jobRequest != null) {
             if (jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
@@ -282,7 +275,7 @@ public class JobController extends BaseJobController
      * @param response http response from sage
      * @throws IOException An exception containing a message about the root cause
      */
-    public void doSubmit(HttpServletRequest request, HttpServletResponse response) throws IOException
+    public void doSubmit(HttpServletRequest request, HttpServletResponse response)
     {
         logger.info("Processing Job Request Submission.");
         JobProcessDao jobProcessDao = new JobProcessDao();
@@ -315,19 +308,18 @@ public class JobController extends BaseJobController
      * @param request http request from client
      * @param response http response from sage
      */
-    public void doCancel(HttpServletRequest request, HttpServletResponse response)
+    public void doCancel(HttpServletRequest request, HttpServletResponse response, int id)
     {
         logger.info("Cancelling job process");
         try {
-            int processId = Integer.parseInt(request.getParameter("id"));
             JobProcessDao jobProcessDao = new JobProcessDao();
-            JobProcessStatus jps = jobProcessDao.getJobProcessStatus(processId);
+            JobProcessStatus jps = jobProcessDao.getJobProcessStatus(id);
             jps.setCondition(JobProcessStatus.Condition.CANCELLED);
             jps.setCompleted(false);
             jps.setMessages(Arrays.asList("Cancelled by user",""));
             int update = jobProcessDao.setJobProcessStatus(jps);
             if (update > 0) {
-                setJobResponse(new JobActionResponse(true, "Job " + processId + " has been cancelled."), response);
+                setJobResponse(new JobActionResponse(true, "Job " + id + " has been cancelled."), response);
                 return;
             }
         }
@@ -343,7 +335,7 @@ public class JobController extends BaseJobController
      * @param response http response from sage
      * @throws IOException An exception containing a message about the root cause
      */
-    public void doLogout(HttpServletRequest request, HttpServletResponse response) throws IOException
+    public void doLogout(HttpServletRequest request, HttpServletResponse response)
     {
         unsetJobUser(request);
     }
