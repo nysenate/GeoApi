@@ -12,7 +12,7 @@
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/admin.css">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script  async defer type="text/javascript" src="https://maps.google.com/maps/api/js?v=3&key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&libraries=places"></script>
+        <script  async defer type="text/javascript" src="https://maps.google.com/maps/api/js?v=3&libraries=places"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/vendor/highcharts.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/common.js" type="text/javascript"></script>
