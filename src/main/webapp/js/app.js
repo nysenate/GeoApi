@@ -158,7 +158,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         if (center) {
             this.map.setCenter(this.activeMarker.position);
         }
-        console.log("Titles comp: " + (title !== ''));
+        // console.log("Titles comp: " + (title !== ''));
         if (title !== '') {
             marker.addListener('mouseover', function() {
                 mapService.tooltipEl.text(title);

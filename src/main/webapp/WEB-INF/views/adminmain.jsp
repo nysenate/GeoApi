@@ -1,8 +1,10 @@
+<%@ page import="gov.nysenate.sage.factory.ApplicationFactory" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 
 <fmt:setLocale value="es_ES"/>
+<% request.setAttribute( "googleMapsUrl" ,ApplicationFactory.getConfig().getValue("google.maps.url"));%>
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage-admin</jsp:attribute>
     <jsp:attribute name="title">SAGE - Admin Console</jsp:attribute>
@@ -12,7 +14,7 @@
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/admin.css">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script  async defer type="text/javascript" src="https://maps.google.com/maps/api/js?v=3&libraries=places"></script>
+        <script  async defer type="text/javascript" src="${googleMapsUrl}"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/vendor/highcharts.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/common.js" type="text/javascript"></script>

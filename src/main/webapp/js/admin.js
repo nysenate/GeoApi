@@ -575,7 +575,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         if (clear) {
             $scope.clearMarkers();
         }
-        console.log(title);
+        // console.log(title);
 
         var marker = new google.maps.Marker({
             map: $scope.map,
