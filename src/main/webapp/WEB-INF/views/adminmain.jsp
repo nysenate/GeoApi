@@ -302,7 +302,7 @@
                                         Quality: {{geocache_json.geocode.quality || ""}}
                                         Method:{{geocache_json.geocode.method || ""}} </p>
 
-                                    <label for="google_coords">Google:
+                                    <label for="google_coords" ng-show="geo_google_status">Google:
                                         <p ng-show="geo_google_status">Lat: {{geo_google_json.geocode.lat || ""}} Lon:
                                             {{geo_google_json.geocode.lon || ""}} <br>
                                             Quality: {{geo_google_json.geocode.quality || ""}}
@@ -311,7 +311,7 @@
                                     <input ng-show="geo_google_status" type="radio" id="google_coords"
                                            ng-model="selected_provider" value="Google">
                                     <br>
-                                    <label for="tiger_coords">Tiger:
+                                    <label for="tiger_coords" ng-show="geo_tiger_status">Tiger:
                                         <p ng-show="geo_tiger_status">Lat: {{geo_tiger_json.geocode.lat || ""}} Lon:
                                             {{geo_tiger_json.geocode.lon || ""}} <br>
                                             Quality: {{geo_tiger_json.geocode.quality || ""}}

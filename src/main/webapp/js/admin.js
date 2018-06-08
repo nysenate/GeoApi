@@ -407,11 +407,11 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
             .success(function(data){
                 if (data) {
                     $scope.geo_google_json = data;
-                    $scope.geo_google_status = true;
 
                     console.log($scope.geo_google_json.geocode);
 
-                    if ($scope.geo_google_json.geocode != null) {
+                    if (($scope.geo_google_json.geocode !== null) && ($scope.geo_google_json.status !== "NO_GEOCODE_RESULT")){
+                        $scope.geo_google_status = true;
                         $scope.geo_google_geocode_status = true;
                         $scope.setMarker($scope.geo_google_json.geocode.lat,$scope.geo_google_json.geocode.lon,"Google",false,true);
                     }
@@ -436,11 +436,13 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
             .success(function(data){
                 if (data) {
                     $scope.geo_tiger_json = data;
-                    $scope.geo_tiger_status = true;
 
                     console.log($scope.geo_tiger_json.geocode);
+                    console.log($scope.geo_tiger_json.status);
+                    //NO_GEOCODE_RESULT
 
-                    if ($scope.geo_tiger_json.geocode != null) {
+                    if (($scope.geo_tiger_json.geocode !== null) && ($scope.geo_tiger_json.status !== "NO_GEOCODE_RESULT")) {
+                        $scope.geo_tiger_status = true;
                         $scope.geo_tiger_geocode_status = true;
                         $scope.setMarker($scope.geo_tiger_json.geocode.lat,$scope.geo_tiger_json.geocode.lon,"Tiger",false,true);
                     }
@@ -465,13 +467,15 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
             .success(function(data){
                 if (data) {
                     $scope.geocache_json = data;
-                    $scope.geocache_status = true;
+
                     console.log($scope.geocache_json.geocode);
 
-                    if ($scope.geocache_json.geocode != null) {
+                    if (($scope.geocache_json.geocode !== null) && ($scope.geocache_json.status !== "NO_GEOCODE_RESULT")){
+                        $scope.geocache_status = true;
                         $scope.geocode_status = true;
                         $scope.setMarker($scope.geocache_json.geocode.lat,$scope.geocache_json.geocode.lon,"Geocache",false,true);
                     }
+                    console.log($scope.geocache_status);
                 }
             })
             .error(function(data){
@@ -497,7 +501,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
                     console.log($scope.geocache_result_json.geocode);
 
-                    if ($scope.geocache_result_json.geocode != null) {
+                    if (($scope.geocache_result_json.geocode != null) && ($scope.geocache_json.status !== "NO_GEOCODE_RESULT")){
                         $scope.geocode_result_status = true;
                     }
                 }
@@ -544,6 +548,8 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.resetOnChange = function() {
         $scope.district_assign_status = false;
         $scope.geocache_status = false;
+        $scope.geo_tiger_status = false;
+        $scope.geo_google_status = false;
         $scope.geo_comparison_status = false;
         $scope.geocache_result_status = false;
         $scope.selected_provider = "";
