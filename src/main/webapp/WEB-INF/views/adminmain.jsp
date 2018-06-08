@@ -250,25 +250,25 @@
                              ng-show="determineActiveTab('geocaching')">
                             <p class="blue-header">Geocache Address</p>
                             <hr/>
-                            <p ng-show="!seperatedInput">Be sure to separate input with commas, (i.e. 200 State Street,
+                            <p ng-show="!separatedInput">Be sure to separate input with commas, (i.e. 200 State Street,
                                 Albany, NY, 12210)</p>
-                            <p ng-show="seperatedInput">The state is assumed to be NY</p>
+                            <p ng-show="separatedInput">The state is assumed to be NY</p>
                             <hr/>
                             <button class="toggle" style="width: auto;padding: 5px 10px;"
-                                    ng-click="toggleInputSeperation()">Toggle Input Seperation
+                                    ng-click="toggleInputSeparation()">Toggle Input Separation
                             </button>
                             <br>
                             <br>
 
                             <form>
 
-                                <div ng-show="!seperatedInput">
+                                <div ng-show="!separatedInput">
                                     <label for="input_addr_input">Address: </label>
                                     <input id="input_addr_input" ng-model="input_addr" type="text" size="50"
                                            ng-change="resetOnChange()">
                                 </div>
 
-                                <div ng-show="seperatedInput">
+                                <div ng-show="separatedInput">
                                     <label for="input_addr1_input">Addr1: </label>
                                     <input id="input_addr1_input" ng-model="input_addr1" type="text" size="28"
                                            ng-change="resetOnChange()">

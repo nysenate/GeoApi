@@ -248,7 +248,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.selected_provider = "";
         $scope.geocache_status = false;
         $scope.district_assign_status = false;
-        $scope.seperatedInput = false;
+        $scope.separatedInput = false;
         $scope.geo_comparison_status = false;
         $scope.geo_provider_to_use = "";
         $scope.activeComparisonTab = "";
@@ -259,7 +259,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.input_addr1 = "";
     $scope.input_city = "";
     $scope.input_zip5 = "";
-    $scope.seperatedInput = false;
+    $scope.separatedInput = false;
     $scope.selected_provider = "";
     $scope.geo_comparison_status = false;
     $scope.activeComparisonTab = "";
@@ -341,7 +341,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
 
     $scope.admin_district_assign_shape = function() {
-        if (!$scope.seperatedInput) {
+        if (!$scope.separatedInput) {
             $scope.district_assign_shape_url = baseApi + "district/assign?addr=" + $scope.input_addr + "&provider=shapefile";
         }
         else {
@@ -368,7 +368,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     };
 
     $scope.admin_district_assign_street = function() {
-        if (!$scope.seperatedInput) {
+        if (!$scope.separatedInput) {
             $scope.district_assign_street_url = baseApi + "district/assign?addr=" + $scope.input_addr + "&provider=streetfile";
         }
         else {
@@ -396,7 +396,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
     $scope.callGoogle = function() {
 
-        if (!$scope.seperatedInput) {
+        if (!$scope.separatedInput) {
             $scope.geo_google_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=google&useFallback=false&doNotCache=true";
         }
         else {
@@ -425,7 +425,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
     $scope.callTiger = function() {
 
-        if (!$scope.seperatedInput) {
+        if (!$scope.separatedInput) {
             $scope.geo_tiger_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true";
         }
         else {
@@ -454,7 +454,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
     $scope.callGeocache = function() {
 
-        if (!$scope.seperatedInput) {
+        if (!$scope.separatedInput) {
             $scope.geocache_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&provider=geocache&useFallback=false";
         }
         else {
@@ -482,7 +482,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
     $scope.updateGeocache = function() {
 
-        if (!$scope.seperatedInput) {
+        if (!$scope.separatedInput) {
             $scope.geocache_result_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&doNotCache=false&provider=" + $scope.selected_provider;
         }
         else {
@@ -522,7 +522,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     });
 
     $scope.isValidInfo = function() {
-        if (!$scope.seperatedInput) {
+        if (!$scope.separatedInput) {
             return $scope.input_addr !== "";
         }
         else {
@@ -535,8 +535,9 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         return $scope.selected_provider !== "";
     };
 
-    $scope.toggleInputSeperation = function() {
-        $scope.seperatedInput = !$scope.seperatedInput;
+    $scope.toggleInputSeparation = function() {
+        $scope.separatedInput = !$scope.separatedInput;
+        console.log($scope.separatedInput);
        $scope.resetOnChange();
     };
 
