@@ -4,7 +4,6 @@ import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.DistrictResultLogger;
 import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.dao.model.JobProcessDao;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -136,13 +135,6 @@ public class JobBatchProcessor {
 
             /** Clean up and exit */
             logger.info("Wrapping things up..");
-
-//            /** Add a hook to close out db connections on termination */
-//            Runtime.getRuntime().addShutdownHook(new Thread() {
-//                public void run() {
-//                    ApplicationFactory.close();
-//                }
-//            });
         }
         else {
             System.err.println("Usage: jobBatchProcessor [process | clean]");
@@ -433,7 +425,7 @@ public class JobBatchProcessor {
     /**
      * A callable for the executor to perform address validation for a JobBatch.
      */
-    public JobBatch validateJobBatc(JobBatch jobBatch) throws Exception
+    public JobBatch validateJobBatch(JobBatch jobBatch) throws Exception
     {
         List<AddressResult> addressResults = addressProvider.validate(jobBatch.getAddresses(), null, false);
         if (addressResults.size() == jobBatch.getAddresses().size()) {
@@ -449,10 +441,12 @@ public class JobBatchProcessor {
     {
         private JobBatch jobBatch;
         private JobProcess jobProcess;
+        private  AddressServiceProvider addressProvider;
 
-        public ValidateJobBatch(JobBatch jobBatch, JobProcess jobProcess) {
+        public ValidateJobBatch(JobBatch jobBatch, JobProcess jobProcess, AddressServiceProvider addressProvider) {
             this.jobBatch = jobBatch;
             this.jobProcess = jobProcess;
+            this.addressProvider = addressProvider;
         }
 
         @Override
@@ -477,14 +471,24 @@ public class JobBatchProcessor {
         private Future<JobBatch> futureJobBatch;
         private JobProcess jobProcess;
 
-        public GeocodeJobBatch(JobBatch jobBatch, JobProcess jobProcess) {
+        private GeocodeServiceProvider geocodeServiceProvider;
+        private GeocodeResultLogger geocodeResultLogger;
+
+        public GeocodeJobBatch(JobBatch jobBatch, JobProcess jobProcess,
+                               GeocodeServiceProvider geocodeServiceProvider,
+                               GeocodeResultLogger geocodeResultLogger) {
             this.jobBatch = jobBatch;
             this.jobProcess = jobProcess;
         }
 
-        public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, JobProcess jobProcess) {
+        public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, JobProcess jobProcess,
+                               GeocodeServiceProvider geocodeServiceProvider,
+                               GeocodeResultLogger geocodeResultLogger) {
             this.futureJobBatch = futureValidatedJobBatch;
             this.jobProcess = jobProcess;
+
+            this.geocodeServiceProvider = geocodeServiceProvider;
+            this.geocodeResultLogger = geocodeResultLogger;
         }
 
         @Override
@@ -502,7 +506,7 @@ public class JobBatchProcessor {
             batchGeoRequest.setUseFallback(true);
             batchGeoRequest.setRequestTime(TimeUtil.currentTimestamp());
 
-            List<GeocodeResult> geocodeResults = geocodeProvider.geocode(batchGeoRequest);
+            List<GeocodeResult> geocodeResults = geocodeServiceProvider.geocode(batchGeoRequest);
             if (geocodeResults.size() == jobBatch.getJobRecords().size()) {
                 for (int i = 0; i < geocodeResults.size(); i++) {
                     jobBatch.setGeocodeResult(i, geocodeResults.get(i));
@@ -531,7 +535,11 @@ public class JobBatchProcessor {
         private List<DistrictType> districtTypes;
         private DistrictStrategy districtStrategy = DistrictStrategy.shapeFallback;
 
-        public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types, JobProcess jobProcess)
+        private DistrictServiceProvider districtServiceProvider;
+        private DistrictResultLogger districtResultLogger;
+
+        public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types, JobProcess jobProcess,
+                                DistrictServiceProvider districtServiceProvider, DistrictResultLogger districtResultLogger)
                 throws InterruptedException, ExecutionException
         {
             this.jobProcess = jobProcess;
@@ -541,6 +549,8 @@ public class JobBatchProcessor {
             if (this.districtTypes.contains(DistrictType.TOWN) || this.districtTypes.contains(DistrictType.SCHOOL)) {
                 this.districtStrategy = DistrictStrategy.streetFallback;
             }
+            this.districtServiceProvider = districtServiceProvider;
+            this.districtResultLogger = districtResultLogger;
         }
 
         @Override
@@ -556,7 +566,7 @@ public class JobBatchProcessor {
             batchDistRequest.setRequestTime(TimeUtil.currentTimestamp());
             batchDistRequest.setDistrictStrategy(this.districtStrategy);
 
-            List<DistrictResult> districtResults = districtProvider.assignDistricts(batchDistRequest);
+            List<DistrictResult> districtResults = districtServiceProvider.assignDistricts(batchDistRequest);
             for (int i = 0; i < districtResults.size(); i++) {
                 jobBatch.setDistrictResult(i, districtResults.get(i));
             }
@@ -651,3 +661,4 @@ public class JobBatchProcessor {
         logger.info("[RUNTIME STATS]: Free Memory - " + Runtime.getRuntime().freeMemory() + " bytes.");
         logger.info("[RUNTIME STATS]: Total Memory - " + Runtime.getRuntime().totalMemory() + " bytes.");
     }
+}
