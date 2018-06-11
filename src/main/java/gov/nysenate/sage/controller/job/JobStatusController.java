@@ -5,10 +5,15 @@ import gov.nysenate.sage.dao.model.JobProcessDao;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -22,6 +27,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
+import static gov.nysenate.sage.util.controller.JobControllerUtil.getJobUser;
+import static gov.nysenate.sage.util.controller.JobControllerUtil.isAuthenticated;
+import static gov.nysenate.sage.util.controller.JobControllerUtil.setJobResponse;
+
 /**
  * This controller provides an API for accessing the status of a batch job request.
  * The available calls are as follows:
@@ -33,7 +42,8 @@ import java.util.List;
  *    /job/status/all                   - Get all processes (basically a job history)
  */
 @Controller
-public class JobStatusController extends BaseJobController
+@RequestMapping(value = ConstantUtil.REST_PATH + "job/status")
+public class JobStatusController
 {
     private static Logger logger = LogManager.getLogger(JobStatusController.class);
     private static JobProcessDao jobProcessDao;
@@ -45,76 +55,81 @@ public class JobStatusController extends BaseJobController
         this.jobProcessDao = jobProcessDao;
     }
 
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        doGet(request, response);
-    }
-
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
+    @RequestMapping(value = "/process/{processId}", method = RequestMethod.GET)
+    public void jobProcess(HttpServletRequest request, HttpServletResponse response,
+                                     @PathVariable int processId) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
         if (isAuthenticated(request)) {
-            String pathInfo[] = request.getPathInfo().replaceFirst("^/", "").split("/");
-            List<String> args = new ArrayList<>(Arrays.asList(pathInfo));
-            String method = (args.size() > 0) ? args.get(0) : "";
             JobUser jobUser = getJobUser(request);
-
             boolean running = isProcessorRunning();
-
-            if (method != null) {
-                switch (method) {
-                    case "process" : {
-                        if (args.size() == 2) {
-                            try {
-                                int processId = Integer.parseInt(args.get(1));
-                                statusResponse = new JobStatusResponse(getJobProcessStatusById(processId, jobUser), running);
-                            }
-                            catch (NumberFormatException ex) {
-                                statusResponse = new JobStatusResponse(new JobErrorResult("Process id must be an integer!"));
-                            }
-                        }
-                        else {
-                            statusResponse = new JobStatusResponse(new JobErrorResult("Specify the process id!"));
-                        }
-                        break;
-                    }
-                    case "running" : {
-                        statusResponse = new JobStatusResponse(getRunningJobProcesses(jobUser), running);
-                        break;
-                    }
-                    case "active" : {
-                        statusResponse = new JobStatusResponse(getActiveJobProcesses(jobUser), running);
-                        break;
-                    }
-                    case "inactive" : {
-                        statusResponse = new JobStatusResponse(getInactiveJobProcesses(jobUser), running);
-                        break;
-                    }
-                    case "completed" : {
-                        statusResponse = new JobStatusResponse(getRecentlyCompletedJobProcesses(jobUser), running);
-                        break;
-                    }
-                    case "processor" : {
-                        statusResponse = isProcessorRunning();
-                        break;
-                    }
-                    case "all" : {
-                        statusResponse = new JobStatusResponse(getAllJobProcesses(jobUser), running);
-                        break;
-                    }
-                }
-            }
-        }
-        else {
-            setJobResponse(new JobStatusResponse(new JobErrorResult("You must be logged in to access job status.")), response);
+            statusResponse = new JobStatusResponse(getJobProcessStatusById(processId, jobUser), running);
         }
         setJobResponse(statusResponse, response);
     }
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {}
+    @RequestMapping(value = "/running", method = RequestMethod.GET)
+    public void jobRunning(HttpServletRequest request, HttpServletResponse response) {
+        Object statusResponse = new JobErrorResult("Failed to process request!");
+        if (isAuthenticated(request)) {
+            JobUser jobUser = getJobUser(request);
+            boolean running = isProcessorRunning();
+            statusResponse = new JobStatusResponse(getRunningJobProcesses(jobUser), running);
+        }
+        setJobResponse(statusResponse, response);
+    }
+
+    @RequestMapping(value = "/active", method = RequestMethod.GET)
+    public void jobActive(HttpServletRequest request, HttpServletResponse response) {
+        Object statusResponse = new JobErrorResult("Failed to process request!");
+        if (isAuthenticated(request)) {
+            JobUser jobUser = getJobUser(request);
+            boolean running = isProcessorRunning();
+            statusResponse = new JobStatusResponse(getActiveJobProcesses(jobUser), running);
+        }
+        setJobResponse(statusResponse, response);
+    }
+
+    @RequestMapping(value = "/inactive", method = RequestMethod.GET)
+    public void jobInactive(HttpServletRequest request, HttpServletResponse response) {
+        Object statusResponse = new JobErrorResult("Failed to process request!");
+        if (isAuthenticated(request)) {
+            JobUser jobUser = getJobUser(request);
+            boolean running = isProcessorRunning();
+            statusResponse = new JobStatusResponse(getInactiveJobProcesses(jobUser), running);
+        }
+        setJobResponse(statusResponse, response);
+    }
+
+    @RequestMapping(value = "/completed", method = RequestMethod.GET)
+    public void jobCompleted(HttpServletRequest request, HttpServletResponse response) {
+        Object statusResponse = new JobErrorResult("Failed to process request!");
+        if (isAuthenticated(request)) {
+            JobUser jobUser = getJobUser(request);
+            boolean running = isProcessorRunning();
+            statusResponse = new JobStatusResponse(getRecentlyCompletedJobProcesses(jobUser), running);
+        }
+        setJobResponse(statusResponse, response);
+    }
+
+    @RequestMapping(value = "/processor", method = RequestMethod.GET)
+    public void jobProcessor(HttpServletRequest request, HttpServletResponse response) {
+        Object statusResponse = new JobErrorResult("Failed to process request!");
+        if (isAuthenticated(request)) {
+            statusResponse = isProcessorRunning();
+        }
+        setJobResponse(statusResponse, response);
+    }
+
+    @RequestMapping(value = "/All", method = RequestMethod.GET)
+    public void jobAll(HttpServletRequest request, HttpServletResponse response) {
+        Object statusResponse = new JobErrorResult("Failed to process request!");
+        if (isAuthenticated(request)) {
+            JobUser jobUser = getJobUser(request);
+            boolean running = isProcessorRunning();
+            statusResponse = new JobStatusResponse(getAllJobProcesses(jobUser), running);
+        }
+        setJobResponse(statusResponse, response);
+    }
 
     private JobProcessStatus getJobProcessStatusById(int processId, JobUser jobUser)
     {
