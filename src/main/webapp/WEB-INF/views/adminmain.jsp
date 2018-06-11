@@ -4,7 +4,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 
 <fmt:setLocale value="es_ES"/>
-<% request.setAttribute( "googleMapsUrl" ,ApplicationFactory.getConfig().getValue("google.maps.url"));%>
+<% request.setAttribute("googleMapsUrl", ApplicationFactory.getConfig().getValue("google.maps.url"));%>
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage-admin</jsp:attribute>
     <jsp:attribute name="title">SAGE - Admin Console</jsp:attribute>
@@ -14,8 +14,9 @@
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/admin.css">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script  async defer type="text/javascript" src="${googleMapsUrl}"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js"></script>
+        <script async defer type="text/javascript" src="${googleMapsUrl}"></script>
+        <script type="text/javascript"
+                src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/vendor/highcharts.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/common.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/admin.js" type="text/javascript"></script>
@@ -291,34 +292,48 @@
                             </form>
                             <hr/>
 
-                            <div id="geocache_map" style="width: 850px; height: 450px; margin-left: auto; margin-right: auto; margin-top: 20px !important;"></div>
+                            <div id="geocache_map"
+                                 style="width: 850px; height: 450px; margin-left: auto; margin-right: auto; margin-top: 20px !important;"></div>
 
                             <div>
                                 <hr ng-show="geo_comparison_status"/>
                                 <form ng-show="geo_comparison_status">
+                                    <div>
+                                        <p ng-show="geocache_status">Geocache: <br>Lat: {{geocache_json.geocode.lat ||
+                                            ""}}
+                                            Lon: {{geocache_json.geocode.lon || ""}} <br>
+                                            Quality: {{geocache_json.geocode.quality || ""}}
+                                            Method:{{geocache_json.geocode.method || ""}} </p>
+                                    </div>
 
-                                    <p ng-show="geocache_status">Geocache: <br>Lat: {{geocache_json.geocode.lat || ""}}
-                                        Lon: {{geocache_json.geocode.lon || ""}} <br>
-                                        Quality: {{geocache_json.geocode.quality || ""}}
-                                        Method:{{geocache_json.geocode.method || ""}} </p>
-
-                                    <label for="google_coords" ng-show="geo_google_status">Google:
-                                        <p ng-show="geo_google_status">Lat: {{geo_google_json.geocode.lat || ""}} Lon:
-                                            {{geo_google_json.geocode.lon || ""}} <br>
-                                            Quality: {{geo_google_json.geocode.quality || ""}}
-                                            Method:{{geo_google_json.geocode.method || ""}} </p>
-                                    </label>
-                                    <input ng-show="geo_google_status" type="radio" id="google_coords"
-                                           ng-model="selected_provider" value="Google">
                                     <br>
-                                    <label for="tiger_coords" ng-show="geo_tiger_status">Tiger:
-                                        <p ng-show="geo_tiger_status">Lat: {{geo_tiger_json.geocode.lat || ""}} Lon:
-                                            {{geo_tiger_json.geocode.lon || ""}} <br>
-                                            Quality: {{geo_tiger_json.geocode.quality || ""}}
-                                            Method:{{geo_tiger_json.geocode.method || ""}} </p>
-                                    </label>
-                                    <input ng-show="geo_tiger_status" type="radio" ng-model="selected_provider"
-                                           id="tiger_coords" value="Tiger"> <br><br>
+
+                                    <div>
+                                        <label for="google_coords" ng-show="geo_google_status">Google:
+                                            <p ng-show="geo_google_status">Lat: {{geo_google_json.geocode.lat || ""}}
+                                                Lon:
+                                                {{geo_google_json.geocode.lon || ""}} <br>
+                                                Quality: {{geo_google_json.geocode.quality || ""}}
+                                                Method:{{geo_google_json.geocode.method || ""}} </p>
+                                        </label>
+                                        <input ng-show="geo_google_status" type="radio" id="google_coords"
+                                               ng-model="selected_provider" value="Google">
+                                    </div>
+
+                                    <br>
+
+                                    <div>
+                                        <label for="tiger_coords" ng-show="geo_tiger_status">Tiger:
+                                            <p ng-show="geo_tiger_status">Lat: {{geo_tiger_json.geocode.lat || ""}} Lon:
+                                                {{geo_tiger_json.geocode.lon || ""}} <br>
+                                                Quality: {{geo_tiger_json.geocode.quality || ""}}
+                                                Method:{{geo_tiger_json.geocode.method || ""}} </p>
+                                        </label>
+                                        <input ng-show="geo_tiger_status" type="radio" ng-model="selected_provider"
+                                               id="tiger_coords" value="Tiger">
+                                    </div>
+
+                                    <br>
                                     <button type="submit" name="update_geocache" class="geocache"
                                             style="width: auto;padding: 5px 10px;"
                                             ng-click="updateGeocache()" ng-disabled="!isProviderSelected()">Update
@@ -341,16 +356,27 @@
                                     Quality: {{geocache_result_json.geocode.quality}}
                                     Method:{{geocache_result_json.geocode.method}}</p>
                                 <br>
-                                <button ng-click="toggleGeocacheResultJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
-                                <p ng-show="geocache_result_show_json" class="panel" style="word-wrap: break-word">{{geocache_result_json}}</p>
+                                <button ng-click="toggleGeocacheResultJson()" class="toggle"
+                                        style="width: auto;padding: 5px 10px;">Toggle Json
+                                </button>
+                                <p ng-show="geocache_result_show_json" class="panel" style="word-wrap: break-word">
+                                    {{geocache_result_json}}</p>
                             </div>
 
                             <hr ng-show="geo_comparison_status"/>
                             <div ng-show="geo_comparison_status">
-                                <button ng-click="changeCompTab('geocache')" class="toggle" style="width: auto;padding: 5px 10px;">Geocache</button>
-                                <button ng-click="changeCompTab('google')" class="toggle" style="width: auto;padding: 5px 10px;">Google</button>
-                                <button ng-click="changeCompTab('tiger')" class="toggle" style="width: auto;padding: 5px 10px;">Tiger</button>
-                                <button ng-click="changeCompTab('street')" class="toggle" style="width: auto;padding: 5px 10px;">Street District Assign</button>
+                                <button ng-click="changeCompTab('geocache')" class="toggle"
+                                        style="width: auto;padding: 5px 10px;">Geocache
+                                </button>
+                                <button ng-click="changeCompTab('google')" class="toggle"
+                                        style="width: auto;padding: 5px 10px;">Google
+                                </button>
+                                <button ng-click="changeCompTab('tiger')" class="toggle"
+                                        style="width: auto;padding: 5px 10px;">Tiger
+                                </button>
+                                <button ng-click="changeCompTab('street')" class="toggle"
+                                        style="width: auto;padding: 5px 10px;">Street District Assign
+                                </button>
                             </div>
 
 
@@ -367,7 +393,9 @@
                                         Method:{{geocache_json.geocode.method}}
                                     </p>
                                     <br>
-                                    <button ng-click="toggleGeocacheJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                    <button ng-click="toggleGeocacheJson()" class="toggle"
+                                            style="width: auto;padding: 5px 10px;">Toggle Json
+                                    </button>
                                     <p ng-show="geocache_show_json" style="word-wrap: break-word">{{geocache_json}}</p>
                                 </div>
 
@@ -383,7 +411,9 @@
                                         Quality: {{geo_google_json.geocode.quality}}
                                         Method:{{geo_google_json.geocode.method}}</p>
                                     <br>
-                                    <button ng-click="toggleGoogleJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                    <button ng-click="toggleGoogleJson()" class="toggle"
+                                            style="width: auto;padding: 5px 10px;">Toggle Json
+                                    </button>
                                     <p ng-show="geo_google_show_json" style="word-wrap: break-word">
                                         {{geo_google_json}}</p>
                                 </div>
@@ -402,7 +432,9 @@
                                         Method:{{geo_tiger_json.geocode.method}}
                                     </p>
                                     <br>
-                                    <button ng-click="toggleTigerJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                    <button ng-click="toggleTigerJson()" class="toggle"
+                                            style="width: auto;padding: 5px 10px;">Toggle Json
+                                    </button>
                                     <p ng-show="geo_tiger_show_json" style="word-wrap: break-word">
                                         {{geo_tiger_json}}</p>
                                 </div>
@@ -448,7 +480,9 @@
 
                                     </p>
                                     <br>
-                                    <button ng-click="toggleStreetDistAssignJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                    <button ng-click="toggleStreetDistAssignJson()" class="toggle"
+                                            style="width: auto;padding: 5px 10px;">Toggle Json
+                                    </button>
                                     <p ng-show="district_assign_street_show_json" style="word-wrap: break-word">
                                         {{district_assign_street_json}}</p>
                                 </div>
@@ -493,7 +527,9 @@
 
                                     </p>
                                     <br>
-                                    <button ng-click="toggleShapeDistAssignJson()" class="toggle" style="width: auto;padding: 5px 10px;">Toggle Json</button>
+                                    <button ng-click="toggleShapeDistAssignJson()" class="toggle"
+                                            style="width: auto;padding: 5px 10px;">Toggle Json
+                                    </button>
                                     <p ng-show="district_assign_shape_show_json" style="word-wrap: break-word">
                                         {{district_assign_shape_json}}</p>
                                 </div>
