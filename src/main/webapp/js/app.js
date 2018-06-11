@@ -141,7 +141,8 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         var marker = new google.maps.Marker({
             map: mapService.map,
             position: new google.maps.LatLng(lat, lon),
-            draggable:false
+            draggable:false,
+            title: title
         });
 
         if (clickContent) {
@@ -157,20 +158,6 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         this.markers.push(marker);
         if (center) {
             this.map.setCenter(this.activeMarker.position);
-        }
-        console.log("Titles comp: " + (title !== ''));
-        if (title !== '') {
-            marker.addListener('mouseover', function() {
-                mapService.tooltipEl.text(title);
-                mapService.tooltipEl.show();
-            });
-            marker.addListener('click', function() {
-                mapService.tooltipEl.text(title);
-                mapService.tooltipEl.show();
-            });
-            marker.addListener('mouseout', function() {
-                mapService.tooltipEl.hide();
-            });
         }
     };
 

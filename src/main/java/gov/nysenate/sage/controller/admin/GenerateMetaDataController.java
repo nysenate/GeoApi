@@ -195,8 +195,13 @@ public class GenerateMetaDataController {
             JsonNode jsonResonse = new ObjectMapper().readTree(sageReponse);
             IOUtils.closeQuietly(is);
             Geocode geocodedOffice = new ObjectMapper().readValue(jsonResonse.get("geocode").toString(), Geocode.class);
-            senatorOffice.setLatitude( geocodedOffice.getLat() );
-            senatorOffice.setLongitude( geocodedOffice.getLon() );
+            if (geocodedOffice != null) {
+                senatorOffice.setLatitude( geocodedOffice.getLat() );
+                senatorOffice.setLongitude( geocodedOffice.getLon() );
+            }
+            else {
+                logger.warn("SAGE was unable to geocode the address in the url: " + urlString);
+            }
         }
         catch (IOException e) {
             logger.error("Unable to complete geocoding request to Senate Office " + senatorOffice.getStreet() +
