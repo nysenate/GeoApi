@@ -27,7 +27,7 @@ public abstract class GeocodeTestBase
 {
     private static Logger logger = Logger.getLogger(GeocodeTestBase.class);
     /** Indicates how far apart two lat or lon values can be and yet considered similar. */
-    private static double GEOCODE_EPSILON = 0.1;
+    private static double GEOCODE_EPSILON = 0.2;
 
     public static ArrayList<Address> addresses = new ArrayList<>(Arrays.asList(
             new Address("214 8th Street", "", "Troy", "NY", "12180", ""),
@@ -83,11 +83,11 @@ public abstract class GeocodeTestBase
                 new Address("18 Greenhaven Dr", "" ,"Port Jefferson Station", "NY", "11776", "")));
 
         ArrayList<Geocode> expectedGeocode = new ArrayList<>(Arrays.asList(
-                new Geocode(new Point(42.735304,-73.682604), null, null),
-                new Geocode(new Point( 42.077854,-78.429005), null, null),
-                new Geocode(new Point(42.068408,-78.414054), null, null),
-                new Geocode(new Point(42.670583,-73.799606), null, null),
-                new Geocode(new Point(40.914464,-73.057044), null, null)));
+                new Geocode(new Point(42.735240846109576, -73.68281736214925), null, null),
+                new Geocode(new Point( 42.07758488174446, -78.42985558117132), null, null),
+                new Geocode(new Point(42.06857062361315, -78.41382617654084), null, null),
+                new Geocode(new Point(42.67166963437981, -73.79857701653509), null, null),
+                new Geocode(new Point(40.91447799244534, -73.05684231135687), null, null)));
 
         ArrayList<GeocodeResult> geocodeResults = geocodeService.geocode(addresses);
         logger.debug(FormatUtil.toJsonString(geocodeResults));
