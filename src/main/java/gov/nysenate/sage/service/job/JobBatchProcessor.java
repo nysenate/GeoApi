@@ -19,6 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvListReader;
@@ -37,11 +38,11 @@ import java.util.concurrent.*;
 
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
 import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
+import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 
 @Service
 public class JobBatchProcessor {
 
-    private static Config config;
     private static String BASE_URL;
     private static String UPLOAD_DIR;
     private static String DOWNLOAD_DIR;
@@ -80,7 +81,7 @@ public class JobBatchProcessor {
         BASE_URL = env.getBaseUrl();
         UPLOAD_DIR = env.getJobUploadDir();
         DOWNLOAD_DIR = env.getJobDownloadDir();
-        DOWNLOAD_URL = BASE_URL + "/job/download/";
+        DOWNLOAD_URL = BASE_URL + DOWNLOAD_BASE_URL;
         ADDRESS_THREAD_COUNT = env.getJobThreadsValidate();
         GEOCODE_THREAD_COUNT = env.getJobThreadsGeocode();
         DISTRICT_THREAD_COUNT = env.getJobThreadsDistassign();
@@ -102,7 +103,9 @@ public class JobBatchProcessor {
     public void run(String[] args) throws Exception
     {
         /** Ensure another job process is not running */
-        checkLockFile();
+        if (checkLockFile()) {
+            return;
+        }
 
         if (args.length > 0) {
 
@@ -137,20 +140,19 @@ public class JobBatchProcessor {
             logger.info("Wrapping things up..");
         }
         else {
-            System.err.println("Usage: jobBatchProcessor [process | clean]");
-            System.err.println("Process: Iterates through all pending jobs and completes them.");
-            System.err.println("Clean:   Cancels all running jobs.");
+            logger.error("Usage: jobBatchProcessor [process | clean]");
+            logger.error("Process: Iterates through all pending jobs and completes them.");
+            logger.error("Clean:   Cancels all running jobs.");
         }
-
-        System.exit(0);
     }
 
     /**
      * If the lock file already exists, then fail. Otherwise, create it and arrange for it to be automatically
      * deleted on exit.
      */
-    public static void checkLockFile() throws IOException
+    public static boolean checkLockFile() throws IOException
     {
+        boolean locked = false;
         File lockFile = new File(TEMP_DIR, LOCK_FILENAME);
         boolean rc = lockFile.createNewFile();
         if (rc == true) {
@@ -159,8 +161,10 @@ public class JobBatchProcessor {
         }
         else {
             logger.error("Lock file [" + lockFile.getAbsolutePath() + "] already exists; exiting immediately");
-            System.exit(1);
+            //back out of api call?
+            locked = true;
         }
+        return locked;
     }
 
     /**
@@ -278,20 +282,20 @@ public class JobBatchProcessor {
 
                     Future<JobBatch> futureValidatedBatch = null;
                     if (jobFile.requiresAddressValidation()) {
-                        futureValidatedBatch = addressExecutor.submit(new JobBatchProcessor.ValidateJobBatch(jobBatch, jobProcess));
+                        futureValidatedBatch = addressExecutor.submit(new JobBatchProcessor.ValidateJobBatch(jobBatch, jobProcess,  addressProvider));
                     }
 
                     if (jobFile.requiresGeocode() || jobFile.requiresDistrictAssign()) {
                         Future<JobBatch> futureGeocodedBatch;
                         if (jobFile.requiresAddressValidation() && futureValidatedBatch != null) {
-                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(futureValidatedBatch, jobProcess));
+                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(futureValidatedBatch, jobProcess,geocodeProvider, geocodeResultLogger));
                         }
                         else {
-                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(jobBatch, jobProcess));
+                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(jobBatch, jobProcess, geocodeProvider, geocodeResultLogger));
                         }
 
                         if (jobFile.requiresDistrictAssign() && futureGeocodedBatch != null) {
-                            Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new JobBatchProcessor.DistrictJobBatch(futureGeocodedBatch, districtTypes, jobProcess));
+                            Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new JobBatchProcessor.DistrictJobBatch(futureGeocodedBatch, districtTypes, jobProcess, districtProvider, districtResultLogger));
                             jobResultsQueue.add(futureDistrictedBatch);
                         }
                         else {
@@ -435,7 +439,6 @@ public class JobBatchProcessor {
         }
         return jobBatch;
     }
-
 
     public static class ValidateJobBatch implements Callable<JobBatch>
     {
