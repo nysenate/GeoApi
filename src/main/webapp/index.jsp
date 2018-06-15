@@ -8,7 +8,21 @@
 <% request.setAttribute("amsUrl", ApplicationFactory.getConfig().getValue("usps.ams.ui.url")); %>
 <% request.setAttribute("activeGeocoders", ApplicationFactory.getActiveGeoProviders()); %>
 <%
-    String completeGoogleMapsUrl = ApplicationFactory.getConfig().getValue("google.maps.url") + "&key=" + ApplicationFactory.getConfig().getValue("google.maps.key");
+    boolean isKey = false;
+    if (!ApplicationFactory.getConfig().getValue("google.maps.key").equals("") ||
+            ApplicationFactory.getConfig().getValue("google.maps.key") != null ||
+            !ApplicationFactory.getConfig().getValue("google.maps.=.key")
+                    .equals("API Key obtained from Google (this key is public facing)")) {
+        isKey = true;
+    }
+    String completeGoogleMapsUrl;
+    if (isKey) {
+        completeGoogleMapsUrl = ApplicationFactory.getConfig().getValue("google.maps.url")
+                + "&key=" + ApplicationFactory.getConfig().getValue("google.maps.key");
+    }
+    else {
+        completeGoogleMapsUrl = ApplicationFactory.getConfig().getValue("google.maps.url");
+    }
     request.setAttribute( "googleMapsUrl" ,completeGoogleMapsUrl);
 %>
 
