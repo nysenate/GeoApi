@@ -7,7 +7,10 @@
 <fmt:setLocale value = "es_ES"/>
 <% request.setAttribute("amsUrl", ApplicationFactory.getConfig().getValue("usps.ams.ui.url")); %>
 <% request.setAttribute("activeGeocoders", ApplicationFactory.getActiveGeoProviders()); %>
-<% request.setAttribute( "googleMapsUrl" ,ApplicationFactory.getConfig().getValue("google.maps.url"));%>
+<%
+    String completeGoogleMapsUrl = ApplicationFactory.getConfig().getValue("google.maps.url") + "&key=" + ApplicationFactory.getConfig().getValue("google.maps.key");
+    request.setAttribute( "googleMapsUrl" ,completeGoogleMapsUrl);
+%>
 
 
 <sage:wrapper>
@@ -17,11 +20,6 @@
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/vendor/jquery.dataTables-1.9.4.css">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script>
-            console.log($);
-
-        </script>
-        <%--<script type="text/javascript" src="<%ApplicationFactory.getConfig().getValue("google.maps.url");%>"></script>--%>
         <script type="text/javascript" src="${googleMapsUrl}"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
