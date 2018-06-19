@@ -8,10 +8,14 @@
 <% request.setAttribute("amsUrl", ApplicationFactory.getConfig().getValue("usps.ams.ui.url")); %>
 <% request.setAttribute("activeGeocoders", ApplicationFactory.getActiveGeoProviders()); %>
 <%
-    String completeGoogleMapsUrl = ApplicationFactory.getConfig().getValue("google.maps.url") + "&key=" + ApplicationFactory.getConfig().getValue("google.maps.key");
-    request.setAttribute( "googleMapsUrl" ,completeGoogleMapsUrl);
-%>
+    String googleMapsUrl = ApplicationFactory.getConfig().getValue("google.maps.url");
+    String googleMapsKey = ApplicationFactory.getConfig().getValue("google.maps.key");
 
+    if (googleMapsKey != null && !googleMapsKey.equals("")) {
+      googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
+    }
+    request.setAttribute("googleMapsUrl", googleMapsUrl);
+%>
 
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage</jsp:attribute>
