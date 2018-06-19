@@ -42,6 +42,10 @@ public class Environment {
 
     @Value("${google.geocoder.key}") private String googleGeocoderKey;
 
+    @Value("${google.maps.url}") private String googleMapsUrl;
+
+    @Value("${google.maps.key}") private String googleMapsKey;
+
     @Value("${usps.default}") private String uspsDefault;
 
     @Value("${geocoder.active}") private String geocoderActive;
@@ -673,5 +677,21 @@ public class Environment {
 
     public void setGeocahceBufferSize(int geocahceBufferSize) {
         this.geocahceBufferSize = geocahceBufferSize;
+    }
+
+    public String getGoogleMapsUrl() {
+        return googleMapsUrl;
+    }
+
+    public void setGoogleMapsUrl(String googleMapsUrl) {
+        this.googleMapsUrl = googleMapsUrl;
+    }
+
+    public String getGoogleMapsKey() {
+        return googleMapsKey;
+    }
+
+    public void setGoogleMapsKey(String googleMapsKey) {
+        this.googleMapsKey = googleMapsKey;
     }
 }

@@ -1,18 +1,18 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="gov.nysenate.sage.config.ApplicationFactory" %>
+<%@ page import="gov.nysenate.sage.config.Environment" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 
 <fmt:setLocale value = "es_ES"/>
-<% request.setAttribute("amsUrl", ApplicationFactory.getConfig().getValue("usps.ams.ui.url")); %>
-<% request.setAttribute("activeGeocoders", ApplicationFactory.getActiveGeoProviders()); %>
 <%
-    String googleMapsUrl = ApplicationFactory.getConfig().getValue("google.maps.url");
-    String googleMapsKey = ApplicationFactory.getConfig().getValue("google.maps.key");
-
+    Environment env = new Environment();
+    request.setAttribute("amsUrl", env.getUspsAmsUiUrl());
+    request.setAttribute("activeGeocoders", env.getGeocoderActive());
+    String googleMapsUrl = env.getGoogleMapsUrl();
+    String googleMapsKey = env.getGoogleMapsKey();
     if (googleMapsKey != null && !googleMapsKey.equals("")) {
-      googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
+        googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
     }
     request.setAttribute("googleMapsUrl", googleMapsUrl);
 %>
