@@ -155,6 +155,7 @@ public class ApplicationFactory
 
             /** Setup geocode service providers. */
             Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
+            geoProviders.put("nysgeo", NYSGeocoder.class);
             geoProviders.put("google", GoogleGeocoder.class);
             geoProviders.put("tiger", TigerGeocoder.class);
             //geoProviders.put("mapquest", MapQuest.class);
@@ -170,13 +171,13 @@ public class ApplicationFactory
                 geocodeServiceProvider.registerProvider(key, geoProviders.get(key));
             }
 
-            List<String> activeList = this.config.getList("geocoder.active", Arrays.asList( "google","tiger")); //"yahoo"
+            List<String> activeList = this.config.getList("geocoder.active", Arrays.asList( "nysgeo","google","tiger")); //"yahoo"
             for (String provider : activeList) {
                 GeocodeServiceValidator.setGeocoderAsActive(geoProviders.get(provider));
                 activeGeoProviders.put(provider, geoProviders.get(provider));
             }
 
-            LinkedList<String> geocoderRankList = new LinkedList<>(this.config.getList("geocoder.rank", Arrays.asList("google","tiger"))); //"yahoo"
+            LinkedList<String> geocoderRankList = new LinkedList<>(this.config.getList("geocoder.rank", Arrays.asList("nysgeo", "google","tiger"))); //"yahoo"
             if (!geocoderRankList.isEmpty()) {
                 /** Set the first geocoder as the default. */
                 geocodeServiceProvider.setDefaultProvider(geocoderRankList.removeFirst());
@@ -185,7 +186,7 @@ public class ApplicationFactory
             }
 
             /** Designate which geocoders are allowed to cache. */
-            List<String> cacheableProviderList = this.config.getList("geocoder.cacheable", Arrays.asList("google")); //"yahoo","yahooboss","mapquest"
+            List<String> cacheableProviderList = this.config.getList("geocoder.cacheable", Arrays.asList("nysgeo","google")); //"yahoo","yahooboss","mapquest"
             for (String provider : cacheableProviderList) {
                 geocodeServiceProvider.registerProviderAsCacheable(provider);
             }
@@ -194,6 +195,7 @@ public class ApplicationFactory
             revGeocodeServiceProvider = new RevGeocodeServiceProvider();
             revGeocodeServiceProvider.registerDefaultProvider("google", GoogleGeocoder.class);
             //revGeocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
+            //revGeocodeServiceProvider.registerProvider("nysgeo", NYSGeocoder.class);
             revGeocodeServiceProvider.registerProvider("tiger", TigerGeocoder.class);
             revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("tiger"));
 
