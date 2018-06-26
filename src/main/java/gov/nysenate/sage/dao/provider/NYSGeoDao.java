@@ -15,8 +15,6 @@ import gov.nysenate.sage.util.UrlRequest;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 public class NYSGeoDao {
 
@@ -24,10 +22,13 @@ public class NYSGeoDao {
 
     private static final Config config = ApplicationFactory.getConfig();
     private static final String DEFAULT_BASE_URL = config.getValue("nys.geocoder.url");
-    private static final String GEOCODE_QUERY = config.getValue("nys.geocoder.ext")
-            + "?street=%s&city=%s&state=NY&zip=%s";
-    private static final String REV_GEOCODE_QUERY = config.getValue("nys.revgeocoder.ext")
-            + "?location=%s&returnIntersection=false";
+
+    private static final String GEOCODE_EXTENSION = config.getValue("nys.geocode.ext");
+    private static String GEOCODE_QUERY = "?street=%s&city=%s&state=%s&zip=%s";
+
+    private static final String REV_GEOCODE_EXTENSION = config.getValue("nys.revgeocode.ext");
+    private static String REV_GEOCODE_QUERY = "?location=%s&returnIntersection=false";
+
     private static final String COMMON_PARAMS = "&outSR=4326&f=pjson";
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -48,12 +49,10 @@ public class NYSGeoDao {
         GeocodedAddress geocodedAddress = null;
 
         try {
-            String formattedQuery = String.format(GEOCODE_QUERY, URLEncoder.encode(address.toString(), "UTF-8"));
-            String url = DEFAULT_BASE_URL + formattedQuery + COMMON_PARAMS;
+            String formattedQuery = String.format(GEOCODE_QUERY,address.getAddr1(), address.getCity(),
+                    address.getState(), address.getZip5());
+            String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
             geocodedAddress = getGeocodedAddress(url, false);
-        }
-        catch (UnsupportedEncodingException ex) {
-            logger.error("UTF-8 encoding not supported!?", ex);
         }
         catch (NullPointerException ex) {
             logger.error("Null pointer while performing google geocode!", ex);
@@ -73,8 +72,8 @@ public class NYSGeoDao {
     {
         GeocodedAddress geocodedAddress = null;
         try {
-            String formattedQuery = String.format(REV_GEOCODE_QUERY, point.toString());
-            String url = DEFAULT_BASE_URL + formattedQuery + COMMON_PARAMS;
+            String formattedQuery = String.format(REV_GEOCODE_QUERY, point.toString().replaceAll(",","%2C"));
+            String url = DEFAULT_BASE_URL + REV_GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
             geocodedAddress = getGeocodedAddress(url, true); // Response is identical to address->geocode response.
         }
         catch (NullPointerException ex) {
@@ -85,14 +84,14 @@ public class NYSGeoDao {
 
     /**
      * Sends out a request to the NYS geocoder at the given url and returns a GeocodedAddress if successful.
-     * @param url String
+     * @param urlString String
      * @return GeocodedAddress, or null if no match
      */
-    private GeocodedAddress getGeocodedAddress(String url, boolean isRevGeocode) {
+    private GeocodedAddress getGeocodedAddress(String urlString, boolean isRevGeocode) {
         GeocodedAddress geocodedAddress = null;
 
         try {
-            String response = UrlRequest.getResponseFromUrl(url);
+            String response = UrlRequest.getResponseFromUrl(urlString.replaceAll(" ", "%20"));
             if (response != null) {
                 JsonNode node = objectMapper.readTree(response);
                 double lat = 0.0;
@@ -117,8 +116,8 @@ public class NYSGeoDao {
                         score = candidate.get("score").asInt();
                     }
                     JsonNode location = candidate.get("location");
-                    lat = location.get("x").asDouble();
-                    lon = location.get("y").asDouble();
+                    lon = location.get("x").asDouble();
+                    lat = location.get("y").asDouble();
                 }
 
                 Geocode geocode = new Geocode( new Point(lat, lon),
