@@ -228,6 +228,8 @@ The available providers ordered from most accurate to least are:
 +=============+=============================================+=============+
 | google      | Free Google geocoding service               | 2500 a day  |
 +-------------+---------------------------------------------+-------------+
+| nysgeo      | NYS Geocoding service                       | Unlimited   |
++-------------+---------------------------------------------+-------------+
 | tiger       | In-database geocoding using census data     | Unlimited   |
 +-------------+---------------------------------------------+-------------+
 
