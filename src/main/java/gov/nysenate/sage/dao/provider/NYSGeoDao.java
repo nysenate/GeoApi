@@ -27,7 +27,7 @@ public class NYSGeoDao {
     private static String GEOCODE_QUERY = "?street=%s&city=%s&state=%s&zip=%s";
 
     private static final String REV_GEOCODE_EXTENSION = config.getValue("nys.revgeocode.ext");
-    private static String REV_GEOCODE_QUERY = "?location=%s&returnIntersection=false";
+    private static String REV_GEOCODE_QUERY = "?location={\"x\" : %s, \"y\" : %s, \"spatialReference\" : {\"wkid\" : 4326}}&returnIntersection=false";
 
     private static final String COMMON_PARAMS = "&outSR=4326&f=pjson";
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -72,7 +72,9 @@ public class NYSGeoDao {
     {
         GeocodedAddress geocodedAddress = null;
         try {
-            String formattedQuery = String.format(REV_GEOCODE_QUERY, point.toString().replaceAll(",","%2C"));
+            String formattedQuery = String.format(REV_GEOCODE_QUERY, point.getLon(), point.getLat());
+            formattedQuery = formattedQuery.replaceAll(" ", "%20").replaceAll(" \" ","%22").replaceAll(",","%2C").replaceAll("\\{","%7B").replaceAll("}","%7D");
+            logger.info(formattedQuery);
             String url = DEFAULT_BASE_URL + REV_GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
             geocodedAddress = getGeocodedAddress(url, true); // Response is identical to address->geocode response.
         }
@@ -105,8 +107,8 @@ public class NYSGeoDao {
                             addressNode.get("City").toString(), addressNode.get("State").toString(),
                             addressNode.get("ZIP").toString());
                     JsonNode location = node.get("location");
-                    lat = location.get("x").asDouble();
-                    lon = location.get("y").asDouble();
+                    lon = location.get("x").asDouble();
+                    lat = location.get("y").asDouble();
                 }
                 else if (node.has("candidates") && node.get("candidates") != null) {
                     JsonNode candidate = node.get("candidates").get(0);

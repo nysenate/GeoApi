@@ -195,7 +195,7 @@ public class ApplicationFactory
             revGeocodeServiceProvider = new RevGeocodeServiceProvider();
             revGeocodeServiceProvider.registerDefaultProvider("google", GoogleGeocoder.class);
             //revGeocodeServiceProvider.registerProvider("mapquest", MapQuest.class);
-            //revGeocodeServiceProvider.registerProvider("nysgeo", NYSGeocoder.class);
+            revGeocodeServiceProvider.registerProvider("nysgeo", NYSGeocoder.class);
             revGeocodeServiceProvider.registerProvider("tiger", TigerGeocoder.class);
             revGeocodeServiceProvider.setProviderFallbackChain(Arrays.asList("tiger"));
 
