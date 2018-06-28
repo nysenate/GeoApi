@@ -4,7 +4,15 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 
 <fmt:setLocale value="es_ES"/>
-<% request.setAttribute("googleMapsUrl", ApplicationFactory.getConfig().getValue("google.maps.url"));%>
+<%
+    String googleMapsUrl = ApplicationFactory.getConfig().getValue("google.maps.url");
+    String googleMapsKey = ApplicationFactory.getConfig().getValue("google.maps.key");
+
+    if (googleMapsKey != null && !googleMapsKey.equals("")) {
+        googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
+    }
+    request.setAttribute("googleMapsUrl", googleMapsUrl);
+%>
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage-admin</jsp:attribute>
     <jsp:attribute name="title">SAGE - Admin Console</jsp:attribute>
