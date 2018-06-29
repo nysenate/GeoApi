@@ -12,6 +12,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.UrlRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -112,7 +113,15 @@ public class NYSGeoDao {
                 }
                 else if (node.has("candidates") && node.get("candidates") != null) {
                     JsonNode candidate = node.get("candidates").get(0);
-                    address = new Address(StreetAddressParser.parseAddress(candidate.get("address").toString()));
+                    logger.info(candidate.get("address").toString());
+
+                    String[] candidateAddress = candidate.get("address").toString().split(",");
+                    for (int i = 0; i < candidateAddress.length; i++) {
+                        candidateAddress[i] = candidateAddress[i].trim().replaceAll("\"", "");
+                    }
+
+                    address = new Address(candidateAddress[0], candidateAddress[1], candidateAddress[2], candidateAddress[3]);
+                    logger.info(address.toString());
 
                     if (candidate.has("score") && candidate.get("score") != null) {
                         score = candidate.get("score").asInt();
