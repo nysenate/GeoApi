@@ -104,9 +104,10 @@ public class NYSGeoDao {
 
                 if (isRevGeocode && node.has("address") && node.get("address") != null) {
                     JsonNode addressNode = node.get("address");
-                    address = new Address(addressNode.get("Street").toString(),
-                            addressNode.get("City").toString(), addressNode.get("State").toString(),
-                            addressNode.get("ZIP").toString());
+                    address = new Address(addressNode.get("Street").toString().trim().replaceAll("\"", ""),
+                            addressNode.get("City").toString().trim().replaceAll("\"", ""),
+                            addressNode.get("State").toString().trim().replaceAll("\"", ""),
+                            addressNode.get("ZIP").toString().trim().replaceAll("\"", ""));
                     JsonNode location = node.get("location");
                     lon = location.get("x").asDouble();
                     lat = location.get("y").asDouble();
@@ -121,7 +122,6 @@ public class NYSGeoDao {
                     }
 
                     address = new Address(candidateAddress[0], candidateAddress[1], candidateAddress[2], candidateAddress[3]);
-                    logger.info(address.toString());
 
                     if (candidate.has("score") && candidate.get("score") != null) {
                         score = candidate.get("score").asInt();
