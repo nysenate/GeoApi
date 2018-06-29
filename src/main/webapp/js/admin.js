@@ -293,6 +293,12 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.geo_tiger_geocode_status = false;
     $scope.geo_tiger_show_json = false;
 
+    $scope.geo_nys_url = "";
+    $scope.geo_nys_json = "";
+    $scope.geo_nys_status = false;
+    $scope.geo_nys_geocode_status = false;
+    $scope.geo_nys_show_json = false;
+
     //These vars are specific to district assignment only
     $scope.district_assign_shape_url = "";
     $scope.district_assign_shape_json = "";
@@ -322,6 +328,9 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
     $scope.toggleTigerJson = function() {
         $scope.geo_tiger_show_json = !$scope.geo_tiger_show_json;
+    };
+    $scope.toggleNYSJson = function() {
+        $scope.geo_nys_show_json = !$scope.geo_nys_show_json;
     };
     $scope.toggleStreetDistAssignJson = function() {
         $scope.district_assign_street_show_json = !$scope.district_assign_street_show_json;
@@ -449,7 +458,38 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                 }
             })
             .error(function(data){
-                console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
+                console.log("Failed to geocache submitted address - check Input / Tiger DB / Server Status ");
+            });
+
+    };
+
+    $scope.callNYS = function() {
+
+        if (!$scope.separatedInput) {
+            $scope.geo_nys_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=nysgeo&useFallback=false&doNotCache=true";
+        }
+        else {
+            $scope.geo_nys_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=nysgeo&useFallback=false&doNotCache=true";
+        }
+        $http.get($scope.geo_nys_url)
+            .success(function(data){
+                if (data) {
+                    $scope.geo_nys_json = data;
+
+                    console.log($scope.geo_nys_json.geocode);
+                    console.log($scope.geo_nys_json.status);
+                    //NO_GEOCODE_RESULT
+
+                    if (($scope.geo_nys_json.geocode !== null) && ($scope.geo_nys_json.status !== "NO_GEOCODE_RESULT")) {
+                        $scope.geo_nys_status = true;
+                        $scope.geo_nys_geocode_status = true;
+                        $scope.setMarker($scope.geo_nys_json.geocode.lat,$scope.geo_nys_json.geocode.lon,"NYSGeo",false,true);
+                    }
+                }
+            })
+            .error(function(data){
+                console.log("Failed to geocache submitted address - check Input / NYS Geocoder / Server Status ");
             });
 
     };
@@ -516,6 +556,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.admin_district_assign_street();
         $scope.callGeocache();
         $scope.callGoogle();
+        $scope.callNYS();
         $scope.callTiger();
         $scope.geo_comparison_status = true;
         $scope.activeComparisonTab = "geocache"
@@ -549,6 +590,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.district_assign_status = false;
         $scope.geocache_status = false;
         $scope.geo_tiger_status = false;
+        $scope.geo_nys_status = false;
         $scope.geo_google_status = false;
         $scope.geo_comparison_status = false;
         $scope.geocache_result_status = false;

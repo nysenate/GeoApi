@@ -311,7 +311,7 @@
                                             ""}}
                                             Lon: {{geocache_json.geocode.lon || ""}} <br>
                                             Quality: {{geocache_json.geocode.quality || ""}}
-                                            Method:{{geocache_json.geocode.method || ""}} </p>
+                                            Method: {{geocache_json.geocode.method || ""}} </p>
                                     </div>
 
                                     <br>
@@ -322,7 +322,7 @@
                                                 Lon:
                                                 {{geo_google_json.geocode.lon || ""}} <br>
                                                 Quality: {{geo_google_json.geocode.quality || ""}}
-                                                Method:{{geo_google_json.geocode.method || ""}} </p>
+                                                Method: {{geo_google_json.geocode.method || ""}} </p>
                                         </label>
                                         <input ng-show="geo_google_status" type="radio" id="google_coords"
                                                ng-model="selected_provider" value="Google">
@@ -335,10 +335,23 @@
                                             <p ng-show="geo_tiger_status">Lat: {{geo_tiger_json.geocode.lat || ""}} Lon:
                                                 {{geo_tiger_json.geocode.lon || ""}} <br>
                                                 Quality: {{geo_tiger_json.geocode.quality || ""}}
-                                                Method:{{geo_tiger_json.geocode.method || ""}} </p>
+                                                Method: {{geo_tiger_json.geocode.method || ""}} </p>
                                         </label>
                                         <input ng-show="geo_tiger_status" type="radio" ng-model="selected_provider"
                                                id="tiger_coords" value="Tiger">
+                                    </div>
+
+                                    <br>
+
+                                    <div>
+                                        <label for="nysgeo_coords" ng-show="geo_nys_status">NYS Geo:
+                                            <p ng-show="geo_nys_status">Lat: {{geo_nys_json.geocode.lat || ""}} Lon:
+                                                {{geo_nys_json.geocode.lon || ""}} <br>
+                                                Quality: {{geo_nys_json.geocode.quality || ""}}
+                                                Method: {{geo_nys_json.geocode.method || ""}} </p>
+                                        </label>
+                                        <input ng-show="geo_nys_status" type="radio" ng-model="selected_provider"
+                                               id="nysgeo_coords" value="NYSGeo">
                                     </div>
 
                                     <br>
@@ -362,7 +375,7 @@
                                     Lat: {{geocache_result_json.geocode.lat}} Lon: {{geocache_result_json.geocode.lon}}
                                     <br>
                                     Quality: {{geocache_result_json.geocode.quality}}
-                                    Method:{{geocache_result_json.geocode.method}}</p>
+                                    Method: {{geocache_result_json.geocode.method}}</p>
                                 <br>
                                 <button ng-click="toggleGeocacheResultJson()" class="toggle"
                                         style="width: auto;padding: 5px 10px;">Toggle Json
@@ -381,6 +394,9 @@
                                 </button>
                                 <button ng-click="changeCompTab('tiger')" class="toggle"
                                         style="width: auto;padding: 5px 10px;">Tiger
+                                </button>
+                                <button ng-click="changeCompTab('nysgeo')" class="toggle"
+                                        style="width: auto;padding: 5px 10px;">NYS Geo
                                 </button>
                                 <button ng-click="changeCompTab('street')" class="toggle"
                                         style="width: auto;padding: 5px 10px;">Street District Assign
@@ -445,6 +461,27 @@
                                     </button>
                                     <p ng-show="geo_tiger_show_json" style="word-wrap: break-word">
                                         {{geo_tiger_json}}</p>
+                                </div>
+
+                                        <%--NYS Geocoder result status--%>
+
+                                <div ng-show="determineActiveCompTab('nysgeo')" id="nysgeo" class="column">
+                                    <hr ng-show="geo_nys_status"/>
+                                    <strong>NYSGeo Coordinates</strong>
+                                    <p>{{geo_nys_json.status}}</p>
+                                    <p>{{geo_nys_url}}</p>
+                                    <br>
+                                    <p ng-show="geo_nys_geocode_status">
+                                        Lat: {{geo_nys_json.geocode.lat}} Lon: {{geo_nys_json.geocode.lon}} <br>
+                                        Quality: {{geo_nys_json.geocode.quality}}
+                                        Method:{{geo_nys_json.geocode.method}}
+                                    </p>
+                                    <br>
+                                    <button ng-click="toggleNYSJson()" class="toggle"
+                                            style="width: auto;padding: 5px 10px;">Toggle Json
+                                    </button>
+                                    <p ng-show="geo_nys_show_json" style="word-wrap: break-word">
+                                        {{geo_nys_json}}</p>
                                 </div>
 
                                     <%--STREEET DISTRICT ASSIGNMENT--%>
