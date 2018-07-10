@@ -216,7 +216,7 @@ public class NYSRefreshGeocache {
                                 nysGeocode.getMethod(), nysGeocode.getQuality().name(), nysStreetAddress.getZip4());
                     }
                     //If the provider is not Google and NYS Geo has a rooftop coordinate, update the cache
-                    else if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointType() == 1) {
+                    else if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointtype() == 1) {
                         //update
                         nysRefreshGeocache.getTigerRun().update(UPDATE_GEOCACHE,
                                 "POINT(" + nysGeocode.getLon() + " " + nysGeocode.getLat() + ")",
