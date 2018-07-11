@@ -31,7 +31,6 @@ import java.util.List;
 public class NYSRefreshGeocache {
 
     private Config config;
-    private QueryRunner nysRun;
     private QueryRunner tigerRun;
     private static Logger logger = Logger.getLogger(NYSRefreshGeocache.class);
     private static final int limit = 1000;
@@ -40,9 +39,7 @@ public class NYSRefreshGeocache {
 
     public NYSRefreshGeocache() {
         config = ApplicationFactory.getConfig();
-        nysRun = new QueryRunner(ApplicationFactory.getNYSGeoDataSource());
         tigerRun = new QueryRunner(ApplicationFactory.getTigerDataSource());
-
     }
 
     public String convertStreamToString(InputStream is) {
@@ -69,10 +66,6 @@ public class NYSRefreshGeocache {
 
     public Config getConfig() {
         return config;
-    }
-
-    public QueryRunner getNysRun() {
-        return nysRun;
     }
 
     public QueryRunner getTigerRun() {
@@ -139,7 +132,7 @@ public class NYSRefreshGeocache {
          */
         try {
             //Get total number of addresses that will be used to update our geocache
-            int total = nysRefreshGeocache.getNysRun().query(NYS_COUNT_SQL, new ResultSetHandler<Integer>() {
+            int total = nysRefreshGeocache.getTigerRun().query(NYS_COUNT_SQL, new ResultSetHandler<Integer>() {
                 @Override
                 public Integer handle(ResultSet rs) throws SQLException {
                     rs.next();
@@ -150,7 +143,7 @@ public class NYSRefreshGeocache {
             //start from 0 and loop until the total number in batches of 1000
             while (total > offset) {
                 //Get batch of 1000
-                List<NYSGeoAddress> nysGeoAddresses = nysRefreshGeocache.getNysRun().query(NYS_BATCH_SQL,
+                List<NYSGeoAddress> nysGeoAddresses = nysRefreshGeocache.getTigerRun().query(NYS_BATCH_SQL,
                         nysGeoAddressBeanListHandler, limit, offset);
                 offset = limit + 1;
 
