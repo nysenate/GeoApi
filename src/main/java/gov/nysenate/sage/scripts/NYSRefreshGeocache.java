@@ -187,8 +187,13 @@ public class NYSRefreshGeocache {
                     String geocachedStreetAddressProvider = nysRefreshGeocache.getTigerRun().query(GEOCACHE_SELECT, new ResultSetHandler<String>() {
                         @Override
                         public String handle(ResultSet rs) throws SQLException {
-                            rs.next();
-                            return rs.getString("method");
+                            if (!rs.isBeforeFirst() ) {
+                                return "";
+                            }
+                            else {
+                                rs.next();
+                                return rs.getString("method");
+                            }
                         }
                     }, nysStreetAddress.getBldgNum(),
                             nysStreetAddress.getPreDir(),
