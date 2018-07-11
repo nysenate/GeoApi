@@ -13,6 +13,7 @@ import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -159,17 +160,16 @@ public class NYSRefreshGeocache {
                     StreetAddress nysStreetAddress = nysGeoAddress.toStreetAddress();
 
                     //Run new Address through USPS
-                    String httpRequestString = nysRefreshGeocache.config.getValue("base.url") + "/api/v2/address/validate?addr1=%s&city=%s&state=%s&zipcode=%s";
+                    String httpRequestString = nysRefreshGeocache.config.getValue("usps.ams.api.url") + "validate?detail=true&addr1=%s&addr2=&city=%s&state=%s&zip5=%s&zip4=";
                     httpRequestString = String.format(httpRequestString, nysAddress.getAddr1(), nysAddress.getCity(), nysAddress.getState(), nysAddress.getZip5());
                     httpRequestString = httpRequestString.replaceAll(" ","%20");
                     HttpClient httpClient = HttpClientBuilder.create().build();
                     try {
-                        HttpPost request = new HttpPost(httpRequestString);
+                        HttpGet request = new HttpGet(httpRequestString);
                         HttpResponse response = httpClient.execute(request);
 
                         JSONObject uspsJson = new JSONObject(nysRefreshGeocache.convertStreamToString( response.getEntity().getContent() ) );
-
-                        if (uspsJson.get("status").equals("SUCCESS") ) {
+                        if (uspsJson.getBoolean("validated") ) {
                             JSONObject uspsAddressJson = uspsJson.getJSONObject("address");
                             nysStreetAddress = StreetAddressParser.parseAddress(new Address(
                                     uspsAddressJson.getString("addr1"), uspsAddressJson.getString("addr2"),
