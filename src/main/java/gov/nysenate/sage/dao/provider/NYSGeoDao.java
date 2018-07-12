@@ -92,6 +92,7 @@ public class NYSGeoDao {
      */
     private GeocodedAddress getGeocodedAddress(String urlString, boolean isRevGeocode) {
         GeocodedAddress geocodedAddress = null;
+        boolean resultParsed = false;
 
         try {
             String response = UrlRequest.getResponseFromUrl(urlString.replaceAll(" ", "%20"));
@@ -111,10 +112,11 @@ public class NYSGeoDao {
                     JsonNode location = node.get("location");
                     lon = location.get("x").asDouble();
                     lat = location.get("y").asDouble();
+                    resultParsed = true;
                 }
-                else if (node.has("candidates") && node.get("candidates") != null) {
+                else if (node.has("candidates") && node.get("candidates").get(0) != null) {
                     JsonNode candidate = node.get("candidates").get(0);
-                    logger.info(candidate.get("address").toString());
+                    logger.trace(candidate.get("address").toString());
 
                     String[] candidateAddress = candidate.get("address").toString().split(",");
                     for (int i = 0; i < candidateAddress.length; i++) {
@@ -129,11 +131,14 @@ public class NYSGeoDao {
                     JsonNode location = candidate.get("location");
                     lon = location.get("x").asDouble();
                     lat = location.get("y").asDouble();
+                    resultParsed = true;
                 }
 
-                Geocode geocode = new Geocode( new Point(lat, lon),
-                        resolveGeocodeQuality(score, isRevGeocode), NYSGeoDao.class.getSimpleName());
-                geocodedAddress = new GeocodedAddress(address, geocode);
+                if (resultParsed) {
+                    Geocode geocode = new Geocode( new Point(lat, lon),
+                            resolveGeocodeQuality(score, isRevGeocode), NYSGeoDao.class.getSimpleName());
+                    geocodedAddress = new GeocodedAddress(address, geocode);
+                }
             }
         }
         catch (IOException ex) {
