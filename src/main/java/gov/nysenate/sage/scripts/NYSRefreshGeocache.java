@@ -174,7 +174,7 @@ public class NYSRefreshGeocache {
                             nysStreetAddress = StreetAddressParser.parseAddress(new Address(
                                     uspsAddressJson.getString("addr1"), uspsAddressJson.getString("addr2"),
                                     uspsAddressJson.getString("city"), uspsAddressJson.getString("state"),
-                                    uspsAddressJson.getString("zipcode"), uspsAddressJson.getString("zip4")));
+                                    uspsAddressJson.getString("zip5"), uspsAddressJson.getString("zip4")));
                         }
                         ((CloseableHttpClient) httpClient).close();
                     }
@@ -202,6 +202,8 @@ public class NYSRefreshGeocache {
                             nysStreetAddress.getStreetType(),
                             nysStreetAddress.getZip5().toString(),
                             nysStreetAddress.getLocation());
+
+                    logger.info("Inserting / Updating " + nysStreetAddress.toString());
 
                     //If the geocacheStreetAddressProvider is empty, we don't have the address cached, so insert the address
                     if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
