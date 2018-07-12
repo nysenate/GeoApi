@@ -318,7 +318,7 @@ public class DistrictController extends BaseApiController implements Observer
         /** Set geocoded address to district request for processing, keeping in mind the validated address */
         if (geocodedAddress != null) {
             if (validatedAddress != null && !validatedAddress.isEmpty() && geocodedAddress.isValidGeocode()
-                && geocodedAddress.getGeocode().getQuality().equals(GeocodeQuality.HOUSE)) {
+                && (geocodedAddress.getGeocode().getQuality().compareTo(GeocodeQuality.HOUSE) >= 0)) {
                 districtRequest.setGeocodedAddress(new GeocodedAddress(validatedAddress, geocodedAddress.getGeocode()));
             }
             else {
