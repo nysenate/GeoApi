@@ -139,9 +139,9 @@ public class NYSRefreshGeocache {
                 }
             });
 
-            //start from 0 and loop until the total number in batches of 1000
+            //start from 0 and loop until the total number in batches of 2000
             while (total > offset) {
-                //Get batch of 1000
+                //Get batch of 2000
                 List<NYSGeoAddress> nysGeoAddresses = nysRefreshGeocache.getTigerRun().query(NYS_BATCH_SQL,
                         nysGeoAddressBeanListHandler, limit, offset);
                 logger.info("At offset: " + offset);
@@ -162,6 +162,7 @@ public class NYSRefreshGeocache {
                     String httpRequestString = nysRefreshGeocache.config.getValue("usps.ams.api.url") + "validate?detail=true&addr1=%s&addr2=&city=%s&state=%s&zip5=%s&zip4=";
                     httpRequestString = String.format(httpRequestString, nysAddress.getAddr1(), nysAddress.getCity(), nysAddress.getState(), nysAddress.getZip5());
                     httpRequestString = httpRequestString.replaceAll(" ","%20");
+                    httpRequestString = StringUtils.deleteWhitespace(httpRequestString);
                     HttpClient httpClient = HttpClientBuilder.create().build();
                     try {
                         HttpGet request = new HttpGet(httpRequestString);
