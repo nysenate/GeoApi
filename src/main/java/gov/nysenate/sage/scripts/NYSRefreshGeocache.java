@@ -14,8 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
@@ -34,7 +32,7 @@ public class NYSRefreshGeocache {
     private Config config;
     private QueryRunner tigerRun;
     private static Logger logger = Logger.getLogger(NYSRefreshGeocache.class);
-    private static final int limit = 1000;
+    private static final int limit = 2000;
     private static int offset = 0;
     private static final String table = "public.addresspoints_sam";
 
@@ -146,7 +144,8 @@ public class NYSRefreshGeocache {
                 //Get batch of 1000
                 List<NYSGeoAddress> nysGeoAddresses = nysRefreshGeocache.getTigerRun().query(NYS_BATCH_SQL,
                         nysGeoAddressBeanListHandler, limit, offset);
-                offset = limit + 1;
+                logger.info("At offset: " + offset);
+                offset = limit + offset;
 
                 //Handle batch
                 for (NYSGeoAddress nysGeoAddress: nysGeoAddresses) {
@@ -203,7 +202,7 @@ public class NYSRefreshGeocache {
                             nysStreetAddress.getZip5().toString(),
                             nysStreetAddress.getLocation());
 
-                    logger.info("Inserting / Updating " + nysStreetAddress.toString());
+                    logger.trace("Inserting / Updating " + nysStreetAddress.toString());
 
                     //If the geocacheStreetAddressProvider is empty, we don't have the address cached, so insert the address
                     if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
@@ -227,9 +226,10 @@ public class NYSRefreshGeocache {
                         );
                     }
                 }
-
-
             }
+
+            ApplicationFactory.close();
+            System.exit(0);
         }
         catch (SQLException ex) {
             logger.error("Error retrieving addresses from geocache", ex);
