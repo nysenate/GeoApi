@@ -49,8 +49,5 @@ public class GeocodedAddressTest extends TestBase
 
         geocodedAddress.setAddress(new Address());
         assertFalse(geocodedAddress.isReverseGeocoded());
-
-        geocodedAddress.setAddress(new Address(null));
-        assertFalse(geocodedAddress.isReverseGeocoded());
     }
 }
