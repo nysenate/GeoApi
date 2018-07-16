@@ -126,6 +126,7 @@ public class NYSRefreshGeocache {
         BeanListHandler<NYSGeoAddress> nysGeoAddressBeanListHandler
                 = new BeanListHandler<>(NYSGeoAddress.class);
 
+        HttpClient httpClient = HttpClientBuilder.create().build();
         /*
         Execute SQL
          */
@@ -163,7 +164,8 @@ public class NYSRefreshGeocache {
                     httpRequestString = String.format(httpRequestString, nysAddress.getAddr1(), nysAddress.getCity(), nysAddress.getState(), nysAddress.getZip5());
                     httpRequestString = httpRequestString.replaceAll(" ","%20");
                     httpRequestString = StringUtils.deleteWhitespace(httpRequestString);
-                    HttpClient httpClient = HttpClientBuilder.create().build();
+                    httpRequestString = httpRequestString.replaceAll("`","");
+
                     try {
                         HttpGet request = new HttpGet(httpRequestString);
                         HttpResponse response = httpClient.execute(request);
@@ -176,11 +178,10 @@ public class NYSRefreshGeocache {
                                     uspsAddressJson.getString("city"), uspsAddressJson.getString("state"),
                                     uspsAddressJson.getString("zip5"), uspsAddressJson.getString("zip4")));
                         }
-                        ((CloseableHttpClient) httpClient).close();
                     }
                     catch (Exception e) {
                         System.err.println("Failed to make Http request because of exception" + e.getMessage());
-                        System.exit(-1);
+                        System.err.println("Failed address was: " + nysAddress.toString());
                     }
 
                     //Determine if address exits in our Geocache by getting the method of its results (GoogleDao, YahooDao, etc)
@@ -227,6 +228,13 @@ public class NYSRefreshGeocache {
                         );
                     }
                 }
+            }
+
+            try {
+                ((CloseableHttpClient) httpClient).close();
+            }
+            catch (IOException e) {
+                logger.error("Failed to close http connection", e);
             }
 
             ApplicationFactory.close();
