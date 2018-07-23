@@ -120,5 +120,8 @@ public class DoBatchGeocache {
             System.err.println("Failed to make Http request because of exception" + e.getMessage());
             System.exit(-1);
         }
+
+        ApplicationFactory.close();
+        System.exit(0);
     }
 }
