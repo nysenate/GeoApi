@@ -8,14 +8,17 @@ import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
 import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -31,6 +34,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
+import static gov.nysenate.sage.scripts.ProcessBatchJobs.addressProvider;
 
 /** Handles Geo Api requests */
 public class GeocodeController extends BaseApiController implements Observer
@@ -85,6 +89,8 @@ public class GeocodeController extends BaseApiController implements Observer
 
         boolean doNotCache = requestParameterEquals(request, "doNotCache", "false") ? true : false;
 
+        boolean isUspsValidate = requestParameterEquals(request, "uspsValidate", "true") ? true : false;
+
 
         /** Only want to use cache when the provider is not specified */
         boolean useCache = (provider == null);
@@ -99,7 +105,7 @@ public class GeocodeController extends BaseApiController implements Observer
         int requestId = -1;
 
         /** Construct a GeocodeRequest using the supplied params */
-        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider, useFallback, useCache, bypassCache, doNotCache);
+        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider, useFallback, useCache, bypassCache, doNotCache, isUspsValidate);
 
 
         logger.info("=======================================================");
@@ -122,6 +128,35 @@ public class GeocodeController extends BaseApiController implements Observer
             geocodeResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
             setApiResponse(geocodeResponse, request);
             return;
+        }
+
+        //usps validation
+        Address validatedAddress = null;
+        /** Parse the input address */
+        StreetAddress streetAddress = null;
+        try {
+            streetAddress = StreetAddressParser.parseAddress(geocodeRequest.getAddress());
+        }
+        catch (Exception ex) {
+            logger.debug("Failed to parse input address" + geocodeRequest.getAddress().toLogString());
+        }
+
+        /** This info about the address helps to decide how to process it */
+        Address inputAddress = geocodeRequest.getAddress();
+        if (inputAddress != null && !inputAddress.isEmpty()) {
+            /** Perform usps address correction if requested */
+            if (geocodeRequest.isUspsValidate()) {
+                Address addressToValidate = null;
+                if (inputAddress.isEligibleForUSPS()) {
+                    addressToValidate = inputAddress;
+                } else if (streetAddress != null) {
+                    addressToValidate = streetAddress.toAddress();
+                }
+                if (addressToValidate != null) {
+                    validatedAddress = performAddressCorrection(addressToValidate, geocodeRequest);
+                    geocodeRequest.setAddress(validatedAddress);
+                }
+            }
         }
 
         switch (apiRequest.getRequest()) {
@@ -216,5 +251,23 @@ public class GeocodeController extends BaseApiController implements Observer
 
         /** Set response */
         setApiResponse(geocodeResponse, request);
+    }
+
+    /**
+     * Perform USPS address correction on either the geocoded address or the input address.
+     * If the geocoded address is invalid, the original address will be corrected and set as the address
+     * on the supplied geocodedAddress parameter.
+     * @return GeocodedAddress the address corrected geocodedAddress.
+     */
+    private Address performAddressCorrection(Address address, GeocodeRequest geocodeRequest)
+    {
+        AddressResult addressResult = addressProvider.validate(address, null, false);
+        if (addressResult != null && addressResult.isValidated()) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("USPS Validated Address: " + addressResult.getAdressLogString());
+            }
+            return addressResult.getAddress();
+        }
+        return null;
     }
 }

@@ -20,6 +20,7 @@ public class GeocodeRequest implements Cloneable
     private Address address;
     private Point point;
     private boolean isReverse;
+    private boolean isUspsValidate;
 
     private String provider;
     private boolean useFallback;
@@ -40,6 +41,7 @@ public class GeocodeRequest implements Cloneable
         this.isReverse = false;
         this.requestTime = new Timestamp(new Date().getTime());
         this.bypassCache = false;
+        this.isUspsValidate = true;
     }
 
     public GeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache, boolean bypassCache, boolean doNotCache)
@@ -53,6 +55,21 @@ public class GeocodeRequest implements Cloneable
         this.requestTime = new Timestamp(new Date().getTime());
         this.bypassCache = bypassCache;
         this.doNotCache = doNotCache;
+        this.isUspsValidate = true;
+    }
+
+    public GeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache, boolean bypassCache, boolean doNotCache, boolean isUspsValidate)
+    {
+        this.apiRequest = apiRequest;
+        this.address = address;
+        this.provider = provider;
+        this.useFallback = useFallback;
+        this.useCache = useCache;
+        this.isReverse = false;
+        this.requestTime = new Timestamp(new Date().getTime());
+        this.bypassCache = bypassCache;
+        this.doNotCache = doNotCache;
+        this.isUspsValidate = isUspsValidate;
     }
 
     public int getId() {
@@ -157,6 +174,14 @@ public class GeocodeRequest implements Cloneable
 
     public void setDoNotCache(boolean doNotCache) {
         this.doNotCache = doNotCache;
+    }
+
+    public boolean isUspsValidate() {
+        return isUspsValidate;
+    }
+
+    public void setUspsValidate(boolean uspsValidate) {
+        isUspsValidate = uspsValidate;
     }
 
     @Override
