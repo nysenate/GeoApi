@@ -154,6 +154,14 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             });
         }
 
+        google.maps.event.addListener(marker, 'mouseover', function() {
+            mapService.tooltipEl.hide();
+        });
+
+        google.maps.event.addListener(marker, 'mouseout', function() {
+            mapService.tooltipEl.show();
+        });
+
         this.activeMarker = marker;
         this.markers.push(marker);
         if (center) {
