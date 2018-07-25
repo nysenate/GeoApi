@@ -15,6 +15,7 @@ import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.util.Config;
@@ -43,6 +44,7 @@ public class GeocodeController extends BaseApiController implements Observer
     private static Config config = ApplicationFactory.getConfig();
     private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
     private static RevGeocodeServiceProvider revGeocodeServiceProvider = ApplicationFactory.getRevGeocodeServiceProvider();
+    public static AddressServiceProvider addressProvider = ApplicationFactory.getAddressServiceProvider();
 
     /** Usage loggers */
     private static Boolean SINGLE_LOGGING_ENABLED = false;
