@@ -242,6 +242,10 @@ Methods have the following optional parameters:
 +-------------+-------------------------------------------------------------------------------+
 | useFallback | If false and provider is set, only the provider will be used for the request. |
 +-------------+-------------------------------------------------------------------------------+
+| bypassCache | If set to true, then the geocode request will not use the cache for results   |
++-------------+-------------------------------------------------------------------------------+
+| uspsValidate| Specify if you want to usps correct a single geocode address                  |
++-------------+-------------------------------------------------------------------------------+
 
 For example to use just yahoo without falling back to other providers in case of error::
 
