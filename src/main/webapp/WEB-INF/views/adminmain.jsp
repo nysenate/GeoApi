@@ -293,6 +293,13 @@
 
                                 <br>
 
+                                <div>
+                                    <label for="input_usps">USPS Validate: </label>
+                                    <input id="input_usps" ng-model="uspsValidate" type="checkbox"/>
+                                </div>
+
+                                <br>
+
                                 <button type="submit" name="lookup" class="submit"
                                         style="width: auto;padding: 5px 10px;"
                                         ng-click="look_up()" ng-disabled="!isValidInfo()">Look Up
@@ -331,6 +338,19 @@
                                     <br>
 
                                     <div>
+                                    <label for="nysgeo_coords" ng-show="geo_nys_status">NYS Geo:
+                                        <p ng-show="geo_nys_status">Lat: {{geo_nys_json.geocode.lat || ""}} Lon:
+                                            {{geo_nys_json.geocode.lon || ""}} <br>
+                                            Quality: {{geo_nys_json.geocode.quality || ""}}
+                                            Method: {{geo_nys_json.geocode.method || ""}} </p>
+                                    </label>
+                                    <input ng-show="geo_nys_status" type="radio" ng-model="selected_provider"
+                                           id="nysgeo_coords" value="NYSGeo">
+                                    </div>
+
+                                    <br>
+
+                                    <div>
                                         <label for="tiger_coords" ng-show="geo_tiger_status">Tiger:
                                             <p ng-show="geo_tiger_status">Lat: {{geo_tiger_json.geocode.lat || ""}} Lon:
                                                 {{geo_tiger_json.geocode.lon || ""}} <br>
@@ -341,18 +361,6 @@
                                                id="tiger_coords" value="Tiger">
                                     </div>
 
-                                    <br>
-
-                                    <div>
-                                        <label for="nysgeo_coords" ng-show="geo_nys_status">NYS Geo:
-                                            <p ng-show="geo_nys_status">Lat: {{geo_nys_json.geocode.lat || ""}} Lon:
-                                                {{geo_nys_json.geocode.lon || ""}} <br>
-                                                Quality: {{geo_nys_json.geocode.quality || ""}}
-                                                Method: {{geo_nys_json.geocode.method || ""}} </p>
-                                        </label>
-                                        <input ng-show="geo_nys_status" type="radio" ng-model="selected_provider"
-                                               id="nysgeo_coords" value="NYSGeo">
-                                    </div>
 
                                     <br>
                                     <button type="submit" name="update_geocache" class="geocache"
@@ -408,7 +416,7 @@
                                     <%--Geocache status--%>
                                 <div ng-show="determineActiveCompTab('geocache')" id="geocache_status" class="column">
                                     <hr ng-show="determineActiveCompTab('geocache')"/>
-                                    <strong>Currently Geocached</strong>
+                                    <strong>Current Geocache Status</strong>
                                     <p>{{geocache_json.status}}</p>
                                     <p>{{geocache_url}}</p>
                                     <p ng-show="geocode_status"><br>

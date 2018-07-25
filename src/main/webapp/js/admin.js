@@ -259,6 +259,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.input_addr1 = "";
     $scope.input_city = "";
     $scope.input_zip5 = "";
+    $scope.uspsValidate = true;
     $scope.separatedInput = false;
     $scope.selected_provider = "";
     $scope.geo_comparison_status = false;
@@ -355,7 +356,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         }
         else {
             $scope.district_assign_shape_url = baseApi + "district/assign?addr1=" + $scope.input_addr1 +
-            "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=shapefile&uspsValidate=true";
+            "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=shapefile&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.district_assign_shape_url)
             .success(function(data){
@@ -382,7 +383,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         }
         else {
             $scope.district_assign_street_url = baseApi + "district/assign?addr1=" + $scope.input_addr1 +
-                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=streetfile&uspsValidate=true";
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=streetfile&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.district_assign_street_url)
             .success(function(data){
@@ -406,11 +407,11 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.callGoogle = function() {
 
         if (!$scope.separatedInput) {
-            $scope.geo_google_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=google&useFallback=false&doNotCache=true";
+            $scope.geo_google_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=google&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
         }
         else {
             $scope.geo_google_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
-                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=google&useFallback=false&doNotCache=true";
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=google&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.geo_google_url)
             .success(function(data){
@@ -435,11 +436,11 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.callTiger = function() {
 
         if (!$scope.separatedInput) {
-            $scope.geo_tiger_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true";
+            $scope.geo_tiger_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
         }
         else {
             $scope.geo_tiger_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
-                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true";
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.geo_tiger_url)
             .success(function(data){
@@ -466,11 +467,11 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.callNYS = function() {
 
         if (!$scope.separatedInput) {
-            $scope.geo_nys_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=nysgeo&useFallback=false&doNotCache=true";
+            $scope.geo_nys_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=nysgeo&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
         }
         else {
             $scope.geo_nys_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
-                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=nysgeo&useFallback=false&doNotCache=true";
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=nysgeo&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.geo_nys_url)
             .success(function(data){
@@ -497,11 +498,11 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.callGeocache = function() {
 
         if (!$scope.separatedInput) {
-            $scope.geocache_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&provider=geocache&useFallback=false";
+            $scope.geocache_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&provider=geocache&useFallback=false&uspsValidate=" + $scope.uspsValidate;
         }
         else {
             $scope.geocache_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
-                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=geocache&useFallback=false";
+                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=geocache&useFallback=false&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.geocache_url)
             .success(function(data){
@@ -527,11 +528,11 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.updateGeocache = function() {
 
         if (!$scope.separatedInput) {
-            $scope.geocache_result_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&doNotCache=false&provider=" + $scope.selected_provider;
+            $scope.geocache_result_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&doNotCache=false&provider=" + $scope.selected_provider + "&uspsValidate=" + $scope.uspsValidate;
         }
         else {
            $scope.geocache_result_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
-               "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&doNotCache=false&provider=" + $scope.selected_provider;
+               "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&doNotCache=false&provider=" + $scope.selected_provider + "&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.geocache_result_url)
             .success(function(data){
