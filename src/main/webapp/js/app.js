@@ -66,6 +66,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.districtData = null;
     mapService.mouseEventName = null;
     mapService.colors = polyColors;
+    mapService.showToolTip = true;
 
     /**
      * Resize when window size changes
@@ -155,11 +156,14 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         }
 
         google.maps.event.addListener(marker, 'mouseover', function() {
+            mapService.showToolTip = false;
             mapService.tooltipEl.hide();
         });
 
         google.maps.event.addListener(marker, 'mouseout', function() {
+            mapService.showToolTip = true;
             mapService.tooltipEl.show();
+
         });
 
         this.activeMarker = marker;
@@ -209,11 +213,15 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
                 /** On mouseover reveal the tooltip and decrease opacity */
                 google.maps.event.addListener(polygon,"mouseover",function() {
+                    console.log("mouseover");
                     this.setOptions({fillOpacity: style.fillOpacity - 0.2});
-                    mapService.tooltipEl.show();
+                    if (mapService.showToolTip) {
+                        mapService.tooltipEl.show();
+                    }
                 });
 
                 google.maps.event.addListener(polygon, "mousemove", function(mousemove) {
+
                     /** Have to find the correct property name that contains the client x,y data */
                     if (mapService.mouseEventName == null) {
                         for (var prop in mousemove) {
@@ -233,6 +241,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
                 /** On mouseout restore the opacity and hide the tooltip */
                 google.maps.event.addListener(polygon,"mouseout",function(){
+                    console.log("mouseout");
                     this.setOptions({fillOpacity: style.fillOpacity});
                     mapService.tooltipEl.hide();
                 });
