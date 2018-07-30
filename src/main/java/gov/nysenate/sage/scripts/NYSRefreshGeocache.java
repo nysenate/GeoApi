@@ -16,7 +16,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -31,7 +30,6 @@ public class NYSRefreshGeocache {
 
     private Config config;
     private QueryRunner tigerRun;
-    private static Logger logger = Logger.getLogger(NYSRefreshGeocache.class);
     private static final int limit = 2000;
     private static int offset = 0;
     private static final String table = "public.addresspoints_sam";
@@ -52,12 +50,12 @@ public class NYSRefreshGeocache {
                 sb.append(line + "\n");
             }
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            System.err.println(e.getMessage());
         } finally {
             try {
                 is.close();
             } catch (IOException e) {
-                logger.error(e.getMessage());
+                System.err.println(e.getMessage());
             }
         }
         return sb.toString();
@@ -69,10 +67,6 @@ public class NYSRefreshGeocache {
 
     public QueryRunner getTigerRun() {
         return tigerRun;
-    }
-
-    public static Logger getLogger() {
-        return logger;
     }
 
     public static int getLimit() {
@@ -91,6 +85,18 @@ public class NYSRefreshGeocache {
         /* Load up the configuration settings */
         if (!ApplicationFactory.bootstrap()) {
             System.err.println("Failed to configure application");
+            System.exit(-1);
+        }
+
+        try {
+            if (args.length > 0 && args.length < 2) {
+                offset = Integer.parseInt(args[0]);
+            }
+            System.out.println("NYS Refresh Geocache input offset: " + offset);
+        }
+        catch (Exception e) {
+            System.err.println(
+                    "Check supplied arguments. The only argument should be an int");
             System.exit(-1);
         }
 
@@ -145,7 +151,7 @@ public class NYSRefreshGeocache {
                 //Get batch of 2000
                 List<NYSGeoAddress> nysGeoAddresses = nysRefreshGeocache.getTigerRun().query(NYS_BATCH_SQL,
                         nysGeoAddressBeanListHandler, limit, offset);
-                logger.info("At offset: " + offset);
+                System.out.println("At offset: " + offset);
                 offset = limit + offset;
 
                 //Handle batch
@@ -204,8 +210,6 @@ public class NYSRefreshGeocache {
                             nysStreetAddress.getZip5().toString(),
                             nysStreetAddress.getLocation());
 
-                    logger.trace("Inserting / Updating " + nysStreetAddress.toString());
-
                     //If the geocacheStreetAddressProvider is empty, we don't have the address cached, so insert the address
                     if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
                         //insert
@@ -234,14 +238,14 @@ public class NYSRefreshGeocache {
                 ((CloseableHttpClient) httpClient).close();
             }
             catch (IOException e) {
-                logger.error("Failed to close http connection", e);
+                System.err.println("Failed to close http connection \n" + e);
             }
 
             ApplicationFactory.close();
             System.exit(0);
         }
         catch (SQLException ex) {
-            logger.error("Error retrieving addresses from geocache", ex);
+            System.err.println("Error retrieving addresses from geocache \n" + ex);
         }
     }
 
