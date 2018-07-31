@@ -1,4 +1,4 @@
-var sageCommon = angular.module('sage-common', []);
+var sageCommon = angular.module('sage-common');
 
 sageCommon.controller('MenuController', function($scope, menuService, dataBus){
     $scope.index = 1;

@@ -1,4 +1,4 @@
-var sageCommon = angular.module('sage-common', []);
+var sageCommon = angular.module('sage-common');
 
 sageCommon.factory('menuService', function(dataBus) {
     var menuService = {
