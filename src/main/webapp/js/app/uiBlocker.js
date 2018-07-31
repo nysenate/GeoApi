@@ -1,4 +1,4 @@
-var sage = angular.module('sage', ['sage-common']);
+var sage = angular.module('sage');
 
 sage.factory("uiBlocker", function($rootScope) {
     var uiBlocker = {};

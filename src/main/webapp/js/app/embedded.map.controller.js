@@ -1,4 +1,4 @@
-var sage = angular.module('sage', ['sage-common']);
+var sage = angular.module('sage');
 
 sage.controller("EmbeddedMapController", function($scope, $http, $window, dataBus, uiBlocker) {
     $scope.districtType = $window.districtType;

@@ -1,4 +1,4 @@
-var sage = angular.module('sage', ['sage-common']);
+var sage = angular.module('sage');
 
 sage.controller("RevGeoController", function($scope, $http, mapService, menuService, dataBus) {
     $scope.id = 4;

@@ -1,4 +1,4 @@
-var sage = angular.module('sage', ['sage-common']);
+var sage = angular.module('sage');
 
 sage.controller("StreetViewController", function($scope, dataBus, uiBlocker, mapService) {
     $scope.visible = false;

@@ -1,4 +1,4 @@
-var sage = angular.module('sage', ['sage-common']);
+var sage = angular.module('sage');
 
 sage.controller("UspsLookupController", function($scope, $http, dataBus, mapService, menuService, uiBlocker) {
     $scope.id = 6;

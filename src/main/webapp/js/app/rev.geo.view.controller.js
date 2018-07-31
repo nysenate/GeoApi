@@ -1,4 +1,4 @@
-var sage = angular.module('sage', ['sage-common']);
+var sage = angular.module('sage');
 
 sage.controller("RevGeoViewController", function($scope, $filter, dataBus, mapService) {
     $scope.visible = false;
