@@ -28,6 +28,25 @@
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/app.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/my.table.directive.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/uiBlocker.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/embedded.map.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/embedded.map.view.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/district.info.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/district.map.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/districts.view.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/mapServiceFactory.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/member.view.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/results.view.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/rev.geo.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/rev.geo.view.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/street.view.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/street.lookup.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/usps.lookup.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/common.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/menu.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/menuServiceFactory.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/dataBusFactory.js"></script>
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">

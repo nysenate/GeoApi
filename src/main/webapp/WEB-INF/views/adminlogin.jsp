@@ -4,8 +4,8 @@
 
 <fmt:setLocale value = "es_ES"/>
 <sage:wrapper>
-    <jsp:attribute name="ngApp">sage-job</jsp:attribute>
-    <jsp:attribute name="title">SAGE - Batch Services Login</jsp:attribute>
+    <jsp:attribute name="ngApp">sage-admin</jsp:attribute>
+    <jsp:attribute name="title">SAGE - Admin Services Login</jsp:attribute>
     <jsp:attribute name="cssIncludes">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
