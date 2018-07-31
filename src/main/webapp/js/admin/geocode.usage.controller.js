@@ -1,4 +1,4 @@
-var sageAdmin = angular.module('sage-admin', ['sage-common']);
+var sageAdmin = angular.module('sage-admin');
 
 sageAdmin.controller("GeocodeUsageController", function($scope, $http, dataBus){
 

@@ -1,4 +1,4 @@
-var sageAdmin = angular.module('sage-admin', ['sage-common']);
+var sageAdmin = angular.module('sage-admin');
 
 sageAdmin.controller('JobStatusController', function($scope, $http, dataBus){
     $scope.jobStatuses = [];

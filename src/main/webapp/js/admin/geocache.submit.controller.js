@@ -1,4 +1,4 @@
-var sageAdmin = angular.module('sage-admin', ['sage-common']);
+var sageAdmin = angular.module('sage-admin');
 var baseApi = contextPath + "/api/v2/";
 
 sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus){

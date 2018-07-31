@@ -1,4 +1,4 @@
-var sageAdmin = angular.module('sage-admin', ['sage-common']);
+var sageAdmin = angular.module('sage-admin');
 
 sageAdmin.controller('ExceptionViewController', function($scope, $http, dataBus){
     $scope.exceptions = [];
