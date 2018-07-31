@@ -1,4 +1,27 @@
-var sageJob = angular.module('sage-job', ['sage-common']);
+var sageJob = angular.module('sage-job');
+
+sageJob.filter('yesno', function(){
+    return function(input) {
+        return (input) ? 'Yes' : 'No';
+    }
+});
+
+sageJob.filter('conditionFilter', function(){
+    return function(input) {
+        switch (input) {
+            case 'WAITING_FOR_CRON' : return 'Waiting';
+            case 'RUNNING' : return 'Processing';
+            case 'COMPLETED' : return 'Completed';
+            case 'COMPLETED_WITH_ERRORS' : return 'Completed with some errors';
+            case 'SKIPPED' : return 'Skipped';
+            case 'FAILED' : return 'Failed';
+            case 'CANCELLED' : return 'Cancelled';
+            case 'INACTIVE' : return "Currently inactive";
+            default : return input;
+        }
+    }
+});
+
 
 sageJob.controller('JobUploadController', function($scope, $http, $window, menuService, dataBus) {
     $scope.id = 1;

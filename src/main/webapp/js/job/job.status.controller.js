@@ -1,4 +1,10 @@
-var sageJob = angular.module('sage-job', ['sage-common']);
+var sageJob = angular.module('sage-job');
+
+sageJob.filter('conditionSuccess', function(){
+    return function(input) {
+        return (input == "COMPLETED" || input == "COMPLETED_WITH_ERRORS");
+    }
+});
 
 sageJob.controller('JobStatusController', function($scope, $http, menuService, dataBus) {
     $scope.id = 2;

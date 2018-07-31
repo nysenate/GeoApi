@@ -1,4 +1,4 @@
-var sageJob = angular.module('sage-job', ['sage-common']);
+var sageJob = angular.module('sage-job');
 
 sageJob.controller('JobHistoryController', function($scope, $http, menuService, dataBus) {
     $scope.id = 3;

@@ -1,4 +1,4 @@
-var sageJob = angular.module('sage-job', ['sage-common']);
+var sageJob = angular.module('sage-job');
 
 sageJob.controller('JobAuthController', function($scope, $http) {
     $scope.visible = true;
