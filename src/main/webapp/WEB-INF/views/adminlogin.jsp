@@ -9,7 +9,7 @@
     <jsp:attribute name="cssIncludes">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script src="${pageContext.request.contextPath}/js/admin.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/admin/admin.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
         <sage:header>

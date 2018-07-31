@@ -30,7 +30,7 @@
 
         <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false&libraries=places"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app/app.js"></script>
     </jsp:attribute>
     <jsp:body>
         <div id="contentwrapper">

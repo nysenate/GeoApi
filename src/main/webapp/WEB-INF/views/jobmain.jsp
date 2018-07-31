@@ -15,7 +15,7 @@
     <jsp:attribute name="jsIncludes">
         <script src="${pageContext.request.contextPath}/js/vendor/fileuploader.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/job/job.js" type="text/javascript"></script>
         <script>
             downloadBaseUrl = "${downloadBaseUrl}";
         </script>

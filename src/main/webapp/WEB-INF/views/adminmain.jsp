@@ -26,8 +26,8 @@
         <script type="text/javascript"
                 src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/vendor/highcharts.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/common.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/common/common.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/admin/admin.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
 
