@@ -9,7 +9,12 @@
     <jsp:attribute name="cssIncludes">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/common.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/menu.controller.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/menuServiceFactory.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/dataBusFactory.js"></script>
         <script src="${pageContext.request.contextPath}/js/admin/admin.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/admin/admin.auth.controller.js" type="text/javascript"></script>
     </jsp:attribute>
     <jsp:body>
         <sage:header>
@@ -20,7 +25,7 @@
         </sage:header>
 
         <h1 style="text-align: center; color:#222;font-weight: 400;">SAGE Admin Interface</h1>
-        <div style="width:500px;margin:auto;" ng-controller="">
+        <div style="width:500px;margin:auto;" ng-controller="AdminAuthController">
             <form id="uploadForm" method="post" ng-submit="login()" action="${pageContext.request.contextPath}/admin/login">
                 <ol class="input-container" style="width:280px;margin:auto;padding:20px;">
                     <li>
