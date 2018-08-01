@@ -9,12 +9,8 @@
     <jsp:attribute name="cssIncludes">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/common.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/menu.controller.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/menuServiceFactory.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/dataBusFactory.js"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/admin.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/admin.auth.controller.js" type="text/javascript"></script>
+        <sage:common></sage:common>
+        <sage:admin></sage:admin>
     </jsp:attribute>
     <jsp:body>
         <sage:header>

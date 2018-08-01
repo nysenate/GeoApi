@@ -26,21 +26,8 @@
         <script type="text/javascript"
                 src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/vendor/highcharts.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/common/common.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/common/dataBusFactory.js" type="text/javascript" ></script>
-        <script src="${pageContext.request.contextPath}/js/common/menu.controller.js" type="text/javascript" ></script>
-        <script src="${pageContext.request.contextPath}/js/common/menuServiceFactory.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/admin.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/admin.page.controller.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/api.usage.controller.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/api.user.stats.controller.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/dashboard.controller.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/deployment.stats.controller.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/exception.view.controller.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/geocache.submit.controller.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/geocode.usage.controller.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/job.status.controller.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/admin/user.console.controller.js" type="text/javascript"></script>
+        <sage:common></sage:common>
+        <sage:admin></sage:admin>
     </jsp:attribute>
     <jsp:body>
 

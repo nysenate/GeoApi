@@ -10,12 +10,8 @@
         <link href="${pageContext.request.contextPath}/css/vendor/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/common.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/menu.controller.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/menuServiceFactory.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/dataBusFactory.js"></script>
-        <script src="${pageContext.request.contextPath}/js/job/job.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/job/job.auth.controller.js" type="text/javascript"></script>
+        <sage:common></sage:common>
+        <sage:job></sage:job>
     </jsp:attribute>
     <jsp:body>
         <sage:header>
