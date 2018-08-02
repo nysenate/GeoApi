@@ -207,7 +207,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
                 /** On mouseover reveal the tooltip and decrease opacity */
                 google.maps.event.addListener(polygon,"mouseover",function() {
-                    console.log("mouseover");
+                    // console.log("mouseover");
                     this.setOptions({fillOpacity: style.fillOpacity - 0.2});
                     if (mapService.showToolTip) {
                         mapService.tooltipEl.show();
@@ -235,7 +235,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
                 /** On mouseout restore the opacity and hide the tooltip */
                 google.maps.event.addListener(polygon,"mouseout",function(){
-                    console.log("mouseout");
+                    // console.log("mouseout");
                     this.setOptions({fillOpacity: style.fillOpacity});
                     mapService.tooltipEl.hide();
                 });
