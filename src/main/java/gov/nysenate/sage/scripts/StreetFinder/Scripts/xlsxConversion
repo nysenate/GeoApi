@@ -1,0 +1,4 @@
+#!/bin/bash
+libreoffice --headless --convert-to csv /data/geoapi_data/street_finder/raw_streetfiles/$1 --outdir /data/geoapi_data/street_finder/txt_streetfiles
+sleep 2
+echo moved $1 to txt_streetfiles

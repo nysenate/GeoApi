@@ -1,0 +1,3 @@
+#!/bin/bash
+java -cp ~/GeoApi/target/classes/ gov.nysenate.sage.scripts.StreetFinder.CountyParserMatcher /data/geoapi_data/street_finder/txt_streetfiles/$1
+echo $1 parsed and tsv file created
