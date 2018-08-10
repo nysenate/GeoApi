@@ -1,4 +1,4 @@
-package gov.nysenate.sage.scripts.StreetFinder;
+package gov.nysenate.sage.scripts.StreetFinder.Scripts;
 
 import java.io.*;
 import java.util.Scanner;
@@ -13,7 +13,8 @@ public class CreateSQLFile {
 
     /**
      * Creates sql file with all commands (if the file does not already exist), then appends new data from input file into file
-     * @param args[0] = file
+     * args[0] = file
+     * @param
      * @throws IOException
      */
     public static void main(String args[]) throws IOException {
@@ -45,6 +46,7 @@ public class CreateSQLFile {
                                 "apt_hi_num, apt_hi_chr, apt_parity, election_code, county_code, assembly_code, senate_code, congressional_code, boe_town_code, " +
                         "town_code, ward_code, boe_school_code, school_code, cleg_code, cc_code, fire_code, city_code, vill_code) FROM stdin;\n");
             } else {
+                //file exists so just create writers
                 fileWriter = new BufferedWriter(new FileWriter(sqlFile, true));
                 outputWriter = new PrintWriter(fileWriter);
             }
@@ -54,7 +56,7 @@ public class CreateSQLFile {
             while(scanner.hasNext()) {
                 String line = scanner.nextLine();
                 if(line.contains("bldg_lo_num") && line.contains("senate_code")) {
-                    //skip
+                    //skip over these lines
                 } else {
                     outputWriter.write(line + "\n");
                 }

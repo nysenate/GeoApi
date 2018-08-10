@@ -2,31 +2,42 @@ package gov.nysenate.sage.scripts.StreetFinder.Parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
 import gov.nysenate.sage.util.AddressDictionary;
-
 import java.io.*;
 import java.util.Scanner;
 
+/**
+ * Parses files in the base NTS format (see Albany, Broome Counties as example)
+ * Output is a tsv file
+ */
 public class NTSParser {
+
     //These are used to save the variables when the line is a continuation of an above street
     private StreetFinderAddress StreetFinderAddressStorage = new StreetFinderAddress();
     private String file;
     private String overloadStreetSuf;
+    //storage for column locations
     private int schIndex;
     private int villIndex;
     private int cleIndex;
     private int fireIndex;
     private int ccIndex;
     private int cityIndex;
+    //tsv file writers
     private FileWriter fileWriter;
     private PrintWriter outputWriter;
 
-
+    /**
+     * Constructor sets the file name and sets up tsv file
+     * @param file
+     * @throws IOException
+     */
     public NTSParser(String file) throws IOException {
         this.file = file;
         String output = file.replace(".txt", ".tsv");
         output = output.replace(".csv", ".tsv");            //in case its a csv file
         fileWriter = new FileWriter(output);
         outputWriter = new PrintWriter(fileWriter);
+        //add columns for the tsv file
         outputWriter.print("street\ttown\tstate\tzip5\tbldg_lo_num\tbldg_lo_chr\tbldg_hi_num\tbldg_hi_chr\tbldg_parity\tapt_lo_num\tapt_lo_chr\tapt_hi_num\tapt_hi_chr\tapt_parity\telection_code\tcounty_code\t" +
                 "assembly_code\tsenate_code\tcongressional_code\tboe_town_code\ttown_code\tward_code\tboe_school_code\tschool_code\tcleg_code\tcc_code\tfire_code\tcity_code\tvill_code\n");
     }
@@ -49,6 +60,8 @@ public class NTSParser {
                 //check if this is the end of data
                 if (currentLine.contains("TEAM SQL Version") || currentLine.contains("r_strstd") || currentLine.contains("Total No. of Street") || currentLine.contains("r_ppstreet")) {
                     inData = false;
+                    //check for a blank line that will be less than 25 in length or less than 5 indices in the split array (not actual data)
+                    //skip over these
                 } else if (currentLine.length() < 25 || currentLine.trim().split("\\s+").length < 5) {
                     currentLine = scanner.nextLine();
                 } else {
@@ -56,22 +69,23 @@ public class NTSParser {
                     String nextLine = scanner.nextLine();
 
                     //special case is where street suffix is bumped to its own line on the next line
-                    //only happens once in Albany.txt 2018
-                    //check if the next line is less than 5 characters long
+                    //check if the next line is less than 5 characters long and it is not empty
                     if (nextLine.length() < 5 && !nextLine.trim().isEmpty()) {
+                        //special overrun case is true
                         overloadStreetSuf = nextLine;
                         parseLine(currentLine, true);
                         //then skip over the line with just the suffix
                         nextLine = scanner.nextLine();
                         currentLine = nextLine;
                     } else {
+                        //normal data line
                         parseLine(currentLine, false);
                         //get next line for parsing
                         currentLine = nextLine;
                     }
                 }
             } else {
-                //look for this to signal that data is starting
+                //look for "Housing Range" to signal that data is starting
                 if (currentLine.contains("House Range")) {
                     inData = true;
                     this.getIndexes(currentLine);
@@ -80,6 +94,7 @@ public class NTSParser {
                 currentLine = scanner.nextLine();
             }
         }
+        //close all writers/readers
         scanner.close();
         this.closeWriters();
     }
@@ -93,28 +108,37 @@ public class NTSParser {
      */
     protected void parseLine(String line, boolean specialCase) {
 
+        //set up the streetFinderAddress for storage of current data
         StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
+        //split the line by whitespace
         String[] splitLine = line.split("\\s+");
+
         int zipIndex = 0;
         int index = 0;
 
-        //check if this is a line w/o street name (meaning street name came before)
+        //check if this is a line w/o street name (meaning street name came before and is stored in StreetFinderAddressStorage)
+        //you can tell this by a blank first character
         if (line.charAt(0) == ' ') {
-            //check for unknown addresses at the start
+            //check that StreetFinderAddressStorage isn't blank. If it is then this is probably just a blank line so just return
             if (StreetFinderAddressStorage.getStreet().equals("")) {
                 return;
             }
             //for some reason splitLine[0] is whitespace and the zip is at splitLine[1]
             StreetFinderAddress.setZip(splitLine[1]);
+            //set other fields using StreetFinderAddressStorage
             StreetFinderAddress.setPreDirection(StreetFinderAddressStorage.getPreDirection().trim());
             StreetFinderAddress.setStreet(StreetFinderAddressStorage.getStreet());
             StreetFinderAddress.setStreetSuffix((StreetFinderAddressStorage.getStreetSuffix()));
+            //call parseAfterZip
             parseAfterZip(splitLine, specialCase, 2, line, StreetFinderAddress);
 
         } else if (line.charAt(0) == '*') {
-            //check if the street name is unknown
-            //in file as ""
+            //check for unknown addresses at the start of the file
+            //ex "*UNKNOWN*"
+            //dont include the UNKNOWN as the street name
+            //zip must be after *UNKNOWN*
             StreetFinderAddress.setZip(splitLine[1]);
+            //call parseAfterZip
             parseAfterZip(splitLine, specialCase, 2, line, StreetFinderAddress);
 
         } else {
@@ -122,6 +146,7 @@ public class NTSParser {
             //skip first index because that must be street name
             for (int i = 1; i < splitLine.length; i++) {
                 //zip must have 5 digits
+                //except for 1 special case in Schenectady
                 if (splitLine[i].matches("\\d{5}") || (splitLine[i].equals("1239") && file.contains("Schenectady"))) {
                     zipIndex = i;
                     break;
@@ -132,38 +157,52 @@ public class NTSParser {
             //streetSuf = splitline[zipIndex -1]
             //streetName = everything before zipIndex -1
             StreetFinderAddress.setZip(splitLine[zipIndex]);
-            int end = zipIndex - 1;
-            if (AddressDictionary.directionMap.containsKey(splitLine[end]))
-                splitLine[end] = AddressDictionary.directionMap.get(splitLine[end]);
 
-            if (checkForDirection(splitLine[end])) {
-                StreetFinderAddress.setPostDirection(splitLine[end]);
-                end--;
+            //save the index of the end of the street name
+            int endOfStreetName = zipIndex - 1;
+
+            //check if the endOfStreetName index is actually a postDirection
+            //first check for a conversion to formatting in directionMap
+            if (AddressDictionary.directionMap.containsKey(splitLine[endOfStreetName])) {
+                //if a format conversion is found then change it in splitLine
+                splitLine[endOfStreetName] = AddressDictionary.directionMap.get(splitLine[endOfStreetName]);
             }
 
-            if (!splitLine[end].matches("\\d+")) {
-                StreetFinderAddress.setStreetSuffix(splitLine[end]);
-                end--;
+            //now actually check for the postDirection
+            if (checkForDirection(splitLine[endOfStreetName])) {
+                StreetFinderAddress.setPostDirection(splitLine[endOfStreetName]);
+                //if a postDirection is found decrement endOfStreetName
+                endOfStreetName--;
+            }
+
+            //if SplitLine[endOfStreetName] is not numbers then it must be the street suffix
+            if (!splitLine[endOfStreetName].matches("\\d+")) {
+                StreetFinderAddress.setStreetSuffix(splitLine[endOfStreetName]);
+                //decrment end of StreetName
+                endOfStreetName--;
             }
 
             int temp = 0;
 
+            //check the beginning of splitLine for a pre-Direction
+            //Not converting the beginning because it would convert North Street to just N st which
+            //is not a pre-direction
             if (checkForDirection(splitLine[temp])) {
                 StreetFinderAddress.setPreDirection(splitLine[temp].trim());
+                //increment temp if one is found
                 temp++;
             }
 
             String streetName = "";
-            //concatenate into one string
-            for (int i = temp; i <= end; i++) {
+            //concatenate Street Name into one string
+            //Street Name is in indexes temp to endOfStreetName
+            for (int i = temp; i <= endOfStreetName; i++) {
                 streetName = streetName + splitLine[i] + " ";
-                if (AddressDictionary.highWayMap.containsKey(streetName.trim())) {
-                    streetName = AddressDictionary.highWayMap.get(streetName.trim()) + " ";
-                }
             }
             StreetFinderAddress.setStreet(streetName.trim());
             //increment index for parseAfterZip call
             index = zipIndex + 1;
+            //call parseAfterZip
             parseAfterZip(splitLine, specialCase, index, line, StreetFinderAddress);
         }
     }
@@ -171,7 +210,6 @@ public class NTSParser {
     /**
      * Parses the split array after the zip to find the rest of the data.
      * index must be the the low range
-     *
      * @param splitLine
      * @param specialCase
      * @param index
