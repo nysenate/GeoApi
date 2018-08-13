@@ -1,0 +1,8 @@
+#!/bin/bash
+for file in /data/geoapi_data/street_finder/txt_streetfiles/*; do
+	rm "$file";
+done
+for file in /data/geoapi_data/street_finder/tsv_streetfiles/*; do
+	rm "$file";
+done
+echo "Files removed"

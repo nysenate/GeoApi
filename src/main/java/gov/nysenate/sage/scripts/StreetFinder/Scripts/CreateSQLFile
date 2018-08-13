@@ -1,0 +1,6 @@
+#!/bin/bash
+for file in /data/geoapi_data/street_finder/tsv_streetfiles/*; do
+	java -cp ~/GeoApi/target/classes/ gov.nysenate.sage.scripts.StreetFinder.Scripts.CreateSQLFile "$file"
+	echo $file added
+done
+echo SQL file created

@@ -1,0 +1,4 @@
+#!/bin/bash
+mv /data/geoapi_data/street_finder/raw_streetfiles/$1 /data/geoapi_data/street_finder/txt_streetfiles
+echo moved $1
+
