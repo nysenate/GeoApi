@@ -1,4 +1,7 @@
 #!/bin/bash
+#This script deletes all files in txt_streetfiles
+#and in tsv_streetfiles
+#It does not touch any other file (sql file, source files)
 for file in /data/geoapi_data/street_finder/txt_streetfiles/*; do
 	rm "$file";
 done

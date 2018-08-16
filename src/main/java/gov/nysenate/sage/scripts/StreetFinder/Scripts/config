@@ -1,4 +1,7 @@
-Albany="./PDFConversion Albany*.pdf; ./MoveFile Albany*.txt; ./ParseFile Albany*.txt; ./MoveTsv Albany*.tsv" 
+#This is a config file that contains script pipeline for all 62 counties
+#The format must be CountyName="./script1; ./script2"
+
+Albany="./PDFConversion Albany*.pdf; ./MoveFile Albany*.txt; ./ParseFile Albany*.txt; ./MoveTsv Albany*.tsv"
 Allegany="./PDFConversion Allegany*.pdf; ./MoveFile Allegany*.txt; ./ParseFile Allegany*.txt; ./MoveTsv Allegany*.tsv" 
 Broome="./PDFConversion Broome*.pdf; ./MoveFile Broome*.txt; ./ParseFile Broome*.txt; ./MoveTsv Broome*.tsv" 
 Cattaraugus="./PDFConversion Cattaraugus*.pdf; ./MoveFile Cattaraugus*.txt; ./ParseFile Cattaraugus*.txt; ./MoveTsv Cattaraugus*.tsv"

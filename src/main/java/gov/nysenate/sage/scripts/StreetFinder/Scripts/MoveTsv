@@ -1,3 +1,4 @@
 #!/bin/bash
+#moves the given tsv file from txt_streetfiles to tsv_streetfiles
 mv /data/geoapi_data/street_finder/txt_streetfiles/$1 /data/geoapi_data/street_finder/tsv_streetfiles
 echo $1 moved to tsv_streetfiles
