@@ -68,6 +68,9 @@ public class USPSAMSDao implements Observer
                 urlParams.append("&initCaps=true");
 
                 String url = DEFAULT_BASE_URL + VALIDATE_METHOD + urlParams.toString();
+
+                logger.info("Making a connection to: \n" + url);
+
                 String response = UrlRequest.getResponseFromUrl(url);
                 if (response != null && !response.isEmpty()) {
                     JsonNode root = objectMapper.readTree(response);
