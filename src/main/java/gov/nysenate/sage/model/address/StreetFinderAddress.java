@@ -79,7 +79,7 @@ public class StreetFinderAddress {
     }
 
     /**
-     * Converts the StreetFinderAddress Object into a String in format needed for the SQL file
+     * Converts the StreetFinderAddress Object into a String in the format needed for the SQL file
      * @return Object in String form
      */
     public String toStreetFileForm() {

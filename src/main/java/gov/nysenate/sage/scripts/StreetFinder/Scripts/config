@@ -1,5 +1,7 @@
 #This is a config file that contains script pipeline for all 62 counties
 #The format must be CountyName="./script1; ./script2"
+#The leftmost word of the script is the pattern of the original file
+#The leftmost word must also be in the masterScript for the eval statement
 
 Albany="./PDFConversion Albany*.pdf; ./MoveFile Albany*.txt; ./ParseFile Albany*.txt; ./MoveTsv Albany*.tsv"
 Allegany="./PDFConversion Allegany*.pdf; ./MoveFile Allegany*.txt; ./ParseFile Allegany*.txt; ./MoveTsv Allegany*.tsv" 

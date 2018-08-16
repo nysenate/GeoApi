@@ -56,7 +56,7 @@ public class CreateSQLFile {
             while(scanner.hasNext()) {
                 String line = scanner.nextLine();
                 if(line.contains("bldg_lo_num") && line.contains("senate_code")) {
-                    //skip over these lines
+                    //skip over these lines because it is just a header and not data
                 } else {
                     outputWriter.write(line + "\n");
                 }

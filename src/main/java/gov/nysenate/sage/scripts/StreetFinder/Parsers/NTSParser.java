@@ -552,6 +552,7 @@ public class NTSParser {
             }
             StringBuilder temp = new StringBuilder();
             //check from cityIndex - 2 to cityIndex + 3
+            //the data can be a few spaces away from the column head
             for (int i = -2; i < 4; i++) {
                 if (!Character.isWhitespace(line.charAt(cityIndex + i))) {
                     temp.append(line.charAt(i + cityIndex));
