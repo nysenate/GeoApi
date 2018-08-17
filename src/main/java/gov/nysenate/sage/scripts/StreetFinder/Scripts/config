@@ -2,12 +2,16 @@
 #The format must be CountyName="./script1; ./script2"
 #The leftmost word of the script is the pattern of the original file
 #The leftmost word must also be in the masterScript for the eval statement
+#The pathToGeoApi variable must be set to the correct path to the GeoApi folder so that the scripts
+#can find and access the necessary java classes
+pathToGeoApi="$HOME"
+#pathToGeoApi="/opt/sage_dev"
 
 Albany="./PDFConversion Albany*.pdf; ./MoveFile Albany*.txt; ./ParseFile Albany*.txt; ./MoveTsv Albany*.tsv"
-Allegany="./PDFConversion Allegany*.pdf; ./MoveFile Allegany*.txt; ./ParseFile Allegany*.txt; ./MoveTsv Allegany*.tsv" 
-Broome="./PDFConversion Broome*.pdf; ./MoveFile Broome*.txt; ./ParseFile Broome*.txt; ./MoveTsv Broome*.tsv" 
+Allegany="./PDFConversion Allegany*.pdf; ./MoveFile Allegany*.txt; ./ParseFile Allegany*.txt; ./MoveTsv Allegany*.tsv"
+Broome="./PDFConversion Broome*.pdf; ./MoveFile Broome*.txt; ./ParseFile Broome*.txt; ./MoveTsv Broome*.tsv"
 Cattaraugus="./PDFConversion Cattaraugus*.pdf; ./MoveFile Cattaraugus*.txt; ./ParseFile Cattaraugus*.txt; ./MoveTsv Cattaraugus*.tsv"
-Cayuga="./PDFConversion Cayuga*.pdf; ./MoveFile Cayuga*.txt; ./ParseFile Cayuga*.txt; ./MoveTsv Cayuga*.tsv" 
+Cayuga="./PDFConversion Cayuga*.pdf; ./MoveFile Cayuga*.txt; ./ParseFile Cayuga*.txt; ./MoveTsv Cayuga*.tsv"
 Chautauqua="./PDFConversion Chautauqua*.pdf; ./MoveFile Chautauqua*.txt; ./ParseFile Chautauqua*.txt; ./MoveTsv Chautauqua*.tsv" 
 Chemung="./PDFConversion Chemung*.pdf; ./MoveFile Chemung*.txt; ./ParseFile Chemung*.txt; ./MoveTsv Chemung*.tsv" 
 Chenango="./PDFConversion Chenango*.pdf; ./MoveFile Chenango*.txt; ./ParseFile Chenango*.txt; ./MoveTsv Chenango*.tsv" 
@@ -16,8 +20,8 @@ Columbia="./PDFConversion Columbia*.pdf; ./MoveFile Columbia*.txt; ./ParseFile C
 Cortland="./PDFConversion Cortland*.pdf; ./MoveFile Cortland*.txt; ./ParseFile Cortland*.txt; ./MoveTsv Cortland*.tsv" 
 Delaware="./PDFConversion Delaware*.pdf; ./MoveFile Delaware*.txt; ./ParseFile Delaware*.txt; ./MoveTsv Delaware*.tsv" 
 Dutchess="./PDFConversion Dutchess*.pdf; ./MoveFile Dutchess*.txt; ./ParseFile Dutchess*.txt; ./MoveTsv Dutchess*.tsv" 
-Erie="./CopyMove Erie*.csv; ./ParseFile Erie*.csv; ./MoveTsv Erie*.tsv"
-Essex="./CopyMove Essex*.csv; ./ParseFile Essex*.csv; ./MoveTsv Essex*.tsv"
+Erie="./CopyFile Erie*.csv; ./ParseFile Erie*.csv; ./MoveTsv Erie*.tsv"
+Essex="./CopyFile Essex*.csv; ./ParseFile Essex*.csv; ./MoveTsv Essex*.tsv"
 Franklin="./PDFConversion Franklin*.pdf; ./MoveFile Franklin*.txt; ./ParseFile Franklin*.txt; ./MoveTsv Franklin*.tsv" 
 Fulton="./PDFConversion Fulton*.pdf; ./MoveFile Fulton*.txt; ./ParseFile Fulton*.txt; ./MoveTsv Fulton*.tsv" 
 Genesee="./PDFConversion Genesee*.pdf; ./MoveFile Genesee*.txt; ./ParseFile Genesee*.txt; ./MoveTsv Genesee*.tsv" 
@@ -54,7 +58,7 @@ Street_Finder_Brooklyn="./NYCPDFConversion Street_Finder_Brooklyn*.pdf; ./MoveFi
 Street_Finder_Manhattan="./NYCPDFConversion Street_Finder_Manhattan*.pdf; ./MoveFile Street_Finder_Manhattan*.txt; ./ParseFile Street_Finder_Manhattan*.txt; ./MoveTsv Street_Finder_Manhattan*.tsv" 
 Street_Finder_Queens="./NYCPDFConversion Street_Finder_Queens*.pdf; ./MoveFile Street_Finder_Queens*.txt; ./ParseFile Street_Finder_Queens*.txt; ./MoveTsv Street_Finder_Queens*.tsv" 
 Street_Finder_Staten_Island="./NYCPDFConversion Street_Finder_Staten_Island*.pdf; ./MoveFile Street_Finder_Staten_Island*.txt; ./ParseFile Street_Finder_Staten_Island*.txt; ./MoveTsv Street_Finder_Staten_Island*.tsv" 
-Suffolk="./CopyMove Suffolk*.txt; ./ParseFile Suffolk*.txt; ./MoveTsv Suffolk*.tsv"
+Suffolk="./CopyFile Suffolk*.txt; ./ParseFile Suffolk*.txt; ./MoveTsv Suffolk*.tsv"
 Sullivan="./PDFConversion Sullivan*.pdf; ./MoveFile Sullivan*.txt; ./ParseFile Sullivan*.txt; ./MoveTsv Sullivan*.tsv" 
 Tioga="./PDFConversion Tioga*.pdf; ./MoveFile Tioga*.txt; ./ParseFile Tioga*.txt; ./MoveTsv Tioga*.tsv" 
 Tompkins="./PDFConversion Tompkins*.pdf; ./MoveFile Tompkins*.txt; ./ParseFile Tompkins*.txt; ./MoveTsv Tompkins*.tsv" 
@@ -62,6 +66,6 @@ Ulster="./PDFConversion Ulster*.pdf; ./MoveFile Ulster*.txt; ./ParseFile Ulster*
 Warren="./PDFConversion Warren*.pdf; ./MoveFile Warren*.txt; ./ParseFile Warren*.txt; ./MoveTsv Warren*.tsv" 
 Washington="./PDFConversion Washington*.pdf; ./MoveFile Washington*.txt; ./ParseFile Washington*.txt; ./MoveTsv Washington*.tsv" 
 Wayne="./PDFConversion Wayne*.pdf; ./MoveFile Wayne*.txt; ./ParseFile Wayne*.txt; ./MoveTsv Wayne*.tsv" 
-Westchester="./CopyMove Westchester*.csv; ./ParseFile Westchester*.csv; ./MoveTsv Westchester*.tsv" 
-Wyoming="./CopyMove Wyoming*.txt; ./ParseFile Wyoming*.txt; ./MoveTsv Wyoming*.tsv" 
+Westchester="./CopyFile Westchester*.csv; ./ParseFile Westchester*.csv; ./MoveTsv Westchester*.tsv"
+Wyoming="./CopyFile Wyoming*.txt; ./ParseFile Wyoming*.txt; ./MoveTsv Wyoming*.tsv"
 Yates="./PDFConversion Yates*.pdf; ./MoveFile Yates*.txt; ./ParseFile Yates*.txt; ./MoveTsv Yates*.tsv" 

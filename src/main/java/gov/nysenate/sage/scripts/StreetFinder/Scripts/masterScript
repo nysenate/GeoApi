@@ -1,6 +1,6 @@
 #!/bin/bash
-#masterscrip uses config pipeline for all 62 counties
-source ~/GeoApi/src/main/java/gov/nysenate/sage/scripts/StreetFinder/Scripts/config
+#masterscript uses config pipeline for all 62 counties
+source config
 eval $Albany
 eval $Allegany
 eval $Broome

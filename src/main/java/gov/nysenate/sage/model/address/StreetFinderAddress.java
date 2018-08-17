@@ -512,6 +512,12 @@ public class StreetFinderAddress {
         this.cityCode = cityCode;
     }
 
+    /**
+     * Sets the digits string and characters string with the corresponding
+     * data in temp. This is used for setting bldg_low, bldg_high, secondaryBldg_low, secondaryBldg_high
+     * and filtering out any characters into the respective Bldg_high_char fields
+     * @param temp
+     */
     private void setDigitsAndCharacters(char[] temp) {
         for(int i = 0; i < temp.length; i++) {
             //if its a digit then added to digits String
