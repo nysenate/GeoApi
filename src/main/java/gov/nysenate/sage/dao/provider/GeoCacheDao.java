@@ -59,7 +59,7 @@ public class GeoCacheDao extends BaseDao
     "AND gc.street = ? \n" +
     "AND gc.postdir = ? \n" +
     "AND gc.streetType = ? \n" +
-    "AND gc.location = ? AND gc.location != '' \n" +
+    "AND gc.location = ? \n" +
     "AND gc.state = ? \n";
 
     private final static String SQLFRAG_WITH_ZIP =

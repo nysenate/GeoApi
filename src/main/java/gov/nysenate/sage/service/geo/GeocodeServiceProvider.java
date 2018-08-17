@@ -194,6 +194,9 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
         /** Set the timestamp */
         geocodeResult.setResultTime(TimeUtil.currentTimestamp());
+        if (!cacheHit) {
+            geocodeResult.setGeocodedAddress(new GeocodedAddress(address, geocodeResult.getGeocode()));
+        }
 
         /** Cache result */
         if (CACHE_ENABLED && !cacheHit && !doNotCache) {
