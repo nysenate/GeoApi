@@ -144,7 +144,10 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         boolean cacheHit = CACHE_ENABLED && useCache && geocodeResult.isSuccess();
 
         if (!cacheHit && !provider.equals("geocache")) {
-            logger.warn("Failed to retrieve " + address.toString() + " from the geocache!");
+            if (provider.isEmpty()) {
+                logger.warn("Failed to retrieve " + address.toString() + " from the geocache!");
+            }
+
             /** Geocode using the supplied provider if valid */
             if (this.isRegistered(provider)) {
                 /** Remove the provider if it's set in the fallback chain */
