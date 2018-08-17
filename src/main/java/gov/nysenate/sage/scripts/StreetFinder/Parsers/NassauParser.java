@@ -1,10 +1,8 @@
 package gov.nysenate.sage.scripts.StreetFinder.Parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Scanner;
 
 /**
  * Parses Nassau County csv file and outputs a tsv file
@@ -29,22 +27,15 @@ public class NassauParser extends NTSParser {
      * @throws FileNotFoundException
      */ public void parseFile() throws IOException {
 
-        Scanner scanner = new Scanner(new File(file));
-        String currentLine = scanner.nextLine();
-        //While there is more lines in the file
-        while(scanner.hasNext()) {
-            currentLine = scanner.nextLine();
-            parseLine(currentLine);
-        }
-        scanner.close();
-        super.closeWriters();
+       super.readFile();
     }
 
+    @Override
     /**
      * Parses the line by calling each helper method to extract all data
      * @param line
      */
-    private void parseLine(String line) {
+    protected void parseLine(String line) {
         StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
 
         //split the line by ,
@@ -83,22 +74,21 @@ public class NassauParser extends NTSParser {
      */
     private void getSuffix(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
         //suffix is everything in splitLine[2] - streetName which is already saved in the StreetFinderAddress
-        String streetSuffix = splitLine[2].replace(StreetFinderAddress.getStreet(), "").trim();
-        String[] splitString = streetSuffix.split(" ");
-        //if the length is > 1 then there must be a post direction
+        String streetSuffix = splitLine[2].replace(StreetFinderAddress.getStreet(), " ").trim();
+        String[] splitString = streetSuffix.split("\\s+");
+        //if the length is > 1 then there must be a pre or post direction
         if(splitString.length > 1) {
-            if(splitString[1].equals("N")) {
-                StreetFinderAddress.setPostDirection("N");
-            } else if(splitLine[1].equals("E")) {
-                StreetFinderAddress.setPostDirection("E");
-            } else if(splitLine[1].equals("S")) {
-                StreetFinderAddress.setPostDirection("S");
-            } else {
-                StreetFinderAddress.setPostDirection("W");
+            if(super.checkForDirection(splitString[1])) {
+                StreetFinderAddress.setPostDirection(splitString[1]);
+                StreetFinderAddress.setStreetSuffix(splitString[0]);
+            } else if(super.checkForDirection(splitString[0])) {
+                StreetFinderAddress.setPreDirection(splitString[0]);
+                StreetFinderAddress.setStreetSuffix(splitString[1]);
             }
+        } else {
+            //only the street suffix
+            StreetFinderAddress.setStreetSuffix(splitString[0]);
         }
-        //set the street suffix
-        StreetFinderAddress.setStreetSuffix(splitString[0]);
     }
 
     /**

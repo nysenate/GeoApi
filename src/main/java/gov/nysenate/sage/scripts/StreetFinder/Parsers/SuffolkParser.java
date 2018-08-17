@@ -1,9 +1,7 @@
 package gov.nysenate.sage.scripts.StreetFinder.Parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
 
 /**
  * Parses Suffolk County txt file and outputs a tsv file
@@ -29,19 +27,10 @@ public class SuffolkParser extends NTSParser{
      * @throws IOException
      */
     public void parseFile() throws IOException {
-
-        Scanner scanner = new Scanner(new File(file));
-        String currentLine = scanner.nextLine();
-        //While there is more lines in the file
-        while(scanner.hasNext()) {
-            currentLine = scanner.nextLine();
-            parseLine(currentLine);
-        }
-        //close all writers/readers
-        scanner.close();
-        super.closeWriters();
+        super.readFile();
     }
 
+    @Override
     /**
      * Parses the line by calling each helper method necessary for each line
      * @param line

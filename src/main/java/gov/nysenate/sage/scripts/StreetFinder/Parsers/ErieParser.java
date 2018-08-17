@@ -1,10 +1,9 @@
 package gov.nysenate.sage.scripts.StreetFinder.Parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import java.io.File;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Scanner;
 
 /**
  * Parses Erie County 2018 csv and puts parsed data into a tsv file
@@ -30,19 +29,10 @@ public class ErieParser extends NTSParser {
      * @throws FileNotFoundException
      */
     public void parseFile() throws IOException {
-
-        Scanner scanner = new Scanner(new File(file));
-        String currentLine = scanner.nextLine();
-        //While there is more lines in the file
-        while(scanner.hasNext()) {
-            currentLine = scanner.nextLine();
-            parseLine(currentLine);
-        }
-        //close all writers/readers
-        scanner.close();
-        super.closeWriters();
+       super.readFile();
     }
 
+    @Override
     /**
      * Parses the line by calling each method to find all the data given in the file
      * and add the data to the StreetFinderAddress

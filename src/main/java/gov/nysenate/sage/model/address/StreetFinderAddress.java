@@ -40,6 +40,8 @@ public class StreetFinderAddress {
     private String boeTownCode;
     private String boeSchool;
     private String cityCode;
+    //used as helper storage
+    private String digits, characters;
 
     /**
      * Default Constructor that sets all fields (except for pre-Direction, post-Direction, and Street Suffix because those are appended to the Street Name)
@@ -124,7 +126,7 @@ public class StreetFinderAddress {
      * @param street
      */
     public void setStreet(String street) {
-        if(street != null && street != "") {
+        if(street != null && !street.equals("")) {
             String tempStreet = "";
             String[] string = street.split("\\s+");
             //Check for matches in AddressDictionary highWayMap
@@ -195,20 +197,12 @@ public class StreetFinderAddress {
      * @param bldg_low - Can either be all ints or a combination of characters and ints
      */
     public void setBldg_low(String bldg_low) {
-        if(!bldg_low.equals("") && bldg_low != null) {
+        if(bldg_low != null && !bldg_low.equals("")) {
             //set to a char array to cycle through to look for characters
             char[] temp = bldg_low.toCharArray();
-            String digits = "";
-            String characters = "";
-            for(int i = 0; i < temp.length; i++) {
-                //if its a digit then added to digits String
-                if(Character.isDigit(temp[i])) {
-                    digits += temp[i];
-                    //if its a character then add to character String
-                } else if(Character.isLetter(temp[i])) {
-                    characters += temp[i];
-                }
-            }
+            digits = "";
+            characters = "";
+            this.setDigitsAndCharacters(temp);
             //Check to make sure that there were digits
             if(!digits.equals(""))
                 this.bldg_low = digits;
@@ -223,20 +217,14 @@ public class StreetFinderAddress {
      * @param bldg_high - Can either be all ints or a combination of characters and ints
      */
     public void setBldg_high(String bldg_high) {
-        if(!bldg_high.equals("") && bldg_high != null) {
+        if(bldg_high != null&& !bldg_high.equals("")) {
             //set to a char array to cycle through to look for characters
             char[] temp = bldg_high.toCharArray();
             String digits = "";
             String characters = "";
-            for(int i = 0; i < temp.length; i++) {
-                //if its a digit then added to digits String
-                if(Character.isDigit(temp[i])) {
-                    digits += temp[i];
-                    //if its a character then add to character String
-                } else if(Character.isLetter(temp[i])) {
-                    characters += temp[i];
-                }
-            }
+            digits = "";
+            characters = "";
+            this.setDigitsAndCharacters(temp);
             //Check to make sure that there were digits
             if(!digits.equals(""))
                 this.bldg_high = digits;
@@ -425,22 +413,14 @@ public class StreetFinderAddress {
      * @param secondaryBldg_low - Can either be ints or a combination of characters and numbers
      */
     public void setSecondaryBldg_low(String secondaryBldg_low) {
-        if(!secondaryBldg_low.equals("") && secondaryBldg_low != null) {
+        if(secondaryBldg_low != null && !secondaryBldg_low.equals("")) {
             //split into char array to look for characters
             char[] temp = secondaryBldg_low.toCharArray();
             String digits = "";
             String characters = "";
-            for(int i = 0; i < temp.length; i++) {
-                //if it is a number
-                if(Character.isDigit(temp[i])) {
-                    //add to digits
-                    digits += temp[i];
-                    //if it is a character
-                } else if(Character.isLetter(temp[i])) {
-                    //add to characters
-                    characters += temp[i];
-                }
-            }
+            digits = "";
+            characters = "";
+            this.setDigitsAndCharacters(temp);
             //check for an empty digits
             if(!digits.equals(""))
                 this.secondaryBldg_low = digits;
@@ -455,22 +435,15 @@ public class StreetFinderAddress {
      * @param secondaryBldg_high - Can either be ints or a combination of characters and numbers
      */
     public void setSecondaryBldg_high(String secondaryBldg_high) {
-        if(!secondaryBldg_high.equals("") && secondaryBldg_high != null) {
+        if(secondaryBldg_high != null && !secondaryBldg_high.equals("")) {
             //split into char array to look for characters
             char[] temp = secondaryBldg_low.toCharArray();
             String digits = "";
             String characters = "";
             //if it is a number
-            for(int i = 0; i < temp.length; i++) {
-                if(Character.isDigit(temp[i])) {
-                    //add to digits
-                    digits += temp[i];
-                    //if it is a character
-                } else if(Character.isLetter(temp[i])) {
-                    //add to characters
-                    characters += temp[i];
-                }
-            }
+            digits = "";
+            characters = "";
+            this.setDigitsAndCharacters(temp);
             //check for an empty digits
             if(!digits.equals(""))
                 this.secondaryBldg_high = digits;
@@ -511,7 +484,7 @@ public class StreetFinderAddress {
      * @param secondaryBldg_high_char
      */
     public void setSecondaryBldg_high_char(String secondaryBldg_high_char) {
-        if(secondaryBldg_high_char.equals(""))
+        if(!secondaryBldg_high_char.equals(""))
             this.secondaryBldg_high_char = secondaryBldg_high_char;
     }
 
@@ -537,5 +510,17 @@ public class StreetFinderAddress {
      */
     public void setCityCode(String cityCode) {
         this.cityCode = cityCode;
+    }
+
+    private void setDigitsAndCharacters(char[] temp) {
+        for(int i = 0; i < temp.length; i++) {
+            //if its a digit then added to digits String
+            if(Character.isDigit(temp[i])) {
+                digits += temp[i];
+                //if its a character then add to character String
+            } else if(Character.isLetter(temp[i])) {
+                characters += temp[i];
+            }
+        }
     }
 }

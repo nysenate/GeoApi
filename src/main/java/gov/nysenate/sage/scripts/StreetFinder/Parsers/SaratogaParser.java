@@ -181,17 +181,8 @@ public class SaratogaParser extends NTSParser {
         StreetFinderAddress.setBldg_high(splitLine[index]);
         index++;
 
-        //for range type it could be "Evens Inclusive" "Odds Inclusive" or just "Inclusive"
-        if(splitLine[index].equals("Odds")) {
-            StreetFinderAddress.setBldg_parity("ODDS");
-            index++; //skip over "Inclusive"
-        } else if(splitLine[index].equals("Evens")) {
-            StreetFinderAddress.setBldg_parity("EVENS");
-            index++; //skip over "Inclusive"
-        } else {
-            //just Inclusive means both even and odd
-            StreetFinderAddress.setBldg_parity("ALL");
-        }
+        //get the range type by calling setBldgParity which could change the index
+        index = super.setBldgParity(splitLine, index, StreetFinderAddress);
         //increment to townCode location
         index++;
 

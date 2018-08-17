@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts.StreetFinder.Scripts;
 
 import java.io.*;
+import java.time.LocalDate;
 import java.util.Scanner;
 
 /**
@@ -24,8 +25,9 @@ public class CreateSQLFile {
 
         //check that a file was given as a commandline argument
         if(args.length > 0) {
-            //create sql file
-            File sqlFile = new File("/data/geoapi_data/street_finder/2018_streetfile.sql");
+            //create sql file with the current date in the title
+            LocalDate date = LocalDate.now();
+            File sqlFile = new File("/data/geoapi_data/street_finder/" + date.toString()+ "_streetfile.sql");
             //check if the sql file already exists
             if(!sqlFile.exists()) {
                 //file does not exist so add all necessary statements

@@ -1,10 +1,8 @@
 package gov.nysenate.sage.scripts.StreetFinder.Parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Scanner;
 
 /**
  * Parses Westchester County 2018 file
@@ -30,23 +28,15 @@ public class WestchesterParser extends NTSParser {
      */
     public void parseFile() throws IOException {
 
-        Scanner scanner = new Scanner(new File(file));
-        String currentLine = scanner.nextLine();
-        //While there is more lines in the file
-        while(scanner.hasNext()) {
-            currentLine = scanner.nextLine();
-            parseLine(currentLine);
-        }
-        //close all writers/readers
-        scanner.close();
-        super.closeWriters();
+        super.readFile();
     }
 
+    @Override
     /**
      * Parses the line by calling each helper method to extract all data
      * @param line
      */
-    private void parseLine(String line) {
+    protected void parseLine(String line) {
         StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
 
         //split the line by ,

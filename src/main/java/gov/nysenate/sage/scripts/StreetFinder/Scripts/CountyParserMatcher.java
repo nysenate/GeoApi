@@ -26,24 +26,21 @@ public class CountyParserMatcher {
                 NTSParser ntsParser = new SaratogaParser(args[0]);
                 ntsParser.parseFile();
 
-            } else if (args[0].contains(".csv")) {
+            } else if (args[0].contains("Erie")) {
+                NTSParser ntsParser = new ErieParser(args[0]);
+                ntsParser.parseFile();
 
-                if (args[0].contains("Erie")) {
-                    NTSParser ntsParser = new ErieParser(args[0]);
-                    ntsParser.parseFile();
+            } else if (args[0].contains("Essex")) {
+                NTSParser ntsParser = new EssexParser(args[0]);
+                ntsParser.parseFile();
 
-                } else if (args[0].contains("Essex")) {
-                    NTSParser ntsParser = new EssexParser(args[0]);
-                    ntsParser.parseFile();
+            } else if (args[0].contains("Nassau")) {
+                NTSParser ntsParser = new NassauParser(args[0]);
+                ntsParser.parseFile();
 
-                } else if (args[0].contains("Nassau")) {
-                    NTSParser ntsParser = new NassauParser(args[0]);
-                    ntsParser.parseFile();
-
-                } else if (args[0].contains("Westchester")) {
-                    NTSParser ntsParser = new WestchesterParser(args[0]);
-                    ntsParser.parseFile();
-                }
+            } else if (args[0].contains("Westchester")) {
+                NTSParser ntsParser = new WestchesterParser(args[0]);
+                ntsParser.parseFile();
 
             } else if (args[0].contains("Suffolk")) {
                 NTSParser ntsParser = new SuffolkParser(args[0]);

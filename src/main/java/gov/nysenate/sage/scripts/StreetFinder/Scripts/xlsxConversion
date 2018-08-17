@@ -2,6 +2,7 @@
 #converts a .xlsx file to a .csv file using built in libreoffice converter
 #needs the sleep because the conversion can take a few seconds to generate the file
 #and without the sleep the next script in the pipeline will start before the file is ready
+#Note that you cannot have the .xlsx (or even a converted .csv) file open when this runs or it will not work
 libreoffice --headless --convert-to csv /data/geoapi_data/street_finder/raw_streetfiles/$1 --outdir /data/geoapi_data/street_finder/txt_streetfiles
 sleep 2
 echo moved $1 to txt_streetfiles

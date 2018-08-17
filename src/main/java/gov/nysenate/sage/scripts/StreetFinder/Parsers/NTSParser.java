@@ -234,18 +234,9 @@ public class NTSParser {
         StreetFinderAddress.setBldg_high(splitLine[index]);
         index++;
 
-        //get the range type
-        //for range type it could be "Evens Inclusive" "Odds Inclusive" or just "Inclusive"
-        if (splitLine[index].equals("Odds")) {
-            StreetFinderAddress.setBldg_parity("ODDS");
-            index++; //skip over "Inclusive"
-        } else if (splitLine[index].equals("Evens")) {
-            StreetFinderAddress.setBldg_parity("EVENS");
-            index++; //skip over "Inclusive"
-        } else {
-            //just Inclusive means both even and odd
-            StreetFinderAddress.setBldg_parity("ALL");
-        }
+        //get the range type by calling setBldgParity which could change the index
+        //And increase index to next value
+        index = setBldgParity(splitLine, index, StreetFinderAddress);
         index++;
 
         //check that there is still more data in the line
@@ -644,5 +635,58 @@ public class NTSParser {
         //city
         cityIndex = currentLine.indexOf("City");
 
+    }
+
+    /**
+     * Gets the range type ans stores in streetFinderAddress. The index must the index where the range type occurs in splitLine
+     * Could change the index for certain cases to skip over the word "Inclusive" So the
+     * updated index is returned
+     * @param splitLine
+     * @param index - updated index
+     * @return
+     */
+    protected int setBldgParity(String[] splitLine, int index, StreetFinderAddress StreetFinderAddress) {
+
+        //for range type it could be "Evens Inclusive" "Odds Inclusive" or just "Inclusive"
+        if (splitLine[index].equals("Odds")) {
+            StreetFinderAddress.setBldg_parity("ODDS");
+            index++; //skip over "Inclusive"
+        } else if (splitLine[index].equals("Evens")) {
+            StreetFinderAddress.setBldg_parity("EVENS");
+            index++; //skip over "Inclusive"
+        } else {
+            //just Inclusive means both even and odd
+            StreetFinderAddress.setBldg_parity("ALL");
+        }
+        return index;
+    }
+
+    /**
+     * Utility method that scans through a file and calls the child classes version of
+     * parseLine(String). This method is only intended for classes that extend this class and should not be used within
+     * the NTSParser class
+     * @throws IOException
+     */
+    protected void readFile() throws IOException {
+        Scanner scanner = new Scanner
+                (new File(file));
+        String currentLine = scanner.nextLine();
+        //While there is more lines in the file
+        while(scanner.hasNext()) {
+            currentLine = scanner.nextLine();
+            parseLine(currentLine);
+        }
+        //close all writers/readers
+        scanner.close();
+        this.closeWriters();
+    }
+
+    /**
+     * Utility method required for readFile(). Child classes must override this method
+     * to use readFile(). This is not intended for use in NTSParser class
+     * @param line
+     */
+    protected void parseLine(String line) {
+        this.parseLine(line, false);
     }
 }

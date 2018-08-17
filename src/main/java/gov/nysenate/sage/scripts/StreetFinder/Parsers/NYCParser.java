@@ -1,7 +1,6 @@
 package gov.nysenate.sage.scripts.StreetFinder.Parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import gov.nysenate.sage.util.AddressDictionary;
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
@@ -50,13 +49,13 @@ public class NYCParser extends NTSParser {
 
             //if it is not a skip over line
             if (currentLine.trim().split("\\s+").length > 1 && !currentLine.contains("Information") && !currentLine.contains("Reproduction") &&
-                    !currentLine.contains("STREET  FINDER LIST") && !currentLine.contains("TOTIN") && !currentLine.contains("Board                 of       Elections")
-                    && !currentLine.contains("V                   TE                  NYC") &&
-                    !currentLine.contains("STATEN                               ISLAND") &&
-                    !currentLine.contains("STREET                             FINDER")) {
+                    !currentLine.contains("STREET  FINDER LIST") && !currentLine.contains("TOTIN") && !currentLine.matches("\\s*Board\\s+of\\s+Elections\\s*")
+                    && !currentLine.matches("\\s*V\\s+TE\\s+NYC\\s*") &&
+                    !currentLine.matches("\\s*STATEN\\s+ISLAND\\s*") &&
+                    !currentLine.matches("\\s*STREET\\s+FINDER\\s*")) {
                 //if the line contains "FROM" then it is the top of a data segment so set all column field locations
                 if (currentLine.contains("FROM")) {
-                    //set all loction fields for column 1 (first occurrence)
+                    //set all location fields for column 1 (first occurrence)
                     ED1 = currentLine.indexOf("ED");
                     AD1 = currentLine.indexOf("AD");
                     ZIP1 = currentLine.indexOf("ZIP");
@@ -90,7 +89,7 @@ public class NYCParser extends NTSParser {
                     //if the line has "__________________________________________" then use that to set the column starting locations
                 } else if (currentLine.contains("__________________________________________")) {
                     start1 = currentLine.indexOf("__________________________________________");
-                    start2 = currentLine.indexOf("__________________________________________", currentLine.indexOf("__________________________________________") + 1);
+                    start2 = currentLine.indexOf("__________________________________________", start1 + 1);
                     start3 = currentLine.lastIndexOf("__________________________________________");
                 } else {
                     //otherwise it is a parseable line of data
