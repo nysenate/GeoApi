@@ -4,7 +4,7 @@
   <groupId>gov.nysenate</groupId>
   <artifactId>geoapi</artifactId>
   <name>GeoApi</name>
-  <version>2.4</version>
+  <version>2.5</version>
   <packaging>war</packaging>
 
   <repositories>
@@ -18,26 +18,28 @@
   <developers>
     <developer>
       <name>Ash Islam</name>
-      <organization>NY Senate</organization>
-      <email>islam@nysenate.gov</email>
+      <email>islam@nysenate.gov (no longer valid)</email>
+      <organization>New York State Senate (formerly)</organization>
       <roles>
-        <role>Programmer</role>
+        <role>programmer</role>
+        <role>designer</role>
       </roles>
     </developer>
     <developer>
       <name>Anthony Calabrese</name>
-      <organization>NY Senate</organization>
       <email>calabres@nysenate.gov</email>
+      <organization>New York State Senate</organization>
       <roles>
-        <role>Programmer</role>
+        <role>programmer</role>
       </roles>
     </developer>
     <developer>
       <name>Ken Zalewski</name>
-      <organization>NY Senate</organization>
       <email>zalewski@nysenate.gov</email>
+      <organization>New York State Senate</organization>
       <roles>
-        <role>Project Manager</role>
+        <role>project manager</role>
+        <role>programmer</role>
       </roles>
     </developer>
   </developers>
