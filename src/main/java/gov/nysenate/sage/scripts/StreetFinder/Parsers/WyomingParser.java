@@ -93,7 +93,7 @@ public class WyomingParser extends NTSParser{
      * Parses the line by calling all necessary helper methods
      * @param line
      */
-    private void parseLine(String line) {
+    protected void parseLine(String line) {
         StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
 
         //use the location of the columns at the top because they are all the same
