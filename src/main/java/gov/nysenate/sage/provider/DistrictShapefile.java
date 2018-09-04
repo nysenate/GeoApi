@@ -230,11 +230,32 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
 
         logger.debug("Zip Provided: " + zipProvided);
 
+        switch(geocodeQuality) {
+            case NOMATCH: matchLevel = DistrictMatchLevel.NOMATCH;
+                break;
+            case STATE: matchLevel = DistrictMatchLevel.STATE;
+                break;
+            case COUNTY: matchLevel = DistrictMatchLevel.STATE;
+                break;
+            case CITY: matchLevel = DistrictMatchLevel.CITY;
+                break;
+            case ZIP: matchLevel = DistrictMatchLevel.ZIP5;
+                break;
+            case ZIP_EXT: matchLevel = DistrictMatchLevel.ZIP5;
+                break;
+            case STREET: matchLevel = DistrictMatchLevel.STREET;
+                break;
+            case HOUSE: matchLevel = DistrictMatchLevel.HOUSE;
+                break;
+            case POINT: matchLevel = DistrictMatchLevel.HOUSE;
+                break;
+        }
+        districtedAddress.setDistrictMatchLevel(matchLevel);
+
         if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) { //40 quality or more
             if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 &&!address.getZip5().isEmpty()) { //64 or more
                 if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) { //72 or more
                     logger.debug("Determining street level district overlap");
-                    matchLevel = DistrictMatchLevel.STREET;
                     streetList.add(address.getAddr1());
                     zip5List = (zipProvided) ? Arrays.asList(address.getZip5()) : cityZipDBDao.getZipsByCity(address.getCity());
                     districtInfo.setStreetLineReference(tigerGeocoderDao.getStreetLineGeometry(address.getAddr1(), zip5List));
@@ -242,13 +263,11 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
                 }
                 else {
                     logger.debug("Determining zip level district overlap");
-                    matchLevel = DistrictMatchLevel.ZIP5; //if inbetween 40 and 72
                     zip5List = Arrays.asList(address.getZip5());
                 }
             }
             else if (!address.getCity().isEmpty()) {
                 logger.debug("Determining city level district overlap");
-                matchLevel = DistrictMatchLevel.CITY;
                 zip5List = cityZipDBDao.getZipsByCity(address.getCity());
             }
 
