@@ -250,6 +250,10 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
             case POINT: matchLevel = DistrictMatchLevel.HOUSE;
                 break;
         }
+        if (zipProvided && matchLevel == DistrictMatchLevel.NOMATCH) {
+            matchLevel = DistrictMatchLevel.ZIP5;
+            geocodeQuality = GeocodeQuality.ZIP;
+        }
         districtedAddress.setDistrictMatchLevel(matchLevel);
 
         if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) { //40 quality or more
