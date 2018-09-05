@@ -19,6 +19,7 @@ import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
@@ -249,6 +250,14 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
                 break;
             case POINT: matchLevel = DistrictMatchLevel.HOUSE;
                 break;
+        }
+        if (zipProvided && matchLevel == DistrictMatchLevel.NOMATCH) {
+            matchLevel = DistrictMatchLevel.ZIP5;
+            geocodeQuality = GeocodeQuality.ZIP;
+
+            Address reorderdAddress = StreetAddressParser.parseAddress(geocodedAddress.getAddress()).toAddress();
+            geocodedAddress.setAddress(reorderdAddress);
+
         }
         districtedAddress.setDistrictMatchLevel(matchLevel);
 

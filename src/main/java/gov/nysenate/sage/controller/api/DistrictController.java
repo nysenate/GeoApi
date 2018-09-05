@@ -168,6 +168,9 @@ public class DistrictController extends BaseApiController implements Observer
             return;
         }
 
+        Address reorderdAddress = StreetAddressParser.parseAddress(districtRequest.getAddress()).toAddress();
+        districtRequest.setAddress(reorderdAddress);
+
         switch (apiRequest.getRequest())
         {
             case "assign": {

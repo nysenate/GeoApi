@@ -60,6 +60,10 @@ public class GoogleDao implements Observer
     {
         GeocodedAddress geocodedAddress = null;
 
+        if (address.getState().isEmpty()) {
+            address.setState("NY");
+        }
+
         try {
             String formattedQuery = String.format(GEOCODE_QUERY, URLEncoder.encode(address.toString(), "UTF-8"), apiKey);
             String url = getBaseUrl() + formattedQuery;
