@@ -220,8 +220,6 @@ public class StreetFinderAddress {
         if(bldg_high != null&& !bldg_high.equals("")) {
             //set to a char array to cycle through to look for characters
             char[] temp = bldg_high.toCharArray();
-            String digits = "";
-            String characters = "";
             digits = "";
             characters = "";
             this.setDigitsAndCharacters(temp);
@@ -416,8 +414,6 @@ public class StreetFinderAddress {
         if(secondaryBldg_low != null && !secondaryBldg_low.equals("")) {
             //split into char array to look for characters
             char[] temp = secondaryBldg_low.toCharArray();
-            String digits = "";
-            String characters = "";
             digits = "";
             characters = "";
             this.setDigitsAndCharacters(temp);
@@ -438,8 +434,6 @@ public class StreetFinderAddress {
         if(secondaryBldg_high != null && !secondaryBldg_high.equals("")) {
             //split into char array to look for characters
             char[] temp = secondaryBldg_low.toCharArray();
-            String digits = "";
-            String characters = "";
             //if it is a number
             digits = "";
             characters = "";
