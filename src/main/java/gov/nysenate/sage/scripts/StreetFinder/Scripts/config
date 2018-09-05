@@ -4,7 +4,7 @@
 #The leftmost word must also be in the masterScript for the eval statement
 #The pathToGeoApi variable must be set to the correct path to the GeoApi folder so that the scripts
 #can find and access the necessary java classes
-pathToGeoApi="$HOME"
+pathToGeoApi="$HOME/SenateProjects"
 #pathToGeoApi="/opt/sage_dev"
 
 Albany="./PDFConversion Albany*.pdf; ./MoveFile Albany*.txt; ./ParseFile Albany*.txt; ./MoveTsv Albany*.tsv"
