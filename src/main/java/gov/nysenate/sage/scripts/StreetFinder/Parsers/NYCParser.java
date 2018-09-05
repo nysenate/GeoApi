@@ -115,7 +115,13 @@ public class NYCParser extends NTSParser {
             substring = line.substring(start1, line.length());
         } else {
             //if it doesnt then substring can go all the way until start2 - 1
-            substring = line.substring(start1, start2 - 1);
+            if (start2 - 1 < 0) {
+                substring = line.substring(start1, start2);
+            }
+            else {
+                substring = line.substring(start1, start2 - 1);
+            }
+
         }
 
         //split substring by whitespace
@@ -260,7 +266,12 @@ public class NYCParser extends NTSParser {
                 substring = line.substring(start2, line.length());
             } else {
                 //longer spo use start3 - 1
-                substring = line.substring(start2, start3 - 1);
+                if (start3 - 1 < 0) {
+                    substring = line.substring(start2, start3);
+                }
+                else {
+                    substring = line.substring(start2, start3 - 1);
+                }
             }
             //split by whitespace
             String string[] = substring.trim().split("\\s+");
@@ -551,7 +562,8 @@ public class NYCParser extends NTSParser {
      * @return true if data is found. false otherwise
      */
     private boolean checkForTo(String line, int toLocation) {
-        for (int i = toLocation - 2; i < toLocation + 4; i++) {
+        int backwards = (toLocation - 2 < 0) ? 0 : toLocation - 2;
+        for (int i = toLocation - backwards; i < toLocation + 4; i++) {
             if (!Character.isWhitespace(line.charAt(i))) {
                 return true;
             }
@@ -566,7 +578,8 @@ public class NYCParser extends NTSParser {
      * @return true if data is found. false otherwise
      */
     private boolean checkFor(String line, int location) {
-        for (int i = location - 1; i < location + 2; i++) {
+        int backwards = (location - 1 < 0) ? 0 : location - 1;
+        for (int i = location - backwards; i < location + 2; i++) {
             if (!Character.isWhitespace(line.charAt(i))) {
                 return true;
             }
@@ -581,7 +594,8 @@ public class NYCParser extends NTSParser {
      * @return true if data is found. false otherwise
      */
     private boolean checkForCD2(String line, int CD2) {
-        for (int i = CD2 - 1; i < CD2 + 3; i++) {
+        int backwards = (CD2 - 1 < 0) ? 0 : CD2 - 1;
+        for (int i = CD2 - backwards; i < CD2 + 3; i++) {
             if (!Character.isWhitespace(line.charAt(i))) {
                 return true;
             }
