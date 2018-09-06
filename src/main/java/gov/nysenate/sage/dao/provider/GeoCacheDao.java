@@ -84,6 +84,9 @@ public class GeoCacheDao extends BaseDao
         }
         if (isStreetAddressRetrievable(sa)) {
             boolean buildingMatch = (!sa.isPoBoxAddress() && !sa.isStreetEmpty());
+            if (sa.getState().isEmpty()) {
+                sa.setState("NY");
+            }
             try {
 
 //                GeocodedStreetAddress test = tigerRun.query(SQL_CACHE_HIT_OLD, new GeocodedStreetAddressHandler(buildingMatch),
