@@ -168,8 +168,13 @@ public class DistrictController extends BaseApiController implements Observer
             return;
         }
 
-        Address reorderdAddress = StreetAddressParser.parseAddress(districtRequest.getAddress()).toAddress();
+        StreetAddress inputStreetAddress = StreetAddressParser.parseAddress(districtRequest.getAddress());
+        Address reorderdAddress = inputStreetAddress.toAddress();
         districtRequest.setAddress(reorderdAddress);
+
+        if ( isInputZipOnly(reorderdAddress) ) {
+            districtRequest.setGeoProvider("geocache");
+        }
 
         switch (apiRequest.getRequest())
         {
@@ -302,7 +307,7 @@ public class DistrictController extends BaseApiController implements Observer
             if (!districtRequest.isSkipGeocode()) {
                 GeocodeRequest geocodeRequest = new GeocodeRequest(districtRequest.getApiRequest(), addressToGeocode, districtRequest.getGeoProvider(), true, true);
                 /** Disable cache if provider is specified. */
-                if (districtRequest.getGeoProvider() != null && !districtRequest.getGeoProvider().isEmpty()) {
+                if (districtRequest.getGeoProvider() != null && !districtRequest.getGeoProvider().isEmpty() && !districtRequest.getGeoProvider().equals("geocache")) {
                     geocodeRequest.setUseCache(false);
                 }
                 geocodedAddress = performGeocode(geocodeRequest, isPoBox);
@@ -370,6 +375,19 @@ public class DistrictController extends BaseApiController implements Observer
             zipProvided = (!zip5.isEmpty() && zip5.length() == 5);
         }
         return zipProvided;
+    }
+
+
+    private Boolean isInputZipOnly(Address address) {
+        boolean isZipOnly = false;
+        if (!address.getZip5().isEmpty() && address.getAddr1().isEmpty() && address.getCity().isEmpty()) {
+            isZipOnly = true;
+        }
+
+        if (address.getState().isEmpty()) {
+            address.setState("NY");
+        }
+        return isZipOnly;
     }
 
     /**
