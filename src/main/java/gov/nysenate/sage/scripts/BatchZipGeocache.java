@@ -38,9 +38,9 @@ public class BatchZipGeocache {
 
         String GET_ZIP_SQL = "select zcta5ce10 from districts.zip;";
 
-        String BASE_URL = BatchZipGeocache.config.getValue("base.url") + "/api/v2/district/assign?addr=";
+        String BASE_URL = BatchZipGeocache.config.getValue("base.url") + "/api/v2/geo/geocode?addr=";
 
-        String GEO_PROVIDER_URL = "&geoProvider=google";
+        String GEO_PROVIDER_URL = "&provider=google";
 
         List<String> zipCodes = null;
 
