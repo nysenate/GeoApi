@@ -109,6 +109,10 @@ public class GeocodeController extends BaseApiController implements Observer
         /** Construct a GeocodeRequest using the supplied params */
         GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider, useFallback, useCache, bypassCache, doNotCache, isUspsValidate);
 
+        StreetAddress inputStreetAddress = StreetAddressParser.parseAddress(geocodeRequest.getAddress());
+        Address reorderdAddress = inputStreetAddress.toAddress();
+        geocodeRequest.setAddress(reorderdAddress);
+
 
         logger.info("=======================================================");
         logger.info(String.format("|%sGeocode Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
