@@ -1,14 +1,16 @@
 package gov.nysenate.sage.scripts.StreetFinder.Scripts;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.scripts.StreetFinder.Parsers.NTSParser;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NYCParserTest  {
-
-    public NYCParserTest() throws IOException {}
+public class NYCParserTest extends NTSParser {
 
     public String location1 = "";
     public String location2 = "";
@@ -16,27 +18,64 @@ public class NYCParserTest  {
     public String town;
     public String file;
 
+    public NYCParserTest(String file) throws IOException {
+        super(file);
+        this.file = file;
+        town = this.getTown();
+    }
 
+    public void parseFile() throws IOException {
+        Scanner scanner = new Scanner(new File(file));
+        String currentLine;
+
+
+
+        while (scanner.hasNext()) {
+            currentLine = scanner.nextLine();
+
+            int start1, start2, start3;
+            start1 = currentLine.indexOf("__________________________________________");
+            start2 = currentLine.indexOf("__________________________________________", start1 + 1);
+            start3 = currentLine.lastIndexOf("__________________________________________");
+
+            String[] columns = new String[3];
+
+            columns[0] = currentLine.substring(0, start2 - 1);
+            columns[1] = currentLine.substring(start2, start3 - 1);
+            columns[2] = currentLine.substring(start3, currentLine.length() - 1);
+
+            for (int i=0; i<columns.length; i++) {
+                parseColumn(columns[i],i+1);
+            }
+        }
+    }
 
     public void parseColumn(String column, int colNum) throws NullPointerException {
+        column = column.trim();
 
         StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
 
+        //check for bad data
+        if (checkForBadData(column)) {
+            return;
+        }
+
         //-1 is a placeholder. If the var has that later on we know it wasnt set
         int FROM = -1, TO = -1, ED = -1, AD = -1, ZIP = -1, CD = -1, SD = -1, MC = -1, CO = -1;
-        // Regex to be matched
-        String locationRegex = "\\d+[-]?\\d*[A-Z]?";
-        Pattern locationPattern = Pattern.compile(locationRegex, Pattern.CASE_INSENSITIVE);
 
-        Matcher locationMatcher = locationPattern.matcher(column);
-        if (locationMatcher.matches()) {
+        // Regex to be matched
+        String locationRegex = "[a-zA-Z]+";
+        Pattern locationPattern = Pattern.compile(locationRegex);
+
+        Matcher locationMatcher = locationPattern.matcher(column.trim());
+        if (locationMatcher.find()) {
 
             switch (colNum) {
-                case 1: location1 = formatLocation(column);
+                case 1: location1 = formatLocation(column.trim());
                     break;
-                case 2: location2 = formatLocation(column);
+                case 2: location2 = formatLocation(column.trim());
                     break;
-                case 3: location3 = formatLocation(column);
+                case 3: location3 = formatLocation(column.trim());
                     break;
             }
 
@@ -44,7 +83,9 @@ public class NYCParserTest  {
             //set information for StreetFinderAddress
         }
         else { //9 total || 7 otherwise
-            String[] districts = column.split("\\s+");
+            String[] districts = column.trim().split("\\s+");
+
+            handleBuildingNumbers(districts.length,colNum, streetFinderAddress);
 
             if (districts.length > 1) {
                 if (districts.length == 9) {
@@ -93,32 +134,99 @@ public class NYCParserTest  {
             streetFinderAddress.setZip(String.valueOf( ZIP ));
             streetFinderAddress.setCong(String.valueOf( CD ));
             streetFinderAddress.setSen(String.valueOf( SD ));
+            System.out.println(streetFinderAddress.toStreetFileForm());
         }
-
         //set town
         //write StreetFinderAddress to File
+        streetFinderAddress.setTown(town);
+        super.writeToFile(streetFinderAddress);
     }
 
-    public void handleBuildingNumbers(int districtLength, int colNum, StreetFinderAddress streetFinderAddress) {
+    private boolean checkForBadData(String column) {
+        boolean badData = false;
+
+        if (column.isEmpty() || column == null) {
+            badData = true;
+        }
+        if (column.trim().isEmpty()) {
+            badData = true;
+        }
+        if (column.contains("FROM") || column.contains("PAGE") || column.contains("STREET FINDER")) {
+            badData = true;
+        }
+        if (column.contains("TOTIN") || column.contains("Information") || column.contains("Reproduction")) {
+            badData = true;
+        }
+        if (column.matches("\\d+/\\d+/\\d+")) {
+            badData = true;
+        }
+        if(column.matches("\\s*V\\s+TE\\s+NYC\\s*")) {
+            badData = true;
+        }
+        if (column.matches("\\s*Board\\s+of\\s+Elections\\s*")) {
+            badData = true;
+        }
+        if(column.matches("\\s*STATEN\\s+ISLAND\\s*")) {
+            badData = true;
+        }
+        return badData;
+    }
+
+    private void handleBuildingNumbers(int districtLength, int colNum, StreetFinderAddress streetFinderAddress) {
+        String curColLocation = "";
+        switch (colNum) {
+            case 1: curColLocation = location1;
+                break;
+            case 2: curColLocation = location2;
+                break;
+            case 3: curColLocation = location3;
+                break;
+        }
+
         if (districtLength == 9) {
-            switch (colNum) {
-                case 1: streetFinderAddress.setStreet(location1);
-                    break;
-                case 2: streetFinderAddress.setStreet(location2);
-                    break;
-                case 3: streetFinderAddress.setStreet(location3);
-                    break;
-            }
+            streetFinderAddress.setStreet(curColLocation);
         }
         else if (districtLength == 7) {
-            //check for building
-            //set digits from and to
-            //set rest of street
+            if (curColLocation.toUpperCase().contains("BLDG")) {
+                int index = curColLocation.indexOf("BLDG");
+                index = index + 4;
+                String restOfLoc = curColLocation.substring(index, curColLocation.length()-1);
+                streetFinderAddress.setStreet(curColLocation.substring(0, index).trim());
+                determineBuildingNumOrDigit(restOfLoc, streetFinderAddress);
+            }
+            else if (curColLocation.toUpperCase().contains("BUILDING")) {
+                int index = curColLocation.indexOf("BUILDING");
+                index = index + 8;
+                String restOfLoc = curColLocation.substring(index, curColLocation.length()-1);
+                streetFinderAddress.setStreet(curColLocation.substring(0, index).trim());
+                determineBuildingNumOrDigit(restOfLoc, streetFinderAddress);
+            }
         }
 
     }
 
-    public String formatLocation(String location) {
+    private void determineBuildingNumOrDigit(String restOfLoc, StreetFinderAddress streetFinderAddress) {
+        String charRegex = "[A-Z]";
+        String digitRegex = "\\d+";
+
+        Pattern charPattern = Pattern.compile(charRegex, Pattern.CASE_INSENSITIVE);
+        Pattern digitPattern = Pattern.compile(digitRegex);
+
+        Matcher charMatcher = charPattern.matcher(restOfLoc);
+        Matcher digitMatcher = digitPattern.matcher(restOfLoc);
+
+        if (charMatcher.find()) {
+            streetFinderAddress.setBldg_low_char( charMatcher.group(0) );
+            streetFinderAddress.setBldg_high_char( charMatcher.group(0) );
+        }
+        else if (digitMatcher.find()) {
+            streetFinderAddress.setBldg_low( digitMatcher.group(0) );
+            streetFinderAddress.setBldg_high( digitMatcher.group(0) );
+        }
+
+    }
+
+    private String formatLocation(String location) {
         return location.replaceAll("1/2","").trim();
     }
 
@@ -138,51 +246,5 @@ public class NYCParserTest  {
         } else {
             return "STATEN ISLAND";
         }
-    }
-
-    public static void main(String[] args) {
-        String titleLine = "FROM        TO    ED AD  ZIP   CD SD MC CO       FROM        TO   ED AD   ZIP  CD SD  MC CO       FROM        TO    ED AD  ZIP   CD SD MC CO";
-        String text = "__________________________________________       __________________________________________       __________________________________________\n";
-        String txt2 = "                                                  2 AVENUE                                         3 AVENUE\n\n";
-        String txt3 = "                  3 50 11222  12 18  3 33         69        87    95 52 11215  7  25  1 39          1        93   33 52  11217  8 25   1 33\n";
-        String txt4 = "                                                  89       179    44 51 11215  7  25  1 39          2        10   27 52  11217  8 25   1 33\n";
-        String txt5 = "1 AVENUE                                         181       195    45 51 11215 10  25  1 39         12        44   32 52  11217  8 25   1 33\n";
-        String txt6 = "3901     4999    56 51 11232   7 23  5  38       410       698    48 51 11232 10  25  5 38         98       118  108 52  11217  7 25   1 33\n";
-        String txt7 = "1 COURT                                         4101      4899    50 51 11232  7  25  5 38        251       319   91 52  11215  7 25   1 39\n";
-        String txt8 = "900      944    15 45 11223  11 22  8 48        5000      5298    57 51 11232  7  23  5 38        321       455   93 52  11215  7 20   1 39\n";
-        String txt9 = "63      103    45 52 11231   7 26  1  39          2 PLACE                                         611       631   23 51  11232  7 20   5 38\n";
-
-
-        //Experimental work
-
-        //Effectively gets each column of data
-        int start1, start2, start3;
-        start1 = text.indexOf("__________________________________________");
-        start2 = text.indexOf("__________________________________________", start1 + 1);
-        start3 = text.lastIndexOf("__________________________________________");
-
-        String column1, column2, column3;
-
-
-
-
-        column1 = txt2.substring(0, start2 - 1);
-        column2 = txt2.substring(start2, start3 - 1);
-        column3 = txt2.substring(start3, txt2.length() - 1);
-
-        System.out.println(column1);
-        System.out.println(column2);
-        System.out.println(column3);
-        System.out.println("--------------------------------------------------");
-
-        column1 = txt5.substring(0, start2 - 1);
-        column2 = txt5.substring(start2, start3 - 1);
-        column3 = txt5.substring(start3, txt5.length() - 1);
-
-        System.out.println(column1);
-        System.out.println(column2);
-        System.out.println(column3);
-        System.out.println("--------------------------------------------------");
-
     }
 }
