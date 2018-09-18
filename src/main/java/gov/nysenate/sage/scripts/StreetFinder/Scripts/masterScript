@@ -1,6 +1,7 @@
 #!/bin/bash
 #masterscript uses config pipeline for all 62 counties
 source config
+eval $town
 eval $Albany
 eval $Allegany
 eval $Broome

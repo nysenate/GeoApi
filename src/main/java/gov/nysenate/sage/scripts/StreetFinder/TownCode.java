@@ -29,6 +29,6 @@ public class TownCode {
     }
 
     public String toString() {
-        return name + "\t" + abbrev + "\n";
+        return name.toUpperCase() + "\t" + abbrev + "\n";
     }
 }

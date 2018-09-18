@@ -54,11 +54,13 @@ public class GetTownCodes {
             FileWriter fileWriter = new FileWriter(directory);
             PrintWriter outputWriter = new PrintWriter(fileWriter);
 
+            int count = 0;
             for (TownCode townCode : townCodes) {
-                outputWriter.print(townCode.toString());
+                count++;
+                outputWriter.println(townCode.toString());
             }
 
-            logger.info("Wrote town codes to file");
+            logger.info("Wrote " + count + " town codes to file");
 
 
         } catch (SQLException ex) {
