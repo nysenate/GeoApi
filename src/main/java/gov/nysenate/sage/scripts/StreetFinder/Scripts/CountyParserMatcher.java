@@ -17,7 +17,8 @@ public class CountyParserMatcher {
     public static void main(String args[]) throws IOException {
 
         if(args.length > 0) {
-            if (args[0].contains("Street_Finder")) {
+            if (args[0].contains("Bronx") || args[0].contains("Brooklyn") || args[0].contains("Manhattan")
+            || args[0].contains("Queens") || args[0].contains("Staten")) {
                 //NYC Files
                 NTSParser ntsParser = new NYCParser(args[0]);
                 ntsParser.parseFile();
