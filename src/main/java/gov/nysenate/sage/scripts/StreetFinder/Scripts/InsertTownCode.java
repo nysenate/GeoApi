@@ -17,7 +17,7 @@ public class InsertTownCode {
 
         ArrayList<String> updateFileLines = new ArrayList<>();
 
-//        String testTsv = "/data/geoapi_data/street_finder/tsv_streetfiles/Albany_County_2018.tsv";
+//        String testTsv = "/data/geoapi_data/street_finder/tsv_streetfiles/Greene_County_2018.tsv";
 
         try {
             File file = new File("/data/geoapi_data/street_finder/towns.txt");
@@ -53,18 +53,20 @@ public class InsertTownCode {
                 if (line.contains("\t")) {
                     String[] sections = line.split("\t");
 
-                    String cityTown = sections[1];
+                    String cityTown = sections[1].toUpperCase();
                     if (cityTown.equals("town")) {
                         continue;
                     }
-                    if (townCodeMap.containsKey(cityTown.toUpperCase())) {
+                    if (townCodeMap.containsKey(cityTown)) {
                         sections[20] = townCodeMap.get(cityTown);
 
-                        updatedLine = "";
-                        for (int i = 0; i < sections.length; i++) {
-                            updatedLine = updatedLine + sections[i] + "\t";
+                        if (sections[20] != null) {
+                            updatedLine = "";
+                            for (int i = 0; i < sections.length; i++) {
+                                updatedLine = updatedLine + sections[i] + "\t";
+                            }
+                            updatedLine = updatedLine + "\n";
                         }
-                        updatedLine = updatedLine + "\n";
                     }
 
                     if (updatedLine != null) {
