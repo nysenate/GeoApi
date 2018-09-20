@@ -8,10 +8,10 @@ import java.util.Map;
 public class InsertSenateCountyCode {
 
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.err.println("Missing file argument");
-            System.exit(-1);
-        }
+//        if (args.length < 1) {
+//            System.err.println("Missing file argument");
+//            System.exit(-1);
+//        }
 
         Map<String, String> countyCodeMap = new HashMap<>();
 
@@ -19,7 +19,7 @@ public class InsertSenateCountyCode {
 
         String countyCode;
 
-//        String testTsv = "/data/geoapi_data/street_finder/tsv_streetfiles/Greene_County_2018.tsv";
+//        String testTsv = "/data/geoapi_data/street_finder/tsv_streetfiles/Street_Finder_Bronx_2018_02_21.tsv";
 
         try {
             File file = new File("/data/geoapi_data/street_finder/senate_counties.txt");
@@ -79,7 +79,7 @@ public class InsertSenateCountyCode {
                 county = splitFileName[0];
             }
 
-            countyCode = countyCodeMap.get(county);
+            countyCode = countyCodeMap.get(county.toUpperCase());
 
             String line;
             String updatedLine = null;

@@ -61,7 +61,8 @@ public class GetTownCodes {
             }
 
             logger.info("Wrote " + count + " town codes to file");
-
+            fileWriter.close();
+            outputWriter.close();
 
         } catch (SQLException ex) {
             logger.error("Error retrieving town codes from geoapi db", ex);

@@ -41,7 +41,7 @@ public class GetSenateCountyCodes {
         try {
             File senateCounties = new File(directory);
             if (senateCounties.exists()) {
-                logger.info("File already exists");
+                logger.info("Senate county code already exists");
                 System.exit(0);
             }
 
@@ -60,7 +60,9 @@ public class GetSenateCountyCodes {
                 outputWriter.println(county.toString());
             }
 
-            logger.info("Wrote " + count + " town codes to file");
+            logger.info("Wrote " + count + " Senate county codes to file");
+            fileWriter.close();
+            outputWriter.close();
 
 
         } catch (SQLException ex) {
