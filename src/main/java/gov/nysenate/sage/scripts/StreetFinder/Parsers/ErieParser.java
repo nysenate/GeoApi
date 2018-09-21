@@ -39,19 +39,22 @@ public class ErieParser extends NTSParser {
      * @param line
      */
     protected void parseLine(String line) {
-        StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
+        StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
 
         //Split the line by ","
         String[] splitLine = line.split(",");
-        getStreetAndSuffix(splitLine, StreetFinderAddress);   //splitLine[0]
-        getLow(splitLine, StreetFinderAddress);               //splitLine[1]
-        getHigh(splitLine, StreetFinderAddress);              //splitLine[2]
-        getRangeType(splitLine, StreetFinderAddress);         //splitLine[3]
-        getTownCode(splitLine, StreetFinderAddress);          //splitLine[4]
-        getDistrict(splitLine, StreetFinderAddress);          //splitLine[5]
-        getZip(splitLine, StreetFinderAddress);               //splitLine[6]
-
-        super.writeToFile(StreetFinderAddress);
+        getStreetAndSuffix(splitLine[0], streetFinderAddress);          //0 street and suffix
+        getLow(splitLine[1], streetFinderAddress);                      //1 low range
+        getHigh(splitLine[2], streetFinderAddress);                     //2 high range
+        getRangeType(splitLine[3], streetFinderAddress);                //3 parity
+        getZip(splitLine[4], streetFinderAddress);                      //4 zipcode
+        getTownship(splitLine[5], streetFinderAddress);                 //5 town
+        getElectionDistrict(splitLine[9], streetFinderAddress);         //9 precinct / ed
+        getSenateDistrict(splitLine[10], streetFinderAddress);          //10 senate district
+        getAssemblyDistrict(splitLine[11], streetFinderAddress);        //11 assem district
+        getLegislativeDistrict(splitLine[12], streetFinderAddress);     //12 legislative district
+        getCongressionalDistrict(splitLine[13], streetFinderAddress);   //13 congressional district
+        super.writeToFile(streetFinderAddress);
     }
 
     /**
@@ -60,10 +63,10 @@ public class ErieParser extends NTSParser {
      * @param splitLine
      * @param StreetFinderAddress
      */
-    private void getStreetAndSuffix(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
+    private void getStreetAndSuffix(String splitLine, StreetFinderAddress StreetFinderAddress) {
         int count = 0;
         //split the string by spaces to get each individual word
-        String[] string = splitLine[0].split("\\s+");
+        String[] string = splitLine.split("\\s+");
 
         //check for pre-Direction
         if(super.checkForDirection(string[0])) {
@@ -86,8 +89,8 @@ public class ErieParser extends NTSParser {
      * @param splitLine
      * @param StreetFinderAddress
      */
-    private void getLow(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBldg_low(splitLine[1]);
+    private void getLow(String splitLine, StreetFinderAddress StreetFinderAddress) {
+        StreetFinderAddress.setBldg_low(splitLine);
     }
 
     /**
@@ -95,8 +98,8 @@ public class ErieParser extends NTSParser {
      * @param splitLine
      * @param StreetFinderAddress
      */
-    private void getHigh(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBldg_high(splitLine[2]);
+    private void getHigh(String splitLine, StreetFinderAddress StreetFinderAddress) {
+        StreetFinderAddress.setBldg_high(splitLine);
     }
 
     /**
@@ -104,10 +107,10 @@ public class ErieParser extends NTSParser {
      * @param splitLine
      * @param StreetFinderAddress
      */
-    private void getRangeType(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        if(splitLine[3].equals("Odd")) {
+    private void getRangeType(String splitLine, StreetFinderAddress StreetFinderAddress) {
+        if(splitLine.equals("Odd")) {
             StreetFinderAddress.setBldg_parity("ODDS");
-        } else if(splitLine[3].equals("Even")) {
+        } else if(splitLine.equals("Even")) {
             StreetFinderAddress.setBldg_parity("EVENS");
         } else {
             StreetFinderAddress.setBldg_parity("ALL");
@@ -115,29 +118,41 @@ public class ErieParser extends NTSParser {
     }
 
     /**
-     * Gets the townCode
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getTownCode(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setTownCode(splitLine[4]);
-    }
-
-    /**
-     * Gets the District
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getDistrict(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setDist(splitLine[5]);
-    }
-
-    /**
      * Gets the zipCode
      * @param splitLine
-     * @param StreetFinderAddress
+     * @param streetFinderAddress
      */
-    private void getZip(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setZip(splitLine[6]);
+    private void getZip(String splitLine, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setZip(splitLine);
     }
+
+    private void getTownship(String splitline, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setTown(splitline);
+    }
+
+    private void getElectionDistrict(String splitline, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setED(splitline.substring(splitline.length() - 2));
+    }
+
+    private void getSenateDistrict(String splitline, StreetFinderAddress streetFinderAddress) {
+        String[] district = splitline.split("-");
+        streetFinderAddress.setSen(district[1]);
+    }
+
+    private void getAssemblyDistrict(String splitline, StreetFinderAddress streetFinderAddress) {
+        String[] district = splitline.split("-");
+        streetFinderAddress.setAsm(district[1]);
+    }
+
+    private void getLegislativeDistrict(String splitline, StreetFinderAddress streetFinderAddress) {
+        String[] district = splitline.split("-");
+        streetFinderAddress.setDist(district[1]);
+    }
+
+    private void getCongressionalDistrict(String splitline, StreetFinderAddress streetFinderAddress) {
+        String[] district = splitline.split("-");
+        streetFinderAddress.setCong(district[1]);
+    }
+
+
 }
