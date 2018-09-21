@@ -8,10 +8,10 @@ import java.util.Map;
 public class InsertSenateCountyCode {
 
     public static void main(String[] args) {
-//        if (args.length < 1) {
-//            System.err.println("Missing file argument");
-//            System.exit(-1);
-//        }
+        if (args.length < 1) {
+            System.err.println("Missing file argument");
+            System.exit(-1);
+        }
 
         Map<String, String> countyCodeMap = new HashMap<>();
 
