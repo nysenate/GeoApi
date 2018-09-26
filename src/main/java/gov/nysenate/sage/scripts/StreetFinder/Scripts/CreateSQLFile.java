@@ -57,7 +57,7 @@ public class CreateSQLFile {
             //get all data from the tsv file and append to sql file
             while(scanner.hasNext()) {
                 String line = scanner.nextLine();
-                if(line.contains("bldg_lo_num") && line.contains("senate_code")) {
+                if(line.contains("bldg_lo_num") && line.contains("senate_code") || line.isEmpty()) {
                     //skip over these lines because it is just a header and not data
                 } else {
                     outputWriter.write(line + "\n");

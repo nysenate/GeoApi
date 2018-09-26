@@ -84,7 +84,10 @@ public class InsertSenateCountyCode {
             String line;
             String updatedLine = null;
             while ((line = bufferedReader.readLine()) != null) {
-                if (line.contains("\t")) {
+                if(line.contains("state") || line.contains("town")) {
+                    updateFileLines.add(line);
+                }
+                if (line.contains("\t") && (!line.contains("state") || !line.contains("town"))) {
                     String[] sections = line.split("\t");
 
                     sections[15] = countyCode;
@@ -94,7 +97,7 @@ public class InsertSenateCountyCode {
                         for (int i = 0; i < sections.length; i++) {
                             updatedLine = updatedLine + sections[i] + "\t";
                         }
-                        updatedLine = updatedLine + "\n";
+                        updatedLine = updatedLine.trim();
                     }
 
 
