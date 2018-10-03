@@ -124,7 +124,9 @@ public class NTSParser {
                 return;
             }
             //for some reason splitLine[0] is whitespace and the zip is at splitLine[1]
-            StreetFinderAddress.setZip(splitLine[1]);
+            if (splitLine[1].length() == 5) {
+                StreetFinderAddress.setZip(splitLine[1]);
+            }
             //set other fields using StreetFinderAddressStorage
             StreetFinderAddress.setPreDirection(StreetFinderAddressStorage.getPreDirection().trim());
             StreetFinderAddress.setStreet(StreetFinderAddressStorage.getStreet());
@@ -137,7 +139,9 @@ public class NTSParser {
             //ex "*UNKNOWN*"
             //dont include the UNKNOWN as the street name
             //zip must be after *UNKNOWN*
-            StreetFinderAddress.setZip(splitLine[1]);
+            if (splitLine[1].length() == 5) {
+                StreetFinderAddress.setZip(splitLine[1]);
+            }
             //call parseAfterZip
             parseAfterZip(splitLine, specialCase, 2, line, StreetFinderAddress);
 

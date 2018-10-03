@@ -55,11 +55,8 @@ public class CountyParserMatcher {
                 NTSParser ntsParser = new SchoharieParser(args[0]);
                 ntsParser.parseFile();
 
-            } else if (args[0].contains("Montgomery")) {
-                NTSParser ntsParser = new MontgomeryParser(args[0]);
-                ntsParser.parseFile();
-
-            } else {
+            }
+            else {
                 //regular file
                 NTSParser ntsParser = new NTSParser(args[0]);
                 ntsParser.parseFile();
