@@ -4,7 +4,8 @@ import org.apache.commons.configuration.event.ConfigurationErrorEvent;
 import org.apache.commons.configuration.event.ConfigurationErrorListener;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Observable;
 
@@ -15,7 +16,7 @@ import java.util.Observable;
 public class SageConfigurationListener extends Observable
                                        implements ConfigurationListener, ConfigurationErrorListener
 {
-    public Logger logger = Logger.getLogger(this.getClass());
+    public Logger logger = LogManager.getLogger(this.getClass());
     public SageConfigurationListener() {}
 
     @Override

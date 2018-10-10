@@ -2,9 +2,9 @@ package gov.nysenate.sage.listener;
 
 import gov.nysenate.sage.dao.logger.DeploymentLogger;
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
-import gov.nysenate.sage.dao.stats.ExceptionInfoDao;
 import gov.nysenate.sage.factory.ApplicationFactory;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -19,7 +19,7 @@ import java.util.Date;
 @WebListener()
 public class SageContextListener implements ServletContextListener {
 
-    public Logger logger = Logger.getLogger(this.getClass());
+    public Logger logger = LogManager.getLogger(this.getClass());
     public DeploymentLogger deploymentLogger;
 
     public SageContextListener() {}

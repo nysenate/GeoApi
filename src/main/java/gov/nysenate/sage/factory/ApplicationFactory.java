@@ -17,7 +17,8 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
 
 import java.util.*;
@@ -37,7 +38,7 @@ import java.util.*;
  */
 public class ApplicationFactory
 {
-    private static final Logger logger = Logger.getLogger(ApplicationFactory.class);
+    private static final Logger logger = LogManager.getLogger(ApplicationFactory.class);
 
     /** Static factory instance */
     private static final ApplicationFactory factoryInstance = new ApplicationFactory();

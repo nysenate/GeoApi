@@ -8,7 +8,8 @@ import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 import org.apache.commons.dbutils.AsyncQueryRunner;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
 
 import java.io.IOException;
@@ -20,7 +21,7 @@ import java.util.concurrent.ExecutorService;
 
 public class BaseDao
 {
-    private static Logger logger = Logger.getLogger(BaseDao.class);
+    private static Logger logger = LogManager.getLogger(BaseDao.class);
     protected DataSource dataSource;
     protected DataSource tigerDataSource;
 

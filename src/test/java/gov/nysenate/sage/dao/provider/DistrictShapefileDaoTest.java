@@ -5,7 +5,8 @@ import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 public class DistrictShapefileDaoTest extends TestBase
 {
-    Logger logger = Logger.getLogger(DistrictShapefileDaoTest.class);
+    Logger logger = LogManager.getLogger(DistrictShapefileDaoTest.class);
     DistrictShapefileDao dsDao;
 
     @Before

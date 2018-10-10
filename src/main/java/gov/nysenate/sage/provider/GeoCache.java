@@ -10,7 +10,8 @@ import gov.nysenate.sage.service.geo.GeocodeCacheService;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.StreetAddressParser;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,7 +23,7 @@ import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateGeoc
 
 public class GeoCache implements GeocodeCacheService
 {
-    private final Logger logger = Logger.getLogger(GeoCache.class);
+    private final Logger logger = LogManager.getLogger(GeoCache.class);
     private static Set<Class<? extends GeocodeService>> cacheableProviders = new HashSet<>();
     private GeoCacheDao geoCacheDao;
 

@@ -2,8 +2,9 @@ package gov.nysenate.sage.filter;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
-import org.apache.log4j.Logger;
-import org.apache.log4j.xml.DOMConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+//import org.apache.log4j.xml.DOMConfigurator;
 
 import javax.servlet.*;
 import java.io.File;
@@ -14,9 +15,9 @@ import java.io.IOException;
  */
 public class ResourceFilter implements Filter
 {
-    private final Logger logger = Logger.getLogger(ResourceFilter.class);
+    private final Logger logger = LogManager.getLogger(ResourceFilter.class);
     private Config config = ApplicationFactory.getConfig();
-    private String log4jConfigFileName = "log4j.xml";
+    private String log4jConfigFileName = "log4j2.xml";
     private File log4jConfigFile;
     private long timeLoaded;
     private long lastChecked;
@@ -44,7 +45,7 @@ public class ResourceFilter implements Filter
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
     {
         config.refresh();
-        log4jRefresh();
+//        log4jRefresh();
         chain.doFilter(request, response);
     }
 
@@ -57,19 +58,19 @@ public class ResourceFilter implements Filter
      * J2EE environments. It opens a FileWatchdog thread that is impossible to close and results in
      * leaking when the context is reloaded.
      */
-    private synchronized void log4jRefresh()
-    {
-        if (System.currentTimeMillis() - lastChecked > checkInterval)
-        {
-            lastChecked = System.currentTimeMillis();
-            if (log4jConfigFile.lastModified() > timeLoaded)
-            {
-                logger.info("Reloading logger configuration...");
-                DOMConfigurator.configure(log4jConfigFile.getAbsolutePath());
-                timeLoaded = System.currentTimeMillis();
-            }
-        }
-    }
+//    private synchronized void log4jRefresh()
+//    {
+//        if (System.currentTimeMillis() - lastChecked > checkInterval)
+//        {
+//            lastChecked = System.currentTimeMillis();
+//            if (log4jConfigFile.lastModified() > timeLoaded)
+//            {
+//                logger.info("Reloading logger configuration...");
+//                DOMConfigurator.configure(log4jConfigFile.getAbsolutePath());
+//                timeLoaded = System.currentTimeMillis();
+//            }
+//        }
+//    }
 
     public void destroy()
     {

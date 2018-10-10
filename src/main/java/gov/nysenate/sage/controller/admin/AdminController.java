@@ -5,7 +5,8 @@ import gov.nysenate.sage.dao.model.AdminUserDao;
 import gov.nysenate.sage.dao.stats.ApiUsageStatsDao;
 import gov.nysenate.sage.dao.stats.ApiUserStatsDao;
 import gov.nysenate.sage.dao.stats.DeploymentStatsDao;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -15,7 +16,7 @@ import java.io.IOException;
 
 public class AdminController extends BaseAdminController
 {
-    private Logger logger = Logger.getLogger(AdminController.class);
+    private Logger logger = LogManager.getLogger(AdminController.class);
 
     private ApiRequestLogger apiRequestLogger;
     private ApiUserStatsDao apiUserStatsDao;

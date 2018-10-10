@@ -1,5 +1,10 @@
 package gov.nysenate.sage.util;
 
+import gov.nysenate.sage.model.district.Congressional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -8,7 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 
 import gov.nysenate.sage.model.district.Congressional;
 
@@ -18,7 +22,7 @@ import gov.nysenate.sage.model.district.Congressional;
  */
 public class CongressScraper
 {
-    private static final Logger logger = Logger.getLogger(CongressScraper.class);
+    private static final Logger logger = LogManager.getLogger(CongressScraper.class);
     private static final String HOUSE_MEM_URL = "https://www.house.gov/representatives";
 
     public static List<Congressional> getCongressionals()

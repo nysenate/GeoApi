@@ -1,7 +1,8 @@
 package gov.nysenate.sage.filter;
 
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.*;
 import java.sql.Timestamp;
@@ -9,7 +10,7 @@ import java.util.Date;
 
 public class ExceptionFilter implements Filter
 {
-    private static Logger logger = Logger.getLogger(ExceptionFilter.class);
+    private static Logger logger = LogManager.getLogger(ExceptionFilter.class);
     private static ExceptionLogger exceptionLogger;
 
     @Override

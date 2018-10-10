@@ -2,7 +2,8 @@ package gov.nysenate.sage.controller.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -17,7 +18,7 @@ import java.util.Date;
 
 public abstract class BaseAdminController extends HttpServlet
 {
-    private static Logger logger = Logger.getLogger(BaseAdminController.class);
+    private static Logger logger = LogManager.getLogger(BaseAdminController.class);
 
     protected static String AUTH_ATTR = "authenticated";
     protected static String ADMIN_USERNAME_ATTR = "adminUserName";

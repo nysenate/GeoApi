@@ -16,7 +16,8 @@ import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.*;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.CsvListWriter;
@@ -55,7 +56,7 @@ public class ProcessBatchJobs
     private static Boolean LOGGING_ENABLED = false;
     private static Integer LOGGING_THRESHOLD = 1000;
 
-    public static Logger logger = Logger.getLogger(ProcessBatchJobs.class);
+    public static Logger logger = LogManager.getLogger(ProcessBatchJobs.class);
     public static Mailer mailer;
     public static AddressServiceProvider addressProvider;
     public static GeocodeServiceProvider geocodeProvider;

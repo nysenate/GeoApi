@@ -11,7 +11,8 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class DistrictResultLogger extends BaseDao
 {
-    private static Logger logger = Logger.getLogger(DistrictResultLogger.class);
+    private static Logger logger = LogManager.getLogger(DistrictResultLogger.class);
     private static DistrictRequestLogger distRequestLogger = new DistrictRequestLogger();
 
     private static String SCHEMA = "log";

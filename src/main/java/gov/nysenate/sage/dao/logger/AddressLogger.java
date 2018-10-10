@@ -4,13 +4,14 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.address.Address;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
 
 public class AddressLogger extends BaseDao
 {
-    private static Logger logger = Logger.getLogger(AddressLogger.class);
+    private static Logger logger = LogManager.getLogger(AddressLogger.class);
     private static String SCHEMA = "log";
     private static String TABLE = "address";
     private QueryRunner run = getQueryRunner();

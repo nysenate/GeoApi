@@ -1,6 +1,7 @@
 package gov.nysenate.sage.controller.map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -16,7 +17,7 @@ import java.util.List;
  */
 public class EmbeddedMapController extends BaseMapController
 {
-    private static Logger logger = Logger.getLogger(EmbeddedMapController.class);
+    private static Logger logger = LogManager.getLogger(EmbeddedMapController.class);
     private static String MAPS_JSP = "/WEB-INF/views/maps.jsp";
 
     @Override

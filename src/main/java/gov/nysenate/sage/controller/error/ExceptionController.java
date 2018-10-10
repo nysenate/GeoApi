@@ -1,7 +1,8 @@
 package gov.nysenate.sage.controller.error;
 
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -15,7 +16,7 @@ import java.util.Date;
 
 public class ExceptionController extends HttpServlet
 {
-    private static Logger logger = Logger.getLogger(ExceptionController.class);
+    private static Logger logger = LogManager.getLogger(ExceptionController.class);
     private ExceptionLogger exceptionLogger;
 
     @Override

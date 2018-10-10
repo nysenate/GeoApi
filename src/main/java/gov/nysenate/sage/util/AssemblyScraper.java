@@ -1,5 +1,10 @@
 package gov.nysenate.sage.util;
 
+import gov.nysenate.sage.model.district.Assembly;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -8,7 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 
 import gov.nysenate.sage.model.district.Assembly;
 
@@ -18,7 +22,7 @@ import gov.nysenate.sage.model.district.Assembly;
  */
 public class AssemblyScraper
 {
-    private static final Logger logger = Logger.getLogger(AssemblyScraper.class);
+    private static final Logger logger = LogManager.getLogger(AssemblyScraper.class);
 
     private static final String ASSEMBLY_BASE_URL = "https://www.nyassembly.gov";
     private static final String ASSEMBLY_MEM_URL = ASSEMBLY_BASE_URL+"/mem/email/";

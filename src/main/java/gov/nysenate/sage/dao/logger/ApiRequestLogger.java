@@ -6,7 +6,8 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,7 +18,7 @@ import java.util.List;
 
 public class ApiRequestLogger extends BaseDao
 {
-    private static Logger logger = Logger.getLogger(ApiRequestLogger.class);
+    private static Logger logger = LogManager.getLogger(ApiRequestLogger.class);
     private static String SCHEMA = "log";
     private static String TABLE = "apiRequest";
     private QueryRunner run = getQueryRunner();

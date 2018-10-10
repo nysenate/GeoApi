@@ -8,7 +8,8 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -27,7 +28,7 @@ public class MapQuestDao
     private static final String DEFAULT_FORMAT = "&outFormat=json&thumbMaps=false&maxResults=1";
     private static final int BATCH_SIZE = 95;
 
-    private Logger logger = Logger.getLogger(MapQuestDao.class);
+    private Logger logger = LogManager.getLogger(MapQuestDao.class);
     private ObjectMapper objectMapper;
     private String geoUrl;
     private String revGeoUrl;

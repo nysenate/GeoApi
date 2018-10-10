@@ -13,7 +13,8 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.service.map.MapServiceProvider;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -23,7 +24,7 @@ import java.io.IOException;
 
 public class MapController extends BaseApiController
 {
-    private static Logger logger = Logger.getLogger(MapController.class);
+    private static Logger logger = LogManager.getLogger(MapController.class);
     private static MapServiceProvider mapServiceProvider = ApplicationFactory.getMapServiceProvider();
 
     @Override

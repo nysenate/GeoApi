@@ -3,7 +3,8 @@ package gov.nysenate.sage.dao.provider;
 import gov.nysenate.sage.dao.base.BaseDao;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,7 +12,7 @@ import java.util.*;
 
 public class CityZipDBDao extends BaseDao
 {
-    private Logger logger = Logger.getLogger(CityZipDBDao.class);
+    private Logger logger = LogManager.getLogger(CityZipDBDao.class);
     private QueryRunner run = getQueryRunner();
 
     private static String SCHEMA = "public";

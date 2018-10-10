@@ -10,7 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -22,7 +23,7 @@ import java.util.HashMap;
 */
 public abstract class FormatUtil {
 
-    protected static Logger logger = Logger.getLogger(FormatUtil.class);
+    protected static Logger logger = LogManager.getLogger(FormatUtil.class);
     protected static ObjectMapper mapper = new ObjectMapper();
 
     public static String toCamelCase(String s)
