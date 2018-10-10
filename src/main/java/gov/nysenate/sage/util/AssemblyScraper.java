@@ -40,7 +40,7 @@ public class AssemblyScraper
 
             logger.info("Connecting to " + ASSEMBLY_MEM_URL);
 
-            String html = IOUtils.toString(new URL(ASSEMBLY_MEM_URL));
+            String html = IOUtils.toString(new URL(ASSEMBLY_MEM_URL),"ISO-8859-1");
             Matcher m = memberPattern.matcher(html);
 
             while (m.find()) {

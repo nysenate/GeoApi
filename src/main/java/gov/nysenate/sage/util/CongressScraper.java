@@ -40,7 +40,7 @@ public class CongressScraper
 
             logger.info("Connecting to " + HOUSE_MEM_URL);
 
-            String html = IOUtils.toString(new URL(HOUSE_MEM_URL));
+            String html = IOUtils.toString(new URL(HOUSE_MEM_URL),"UTF-8");
             Matcher m = nystatePattern.matcher(html);
             if (m.find()) {
                 String nyhtml = m.group();
