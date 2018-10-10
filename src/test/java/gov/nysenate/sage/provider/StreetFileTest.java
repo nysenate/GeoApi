@@ -8,7 +8,8 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,7 +20,7 @@ import static org.junit.Assert.*;
 
 public class StreetFileTest extends TestBase
 {
-    private Logger logger = Logger.getLogger(StreetFileTest.class);
+    private Logger logger = LogManager.getLogger(StreetFileTest.class);
     private StreetFile streetFile;
 
     @Before

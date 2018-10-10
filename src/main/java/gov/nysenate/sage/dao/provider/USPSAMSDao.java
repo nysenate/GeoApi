@@ -10,10 +10,10 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -34,7 +34,7 @@ public class USPSAMSDao implements Observer
     private static String VALIDATE_METHOD = "validate";
     private static String CITYSTATE_METHOD = "citystate";
 
-    private Logger logger = Logger.getLogger(this.getClass());
+    private Logger logger = LogManager.getLogger(this.getClass());
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     public USPSAMSDao()

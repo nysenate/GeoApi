@@ -13,7 +13,8 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.*;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 
@@ -25,7 +26,7 @@ import java.util.ArrayList;
  */
 public class TigerGeocoder implements GeocodeService, RevGeocodeService
 {
-    private static Logger logger = Logger.getLogger(TigerGeocoder.class);
+    private static Logger logger = LogManager.getLogger(TigerGeocoder.class);
     private TigerGeocoderDao tigerGeocoderDao;
 
     public TigerGeocoder()

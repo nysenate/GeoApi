@@ -6,7 +6,8 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -18,7 +19,7 @@ public class JobUserDao extends BaseDao
 {
     private String SCHEMA = "job";
     private String TABLE = "user";
-    private Logger logger = Logger.getLogger(JobUserDao.class);
+    private Logger logger = LogManager.getLogger(JobUserDao.class);
     private ResultSetHandler<JobUser> handler = new BeanHandler<>(JobUser.class);
     private ResultSetHandler<List<JobUser>> listHandler = new BeanListHandler<>(JobUser.class);
     private QueryRunner run = getQueryRunner();

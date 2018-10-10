@@ -12,7 +12,8 @@ import gov.nysenate.sage.provider.GeoCache;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import java.util.List;
 
 public class GeocodeResultLogger extends BaseDao
 {
-    private static Logger logger = Logger.getLogger(GeocodeResultLogger.class);
+    private static Logger logger = LogManager.getLogger(GeocodeResultLogger.class);
     private static AddressLogger addressLogger = new AddressLogger();
     private static PointLogger pointLogger = new PointLogger();
     private static GeocodeRequestLogger geocodeRequestLogger = new GeocodeRequestLogger();

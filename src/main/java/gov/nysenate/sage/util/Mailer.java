@@ -1,7 +1,8 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
@@ -14,7 +15,7 @@ import java.util.StringTokenizer;
 
 public class Mailer
 {
-    private Logger logger = Logger.getLogger(Mailer.class);
+    private Logger logger = LogManager.getLogger(Mailer.class);
     private Config config = ApplicationFactory.getConfig();
     private String SMTP_HOST_NAME;
     private String SMTP_DEBUG;

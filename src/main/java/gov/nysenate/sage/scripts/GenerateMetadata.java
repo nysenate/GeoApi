@@ -199,7 +199,7 @@ public class GenerateMetadata {
             if (!(c1.getDistrict() == c2.getDistrict() &&
                     c1.getMemberName().equals(c2.getMemberName()) &&
                     c1.getMemberUrl().equals(c2.getMemberUrl()))) {
-                System.out.println("Congressional " + c1.getDistrict() + "updated.");
+                System.out.println("Congressional District " + c1.getDistrict() + " [" + c1.getMemberName() + "] updated");
                 return true;
             }
         } else if (c1 == null && c2 != null) {
@@ -213,7 +213,7 @@ public class GenerateMetadata {
             if (!(a1.getDistrict() == a2.getDistrict() &&
                     a1.getMemberName().equals(a2.getMemberName()) &&
                     a1.getMemberUrl().equals(a2.getMemberUrl()))) {
-                System.out.println("Assembly " + a1.getDistrict() + " updated.");
+                System.out.println("Assembly District " + a1.getDistrict() + " [" + a1.getMemberName() + "] updated");
                 return true;
             }
         } else if (a1 == null && a2 != null) {

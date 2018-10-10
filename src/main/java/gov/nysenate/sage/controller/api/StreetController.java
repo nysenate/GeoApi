@@ -8,7 +8,8 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.model.result.StreetResult;
 import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -19,7 +20,7 @@ import java.util.List;
 
 public class StreetController extends BaseApiController
 {
-    private static Logger logger = Logger.getLogger(StreetController.class);
+    private static Logger logger = LogManager.getLogger(StreetController.class);
     private static StreetLookupServiceProvider streetProvider = ApplicationFactory.getStreetLookupServiceProvider();
 
     @Override

@@ -1,58 +1,60 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.district.Assembly;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
+
+import gov.nysenate.sage.model.district.Assembly;
+
+
 /**
  * Scrapes assembly member data from the assembly website
  */
 public class AssemblyScraper
 {
-    private static final Logger logger = Logger.getLogger(AssemblyScraper.class);
+    private static final Logger logger = LogManager.getLogger(AssemblyScraper.class);
 
-    static final String ASSEMBLY_URL = "http://assembly.state.ny.us";
-    static final String ASSEMBLY_DIRECTORY_URL = ASSEMBLY_URL+"/mem/?sh=email";
+    private static final String ASSEMBLY_BASE_URL = "https://www.nyassembly.gov";
+    private static final String ASSEMBLY_MEM_URL = ASSEMBLY_BASE_URL+"/mem/email/";
 
     public static List<Assembly> getAssemblies()
     {
         List<Assembly> ret = new ArrayList<>();
 
         try {
-            Pattern p = Pattern.compile("<div class=\"email1\"><a href=\"(.+?)\">(.+?)</a></div>");
-            Pattern p2 = Pattern.compile("<div class=\"email2\">(\\d+).*?</div>");
+            // Each Assembly member uses two DIVs.  The first DIV contains
+            // the URL and full name of the member.  The second DIV contains
+            // the district.  The ordinal suffix ("st", "nd", "rd", "th") is
+            // stripped from district ordinal.
+            Pattern memberPattern = Pattern.compile("<div class=\"email1\">\\s*<a href=\"([^\"]*)\">([^<]*)</a></div>\\s*<div class=\"email2\">(\\d+)(st|nd|rd|th)</div>");
 
-            logger.info("Connecting to " + ASSEMBLY_DIRECTORY_URL);
+            logger.info("Connecting to " + ASSEMBLY_MEM_URL);
 
-            BufferedReader br = new BufferedReader(
-                    new InputStreamReader(new URL(ASSEMBLY_DIRECTORY_URL).openStream()));
+            String html = IOUtils.toString(new URL(ASSEMBLY_MEM_URL),"ISO-8859-1");
+            Matcher m = memberPattern.matcher(html);
 
-            String in;
-            while ((in = br.readLine()) != null) {
-                Matcher m = p.matcher(in);
-                if (m.find()) {
-                    logger.info("Fetching assembly member " + m.group(2));
-                    Matcher m2 = p2.matcher(br.readLine());
-                    if (m2.find()) {
-                        Assembly a = new Assembly(Integer.valueOf(m2.group(1)), m.group(2), ASSEMBLY_URL + m.group(1));
-                        ret.add(a);
-                    }
-                }
+            while (m.find()) {
+                String url = ASSEMBLY_BASE_URL + m.group(1);
+                String name = m.group(2).trim();
+                int district = Integer.parseInt(m.group(3));
+                logger.info("Retrieved member [" + name + "], AD=" + district);
+                Assembly a = new Assembly(district, name, url);
+                ret.add(a);
             }
-
-            br.close();
         }
         catch (IOException ioe) {
-            logger.warn(ioe);
+            logger.error(ioe);
         }
         return ret;
-    }
+    } // getAssemblies()
 }

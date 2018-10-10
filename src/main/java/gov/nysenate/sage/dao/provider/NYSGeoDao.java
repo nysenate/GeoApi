@@ -12,14 +12,14 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
 public class NYSGeoDao {
 
-    private static final Logger logger = Logger.getLogger(NYSGeoDao.class);
+    private static final Logger logger = LogManager.getLogger(NYSGeoDao.class);
 
     private static final Config config = ApplicationFactory.getConfig();
     private static final String DEFAULT_BASE_URL = config.getValue("nys.geocoder.url");

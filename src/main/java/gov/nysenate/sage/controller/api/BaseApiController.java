@@ -6,7 +6,8 @@ import gov.nysenate.sage.filter.ApiFilter;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.geo.Point;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -23,7 +24,7 @@ import java.util.Arrays;
  */
 public abstract class BaseApiController extends HttpServlet
 {
-    private static Logger logger = Logger.getLogger(BaseApiController.class);
+    private static Logger logger = LogManager.getLogger(BaseApiController.class);
     public abstract void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
     public abstract void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
     public abstract void init(ServletConfig config) throws ServletException;

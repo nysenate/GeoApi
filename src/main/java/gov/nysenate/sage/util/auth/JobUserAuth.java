@@ -2,12 +2,13 @@ package gov.nysenate.sage.util.auth;
 
 import gov.nysenate.sage.dao.model.JobUserDao;
 import gov.nysenate.sage.model.job.JobUser;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class JobUserAuth
 {
-    private Logger logger = Logger.getLogger(JobUserAuth.class);
+    private Logger logger = LogManager.getLogger(JobUserAuth.class);
     private JobUserDao jobUserDao;
 
     public JobUserAuth()

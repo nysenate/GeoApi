@@ -6,13 +6,14 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.job.JobProcess;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
 
 public class DistrictRequestLogger extends BaseDao
 {
-    private static Logger logger = Logger.getLogger(DistrictRequestLogger.class);
+    private static Logger logger = LogManager.getLogger(DistrictRequestLogger.class);
     private static AddressLogger addressLogger = new AddressLogger();
     private static String SCHEMA = "log";
     private static String TABLE = "districtRequest";

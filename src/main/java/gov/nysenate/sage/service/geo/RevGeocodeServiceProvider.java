@@ -8,7 +8,8 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -18,7 +19,7 @@ import java.util.*;
 */
 public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeService> implements Observer
 {
-    private final Logger logger = Logger.getLogger(GeocodeServiceProvider.class);
+    private final Logger logger = LogManager.getLogger(GeocodeServiceProvider.class);
     private final static Config config = ApplicationFactory.getConfig();
 
     public RevGeocodeServiceProvider() {}

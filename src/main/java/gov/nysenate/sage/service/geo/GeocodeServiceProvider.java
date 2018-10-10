@@ -11,11 +11,10 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.GeoCache;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -26,7 +25,7 @@ import java.util.*;
  */
 public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> implements Observer
 {
-    private final Logger logger = Logger.getLogger(GeocodeServiceProvider.class);
+    private final Logger logger = LogManager.getLogger(GeocodeServiceProvider.class);
     private final static Config config = ApplicationFactory.getConfig();
 
     /** Caching members */
