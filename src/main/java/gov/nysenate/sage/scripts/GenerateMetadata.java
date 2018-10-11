@@ -181,12 +181,15 @@ public class GenerateMetadata {
                 for (Office office : senator.getOffices()) {
                     getUpdatedGeocode(office);
                 }
-                if (existingSenator == null) {
+                if (existingSenator == null && verifyOfficeGeocode(senator)) {
                     senateDao.insertSenate(senator.getDistrict());
                     senateDao.insertSenator(senator);
-                } else {
+                } else if (verifyOfficeGeocode(senator)){
                     senateDao.deleteSenator(district);
                     senateDao.insertSenator(senator);
+                }
+                else {
+                    System.out.println("Could not update Senator " + senator.getName() + " District: " + district);
                 }
                 updated = true;
             }
@@ -247,6 +250,25 @@ public class GenerateMetadata {
             System.err.println("Unable to complete geocoding request to Senate Office " + senatorOffice.getStreet() +
                    ", " + senatorOffice.getCity() + ", NY " + senatorOffice.getPostalCode() + " " +e.getMessage());
         }
+    }
+
+    private boolean verifyOfficeGeocode(Senator senator) {
+        List<Office> offices = senator.getOffices();
+
+        for (Office office: offices) {
+
+            Double latitude = office.getLatitude();
+            Double longitude = office.getLongitude();
+
+
+            if( (latitude == 0.0 || longitude == 0.0) ||
+                    (latitude.isNaN() ||  longitude.isNaN()) ||
+                    (latitude == null || longitude == null) )  {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
