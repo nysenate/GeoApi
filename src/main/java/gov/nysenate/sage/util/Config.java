@@ -4,8 +4,8 @@ import gov.nysenate.sage.listener.SageConfigurationListener;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 public class Config
 {
-    private final Logger logger = LogManager.getLogger(Config.class);
+    private final Logger logger = LoggerFactory.getLogger(Config.class);
 
     /** Pattern to replace {{variables}} used in the property file. */
     private static final Pattern variablePattern = Pattern.compile("\\{\\{(.*?)\\}\\}");

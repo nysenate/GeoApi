@@ -8,8 +8,8 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -22,7 +22,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 */
 public abstract class GeocodeServiceValidator
 {
-    private static final Logger logger = LogManager.getLogger(GeocodeServiceValidator.class);
+    private static final Logger logger = LoggerFactory.getLogger(GeocodeServiceValidator.class);
     private static Config config = ApplicationFactory.getConfig();
 
     /** Keep track of GeocodeService implementations that are temporarily unavailable. */

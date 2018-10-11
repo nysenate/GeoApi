@@ -5,15 +5,15 @@ import gov.nysenate.sage.model.district.Assembly;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.SQLException;
 import java.util.List;
 
 public class AssemblyDao extends BaseDao
 {
-    private Logger logger = LogManager.getLogger(AssemblyDao.class);
+    private Logger logger = LoggerFactory.getLogger(AssemblyDao.class);
     private QueryRunner run = getQueryRunner();
 
     public List<Assembly> getAssemblies()

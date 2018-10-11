@@ -9,8 +9,8 @@ import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,7 +30,7 @@ public class JobProcessDao extends BaseDao
     private static String SCHEMA = "job";
     private static String TABLE = "process";
     private static String STATUS_TABLE = "status";
-    private Logger logger = LogManager.getLogger(JobUserDao.class);
+    private Logger logger = LoggerFactory.getLogger(JobUserDao.class);
     private ResultSetHandler<JobProcess> processHandler = new JobProcessHandler();
     private ResultSetHandler<JobProcessStatus> statusHandler = new JobStatusHandler();
     private ResultSetHandler<List<JobProcess>> processListHandler = new JobProcessListHandler();
@@ -265,7 +265,7 @@ public class JobProcessDao extends BaseDao
 
     protected static class JobStatusHandler implements ResultSetHandler<JobProcessStatus>
     {
-        protected static Logger logger = LogManager.getLogger(JobStatusHandler.class);
+        protected static Logger logger = LoggerFactory.getLogger(JobStatusHandler.class);
         protected JobUserDao jobUserDao = new JobUserDao();
 
         @Override
@@ -294,7 +294,7 @@ public class JobProcessDao extends BaseDao
 
     protected static class JobProcessStatusListHandler implements ResultSetHandler<List<JobProcessStatus>>
     {
-        protected static Logger logger = LogManager.getLogger(JobStatusHandler.class);
+        protected static Logger logger = LoggerFactory.getLogger(JobStatusHandler.class);
         protected JobUserDao jobUserDao = new JobUserDao();
 
         @Override

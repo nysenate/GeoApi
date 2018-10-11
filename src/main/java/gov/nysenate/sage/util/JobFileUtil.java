@@ -2,15 +2,15 @@ package gov.nysenate.sage.util;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.supercsv.prefs.CsvPreference;
 
 import java.io.*;
 
 public abstract class JobFileUtil
 {
-    private static Logger logger = LogManager.getLogger(JobFileUtil.class);
+    private static Logger logger = LoggerFactory.getLogger(JobFileUtil.class);
 
     /**
      * Determines the CsvPreference based on the delimiter used in the header.

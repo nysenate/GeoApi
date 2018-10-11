@@ -1,8 +1,8 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.district.Congressional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,7 +22,7 @@ import gov.nysenate.sage.model.district.Congressional;
  */
 public class CongressScraper
 {
-    private static final Logger logger = LogManager.getLogger(CongressScraper.class);
+    private static final Logger logger = LoggerFactory.getLogger(CongressScraper.class);
     private static final String HOUSE_MEM_URL = "https://www.house.gov/representatives";
 
     public static List<Congressional> getCongressionals()
@@ -59,7 +59,7 @@ public class CongressScraper
             }
         }
         catch (IOException ioe) {
-            logger.error(ioe);
+            logger.error("" + ioe);
         }
         return ret;
     }

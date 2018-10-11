@@ -10,8 +10,8 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -21,7 +21,7 @@ import java.util.Observer;
 
 public class YahooBossDao implements Observer
 {
-    private static final Logger logger = LogManager.getLogger(YahooBossDao.class);
+    private static final Logger logger = LoggerFactory.getLogger(YahooBossDao.class);
     private static final Config config = ApplicationFactory.getConfig();
     private static final String DEFAULT_BASE_URL = "http://yboss.yahooapis.com/geo/placefinder";
     private static String CONSUMER_KEY;
@@ -51,7 +51,7 @@ public class YahooBossDao implements Observer
             return getGeocodedAddress(url);
         }
         catch (UnsupportedEncodingException ex) {
-            logger.error(ex);
+            logger.error("" + ex);
         }
         return null;
     }

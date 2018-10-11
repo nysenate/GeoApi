@@ -22,8 +22,8 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -41,7 +41,7 @@ import static gov.nysenate.sage.scripts.ProcessBatchJobs.addressProvider;
 /** Handles Geo Api requests */
 public class GeocodeController extends BaseApiController implements Observer
 {
-    private static Logger logger = LogManager.getLogger(GeocodeController.class);
+    private static Logger logger = LoggerFactory.getLogger(GeocodeController.class);
     private static Config config = ApplicationFactory.getConfig();
     private static GeocodeServiceProvider geocodeServiceProvider = ApplicationFactory.getGeocodeServiceProvider();
     private static RevGeocodeServiceProvider revGeocodeServiceProvider = ApplicationFactory.getRevGeocodeServiceProvider();

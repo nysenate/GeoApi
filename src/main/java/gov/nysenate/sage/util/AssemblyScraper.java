@@ -1,8 +1,8 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.district.Assembly;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,7 +22,7 @@ import gov.nysenate.sage.model.district.Assembly;
  */
 public class AssemblyScraper
 {
-    private static final Logger logger = LogManager.getLogger(AssemblyScraper.class);
+    private static final Logger logger = LoggerFactory.getLogger(AssemblyScraper.class);
 
     private static final String ASSEMBLY_BASE_URL = "https://www.nyassembly.gov";
     private static final String ASSEMBLY_MEM_URL = ASSEMBLY_BASE_URL+"/mem/email/";
@@ -53,7 +53,7 @@ public class AssemblyScraper
             }
         }
         catch (IOException ioe) {
-            logger.error(ioe);
+            logger.error("" + ioe);
         }
         return ret;
     } // getAssemblies()

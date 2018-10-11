@@ -14,8 +14,8 @@ import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,7 +26,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class GeoCacheDao extends BaseDao
 {
-    private static Logger logger = LogManager.getLogger(GeoCacheDao.class);
+    private static Logger logger = LoggerFactory.getLogger(GeoCacheDao.class);
     private static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
     private static int BUFFER_SIZE;
     private QueryRunner tigerRun = getTigerQueryRunner();
@@ -222,7 +222,7 @@ public class GeoCacheDao extends BaseDao
                             }
                         }
                         catch(Exception ex) {
-                            logger.error(ex);
+                            logger.error("" + ex);
                         }
                     }
                 }

@@ -3,15 +3,15 @@ package gov.nysenate.sage.service.map;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.service.base.ServiceProviders;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class MapServiceProvider extends ServiceProviders<MapService>
 {
-    protected Logger logger = LogManager.getLogger(MapServiceProvider.class);
+    protected Logger logger = LoggerFactory.getLogger(MapServiceProvider.class);
 
     /**
      * Assigns district maps to a DistrictInfo result.

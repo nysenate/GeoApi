@@ -7,8 +7,8 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 */
 public class YahooBoss implements GeocodeService
 {
-    private final Logger logger = LogManager.getLogger(YahooBoss.class);
+    private final Logger logger = LoggerFactory.getLogger(YahooBoss.class);
     private YahooBossDao yahooBossDao;
 
     public YahooBoss()

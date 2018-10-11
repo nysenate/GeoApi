@@ -8,8 +8,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -18,7 +18,7 @@ public class BatchZipGeocache {
 
     static Config config;
     QueryRunner geoApiRun;
-    private static Logger logger = LogManager.getLogger(BatchZipGeocache.class);
+    private static Logger logger = LoggerFactory.getLogger(BatchZipGeocache.class);
 
     public BatchZipGeocache() {
         config = ApplicationFactory.getConfig();

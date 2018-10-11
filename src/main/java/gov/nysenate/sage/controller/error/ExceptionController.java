@@ -1,8 +1,10 @@
 package gov.nysenate.sage.controller.error;
 
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -16,8 +18,9 @@ import java.util.Date;
 
 public class ExceptionController extends HttpServlet
 {
-    private static Logger logger = LogManager.getLogger(ExceptionController.class);
+    private static Logger logger = LoggerFactory.getLogger(ExceptionController.class);
     private ExceptionLogger exceptionLogger;
+    Marker fatal = MarkerFactory.getMarker("FATAL");
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -37,7 +40,7 @@ public class ExceptionController extends HttpServlet
         if (ex != null) {
             exceptionLogger.logException(ex, new Timestamp(new Date().getTime()), apiRequestId);
         }
-        logger.fatal("Unhandled exception occurred!", ex);
+        logger.error(fatal,"Unhandled exception occurred!", ex);
         response.sendError(500, "An unexpected application error has occurred. The administrators have been notified. Please try again later.");
     }
 }
