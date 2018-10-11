@@ -94,8 +94,13 @@ public class GenerateMetadata {
         }
 
         ApplicationFactory.close();
-        if (updated) System.exit(0);
-        else System.exit(1);
+
+        if (updated) {
+            System.exit(0);
+        }
+        else {
+            System.exit(1);
+        }
     }
 
     /**
@@ -181,12 +186,15 @@ public class GenerateMetadata {
                 for (Office office : senator.getOffices()) {
                     getUpdatedGeocode(office);
                 }
-                if (existingSenator == null && verifyOfficeGeocode(senator)) {
-                    senateDao.insertSenate(senator.getDistrict());
-                    senateDao.insertSenator(senator);
-                } else if (verifyOfficeGeocode(senator)){
-                    senateDao.deleteSenator(district);
-                    senateDao.insertSenator(senator);
+                if (verifyOfficeGeocode(senator)) {
+                    if (existingSenator == null) {
+                        senateDao.insertSenate(senator.getDistrict());
+                        senateDao.insertSenator(senator);
+                    }
+                    else {
+                        senateDao.deleteSenator(district);
+                        senateDao.insertSenator(senator);
+                    }
                 }
                 else {
                     System.out.println("Could not update Senator " + senator.getName() + " District: " + district);
@@ -255,15 +263,13 @@ public class GenerateMetadata {
     private boolean verifyOfficeGeocode(Senator senator) {
         List<Office> offices = senator.getOffices();
 
-        for (Office office: offices) {
-
+        for (Office office : offices) {
             Double latitude = office.getLatitude();
             Double longitude = office.getLongitude();
 
-
-            if( (latitude == 0.0 || longitude == 0.0) ||
-                    (latitude.isNaN() ||  longitude.isNaN()) ||
-                    (latitude == null || longitude == null) )  {
+            if (latitude == null || longitude == null
+                || latitude == 0.0 || longitude == 0.0
+                || latitude.isNaN() ||  longitude.isNaN()) {
                 return false;
             }
         }
