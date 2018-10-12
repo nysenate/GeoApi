@@ -80,21 +80,22 @@
   </build>
 
   <properties>
-    <nysenate-java-client.version>2.1</nysenate-java-client.version>
-    <tomcat.version>8.0.29</tomcat.version>
+    <nysenate-java-client.version>2.2</nysenate-java-client.version>
+    <tomcat.version>8.5.34</tomcat.version>
     <log4j.version>2.11.1</log4j.version>
     <maven-core.version>3.5.0</maven-core.version>
-    <commons-lang3.version>3.3.2</commons-lang3.version>
-    <commons-fileupload.version>1.2.1</commons-fileupload.version>
-    <commons-io.version>2.4</commons-io.version>
     <commons-configuration>1.9</commons-configuration>
+    <commons-dbutils.version>1.7</commons-dbutils.version>
+    <commons-el.version>1.0</commons-el.version>
+    <commons-fileupload.version>1.2.1</commons-fileupload.version>
+    <commons-io.version>2.6</commons-io.version>
+    <commons-lang3.version>3.3.2</commons-lang3.version>
     <httpcore.version>4.4.9</httpcore.version>
     <httpclient.version>4.5.5</httpclient.version>
     <fluent-hc.version>4.2.2</fluent-hc.version>
     <javax-mail.version>1.4.5</javax-mail.version>
     <jasypt.version>1.9.0</jasypt.version>
     <jdom.version>1.1</jdom.version>
-    <commons-dbutils.version>1.7</commons-dbutils.version>
     <postgresql.version>9.3-1101-jdbc4</postgresql.version>
     <xstream.version>1.4.3</xstream.version>
     <jackson-datatype.version>2.1.0</jackson-datatype.version>
@@ -104,7 +105,6 @@
     <woodstox-core>4.0.6</woodstox-core>
     <super-csv.version>2.0.1</super-csv.version>
     <jstl.version>1.2</jstl.version>
-    <commons-el.version>1.0</commons-el.version>
     <jbcrypt.version>0.3m</jbcrypt.version>
     <signpost-core.version>1.2.1.2</signpost-core.version>
     <junit.version>4.11</junit.version>
@@ -160,9 +160,9 @@
       <version>${log4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>${commons-lang3.version}</version>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>${commons-configuration}</version>
     </dependency>
     <dependency>
       <groupId>commons-fileupload</groupId>
@@ -177,9 +177,9 @@
       <version>${commons-io.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>${commons-configuration}</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons-lang3.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>

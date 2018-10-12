@@ -1,21 +1,23 @@
 package gov.nysenate.sage.factory;
 
-import gov.nysenate.sage.TestBase;
-import gov.nysenate.sage.util.Config;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.util.Config;
+
 
 public class ApplicationFactoryTest extends TestBase
 {
     @Test
     public void test() throws ClassNotFoundException, InstantiationException, IllegalAccessException
     {
-        Logger logger = LogManager.getLogger(ApplicationFactoryTest.class);
+        Logger logger = LoggerFactory.getLogger(ApplicationFactoryTest.class);
         Config config = ApplicationFactory.getConfig();
         String addressProviders = config.getValue("district.providers");
         StringTokenizer stringTokenizer = new StringTokenizer(addressProviders, "|");

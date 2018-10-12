@@ -1,26 +1,28 @@
 package gov.nysenate.sage.dao.provider;
 
-import gov.nysenate.sage.TestBase;
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.geo.Point;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.geo.Point;
+
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+
 public class DistrictShapefileDaoTest extends TestBase
 {
-    Logger logger = LogManager.getLogger(DistrictShapefileDaoTest.class);
+    Logger logger = LoggerFactory.getLogger(DistrictShapefileDaoTest.class);
     DistrictShapefileDao dsDao;
 
     @Before
