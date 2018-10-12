@@ -80,9 +80,9 @@
   </build>
 
   <properties>
-    <log4j2.version>2.11.1</log4j2.version>
     <nysenate-java-client.version>2.1</nysenate-java-client.version>
     <tomcat.version>8.0.29</tomcat.version>
+    <log4j.version>2.11.1</log4j.version>
     <maven-core.version>3.5.0</maven-core.version>
     <commons-lang3.version>3.3.2</commons-lang3.version>
     <commons-fileupload.version>1.2.1</commons-fileupload.version>
@@ -146,13 +146,18 @@
     <!-- Core Dependencies -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <version>${log4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
-      <version>${log4j2.version}</version>
+      <version>${log4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
-      <version>${log4j2.version}</version>
+      <version>${log4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
