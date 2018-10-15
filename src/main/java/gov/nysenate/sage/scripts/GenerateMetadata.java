@@ -202,6 +202,9 @@ public class GenerateMetadata {
                 updated = true;
             }
         }
+        if (updated) {
+            ApplicationFactory.initializeCache();
+        }
         return updated;
     }
 
