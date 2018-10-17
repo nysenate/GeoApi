@@ -1,4 +1,4 @@
-package gov.nysenate.sage.scripts.StreetFinder.Scripts;
+package gov.nysenate.sage.scripts.streetfinder.scripts;
 
 import java.io.*;
 import java.time.LocalDate;

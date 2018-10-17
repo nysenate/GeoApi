@@ -4,7 +4,7 @@
 #Uses the pathtoGeoApi variable in the config file
 source config
 for file in /data/geoapi_data/street_finder/tsv_streetfiles/*; do
-	java -cp ${pathToGeoApi}/GeoApi/target/classes/ gov.nysenate.sage.scripts.StreetFinder.Scripts.CreateSQLFile "$file"
+	java -cp ${pathToGeoApi}/GeoApi/target/classes/ gov.nysenate.sage.scripts.streetfinder.scripts.CreateSQLFile "$file"
 	echo $file added
 done
 echo SQL file created

@@ -1,6 +1,6 @@
-package gov.nysenate.sage.scripts.StreetFinder.Scripts;
+package gov.nysenate.sage.scripts.streetfinder.scripts;
 
-import gov.nysenate.sage.scripts.StreetFinder.Parsers.*;
+import gov.nysenate.sage.scripts.streetfinder.parsers.*;
 
 import java.io.IOException;
 

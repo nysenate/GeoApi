@@ -1,24 +1,26 @@
-package gov.nysenate.sage.scripts.StreetFinder.Scripts;
+package gov.nysenate.sage.scripts.streetfinder.scripts;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
-import gov.nysenate.sage.scripts.StreetFinder.TownCode;
+import gov.nysenate.sage.scripts.streetfinder.County;
 import gov.nysenate.sage.util.Config;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+
 
 import java.io.*;
 import java.sql.SQLException;
 import java.util.List;
 
-public class GetTownCodes {
+public class GetSenateCountyCodes {
 
     static Config config;
     QueryRunner geoApiRun;
-    private static Logger logger = Logger.getLogger(GetTownCodes.class);
+    private static Logger logger = LoggerFactory.getLogger(GetSenateCountyCodes.class);
 
-    public GetTownCodes() {
+    public GetSenateCountyCodes() {
         config = ApplicationFactory.getConfig();
         geoApiRun = new QueryRunner(ApplicationFactory.getDataSource());
     }
@@ -31,45 +33,45 @@ public class GetTownCodes {
             System.exit(-1);
         }
 
-        GetTownCodes getTownCodes = new GetTownCodes();
+        GetSenateCountyCodes getSenateCountyCodes = new GetSenateCountyCodes();
 
-        String GET_TOWN_CODES_SQL = "select name, abbrev from districts.town;";
+        String GET_SENATE_COUNTY_CODES = "select name, id from public.county";
 
-        String directory = "/data/geoapi_data/street_finder/towns.txt";
+        String directory = "/data/geoapi_data/street_finder/senate_counties.txt";
 
 
         try {
-            File towns = new File(directory);
-            if (towns.exists()) {
-                logger.info("File already exists");
+            File senateCounties = new File(directory);
+            if (senateCounties.exists()) {
+                logger.info("Senate county code already exists");
                 System.exit(0);
             }
 
-            towns.createNewFile();
+            senateCounties.createNewFile();
 
-            ResultSetHandler<List<TownCode>> h = new BeanListHandler<>(TownCode.class);
+            ResultSetHandler<List<County>> h = new BeanListHandler<>(County.class);
 
-            List<TownCode> townCodes = getTownCodes.geoApiRun.query(GET_TOWN_CODES_SQL, h);
+            List<County> counties = getSenateCountyCodes.geoApiRun.query(GET_SENATE_COUNTY_CODES, h);
 
             FileWriter fileWriter = new FileWriter(directory);
             PrintWriter outputWriter = new PrintWriter(fileWriter);
 
             int count = 0;
-            for (TownCode townCode : townCodes) {
+            for (County county : counties) {
                 count++;
-                outputWriter.println(townCode.toString());
+                outputWriter.println(county.toString());
             }
 
-            logger.info("Wrote " + count + " town codes to file");
+            logger.info("Wrote " + count + " Senate county codes to file");
             fileWriter.close();
             outputWriter.close();
+
 
         } catch (SQLException ex) {
             logger.error("Error retrieving town codes from geoapi db", ex);
         } catch (IOException ex) {
             logger.error("Error creating town code file", ex);
         }
-
 
 
     }

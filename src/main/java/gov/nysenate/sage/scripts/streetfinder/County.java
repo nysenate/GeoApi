@@ -1,4 +1,4 @@
-package gov.nysenate.sage.scripts.StreetFinder;
+package gov.nysenate.sage.scripts.streetfinder;
 
 public class County {
 

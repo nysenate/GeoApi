@@ -1,4 +1,4 @@
-package gov.nysenate.sage.scripts.StreetFinder.Parsers;
+package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
 import gov.nysenate.sage.util.AddressDictionary;
