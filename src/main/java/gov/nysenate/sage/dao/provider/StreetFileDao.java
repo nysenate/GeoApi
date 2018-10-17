@@ -10,8 +10,8 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,7 +21,7 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 
 public class StreetFileDao extends BaseDao
 {
-    private Logger logger = LogManager.getLogger(StreetFileDao.class);
+    private Logger logger = LoggerFactory.getLogger(StreetFileDao.class);
     private QueryRunner run = getQueryRunner();
 
     private static Map<DistrictType, String> distColMap = new HashMap<>();

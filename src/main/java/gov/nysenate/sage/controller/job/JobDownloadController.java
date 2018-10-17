@@ -3,8 +3,8 @@ package gov.nysenate.sage.controller.job;
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -19,7 +19,7 @@ import java.util.Observer;
 
 public class JobDownloadController extends BaseJobController implements Observer
 {
-    private static Logger logger = LogManager.getLogger(JobDownloadController.class);
+    private static Logger logger = LoggerFactory.getLogger(JobDownloadController.class);
     private static Config config = ApplicationFactory.getConfig();
     private static String DOWNLOAD_DIR;
 

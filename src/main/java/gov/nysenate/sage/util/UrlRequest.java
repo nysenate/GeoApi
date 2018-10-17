@@ -6,8 +6,8 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +18,7 @@ import java.net.URL;
 
 public abstract class UrlRequest
 {
-    public static Logger logger = LogManager.getLogger(UrlRequest.class);
+    public static Logger logger = LoggerFactory.getLogger(UrlRequest.class);
     private static int CONNECTION_TIMEOUT = 10000;
     private static int RESPONSE_TIMEOUT = 30000;
 
@@ -155,7 +155,7 @@ public abstract class UrlRequest
         catch (OAuthExpectationFailedException |
                OAuthCommunicationException |
                OAuthMessageSignerException ex) {
-            logger.error(ex);
+            logger.error("" + ex);
         }
         return null;
     }

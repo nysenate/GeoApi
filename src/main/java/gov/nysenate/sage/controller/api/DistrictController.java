@@ -29,8 +29,8 @@ import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -46,7 +46,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceProvider.Distric
 /** Handles District Api requests */
 public class DistrictController extends BaseApiController implements Observer
 {
-    private static Logger logger = LogManager.getLogger(DistrictController.class);
+    private static Logger logger = LoggerFactory.getLogger(DistrictController.class);
     private static Config config = ApplicationFactory.getConfig();
 
     /** Service Providers */

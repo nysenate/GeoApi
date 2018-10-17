@@ -1,16 +1,18 @@
 package gov.nysenate.sage.provider;
 
-import static gov.nysenate.sage.AddressTestBase.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.Before;
-import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static gov.nysenate.sage.AddressTestBase.*;
+
 
 /**
  * Test the functionality of the USPS adapter by executing a few sample requests and
@@ -18,7 +20,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class USPS_Test extends TestBase
 {
-    private static Logger logger = LogManager.getLogger(USPS_Test.class);
+    private static Logger logger = LoggerFactory.getLogger(USPS_Test.class);
     private USPSAIS uspsais;
 
     @Before

@@ -97,6 +97,17 @@
         <url-pattern>/api/v2/map/*</url-pattern>
     </servlet-mapping>
 
+    <!-- Data v2 Controller mapping-->
+    <servlet>
+        <display-name>DataController</display-name>
+        <servlet-name>DataController</servlet-name>
+        <servlet-class>gov.nysenate.sage.controller.api.DataController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DataController</servlet-name>
+        <url-pattern>/api/v2/data/*</url-pattern>
+    </servlet-mapping>
+
     <!-- Job v2 Controller mapping -->
     <servlet>
         <display-name>JobController</display-name>

@@ -1,7 +1,7 @@
 package gov.nysenate.sage.controller.map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -15,7 +15,7 @@ import java.io.IOException;
  */
 public abstract class BaseMapController extends HttpServlet
 {
-    private static Logger logger = LogManager.getLogger(BaseMapController.class);
+    private static Logger logger = LoggerFactory.getLogger(BaseMapController.class);
     public abstract void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
     public abstract void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
     public abstract void init(ServletConfig config) throws ServletException;

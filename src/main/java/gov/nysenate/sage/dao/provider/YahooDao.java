@@ -11,8 +11,8 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -45,7 +45,7 @@ public class YahooDao implements Observer
     private static String CONSUMER_SECRET;
     private static int BATCH_SIZE = 100;
 
-    private Logger logger = LogManager.getLogger(YahooDao.class);
+    private Logger logger = LoggerFactory.getLogger(YahooDao.class);
     private String baseUrl;
     private static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -90,7 +90,7 @@ public class YahooDao implements Observer
             logger.error("UTF-8 encoding not supported!?", ex);
         }
         catch (NullPointerException ex) {
-            logger.error(ex);
+            logger.error("" + ex);
         }
         return geocodedAddress;
     }
@@ -141,7 +141,7 @@ public class YahooDao implements Observer
             logger.error("UTF-8 encoding not supported!?", ex);
         }
         catch (NullPointerException ex) {
-            logger.error(ex);
+            logger.error("" + ex);
         }
         return geocodedAddresses;
     }

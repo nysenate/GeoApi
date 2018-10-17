@@ -9,8 +9,8 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.client.fluent.Content;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -74,7 +74,7 @@ public class USPSAIS implements AddressService, Observer
 {
     private static final int BATCH_SIZE = 5;
     private static final String DEFAULT_BASE_URL = "http://production.shippingapis.com/ShippingAPI.dll";
-    private final Logger logger = LogManager.getLogger(USPSAIS.class);
+    private final Logger logger = LoggerFactory.getLogger(USPSAIS.class);
     private Config config;
     private final DocumentBuilder xmlBuilder;
     private final XPath xpath;

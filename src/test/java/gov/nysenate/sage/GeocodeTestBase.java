@@ -1,5 +1,12 @@
 package gov.nysenate.sage;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -10,23 +17,18 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.RevGeocodeService;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static gov.nysenate.sage.AddressTestBase.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static gov.nysenate.sage.AddressTestBase.*;
+
 
 public abstract class GeocodeTestBase
 {
-    private static Logger logger = LogManager.getLogger(GeocodeTestBase.class);
+    private static Logger logger = LoggerFactory.getLogger(GeocodeTestBase.class);
     /** Indicates how far apart two lat or lon values can be and yet considered similar. */
     private static double GEOCODE_EPSILON = 0.2;
 

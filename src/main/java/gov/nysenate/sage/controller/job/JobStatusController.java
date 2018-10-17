@@ -5,8 +5,8 @@ import gov.nysenate.sage.dao.model.JobProcessDao;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,7 +32,7 @@ import java.util.List;
  */
 public class JobStatusController extends BaseJobController
 {
-    private static Logger logger = LogManager.getLogger(JobStatusController.class);
+    private static Logger logger = LoggerFactory.getLogger(JobStatusController.class);
     private static JobProcessDao jobProcessDao = new JobProcessDao();
     private static String TEMP_DIR = "/tmp";
     private static String LOCK_FILENAME = "batchJobProcess.lock";

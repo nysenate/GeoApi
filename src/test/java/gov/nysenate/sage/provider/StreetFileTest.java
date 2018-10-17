@@ -1,5 +1,10 @@
 package gov.nysenate.sage.provider;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
@@ -8,19 +13,16 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.Before;
-import org.junit.Test;
 
+import static org.junit.Assert.*;
 import static gov.nysenate.sage.DistrictTestBase.assertMultipleAddressDistrictAssign;
 import static gov.nysenate.sage.DistrictTestBase.assertSingleAddressDistrictAssign;
 import static gov.nysenate.sage.DistrictTestBase.expected;
-import static org.junit.Assert.*;
+
 
 public class StreetFileTest extends TestBase
 {
-    private Logger logger = LogManager.getLogger(StreetFileTest.class);
+    private Logger logger = LoggerFactory.getLogger(StreetFileTest.class);
     private StreetFile streetFile;
 
     @Before

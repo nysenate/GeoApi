@@ -1,5 +1,12 @@
 package gov.nysenate.sage.dao.provider;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
+
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.nysenate.sage.GeocodeTestBase;
 import gov.nysenate.sage.TestBase;
 import gov.nysenate.sage.model.address.Address;
@@ -8,17 +15,12 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.Test;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
 
 public class GeoCacheDaoTest extends TestBase
 {
     GeoCacheDao geoCacheDao = new GeoCacheDao();
-    Logger logger = LogManager.getLogger(GeoCacheDaoTest.class);
+    Logger logger = LoggerFactory.getLogger(GeoCacheDaoTest.class);
 
     @Test
     public void testCacheSave()

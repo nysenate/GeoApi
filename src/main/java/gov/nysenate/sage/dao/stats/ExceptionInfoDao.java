@@ -5,8 +5,8 @@ import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.model.stats.ExceptionInfo;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ExceptionInfoDao extends BaseDao
 {
-    private static Logger logger = LogManager.getLogger(DeploymentStatsDao.class);
+    private static Logger logger = LoggerFactory.getLogger(DeploymentStatsDao.class);
 
     private String SCHEMA = "log";
     private String TABLE = "exception";

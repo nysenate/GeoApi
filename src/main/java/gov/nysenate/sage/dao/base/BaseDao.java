@@ -8,9 +8,11 @@ import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 import org.apache.commons.dbutils.AsyncQueryRunner;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -21,9 +23,10 @@ import java.util.concurrent.ExecutorService;
 
 public class BaseDao
 {
-    private static Logger logger = LogManager.getLogger(BaseDao.class);
+    private static Logger logger = LoggerFactory.getLogger(BaseDao.class);
     protected DataSource dataSource;
     protected DataSource tigerDataSource;
+    Marker fatal = MarkerFactory.getMarker("FATAL");
 
     public BaseDao()
     {
@@ -57,7 +60,7 @@ public class BaseDao
             return this.dataSource.getConnection();
         }
         catch (SQLException ex) {
-            logger.fatal(ex.getMessage());
+            logger.error(fatal, "" + ex);
         }
         return null;
     }
@@ -68,7 +71,7 @@ public class BaseDao
             return this.tigerDataSource.getConnection();
         }
         catch (SQLException ex) {
-            logger.fatal(ex.getMessage());
+            logger.error(fatal, "" + ex);
         }
         return null;
     }
@@ -81,7 +84,7 @@ public class BaseDao
             }
         }
         catch (SQLException ex){
-            logger.fatal("Failed to close connection!", ex);
+            logger.error(fatal, "Failed to close connection!", ex);
         }
     }
 
@@ -147,7 +150,7 @@ public class BaseDao
                 return lines;
             }
             catch (IOException ex) {
-                logger.error(ex);
+                logger.error("" + ex);
             }
         }
         return null;

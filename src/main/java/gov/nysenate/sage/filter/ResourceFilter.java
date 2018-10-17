@@ -2,8 +2,8 @@ package gov.nysenate.sage.filter;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 //import org.apache.log4j.xml.DOMConfigurator;
 
 import javax.servlet.*;
@@ -15,7 +15,7 @@ import java.io.IOException;
  */
 public class ResourceFilter implements Filter
 {
-    private final Logger logger = LogManager.getLogger(ResourceFilter.class);
+    private final Logger logger = LoggerFactory.getLogger(ResourceFilter.class);
     private Config config = ApplicationFactory.getConfig();
     private String log4jConfigFileName = "log4j2.xml";
     private File log4jConfigFile;

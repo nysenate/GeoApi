@@ -6,8 +6,8 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class CountyDao extends BaseDao
 {
-    private Logger logger = LogManager.getLogger(CountyDao.class);
+    private Logger logger = LoggerFactory.getLogger(CountyDao.class);
     private ResultSetHandler<County> handler = new BeanHandler<>(County.class);
     private ResultSetHandler<List<County>> listHandler = new BeanListHandler<>(County.class);
     private QueryRunner run = getQueryRunner();

@@ -3,15 +3,15 @@ package gov.nysenate.sage.dao.logger;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
 public class DeploymentLogger extends BaseDao
 {
-    private static Logger logger = LogManager.getLogger(DeploymentLogger.class);
+    private static Logger logger = LoggerFactory.getLogger(DeploymentLogger.class);
     private static String SCHEMA = "log";
     private static String TABLE = "deployment";
     private QueryRunner run = getQueryRunner();

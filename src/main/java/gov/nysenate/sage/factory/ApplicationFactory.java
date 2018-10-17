@@ -17,9 +17,11 @@ import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import java.util.*;
 
@@ -38,7 +40,8 @@ import java.util.*;
  */
 public class ApplicationFactory
 {
-    private static final Logger logger = LogManager.getLogger(ApplicationFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationFactory.class);
+    Marker fatal = MarkerFactory.getMarker("FATAL");
 
     /** Static factory instance */
     private static final ApplicationFactory factoryInstance = new ApplicationFactory();
@@ -227,14 +230,14 @@ public class ApplicationFactory
         }
         catch (ConfigurationException ce)
         {
-            logger.fatal("Failed to load configuration file "+propertyFileName);
-            logger.fatal(ce.getMessage());
+            logger.error(fatal, "Failed to load configuration file "+propertyFileName);
+            logger.error(fatal, ce.getMessage());
         }
         catch (Exception ex)
         {
-            logger.fatal("An exception occurred while building dependencies. " +
+            logger.error(fatal,"An exception occurred while building dependencies. " +
                     "Check app.properties / ApplicationFactory", ex.getCause());
-            logger.trace(ex);
+            logger.debug("" + ex);
         }
         return false;
     }
@@ -246,7 +249,7 @@ public class ApplicationFactory
         /** Initialize district map cache */
         DistrictShapefileDao dso = new DistrictShapefileDao();
         if (!dso.cacheDistrictMaps()) {
-            logger.fatal("Failed to cache district maps!");
+            logger.error(fatal, "Failed to cache district maps!");
             return false;
         };
 
@@ -254,7 +257,7 @@ public class ApplicationFactory
         SenateDao sd = new SenateDao();
         Collection<Senator> senators = sd.getSenators();
         if (senators == null || senators.isEmpty()) {
-            logger.fatal("Failed to cache senators!");
+            logger.error(fatal, "Failed to cache senators!");
             return false;
         }
 

@@ -8,8 +8,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 
 import java.net.HttpURLConnection;
@@ -19,7 +19,7 @@ import static org.junit.Assert.*;
 
 public class ProdReadinessTest {
 
-    private static Logger logger = LogManager.getLogger(ProdReadinessTest.class);
+    private static Logger logger = LoggerFactory.getLogger(ProdReadinessTest.class);
 
     private Config config;
 

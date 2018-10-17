@@ -12,8 +12,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -21,7 +21,7 @@ import java.util.List;
 public class DoBatchGeocache {
     private Config config;
     QueryRunner tigerRun;
-    private static Logger logger = LogManager.getLogger(DoBatchGeocache.class);
+    private static Logger logger = LoggerFactory.getLogger(DoBatchGeocache.class);
 
     public DoBatchGeocache() {
         config = ApplicationFactory.getConfig();

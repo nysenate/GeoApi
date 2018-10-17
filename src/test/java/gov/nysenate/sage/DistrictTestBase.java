@@ -1,11 +1,16 @@
 package gov.nysenate.sage;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
-import static gov.nysenate.sage.model.district.DistrictType.*;
-
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
@@ -13,21 +18,16 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
 public abstract class DistrictTestBase
 {
-    private static Logger logger = LogManager.getLogger(DistrictTestBase.class);
+    private static Logger logger = LoggerFactory.getLogger(DistrictTestBase.class);
 
     public static List<DistrictedAddress> expected = new ArrayList<>(Arrays.asList(
             new DistrictedAddress(new GeocodedAddress(new Address("44 Fairlawn Ave", "Albany", "NY", "12203"), new Geocode(new Point(42.670583, -73.799606))),
