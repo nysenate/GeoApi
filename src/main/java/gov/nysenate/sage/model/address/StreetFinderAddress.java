@@ -181,6 +181,12 @@ public class StreetFinderAddress {
         return streetSuffix;
     }
 
+    public String getSenateDistrict() { return sen; }
+
+    public String getBldg_parity() {
+        return bldg_parity;
+    }
+
     /**
      * Sets the 5-digit zipcode
      * @param zip

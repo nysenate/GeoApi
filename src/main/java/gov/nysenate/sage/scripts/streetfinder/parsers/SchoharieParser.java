@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -11,14 +12,11 @@ import java.util.Scanner;
  * Looks for street name, town, low, high, range type, sch, townCode, vill
  */
 public class SchoharieParser extends NTSParser {
-
-    private String overloadLineSaver;
-    private int schoolLocation = 0;
-    private int townLocation = 0;
     private String file;
 
     /**
      * Calls the super constructor to setup tsv file
+     *
      * @param file
      * @throws IOException
      */
@@ -30,316 +28,129 @@ public class SchoharieParser extends NTSParser {
     /**
      * Parses the file for the needed information. Finds where the actual data is and then
      * parseLine is called to parse the line
+     *
      * @throws FileNotFoundException
      */
     public void parseFile() throws IOException {
-        Scanner scanner = new Scanner(new File(file));
-        String currentLine;
-        boolean inData = false;
-
-        while(scanner.hasNext()) {
-            currentLine = scanner.nextLine();
-            //if inData
-            if(inData) {
-                //"Elections Street Districts" Signals the end of data
-                if(currentLine.contains("Elections Street Districts")) {
-                    inData = false;
-                    //skip over other possible errant lines
-                } else if(currentLine.contains("WARNING") || currentLine.contains("This conflicts") || currentLine.contains("Ricks Test Please Keep")) {
-                    //skip
-                    if(currentLine.contains("Esperance")) {
-                        //This line causes errors
-                        //skip an extra line because of these tests placed in the file
-                        //Thanks Rick
-                        currentLine = scanner.nextLine();
-                    }
-                    //if the length od the line is less than 45 then it must be a special case
-                    //Where the street Name is too long and bumped other data to a new line
-                } else if(currentLine.length() < 45) {
-                    //special case
-                    overloadLineSaver = currentLine;
-                    currentLine = scanner.nextLine();
-                    //Two types of special cases
-                    //One is just the street name and suffix
-                    //the other has more information (and a comma)
-                    if(overloadLineSaver.contains(",")) {
-                        parseLine(currentLine, true, false);
-                    } else {
-                        parseLine(currentLine, false, true);
-                    }
-                } else {
-                    parseLine(currentLine, false, false);
-                }
-            }
-            else {
-                //look for this to signal that data is starting
-                if(currentLine.contains("Street Numbers:")) {
-                    inData = true;
-                    townLocation = currentLine.indexOf("Town:");
-                    schoolLocation = currentLine.indexOf("School:");
-                }
-                //gets the next line
-            }
-        }
-        //close writers/readers
-        scanner.close();
-        super.closeWriters();
+        super.readFile();
     }
 
-    /**
-     * Parses the line by splitting the line into a string array by whitespaces
-     * Calls parseAfterZip after getting the street name, street suf, and zip
-     * @param line
-     * @param specialCase
-     */
-    protected void parseLine(String line, boolean specialCase, boolean specialCaseNoComma) {
+    @Override
+    protected void parseLine(String line) {
 
-        StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
+        if (!line.contains("House Range") || !line.contains("This conflicts") || !line.contains("Ricks Test")
+                || !line.contains("Dist")) {
+            //split the line by ,
+            String[] splitLine = line.split(",", Integer.MAX_VALUE);
+//            System.out.println(splitLine.length);
 
-        //split the line by whitespace
-        String[] splitLine = line.trim().split("\\s+");
-        int index = 0;
+            if (!splitLine[6].isEmpty() || !splitLine[1].isEmpty() || splitLine.length >= 11) {
 
-        //Handling a special case in which Mineral Springs RD has a run on and thus has no space inbetween the town and low_range
-        //Also so does MOUNTAIN POND VIEW RD
-        //ex. MINERAL SPRINGS RD, Richmondville100 - 103
-        //need to seperate Richmondville and the 100
-        if((splitLine[index].equals("MINERAL") && splitLine[index + 1].equals("SPRINGS")) ||
-                (splitLine[index].equals("MOUNTAIN") && splitLine[index + 1].equals("POND") && splitLine[index + 2].equals("VIEW"))) {
-            //location in the splitLine[] are different for both cases
-            int splitLocation;
-            if(splitLine[index].equals("MINERAL")) {
-                //occurs at 3 for MINERAL
-                splitLocation = index + 3;
+
+                StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
+
+                getStreet(splitLine[0] , streetFinderAddress);   //splitLine[0] StreetName
+                getRanges(splitLine[1], streetFinderAddress);   //splitLine[1] House Range
+                getTown(splitLine[2], streetFinderAddress);     //splitLine[2] Town
+                // splitLine[3] Ward     USELESS Not used in the 2018 file
+                getED(splitLine[4], streetFinderAddress);      //splitLine[4] ED
+                getCong(splitLine[5], streetFinderAddress);     //splitLine[5] Cong
+                getSen(splitLine[6], streetFinderAddress);      //splitLine[6] Sen
+                getAsm(splitLine[7], streetFinderAddress);       //splitLine[7] Asm
+                getSchool(splitLine[8],streetFinderAddress);    //splitLine[8] School
+                //splitLine[9] Cleg     USELESS Not used in the 2018 file
+                //splitLine[10] City    USELESS Not used in the 2018 file
+                getVillage(splitLine[11], streetFinderAddress);    //splitLine[11] Village
+                //splitLine[12] fire    USELESS Not used in the 2018 file
+
+                if (!streetFinderAddress.getSenateDistrict().equals("\\N")
+                        && !streetFinderAddress.getSenateDistrict().isEmpty()
+                        && !streetFinderAddress.getBldg_parity().equals("\\N")) {
+                    super.writeToFile(streetFinderAddress);
+                }
+            }
+        }
+    }
+
+    private void getStreet(String data, StreetFinderAddress streetFinderAddress) {
+        if (!data.equalsIgnoreCase("street name")) {
+            streetFinderAddress.setStreet(data);
+        }
+    }
+
+    private void getRanges(String data, StreetFinderAddress streetFinderAddress) {
+
+        if(data.isEmpty() || data.contains("House Range")) {
+            return;
+        }
+
+        String[] splitData = data.split("-", Integer.MAX_VALUE);
+
+        if (splitData.length == 3) {
+            streetFinderAddress.setBldg_low(splitData[0]);
+            streetFinderAddress.setBldg_high(splitData[1]);
+
+            if(splitData[2].equals("O")) {
+                streetFinderAddress.setBldg_parity("ODDS");
+            } else if(splitData[2].equals("E")) {
+                streetFinderAddress.setBldg_parity("EVENS");
             } else {
-                //occurs at 4 for MOUNTAIN
-                splitLocation = index + 4;
-            }
-            //get the run-on String of the town + low_range
-            String temp = splitLine[splitLocation];
-            //split it by the location where letters occur before and numbers occur afterwords
-            String[] tempSplitArray = temp.split("(?<=\\D)(?=\\d)");
-            //make sure that the split worked
-            if(tempSplitArray.length > 1) {
-                //Need to create a new array to replace splitLine (but be 1 spot longer)
-                String[] replaceArray = new String[splitLine.length + 1];
-                //counter keeps the spot within splitLine
-                int counter = 0;
-                //copy values from splitLine over to replaceArray
-                for(int i = 0; i < replaceArray.length; i++) {
-                    //if at the split index then add both values of tempSplitArray into their own indexes
-                    if(i == (splitLocation)) {
-                        replaceArray[i] = tempSplitArray[0];
-                        replaceArray[i + 1] = tempSplitArray[1];
-                        i++;
-                        //increase splitLine counter to skip over run-on index
-                        counter++;
-                    } else {
-                        replaceArray[i] = splitLine[counter];
-                        counter++;
-                    }
-                }
-                //set splitLine to the new Array
-                splitLine = replaceArray;
+                streetFinderAddress.setBldg_parity("ALL");
             }
         }
+    }
 
-        //if Special case with a comma
-        //Means that the overloadLineSaver has Street name, street suffix, and town
-        if(specialCase) {
-            String street[] = overloadLineSaver.split("\\s+");
+    private void getTown(String data, StreetFinderAddress streetFinderAddress) {
+        if (!data.equalsIgnoreCase("Town")) {
+            streetFinderAddress.setTown(data);
+        }
+    }
 
-            //first check for a pre-Direction
-            if (checkForDirection(street[0])) {
-                StreetFinderAddress.setPreDirection(splitLine[index]);
-                index++;
-            }
+    private void getED(String data, StreetFinderAddress streetFinderAddress) {
+        if (!data.equalsIgnoreCase("Dist")) {
+            streetFinderAddress.setED(data);
+        }
+    }
 
-            //now find where the , is. this will mark the street suffix
-            //ex CountyParserMatcher ST,
-            int temp = 0;
-            for (int i = index; i < 5; i++) {
-                if (street[i].contains(",")) {
-                    temp = i;
-                    break;
-                }
-            }
+    private void getCong(String data, StreetFinderAddress streetFinderAddress) {
+        if (!data.equalsIgnoreCase("Cong")) {
+            streetFinderAddress.setCong(data);
+        }
+    }
 
-            //street name goes from street[index to temp -1]
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int i = index; i < temp; i++) {
-                stringBuilder.append(street[i] + " ");
-            }
-            //set street
-            StreetFinderAddress.setStreet(stringBuilder.toString().trim());
-            //set street suffix
-            //get rid of the comma first
-            String streetSuffix = street[temp].replace(",", "");
-            StreetFinderAddress.setStreetSuffix(streetSuffix);
-            //set index to location after temp
-            index = temp + 1;
+    private void getSen(String data, StreetFinderAddress streetFinderAddress) {
+        if (!data.equalsIgnoreCase("Sen")) {
+            streetFinderAddress.setSen(data);
+        }
+    }
 
-            //town goes from street[index to street.length-1]
-            stringBuilder = new StringBuilder();
-            for (int i = index; i < street.length; i++) {
-                stringBuilder.append(street[i] + " ");
-            }
-            //set Town
-            StreetFinderAddress.setTown(stringBuilder.toString().trim());
-            index = 0;
+    private void getAsm(String data, StreetFinderAddress streetFinderAddress) {
+        if (!data.equalsIgnoreCase("Asm")) {
+            streetFinderAddress.setAsm(data);
+        }
+    }
 
-            //Special case without a comma
-            //Means that the overLoadLineSaver just has some of the Street Name
-        } else if(specialCaseNoComma) {
-            //save the overloaded line into an array split by whitespace
-            String street[] = overloadLineSaver.split("\\s+");
+    private void getSchool(String data, StreetFinderAddress streetFinderAddress) {
+        if (!data.equalsIgnoreCase("School")) {
+            streetFinderAddress.setSch(data);
+        }
+    }
 
-            //first check for a pre-Direction
-            if(checkForDirection(street[index])) {
-                StreetFinderAddress.setPreDirection(street[index]);
-                index++;
-            }
+    private void getVillage(String data, StreetFinderAddress streetFinderAddress) {
+        if (!data.equalsIgnoreCase("Village")) {
+            streetFinderAddress.setVill(data);
+        }
+    }
 
-            //street name goes from street[index to street.length -1]
-            StringBuilder stringBuilder = new StringBuilder();
-            for(int i = index; i < street.length; i++) {
-                stringBuilder.append(street[i] + " ");
-            }
-
-            //Switching back to regular line
-            //splitLine
-
-            //now find where the , is. this will mark the street suffix
-            //ex CountyParserMatcher ST,
-            int temp = 0;
-            for(int i = 0; i < 5; i++) {
-                if(splitLine[i].contains(",")) {
-                    temp = i;
-                    break;
-                }
-            }
-
-            //Add in the rest of the street name to the StringBuilder
-            //That has the part of the street name from the overloaded line
-            for(int i = 0; i < temp; i++) {
-                stringBuilder.append(splitLine[i] + " ");
-            }
-            //set street
-            StreetFinderAddress.setStreet(stringBuilder.toString().trim());
-            //set index to be the indices after the street suffix/comma
-            index = temp + 1;
-
-            //get town next
-            //to find multiple words check for location of "-"
-            //And then subtract one to bring it to the location of the low range
-            for (int i = index; i < index + 5; i++) {
-                if (splitLine[i].matches("-")) {
-                    temp = i - 1;
-                }
-            }
-            //town goes from splitLine[index to temp - 1]
-            stringBuilder = new StringBuilder();
-            for (int i = index; i < temp; i++) {
-                stringBuilder.append(splitLine[i] + " ");
-            }
-            //set Town
-            StreetFinderAddress.setTown(stringBuilder.toString().trim());
-            //set index to the low_range
-            index = temp;
-
-        } else {
-            //Normal case
-            //first check for a pre-Direction
-            if (super.checkForDirection(splitLine[index])) {
-                StreetFinderAddress.setPreDirection(splitLine[index]);
-                index++;
-            }
-
-            //now find where the , is. this will mark the street suffix
-            //ex CountyParserMatcher ST,
-            int temp = 0;
-            for (int i = index; i < 5; i++) {
-                if (splitLine[i].contains(",")) {
-                    temp = i;
-                    break;
-                }
-            }
-
-            //street name goes from splitline[index to temp -1]
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int i = index; i < temp; i++) {
-                stringBuilder.append(splitLine[i] + " ");
-            }
-            //set street
-            StreetFinderAddress.setStreet(stringBuilder.toString().trim());
-            //set street suffix and remove the ,
-            String streetSuffix = splitLine[temp].replace(",", "");
-            StreetFinderAddress.setStreetSuffix(streetSuffix);
-            //skip index over the comma location
-            index = temp + 1;
-
-            //get town next
-            //to find multiple words check for location of "-"
-            //And then subtract one to bring it to the location of the low range
-            for (int i = index; i < index + 5; i++) {
-                if (splitLine[i].matches("-")) {
-                    temp = i - 1;
-                }
-            }
-            //town goes from splitLine[index to temp - 1]
-            stringBuilder = new StringBuilder();
-            for (int i = index; i < temp; i++) {
-                stringBuilder.append(splitLine[i] + " ");
-            }
-            //set Town
-            StreetFinderAddress.setTown(stringBuilder.toString().trim());
-            //set index to the low_range
-            index = temp;
+    public static void main(String[] args) {
+        try {
+            SchoharieParser schoharieParser = new SchoharieParser("/data/geoapi_data/street_finder/Schoharie_County_2018.csv");
+            schoharieParser.parseFile();
+        }
+        catch (Exception e) {
+            System.err.println("PARSING FAILED");
         }
 
-        //Continue parsing after getting the Street name, street suffix, and the town name
-        //index should be at splitLine[index] = low range
 
-        //set low range
-        StreetFinderAddress.setBldg_low(splitLine[index]);
-        index += 2; //skip over "-"
-
-        //set high range
-        StreetFinderAddress.setBldg_high(splitLine[index]);
-        index++;
-
-        //set Range type
-        if(splitLine[index].contains("O")) {
-            StreetFinderAddress.setBldg_parity("ODDS");
-        } else if(splitLine[index].contains("E")) {
-            StreetFinderAddress.setBldg_parity("EVENS");
-        } else {
-            StreetFinderAddress.setBldg_parity("ALL");
-        }
-        index++;
-
-        //check for school, townCode, and village which might not be there
-        if(index < splitLine.length) {
-            //check at school location (+1) for any non-whitespace character
-            if(!Character.isWhitespace(line.charAt(schoolLocation)) || !Character.isWhitespace(line.charAt(schoolLocation + 1))) {
-                StreetFinderAddress.setSch(splitLine[index]);
-                index++;
-            }
-        }
-        //Check for townCode next
-        if(index < splitLine.length) {
-            //check at townCode location (+1) for any non-whitespace character
-            if (!Character.isWhitespace(line.charAt(townLocation)) || !Character.isWhitespace(line.charAt(townLocation + 1))) {
-                StreetFinderAddress.setTownCode(splitLine[index]);
-                index++;
-            }
-        }
-
-        //check for village
-        //This is the last column so if there is more in splitLine then it must be a vill_code
-        if(index < splitLine.length) {
-            StreetFinderAddress.setVill(splitLine[index]);
-        }
-        super.writeToFile(StreetFinderAddress);
     }
 }
