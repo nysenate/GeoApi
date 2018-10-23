@@ -1,15 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
-  <Appenders>
-    <Console name="STDOUT" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %5p %t %c{2}:%L - %m%n"/>
-    </Console>
-  </Appenders>
-  <Loggers>
-    <Root level="trace">
-      <AppenderRef ref="STDOUT" level="INFO"/>
-    </Root>
-    <logger name="org.apache.log4j" level="info"/>
-    <logger name="org.apache.commons" level="info"/>
-  </Loggers>
+<Configuration status="warn" strict="true">
+    <Properties>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss,SSS} %5p %t %c{2}:%L - %m%n</Property>
+        <Property name="LOG_DIR">${sys:catalina.base}/logs</Property>
+        <Property name="LOG_FILENAME">${LOG_DIR}/webapp.log</Property>
+        <Property name="LOG_ROLLNAME">${LOG_FILENAME}.%i</Property>
+    </Properties>
+    <Appenders>
+        <Appender type="Console" name="stdout" target="SYSTEM_OUT">
+            <Layout type="PatternLayout" pattern="${LOG_PATTERN}"/>
+        </Appender>
+        <Appender type="RollingFile" name="file" fileName="${LOG_FILENAME}" filePattern="${LOG_ROLLNAME}">
+            <Layout type="PatternLayout" pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </Appender>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="stdout"/>
+        </Root>
+    </Loggers>
 </Configuration>
