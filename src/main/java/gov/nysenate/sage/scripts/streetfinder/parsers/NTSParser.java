@@ -303,14 +303,14 @@ public class NTSParser {
             //move to the index after townCode
             index = townCodeIndex + 1;
 
-            //check for Ward, Dist, Cong, Sen, and Asm if not at the end of splitLine
+            //check for Ward, Dist / ED, Cong, Sen, and Asm if not at the end of splitLine
             //These will all go in that order if they exist
             if (index < splitLine.length) {
                 StreetFinderAddress.setWard(splitLine[index]);
                 index++;
 
                 if (index < splitLine.length) {
-                    StreetFinderAddress.setDist(splitLine[index]);
+                    StreetFinderAddress.setED(splitLine[index]);
                     index++;
 
                     if (index < splitLine.length) {

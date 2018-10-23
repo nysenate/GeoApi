@@ -192,7 +192,7 @@ public class SaratogaParser extends NTSParser {
         StreetFinderAddress.setWard(splitLine[index]);
         index++;
 
-        StreetFinderAddress.setDist(splitLine[index]);
+        StreetFinderAddress.setED(splitLine[index]);
         index++;
 
         StreetFinderAddress.setCong(splitLine[index]);

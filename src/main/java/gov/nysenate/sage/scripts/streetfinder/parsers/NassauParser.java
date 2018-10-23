@@ -41,7 +41,7 @@ public class NassauParser extends NTSParser {
         //split the line by ,
         String[] splitLine = line.split(",");
 
-        //skip precinct                                       //splitLine[0]
+        getED(splitLine, StreetFinderAddress);                //skip precinct splitLine[0]
         getStreet(splitLine, StreetFinderAddress);            //splitLine[1]
         getSuffix(splitLine, StreetFinderAddress);            //splitLine[2]
         getTown(splitLine, StreetFinderAddress);              //splitLine[3]
@@ -89,6 +89,17 @@ public class NassauParser extends NTSParser {
             //only the street suffix
             StreetFinderAddress.setStreetSuffix(splitString[0]);
         }
+    }
+
+    /**
+     * Pulls ED out of precinct. It is the last 3 characters of the precinct
+     * @param splitLine
+     * @param streetFinderAddress
+     */
+    private void getED(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        String ed = splitLine[0];
+        ed = ed.substring(ed.length() - 3);
+        streetFinderAddress.setED(ed);
     }
 
     /**

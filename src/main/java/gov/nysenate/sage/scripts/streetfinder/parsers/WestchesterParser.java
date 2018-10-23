@@ -43,7 +43,7 @@ public class WestchesterParser extends NTSParser {
         String[] splitLine = line.split(",");
 
         getTown(splitLine, StreetFinderAddress);              //splitLine[0]
-        //skip precinct                                 //splitLine[1]
+        getED(splitLine, StreetFinderAddress);                  //precinct splitLine[1]
         getPreDirection(splitLine, StreetFinderAddress);      //splitLine[2]
         getStreet(splitLine, StreetFinderAddress);            //splitLine[3]
         getStreetSuffix(splitLine, StreetFinderAddress);      //splitLine[4]
@@ -58,6 +58,17 @@ public class WestchesterParser extends NTSParser {
         getCle(splitLine, StreetFinderAddress);          //splitLine[13]
         //ignore CNL-DT
         super.writeToFile(StreetFinderAddress);
+    }
+
+    /**
+     * Pulls ED out of precinct. It is the last 3 characters of the precinct
+     *      * @param splitLine
+     *      * @param StreetFinderAddress
+     */
+    private void getED(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        String ed = splitLine[1];
+        ed = ed.substring(ed.length() - 3);
+        streetFinderAddress.setED(ed);
     }
 
     /**
