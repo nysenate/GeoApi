@@ -1,6 +1,7 @@
 package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.util.AddressDictionary;
+import gov.nysenate.sage.util.StreetAddressParser;
 
 /**
  * Represents a Street Address for the StreetFinder database/parsers
@@ -91,6 +92,20 @@ public class StreetFinderAddress {
                 ward + "\t" + boeSchool + "\t" + sch + "\t" + cle + "\t" + cc + "\t" + fire + "\t" + cityCode + "\t" + vill +"\n";
     }
 
+    public static StreetFinderAddress normalize(StreetFinderAddress streetFinderAddress) {
+        String prefix = streetFinderAddress.getPreDirection().trim().toUpperCase();
+        String street = streetFinderAddress.getStreet().trim().toUpperCase();
+        String suffix = streetFinderAddress.getStreetSuffix().trim().toUpperCase();
+        String location = streetFinderAddress.getTown().trim().toUpperCase();
+
+        streetFinderAddress.setPreDirection(prefix);
+        streetFinderAddress.setStreet(street);
+        streetFinderAddress.setStreetSuffix(suffix);
+        streetFinderAddress.setTown(location);
+
+        return streetFinderAddress;
+    }
+
     /**
      * Sets the pre-Direction. Should be in the standard form of N, E, S, W
      * @param preDirection
@@ -134,7 +149,7 @@ public class StreetFinderAddress {
                 tempStreet = tempStreet + string[i];
                 //if tempStreet is found as a key then set tempStreet to the keys value
                 if(AddressDictionary.highWayMap.containsKey(tempStreet)) {
-                    tempStreet = AddressDictionary.highWayMap.get(tempStreet);
+                    tempStreet = AddressDictionary.highWayMap.get(tempStreet).toUpperCase();
                 }
                 tempStreet += " ";
             }
@@ -162,13 +177,13 @@ public class StreetFinderAddress {
             String string = streetSuffix.replace(".", "");
             //First check the streetTypeMap
             if(AddressDictionary.streetTypeMap.containsKey(string.toUpperCase())) {
-                this.streetSuffix = AddressDictionary.streetTypeMap.get(string.toUpperCase());
+                this.streetSuffix = AddressDictionary.streetTypeMap.get(string.toUpperCase()).toUpperCase();
                 //Then check highWayMap
             } else if(AddressDictionary.highWayMap.containsKey(string.toUpperCase())) {
-                this.streetSuffix = AddressDictionary.highWayMap.get(string.toUpperCase());
+                this.streetSuffix = AddressDictionary.highWayMap.get(string.toUpperCase()).toUpperCase();
             } else {
                 //If not found in either hashMap then just set to the regular string
-                this.streetSuffix = string;
+                this.streetSuffix = string.toUpperCase();
             }
         }
     }
@@ -528,5 +543,22 @@ public class StreetFinderAddress {
                 characters += temp[i];
             }
         }
+    }
+
+
+    public String getPostDirection() {
+        return postDirection;
+    }
+
+    public String getZip() {
+        return zip;
+    }
+
+    public String getBldg_low() {
+        return bldg_low;
+    }
+
+    public String getTown() {
+        return town;
     }
 }

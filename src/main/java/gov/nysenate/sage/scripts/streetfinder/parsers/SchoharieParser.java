@@ -141,16 +141,4 @@ public class SchoharieParser extends NTSParser {
             streetFinderAddress.setVill(data);
         }
     }
-
-    public static void main(String[] args) {
-        try {
-            SchoharieParser schoharieParser = new SchoharieParser("/data/geoapi_data/street_finder/Schoharie_County_2018.csv");
-            schoharieParser.parseFile();
-        }
-        catch (Exception e) {
-            System.err.println("PARSING FAILED");
-        }
-
-
-    }
 }

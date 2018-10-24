@@ -73,8 +73,10 @@ public abstract class StreetAddressParser
         /** Fix up street name */
         String street = streetAddr.getStreetName();
         if (isset(street)) {
-            /** Remove all numerical suffixes and special characters. */
-            street = street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
+            /** The commented line would remove all numerical suffixes and special characters.
+             *  This causes problems when matching the street file table. This may adversly affect the geocache table
+             */
+//            street = street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
             street = street.replaceAll("[#:;.,]", "").replaceAll("'", "").replaceAll(" +", " ").replaceAll("-", " ");
             street = normalize(street);
             streetAddr.setStreetName(street);

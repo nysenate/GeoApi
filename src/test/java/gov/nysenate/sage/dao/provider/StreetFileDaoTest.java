@@ -1,6 +1,7 @@
 package gov.nysenate.sage.dao.provider;
 
 import gov.nysenate.sage.TestBase;
+import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.util.FormatUtil;
@@ -26,8 +27,9 @@ public class StreetFileDaoTest extends TestBase
     @Test
     public void test() throws Exception
     {
-        StreetAddress s = StreetAddressParser.parseAddress("143D Edgewater park,bronx, NY 10465");
-        assertNotNull(streetFileDao.getDistAddressByHouse(s));
+        StreetAddress s = StreetAddressParser.parseAddress("811 13TH St,Colonie, NY 12189");
+        DistrictedAddress districtedAddress = streetFileDao.getDistAddressByHouse(s);
+        assertNotNull(districtedAddress);
     }
 
     @Test

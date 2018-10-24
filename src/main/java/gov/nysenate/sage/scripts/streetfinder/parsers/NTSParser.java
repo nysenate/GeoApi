@@ -579,10 +579,11 @@ public class NTSParser {
 
     /**
      * Writes the StreetFinderAddress to the file in StreetFileForm by using the PrintWriter
-     * @param StreetFinderAddress
+     * @param streetFinderAddress
      */
-    protected void writeToFile(StreetFinderAddress StreetFinderAddress) {
-        outputWriter.print(StreetFinderAddress.toStreetFileForm());
+    protected void writeToFile(StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress = StreetFinderAddress.normalize(streetFinderAddress);
+        outputWriter.print(streetFinderAddress.toStreetFileForm());
         outputWriter.flush();
     }
 
