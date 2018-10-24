@@ -6,6 +6,7 @@
 #can find and access the necessary java classes
 pathToGeoApi="$HOME/SenateProjects"
 #pathToGeoApi="/opt/sage_dev"
+version="geoapi##2.5.1"
 tsv_dir="/data/geoapi_data/street_finder/tsv_streetfiles"
 
 town="./GetTownCodes.sh"

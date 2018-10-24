@@ -2,5 +2,5 @@
 #parses given file by calling CountyParserMatcher java class. This generates a tsv file in txt_streetfiles that will need to be moved
 #Uses the pathtoGeoApi variable in the config file
 source config
-java -classpath "${pathToGeoApi}/GeoApi/target/classes/:${pathToGeoApi}/GeoApi/target/geoapi##2.5.1/WEB-INF/lib/*" gov.nysenate.sage.scripts.streetfinder.scripts.CountyParserMatcher /data/geoapi_data/street_finder/txt_streetfiles/$1
+java -classpath "${pathToGeoApi}/GeoApi/target/classes/:${pathToGeoApi}/GeoApi/target/${version}/WEB-INF/lib/*" gov.nysenate.sage.scripts.streetfinder.scripts.CountyParserMatcher /data/geoapi_data/street_finder/txt_streetfiles/$1
 echo $1 parsed and tsv file created
