@@ -4,9 +4,9 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.stats.ApiUsageStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Repository;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,7 +19,7 @@ import static gov.nysenate.sage.model.stats.ApiUsageStats.IntervalUsage;
 @Repository
 public class ApiUsageStatsDao extends BaseDao
 {
-    private static Logger logger = LogManager.getLogger(ApiUsageStatsDao.class);
+    private static Logger logger = LoggerFactory.getLogger(ApiUsageStatsDao.class);
     private QueryRunner run = getQueryRunner();
 
     public static enum RequestInterval {

@@ -1,21 +1,19 @@
 package gov.nysenate.sage.provider;
 
-import com.google.common.collect.Lists;
 import gov.nysenate.sage.dao.provider.CityZipDBDao;
 import gov.nysenate.sage.service.address.CityZipService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
 public class CityZipDB implements CityZipService
 {
-    private static Logger logger = LogManager.getLogger(CityZipDB.class);
+    private static Logger logger = LoggerFactory.getLogger(CityZipDB.class);
     private static CityZipDBDao cityZipDBDao;
 
     @Autowired

@@ -1,9 +1,11 @@
 package gov.nysenate.sage.filter;
 
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import javax.servlet.*;
 import java.sql.Timestamp;
@@ -12,7 +14,8 @@ import java.util.Date;
 @Component
 public class ExceptionFilter implements Filter
 {
-    private static Logger logger = LogManager.getLogger(ExceptionFilter.class);
+    private static Logger logger = LoggerFactory.getLogger(ExceptionFilter.class);
+    Marker fatal = MarkerFactory.getMarker("FATAL");
     private static ExceptionLogger exceptionLogger;
 
     @Override
@@ -27,7 +30,7 @@ public class ExceptionFilter implements Filter
             chain.doFilter(request, response);
         }
         catch (Exception ex) {
-            logger.fatal("Logging uncaught exception!", ex);
+            logger.error(fatal, "Logging uncaught exception!", ex);
             Integer apiRequestId = (Integer) request.getAttribute("apiRequestId");
             exceptionLogger.logException(ex, new Timestamp(new Date().getTime()), apiRequestId);
         }

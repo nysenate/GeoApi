@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>SAGE API v2 Reference &#8212; Sage  2.0 documentation</title>
-    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -27,7 +24,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -55,7 +52,7 @@ as input. The API supports <code class="docutils literal"><span class="pre">JSON
 </pre></div>
 </div>
 <p>All API requests need to be validated using an assigned API key however it is not required when requests are made from
-within the NY Senate&#8217;s network. The key is supplied using the query parameter <code class="docutils literal"><span class="pre">key</span></code>:</p>
+within the NY Senate’s network. The key is supplied using the query parameter <code class="docutils literal"><span class="pre">key</span></code>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>/api/v2/&lt;group&gt;/&lt;method&gt;?&lt;params..&gt;&amp;key=YOUR KEY HERE
 </pre></div>
 </div>
@@ -319,7 +316,11 @@ to enable punctuation.</p>
 <td>Free Google geocoding service</td>
 <td>2500 a day</td>
 </tr>
-<tr class="row-odd"><td>tiger</td>
+<tr class="row-odd"><td>nysgeo</td>
+<td>NYS Geocoding service</td>
+<td>Unlimited</td>
+</tr>
+<tr class="row-even"><td>tiger</td>
 <td>In-database geocoding using census data</td>
 <td>Unlimited</td>
 </tr>
@@ -342,6 +343,12 @@ to enable punctuation.</p>
 </tr>
 <tr class="row-odd"><td>useFallback</td>
 <td>If false and provider is set, only the provider will be used for the request.</td>
+</tr>
+<tr class="row-even"><td>bypassCache</td>
+<td>If set to true, then the geocode request will not use the cache for results</td>
+</tr>
+<tr class="row-odd"><td>uspsValidate</td>
+<td>Specify if you want to usps correct a single geocode address</td>
 </tr>
 </tbody>
 </table>
@@ -590,7 +597,7 @@ order of the addresses in the JSON payload.</p>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>provider</td>
-<td>Specify which district provider to use. Overrides &#8216;districtStrategy&#8217;</td>
+<td>Specify which district provider to use. Overrides ‘districtStrategy’</td>
 </tr>
 <tr class="row-odd"><td>geoProvider</td>
 <td>Specify which geocode provider to use.</td>
@@ -762,7 +769,7 @@ the district types supported by the service. <code class="docutils literal"><spa
 </tbody>
 </table>
 <p>If the <code class="docutils literal"><span class="pre">matchLevel</span></code> is not HOUSE, the <code class="docutils literal"><span class="pre">multiMatch</span></code> field will be true. The assigned districts for a non HOUSE match will
-be those that completely encompass that geographic region. If a street spans multiple senate districts, it will not have it&#8217;s
+be those that completely encompass that geographic region. If a street spans multiple senate districts, it will not have it’s
 senate district assigned. However if a street is contained fully by a senate district, it will have been assigned with that district.
 The same applies to ZIP5 and CITY level lookups. Optionally the <code class="docutils literal"><span class="pre">showMultiMatch</span></code> parameter can be set to true to view all possible
 overlap boundaries and street ranges. The output of that is described below.</p>
@@ -1035,7 +1042,7 @@ for that district. The application may also limit neighbor matches to just the s
 Any district that does not have any map data associated with it will have <code class="docutils literal"><span class="pre">map</span></code> : null;</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p class="last">&#8216;geom&#8217; is an array containing an array of coordinate pairs which are represented as two floats in an array,
+<p class="last">‘geom’ is an array containing an array of coordinate pairs which are represented as two floats in an array,
 e.g geom[0] -&gt; array of coordinate pairs (represented as [lat, lon]) of the first polygon.</p>
 </div>
 <div class="admonition note">
@@ -1554,7 +1561,7 @@ generally error statuses:</p>
 </tr>
 <tr class="row-even"><td>JSONP_CALLBACK_NOT_SPECIFIED</td>
 <td>23</td>
-<td>A callback signature must be specified as a parameter e.g &amp;callback=method&#8221;)</td>
+<td>A callback signature must be specified as a parameter e.g &amp;callback=method”)</td>
 </tr>
 <tr class="row-odd"><td>RESPONSE_MISSING_ERROR</td>
 <td>30</td>
@@ -1762,7 +1769,7 @@ generally error statuses:</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013, NY Senate.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
     </div>
   </body>
 </html>

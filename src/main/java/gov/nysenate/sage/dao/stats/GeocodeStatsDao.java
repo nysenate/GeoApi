@@ -4,8 +4,8 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.stats.GeocodeStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -18,7 +18,7 @@ import java.sql.Timestamp;
 @Repository
 public class GeocodeStatsDao extends BaseDao
 {
-    private static Logger logger = LogManager.getLogger(GeocodeStatsDao.class);
+    private static Logger logger = LoggerFactory.getLogger(GeocodeStatsDao.class);
     private DeploymentStatsDao deploymentStatsDao = new DeploymentStatsDao();
     private QueryRunner run = getQueryRunner();
 

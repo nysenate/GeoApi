@@ -5,9 +5,9 @@ import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.util.Config;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.concurrent.*;
 @Service
 public abstract class ParallelGeocodeService extends BaseDao
 {
-    private static Logger logger = LogManager.getLogger(ParallelGeocodeService.class);
+    private static Logger logger = LoggerFactory.getLogger(ParallelGeocodeService.class);
     private Config config = getConfig();
     private int THREAD_COUNT = Integer.parseInt(config.getValue("geocode.threads", "3"));
     private ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("geocode"));

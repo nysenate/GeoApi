@@ -9,9 +9,9 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Repository;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -35,7 +35,7 @@ public class GeoserverDao extends BaseDao
     private static final String FEATURE_QUERY = "?service=WFS&version=1.1.0&request=GetFeature";
     private static final String INTERSECT_FILTER = "INTERSECTS(the_geom, POINT ( %f %f ))";
 
-    private Logger logger = LogManager.getLogger(GeoserverDao.class);
+    private Logger logger = LoggerFactory.getLogger(GeoserverDao.class);
     private Map<Integer, County> fipsCountyMap; /** Mapping between fips codes and associated county */
     private ObjectMapper mapper;
 

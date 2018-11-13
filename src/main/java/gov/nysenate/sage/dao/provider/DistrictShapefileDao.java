@@ -14,10 +14,10 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -34,7 +34,7 @@ import java.util.*;
 public class DistrictShapefileDao extends BaseDao
 {
     private static final String SCHEMA = "districts";
-    private final Logger logger = LogManager.getLogger(DistrictShapefileDao.class);
+    private final Logger logger = LoggerFactory.getLogger(DistrictShapefileDao.class);
     private QueryRunner run = getQueryRunner();
 
     private static CountyDao countyDao = new CountyDao();
@@ -102,7 +102,7 @@ public class DistrictShapefileDao extends BaseDao
             return run.query(sqlQuery, new DistrictInfoHandler());
         }
         catch (Exception ex){
-            logger.error(ex);
+            logger.error("" + ex);
         }
         return null;
     }
@@ -281,7 +281,7 @@ public class DistrictShapefileDao extends BaseDao
             return true;
         }
         catch (SQLException ex) {
-            logger.error(ex);
+            logger.error("" + ex);
             return false;
         }
     }
@@ -316,7 +316,7 @@ public class DistrictShapefileDao extends BaseDao
                 return run.query(sqlQuery, new NearbyDistrictMapsHandler());
             }
             catch (SQLException ex) {
-                logger.error(ex);
+                logger.error("" + ex);
             }
         }
         return null;
@@ -540,7 +540,7 @@ public class DistrictShapefileDao extends BaseDao
                 return districtMap;
             }
             catch (IOException ex) {
-                logger.error(ex);
+                logger.error("" + ex);
             }
         }
         return null;

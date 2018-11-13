@@ -16,10 +16,10 @@ import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -40,8 +40,8 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         shapeOnly       /** Perform shape lookup only */
     }
 
-    private final Logger logger = LogManager.getLogger(DistrictServiceProvider.class);
     private final Environment env;
+    private final Logger logger = LoggerFactory.getLogger(DistrictServiceProvider.class);
 
     private static DistrictStrategy SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf("neighborMatch");
     private static DistrictStrategy BATCH_DISTRICT_STRATEGY = DistrictStrategy.valueOf("shapeFallback");

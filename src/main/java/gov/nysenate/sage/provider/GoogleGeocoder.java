@@ -6,24 +6,35 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 
 @Service
 public class GoogleGeocoder implements GeocodeService, RevGeocodeService
 {
-    private static final Logger logger = LogManager.getLogger(GoogleGeocoder.class);
+    private static final Logger logger = LoggerFactory.getLogger(GoogleGeocoder.class);
 
     private GoogleDao googleDao;
+    private ParallelGeocodeService parallelGeocodeService;
+    private ParallelRevGeocodeService parallelRevGeocodeService;
+    private GeocodeServiceValidator geocodeServiceValidator;
+    private RevGeocodeServiceValidator revGeocodeServiceValidator;
 
     @Autowired
-    public GoogleGeocoder(GoogleDao googleDao)
+    public GoogleGeocoder(GoogleDao googleDao, ParallelGeocodeService parallelGeocodeService,
+                          ParallelRevGeocodeService parallelRevGeocodeService,
+                          GeocodeServiceValidator geocodeServiceValidator,
+                          RevGeocodeServiceValidator revGeocodeServiceValidator)
     {
         this.googleDao = googleDao;
+        this.parallelGeocodeService = parallelGeocodeService;
+        this.parallelRevGeocodeService = parallelRevGeocodeService;
+        this.geocodeServiceValidator = geocodeServiceValidator;
+        this.revGeocodeServiceValidator = revGeocodeServiceValidator;
         logger.debug("Instantiated Google geocoder");
     }
 
@@ -36,12 +47,12 @@ public class GoogleGeocoder implements GeocodeService, RevGeocodeService
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Ensure that the geocoder is active, otherwise return error result. */
-        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+        if (!geocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
             return geocodeResult;
         }
 
         /** Proceed only on valid input */
-        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
+        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
             return geocodeResult;
         }
 
@@ -49,7 +60,7 @@ public class GoogleGeocoder implements GeocodeService, RevGeocodeService
         GeocodedAddress geocodedAddress = this.googleDao.getGeocodedAddress(address);
 
         /** Validate and set result */
-        if (!GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
+        if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
             logger.warn("Failed to geocode " + address.toString() + " using Google!");
         }
 
@@ -59,7 +70,7 @@ public class GoogleGeocoder implements GeocodeService, RevGeocodeService
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        return ParallelGeocodeService.geocode(this, addresses);
+        return parallelGeocodeService.geocode(this, addresses);
     }
 
     /** Rev-Geocode Service Implementation -------------------------------------------------------*/
@@ -70,7 +81,7 @@ public class GoogleGeocoder implements GeocodeService, RevGeocodeService
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Validate the input */
-        if (!RevGeocodeServiceValidator.validateRevGeocodeInput(point, geocodeResult)) {
+        if (!revGeocodeServiceValidator.validateRevGeocodeInput(point, geocodeResult)) {
             return geocodeResult;
         }
 
@@ -78,7 +89,7 @@ public class GoogleGeocoder implements GeocodeService, RevGeocodeService
         GeocodedAddress revGeocodedAddress = this.googleDao.getGeocodedAddress(point);
 
         /** Validate and set response */
-        if (!RevGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {
+        if (!revGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {
             logger.debug("Reverse geocode failed for point " + point + " using Google");
         }
         return geocodeResult;
@@ -87,6 +98,6 @@ public class GoogleGeocoder implements GeocodeService, RevGeocodeService
     @Override
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {
-        return ParallelRevGeocodeService.reverseGeocode(this, points);
+        return parallelRevGeocodeService.reverseGeocode(this, points);
     }
 }

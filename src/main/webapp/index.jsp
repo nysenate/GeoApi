@@ -27,7 +27,8 @@
         <script type="text/javascript" src="${googleMapsUrl}"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
+        <sage:common></sage:common>
+        <sage:sage></sage:sage>
     </jsp:attribute>
     <jsp:body>
     <div id="contentwrapper">

@@ -5,8 +5,8 @@ import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.util.Config;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,10 +20,10 @@ import java.util.concurrent.*;
 @Service
 public abstract class ParallelAddressService extends BaseDao {
 
-    private static Logger logger = LogManager.getLogger(ParallelAddressService.class);
     private Config config = getConfig();
     private int THREAD_COUNT = Integer.parseInt(config.getValue("validate.threads", "3"));
     private ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("address"));
+    private static Logger logger = LoggerFactory.getLogger(ParallelAddressService.class);
 
     private static class ParallelValidate implements Callable<AddressResult>
     {

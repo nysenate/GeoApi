@@ -14,10 +14,10 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.Config;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Map;
@@ -36,7 +36,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 @Service
 public class Geoserver extends BaseDao implements DistrictService, Observer
 {
-    private static Logger logger = LogManager.getLogger(Geoserver.class);
+    private static Logger logger = LoggerFactory.getLogger(Geoserver.class);
     private GeoserverDao geoserverDao;
     private Config config;
     private boolean fetchMaps = false;
@@ -101,7 +101,7 @@ public class Geoserver extends BaseDao implements DistrictService, Observer
         }
         catch (Exception ex) {
             districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
-            logger.error(ex);
+            logger.error("" + ex);
         }
         return districtResult;
     }

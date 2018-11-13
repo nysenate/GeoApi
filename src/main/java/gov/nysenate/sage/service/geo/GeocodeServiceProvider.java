@@ -13,12 +13,11 @@ import gov.nysenate.sage.provider.GoogleGeocoder;
 import gov.nysenate.sage.provider.TigerGeocoder;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -30,9 +29,9 @@ import java.util.*;
 @Service
 public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> implements Observer
 {
-    private final Logger logger = LogManager.getLogger(GeocodeServiceProvider.class);
     private final Environment env;
     private Map<String, Class<? extends GeocodeService>> activeGeoProviders = new HashMap<>();
+    private final Logger logger = LoggerFactory.getLogger(GeocodeServiceProvider.class);
 
     /** Caching members */
     private GeocodeCacheService geocodeCache;
@@ -167,6 +166,10 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         boolean cacheHit = CACHE_ENABLED && useCache && geocodeResult.isSuccess();
 
         if (!cacheHit && !provider.equals("geocache")) {
+            if (provider.isEmpty()) {
+                logger.warn("Failed to retrieve " + address.toString() + " from the geocache!");
+            }
+
             /** Geocode using the supplied provider if valid */
             if (this.isRegistered(provider)) {
                 /** Remove the provider if it's set in the fallback chain */
@@ -216,6 +219,9 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
         /** Set the timestamp */
         geocodeResult.setResultTime(TimeUtil.currentTimestamp());
+        if (!cacheHit) {
+            geocodeResult.setGeocodedAddress(new GeocodedAddress(address, geocodeResult.getGeocode()));
+        }
 
         /** Cache result */
         if (CACHE_ENABLED && !cacheHit && !doNotCache) {

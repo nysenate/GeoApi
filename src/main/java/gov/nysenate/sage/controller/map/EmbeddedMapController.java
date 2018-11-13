@@ -1,7 +1,7 @@
 package gov.nysenate.sage.controller.map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +21,8 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.MAPS_JSP;
 @Controller
 public class EmbeddedMapController
 {
-    private static Logger logger = LogManager.getLogger(EmbeddedMapController.class);
+    private static Logger logger = LoggerFactory.getLogger(EmbeddedMapController.class);
+    private static String MAPS_JSP = "/WEB-INF/views/maps.jsp";
 
     @RequestMapping(value = "/map", method = RequestMethod.GET)
     public void map(HttpServletRequest request, HttpServletResponse response,

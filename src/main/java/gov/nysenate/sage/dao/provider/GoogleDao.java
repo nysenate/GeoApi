@@ -10,10 +10,10 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -24,7 +24,7 @@ import java.util.Observer;
 @Repository
 public class GoogleDao extends BaseDao implements Observer
 {
-    private static final Logger logger = LogManager.getLogger(GoogleDao.class);
+    private static final Logger logger = LoggerFactory.getLogger(GoogleDao.class);
 
     private final Environment env;
     private static final String DEFAULT_BASE_URL = "https://maps.googleapis.com/maps/api/geocode/json";
@@ -64,6 +64,10 @@ public class GoogleDao extends BaseDao implements Observer
     public GeocodedAddress getGeocodedAddress(Address address)
     {
         GeocodedAddress geocodedAddress = null;
+
+        if (address.getState().isEmpty()) {
+            address.setState("NY");
+        }
 
         try {
             String formattedQuery = String.format(GEOCODE_QUERY, URLEncoder.encode(address.toString(), "UTF-8"), apiKey);

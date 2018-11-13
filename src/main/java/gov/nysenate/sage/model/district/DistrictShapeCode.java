@@ -12,6 +12,8 @@ import java.util.HashMap;
  * use an external webservice like http://prj2epsg.org/search to convert into espg
  * code. From there you can use http://spatialreference.org/ref/epsg/{your espg code}
  * and get the srid using the PostGIS output.
+ * http://www.spatialreference.org/ref/epsg/4269/postgis/
+ * http://www.spatialreference.org/ref/epsg/26918/postgis/
  *
  * Alternatively, you can inspect the .prj file and the spatial_ref_sys table in the
  * geoapi database and try to find a match that way.

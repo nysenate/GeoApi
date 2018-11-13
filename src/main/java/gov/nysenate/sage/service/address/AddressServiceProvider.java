@@ -10,8 +10,8 @@ import gov.nysenate.sage.provider.USPSAMS;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +24,8 @@ import java.util.Map;
 @Service
 public class AddressServiceProvider extends ServiceProviders<AddressService>
 {
-    private static Logger logger = LogManager.getLogger(AddressServiceProvider.class);
-    private AddressLogger addressLogger;
+    private static Logger logger = LoggerFactory.getLogger(AddressServiceProvider.class);
+    private AddressLogger addressLogger = new AddressLogger();;
     private Environment env;
 
     private boolean API_LOGGING_ENABLED = false;

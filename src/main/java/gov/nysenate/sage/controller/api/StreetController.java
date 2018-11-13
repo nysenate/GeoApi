@@ -8,9 +8,9 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.model.result.StreetResult;
 import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import gov.nysenate.sage.util.controller.ConstantUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,7 +31,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse
 @RequestMapping(value = ConstantUtil.REST_PATH + "street")
 public class StreetController
 {
-    private static Logger logger = LogManager.getLogger(StreetController.class);
+    private static Logger logger = LoggerFactory.getLogger(StreetController.class);
     private static StreetLookupServiceProvider streetProvider;
 
     @Autowired

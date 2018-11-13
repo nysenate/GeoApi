@@ -1,13 +1,24 @@
+<%@ page import="gov.nysenate.sage.factory.ApplicationFactory" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
+<%
+    String googleMapsUrl = ApplicationFactory.getConfig().getValue("google.maps.url");
+    String googleMapsKey = ApplicationFactory.getConfig().getValue("google.maps.key");
+
+    if (googleMapsKey != null && !googleMapsKey.equals("")) {
+        googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
+    }
+    request.setAttribute("googleMapsUrl", googleMapsUrl);
+%>
 
 <fmt:setLocale value = "es_ES"/>
 
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage</jsp:attribute>
     <jsp:attribute name="title">SAGE Map Viewer</jsp:attribute>
+
     <jsp:attribute name="jsIncludes">
         <!-- Custom Map Styles -->
         <script>
@@ -28,9 +39,10 @@
             </c:if>
         </script>
 
-        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-vIdRb4DI5jzKI92UNTnjHiwU7P0GqxI&sensor=false&libraries=places"></script>
+        <script type="text/javascript" src="${googleMapsUrl}"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/app.js"></script>
+        <sage:sage></sage:sage>
+        <sage:common></sage:common>
     </jsp:attribute>
     <jsp:body>
         <div id="contentwrapper">

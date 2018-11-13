@@ -1,6 +1,5 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.address.ValidateResponse;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.district.*;
 import gov.nysenate.sage.config.Environment;
@@ -30,16 +29,14 @@ import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -56,7 +53,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
 public class DistrictController
 {
-    private static Logger logger = LogManager.getLogger(DistrictController.class);
+    private static Logger logger = LoggerFactory.getLogger(DistrictController.class);
 
     /** Service Providers */
     private static AddressServiceProvider addressProvider;
@@ -133,6 +130,12 @@ public class DistrictController
         districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
         districtRequest.setDistrictStrategy(districtStrategy);
 
+        Address reorderdAddress = StreetAddressParser.parseAddress(districtRequest.getAddress()).toAddress();
+        if (reorderdAddress.getState().isEmpty()) {
+            reorderdAddress.setState("NY");
+        }
+        districtRequest.setAddress(reorderdAddress);
+
         logDistrictRequest(apiRequest, districtRequest, requestId);
 
         if(!checkProviders(provider, geoProvider, request)) {
@@ -154,7 +157,7 @@ public class DistrictController
     }
 
     @RequestMapping(value = "/batch/assign", method = RequestMethod.GET)
-    public void districtBatchAssign(HttpServletRequest request, HttpServletResponse response,
+    public void districtBatchAssign(HttpServletRequest request,
                                 @RequestParam String provider, @RequestParam String geoProvider,
                                 @RequestParam boolean showMembers, @RequestParam boolean showMaps,
                                 @RequestParam boolean uspsValidate, @RequestParam boolean skipGeocode,
@@ -232,6 +235,12 @@ public class DistrictController
         districtRequest.setGeoProvider(geoProvider);
         districtRequest.setUsePunct(usePunct);
         districtRequest.setRequestTime(startTime);
+
+        Address reorderdAddress = StreetAddressParser.parseAddress(districtRequest.getAddress()).toAddress();
+        if (reorderdAddress.getState().isEmpty()) {
+            reorderdAddress.setState("NY");
+        }
+        districtRequest.setAddress(reorderdAddress);
 
         logDistrictRequest(apiRequest, districtRequest, requestId);
 
@@ -408,7 +417,7 @@ public class DistrictController
         /** Set geocoded address to district request for processing, keeping in mind the validated address */
         if (geocodedAddress != null) {
             if (validatedAddress != null && !validatedAddress.isEmpty() && geocodedAddress.isValidGeocode()
-                && geocodedAddress.getGeocode().getQuality().equals(GeocodeQuality.HOUSE)) {
+                && (geocodedAddress.getGeocode().getQuality().compareTo(GeocodeQuality.HOUSE) >= 0)) {
                 districtRequest.setGeocodedAddress(new GeocodedAddress(validatedAddress, geocodedAddress.getGeocode()));
             }
             else {

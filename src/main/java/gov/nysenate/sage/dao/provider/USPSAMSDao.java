@@ -13,8 +13,8 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -36,7 +36,7 @@ public class USPSAMSDao extends BaseDao implements Observer
     private static String VALIDATE_METHOD = "validate";
     private static String CITYSTATE_METHOD = "citystate";
 
-    private Logger logger = LogManager.getLogger(this.getClass());
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
@@ -72,6 +72,9 @@ public class USPSAMSDao extends BaseDao implements Observer
                 urlParams.append("&initCaps=true");
 
                 String url = DEFAULT_BASE_URL + VALIDATE_METHOD + urlParams.toString();
+
+                logger.info("Making a connection to: \n" + url);
+
                 String response = UrlRequest.getResponseFromUrl(url);
                 if (response != null && !response.isEmpty()) {
                     JsonNode root = objectMapper.readTree(response);

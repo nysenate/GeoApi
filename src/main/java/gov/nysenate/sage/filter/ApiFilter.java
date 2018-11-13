@@ -10,8 +10,10 @@ import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +46,8 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 @Component
 public class ApiFilter implements Filter, Observer
 {
-    private static Logger logger = LogManager.getLogger(ApiFilter.class);
+    private static Logger logger = LoggerFactory.getLogger(ApiFilter.class);
+    Marker fatal = MarkerFactory.getMarker("FATAL");
     private static ApiRequestLogger apiRequestLogger;
     private static String ipFilter;
     private static String defaultKey;
@@ -53,13 +56,13 @@ public class ApiFilter implements Filter, Observer
     private static Boolean API_LOGGING_ENABLED = false;
 
     /** The valid format of an api request */
-    private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map|street|meta))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
+    private static String validFormat = "((?<context>.*)\\/)?api\\/v(?<version>\\d+)\\/(?<service>(address|district|geo|map|street|meta|data))\\/(?<request>\\w+)(\\/(?<batch>batch))?";
 
     /** Api services that are designated as public */
     private static String publicApiFilter = "(map)";
 
     /** Api services for which requests will be logged if logging is enabled. */
-    private static String loggedServices = "(address|district|geo|map|street)";
+    private static String loggedServices = "(address|district|geo|map|street|data)";
 
     /** String keys used for setting key value attributes in the request object */
     private static final String RESPONSE_OBJECT_KEY = "responseObject";
@@ -313,7 +316,7 @@ public class ApiFilter implements Filter, Observer
             logger.trace("Completed serialization");
         }
         catch (JsonProcessingException ex) {
-            logger.fatal("Failed to serialize response!", ex);
+            logger.error(fatal, "Failed to serialize response!", ex);
             request.setAttribute(FORMATTED_RESPONSE_KEY, RESPONSE_SERIALIZATION_ERROR);
         }
         catch (UnsupportedEncodingException ex) {

@@ -13,15 +13,14 @@ import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -29,7 +28,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Repository
 public class GeoCacheDao extends BaseDao
 {
-    private static Logger logger = LogManager.getLogger(GeoCacheDao.class);
+    private static Logger logger = LoggerFactory.getLogger(GeoCacheDao.class);
     private static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
     private static int BUFFER_SIZE = 100;
     private QueryRunner tigerRun = getTigerQueryRunner();
@@ -59,7 +58,24 @@ public class GeoCacheDao extends BaseDao
             // City (location) match when zip is empty
             "  OR ? = '' AND gc.zip5 = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?)";
 
-    private final static String SQL_CACHE_HIT_FULL = String.format("%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WHERE_FULL_MATCH);
+    private final static String SQLFRAG_WITHOUT_ZIP =
+    "WHERE gc.bldgnum = ? \n" +
+    "AND gc.predir = ? \n" +
+    "AND gc.street = ? \n" +
+    "AND gc.postdir = ? \n" +
+    "AND gc.streetType = ? \n" +
+    "AND gc.location = ? \n" +
+    "AND gc.state = ? \n";
+
+    private final static String SQLFRAG_WITH_ZIP =
+    "AND gc.zip5 = ? \n";
+//    "AND gc.zip4 = ? \n";
+
+    private final static String SQL_CACHE_HIT_OLD = String.format("%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WHERE_FULL_MATCH);
+
+    private final static String SQL_CACHE_HIT_FULL_WITHOUT_ZIP = String.format("%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WITHOUT_ZIP);
+
+    private final static String SQL_CACHE_HIT_FULL_WITH_ZIP = String.format("%s\n%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WITHOUT_ZIP, SQLFRAG_WITH_ZIP);
 
     /**
      * Performs a lookup on the cache table and returns a GeocodedStreetAddress upon match.
@@ -73,10 +89,35 @@ public class GeoCacheDao extends BaseDao
         }
         if (isStreetAddressRetrievable(sa)) {
             boolean buildingMatch = (!sa.isPoBoxAddress() && !sa.isStreetEmpty());
+            if (sa.getState().isEmpty()) {
+                sa.setState("NY");
+            }
             try {
-                return tigerRun.query(SQL_CACHE_HIT_FULL, new GeocodedStreetAddressHandler(buildingMatch),
-                    sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
-                    sa.getStreetType(), sa.getZip5(), sa.getZip5(), sa.getLocation(), sa.getState());
+
+//                GeocodedStreetAddress test = tigerRun.query(SQL_CACHE_HIT_OLD, new GeocodedStreetAddressHandler(buildingMatch),
+//                        sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
+//                        sa.getStreetType(), sa.getZip5(), sa.getZip4(), sa.getLocation(), sa.getState());
+//
+//                GeocodedStreetAddress withoutZip = tigerRun.query(SQL_CACHE_HIT_FULL_WITHOUT_ZIP, new GeocodedStreetAddressHandler(buildingMatch),
+//                        sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
+//                        sa.getStreetType(), sa.getLocation(), sa.getState());
+//
+//                GeocodedStreetAddress withZip = tigerRun.query(SQL_CACHE_HIT_FULL_WITH_ZIP, new GeocodedStreetAddressHandler(buildingMatch),
+//                        sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
+//                        sa.getStreetType(), sa.getLocation(), sa.getState(), sa.getZip5());
+
+                if (sa.getZip5().isEmpty()) {
+                    //without zip
+                    return tigerRun.query(SQL_CACHE_HIT_FULL_WITHOUT_ZIP, new GeocodedStreetAddressHandler(buildingMatch),
+                            sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
+                            sa.getStreetType(), sa.getLocation(), sa.getState());
+                }
+                else {
+                    //with zip
+                    return tigerRun.query(SQL_CACHE_HIT_FULL_WITH_ZIP, new GeocodedStreetAddressHandler(buildingMatch),
+                            sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
+                            sa.getStreetType(), sa.getLocation(), sa.getState(), sa.getZip5());
+                }
             }
             catch (SQLException ex) {
                 logger.error("Error retrieving geo cache hit!", ex);
@@ -125,7 +166,7 @@ public class GeoCacheDao extends BaseDao
 
     private final static String SQL_UPDATE_CACHE_ENTRY = "update cache.geocache\n" +
             "set latlon = ST_GeomFromText(?), method = ?, quality = ?, zip4 = ?, updated = now()\n" +
-            "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ?;";
+            "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ? and zip5 = ?;";
 
     /**
      * Saves any GeocodedAddress objects stored in the buffer into the database. The address is parsed into
@@ -167,7 +208,8 @@ public class GeoCacheDao extends BaseDao
                                             sa.getStreetName(),
                                             sa.getStreetType(),
                                             sa.getPreDir(),
-                                            sa.getPostDir()
+                                            sa.getPostDir(),
+                                            sa.getZip5()
                                             );
                                     if (logger.isTraceEnabled()) {
                                         logger.trace("Saved " + sa.toString() + " in cache.");
@@ -184,7 +226,7 @@ public class GeoCacheDao extends BaseDao
                             }
                         }
                         catch(Exception ex) {
-                            logger.error(ex);
+                            logger.error("" + ex);
                         }
                     }
                 }

@@ -2,14 +2,15 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.address.*;
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,7 +40,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse
 @RequestMapping(value = ConstantUtil.REST_PATH + "address")
 public final class AddressController
 {
-    private Logger logger = LogManager.getLogger(AddressController.class);
+    private Logger logger = LoggerFactory.getLogger(AddressController.class);
     private static AddressServiceProvider addressProvider;
 
     @Autowired

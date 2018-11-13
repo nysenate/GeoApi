@@ -52,6 +52,15 @@ public class Address implements Serializable, Cloneable
         this.setZip4(zip4);
     }
 
+    public Address(StreetAddress streetAddress) {
+        this.setAddr1(formAddr1(streetAddress));
+        this.setAddr2("");
+        this.setCity(streetAddress.getLocation());
+        this.setState(streetAddress.getState());
+        this.setZip5(streetAddress.getZip5());
+        this.setZip4(streetAddress.getZip4());
+    }
+
     public boolean isParsed()
     {
         return !(addr2.trim().isEmpty() && city.trim().isEmpty() &&
@@ -95,6 +104,11 @@ public class Address implements Serializable, Cloneable
     public String toNormalizedString()
     {
         return toString().replaceFirst("^(\\d+)(-)(\\d+)","$1$3");
+    }
+
+    private String formAddr1(StreetAddress streetAddress) {
+        return streetAddress.getBldgNum() + " " + streetAddress.getPreDir() + " " + streetAddress.getStreetName()
+                + " " + streetAddress.getPostDir() + " " + streetAddress.getStreetType();
     }
 
     public String getAddr1()

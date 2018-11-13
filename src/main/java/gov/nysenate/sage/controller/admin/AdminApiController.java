@@ -14,12 +14,12 @@ import gov.nysenate.sage.model.stats.*;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.auth.JobUserAuth;
 import gov.nysenate.sage.util.controller.ConstantUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,7 +35,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @RequestMapping(value = ConstantUtil.REST_PATH + "admin")
 public class AdminApiController
 {
-    private Logger logger = LogManager.getLogger(AdminApiController.class);
+    private Logger logger = LoggerFactory.getLogger(AdminApiController.class);
 
     private ApiRequestLogger apiRequestLogger;
     private ApiUserStatsDao apiUserStatsDao;

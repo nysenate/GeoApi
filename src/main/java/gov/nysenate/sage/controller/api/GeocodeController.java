@@ -8,23 +8,28 @@ import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
 import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
+import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -35,16 +40,20 @@ import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
-/** Handles Geo Api requests */
+/**
+ * Handles Geo Api requests
+ */
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "geo")
-public class GeocodeController
-{
-    private static Logger logger = LogManager.getLogger(GeocodeController.class);
-    private static GeocodeServiceProvider geocodeServiceProvider;
-    private static RevGeocodeServiceProvider revGeocodeServiceProvider;
+public class GeocodeController {
+    private static Logger logger = LoggerFactory.getLogger(GeocodeController.class);
+    private GeocodeServiceProvider geocodeServiceProvider;
+    private RevGeocodeServiceProvider revGeocodeServiceProvider;
+    private AddressServiceProvider addressProvider;
 
-    /** Usage loggers */
+    /**
+     * Usage loggers
+     */
     private static Boolean SINGLE_LOGGING_ENABLED = false;
     private static Boolean BATCH_LOGGING_ENABLED = false;
     private static GeocodeRequestLogger geocodeRequestLogger;
@@ -54,12 +63,13 @@ public class GeocodeController
     @Autowired
     public GeocodeController(Environment env, GeocodeRequestLogger geocodeRequestLogger,
                              GeocodeResultLogger geocodeResultLogger, GeocodeServiceProvider geocodeServiceProvider,
-                             RevGeocodeServiceProvider revGeocodeServiceProvider) {
+                             RevGeocodeServiceProvider revGeocodeServiceProvider, AddressServiceProvider addressProvider) {
         this.env = env;
         this.geocodeRequestLogger = geocodeRequestLogger;
         this.geocodeResultLogger = geocodeResultLogger;
         this.geocodeServiceProvider = geocodeServiceProvider;
         this.revGeocodeServiceProvider = revGeocodeServiceProvider;
+        this.addressProvider = addressProvider;
 
         logger.debug("Initialized " + this.getClass().getSimpleName());
         boolean API_LOGGING_ENABLED = env.isApiLoggingEnabled();
@@ -68,28 +78,33 @@ public class GeocodeController
     }
 
     @RequestMapping(value = "/geocode", method = RequestMethod.GET)
-    public void geoGeocode(HttpServletRequest request, HttpServletResponse response,
-                                @RequestParam String provider,
-                                @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
-                                @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
-                                @RequestParam String zip4, @RequestParam boolean useFallback,
-                                @RequestParam boolean doNotCache, @RequestParam boolean bypassCache) {
+    public void geocode(HttpServletRequest request, HttpServletResponse response,
+                        @RequestParam String provider,
+                        @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
+                        @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
+                        @RequestParam String zip4, @RequestParam boolean useFallback,
+                        @RequestParam boolean doNotCache, @RequestParam boolean bypassCache,
+                        @RequestParam boolean uspsValidate) {
 
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
         ApiRequest apiRequest = getApiRequest(request);
         Boolean useCache = true;
 
-        determineCacheProviderProps(useCache,bypassCache,doNotCache,provider);
+        determineCacheProviderProps(useCache, bypassCache, doNotCache, provider);
 
         int requestId = -1;
 
         /** Construct a GeocodeRequest using the supplied params */
-        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest,
-                getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4),
-                provider, useFallback, useCache, bypassCache, doNotCache);
+        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider,
+                useFallback, useCache, bypassCache, doNotCache, uspsValidate);
 
-        logGeoRequest(apiRequest,geocodeRequest,requestId);
+        StreetAddress inputStreetAddress = StreetAddressParser.parseAddress(geocodeRequest.getAddress());
+        Address reorderdAddress = inputStreetAddress.toAddress();
+        geocodeRequest.setAddress(reorderdAddress);
+
+
+        logGeoRequest(apiRequest, geocodeRequest, requestId);
 
         if (!checkProvider(provider, geocodeResponse, request)) {
             return;
@@ -106,26 +121,25 @@ public class GeocodeController
             if (SINGLE_LOGGING_ENABLED && requestId != -1) {
                 geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
             }
-        }
-        else {
+        } else {
             geocodeResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
         }
 
         logElaspedTime(startTime);
-        setApiResponse(geocodeResponse,request);
+        setApiResponse(geocodeResponse, request);
     }
 
     @RequestMapping(value = "/revgeocode", method = RequestMethod.GET)
-    public void geoRevGeocode(HttpServletRequest request, HttpServletResponse response,
+    public void revGeocode(HttpServletRequest request, HttpServletResponse response,
                            @RequestParam String provider, @RequestParam String lat, @RequestParam String lon,
-                              @RequestParam boolean useFallback, @RequestParam boolean doNotCache,
-                              @RequestParam boolean bypassCache) {
+                           @RequestParam boolean useFallback, @RequestParam boolean doNotCache,
+                           @RequestParam boolean bypassCache) {
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
         ApiRequest apiRequest = getApiRequest(request);
         Boolean useCache = true;
 
-        determineCacheProviderProps(useCache,bypassCache,doNotCache,provider);
+        determineCacheProviderProps(useCache, bypassCache, doNotCache, provider);
 
         int requestId = -1;
 
@@ -133,14 +147,14 @@ public class GeocodeController
         GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest,
                 new Address(), provider, useFallback, useCache, bypassCache, doNotCache);
 
-        logGeoRequest(apiRequest,geocodeRequest,requestId);
+        logGeoRequest(apiRequest, geocodeRequest, requestId);
 
         if (!checkProvider(provider, geocodeResponse, request)) {
             return;
         }
 
-        Point point = getPointFromParams(lat,lon);
-        if (point != null ) {
+        Point point = getPointFromParams(lat, lon);
+        if (point != null) {
             geocodeRequest.setReverse(true);
             geocodeRequest.setPoint(point);
             GeocodeResult revGeocodeResult = revGeocodeServiceProvider.reverseGeocode(geocodeRequest);
@@ -151,26 +165,25 @@ public class GeocodeController
                 geocodeResultLogger.logGeocodeResult(requestId, revGeocodeResult);
                 requestId = -1;
             }
-        }
-        else {
+        } else {
             geocodeResponse = new ApiError(this.getClass(), MISSING_POINT);
         }
 
         logElaspedTime(startTime);
-        setApiResponse(geocodeResponse,request);
+        setApiResponse(geocodeResponse, request);
     }
 
     @RequestMapping(value = "/batch/geocode", method = RequestMethod.GET)
-    public void geoBatchGeocode(HttpServletRequest request, HttpServletResponse response,
-                           @RequestParam String provider, @RequestParam boolean useFallback,
-                           @RequestParam boolean doNotCache, @RequestParam boolean bypassCache) throws IOException {
+    public void batchGeocode(HttpServletRequest request, HttpServletResponse response,
+                             @RequestParam String provider, @RequestParam boolean useFallback,
+                             @RequestParam boolean doNotCache, @RequestParam boolean bypassCache) throws IOException {
 
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
         ApiRequest apiRequest = getApiRequest(request);
         Boolean useCache = true;
 
-        determineCacheProviderProps(useCache,bypassCache,doNotCache,provider);
+        determineCacheProviderProps(useCache, bypassCache, doNotCache, provider);
 
         int requestId = -1;
 
@@ -178,7 +191,7 @@ public class GeocodeController
         GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest,
                 new Address(), provider, useFallback, useCache, bypassCache, doNotCache);
 
-        logGeoRequest(apiRequest,geocodeRequest,requestId);
+        logGeoRequest(apiRequest, geocodeRequest, requestId);
 
         if (!checkProvider(provider, geocodeResponse, request)) {
             return;
@@ -196,29 +209,28 @@ public class GeocodeController
             if (BATCH_LOGGING_ENABLED) {
                 geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
             }
-        }
-        else {
+        } else {
             geocodeResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
         }
 
         logElaspedTime(startTime);
-        setApiResponse(geocodeResponse,request);
+        setApiResponse(geocodeResponse, request);
     }
 
     @RequestMapping(value = "/batch/revgeocode", method = RequestMethod.GET)
-    public void geoBatchRevGeocode(HttpServletRequest request, HttpServletResponse response,
-                           @RequestParam String provider,
-                           @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
-                           @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
-                           @RequestParam String zip4, @RequestParam boolean useFallback,
-                           @RequestParam boolean doNotCache, @RequestParam boolean bypassCache) throws IOException {
+    public void batchRevGeocode(HttpServletRequest request, HttpServletResponse response,
+                                @RequestParam String provider,
+                                @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
+                                @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
+                                @RequestParam String zip4, @RequestParam boolean useFallback,
+                                @RequestParam boolean doNotCache, @RequestParam boolean bypassCache) throws IOException {
 
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
         ApiRequest apiRequest = getApiRequest(request);
         Boolean useCache = true;
 
-        determineCacheProviderProps(useCache,bypassCache,doNotCache,provider);
+        determineCacheProviderProps(useCache, bypassCache, doNotCache, provider);
 
         int requestId = -1;
 
@@ -226,7 +238,7 @@ public class GeocodeController
         GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest,
                 new Address(), provider, useFallback, useCache, bypassCache, doNotCache);
 
-        logGeoRequest(apiRequest,geocodeRequest,requestId);
+        logGeoRequest(apiRequest, geocodeRequest, requestId);
 
         if (!checkProvider(provider, geocodeResponse, request)) {
             return;
@@ -245,13 +257,12 @@ public class GeocodeController
             if (BATCH_LOGGING_ENABLED) {
                 geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, revGeocodeResults, true);
             }
-        }
-        else {
+        } else {
             geocodeResponse = new ApiError(this.getClass(), INVALID_BATCH_POINTS);
         }
 
         logElaspedTime(startTime);
-        setApiResponse(geocodeResponse,request);
+        setApiResponse(geocodeResponse, request);
 
     }
 
@@ -301,4 +312,22 @@ public class GeocodeController
         return TimeUtil.currentTimestamp();
     }
 
+
+    /**
+     * Perform USPS address correction on either the geocoded address or the input address.
+     * If the geocoded address is invalid, the original address will be corrected and set as the address
+     * on the supplied geocodedAddress parameter.
+     *
+     * @return GeocodedAddress the address corrected geocodedAddress.
+     */
+    private Address performAddressCorrection(Address address, GeocodeRequest geocodeRequest) {
+        AddressResult addressResult = addressProvider.validate(address, null, false);
+        if (addressResult != null && addressResult.isValidated()) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("USPS Validated Address: " + addressResult.getAdressLogString());
+            }
+            return addressResult.getAddress();
+        }
+        return null;
+    }
 }

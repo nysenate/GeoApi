@@ -5,9 +5,9 @@ import gov.nysenate.sage.dao.model.AdminUserDao;
 import gov.nysenate.sage.dao.stats.ApiUsageStatsDao;
 import gov.nysenate.sage.dao.stats.ApiUserStatsDao;
 import gov.nysenate.sage.dao.stats.DeploymentStatsDao;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import gov.nysenate.sage.util.controller.ConstantUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +28,7 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_MAIN_PATH;
 @RequestMapping(value = ConstantUtil.REST_PATH + "admin")
 public class AdminController
 {
-    private Logger logger = LogManager.getLogger(AdminController.class);
+    private Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     private ApiRequestLogger apiRequestLogger;
     private ApiUserStatsDao apiUserStatsDao;

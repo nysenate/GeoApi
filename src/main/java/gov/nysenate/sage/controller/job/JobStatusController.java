@@ -6,14 +6,14 @@ import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
 import gov.nysenate.sage.util.controller.ConstantUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -45,7 +45,7 @@ import static gov.nysenate.sage.util.controller.JobControllerUtil.setJobResponse
 @RequestMapping(value = ConstantUtil.REST_PATH + "job/status")
 public class JobStatusController
 {
-    private static Logger logger = LogManager.getLogger(JobStatusController.class);
+    private static Logger logger = LoggerFactory.getLogger(JobStatusController.class);
     private static JobProcessDao jobProcessDao;
     private static String TEMP_DIR = "/tmp";
     private static String LOCK_FILENAME = "batchJobProcess.lock";

@@ -8,9 +8,9 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -24,7 +24,9 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 @Service
 public abstract class GeocodeServiceValidator extends BaseDao
 {
-    private static final Logger logger = LogManager.getLogger(GeocodeServiceValidator.class);
+
+
+    private static final Logger logger = LoggerFactory.getLogger(GeocodeServiceValidator.class);
     private Config config = getConfig();
 
     /** Keep track of GeocodeService implementations that are temporarily unavailable. */
@@ -267,5 +269,13 @@ public abstract class GeocodeServiceValidator extends BaseDao
             recordFailedResult(source);
         }
         return hasValidResult;
+    }
+
+    public Integer getFAILURE_THRESHOLD() {
+        return FAILURE_THRESHOLD;
+    }
+
+    public Integer getRETRY_INTERVAL_SECS() {
+        return RETRY_INTERVAL_SECS;
     }
 }

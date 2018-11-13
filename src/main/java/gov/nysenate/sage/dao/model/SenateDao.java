@@ -8,10 +8,10 @@ import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,7 +21,7 @@ import java.util.*;
 @Repository
 public class SenateDao extends BaseDao implements Observer
 {
-    private static Logger logger = LogManager.getLogger(SenateDao.class);
+    private static Logger logger = LoggerFactory.getLogger(SenateDao.class);
     private QueryRunner run = getQueryRunner();
 
     /** Mapper used to serialize into json */

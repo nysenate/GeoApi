@@ -4,12 +4,13 @@
 
 <fmt:setLocale value = "es_ES"/>
 <sage:wrapper>
-    <jsp:attribute name="ngApp">sage-job</jsp:attribute>
-    <jsp:attribute name="title">SAGE - Batch Services Login</jsp:attribute>
+    <jsp:attribute name="ngApp">sage-admin</jsp:attribute>
+    <jsp:attribute name="title">SAGE - Admin Services Login</jsp:attribute>
     <jsp:attribute name="cssIncludes">
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script src="${pageContext.request.contextPath}/js/admin.js" type="text/javascript"></script>
+        <sage:common></sage:common>
+        <sage:admin></sage:admin>
     </jsp:attribute>
     <jsp:body>
         <sage:header>
@@ -20,7 +21,7 @@
         </sage:header>
 
         <h1 style="text-align: center; color:#222;font-weight: 400;">SAGE Admin Interface</h1>
-        <div style="width:500px;margin:auto;" ng-controller="">
+        <div style="width:500px;margin:auto;" ng-controller="AdminAuthController">
             <form id="uploadForm" method="post" ng-submit="login()" action="${pageContext.request.contextPath}/admin/login">
                 <ol class="input-container" style="width:280px;margin:auto;padding:20px;">
                     <li>

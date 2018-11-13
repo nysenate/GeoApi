@@ -1,172 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/j2ee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4">
 
-    <display-name>GeoApi</display-name>
+    <context-param>
+        <param-name>spring.profiles.active</param-name>
+        <param-value>dev</param-value>
+    </context-param>
 
-    <!-- Exceptions -->
-    <servlet>
-        <servlet-name>ExceptionController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.error.ExceptionController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ExceptionController</servlet-name>
-        <url-pattern>/exception</url-pattern>
-    </servlet-mapping>
+    <mime-mapping>
+        <extension>ico</extension>
+        <mime-type>image/x-icon</mime-type>
+    </mime-mapping>
+
     <error-page>
-        <exception-type>java.lang.Exception</exception-type>
-        <location>/exception</location>
+        <error-code>404</error-code>
+        <location>/WEB-INF/view/404.jsp</location>
     </error-page>
-
-    <!-- Listeners -->
-    <listener>
-        <description>Context initialization and shutdown</description>
-        <display-name>SageContextListener</display-name>
-        <listener-class>gov.nysenate.sage.listener.SageContextListener</listener-class>
-    </listener>
-
-    <!-- Filters -->
-    <filter>
-        <display-name>ResourceFilter</display-name>
-        <filter-name>ResourceFilter</filter-name>
-        <filter-class>gov.nysenate.sage.filter.ResourceFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>ResourceFilter</filter-name>
-        <url-pattern>/api/*</url-pattern>
-        <url-pattern>/job/*</url-pattern>
-    </filter-mapping>
-
-    <filter>
-        <display-name>ApiFilter</display-name>
-        <filter-name>ApiFilter</filter-name>
-        <filter-class>gov.nysenate.sage.filter.ApiFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>ApiFilter</filter-name>
-        <url-pattern>/api/*</url-pattern>
-    </filter-mapping>
-
-    <!-- API v2 Controller mappings -->
-    <servlet>
-        <display-name>AddressController</display-name>
-        <servlet-name>AddressController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.api.AddressController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AddressController</servlet-name>
-        <url-pattern>/api/v2/address/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <display-name>GeocodeController</display-name>
-        <servlet-name>GeocodeController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.api.GeocodeController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>GeocodeController</servlet-name>
-        <url-pattern>/api/v2/geo/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <display-name>DistrictController</display-name>
-        <servlet-name>DistrictController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.api.DistrictController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>DistrictController</servlet-name>
-        <url-pattern>/api/v2/district/*</url-pattern>
-    </servlet-mapping>
-    
-    <servlet>
-        <display-name>StreetController</display-name>
-        <servlet-name>StreetController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.api.StreetController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>StreetController</servlet-name>
-        <url-pattern>/api/v2/street/*</url-pattern>
-    </servlet-mapping>
-    
-    <servlet>
-        <display-name>MapController</display-name>
-        <servlet-name>MapController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.api.MapController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>MapController</servlet-name>
-        <url-pattern>/api/v2/map/*</url-pattern>
-    </servlet-mapping>
-
-    <!-- Job v2 Controller mapping -->
-    <servlet>
-        <display-name>JobController</display-name>
-        <servlet-name>JobController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.job.JobController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>JobController</servlet-name>
-        <url-pattern>/job/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <display-name>JobStatusController</display-name>
-        <servlet-name>JobStatusController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.job.JobStatusController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>JobStatusController</servlet-name>
-        <url-pattern>/job/status/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <display-name>JobDownloadController</display-name>
-        <servlet-name>JobDownloadController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.job.JobDownloadController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>JobDownloadController</servlet-name>
-        <url-pattern>/job/download/*</url-pattern>
-    </servlet-mapping>
-
-    <!-- Map v2 Controller mapping -->
-    <servlet>
-        <display-name>EmbeddedMapController</display-name>
-        <servlet-name>EmbeddedMapController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.map.EmbeddedMapController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>EmbeddedMapController</servlet-name>
-        <url-pattern>/map/*</url-pattern>
-    </servlet-mapping>
-
-    <!-- Admin v2 Controller mapping -->
-    <servlet>
-        <display-name>AdminController</display-name>
-        <servlet-name>AdminController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.admin.AdminController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AdminController</servlet-name>
-        <url-pattern>/admin/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>AdminApiController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.admin.AdminApiController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AdminApiController</servlet-name>
-        <url-pattern>/admin/api/*</url-pattern>
-    </servlet-mapping>
-
-    <!-- Meta Controller mapping -->
-    <servlet>
-        <servlet-name>MetaController</servlet-name>
-        <servlet-class>gov.nysenate.sage.controller.api.MetaController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>MetaController</servlet-name>
-        <url-pattern>/api/v2/meta/*</url-pattern>
-    </servlet-mapping>
 
 </web-app>

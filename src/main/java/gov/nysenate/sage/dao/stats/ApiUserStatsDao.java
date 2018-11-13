@@ -5,10 +5,10 @@ import gov.nysenate.sage.dao.model.ApiUserDao;
 import gov.nysenate.sage.model.stats.ApiUserStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,7 +19,7 @@ import java.util.Map;
 @Repository
 public class ApiUserStatsDao extends BaseDao
 {
-    private static Logger logger = LogManager.getLogger(ApiUserStatsDao.class);
+    private static Logger logger = LoggerFactory.getLogger(ApiUserStatsDao.class);
     private static ApiUserDao apiUserDao;
 
     @Autowired

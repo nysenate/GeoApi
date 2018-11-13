@@ -14,13 +14,13 @@ import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -35,7 +35,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse
 @RequestMapping(value = ConstantUtil.REST_PATH + "map")
 public class MapController
 {
-    private static Logger logger = LogManager.getLogger(MapController.class);
+    private static Logger logger = LoggerFactory.getLogger(MapController.class);
     private DistrictShapefile districtShapefile;
 
     @Autowired

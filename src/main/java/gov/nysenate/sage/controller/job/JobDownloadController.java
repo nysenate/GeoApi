@@ -3,13 +3,13 @@ package gov.nysenate.sage.controller.job;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -26,7 +26,7 @@ import java.util.Observer;
 @RequestMapping(value = ConstantUtil.REST_PATH + "job")
 public class JobDownloadController
 {
-    private static Logger logger = LogManager.getLogger(JobDownloadController.class);
+    private static Logger logger = LoggerFactory.getLogger(JobDownloadController.class);
     private static String DOWNLOAD_DIR;
     private final Environment env;
 

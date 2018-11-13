@@ -3,8 +3,8 @@ package gov.nysenate.sage.model.job;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.supercsv.cellprocessor.Optional;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
@@ -14,7 +14,7 @@ import java.util.*;
 
 public class JobFile extends BaseJobFile<JobRecord>
 {
-    private static Logger logger = LogManager.getLogger(JobFile.class);
+    private static Logger logger = LoggerFactory.getLogger(JobFile.class);
 
     /** Represents the functional group a header column belongs to */
     protected enum Group {

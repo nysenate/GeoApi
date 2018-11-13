@@ -8,10 +8,10 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.GoogleGeocoder;
 import gov.nysenate.sage.provider.TigerGeocoder;
 import gov.nysenate.sage.service.base.ServiceProviders;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -22,7 +22,7 @@ import java.util.*;
 @Service
 public class RevGeocodeServiceProvider extends ServiceProviders<RevGeocodeService> implements Observer
 {
-    private final Logger logger = LogManager.getLogger(GeocodeServiceProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(GeocodeServiceProvider.class);
 
     @Autowired
     public RevGeocodeServiceProvider() {

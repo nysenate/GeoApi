@@ -1,10 +1,11 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.config.Environment;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import gov.nysenate.sage.factory.ApplicationFactory;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
@@ -18,7 +19,7 @@ import java.util.StringTokenizer;
 @Component
 public class Mailer
 {
-    private Logger logger = LogManager.getLogger(Mailer.class);
+    private Logger logger = LoggerFactory.getLogger(Mailer.class);
     private String SMTP_HOST_NAME;
     private String SMTP_DEBUG;
     private String SMTP_ACTIVE;

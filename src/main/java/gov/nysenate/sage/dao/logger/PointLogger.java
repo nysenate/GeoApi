@@ -4,8 +4,8 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.geo.Point;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
@@ -13,7 +13,7 @@ import java.sql.SQLException;
 @Repository
 public class PointLogger extends BaseDao
 {
-    private static Logger logger = LogManager.getLogger(AddressLogger.class);
+    private static Logger logger = LoggerFactory.getLogger(AddressLogger.class);
     private static String SCHEMA = "log";
     private static String TABLE = "point";
     private QueryRunner run = getQueryRunner();

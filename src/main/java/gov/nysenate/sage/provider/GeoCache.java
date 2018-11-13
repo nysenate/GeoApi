@@ -8,31 +8,33 @@ import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.GeocodeCacheService;
 import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.StreetAddressParser;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateGeocodeInput;
-import static gov.nysenate.sage.service.geo.GeocodeServiceValidator.validateGeocodeResult;
-
 @Service
 public class GeoCache implements GeocodeCacheService
 {
-    private final Logger logger = LogManager.getLogger(GeoCache.class);
+    private final Logger logger = LoggerFactory.getLogger(GeoCache.class);
     private static Set<Class<? extends GeocodeService>> cacheableProviders = new HashSet<>();
     private GeoCacheDao geoCacheDao;
+    private ParallelGeocodeService parallelGeocodeService;
+    private GeocodeServiceValidator geocodeServiceValidator;
 
     @Autowired
-    public GeoCache(GeoCacheDao geoCacheDao) {
+    public GeoCache(GeoCacheDao geoCacheDao, ParallelGeocodeService parallelGeocodeService, GeocodeServiceValidator geocodeServiceValidator) {
         this.geoCacheDao = geoCacheDao;
+        this.parallelGeocodeService = parallelGeocodeService;
+        this.geocodeServiceValidator = geocodeServiceValidator;
         logger.debug("Instantiated GeoCache.");
     }
 
@@ -64,14 +66,14 @@ public class GeoCache implements GeocodeCacheService
         GeocodeResult geocodeResult  = new GeocodeResult(this.getClass());
 
         /* Proceed only on valid input */
-        if (!validateGeocodeInput(address, geocodeResult)) return geocodeResult;
+        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) return geocodeResult;
 
         /* Retrieve geocoded address from cache */
         StreetAddress sa = StreetAddressParser.parseAddress(address);
         GeocodedStreetAddress geocodedStreetAddress = geoCacheDao.getCacheHit(sa);
 
         /* Validate and return */
-        if (!validateGeocodeResult(this.getClass(), geocodedStreetAddress, geocodeResult, false)) {
+        if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedStreetAddress.toGeocodedAddress(), geocodeResult, false)) {
             logger.trace("Failed to find cache hit for " + address.toString());
         }
         return geocodeResult;
@@ -80,7 +82,7 @@ public class GeoCache implements GeocodeCacheService
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        return ParallelGeocodeService.geocode(this, addresses);
+        return parallelGeocodeService.geocode(this, addresses);
     }
 
     @Override

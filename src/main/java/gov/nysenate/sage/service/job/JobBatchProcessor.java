@@ -16,11 +16,13 @@ import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.*;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.CsvListWriter;
@@ -57,7 +59,8 @@ public class JobBatchProcessor {
     private static Boolean LOGGING_ENABLED = false;
     private static Integer LOGGING_THRESHOLD = 1000;
 
-    public static Logger logger = LogManager.getLogger(JobBatchProcessor.class);
+    public static Logger logger = LoggerFactory.getLogger(JobBatchProcessor.class);
+    Marker fatal = MarkerFactory.getMarker("FATAL");
     public Environment env;
     public Mailer mailer;
     public AddressServiceProvider addressProvider;
@@ -332,7 +335,7 @@ public class JobBatchProcessor {
                         batchNum++;
                     }
                     catch (Exception e) {
-                        logger.error(e);
+                        logger.error("" + e);
                         e.getCause().printStackTrace();
                     }
                 }
@@ -381,22 +384,22 @@ public class JobBatchProcessor {
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (IOException ex){
-            logger.error(ex);
+            logger.error("" + ex);
             setJobStatusError(jobStatus, FAILED, "IO Error! " + ex.getMessage());
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (InterruptedException ex) {
-            logger.error(ex);
+            logger.error("" + ex);
             setJobStatusError(jobStatus, FAILED, "Job Interrupted! " + ex.getMessage());
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (ExecutionException ex) {
-            logger.error(ex);
+            logger.error("" + ex);
             setJobStatusError(jobStatus, FAILED, "Execution Error! " + ex.getMessage());
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         catch (Exception ex) {
-            logger.fatal("Unknown exception occurred!", ex);
+            logger.error(fatal, "Unknown exception occurred!", ex);
             setJobStatusError(jobStatus, FAILED, "Fatal Error! " + ex.getMessage());
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
@@ -638,7 +641,7 @@ public class JobBatchProcessor {
             logger.info("Sending email to " + mailer.getAdminEmail());
             mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
         }
-        catch (Exception ex2) { logger.fatal("Failed to send error email.. sheesh", ex2); }
+        catch (Exception ex2) { logger.error(fatal, "Failed to send error email.. sheesh", ex2); }
     }
 
     /**

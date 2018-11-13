@@ -13,9 +13,10 @@
         <link href="${pageContext.request.contextPath}/css/vendor/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
+        <sage:common></sage:common>
+        <sage:job></sage:job>
         <script src="${pageContext.request.contextPath}/js/vendor/fileuploader.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
         <script>
             downloadBaseUrl = "${downloadBaseUrl}";
         </script>

@@ -2,13 +2,11 @@ package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.util.Config;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 
 import java.net.HttpURLConnection;
@@ -18,7 +16,7 @@ import static org.junit.Assert.*;
 
 public class ProdReadinessTest {
 
-    private static Logger logger = Logger.getLogger(ProdReadinessTest.class);
+    private static Logger logger = LoggerFactory.getLogger(ProdReadinessTest.class);
 
     private Config config;
 

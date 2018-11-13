@@ -228,6 +228,8 @@ The available providers ordered from most accurate to least are:
 +=============+=============================================+=============+
 | google      | Free Google geocoding service               | 2500 a day  |
 +-------------+---------------------------------------------+-------------+
+| nysgeo      | NYS Geocoding service                       | Unlimited   |
++-------------+---------------------------------------------+-------------+
 | tiger       | In-database geocoding using census data     | Unlimited   |
 +-------------+---------------------------------------------+-------------+
 
@@ -239,6 +241,10 @@ Methods have the following optional parameters:
 | provider    | Specify which geocode provider to use first (see above table)                 |
 +-------------+-------------------------------------------------------------------------------+
 | useFallback | If false and provider is set, only the provider will be used for the request. |
++-------------+-------------------------------------------------------------------------------+
+| bypassCache | If set to true, then the geocode request will not use the cache for results   |
++-------------+-------------------------------------------------------------------------------+
+| uspsValidate| Specify if you want to usps correct a single geocode address                  |
 +-------------+-------------------------------------------------------------------------------+
 
 For example to use just yahoo without falling back to other providers in case of error::

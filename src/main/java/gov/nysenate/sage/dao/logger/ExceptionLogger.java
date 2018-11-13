@@ -4,8 +4,10 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.stereotype.Repository;
 
 import java.io.PrintWriter;
@@ -16,10 +18,12 @@ import java.sql.Timestamp;
 @Repository
 public class ExceptionLogger extends BaseDao
 {
-    private static Logger logger = LogManager.getLogger(ExceptionLogger.class);
+    private static Logger logger = LoggerFactory.getLogger(ExceptionLogger.class);
+    private static ApiRequestLogger apiRequestLogger = new ApiRequestLogger();
     private static String SCHEMA = "log";
     private static String TABLE = "exception";
     private QueryRunner run = getQueryRunner();
+    Marker fatal = MarkerFactory.getMarker("FATAL");
 
     /**
      * Logs an uncaught exception to the database.
@@ -40,7 +44,7 @@ public class ExceptionLogger extends BaseDao
             run.query(sql, new ReturnIdHandler(), apiRequestId, ex.getClass().getName(), ex.getMessage(), FormatUtil.toJsonString(sw.toString()), catchTime);
         }
         catch (SQLException ex2) {
-            logger.fatal("Failed to log unhandled exception!", ex2);
+            logger.error(fatal, "Failed to log unhandled exception!", ex2);
         }
     }
 }

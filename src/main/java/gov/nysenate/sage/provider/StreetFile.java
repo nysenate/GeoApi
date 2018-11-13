@@ -13,8 +13,8 @@ import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.service.street.StreetLookupService;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +38,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 @Service
 public class StreetFile implements DistrictService, StreetLookupService
 {
-    private Logger logger = LogManager.getLogger(StreetFile.class);
+    private Logger logger = LoggerFactory.getLogger(StreetFile.class);
     private StreetFileDao streetFileDao;
 
     @Autowired
@@ -110,11 +110,11 @@ public class StreetFile implements DistrictService, StreetLookupService
         }
         catch (SQLException ex) {
             districtResult.setStatusCode(DATABASE_ERROR);
-            logger.error(ex);
+            logger.error("" + ex);
         }
         catch (Exception ex) {
             districtResult.setStatusCode(INTERNAL_ERROR);
-            logger.error(ex);
+            logger.error("" + ex);
         }
 
         districtResult.setResultTime(new Timestamp(new Date().getTime()));

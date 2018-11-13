@@ -10,7 +10,8 @@
         <link href="${pageContext.request.contextPath}/css/vendor/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
-        <script src="${pageContext.request.contextPath}/js/job.js" type="text/javascript"></script>
+        <sage:common></sage:common>
+        <sage:job></sage:job>
     </jsp:attribute>
     <jsp:body>
         <sage:header>

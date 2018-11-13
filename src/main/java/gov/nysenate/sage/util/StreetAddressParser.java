@@ -3,10 +3,8 @@ package gov.nysenate.sage.util;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.StreetAddress;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -22,8 +20,7 @@ import java.util.regex.Pattern;
  */
 public abstract class StreetAddressParser
 {
-    public static boolean DEBUG = false;
-    public static Logger logger = LogManager.getLogger(StreetAddressParser.class);
+    public static Logger logger = LoggerFactory.getLogger(StreetAddressParser.class);
     public static final String SEP = "[ ,]+";
 
     public static Set<String> streetTypeSet = AddressDictionary.streetTypeMap.keySet();
@@ -32,16 +29,10 @@ public abstract class StreetAddressParser
     public static Set<String> dirSet = AddressDictionary.directionMap.keySet();
 
     public static String unitRegex;
-    public static String poBoxRegex;
-
     public static Pattern poBoxPattern = Pattern.compile("(?i)(?:PO|PO-|P\\.O|P\\.O\\.)\\s?(?:BOX)[#-:\\\\+]?\\s?(\\d+)");
 
     static {
         unitRegex = "(" + StringUtils.join(unitSet, "|") + ")";
-
-        if (!DEBUG) {
-            Configurator.setLevel(logger.getName(), Level.OFF);
-        }
     }
 
     /**

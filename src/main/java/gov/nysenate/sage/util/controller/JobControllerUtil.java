@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.model.job.JobRequest;
 import gov.nysenate.sage.model.job.JobUser;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,7 +16,7 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.JOB_REQUEST_ATTR;
 import static gov.nysenate.sage.util.controller.ConstantUtil.JOB_USER_ATTR;
 
 public class JobControllerUtil {
-    private static Logger logger = LogManager.getLogger(JobControllerUtil.class);
+    private static Logger logger = LoggerFactory.getLogger(JobControllerUtil.class);
     private static ObjectMapper jsonMapper = new ObjectMapper();
 
     public static boolean isAuthenticated(HttpServletRequest request)

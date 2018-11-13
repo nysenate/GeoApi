@@ -144,6 +144,12 @@ public class Environment {
 
     @Value("${geocache.buffer.size}") private int geocahceBufferSize;
 
+    @Value("${nys.geocoder.url}") private String nysGeocoderUrl;
+
+    @Value("${nys.geocode.ext}") private String nysGeocdeExtension;
+
+    @Value("${nys.revgeocode.ext}") private String nysRevGeocodeExtension;
+
     public Environment() {}
 
     @PostConstruct
@@ -693,5 +699,29 @@ public class Environment {
 
     public void setGoogleMapsKey(String googleMapsKey) {
         this.googleMapsKey = googleMapsKey;
+    }
+
+    public String getNysGeocoderUrl() {
+        return nysGeocoderUrl;
+    }
+
+    public void setNysGeocoderUrl(String nysGeocoderUrl) {
+        this.nysGeocoderUrl = nysGeocoderUrl;
+    }
+
+    public String getNysGeocdeExtension() {
+        return nysGeocdeExtension;
+    }
+
+    public void setNysGeocdeExtension(String nysGeocdeExtension) {
+        this.nysGeocdeExtension = nysGeocdeExtension;
+    }
+
+    public String getNysRevGeocodeExtension() {
+        return nysRevGeocodeExtension;
+    }
+
+    public void setNysRevGeocodeExtension(String nysRevGeocodeExtension) {
+        this.nysRevGeocodeExtension = nysRevGeocodeExtension;
     }
 }

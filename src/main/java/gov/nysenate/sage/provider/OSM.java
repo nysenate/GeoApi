@@ -16,10 +16,10 @@ import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -33,7 +33,7 @@ import java.util.Observer;
 public class OSM extends BaseDao implements GeocodeService, Observer
 {
     private static final String DEFAULT_BASE_URL = "http://open.mapquestapi.com/nominatim/v1/search";
-    private final Logger logger = LogManager.getLogger(OSM.class);
+    private final Logger logger = LoggerFactory.getLogger(OSM.class);
     private Config config;
     private ObjectMapper objectMapper;
     private String baseUrl;
@@ -68,7 +68,7 @@ public class OSM extends BaseDao implements GeocodeService, Observer
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Ensure that the geocoder is active, otherwise return error result. */
-        if (!geocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
             return geocodeResult;
         }
 
