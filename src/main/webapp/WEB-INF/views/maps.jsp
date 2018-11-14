@@ -1,11 +1,13 @@
 <%@ page import="gov.nysenate.sage.factory.ApplicationFactory" %>
+<%@ page import="gov.nysenate.sage.config.Environment" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 <%
-    String googleMapsUrl = ApplicationFactory.getConfig().getValue("google.maps.url");
-    String googleMapsKey = ApplicationFactory.getConfig().getValue("google.maps.key");
+    Environment env = new Environment();
+    String googleMapsUrl = env.getGoogleMapsUrl();
+    String googleMapsKey = env.getGoogleMapsKey();
 
     if (googleMapsKey != null && !googleMapsKey.equals("")) {
         googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
