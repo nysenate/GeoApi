@@ -40,6 +40,7 @@ public class WebInitializer implements WebApplicationInitializer
     public void onStartup(ServletContext servletContext) throws ServletException {
         /** Create the root Spring application context. */
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
+        rootContext.scan("gov.nysenate");
 
         /** Manage the lifecycle of the root application context. */
         servletContext.addListener(new ContextLoaderListener(rootContext));
