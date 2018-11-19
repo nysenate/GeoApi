@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import java.sql.SQLException;
 
 @Repository
-public class GeocodeRequestLogger extends BaseDao
+public class GeocodeRequestLogger
 {
     private static AddressLogger addressLogger;
     private static PointLogger pointLogger;
@@ -23,12 +23,15 @@ public class GeocodeRequestLogger extends BaseDao
     private static String SCHEMA = "log";
     private static String TABLE = "geocodeRequest";
 
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
 
     @Autowired
-    public GeocodeRequestLogger(AddressLogger addressLogger, PointLogger pointLogger) {
+    public GeocodeRequestLogger(AddressLogger addressLogger, PointLogger pointLogger, BaseDao baseDao) {
         this.addressLogger = addressLogger;
-        this.pointLogger =pointLogger;
+        this.pointLogger = pointLogger;
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
     }
 
     /**

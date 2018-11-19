@@ -24,7 +24,7 @@ public class Environment {
 
     @Value("${api.logging.enabled}") private boolean apiLoggingEnabled;
 
-    @Value("$(detailed.logging.enabled)") private boolean detailedLoggingEnabled;
+    @Value("${detailed.logging.enabled}") private boolean detailedLoggingEnabled;
 
     @Value("${batch.detailed.logging.enabled}") private boolean batchDetailedLoggingEnabled;
 
@@ -56,7 +56,7 @@ public class Environment {
 
     @Value("${geocoder.failure.threshold}") private int geocoderFailureThreshold;
 
-    @Value("{geocoder.retry.interval}") private int geocoderRetryInterval;
+    @Value("${geocoder.retry.interval}") private int geocoderRetryInterval;
 
     @Value("${tiger.geocoder.timeout}") private int tigerGeocoderTimeout;
 

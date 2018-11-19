@@ -1,6 +1,5 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.map.MapResponse;
 import gov.nysenate.sage.client.response.map.MetadataResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapResponse;
@@ -8,11 +7,8 @@ import gov.nysenate.sage.client.response.map.MultipleMetadataResponse;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
-import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.DistrictShapefile;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
-import gov.nysenate.sage.service.map.MapService;
-import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -22,11 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
@@ -37,10 +30,12 @@ public class MapController
 {
     private static Logger logger = LoggerFactory.getLogger(MapController.class);
     private DistrictShapefile districtShapefile;
+    private DistrictMemberProvider districtMemberProvider;
 
     @Autowired
-    public MapController(DistrictShapefile districtShapefile) {
+    public MapController(DistrictShapefile districtShapefile, DistrictMemberProvider districtMemberProvider) {
         this.districtShapefile = districtShapefile;
+        this.districtMemberProvider = districtMemberProvider;
     }
 
     @RequestMapping(value = "/senate", method = RequestMethod.GET)
@@ -121,7 +116,7 @@ public class MapController
             logger.info("Retrieving " + districtType.name() + " district " + districtCode + " map.");
             mapResult = districtShapefile.getDistrictMap(districtType, districtCode);
             if (showMembers || meta) {
-                DistrictMemberProvider.assignDistrictMembers(mapResult);
+                districtMemberProvider.assignDistrictMembers(mapResult);
             }
             mapResponse = (meta) ? new MetadataResponse(mapResult) : new MapResponse(mapResult);
         }
@@ -129,7 +124,7 @@ public class MapController
             logger.info("Retrieving all " + districtType.name() + " district maps.");
             mapResult = districtShapefile.getDistrictMaps(districtType);
             if (showMembers || meta) {
-                DistrictMemberProvider.assignDistrictMembers(mapResult);
+                districtMemberProvider.assignDistrictMembers(mapResult);
             }
             mapResponse = (meta) ? new MultipleMetadataResponse(mapResult) : new MultipleMapResponse(mapResult);
         }

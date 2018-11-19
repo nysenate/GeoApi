@@ -8,6 +8,7 @@ import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
@@ -16,14 +17,21 @@ import java.sql.SQLException;
  * AdminUserDao provides database persistence for the AdminUser model.
  */
 @Repository
-public class AdminUserDao extends BaseDao
+public class AdminUserDao
 {
     private Logger logger = LoggerFactory.getLogger(AdminUserDao.class);
     private ResultSetHandler<AdminUser> handler = new BeanHandler<>(AdminUser.class);
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
 
     private static String SCHEMA = "public";
     private static String TABLE = "admin";
+
+    @Autowired
+    public AdminUserDao(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
+    }
 
     /**
      * Check if the admin user credentials are valid.

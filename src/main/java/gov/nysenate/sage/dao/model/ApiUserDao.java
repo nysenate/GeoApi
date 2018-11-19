@@ -6,6 +6,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -17,12 +18,19 @@ import java.util.List;
  * ApiUserDao provides database persistence for the ApiUser model.
  */
 @Repository
-public class ApiUserDao extends BaseDao
+public class ApiUserDao
 {
     private Logger logger = LoggerFactory.getLogger(ApiUserDao.class);
     private ResultSetHandler<ApiUser> handler = new BeanHandler<>(ApiUser.class);
     private ResultSetHandler<List<ApiUser>> listHandler = new BeanListHandler<>(ApiUser.class);
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
+
+    @Autowired
+    public ApiUserDao(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
+    }
 
     /**
      * Retrieves an ApiUser from the database by key.

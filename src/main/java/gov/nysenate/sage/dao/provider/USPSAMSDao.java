@@ -28,9 +28,9 @@ import java.util.*;
  * lookups.
  */
 @Repository
-public class USPSAMSDao extends BaseDao implements Observer
+public class USPSAMSDao implements Observer
 {
-    private final Config config = getConfig();
+    private final Config config;
     private Environment env;
     private static String DEFAULT_BASE_URL = "";
     private static String VALIDATE_METHOD = "validate";
@@ -39,10 +39,14 @@ public class USPSAMSDao extends BaseDao implements Observer
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static ObjectMapper objectMapper = new ObjectMapper();
 
+    private BaseDao baseDao;
+
     @Autowired
-    public USPSAMSDao(Environment env)
+    public USPSAMSDao(Environment env, BaseDao baseDao)
     {
         this.env = env;
+        this.baseDao = baseDao;
+        this.config = this.baseDao.getConfig();
         this.update(null, null);
         config.notifyOnChange(this);
     }

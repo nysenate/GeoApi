@@ -17,17 +17,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Repository
-public class ApiUserStatsDao extends BaseDao
+public class ApiUserStatsDao
 {
     private static Logger logger = LoggerFactory.getLogger(ApiUserStatsDao.class);
-    private static ApiUserDao apiUserDao;
+    private ApiUserDao apiUserDao;
+    private BaseDao baseDao;
+    private QueryRunner run;
 
     @Autowired
-    public ApiUserStatsDao(ApiUserDao apiUserDao) {
+    public ApiUserStatsDao(ApiUserDao apiUserDao, BaseDao baseDao) {
         this.apiUserDao = apiUserDao;
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
     }
-
-    private QueryRunner run = getQueryRunner();
 
     public Map<Integer, ApiUserStats> getRequestCounts(Timestamp from, Timestamp to)
     {
@@ -48,7 +50,7 @@ public class ApiUserStatsDao extends BaseDao
                 "GROUP BY ar.apiUserId, s.name, rt.name\n" +
                 "ORDER BY ar.apiUserId, service, method";
         try {
-            Map<Integer, ApiUserStats> apiUserStatsMap = run.query(requestCounts, new RequestCountHandler(), from, to);
+            Map<Integer, ApiUserStats> apiUserStatsMap = run.query(requestCounts, new RequestCountHandler(apiUserDao), from, to);
             return run.query(methodCounts, new MethodRequestCountHandler(apiUserStatsMap), from, to);
         }
         catch (SQLException ex) {
@@ -78,6 +80,12 @@ public class ApiUserStatsDao extends BaseDao
 
     public static class RequestCountHandler implements ResultSetHandler<Map<Integer, ApiUserStats>>
     {
+        private ApiUserDao apiUserDao;
+
+        public RequestCountHandler(ApiUserDao apiUserDao) {
+            this.apiUserDao = apiUserDao;
+        }
+
         @Override
         public Map<Integer, ApiUserStats> handle(ResultSet rs) throws SQLException {
             Map<Integer, ApiUserStats> requestCountMap = new HashMap<>();

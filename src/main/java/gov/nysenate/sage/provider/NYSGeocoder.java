@@ -8,17 +8,32 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.*;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
+@Component
 public class NYSGeocoder implements GeocodeService, RevGeocodeService {
 
     private static final Logger logger = LoggerFactory.getLogger(NYSGeocoder.class);
 
     private NYSGeoDao nysGeoDao;
+    private GeocodeServiceValidator geocodeServiceValidator;
+    private RevGeocodeServiceValidator revGeocodeServiceValidator;
+    private ParallelGeocodeService parallelGeocodeService;
+    private ParallelRevGeocodeService parallelRevGeocodeService;
 
-    public NYSGeocoder() {
-        nysGeoDao = new NYSGeoDao();
+    @Autowired
+    public NYSGeocoder(NYSGeoDao nysGeoDao, GeocodeServiceValidator geocodeServiceValidator,
+                       RevGeocodeServiceValidator revGeocodeServiceValidator,
+                       ParallelGeocodeService parallelGeocodeService,
+                       ParallelRevGeocodeService parallelRevGeocodeService) {
+        this.nysGeoDao = nysGeoDao;
+        this.geocodeServiceValidator = geocodeServiceValidator;
+        this.revGeocodeServiceValidator = revGeocodeServiceValidator;
+        this.parallelGeocodeService = parallelGeocodeService;
+        this.parallelRevGeocodeService = parallelRevGeocodeService;
         logger.debug("Instantiated NYS Geocoder");
     }
 
@@ -31,12 +46,12 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Ensure that the geocoder is active, otherwise return error result. */
-        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+        if (!geocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
             return geocodeResult;
         }
 
         /** Proceed only on valid input */
-        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
+        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
             return geocodeResult;
         }
 
@@ -44,7 +59,7 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
         GeocodedAddress geocodedAddress = this.nysGeoDao.getGeocodedAddress(address);
 
         /** Validate and set result */
-        if (!GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
+        if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
             logger.warn("Failed to geocode " + address.toString() + " using NYS Geocoder!");
         }
 
@@ -54,7 +69,7 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        return ParallelGeocodeService.geocode(this, addresses);
+        return parallelGeocodeService.geocode(this, addresses);
     }
 
     @Override
@@ -63,7 +78,7 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Validate the input */
-        if (!RevGeocodeServiceValidator.validateRevGeocodeInput(point, geocodeResult)) {
+        if (!revGeocodeServiceValidator.validateRevGeocodeInput(point, geocodeResult)) {
             return geocodeResult;
         }
 
@@ -71,7 +86,7 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
         GeocodedAddress revGeocodedAddress = this.nysGeoDao.getGeocodedAddress(point);
 
         /** Validate and set response */
-        if (!RevGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {
+        if (!revGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {
             logger.debug("Reverse geocode failed for point " + point + " using NYS Geocoder");
         }
         return geocodeResult;
@@ -80,6 +95,6 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
     @Override
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {
-        return ParallelRevGeocodeService.reverseGeocode(this, points);
+        return parallelRevGeocodeService.reverseGeocode(this, points);
     }
 }

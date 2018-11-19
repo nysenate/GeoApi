@@ -6,6 +6,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -17,14 +18,21 @@ import java.util.List;
  * JobUserDao provides database persistence for the JobUser model.
  */
 @Repository
-public class JobUserDao extends BaseDao
+public class JobUserDao
 {
     private String SCHEMA = "job";
     private String TABLE = "user";
     private Logger logger = LoggerFactory.getLogger(JobUserDao.class);
     private ResultSetHandler<JobUser> handler = new BeanHandler<>(JobUser.class);
     private ResultSetHandler<List<JobUser>> listHandler = new BeanListHandler<>(JobUser.class);
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
+
+    @Autowired
+    public JobUserDao(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
+    }
 
     public List<JobUser> getJobUsers()
     {

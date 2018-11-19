@@ -6,6 +6,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -16,11 +17,19 @@ import java.sql.Timestamp;
  * Retrieves stats pertaining to geocoder usage.
  */
 @Repository
-public class GeocodeStatsDao extends BaseDao
+public class GeocodeStatsDao
 {
     private static Logger logger = LoggerFactory.getLogger(GeocodeStatsDao.class);
-    private DeploymentStatsDao deploymentStatsDao = new DeploymentStatsDao();
-    private QueryRunner run = getQueryRunner();
+    private DeploymentStatsDao deploymentStatsDao;
+    private BaseDao baseDao;
+    private QueryRunner run;
+
+    @Autowired
+    public GeocodeStatsDao(BaseDao baseDao, DeploymentStatsDao deploymentStatsDao) {
+        this.baseDao = baseDao;
+        this.deploymentStatsDao = deploymentStatsDao;
+        run = this.baseDao.getQueryRunner();
+    }
 
     /**
      * Retrieve geocode stats within a specified time frame.

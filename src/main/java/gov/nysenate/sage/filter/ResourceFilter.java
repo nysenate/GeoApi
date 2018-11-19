@@ -2,11 +2,10 @@ package gov.nysenate.sage.filter;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.util.Config;
-import org.apache.log4j.xml.DOMConfigurator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-//import org.apache.log4j.xml.DOMConfigurator;
 
 import javax.servlet.*;
 import java.io.File;
@@ -16,15 +15,22 @@ import java.io.IOException;
  * ResourceFilter is used to refresh the configuration properties stored in resource files.
  */
 @Component
-public class ResourceFilter extends BaseDao implements Filter
+public class ResourceFilter implements Filter
 {
-    private Config config = getConfig();
+    private Config config;
     private final Logger logger = LoggerFactory.getLogger(ResourceFilter.class);
     private String log4jConfigFileName = "log4j2.xml";
     private File log4jConfigFile;
     private long timeLoaded;
     private long lastChecked;
     private final long checkInterval = 2000;
+    private BaseDao baseDao;
+
+    @Autowired
+    public ResourceFilter(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        this.config = this.baseDao.getConfig();
+    }
 
     /**
      * Initialize the log4j config file.
@@ -48,33 +54,8 @@ public class ResourceFilter extends BaseDao implements Filter
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
     {
         config.refresh();
-//        log4jRefresh();
         chain.doFilter(request, response);
     }
-
-    /**
-     * Reloads the log4j configuration if check interval has elapsed and the file has been modified.
-     * This isn't necessarily 100% safe. Log messages from other threads could potentially be dropped
-     * while reloading.
-     *
-     * Unfortunately, log4j 1.2 doesn't have a better way since configureAndWatch is unsafe for
-     * J2EE environments. It opens a FileWatchdog thread that is impossible to close and results in
-     * leaking when the context is reloaded.
-     */
-//    private synchronized void log4jRefresh()
-//    {
-//        if (System.currentTimeMillis() - lastChecked > checkInterval)
-//        {
-//            lastChecked = System.currentTimeMillis();
-//            if (log4jConfigFile.lastModified() > timeLoaded)
-//            {
-//                logger.info("Reloading logger configuration...");
-//                DOMConfigurator.configure(log4jConfigFile.getAbsolutePath());
-//                timeLoaded = System.currentTimeMillis();
-//            }
-//        }
-//    }
-
     public void destroy()
     {
         logger.debug("Destroying ResourceFilter.");

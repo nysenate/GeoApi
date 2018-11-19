@@ -34,19 +34,22 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
  * is required to perform district assignment using this implementation.
  */
 @Service
-public class Geoserver extends BaseDao implements DistrictService, Observer
+public class Geoserver implements DistrictService, Observer
 {
     private static Logger logger = LoggerFactory.getLogger(Geoserver.class);
     private GeoserverDao geoserverDao;
     private Config config;
     private boolean fetchMaps = false;
+    private BaseDao baseDao;
 
-    @Autowired ParallelDistrictService parallelDistrictService;
+    private ParallelDistrictService parallelDistrictService;
 
-    public Geoserver()
+    public Geoserver(GeoserverDao geoserverDao, BaseDao baseDao, ParallelDistrictService parallelDistrictService)
     {
-        this.geoserverDao = new GeoserverDao();
-        this.config = getConfig();
+        this.geoserverDao = geoserverDao;
+        this.baseDao = baseDao;
+        this.parallelDistrictService = parallelDistrictService;
+        this.config = this.baseDao.getConfig();
         this.config.notifyOnChange(this);
         configure();
         logger.debug("Geoserver instantiated");

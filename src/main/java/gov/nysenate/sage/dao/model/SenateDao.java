@@ -19,10 +19,10 @@ import java.sql.Timestamp;
 import java.util.*;
 
 @Repository
-public class SenateDao extends BaseDao implements Observer
+public class SenateDao implements Observer
 {
     private static Logger logger = LoggerFactory.getLogger(SenateDao.class);
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
 
     /** Mapper used to serialize into json */
     private ObjectMapper mapper = new ObjectMapper();
@@ -32,7 +32,8 @@ public class SenateDao extends BaseDao implements Observer
     protected static Integer refreshIntervalHours = 12;
     protected static Timestamp cacheUpdated;
 
-    private final Environment env;
+    private Environment env;
+    private BaseDao baseDao;
 
     @Override
     public void update(Observable o, Object arg) {
@@ -68,9 +69,11 @@ public class SenateDao extends BaseDao implements Observer
     }
 
     @Autowired
-    public SenateDao(Environment env)
+    public SenateDao(Environment env, BaseDao baseDao)
     {
         this.env = env;
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
         getSenatorMap();
         update(null, null);
     }

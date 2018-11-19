@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.PrintWriter;
@@ -16,14 +17,22 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 @Repository
-public class ExceptionLogger extends BaseDao
+public class ExceptionLogger
 {
     private static Logger logger = LoggerFactory.getLogger(ExceptionLogger.class);
-    private static ApiRequestLogger apiRequestLogger = new ApiRequestLogger();
+    private ApiRequestLogger apiRequestLogger;
+    private BaseDao baseDao;
     private static String SCHEMA = "log";
     private static String TABLE = "exception";
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
     Marker fatal = MarkerFactory.getMarker("FATAL");
+
+    @Autowired
+    public ExceptionLogger(BaseDao baseDao, ApiRequestLogger apiRequestLogger) {
+        this.apiRequestLogger = apiRequestLogger;
+        this.baseDao = baseDao;
+        run = baseDao.getQueryRunner();
+    }
 
     /**
      * Logs an uncaught exception to the database.

@@ -25,7 +25,7 @@ import java.util.Map;
 public class AddressServiceProvider extends ServiceProviders<AddressService>
 {
     private static Logger logger = LoggerFactory.getLogger(AddressServiceProvider.class);
-    private AddressLogger addressLogger = new AddressLogger();;
+    private AddressLogger addressLogger;
     private Environment env;
 
     private boolean API_LOGGING_ENABLED = false;

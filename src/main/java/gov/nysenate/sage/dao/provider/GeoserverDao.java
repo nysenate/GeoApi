@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ import static gov.nysenate.sage.model.district.DistrictType.COUNTY;
  * http://docs.geoserver.org/stable/en/user/services/wfs/reference.html
  */
 @Repository
-public class GeoserverDao extends BaseDao
+public class GeoserverDao
 {
     private static final String DEFAULT_BASE_URL = "http://geoserver.nysenate.gov:8080/wfs";
     private static final String DEFAULT_WORKSPACE = "nysenate";
@@ -42,9 +43,15 @@ public class GeoserverDao extends BaseDao
     private String baseUrl = "";    // Location of geoserver e.g http://localhost:8080/geoserver
     private String workspace = "";  // Geoserver workspace for the shapefiles e.g nysenate
 
-    public GeoserverDao() {
+    private CountyDao countyDao;
+    private BaseDao baseDao;
+
+    @Autowired
+    public GeoserverDao(BaseDao baseDao, CountyDao countyDao) {
+        this.baseDao = baseDao;
+        this.countyDao = countyDao;
         this.mapper = new ObjectMapper();
-        this.fipsCountyMap = new CountyDao().getFipsCountyMap();
+        this.fipsCountyMap = this.countyDao.getFipsCountyMap();
     }
 
     public void setBaseUrl(String baseUrl) {

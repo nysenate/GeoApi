@@ -31,13 +31,14 @@ import java.util.*;
  * overlaps and intersections between districts.
  */
 @Repository
-public class DistrictShapefileDao extends BaseDao
+public class DistrictShapefileDao
 {
     private static final String SCHEMA = "districts";
     private final Logger logger = LoggerFactory.getLogger(DistrictShapefileDao.class);
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
 
-    private static CountyDao countyDao = new CountyDao();
+    private BaseDao baseDao;
+    private CountyDao countyDao;
 
     /** Memory Cached District Maps */
     private static Map<DistrictType, List<DistrictMap>> districtMapCache;
@@ -51,7 +52,10 @@ public class DistrictShapefileDao extends BaseDao
     }
 
     @Autowired
-    public DistrictShapefileDao() {
+    public DistrictShapefileDao(BaseDao baseDao, CountyDao countyDao) {
+        this.baseDao = baseDao;
+        this.countyDao = countyDao;
+        run = this.baseDao.getQueryRunner();
         /** Initialize district map cache */
         if (!cacheDistrictMaps()) {
             throw new RuntimeException("Failed to initialize district map cache");
@@ -182,7 +186,7 @@ public class DistrictShapefileDao extends BaseDao
         String whereSql = StringUtils.join(whereCodeList, " OR ");
         String sql = String.format(sqlTmpl, resolveCodeColumn(districtType), districtType.name(), resolveSRID(districtType), whereSql);
         try {
-            return run.query(sql, new StreetLineIntersectHandler(), jsonGeom);
+            return run.query(sql, new StreetLineIntersectHandler(this.baseDao), jsonGeom);
         }
         catch (SQLException ex) {
             logger.error("Failed to retrieve intersecting district street lines!", ex);
@@ -464,13 +468,19 @@ public class DistrictShapefileDao extends BaseDao
 
     private class StreetLineIntersectHandler implements ResultSetHandler<Map<String, List<Line>>>
     {
+        BaseDao baseDao;
+
+        public StreetLineIntersectHandler(BaseDao baseDao) {
+            this.baseDao = baseDao;
+        }
+
         @Override
         public Map<String, List<Line>> handle(ResultSet rs) throws SQLException
         {
             Map<String, List<Line>> intersectMap = new HashMap<>();
             while (rs.next()) {
                 String code = getDistrictCode(rs);
-                List<Line> lines = getLinesFromJson(rs.getString("street_intersect"));
+                List<Line> lines = this.baseDao.getLinesFromJson(rs.getString("street_intersect"));
                 intersectMap.put(code, lines);
             }
             return intersectMap;

@@ -41,14 +41,32 @@ public class AdminApiController
     private ApiUserStatsDao apiUserStatsDao;
     private ApiUsageStatsDao apiUsageStatsDao;
     private DeploymentStatsDao deploymentStatsDao;
+    private ExceptionInfoDao exceptionInfoDao;
+    private ApiUserDao apiUserDao;
+    private JobUserDao jobUserDao;
+    private GeocodeStatsDao geocodeStatsDao;
+    private JobProcessDao jobProcessDao;
+    private ApiUserAuth apiUserAuth;
+    private JobUserAuth jobUserAuth;
 
     @Autowired
     public AdminApiController(ApiRequestLogger apiRequestLogger, ApiUserStatsDao apiUserStatsDao,
-                              ApiUsageStatsDao apiUsageStatsDao, DeploymentStatsDao deploymentStatsDao) {
+                              ApiUsageStatsDao apiUsageStatsDao, DeploymentStatsDao deploymentStatsDao,
+                              ExceptionInfoDao exceptionInfoDao, ApiUserDao apiUserDao,
+                              JobUserDao jobUserDao, GeocodeStatsDao geocodeStatsDao,
+                              JobProcessDao jobProcessDao, ApiUserAuth apiUserAuth, JobUserAuth jobUserAuth) {
         this.apiRequestLogger = apiRequestLogger;
         this.apiUserStatsDao = apiUserStatsDao;
         this.apiUsageStatsDao = apiUsageStatsDao;
         this.deploymentStatsDao = deploymentStatsDao;
+        this.exceptionInfoDao = exceptionInfoDao;
+        this.apiUserDao = apiUserDao;
+        this.jobUserDao = jobUserDao;
+        this.geocodeStatsDao = geocodeStatsDao;
+        this.jobProcessDao = jobProcessDao;
+        this.apiUserAuth = apiUserAuth;
+        this.jobUserAuth = jobUserAuth;
+
     }
 
     @RequestMapping(value = "/currentApiUsers", method = RequestMethod.GET)
@@ -229,7 +247,6 @@ public class AdminApiController
      */
     private List getCurrentApiUsers(HttpServletRequest request)
     {
-        ApiUserDao apiUserDao = new ApiUserDao();
         return apiUserDao.getApiUsers();
     }
 
@@ -240,7 +257,6 @@ public class AdminApiController
      */
     private List getCurrentJobUsers(HttpServletRequest request)
     {
-        JobUserDao jobUserDao = new JobUserDao();
         return jobUserDao.getJobUsers();
     }
 
@@ -256,7 +272,6 @@ public class AdminApiController
         String desc = request.getParameter("desc");
 
         if (name != null && !name.isEmpty()) {
-            ApiUserAuth apiUserAuth = new ApiUserAuth();
             ApiUser apiUser = apiUserAuth.addApiUser(name, desc);
             if (apiUser != null) {
                 response = new GenericResponse(true, "Added new API User with id " + apiUser.getId());
@@ -281,7 +296,6 @@ public class AdminApiController
         GenericResponse response;
         try {
             int id = Integer.parseInt(request.getParameter("id"));
-            ApiUserDao apiUserDao = new ApiUserDao();
             ApiUser apiUserToRemove = apiUserDao.getApiUserById(id);
             if (apiUserToRemove != null) {
                 apiUserDao.removeApiUser(apiUserToRemove);
@@ -312,7 +326,6 @@ public class AdminApiController
         Boolean isAdmin = Boolean.parseBoolean(request.getParameter("admin"));
 
         if (email != null && !email.isEmpty() && password != null && !password.isEmpty()) {
-            JobUserAuth jobUserAuth = new JobUserAuth();
             JobUser jobUser = jobUserAuth.addActiveJobUser(email, password, firstName, lastName, isAdmin);
             if (jobUser != null) {
                 response = new GenericResponse(true, "Job User added with id: " + jobUser.getId());
@@ -337,7 +350,6 @@ public class AdminApiController
         GenericResponse response;
         try {
             int id = Integer.parseInt(request.getParameter("id"));
-            JobUserDao jobUserDao = new JobUserDao();
             JobUser jobUserToDelete = jobUserDao.getJobUserById(id);
             if (jobUserToDelete != null) {
                 int status = jobUserDao.removeJobUser(jobUserToDelete);
@@ -399,13 +411,12 @@ public class AdminApiController
      */
     private GeocodeStats getGeocodeUsageStats(HttpServletRequest request)
     {
-        GeocodeStatsDao gsd = new GeocodeStatsDao();
         Integer sinceDays = null;
         try {
             sinceDays = Integer.parseInt(request.getParameter("sinceDays"));
         }
         catch (NumberFormatException ex) {}
-        return gsd.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
+        return geocodeStatsDao.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
     }
 
     /**
@@ -418,10 +429,9 @@ public class AdminApiController
     {
         List<JobProcessStatus> statuses = new ArrayList<>();
         List<JobProcessStatusView> statusViews = new ArrayList<>();
-        JobProcessDao jpd = new JobProcessDao();
         Timestamp from = getBeginTimestamp(request);
         Timestamp to = getEndTimestamp(request);
-        statuses = jpd.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), null, from, to);
+        statuses = jobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), null, from, to);
         for (JobProcessStatus jobProcessStatus : statuses) {
             statusViews.add(new JobProcessStatusView(jobProcessStatus));
         }
@@ -435,7 +445,6 @@ public class AdminApiController
 
     private List<ExceptionInfo> getExceptionStats(HttpServletRequest request)
     {
-        ExceptionInfoDao exceptionInfoDao = new ExceptionInfoDao();
         return exceptionInfoDao.getExceptionInfoList(true);
     }
 
@@ -453,7 +462,6 @@ public class AdminApiController
         catch (NumberFormatException ex) {
             return new GenericResponse(false, "Must supply a valid exception id to hide!");
         }
-        ExceptionInfoDao exceptionInfoDao = new ExceptionInfoDao();
         int update = exceptionInfoDao.hideExceptionInfo(id);
         return (update > 0) ? new GenericResponse(true, "Exception hidden")
                             : new GenericResponse(false, "Failed to hide exception!");

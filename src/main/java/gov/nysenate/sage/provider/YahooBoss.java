@@ -9,6 +9,7 @@ import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,10 +22,16 @@ public class YahooBoss implements GeocodeService
 {
     private final Logger logger = LoggerFactory.getLogger(YahooBoss.class);
     private YahooBossDao yahooBossDao;
+    private GeocodeServiceValidator geocodeServiceValidator;
+    private ParallelGeocodeService parallelGeocodeService;
 
-    public YahooBoss()
+    @Autowired
+    public YahooBoss(YahooBossDao yahooBossDao, GeocodeServiceValidator geocodeServiceValidator,
+                     ParallelGeocodeService parallelGeocodeService)
     {
-        this.yahooBossDao = new YahooBossDao();
+        this.yahooBossDao = yahooBossDao;
+        this.geocodeServiceValidator = geocodeServiceValidator;
+        this.parallelGeocodeService = parallelGeocodeService;
     }
 
     /**
@@ -38,12 +45,12 @@ public class YahooBoss implements GeocodeService
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Ensure that the geocoder is active, otherwise return error result. */
-        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+        if (!geocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
             return geocodeResult;
         }
 
         /** Proceed if valid address */
-        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
+        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
             return geocodeResult;
         }
 
@@ -51,7 +58,7 @@ public class YahooBoss implements GeocodeService
         GeocodedAddress geocodedAddress = this.yahooBossDao.getGeocodedAddress(address);
 
         /** Validate and set result */
-        if (!GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
+        if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
             logger.warn("Failed to geocode " + address.toString() + " using Yahoo Boss!");
         }
         return geocodeResult;
@@ -65,6 +72,6 @@ public class YahooBoss implements GeocodeService
     */
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        return ParallelGeocodeService.geocode(this, addresses);
+        return parallelGeocodeService.geocode(this, addresses);
     }
 }

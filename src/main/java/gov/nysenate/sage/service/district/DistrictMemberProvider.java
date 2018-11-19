@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.district.DistrictOverlap;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.services.model.Senator;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,15 +23,28 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  * the district members and the senator information. Since this information is not always required, this
  * functionality should be invoked through a controller as opposed to the provider implementations.
  */
-public abstract class DistrictMemberProvider
+@Component
+public class DistrictMemberProvider
 {
+    private Environment env;
+    private SenateDao senateDao;
+    private AssemblyDao assemblyDao;
+    private CongressionalDao congressionalDao;
+
+    public DistrictMemberProvider(Environment env, SenateDao senateDao, AssemblyDao assemblyDao,
+                                  CongressionalDao congressionalDao) {
+        this.env = env;
+        this.senateDao = senateDao;
+        this.assemblyDao = assemblyDao;
+        this.congressionalDao = congressionalDao;
+    }
+
     /**
      * Sets the senator, congressional, and assembly member data to the district result.
      * @param districtResult
      */
-    public static void assignDistrictMembers(DistrictResult districtResult)
+    public void assignDistrictMembers(DistrictResult districtResult)
     {
-        SenateDao senateDao = new SenateDao(new Environment());
 
         /** Proceed on either a success or partial result */
         if (districtResult.isSuccess()) {
@@ -43,11 +57,11 @@ public abstract class DistrictMemberProvider
                 }
                 if (districtInfo.hasDistrictCode(CONGRESSIONAL)) {
                     int congressionalCode = Integer.parseInt(districtInfo.getDistCode(CONGRESSIONAL));
-                    districtInfo.setDistrictMember(CONGRESSIONAL, new CongressionalDao().getCongressionalByDistrict(congressionalCode));
+                    districtInfo.setDistrictMember(CONGRESSIONAL, congressionalDao.getCongressionalByDistrict(congressionalCode));
                 }
                 if (districtInfo.hasDistrictCode(ASSEMBLY)) {
                     int assemblyCode = Integer.parseInt(districtInfo.getDistCode(ASSEMBLY));
-                    districtInfo.setDistrictMember(ASSEMBLY, new AssemblyDao().getAssemblyByDistrict(assemblyCode));
+                    districtInfo.setDistrictMember(ASSEMBLY, assemblyDao.getAssemblyByDistrict(assemblyCode));
                 }
 
                 /** Fill in neighbor district senator info */
@@ -75,21 +89,21 @@ public abstract class DistrictMemberProvider
      * Sets the senator, congressional, and assembly member data to the map result.
      * @param mapResult
      */
-    public static void assignDistrictMembers(MapResult mapResult)
+    public void assignDistrictMembers(MapResult mapResult)
     {
         if (mapResult != null && mapResult.isSuccess()) {
             for (DistrictMap map : mapResult.getDistrictMaps()) {
                 if (map.getDistrictType().equals(SENATE)) {
                     int senateCode = Integer.parseInt(map.getDistrictCode());
-                    map.setSenator(new SenateDao(new Environment()).getSenatorByDistrict(senateCode));
+                    map.setSenator(senateDao.getSenatorByDistrict(senateCode));
                 }
                 else if (map.getDistrictType().equals(CONGRESSIONAL)) {
                     int congressionalCode = Integer.parseInt(map.getDistrictCode());
-                    map.setMember(new CongressionalDao().getCongressionalByDistrict(congressionalCode));
+                    map.setMember(congressionalDao.getCongressionalByDistrict(congressionalCode));
                 }
                 else if (map.getDistrictType().equals(ASSEMBLY)) {
                     int assemblyCode = Integer.parseInt(map.getDistrictCode());
-                    map.setMember(new AssemblyDao().getAssemblyByDistrict(assemblyCode));
+                    map.setMember(assemblyDao.getAssemblyByDistrict(assemblyCode));
                 }
             }
         }

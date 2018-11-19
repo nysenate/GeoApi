@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 
 @Repository
-public class DistrictResultLogger extends BaseDao
+public class DistrictResultLogger
 {
     private static Logger logger = LoggerFactory.getLogger(DistrictResultLogger.class);
     private static DistrictRequestLogger distRequestLogger;
@@ -31,11 +31,14 @@ public class DistrictResultLogger extends BaseDao
     private static String TABLE = "districtResult";
     private static Boolean SAVE_LOCK = false;
 
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
 
     @Autowired
-    public DistrictResultLogger(DistrictRequestLogger distRequestLogger) {
+    public DistrictResultLogger(DistrictRequestLogger distRequestLogger, BaseDao baseDao) {
         this.distRequestLogger = distRequestLogger;
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
     }
 
     /** Batch cache */

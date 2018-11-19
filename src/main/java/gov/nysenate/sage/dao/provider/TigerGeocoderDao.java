@@ -31,15 +31,18 @@ import java.util.*;
  * http://postgis.net/docs/Extras.html
  */
 @Repository
-public class TigerGeocoderDao extends BaseDao implements Observer
+public class TigerGeocoderDao implements Observer
 {
     private static Logger logger = LoggerFactory.getLogger(TigerGeocoderDao.class);
     private Environment env;
-    private QueryRunner run = getTigerQueryRunner();
+    private QueryRunner run;
     private int GEOCODER_TIMEOUT = 15000; //ms
+    private BaseDao baseDao;
 
     @Autowired
-    public TigerGeocoderDao(Environment env) {
+    public TigerGeocoderDao(Environment env, BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = this.baseDao.getTigerQueryRunner();
         this.env = env;
         update(null, null);
     }
@@ -62,14 +65,14 @@ public class TigerGeocoderDao extends BaseDao implements Observer
         String sql = "SELECT g.rating, ST_Y(geomout) As lat, ST_X(geomout) As lon, (addy).* \n" +
                      "FROM geocode(?, 1) AS g;";
         try {
-            setTimeOut(conn, run, GEOCODER_TIMEOUT);
+            this.baseDao.setTimeOut(conn, run, GEOCODER_TIMEOUT);
             geoStreetAddress = run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
         }
         catch (SQLException ex){
             logger.warn(ex.getMessage());
         }
         finally {
-            closeConnection(conn);
+            this.baseDao.closeConnection(conn);
         }
 
         return geoStreetAddress;
@@ -77,7 +80,7 @@ public class TigerGeocoderDao extends BaseDao implements Observer
 
     public GeocodedStreetAddress getGeocodedStreetAddress(Address address)
     {
-        return getGeocodedStreetAddress(this.getTigerConnection(), address);
+        return getGeocodedStreetAddress(this.baseDao.getTigerConnection(), address);
     }
 
     /**
@@ -197,7 +200,7 @@ public class TigerGeocoderDao extends BaseDao implements Observer
     {
         String streetLineJson = getStreetLineGeometryAsJson(streetName, zip5List);
         if (streetLineJson != null) {
-            return getLinesFromJson(streetLineJson);
+            return this.baseDao.getLinesFromJson(streetLineJson);
         }
         return null;
     }

@@ -26,19 +26,24 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
  * @author Graylin Kim, Ash Islam
  */
 @Service
-public class MapQuest extends BaseDao implements GeocodeService, RevGeocodeService
+public class MapQuest implements GeocodeService, RevGeocodeService
 {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MapQuestDao mapQuestDao;
     private Config config;
 
-    @Autowired GeocodeServiceValidator geocodeServiceValidator;
-    @Autowired ParallelRevGeocodeService parallelRevGeocodeService;
+    private GeocodeServiceValidator geocodeServiceValidator;
+    private ParallelRevGeocodeService parallelRevGeocodeService;
+    private BaseDao baseDao;
 
-    public MapQuest()
+    public MapQuest(BaseDao baseDao, MapQuestDao mapQuestDao, GeocodeServiceValidator geocodeServiceValidator,
+                    ParallelRevGeocodeService parallelRevGeocodeService)
     {
-        this.config = getConfig();
-        this.mapQuestDao = new MapQuestDao();
+        this.baseDao = baseDao;
+        this.geocodeServiceValidator = geocodeServiceValidator;
+        this.parallelRevGeocodeService = parallelRevGeocodeService;
+        this.mapQuestDao = mapQuestDao;
+        this.config = this.baseDao.getConfig();
         configure();
     }
 

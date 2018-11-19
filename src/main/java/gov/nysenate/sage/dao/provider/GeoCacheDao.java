@@ -26,16 +26,19 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Repository
-public class GeoCacheDao extends BaseDao
+public class GeoCacheDao
 {
     private static Logger logger = LoggerFactory.getLogger(GeoCacheDao.class);
     private static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
     private static int BUFFER_SIZE = 100;
-    private QueryRunner tigerRun = getTigerQueryRunner();
+    private QueryRunner tigerRun;
     private final Environment env;
+    private BaseDao baseDao;
 
     @Autowired
-    public GeoCacheDao(Environment env) {
+    public GeoCacheDao(Environment env, BaseDao baseDao) {
+        this.baseDao = baseDao;
+        this.tigerRun = this.baseDao.getTigerQueryRunner();
         this.env = env;
         BUFFER_SIZE = env.getGeocahceBufferSize();
     }

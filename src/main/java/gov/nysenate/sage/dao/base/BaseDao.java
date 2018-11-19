@@ -42,13 +42,14 @@ public class BaseDao
     protected DataSource tigerDataSource;
     Marker fatal = MarkerFactory.getMarker("FATAL");
 
-    @Autowired ParallelDistrictService parallelDistrictService;
-    @Autowired ParallelGeocodeService parallelGeocodeService;
-    @Autowired ParallelRevGeocodeService parallelRevGeocodeService;
-    @Autowired ParallelAddressService parallelAddressService;
+    private ParallelDistrictService parallelDistrictService;
+    private ParallelGeocodeService parallelGeocodeService;
+    private ParallelRevGeocodeService parallelRevGeocodeService;
+    private ParallelAddressService parallelAddressService;
 
     @Autowired
-    public BaseDao()
+    public BaseDao(ParallelDistrictService parallelDistrictService, ParallelGeocodeService parallelGeocodeService,
+                   ParallelRevGeocodeService parallelRevGeocodeService, ParallelAddressService parallelAddressService)
     {
         try {
             SageConfigurationListener configurationListener = new SageConfigurationListener();
@@ -61,6 +62,10 @@ public class BaseDao
         }
         this.dataSource = baseDB.getDataSource();
         this.tigerDataSource = tigerDB.getDataSource();
+        this.parallelAddressService = parallelAddressService;
+        this.parallelDistrictService = parallelDistrictService;
+        this.parallelGeocodeService = parallelGeocodeService;
+        this.parallelRevGeocodeService = parallelRevGeocodeService;
     }
 
     public QueryRunner getQueryRunner()
@@ -123,7 +128,7 @@ public class BaseDao
      * @param timeOutInMs
      * @return
      */
-    protected void setTimeOut(Connection conn, QueryRunner run, int timeOutInMs) throws SQLException
+    public void setTimeOut(Connection conn, QueryRunner run, int timeOutInMs) throws SQLException
     {
         String setTimeout = "SET statement_timeout TO " + timeOutInMs + ";";
         run.update(conn, setTimeout);
@@ -133,7 +138,7 @@ public class BaseDao
      * It's a good idea to reset the timeout after the query is done.
      * @return
      */
-    protected void resetTimeOut(Connection conn, QueryRunner run) throws SQLException
+    public void resetTimeOut(Connection conn, QueryRunner run) throws SQLException
     {
         String setTimeout = "RESET statement_timeout;";
         run.update(conn, setTimeout);

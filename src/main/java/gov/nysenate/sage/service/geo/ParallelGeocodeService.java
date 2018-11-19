@@ -1,10 +1,12 @@
 package gov.nysenate.sage.service.geo;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.util.Config;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -18,31 +20,18 @@ import java.util.concurrent.*;
  * native batch methods.
  */
 @Service
-public abstract class ParallelGeocodeService extends BaseDao
+public class ParallelGeocodeService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelGeocodeService.class);
-    private Config config = getConfig();
-    private int THREAD_COUNT = Integer.parseInt(config.getValue("geocode.threads", "3"));
-    private ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("geocode"));
+    private int THREAD_COUNT;
+    private ExecutorService executor;
+    private Environment env;
 
-    /**
-    * Callable for parallel geocoding requests
-    */
-    private static class ParallelGeocode implements Callable<GeocodeResult>
-    {
-        public final GeocodeService geocodeService;
-        public final Address address;
-        public ParallelGeocode(GeocodeService geocodeService, Address address)
-        {
-            this.geocodeService = geocodeService;
-            this.address = address;
-        }
-
-        @Override
-        public GeocodeResult call()
-        {
-            return geocodeService.geocode(address);
-        }
+    @Autowired
+    public ParallelGeocodeService(Environment env) {
+        this.env = env;
+        this.THREAD_COUNT = this.env.getValidateThreads();
+        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("geocode"));
     }
 
     public ArrayList<GeocodeResult> geocode(GeocodeService geocodeService, List<Address> addresses)
@@ -68,5 +57,25 @@ public abstract class ParallelGeocodeService extends BaseDao
 
     public void shutdownThread() {
         executor.shutdownNow();
+    }
+
+    /**
+     * Callable for parallel geocoding requests
+     */
+    private static class ParallelGeocode implements Callable<GeocodeResult>
+    {
+        public final GeocodeService geocodeService;
+        public final Address address;
+        public ParallelGeocode(GeocodeService geocodeService, Address address)
+        {
+            this.geocodeService = geocodeService;
+            this.address = address;
+        }
+
+        @Override
+        public GeocodeResult call()
+        {
+            return geocodeService.geocode(address);
+        }
     }
 }

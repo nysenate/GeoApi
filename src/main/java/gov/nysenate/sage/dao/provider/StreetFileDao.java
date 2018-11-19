@@ -10,6 +10,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -21,10 +22,11 @@ import java.util.*;
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 @Repository
-public class StreetFileDao extends BaseDao
+public class StreetFileDao
 {
     private Logger logger = LoggerFactory.getLogger(StreetFileDao.class);
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
 
     private static Map<DistrictType, String> distColMap = new HashMap<>();
     static {
@@ -43,7 +45,11 @@ public class StreetFileDao extends BaseDao
         distColMap.put(ZIP, "zip5");
     }
 
-    public StreetFileDao() {}
+    @Autowired
+    public StreetFileDao(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
+    }
 
     /**
      * Performs a street file lookup.

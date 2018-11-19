@@ -8,6 +8,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -18,12 +19,20 @@ import java.util.Date;
 import java.util.List;
 
 @Repository
-public class ApiRequestLogger extends BaseDao
+public class ApiRequestLogger
 {
     private static Logger logger = LoggerFactory.getLogger(ApiRequestLogger.class);
     private static String SCHEMA = "log";
     private static String TABLE = "apiRequest";
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+
+    private BaseDao baseDao;
+
+    @Autowired
+    public ApiRequestLogger(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = baseDao.getQueryRunner();
+    }
 
     /**
      * Log an Api request to the database.

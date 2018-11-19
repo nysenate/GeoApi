@@ -22,7 +22,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Repository
-public class GoogleDao extends BaseDao implements Observer
+public class GoogleDao implements Observer
 {
     private static final Logger logger = LoggerFactory.getLogger(GoogleDao.class);
 
@@ -34,10 +34,12 @@ public class GoogleDao extends BaseDao implements Observer
 
     private String baseUrl;
     private String apiKey;
+    private BaseDao baseDao;
 
     @Autowired
-    public GoogleDao(Environment env) {
+    public GoogleDao(Environment env, BaseDao baseDao) {
         this.env = env;
+        this.baseDao = baseDao;
         this.update(null, null);
     }
 

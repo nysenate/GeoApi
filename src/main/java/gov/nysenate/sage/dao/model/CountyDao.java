@@ -6,6 +6,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -19,12 +20,19 @@ import java.util.Map;
  * Simple Dao to retrieve county information.
  */
 @Repository
-public class CountyDao extends BaseDao
+public class CountyDao
 {
     private Logger logger = LoggerFactory.getLogger(CountyDao.class);
     private ResultSetHandler<County> handler = new BeanHandler<>(County.class);
     private ResultSetHandler<List<County>> listHandler = new BeanListHandler<>(County.class);
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
+
+    @Autowired
+    public CountyDao(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
+    }
 
     private static Map<Integer, County> fipsCountyMap;
 

@@ -48,7 +48,8 @@ public class ApiFilter implements Filter, Observer
 {
     private static Logger logger = LoggerFactory.getLogger(ApiFilter.class);
     Marker fatal = MarkerFactory.getMarker("FATAL");
-    private static ApiRequestLogger apiRequestLogger;
+    private ApiRequestLogger apiRequestLogger;
+    private ApiUserAuth apiUserAuth;
     private static String ipFilter;
     private static String defaultKey;
     private static String publicKey;
@@ -77,13 +78,19 @@ public class ApiFilter implements Filter, Observer
     /** Available format types */
     public enum FormatType { JSON, XML, JSONP }
 
-    @Autowired
+
     Environment env;
+
+    @Autowired
+    public ApiFilter(Environment env, ApiRequestLogger apiRequestLogger, ApiUserAuth apiUserAuth) {
+        this.env = env;
+        this.apiRequestLogger = apiRequestLogger;
+        this.apiUserAuth = apiUserAuth;
+    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
     {
-        apiRequestLogger = new ApiRequestLogger();
         jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
         xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
         configure();
@@ -154,7 +161,6 @@ public class ApiFilter implements Filter, Observer
         }
 
         if (key != null) {
-            ApiUserAuth apiUserAuth = new ApiUserAuth();
             ApiUser apiUser = apiUserAuth.getApiUser(key);
 
             if (apiUser != null) {

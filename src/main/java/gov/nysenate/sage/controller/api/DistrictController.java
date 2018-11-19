@@ -56,17 +56,19 @@ public class DistrictController
     private static Logger logger = LoggerFactory.getLogger(DistrictController.class);
 
     /** Service Providers */
-    private static AddressServiceProvider addressProvider;
-    private static DistrictServiceProvider districtProvider;
-    private static GeocodeServiceProvider geocodeProvider;
-    private static RevGeocodeServiceProvider revGeocodeProvider;
-    private static MapServiceProvider mapProvider;
+    private AddressServiceProvider addressProvider;
+    private DistrictServiceProvider districtProvider;
+    private GeocodeServiceProvider geocodeProvider;
+    private RevGeocodeServiceProvider revGeocodeProvider;
+    private MapServiceProvider mapProvider;
+    private DistrictMemberProvider districtMemberProvider;
+
 
     /** Loggers */
-    private static GeocodeRequestLogger geocodeRequestLogger;
-    private static GeocodeResultLogger geocodeResultLogger;
-    private static DistrictRequestLogger districtRequestLogger;
-    private static DistrictResultLogger districtResultLogger;
+    private GeocodeRequestLogger geocodeRequestLogger;
+    private GeocodeResultLogger geocodeResultLogger;
+    private DistrictRequestLogger districtRequestLogger;
+    private DistrictResultLogger districtResultLogger;
 
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
@@ -80,13 +82,14 @@ public class DistrictController
                               GeocodeServiceProvider geocodeProvider, RevGeocodeServiceProvider revGeocodeProvider,
                               MapServiceProvider mapProvider, Environment env, GeocodeRequestLogger geocodeRequestLogger,
                               GeocodeResultLogger geocodeResultLogger,DistrictRequestLogger districtRequestLogger,
-                              DistrictResultLogger districtResultLogger) {
+                              DistrictResultLogger districtResultLogger, DistrictMemberProvider districtMemberProvider) {
 
         this.addressProvider = addressProvider;
         this.districtProvider = districtProvider;
         this.geocodeProvider = geocodeProvider;
         this.revGeocodeProvider = revGeocodeProvider;
         this.mapProvider = mapProvider;
+        this.districtMemberProvider = districtMemberProvider;
         this.env = env;
         this.geocodeRequestLogger = geocodeRequestLogger;
         this.geocodeResultLogger = geocodeResultLogger;
@@ -443,7 +446,7 @@ public class DistrictController
 
         /** Ensure all members (senators,assemblyman, etc) are presented if requested */
         if (districtRequest.isShowMembers() && districtResult.isSuccess()) {
-            DistrictMemberProvider.assignDistrictMembers(districtResult);
+            districtMemberProvider.assignDistrictMembers(districtResult);
         }
 
         if (SINGLE_LOGGING_ENABLED && requestId != -1) {

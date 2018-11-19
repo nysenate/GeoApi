@@ -14,17 +14,21 @@ import org.slf4j.Logger;
 import java.sql.SQLException;
 
 @Repository
-public class DistrictRequestLogger extends BaseDao
+public class DistrictRequestLogger
 {
     private static Logger logger = LoggerFactory.getLogger(DistrictRequestLogger.class);
-    private static AddressLogger addressLogger = new AddressLogger();
+    private static AddressLogger addressLogger;
     private static String SCHEMA = "log";
     private static String TABLE = "districtRequest";
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+
+    private BaseDao baseDao;
 
     @Autowired
-    public DistrictRequestLogger(AddressLogger addressLogger) {
+    public DistrictRequestLogger(AddressLogger addressLogger, BaseDao baseDao) {
         this.addressLogger = addressLogger;
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
     }
 
     /**

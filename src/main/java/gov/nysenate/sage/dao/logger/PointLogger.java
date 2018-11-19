@@ -6,17 +6,25 @@ import gov.nysenate.sage.model.geo.Point;
 import org.apache.commons.dbutils.QueryRunner;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 
 @Repository
-public class PointLogger extends BaseDao
+public class PointLogger
 {
     private static Logger logger = LoggerFactory.getLogger(AddressLogger.class);
     private static String SCHEMA = "log";
     private static String TABLE = "point";
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
+
+    @Autowired
+    public PointLogger(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
+    }
 
     /**
      * Inserts a point into the points table. If a matching point already exists the id is returned instead of

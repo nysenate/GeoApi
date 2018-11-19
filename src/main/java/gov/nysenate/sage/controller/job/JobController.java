@@ -48,13 +48,16 @@ import static gov.nysenate.sage.util.controller.JobControllerUtil.*;
 public class JobController
 {
     private Logger logger = LoggerFactory.getLogger(JobController.class);
-    private final Environment env;
-
+    private Environment env;
+    private JobUserAuth jobUserAuth;
+    private JobProcessDao jobProcessDao;
 
 
     @Autowired
-    public JobController(Environment env) {
+    public JobController(Environment env, JobUserAuth jobUserAuth, JobProcessDao jobProcessDao) {
         this.env = env;
+        this.jobUserAuth = jobUserAuth;
+        this.jobProcessDao = jobProcessDao;
     }
 
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
@@ -115,7 +118,6 @@ public class JobController
      */
     public void doLogin(HttpServletRequest request, HttpServletResponse response, String email, String password) throws ServletException, IOException
     {
-        JobUserAuth jobUserAuth = new JobUserAuth();
         JobUser jobUser = jobUserAuth.getJobUser(email, password);
         if (jobUser != null) {
             logger.debug("Granted job service access to " + email);
@@ -278,7 +280,6 @@ public class JobController
     public void doSubmit(HttpServletRequest request, HttpServletResponse response)
     {
         logger.info("Processing Job Request Submission.");
-        JobProcessDao jobProcessDao = new JobProcessDao();
         JobRequest jobRequest = getJobRequest(request);
 
         if (jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
@@ -312,7 +313,6 @@ public class JobController
     {
         logger.info("Cancelling job process");
         try {
-            JobProcessDao jobProcessDao = new JobProcessDao();
             JobProcessStatus jps = jobProcessDao.getJobProcessStatus(id);
             jps.setCondition(JobProcessStatus.Condition.CANCELLED);
             jps.setCompleted(false);

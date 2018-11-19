@@ -9,6 +9,7 @@ import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -27,19 +28,30 @@ import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
  * JobProcessDao provides persistence for submitted requests and process statuses.
  */
 @Repository
-public class JobProcessDao extends BaseDao
+public class JobProcessDao
 {
     private static String SCHEMA = "job";
     private static String TABLE = "process";
     private static String STATUS_TABLE = "status";
     private Logger logger = LoggerFactory.getLogger(JobUserDao.class);
-    private ResultSetHandler<JobProcess> processHandler = new JobProcessHandler();
-    private ResultSetHandler<JobProcessStatus> statusHandler = new JobStatusHandler();
-    private ResultSetHandler<List<JobProcess>> processListHandler = new JobProcessListHandler();
-    private ResultSetHandler<List<JobProcessStatus>> statusListHandler = new JobProcessStatusListHandler();
-    private QueryRunner run = getQueryRunner();
+    private ResultSetHandler<JobProcess> processHandler;
+    private ResultSetHandler<JobProcessStatus> statusHandler;
+    private ResultSetHandler<List<JobProcess>> processListHandler;
+    private ResultSetHandler<List<JobProcessStatus>> statusListHandler;
+    private QueryRunner run;
+    private BaseDao baseDao;
+    private JobUserDao jobUserDao;
 
-    public JobProcessDao() {}
+    @Autowired
+    public JobProcessDao(BaseDao baseDao, JobUserDao jobUserDao) {
+        this.baseDao = baseDao;
+        this.jobUserDao = jobUserDao;
+        run = this.baseDao.getQueryRunner();
+        this.processHandler = new JobProcessHandler(this.jobUserDao);
+        this.statusHandler = new JobStatusHandler(this.jobUserDao);
+        this.processListHandler = new JobProcessListHandler(this.jobUserDao);
+        this.statusListHandler = new JobProcessStatusListHandler(this.jobUserDao);
+    }
 
     /**
      * Adds a new job process to the database queue.
@@ -253,11 +265,16 @@ public class JobProcessDao extends BaseDao
 
     protected static class JobProcessHandler implements ResultSetHandler<JobProcess>
     {
+        private JobUserDao jobUserDao;
+
+        protected JobProcessHandler(JobUserDao jobUserDao) {
+            this.jobUserDao = jobUserDao;
+        }
+
         @Override
         public JobProcess handle(ResultSet rs) throws SQLException
         {
             JobProcess jobProcess = null;
-            JobUserDao jobUserDao = new JobUserDao();
             if (rs.next()) {
                 jobProcess = getJobProcessFromResultSet(rs, jobUserDao);
             }
@@ -268,7 +285,11 @@ public class JobProcessDao extends BaseDao
     protected static class JobStatusHandler implements ResultSetHandler<JobProcessStatus>
     {
         protected static Logger logger = LoggerFactory.getLogger(JobStatusHandler.class);
-        protected JobUserDao jobUserDao = new JobUserDao();
+        protected JobUserDao jobUserDao;
+
+        protected JobStatusHandler(JobUserDao jobUserDao) {
+            this.jobUserDao = jobUserDao;
+        }
 
         @Override
         public JobProcessStatus handle(ResultSet rs) throws SQLException {
@@ -282,11 +303,16 @@ public class JobProcessDao extends BaseDao
 
     protected static class JobProcessListHandler implements ResultSetHandler<List<JobProcess>>
     {
+        private JobUserDao jobUserDao;
+
+        protected JobProcessListHandler(JobUserDao jobUserDao) {
+            this.jobUserDao = jobUserDao;
+        }
+
         @Override
         public List<JobProcess> handle(ResultSet rs) throws SQLException
         {
             List<JobProcess> jobProcesses = new ArrayList<>();
-            JobUserDao jobUserDao = new JobUserDao();
             while (rs.next()) {
                 jobProcesses.add(getJobProcessFromResultSet(rs, jobUserDao));
             }
@@ -297,7 +323,11 @@ public class JobProcessDao extends BaseDao
     protected static class JobProcessStatusListHandler implements ResultSetHandler<List<JobProcessStatus>>
     {
         protected static Logger logger = LoggerFactory.getLogger(JobStatusHandler.class);
-        protected JobUserDao jobUserDao = new JobUserDao();
+        protected JobUserDao jobUserDao;
+
+        protected JobProcessStatusListHandler(JobUserDao jobUserDao) {
+            this.jobUserDao = jobUserDao;
+        }
 
         @Override
         public List<JobProcessStatus> handle(ResultSet rs) throws SQLException

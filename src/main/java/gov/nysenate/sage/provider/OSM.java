@@ -2,6 +2,7 @@ package gov.nysenate.sage.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -30,20 +31,28 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Service
-public class OSM extends BaseDao implements GeocodeService, Observer
+public class OSM implements GeocodeService, Observer
 {
     private static final String DEFAULT_BASE_URL = "http://open.mapquestapi.com/nominatim/v1/search";
     private final Logger logger = LoggerFactory.getLogger(OSM.class);
     private Config config;
     private ObjectMapper objectMapper;
     private String baseUrl;
+    private BaseDao baseDao;
 
-    @Autowired GeocodeServiceValidator geocodeServiceValidator;
-    @Autowired ParallelGeocodeService parallelGeocodeService;
+    private GeocodeServiceValidator geocodeServiceValidator;
+    private ParallelGeocodeService parallelGeocodeService;
+    private Environment env;
 
-    public OSM()
+    @Autowired
+    public OSM(GeocodeServiceValidator geocodeServiceValidator, ParallelGeocodeService parallelGeocodeService,
+               BaseDao baseDao, Environment env)
     {
-        this.config = getConfig();
+        this.baseDao = baseDao;
+        this.env = env;
+        this.geocodeServiceValidator = geocodeServiceValidator;
+        this.parallelGeocodeService = parallelGeocodeService;
+        this.config = this.baseDao.getConfig();
         this.objectMapper = new ObjectMapper();
         configure();
         logger.debug("Initialized OSM Adapter");
@@ -68,12 +77,12 @@ public class OSM extends BaseDao implements GeocodeService, Observer
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Ensure that the geocoder is active, otherwise return error result. */
-        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+        if (!geocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
             return geocodeResult;
         }
 
         /** Proceed only on valid input */
-        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
+        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
             return geocodeResult;
         }
 

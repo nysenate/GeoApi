@@ -40,10 +40,12 @@ public class StreetFile implements DistrictService, StreetLookupService
 {
     private Logger logger = LoggerFactory.getLogger(StreetFile.class);
     private StreetFileDao streetFileDao;
+    private ParallelDistrictService parallelDistrictService;
 
     @Autowired
-    public StreetFile(StreetFileDao streetFileDao) {
+    public StreetFile(StreetFileDao streetFileDao, ParallelDistrictService parallelDistrictService) {
         this.streetFileDao = streetFileDao;
+        this.parallelDistrictService = parallelDistrictService;
         logger.debug("Instantiated StreetFile.");
     }
 
@@ -136,13 +138,13 @@ public class StreetFile implements DistrictService, StreetLookupService
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses)
     {
-        return ParallelDistrictService.assignDistricts(this, geocodedAddresses, DistrictType.getStateBasedTypes());
+        return parallelDistrictService.assignDistricts(this, geocodedAddresses, DistrictType.getStateBasedTypes());
     }
 
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> types)
     {
-        return ParallelDistrictService.assignDistricts(this, geocodedAddresses, types);
+        return parallelDistrictService.assignDistricts(this, geocodedAddresses, types);
     }
 
     @Override

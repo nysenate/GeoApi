@@ -23,18 +23,19 @@ import java.util.Iterator;
 import java.util.List;
 
 @Repository
-public class GeocodeResultLogger extends BaseDao
+public class GeocodeResultLogger
 {
     private static Logger logger = LoggerFactory.getLogger(GeocodeResultLogger.class);
-    private static AddressLogger addressLogger = new AddressLogger();
-    private static PointLogger pointLogger = new PointLogger();
+    private AddressLogger addressLogger;
+    private PointLogger pointLogger;
     private static GeocodeRequestLogger geocodeRequestLogger;
 
     private static String SCHEMA = "log";
     private static String TABLE = "geocodeResult";
     private static Boolean SAVE_LOCK = false;
 
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
 
     /** Batch cache */
     private static List<Pair<GeocodeRequest, GeocodeResult>> batchGeoLogCache = new ArrayList<>();
@@ -43,10 +44,13 @@ public class GeocodeResultLogger extends BaseDao
     private static List<Pair<GeocodeRequest, GeocodeResult>> tempCache = new ArrayList<>();
 
     @Autowired
-    public GeocodeResultLogger(AddressLogger addressLogger, PointLogger pointLogger, GeocodeRequestLogger geocodeRequestLogger) {
+    public GeocodeResultLogger(AddressLogger addressLogger, PointLogger pointLogger,
+                               GeocodeRequestLogger geocodeRequestLogger, BaseDao baseDao) {
         this.addressLogger = addressLogger;
         this.pointLogger = pointLogger;
         this.geocodeRequestLogger = geocodeRequestLogger;
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
     }
 
     /**

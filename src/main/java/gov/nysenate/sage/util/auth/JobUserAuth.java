@@ -5,15 +5,19 @@ import gov.nysenate.sage.model.job.JobUser;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class JobUserAuth
 {
     private Logger logger = LoggerFactory.getLogger(JobUserAuth.class);
     private JobUserDao jobUserDao;
 
-    public JobUserAuth()
+    @Autowired
+    public JobUserAuth(JobUserDao jobUserDao)
     {
-        jobUserDao = new JobUserDao();
+        this.jobUserDao = jobUserDao;
     }
 
     /**

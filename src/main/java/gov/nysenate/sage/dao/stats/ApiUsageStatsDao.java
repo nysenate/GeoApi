@@ -4,6 +4,7 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.stats.ApiUsageStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -17,10 +18,11 @@ import java.util.List;
 import static gov.nysenate.sage.model.stats.ApiUsageStats.IntervalUsage;
 
 @Repository
-public class ApiUsageStatsDao extends BaseDao
+public class ApiUsageStatsDao
 {
     private static Logger logger = LoggerFactory.getLogger(ApiUsageStatsDao.class);
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
 
     public static enum RequestInterval {
         MINUTE("minute", 1), HOUR("hour", 60), DAY("day", 1440), WEEK("week", 10080), MONTH("month", 43829), QUARTER("quarter", 131487);
@@ -32,7 +34,11 @@ public class ApiUsageStatsDao extends BaseDao
         }
     }
 
-    public ApiUsageStatsDao(){}
+    @Autowired
+    public ApiUsageStatsDao(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
+    }
 
     public ApiUsageStats getApiUsageStats(Timestamp from, Timestamp to, RequestInterval requestInterval)
     {

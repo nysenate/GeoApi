@@ -1,7 +1,6 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.ApiError;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.slf4j.Logger;

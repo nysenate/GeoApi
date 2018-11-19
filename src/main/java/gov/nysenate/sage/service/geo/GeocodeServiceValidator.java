@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.geo;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -8,6 +9,7 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -22,19 +24,26 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 * Utility class for validating geocode requests and responses.
 */
 @Service
-public abstract class GeocodeServiceValidator extends BaseDao
+public class GeocodeServiceValidator
 {
 
 
     private static final Logger logger = LoggerFactory.getLogger(GeocodeServiceValidator.class);
-    private Config config = getConfig();
 
     /** Keep track of GeocodeService implementations that are temporarily unavailable. */
     private static Set<Class<? extends GeocodeService>> activeGeocoders = new HashSet<>();
     private static Map<Class<? extends GeocodeService>, Timestamp> frozenGeocoders = new ConcurrentHashMap<>();
     private static Map<Class<? extends GeocodeService>, Integer> failedRequests = new ConcurrentHashMap<>();
-    private Integer FAILURE_THRESHOLD = Integer.parseInt(config.getValue("geocoder.failure.threshold", "20"));
-    private Integer RETRY_INTERVAL_SECS = Integer.parseInt(config.getValue("geocoder.retry.interval", "300"));
+    private Integer FAILURE_THRESHOLD;
+    private Integer RETRY_INTERVAL_SECS;
+    Environment env;
+
+    @Autowired
+    public GeocodeServiceValidator(Environment env) {
+        this.env = env;
+        this.FAILURE_THRESHOLD = this.env.getGeocoderFailureThreshold();
+        this.RETRY_INTERVAL_SECS = this.env.getGeocoderRetryInterval();
+    }
 
     /**
      * Designate the geocodeService class as an active geocoder. Note that an active geocoder may

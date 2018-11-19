@@ -1,12 +1,15 @@
 package gov.nysenate.sage.service.address;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.provider.USPSAMS;
 import gov.nysenate.sage.util.Config;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,29 +21,18 @@ import java.util.concurrent.*;
  * native batch methods.
  */
 @Service
-public abstract class ParallelAddressService extends BaseDao {
+public class ParallelAddressService {
 
-    private Config config = getConfig();
-    private int THREAD_COUNT = Integer.parseInt(config.getValue("validate.threads", "3"));
-    private ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("address"));
+    private int THREAD_COUNT;
+    private ExecutorService executor;
     private static Logger logger = LoggerFactory.getLogger(ParallelAddressService.class);
+    private Environment env;
 
-    private static class ParallelValidate implements Callable<AddressResult>
-    {
-        public final AddressService addressService;
-        public final Address address;
-
-        public ParallelValidate(AddressService addressService, Address address)
-        {
-            this.addressService = addressService;
-            this.address = address;
-        }
-
-        @Override
-        public AddressResult call()
-        {
-            return addressService.validate(address);
-        }
+    @Autowired
+    public ParallelAddressService(Environment env) {
+        this.env = env;
+        this.THREAD_COUNT = this.env.getValidateThreads();
+        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("address"));
     }
 
     public List<AddressResult> validate(AddressService addressService, List<Address> addresses)
@@ -69,5 +61,23 @@ public abstract class ParallelAddressService extends BaseDao {
 
     public void shutdownThread() {
         executor.shutdownNow();
+    }
+
+    private static class ParallelValidate implements Callable<AddressResult>
+    {
+        public final AddressService addressService;
+        public final Address address;
+
+        public ParallelValidate(AddressService addressService, Address address)
+        {
+            this.addressService = addressService;
+            this.address = address;
+        }
+
+        @Override
+        public AddressResult call()
+        {
+            return addressService.validate(address);
+        }
     }
 }

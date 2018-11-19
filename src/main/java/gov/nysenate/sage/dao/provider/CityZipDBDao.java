@@ -5,6 +5,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -12,10 +13,11 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Repository
-public class CityZipDBDao extends BaseDao
+public class CityZipDBDao
 {
     private Logger logger = LoggerFactory.getLogger(CityZipDBDao.class);
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
 
     private static String SCHEMA = "public";
     private static String TABLE = "cityzip";
@@ -23,6 +25,12 @@ public class CityZipDBDao extends BaseDao
     /** List of cities that should accept any location type */
     private static Set<String> cityExceptions = new HashSet<>(
             Arrays.asList("New York", "Manhattan", "Queens", "Brooklyn", "Bronx", "Staten Island"));
+
+    @Autowired
+    public CityZipDBDao(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
+    }
 
     /**
      * Returns a list of zip codes given a city name.

@@ -5,18 +5,22 @@ import gov.nysenate.sage.model.api.ApiUser;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Provides basic key-based api authentication.
  */
+@Component
 public class ApiUserAuth
 {
     private Logger logger = LoggerFactory.getLogger(ApiUserAuth.class);
     private ApiUserDao apiUserDao;
 
-    public ApiUserAuth()
+    @Autowired
+    public ApiUserAuth(ApiUserDao apiUserDao)
     {
-        apiUserDao = new ApiUserDao();
+        this.apiUserDao = apiUserDao;
     }
 
     /**

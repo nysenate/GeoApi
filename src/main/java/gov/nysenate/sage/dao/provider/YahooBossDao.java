@@ -22,10 +22,10 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Repository
-public class YahooBossDao extends BaseDao implements Observer
+public class YahooBossDao implements Observer
 {
     private static final Logger logger = LoggerFactory.getLogger(YahooBossDao.class);
-    private final Config config = getConfig();
+    private final Config config;
     private static final String DEFAULT_BASE_URL = "http://yboss.yahooapis.com/geo/placefinder";
     private static String CONSUMER_KEY;
     private static String CONSUMER_SECRET;
@@ -33,9 +33,13 @@ public class YahooBossDao extends BaseDao implements Observer
     private String baseUrl;
     private ObjectMapper objectMapper;
 
+    private BaseDao baseDao;
+
     @Autowired
-    public YahooBossDao()
+    public YahooBossDao(BaseDao baseDao)
     {
+        this.baseDao = baseDao;
+        this.config = this.baseDao.getConfig();
         this.objectMapper = new ObjectMapper();
         this.update(null, null);
     }

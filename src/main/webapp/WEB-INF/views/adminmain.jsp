@@ -1,4 +1,3 @@
-<%@ page import="gov.nysenate.sage.factory.ApplicationFactory" %>
 <%@ page import="gov.nysenate.sage.config.Environment" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>

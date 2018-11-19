@@ -16,6 +16,7 @@ import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
+import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.service.map.MapService;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
@@ -41,6 +42,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
     private StreetFileDao streetFileDao;
     private CityZipDB cityZipDBDao;
     private TigerGeocoderDao tigerGeocoderDao;
+    private ParallelDistrictService parallelDistrictService;
 
     /** Specifies the maximum distance a neighbor district can be from a specific point to still be considered
      * a nearby neighbor. */
@@ -52,12 +54,13 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
     @Autowired
     public DistrictShapefile(DistrictShapefileDao districtShapefileDao, StreetFileDao streetFileDao,
                              CityZipDB cityZipDB, TigerGeocoderDao tigerGeocoderDao,
-                             Environment env)
+                             Environment env, ParallelDistrictService parallelDistrictService)
     {
-        this.districtShapefileDao = new DistrictShapefileDao();
-        this.streetFileDao = new StreetFileDao();
+        this.districtShapefileDao = districtShapefileDao;
+        this.streetFileDao = streetFileDao;
         this.cityZipDBDao = cityZipDB;
         this.tigerGeocoderDao = tigerGeocoderDao;
+        this.parallelDistrictService = parallelDistrictService;
         this.env = env;
         update(null, null);
         logger.debug("Instantiated DistrictShapefile.");
@@ -150,7 +153,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes)
     {
-        return ParallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
+        return parallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
     }
 
     @Override

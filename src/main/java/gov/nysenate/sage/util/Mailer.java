@@ -3,7 +3,6 @@ package gov.nysenate.sage.util;
 import gov.nysenate.sage.config.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import gov.nysenate.sage.factory.ApplicationFactory;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 

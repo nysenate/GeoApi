@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.stats.DeploymentStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -15,13 +16,20 @@ import java.sql.Timestamp;
 import java.util.List;
 
 @Repository
-public class DeploymentStatsDao extends BaseDao
+public class DeploymentStatsDao
 {
     private static Logger logger = LoggerFactory.getLogger(DeploymentStatsDao.class);
     private String SCHEMA = "log";
     private String TABLE = "deployment";
     private static ResultSetHandler<List<Deployment>> listHandler = new BeanListHandler<>(Deployment.class);
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
+
+    @Autowired
+    public DeploymentStatsDao(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        run = this.baseDao.getQueryRunner();
+    }
 
     /**
      * Get DeploymentStats from the database

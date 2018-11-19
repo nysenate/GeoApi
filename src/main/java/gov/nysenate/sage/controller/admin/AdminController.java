@@ -34,14 +34,17 @@ public class AdminController
     private ApiUserStatsDao apiUserStatsDao;
     private ApiUsageStatsDao apiUsageStatsDao;
     private DeploymentStatsDao deploymentStatsDao;
+    private AdminUserDao adminUserDao;
 
     @Autowired
     public AdminController(ApiRequestLogger apiRequestLogger, ApiUserStatsDao apiUserStatsDao,
-                           ApiUsageStatsDao apiUsageStatsDao, DeploymentStatsDao deploymentStatsDao) {
+                           ApiUsageStatsDao apiUsageStatsDao, DeploymentStatsDao deploymentStatsDao,
+                           AdminUserDao adminUserDao) {
         this.apiRequestLogger = apiRequestLogger;
         this.apiUserStatsDao = apiUserStatsDao;
         this.apiUsageStatsDao = apiUsageStatsDao;
         this.deploymentStatsDao = deploymentStatsDao;
+        this.adminUserDao = adminUserDao;
     }
 
     /**
@@ -56,7 +59,6 @@ public class AdminController
                            @RequestParam String username, @RequestParam String password)
             throws ServletException, IOException {
 
-        AdminUserDao adminUserDao = new AdminUserDao();
         if (adminUserDao.checkAdminUser(username, password)) {
             logger.debug("Granted admin access to " + username);
             setAuthenticated(request, true, username);

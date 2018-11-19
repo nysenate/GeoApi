@@ -31,11 +31,19 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
 {
     private static Logger logger = LoggerFactory.getLogger(TigerGeocoder.class);
     private TigerGeocoderDao tigerGeocoderDao;
+    private GeocodeServiceValidator geocodeServiceValidator;
+    private ParallelGeocodeService parallelGeocodeService;
+    private ParallelRevGeocodeService parallelRevGeocodeService;
 
     @Autowired
-    public TigerGeocoder(TigerGeocoderDao tigerGeocoderDao)
+    public TigerGeocoder(TigerGeocoderDao tigerGeocoderDao, GeocodeServiceValidator geocodeServiceValidator,
+                         ParallelGeocodeService parallelGeocodeService,
+                         ParallelRevGeocodeService parallelRevGeocodeService)
     {
         this.tigerGeocoderDao = tigerGeocoderDao;
+        this.geocodeServiceValidator = geocodeServiceValidator;
+        this.parallelGeocodeService = parallelGeocodeService;
+        this.parallelRevGeocodeService = parallelRevGeocodeService;
         logger.debug("Instantiated TigerGeocoder.");
     }
 
@@ -56,12 +64,12 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
             logger.debug("Performing geocoding using TigerGeocoder for address " + address.toString());
 
             /** Ensure that the geocoder is active, otherwise return error result. */
-            if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+            if (!geocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
                 return geocodeResult;
             }
 
             /** Proceed if valid address */
-            if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
+            if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
                 return geocodeResult;
             }
 
@@ -75,7 +83,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
                 geocode.setQuality(resolveGeocodeQuality(address, gsa));
                 GeocodedAddress geocodedAddress = new GeocodedAddress(convertedAddress, geocode);
 
-                GeocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, false);
+                geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, false);
             }
             else {
                 geocodeResult.setStatusCode(ResultStatus.NO_GEOCODE_RESULT);
@@ -88,7 +96,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
-        return ParallelGeocodeService.geocode(this, addresses);
+        return parallelGeocodeService.geocode(this, addresses);
     }
 
     @Override
@@ -111,7 +119,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
     @Override
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {
-        return ParallelRevGeocodeService.reverseGeocode(this, points);
+        return parallelRevGeocodeService.reverseGeocode(this, points);
     }
 
     /**

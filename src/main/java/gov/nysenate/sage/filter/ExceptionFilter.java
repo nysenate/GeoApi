@@ -1,6 +1,7 @@
 package gov.nysenate.sage.filter;
 
 import gov.nysenate.sage.dao.logger.ExceptionLogger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -16,12 +17,15 @@ public class ExceptionFilter implements Filter
 {
     private static Logger logger = LoggerFactory.getLogger(ExceptionFilter.class);
     Marker fatal = MarkerFactory.getMarker("FATAL");
-    private static ExceptionLogger exceptionLogger;
+    private ExceptionLogger exceptionLogger;
+
+    @Autowired
+    public ExceptionFilter(ExceptionLogger exceptionLogger) {
+        this.exceptionLogger = exceptionLogger;
+    }
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        exceptionLogger = new ExceptionLogger();
-    }
+    public void init(FilterConfig filterConfig) throws ServletException {}
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

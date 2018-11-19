@@ -1,11 +1,13 @@
 package gov.nysenate.sage.service.district;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.util.Config;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -18,31 +20,18 @@ import java.util.concurrent.*;
  * Parallel district assignment for use in a provider's batch district implementation.
  */
 @Service
-public abstract class ParallelDistrictService extends BaseDao
+public class ParallelDistrictService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelDistrictService.class);
-    private Config config = getConfig();
-    private int THREAD_COUNT = Integer.parseInt(config.getValue("distassign.threads", "3"));
-    private ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("district"));
+    private int THREAD_COUNT;
+    private ExecutorService executor;
+    private Environment env;
 
-    private static class ParallelDistAssign implements Callable<DistrictResult>
-    {
-        public final DistrictService districtService;
-        public final GeocodedAddress geocodedAddress;
-        public final List<DistrictType> types;
-
-        public ParallelDistAssign(DistrictService districtService, GeocodedAddress geocodedAddress, List<DistrictType> types)
-        {
-            this.districtService = districtService;
-            this.geocodedAddress = geocodedAddress;
-            this.types = types;
-        }
-
-        @Override
-        public DistrictResult call()
-        {
-            return districtService.assignDistrictsForBatch(geocodedAddress, types);
-        }
+    @Autowired
+    public ParallelDistrictService(Environment env) {
+        this.env = env;
+        this.THREAD_COUNT = this.env.getValidateThreads();
+        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("district"));
     }
 
     public List<DistrictResult> assignDistricts(DistrictService districtService, List<GeocodedAddress> geocodedAddresses, List<DistrictType> types)
@@ -71,5 +60,25 @@ public abstract class ParallelDistrictService extends BaseDao
 
     public void shutdownThread() {
         executor.shutdownNow();
+    }
+
+    private static class ParallelDistAssign implements Callable<DistrictResult>
+    {
+        public final DistrictService districtService;
+        public final GeocodedAddress geocodedAddress;
+        public final List<DistrictType> types;
+
+        public ParallelDistAssign(DistrictService districtService, GeocodedAddress geocodedAddress, List<DistrictType> types)
+        {
+            this.districtService = districtService;
+            this.geocodedAddress = geocodedAddress;
+            this.types = types;
+        }
+
+        @Override
+        public DistrictResult call()
+        {
+            return districtService.assignDistrictsForBatch(geocodedAddress, types);
+        }
     }
 }

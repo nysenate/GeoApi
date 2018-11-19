@@ -6,17 +6,26 @@ import gov.nysenate.sage.model.address.Address;
 import org.apache.commons.dbutils.QueryRunner;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 
 @Repository
-public class AddressLogger extends BaseDao
+public class AddressLogger
 {
     private static Logger logger = LoggerFactory.getLogger(AddressLogger.class);
     private static String SCHEMA = "log";
     private static String TABLE = "address";
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+    private BaseDao baseDao;
+
+
+    @Autowired
+    public AddressLogger(BaseDao baseDao) {
+        this.baseDao = baseDao;
+        this.run = this.baseDao.getQueryRunner();
+    }
 
     /**
      * Inserts an address into the address table and returns the address id. If an exact match already exists

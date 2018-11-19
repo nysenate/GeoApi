@@ -33,9 +33,9 @@ import java.util.Observer;
  *  http://developer.yahoo.com/boss/geo/docs/free_YQL.html#table_pf
  */
 @Repository
-public class YahooDao extends BaseDao implements Observer
+public class YahooDao implements Observer
 {
-    private final Config config = getConfig();
+    private final Config config;
     private static final String DEFAULT_BASE_URL = "http://query.yahooapis.com/v1/public/yql";
     private static final String SET_QUERY_AS = "?format=json&crossProduct=optimized&q=";
     private static final String GEOCODE_QUERY = "select line1, city, statecode, postal, quality, latitude, longitude " +
@@ -52,10 +52,14 @@ public class YahooDao extends BaseDao implements Observer
     private String baseUrl;
     private static ObjectMapper objectMapper = new ObjectMapper();
 
+    private BaseDao baseDao;
+
     @Autowired
-    public YahooDao()
+    public YahooDao(BaseDao baseDao)
     {
-        config.notifyOnChange(this);
+        this.baseDao = baseDao;
+        this.config = this.baseDao.getConfig();
+        this.config.notifyOnChange(this);
         this.update(null, null);
     }
 

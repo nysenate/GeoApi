@@ -1,11 +1,11 @@
 package gov.nysenate.sage.scripts;
 
-import gov.nysenate.sage.factory.ApplicationFactory;
+import gov.nysenate.sage.config.DatabaseConfig;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.StreetAddress;
-import gov.nysenate.sage.util.Config;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -14,18 +14,40 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.stereotype.Component;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import static gov.nysenate.sage.scripts.BaseScript.getCommandLine;
+
+@Component
 public class DoBatchGeocache {
-    private Config config;
-    QueryRunner tigerRun;
+
+
+    @Autowired
+    Environment env;
+    @Autowired
+    DatabaseConfig databaseConfig;
+
     private static Logger logger = LoggerFactory.getLogger(DoBatchGeocache.class);
 
-    public DoBatchGeocache() {
-        config = ApplicationFactory.getConfig();
-        tigerRun = new QueryRunner(ApplicationFactory.getTigerDataSource());
+
+    public void execute(CommandLine opts) throws Exception
+    {
+        String[] args = opts.getArgs();
+
+        if (args.length < 2) {
+            logger.error("Usage: DoBatchGeocache offset_number amount_to_geocode_number geocode_yahoo_only \n" +
+                    "EX. DoBatchGeocache 0 100 or DoBatchGeocache 0 100 true");
+            System.exit(1);
+        }
+
+        this.doBatchGeocache(args);
     }
 
     public String createJsonForAddress(String addr1, String city, String state, String zip5) {
@@ -33,26 +55,10 @@ public class DoBatchGeocache {
                 "\"state\": " + "\"" + state + "\"" + "," + "\"zip5\": " + "\"" + zip5 + "\"" + "},";
     }
 
-    public static void main(String[] args) {
-        /*
-        Make sure that there were at least 2 arguments supplied to the script
-         */
-        if (args.length < 2) {
-            System.err.println("Usage: DoBatchGeocache offset_number amount_to_geocode_number geocode_yahoo_only \n" +
-                    "EX. DoBatchGeocache 0 100 or DoBatchGeocache 0 100 true");
-            System.exit(1);
-        }
-
-        /* Load up the configuration settings */
-        if (!ApplicationFactory.bootstrap()) {
-            System.err.println("Failed to configure application");
-            System.exit(-1);
-        }
-
+    public void doBatchGeocache(String[] args) {
         /*
         Create necessary variables to execute sql
          */
-        DoBatchGeocache doBatchGeocache = new DoBatchGeocache();
         long offset = 0;
         long limit = 10;
         boolean yahoo = true;
@@ -67,13 +73,10 @@ public class DoBatchGeocache {
         String ORDER_SQL = "order by id asc\n" +
                 "limit ? OFFSET ?";
 
-        BeanListHandler<StreetAddress> beanListHandler
-                = new BeanListHandler<>(StreetAddress.class);
-
         /*
         Create necessary variables to execute http request
          */
-        String httpRequestString = doBatchGeocache.config.getValue("base.url") +
+        String httpRequestString = env.getBaseUrl() +
                 "/api/v2/geo/geocode/batch?provider=google&bypassCache=true&doNotCache=false&useFallback=false";
         String httpRequestBody = "[";
 
@@ -90,7 +93,7 @@ public class DoBatchGeocache {
                     "DoBatchGeocache input limit: " + limit);
         }
         catch (Exception e) {
-            System.err.println(
+            logger.error(
                     "Check supplied arguments. The first 2 arguments should be intergers, the 3rd should be a boolean");
             System.exit(-1);
         }
@@ -107,12 +110,16 @@ public class DoBatchGeocache {
         Execute SQL and form http request body
          */
         try {
-             List<StreetAddress> streetAddressesToGeocache =
-                     doBatchGeocache.tigerRun.query(BATCH_SQL, beanListHandler, limit, offset);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("limit", limit);
+            params.addValue("offset", offset);
+
+            List<StreetAddress> streetAddressesToGeocache = databaseConfig.namedJdbcTemplate()
+                    .query(BATCH_SQL, params, new StreetAddressRowMapper() );
              for (StreetAddress streetAddress: streetAddressesToGeocache) {
                  Address address = streetAddress.toAddress();
                  logger.debug(address.toString());
-                 httpRequestBody = httpRequestBody + doBatchGeocache.createJsonForAddress(
+                 httpRequestBody = httpRequestBody + createJsonForAddress(
                          address.getAddr1(),
                          address.getCity(),
                          address.getState(),
@@ -122,7 +129,7 @@ public class DoBatchGeocache {
              httpRequestBody = httpRequestBody.substring(0, httpRequestBody.length()-1) + "]";
              logger.debug(httpRequestBody);
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Error retrieving addresses from geocache", ex);
         }
 
@@ -141,11 +148,33 @@ public class DoBatchGeocache {
             ((CloseableHttpClient) httpClient).close();
         }
         catch (Exception e) {
-            System.err.println("Failed to make Http request because of exception" + e.getMessage());
+            logger.error("Failed to make Http request because of exception" + e.getMessage());
             System.exit(-1);
         }
+    }
 
-        ApplicationFactory.close();
-        System.exit(0);
+    public static void main(String[] args) throws Exception {
+        logger.info("running");
+        CommandLine cmd = getCommandLine(new Options(), args);
+        new DoBatchGeocache().execute(cmd);
+    }
+
+
+    public static class StreetAddressRowMapper implements RowMapper<StreetAddress> {
+
+        @Override
+        public StreetAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
+            StreetAddress sa =  new StreetAddress();
+            sa.setBldgNum(rs.getInt("bldgnum"));
+            sa.setPreDir(rs.getString("predir"));
+            sa.setStreet(rs.getString("street"));
+            sa.setStreetType(rs.getString("streettype"));
+            sa.setPostDir(rs.getString("postdir"));
+            sa.setLocation(rs.getString("location"));
+            sa.setState("state");
+            sa.setZip4(rs.getString("zip5"));
+            sa.setZip5(rs.getString("zip4"));
+            return sa;
+        }
     }
 }

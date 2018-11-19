@@ -12,6 +12,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.util.UrlRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -30,13 +31,17 @@ public class RubyGeocoder implements GeocodeService
     private final int BATCH_SIZE = 24;
     private String m_baseUrl;
     private String m_baseBulkUrl;
+    private GeocodeServiceValidator geocodeServiceValidator;
 
-    public RubyGeocoder()
+
+    @Autowired
+    public RubyGeocoder(GeocodeServiceValidator geocodeServiceValidator)
     {
         this.logger = LoggerFactory.getLogger(this.getClass());
         this.jsonMapper = new ObjectMapper();
         configure();
         logger.debug("Initialized RubyGeocoder Adapter");
+        this.geocodeServiceValidator = geocodeServiceValidator;
     }
 
     private void configure()
@@ -52,12 +57,12 @@ public class RubyGeocoder implements GeocodeService
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Ensure that the geocoder is active, otherwise return error result. */
-        if (!GeocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
+        if (!geocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
             return geocodeResult;
         }
 
         /** Proceed if valid address */
-        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
+        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
             return geocodeResult;
         }
 

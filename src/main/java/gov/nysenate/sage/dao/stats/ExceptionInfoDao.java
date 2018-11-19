@@ -5,6 +5,8 @@ import gov.nysenate.sage.dao.logger.ApiRequestLogger;
 import gov.nysenate.sage.model.stats.ExceptionInfo;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -15,14 +17,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class ExceptionInfoDao extends BaseDao
+public class ExceptionInfoDao
 {
     private static Logger logger = LoggerFactory.getLogger(DeploymentStatsDao.class);
 
     private String SCHEMA = "log";
     private String TABLE = "exception";
 
-    private QueryRunner run = getQueryRunner();
+    private QueryRunner run;
+
+    private ApiRequestLogger apiRequestLogger;
+    private BaseDao baseDao;
+
+    @Autowired
+    public ExceptionInfoDao(ApiRequestLogger apiRequestLogger,BaseDao baseDao) {
+        this.apiRequestLogger = apiRequestLogger;
+        this.baseDao = baseDao;
+        run = baseDao.getQueryRunner();
+    }
 
     /**
      * Retrieves a list of all unhandled exceptions.
@@ -35,7 +47,7 @@ public class ExceptionInfoDao extends BaseDao
                      ((excludeHidden) ? "WHERE hidden = false \n" : "") +
                      "ORDER BY catchTime DESC";
         try {
-            return run.query(sql, new ExceptionInfoListHandler());
+            return run.query(sql, new ExceptionInfoListHandler(this.apiRequestLogger));
         }
         catch (SQLException ex) {
             logger.error("Failed to retrieve exception info list!", ex);
@@ -66,7 +78,11 @@ public class ExceptionInfoDao extends BaseDao
      */
     private static class ExceptionInfoListHandler implements ResultSetHandler<List<ExceptionInfo>>
     {
-        private static ApiRequestLogger apiRequestLogger = new ApiRequestLogger();
+        private ApiRequestLogger apiRequestLogger;
+
+        public ExceptionInfoListHandler(ApiRequestLogger apiRequestLogger) {
+            this.apiRequestLogger = apiRequestLogger;
+        }
 
         @Override
         public List<ExceptionInfo> handle(ResultSet rs) throws SQLException {

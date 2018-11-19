@@ -176,7 +176,7 @@ public class JobBatchProcessor {
      */
     public List<JobProcessStatus> getWaitingJobProcesses()
     {
-        return new JobProcessDao().getJobStatusesByCondition(WAITING_FOR_CRON, null);
+        return jobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
     }
 
     /**
@@ -185,7 +185,7 @@ public class JobBatchProcessor {
      */
     public List<JobProcessStatus> getRunningJobProcesses()
     {
-        return new JobProcessDao().getJobStatusesByCondition(RUNNING, null);
+        return jobProcessDao.getJobStatusesByCondition(RUNNING, null);
     }
 
     /**
