@@ -67,9 +67,9 @@ public class WebInitializer implements WebApplicationInitializer
 //                .addMappingForUrlPatterns(dispatcherTypes, false, "/*");
 
         /** Registers the CommonAttributeFilter which sets request attributes for JSP pages. */
-        DelegatingFilterProxy commonAttributeFilter = new DelegatingFilterProxy("commonAttributeFilter", dispatcherContext);
-        servletContext.addFilter("commonAttributeFilter", commonAttributeFilter)
-                .addMappingForUrlPatterns(EnumSet.of(FORWARD), false, "/*");
+//        DelegatingFilterProxy commonAttributeFilter = new DelegatingFilterProxy("commonAttributeFilter", dispatcherContext);
+//        servletContext.addFilter("commonAttributeFilter", commonAttributeFilter)
+//                .addMappingForUrlPatterns(EnumSet.of(FORWARD), false, "/*");
 
 //        /** Registers the restApiFilter which affects all REST API calls. */
 //        DelegatingFilterProxy restApiFilter = new DelegatingFilterProxy("restApiFilter", dispatcherContext);
