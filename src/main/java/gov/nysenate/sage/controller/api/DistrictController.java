@@ -78,11 +78,11 @@ public class DistrictController
     private static Boolean BATCH_LOGGING_ENABLED = false;
 
     @Autowired
-    public DistrictController(AddressServiceProvider addressProvider, DistrictServiceProvider districtProvider,
-                              GeocodeServiceProvider geocodeProvider, RevGeocodeServiceProvider revGeocodeProvider,
-                              MapServiceProvider mapProvider, Environment env, GeocodeRequestLogger geocodeRequestLogger,
-                              GeocodeResultLogger geocodeResultLogger,DistrictRequestLogger districtRequestLogger,
-                              DistrictResultLogger districtResultLogger, DistrictMemberProvider districtMemberProvider) {
+    public DistrictController(Environment env,AddressServiceProvider addressProvider, DistrictServiceProvider districtProvider,
+                              RevGeocodeServiceProvider revGeocodeProvider, MapServiceProvider mapProvider,
+                              GeocodeRequestLogger geocodeRequestLogger, GeocodeResultLogger geocodeResultLogger,
+                              DistrictRequestLogger districtRequestLogger, DistrictResultLogger districtResultLogger,
+                              DistrictMemberProvider districtMemberProvider, GeocodeServiceProvider geocodeProvider) {
 
         this.addressProvider = addressProvider;
         this.districtProvider = districtProvider;

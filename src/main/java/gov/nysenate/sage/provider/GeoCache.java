@@ -42,7 +42,7 @@ public class GeoCache implements GeocodeCacheService
      * Designates a provider (that has been registered) as a reliable source for caching results.
      * @param provider the provider to be added to the cacheableProviders list
      */
-    public static void registerProviderAsCacheable(Class<? extends GeocodeService> provider)
+    public void registerProviderAsCacheable(Class<? extends GeocodeService> provider)
     {
         if (provider != null) {
             cacheableProviders.add(provider);
@@ -54,7 +54,7 @@ public class GeoCache implements GeocodeCacheService
      * @param provider check name of this provider to see if it is registered as cacheable
      * @return true if it is allowed, false otherwise
      */
-    public static boolean isProviderCacheable(Class<? extends GeocodeService> provider)
+    public boolean isProviderCacheable(Class<? extends GeocodeService> provider)
     {
         return cacheableProviders.contains(provider);
     }

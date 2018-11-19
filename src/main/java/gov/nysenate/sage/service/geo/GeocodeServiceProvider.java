@@ -34,13 +34,13 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     private final Logger logger = LoggerFactory.getLogger(GeocodeServiceProvider.class);
 
     /** Caching members */
-    private GeocodeCacheService geocodeCache;
+    private GeoCache geocache;
     private boolean CACHE_ENABLED = true;
 
     @Autowired
-    public GeocodeServiceProvider(Environment env, GeocodeCacheService geocodeCache) {
+    public GeocodeServiceProvider(Environment env, GeoCache geocache) {
         this.env = env;
-        this.geocodeCache = geocodeCache;
+        this.geocache = geocache;
         /** Setup geocode service providers. */
         Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
         geoProviders.put("google", GoogleGeocoder.class);
@@ -53,7 +53,6 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
         String[] activeList = env.getGeocoderActive().split(",");
         for (String provider : activeList) {
-            GeocodeServiceValidator.setGeocoderAsActive(geoProviders.get(provider));
             activeGeoProviders.put(provider, geoProviders.get(provider));
         }
 
@@ -86,7 +85,9 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
     public void registerProviderAsCacheable(String providerName)
     {
         GeocodeService provider = this.getInstance(providerName);
-        GeoCache.registerProviderAsCacheable(provider.getClass());
+        if (provider != null) {
+            geocache.registerProviderAsCacheable(provider.getClass());
+        }
     }
 
     /**
@@ -161,7 +162,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
                                                                   : new LinkedList<>(this.defaultFallback);
         Timestamp startTime = TimeUtil.currentTimestamp();
-        GeocodeResult geocodeResult = (CACHE_ENABLED && useCache) ? this.geocodeCache.geocode(address)
+        GeocodeResult geocodeResult = (CACHE_ENABLED && useCache) ? this.geocache.geocode(address)
                                                  : new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
         boolean cacheHit = CACHE_ENABLED && useCache && geocodeResult.isSuccess();
 
@@ -225,7 +226,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
         /** Cache result */
         if (CACHE_ENABLED && !cacheHit && !doNotCache) {
-            geocodeCache.saveToCacheAndFlush(geocodeResult);
+            geocache.saveToCacheAndFlush(geocodeResult);
         }
         return geocodeResult;
     }
@@ -314,7 +315,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             logger.debug("Running batch through geo cache..");
             Timestamp benchmark1 = TimeUtil.currentTimestamp();
 
-            geocodeResults = this.geocodeCache.geocode((ArrayList<Address>) validAddresses);
+            geocodeResults = this.geocache.geocode((ArrayList<Address>) validAddresses);
             cacheElapsedMs = TimeUtil.getElapsedMs(benchmark1);
 
             if (!fallback.contains(provider)) {
@@ -422,7 +423,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
 
         /** Cache results */
         if (CACHE_ENABLED) {
-            geocodeCache.saveToCacheAndFlush(finalGeocodeResults);
+            geocache.saveToCacheAndFlush(finalGeocodeResults);
         }
 
         return finalGeocodeResults;
