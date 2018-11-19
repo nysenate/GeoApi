@@ -65,7 +65,7 @@ public class MetaController
         setApiResponse(metaResponse,request);
     }
 
-    @RequestMapping(value = "/info", method = RequestMethod.GET)
+    @RequestMapping(value = "/provider", method = RequestMethod.GET)
     public void metaProvider(HttpServletRequest request, HttpServletResponse response) {
         Object metaResponse;
         /** Get the ApiRequest */

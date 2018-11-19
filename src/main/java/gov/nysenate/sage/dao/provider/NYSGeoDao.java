@@ -26,12 +26,12 @@ public class NYSGeoDao {
 
     private Environment env;
 
-    private final String DEFAULT_BASE_URL = env.getNysGeocoderUrl();
+    private final String DEFAULT_BASE_URL;
 
-    private final String GEOCODE_EXTENSION = env.getNysGeocdeExtension();
+    private final String GEOCODE_EXTENSION;
     private String GEOCODE_QUERY = "?street=%s&city=%s&state=%s&zip=%s";
 
-    private final String REV_GEOCODE_EXTENSION = env.getNysRevGeocodeExtension();
+    private final String REV_GEOCODE_EXTENSION;
     private String REV_GEOCODE_QUERY = "?location={\"x\" : %s, \"y\" : %s, \"spatialReference\" : {\"wkid\" : 4326}}&returnIntersection=false";
 
     private final String COMMON_PARAMS = "&outSR=4326&f=pjson";
@@ -42,6 +42,9 @@ public class NYSGeoDao {
     @Autowired
     public NYSGeoDao(Environment env) {
         this.env = env;
+        this.DEFAULT_BASE_URL = env.getNysGeocoderUrl();
+        this.GEOCODE_EXTENSION = env.getNysGeocdeExtension();
+        this.REV_GEOCODE_EXTENSION = env.getNysRevGeocodeExtension();
     }
 
     /**
