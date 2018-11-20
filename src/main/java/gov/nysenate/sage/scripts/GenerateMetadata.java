@@ -6,6 +6,7 @@ import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.AssemblyDao;
 import gov.nysenate.sage.dao.model.CongressionalDao;
 import gov.nysenate.sage.dao.model.SenateDao;
+import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -51,6 +52,9 @@ public class GenerateMetadata {
 
     @Autowired
     AssemblyDao assemblyDao;
+
+    @Autowired
+    DistrictShapefileDao districtShapefileDao;
 
     private static Logger logger = LoggerFactory.getLogger(GenerateSenatorImages.class);
 
@@ -221,7 +225,7 @@ public class GenerateMetadata {
             }
         }
         if (updated) {
-            //update cache
+            districtShapefileDao.cacheDistrictMaps();
         }
         return updated;
     }
