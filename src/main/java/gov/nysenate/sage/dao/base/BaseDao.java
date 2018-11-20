@@ -2,6 +2,8 @@ package gov.nysenate.sage.dao.base;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.config.DatabaseConfig;
+//import javax.sql.DataSource;
 import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.model.geo.GeometryTypes;
 import gov.nysenate.sage.model.geo.Line;
@@ -12,17 +14,17 @@ import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.service.geo.ParallelRevGeocodeService;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.DB;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.apache.commons.dbutils.AsyncQueryRunner;
 import org.apache.commons.dbutils.QueryRunner;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import org.apache.tomcat.jdbc.pool.DataSource;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -34,22 +36,29 @@ import java.util.concurrent.ExecutorService;
 public class BaseDao
 {
     private static Logger logger = LoggerFactory.getLogger(BaseDao.class);
-    /** Dependency instances */
     private Config config;
     private DB baseDB;
     private DB tigerDB;
+    /** Dependency instances */
     protected DataSource dataSource;
     protected DataSource tigerDataSource;
+    public JdbcTemplate geoApiJbdcTemplate;
+    public NamedParameterJdbcTemplate geoApiNamedJbdcTemaplate;
+    public JdbcTemplate tigerJbdcTemplate;
+    public NamedParameterJdbcTemplate tigerNamedJdbcTemplate;
+
     Marker fatal = MarkerFactory.getMarker("FATAL");
 
     private ParallelDistrictService parallelDistrictService;
     private ParallelGeocodeService parallelGeocodeService;
     private ParallelRevGeocodeService parallelRevGeocodeService;
     private ParallelAddressService parallelAddressService;
+    private DatabaseConfig databaseConfig;
 
     @Autowired
     public BaseDao(ParallelDistrictService parallelDistrictService, ParallelGeocodeService parallelGeocodeService,
-                   ParallelRevGeocodeService parallelRevGeocodeService, ParallelAddressService parallelAddressService)
+                   ParallelRevGeocodeService parallelRevGeocodeService, ParallelAddressService parallelAddressService,
+                   DatabaseConfig databaseConfig)
     {
         try {
             SageConfigurationListener configurationListener = new SageConfigurationListener();
@@ -57,11 +66,19 @@ public class BaseDao
             this.baseDB = new DB(this.config, "db");
             this.tigerDB = new DB(this.config, "tiger.db");
         }
-        catch(ConfigurationException e) {
+        catch(Exception e) {
             throw new RuntimeException("Failed to connect to DB's");
         }
         this.dataSource = baseDB.getDataSource();
         this.tigerDataSource = tigerDB.getDataSource();
+
+        this.databaseConfig = databaseConfig;
+//        this.dataSource = this.databaseConfig.geoApiPostgresDataSource();
+//        this.tigerDataSource = this.databaseConfig.tigerPostgresDataSource();
+        this.geoApiJbdcTemplate = this.databaseConfig.geoApiJdbcTemplate();
+        this.geoApiNamedJbdcTemaplate = this.databaseConfig.geoApiNamedJdbcTemplate();
+        this.tigerJbdcTemplate = this.databaseConfig.tigerJdbcTemplate();
+        this.tigerNamedJdbcTemplate = this.databaseConfig.tigerNamedJdbcTemplate();
         this.parallelAddressService = parallelAddressService;
         this.parallelDistrictService = parallelDistrictService;
         this.parallelGeocodeService = parallelGeocodeService;
@@ -193,17 +210,6 @@ public class BaseDao
     public boolean close()
     {
         try {
-            baseDB.getDataSource().purge();
-            tigerDB.getDataSource().purge();
-        }
-        catch (Exception ex) {
-            logger.error("Failed to purge data connections!", ex);
-        }
-
-        try {
-            baseDB.getDataSource().close(true);
-            tigerDB.getDataSource().close(true);
-
             parallelDistrictService.shutdownThread();
             parallelGeocodeService.shutdownThread();
             parallelRevGeocodeService.shutdownThread();
@@ -216,9 +222,5 @@ public class BaseDao
             logger.error("Failed to close data connections/threads!", ex);
         }
         return false;
-    }
-
-    public Config getConfig() {
-        return config;
     }
 }

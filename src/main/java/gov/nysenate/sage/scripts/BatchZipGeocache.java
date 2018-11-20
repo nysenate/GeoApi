@@ -42,7 +42,7 @@ public class BatchZipGeocache extends BaseScript {
         Execute SQL and get zip codes
          */
         try {
-            zipCodes = databaseConfig.jdbcTemplate().query(GET_ZIP_SQL, (rs, rowNum) -> rs.getString("zcta5ce10"));
+            zipCodes = databaseConfig.geoApiJdbcTemplate().query(GET_ZIP_SQL, (rs, rowNum) -> rs.getString("zcta5ce10"));
         }
         catch (Exception ex) {
             logger.error("Error retrieving zip codes from geoapi db", ex);

@@ -101,7 +101,7 @@ public class NYSRefreshGeocache {
          */
         try {
             //Get total number of addresses that will be used to update our geocache
-            Integer total = databaseConfig.jdbcTemplate().queryForObject(NYS_COUNT_SQL, Integer.class);
+            Integer total = databaseConfig.tigerJdbcTemplate().queryForObject(NYS_COUNT_SQL, Integer.class);
 
             //start from 0 and loop until the total number in batches of 2000
             while (total > offset) {
@@ -109,7 +109,7 @@ public class NYSRefreshGeocache {
                 params.addValue("limit", limit);
                 params.addValue("offset", offset);
                 //Get batch of 2000
-                List<NYSGeoAddress> nysGeoAddresses = databaseConfig.namedJdbcTemplate().query(NYS_BATCH_SQL, params,
+                List<NYSGeoAddress> nysGeoAddresses = databaseConfig.tigerNamedJdbcTemplate().query(NYS_BATCH_SQL, params,
                         new NysGeoAddressRowMapper());
                 logger.info("At offset: " + offset);
                 offset = limit + offset;
@@ -162,12 +162,12 @@ public class NYSRefreshGeocache {
                     geocacheParams.addValue("limit", nysStreetAddress.getLocation());
 
                     //Determine if address exits in our Geocache by getting the method of its results (GoogleDao, YahooDao, etc)
-                    String geocachedStreetAddressProvider = databaseConfig.namedJdbcTemplate().queryForObject(GEOCACHE_SELECT, geocacheParams, String.class);
+                    String geocachedStreetAddressProvider = databaseConfig.tigerNamedJdbcTemplate().queryForObject(GEOCACHE_SELECT, geocacheParams, String.class);
 
                     //If the geocacheStreetAddressProvider is empty, we don't have the address cached, so insert the address
                     if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
                         //insert
-                        databaseConfig.jdbcTemplate().update(INSERT_GEOCACHE, Integer.valueOf(nysStreetAddress.getBldgNum()),
+                        databaseConfig.tigerJdbcTemplate().update(INSERT_GEOCACHE, Integer.valueOf(nysStreetAddress.getBldgNum()),
                                 nysStreetAddress.getPreDir(), nysStreetAddress.getStreetName(), nysStreetAddress.getStreetType(),
                                 nysStreetAddress.getPostDir(), nysStreetAddress.getLocation(),
                                 nysStreetAddress.getState(), nysStreetAddress.getZip5(),
@@ -177,7 +177,7 @@ public class NYSRefreshGeocache {
                     //If the provider is not Google and NYS Geo has a rooftop coordinate, update the cache
                     else if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointtype() == 1) {
                         //update
-                        databaseConfig.jdbcTemplate().update(UPDATE_GEOCACHE,
+                        databaseConfig.tigerJdbcTemplate().update(UPDATE_GEOCACHE,
                                 "POINT(" + nysGeocode.getLon() + " " + nysGeocode.getLat() + ")",
                                 nysGeocode.getMethod(), nysGeocode.getQuality().name(), nysStreetAddress.getZip4(),
                                 nysStreetAddress.getBldgNum(), nysStreetAddress.getStreetName(),

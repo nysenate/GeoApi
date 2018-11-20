@@ -2,12 +2,14 @@ package gov.nysenate.sage.dao.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.UrlRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -38,6 +40,15 @@ public class MapQuestDao
     private String revGeoUrl;
     private String key;
     Marker fatal = MarkerFactory.getMarker("FATAL");
+    private Environment env;
+
+    @Autowired
+    public MapQuestDao(Environment env) {
+        this.env = env;
+        this.geoUrl = this.env.getMapquestGeoUrl();
+        this.revGeoUrl = this.env.getMapquestRevUrl();
+        this.key = this.env.getMapquestKey();
+    }
 
     private static HashMap<String, GeocodeQuality> qualityMap;
     static {

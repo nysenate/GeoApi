@@ -2,6 +2,7 @@ package gov.nysenate.sage.dao.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -33,9 +34,8 @@ import java.util.Observer;
  *  http://developer.yahoo.com/boss/geo/docs/free_YQL.html#table_pf
  */
 @Repository
-public class YahooDao implements Observer
+public class YahooDao
 {
-    private final Config config;
     private static final String DEFAULT_BASE_URL = "http://query.yahooapis.com/v1/public/yql";
     private static final String SET_QUERY_AS = "?format=json&crossProduct=optimized&q=";
     private static final String GEOCODE_QUERY = "select line1, city, statecode, postal, quality, latitude, longitude " +
@@ -53,23 +53,17 @@ public class YahooDao implements Observer
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     private BaseDao baseDao;
+    private Environment env;
 
     @Autowired
-    public YahooDao(BaseDao baseDao)
+    public YahooDao(BaseDao baseDao, Environment env)
     {
         this.baseDao = baseDao;
-        this.config = this.baseDao.getConfig();
-        this.config.notifyOnChange(this);
-        this.update(null, null);
-    }
-
-    @Override
-    public void update(Observable o, Object arg)
-    {
-        this.baseUrl = config.getValue("yahoo.url", DEFAULT_BASE_URL);
-        CONSUMER_KEY = config.getValue("yahoo.consumer.key");
-        CONSUMER_SECRET = config.getValue("yahoo.consumer.secret");
-        BATCH_SIZE = Integer.parseInt(config.getValue("yahoo.batch.size", "100"));
+        this.env = env;
+        this.baseUrl = this.env.getYahooUrl();
+        this.CONSUMER_KEY = this.env.getYahooConsumerKey();
+        this.CONSUMER_SECRET = this.env.getYahooConsumerSecret();
+        this.BATCH_SIZE = this.env.getYahooBatchSize();
     }
 
     public String getBaseUrl()

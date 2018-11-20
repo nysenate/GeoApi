@@ -2,6 +2,7 @@ package gov.nysenate.sage.dao.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.CountyDao;
 import gov.nysenate.sage.model.district.*;
@@ -45,11 +46,15 @@ public class GeoserverDao
 
     private CountyDao countyDao;
     private BaseDao baseDao;
+    private Environment env;
 
     @Autowired
-    public GeoserverDao(BaseDao baseDao, CountyDao countyDao) {
+    public GeoserverDao(BaseDao baseDao, CountyDao countyDao, Environment env) {
         this.baseDao = baseDao;
         this.countyDao = countyDao;
+        this.env = env;
+        this.baseUrl = this.env.getGeoServerUrl();
+        this.workspace = this.env.getGeoserverWorkspace();
         this.mapper = new ObjectMapper();
         this.fipsCountyMap = this.countyDao.getFipsCountyMap();
     }

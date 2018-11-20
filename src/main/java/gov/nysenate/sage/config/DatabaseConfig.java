@@ -75,8 +75,9 @@ public class DatabaseConfig
         logger.info("Connecting to Postgres: " + pool.getJdbcUrl());
         pool.setUser(dbUser);
         pool.setPassword(dbPass);
-        pool.setMinPoolSize(3);
-        pool.setMaxPoolSize(10);
+        pool.setMinPoolSize(1);
+        pool.setMaxPoolSize(100);
+        pool.setUnreturnedConnectionTimeout(30000);
 
         // Test each connection every 30 sec after first check-in
         pool.setTestConnectionOnCheckout(false);
@@ -103,8 +104,9 @@ public class DatabaseConfig
         logger.info("Connecting to Postgres: " + pool.getJdbcUrl());
         pool.setUser(tigerDbUser);
         pool.setPassword(tigerDbPass);
-        pool.setMinPoolSize(3);
-        pool.setMaxPoolSize(10);
+        pool.setMinPoolSize(1);
+        pool.setMaxPoolSize(100);
+        pool.setUnreturnedConnectionTimeout(30000);
 
         // Test each connection every 30 sec after first check-in
         pool.setTestConnectionOnCheckout(false);

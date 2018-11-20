@@ -1,5 +1,6 @@
 package gov.nysenate.sage.provider;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.GeoserverDao;
 import gov.nysenate.sage.model.address.DistrictedAddress;
@@ -34,37 +35,24 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
  * is required to perform district assignment using this implementation.
  */
 @Service
-public class Geoserver implements DistrictService, Observer
+public class Geoserver implements DistrictService
 {
     private static Logger logger = LoggerFactory.getLogger(Geoserver.class);
     private GeoserverDao geoserverDao;
-    private Config config;
     private boolean fetchMaps = false;
     private BaseDao baseDao;
+    private Environment env;
 
     private ParallelDistrictService parallelDistrictService;
 
-    public Geoserver(GeoserverDao geoserverDao, BaseDao baseDao, ParallelDistrictService parallelDistrictService)
+    public Geoserver(GeoserverDao geoserverDao, BaseDao baseDao, ParallelDistrictService parallelDistrictService,
+                     Environment env)
     {
+        this.env = env;
         this.geoserverDao = geoserverDao;
         this.baseDao = baseDao;
         this.parallelDistrictService = parallelDistrictService;
-        this.config = this.baseDao.getConfig();
-        this.config.notifyOnChange(this);
-        configure();
         logger.debug("Geoserver instantiated");
-    }
-
-    @Override
-    public void update(Observable o, Object arg)
-    {
-        configure();
-    }
-
-    private void configure()
-    {
-        this.geoserverDao.setBaseUrl(this.config.getValue("geoserver.url"));
-        this.geoserverDao.setWorkspace(this.config.getValue("geoserver.workspace"));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package gov.nysenate.sage.provider;
 
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.MapQuestDao;
 import gov.nysenate.sage.model.address.Address;
@@ -30,28 +31,21 @@ public class MapQuest implements GeocodeService, RevGeocodeService
 {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MapQuestDao mapQuestDao;
-    private Config config;
 
     private GeocodeServiceValidator geocodeServiceValidator;
     private ParallelRevGeocodeService parallelRevGeocodeService;
     private BaseDao baseDao;
+    private Environment env;
 
     public MapQuest(BaseDao baseDao, MapQuestDao mapQuestDao, GeocodeServiceValidator geocodeServiceValidator,
-                    ParallelRevGeocodeService parallelRevGeocodeService)
+                    ParallelRevGeocodeService parallelRevGeocodeService, Environment env)
     {
         this.baseDao = baseDao;
+        this.env = env;
         this.geocodeServiceValidator = geocodeServiceValidator;
         this.parallelRevGeocodeService = parallelRevGeocodeService;
         this.mapQuestDao = mapQuestDao;
-        this.config = this.baseDao.getConfig();
-        configure();
-    }
 
-    private void configure()
-    {
-        this.mapQuestDao.setGeoUrl(config.getValue("mapquest.geo.url"));
-        this.mapQuestDao.setRevGeoUrl(config.getValue("mapquest.rev.url"));
-        this.mapQuestDao.setKey(config.getValue("mapquest.key"));
     }
 
     /** Geocode Service Implementation ------------------------------------------------------------------*/

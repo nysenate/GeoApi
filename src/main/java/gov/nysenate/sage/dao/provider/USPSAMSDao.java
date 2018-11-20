@@ -28,9 +28,8 @@ import java.util.*;
  * lookups.
  */
 @Repository
-public class USPSAMSDao implements Observer
+public class USPSAMSDao
 {
-    private final Config config;
     private Environment env;
     private static String DEFAULT_BASE_URL = "";
     private static String VALIDATE_METHOD = "validate";
@@ -46,15 +45,6 @@ public class USPSAMSDao implements Observer
     {
         this.env = env;
         this.baseDao = baseDao;
-        this.config = this.baseDao.getConfig();
-        this.update(null, null);
-        config.notifyOnChange(this);
-    }
-
-    @Override
-    public void update(Observable o, Object arg)
-    {
-        DEFAULT_BASE_URL = env.getUspsAmsApiUrl();
     }
 
     /**

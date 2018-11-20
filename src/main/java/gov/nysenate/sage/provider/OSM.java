@@ -31,11 +31,9 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Service
-public class OSM implements GeocodeService, Observer
+public class OSM implements GeocodeService
 {
-    private static final String DEFAULT_BASE_URL = "http://open.mapquestapi.com/nominatim/v1/search";
     private final Logger logger = LoggerFactory.getLogger(OSM.class);
-    private Config config;
     private ObjectMapper objectMapper;
     private String baseUrl;
     private BaseDao baseDao;
@@ -52,23 +50,8 @@ public class OSM implements GeocodeService, Observer
         this.env = env;
         this.geocodeServiceValidator = geocodeServiceValidator;
         this.parallelGeocodeService = parallelGeocodeService;
-        this.config = this.baseDao.getConfig();
+        this.baseUrl = this.env.getOsmUrl();
         this.objectMapper = new ObjectMapper();
-        configure();
-        logger.debug("Initialized OSM Adapter");
-    }
-
-    private void configure()
-    {
-        baseUrl = config.getValue("osm.url");
-        if (baseUrl.isEmpty()) {
-            baseUrl = DEFAULT_BASE_URL;
-        }
-    }
-
-    public void update(Observable o, Object arg)
-    {
-        configure();
     }
 
     @Override

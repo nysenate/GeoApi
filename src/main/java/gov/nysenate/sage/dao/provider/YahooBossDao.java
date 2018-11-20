@@ -2,6 +2,7 @@ package gov.nysenate.sage.dao.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -22,10 +23,9 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Repository
-public class YahooBossDao implements Observer
+public class YahooBossDao
 {
     private static final Logger logger = LoggerFactory.getLogger(YahooBossDao.class);
-    private final Config config;
     private static final String DEFAULT_BASE_URL = "http://yboss.yahooapis.com/geo/placefinder";
     private static String CONSUMER_KEY;
     private static String CONSUMER_SECRET;
@@ -34,22 +34,16 @@ public class YahooBossDao implements Observer
     private ObjectMapper objectMapper;
 
     private BaseDao baseDao;
+    private Environment env;
 
     @Autowired
-    public YahooBossDao(BaseDao baseDao)
+    public YahooBossDao(BaseDao baseDao, Environment env)
     {
         this.baseDao = baseDao;
-        this.config = this.baseDao.getConfig();
-        this.objectMapper = new ObjectMapper();
-        this.update(null, null);
-    }
-
-    @Override
-    public void update(Observable o, Object arg)
-    {
-        this.baseUrl = config.getValue("yahoo.boss.url", DEFAULT_BASE_URL);
-        CONSUMER_KEY = config.getValue("yahoo.boss.consumer_key");
-        CONSUMER_SECRET = config.getValue("yahoo.boss.consumer_secret");
+        this.env = env;
+        this.baseUrl = this.env.getYahooBossUrl();
+        this.CONSUMER_KEY = this.env.getYahooBossConsumerKey();
+        this.CONSUMER_SECRET = this.env.getYahooBossConsumerSecret();
     }
 
     public GeocodedAddress getGeocodedAddress(Address address)

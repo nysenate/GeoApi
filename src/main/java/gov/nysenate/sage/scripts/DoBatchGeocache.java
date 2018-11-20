@@ -114,7 +114,7 @@ public class DoBatchGeocache {
             params.addValue("limit", limit);
             params.addValue("offset", offset);
 
-            List<StreetAddress> streetAddressesToGeocache = databaseConfig.namedJdbcTemplate()
+            List<StreetAddress> streetAddressesToGeocache = databaseConfig.tigerNamedJdbcTemplate()
                     .query(BATCH_SQL, params, new StreetAddressRowMapper() );
              for (StreetAddress streetAddress: streetAddressesToGeocache) {
                  Address address = streetAddress.toAddress();

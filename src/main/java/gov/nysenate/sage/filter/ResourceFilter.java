@@ -17,7 +17,6 @@ import java.io.IOException;
 @Component
 public class ResourceFilter implements Filter
 {
-    private Config config;
     private final Logger logger = LoggerFactory.getLogger(ResourceFilter.class);
     private String log4jConfigFileName = "log4j2.xml";
     private File log4jConfigFile;
@@ -29,7 +28,6 @@ public class ResourceFilter implements Filter
     @Autowired
     public ResourceFilter(BaseDao baseDao) {
         this.baseDao = baseDao;
-        this.config = this.baseDao.getConfig();
     }
 
     /**
@@ -53,7 +51,6 @@ public class ResourceFilter implements Filter
      */
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
     {
-        config.refresh();
         chain.doFilter(request, response);
     }
     public void destroy()
