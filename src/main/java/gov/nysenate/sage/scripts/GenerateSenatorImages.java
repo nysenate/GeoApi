@@ -52,7 +52,7 @@ public class GenerateSenatorImages
 
     private static void printUsage()
     {
-        System.err.println("Usage: GenerateSenatorImages DIR DESIRED_HEIGHT");
+        logger.error("Usage: GenerateSenatorImages DIR DESIRED_HEIGHT");
     }
 
 

@@ -63,7 +63,7 @@ public class GenerateMetadata {
         String[] args = opts.getArgs();
 
         if (args.length == 0) {
-            System.err.println("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
+            logger.error("Usage: GenerateMetadata [--all] [--assembly|-a] [--congress|-c] [--senate|-s]");
             System.exit(1);
         }
 
@@ -102,7 +102,7 @@ public class GenerateMetadata {
                 processSenate = true;
             }
             else {
-                System.err.println(arg+": Invalid option");
+                logger.error(arg+": Invalid option");
                 System.exit(1);
             }
         }
@@ -219,7 +219,7 @@ public class GenerateMetadata {
                     }
                 }
                 else {
-                    System.out.println("Could not update Senator " + senator.getName() + " District: " + district);
+                    logger.info("Could not update Senator " + senator.getName() + " District: " + district);
                 }
                 updated = true;
             }
@@ -235,7 +235,7 @@ public class GenerateMetadata {
             if (!(c1.getDistrict() == c2.getDistrict() &&
                     c1.getMemberName().equals(c2.getMemberName()) &&
                     c1.getMemberUrl().equals(c2.getMemberUrl()))) {
-                System.out.println("Congressional District " + c1.getDistrict() + " [" + c1.getMemberName() + "] updated");
+                logger.info("Congressional District " + c1.getDistrict() + " [" + c1.getMemberName() + "] updated");
                 return true;
             }
         } else if (c1 == null && c2 != null) {
@@ -249,7 +249,7 @@ public class GenerateMetadata {
             if (!(a1.getDistrict() == a2.getDistrict() &&
                     a1.getMemberName().equals(a2.getMemberName()) &&
                     a1.getMemberUrl().equals(a2.getMemberUrl()))) {
-                System.out.println("Assembly District " + a1.getDistrict() + " [" + a1.getMemberName() + "] updated");
+                logger.info("Assembly District " + a1.getDistrict() + " [" + a1.getMemberName() + "] updated");
                 return true;
             }
         } else if (a1 == null && a2 != null) {
@@ -276,12 +276,12 @@ public class GenerateMetadata {
                 senatorOffice.setLongitude( geocodedOffice.getLon() );
             }
             else {
-                System.out.println("SAGE was unable to geocode the address in the url: " + urlString);
+                logger.error("SAGE was unable to geocode the address in the url: " + urlString);
             }
 
         }
         catch (IOException e) {
-            System.err.println("Unable to complete geocoding request to Senate Office " + senatorOffice.getStreet() +
+            logger.error("Unable to complete geocoding request to Senate Office " + senatorOffice.getStreet() +
                     ", " + senatorOffice.getCity() + ", NY " + senatorOffice.getPostalCode() + " " +e.getMessage());
         }
     }
