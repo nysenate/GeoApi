@@ -150,6 +150,34 @@ public class Environment {
 
     @Value("${nys.revgeocode.ext}") private String nysRevGeocodeExtension;
 
+    @Value("$yahoo.url}") private String yahooUrl;
+
+    @Value("${yahoo.consumer.key}") private String yahooConsumerKey;
+
+    @Value("${yahoo.consumer.secret}") private String yahooConsumerSecret;
+
+    @Value("${yahoo.batch.size}") private int yahooBatchSize;
+
+    @Value("${yahoo.boss.url}") private String yahooBossUrl;
+
+    @Value("${yahoo.boss.consumer_key}") private String yahooBossConsumerKey;
+
+    @Value("${yahoo.boss.consumer_secret}") private String yahooBossConsumerSecret;
+
+    @Value("${bing.key}") private String bingKey;
+
+    @Value("${mapquest.geo.url}") private String mapquestGeoUrl;
+
+    @Value("${mapquest.rev.url}") private String mapquestRevUrl;
+
+    @Value("${mapquest.key}") private String mapquestKey;
+
+    @Value("${osm.url}") private String osmUrl;
+
+    @Value("${ruby.geocoder.url}") private String rubyGeocoderUrl;
+
+    @Value("${ruby.geocoder.bulk.url}") private String rubyGeocoderBulkUrl;
+
     public Environment() {}
 
     @PostConstruct
@@ -723,5 +751,117 @@ public class Environment {
 
     public void setNysRevGeocodeExtension(String nysRevGeocodeExtension) {
         this.nysRevGeocodeExtension = nysRevGeocodeExtension;
+    }
+
+    public String getYahooUrl() {
+        return yahooUrl;
+    }
+
+    public void setYahooUrl(String yahooUrl) {
+        this.yahooUrl = yahooUrl;
+    }
+
+    public String getYahooConsumerKey() {
+        return yahooConsumerKey;
+    }
+
+    public void setYahooConsumerKey(String yahooConsumerKey) {
+        this.yahooConsumerKey = yahooConsumerKey;
+    }
+
+    public String getYahooConsumerSecret() {
+        return yahooConsumerSecret;
+    }
+
+    public void setYahooConsumerSecret(String yahooConsumerSecret) {
+        this.yahooConsumerSecret = yahooConsumerSecret;
+    }
+
+    public int getYahooBatchSize() {
+        return yahooBatchSize;
+    }
+
+    public void setYahooBatchSize(int yahooBatchSize) {
+        this.yahooBatchSize = yahooBatchSize;
+    }
+
+    public String getYahooBossUrl() {
+        return yahooBossUrl;
+    }
+
+    public void setYahooBossUrl(String yahooBossUrl) {
+        this.yahooBossUrl = yahooBossUrl;
+    }
+
+    public String getYahooBossConsumerKey() {
+        return yahooBossConsumerKey;
+    }
+
+    public void setYahooBossConsumerKey(String yahooBossConsumerKey) {
+        this.yahooBossConsumerKey = yahooBossConsumerKey;
+    }
+
+    public String getYahooBossConsumerSecret() {
+        return yahooBossConsumerSecret;
+    }
+
+    public void setYahooBossConsumerSecret(String yahooBossConsumerSecret) {
+        this.yahooBossConsumerSecret = yahooBossConsumerSecret;
+    }
+
+    public String getBingKey() {
+        return bingKey;
+    }
+
+    public void setBingKey(String bingKey) {
+        this.bingKey = bingKey;
+    }
+
+    public String getMapquestGeoUrl() {
+        return mapquestGeoUrl;
+    }
+
+    public void setMapquestGeoUrl(String mapquestGeoUrl) {
+        this.mapquestGeoUrl = mapquestGeoUrl;
+    }
+
+    public String getMapquestRevUrl() {
+        return mapquestRevUrl;
+    }
+
+    public void setMapquestRevUrl(String mapquestRevUrl) {
+        this.mapquestRevUrl = mapquestRevUrl;
+    }
+
+    public String getMapquestKey() {
+        return mapquestKey;
+    }
+
+    public void setMapquestKey(String mapquestKey) {
+        this.mapquestKey = mapquestKey;
+    }
+
+    public String getOsmUrl() {
+        return osmUrl;
+    }
+
+    public void setOsmUrl(String osmUrl) {
+        this.osmUrl = osmUrl;
+    }
+
+    public String getRubyGeocoderUrl() {
+        return rubyGeocoderUrl;
+    }
+
+    public void setRubyGeocoderUrl(String rubyGeocoderUrl) {
+        this.rubyGeocoderUrl = rubyGeocoderUrl;
+    }
+
+    public String getRubyGeocoderBulkUrl() {
+        return rubyGeocoderBulkUrl;
+    }
+
+    public void setRubyGeocoderBulkUrl(String rubyGeocoderBulkUrl) {
+        this.rubyGeocoderBulkUrl = rubyGeocoderBulkUrl;
     }
 }
