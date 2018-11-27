@@ -32,12 +32,10 @@ import java.util.List;
 @EnableAsync
 @EnableScheduling
 @ComponentScan("gov.nysenate.sage")
+@Import(DatabaseConfig.class)
 public class WebApplicationConfig implements WebMvcConfigurer
 {
     private static final Logger logger = LogManager.getLogger(WebApplicationConfig.class);
-
-    private static final String resourcePath = "/static/**";
-    private static final String resourceLocation = "/static/";
 
     //@Autowired ApplicationConfig appConfig;
 
@@ -49,8 +47,9 @@ public class WebApplicationConfig implements WebMvcConfigurer
     /** Sets paths that should not be intercepted by a controller (e.g css/ js/). */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        logger.info("Registering resource path {} for files under {}", resourcePath, resourceLocation);
-        registry.addResourceHandler(resourcePath).addResourceLocations(resourceLocation).setCachePeriod(64000);
+        registry.addResourceHandler("/js/**").addResourceLocations("/js/").setCachePeriod(64000);
+        registry.addResourceHandler("/css/**").addResourceLocations("/css/").setCachePeriod(64000);
+        registry.addResourceHandler("/static/img/**").addResourceLocations("/static/img/").setCachePeriod(64000);
     }
 
     /**

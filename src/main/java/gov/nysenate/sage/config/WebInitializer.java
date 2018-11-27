@@ -40,7 +40,7 @@ public class WebInitializer implements WebApplicationInitializer
     public void onStartup(ServletContext servletContext) throws ServletException {
         /** Create the root Spring application context. */
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
-        rootContext.scan("gov.nysenate");
+//        rootContext.scan("gov.nysenate");
 
         /** Manage the lifecycle of the root application context. */
         servletContext.addListener(new ContextLoaderListener(rootContext));
@@ -58,23 +58,7 @@ public class WebInitializer implements WebApplicationInitializer
         dispatcher = servletContext.addServlet(DISPATCHER_SERVLET_NAME, new DispatcherServlet(dispatcherContext));
         dispatcher.setLoadOnStartup(1);
         dispatcher.addMapping("/");
-
-        /** Register the Apache Shiro web security filter using the 'shiroFilter' bean as the implementation. */
-//        DelegatingFilterProxy shiroFilter = new DelegatingFilterProxy("shiroFilter", dispatcherContext);
-//        shiroFilter.setTargetFilterLifecycle(true);
-//        EnumSet<DispatcherType> dispatcherTypes = EnumSet.of(REQUEST, FORWARD, INCLUDE);
-//        servletContext.addFilter("shiroFilter", shiroFilter)
-//                .addMappingForUrlPatterns(dispatcherTypes, false, "/*");
-
-        /** Registers the CommonAttributeFilter which sets request attributes for JSP pages. */
-//        DelegatingFilterProxy commonAttributeFilter = new DelegatingFilterProxy("commonAttributeFilter", dispatcherContext);
-//        servletContext.addFilter("commonAttributeFilter", commonAttributeFilter)
-//                .addMappingForUrlPatterns(EnumSet.of(FORWARD), false, "/*");
-
-//        /** Registers the restApiFilter which affects all REST API calls. */
-//        DelegatingFilterProxy restApiFilter = new DelegatingFilterProxy("restApiFilter", dispatcherContext);
-//        servletContext.addFilter("restApiFilter", restApiFilter)
-//                .addMappingForUrlPatterns(EnumSet.of(REQUEST, FORWARD, INCLUDE), false, BaseRestApiCtrl.REST_PATH + "*");
+        dispatcher.setAsyncSupported(true);
     }
 }
 
