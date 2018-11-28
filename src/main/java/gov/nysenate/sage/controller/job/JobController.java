@@ -4,7 +4,7 @@ import gov.nysenate.sage.client.response.job.JobActionResponse;
 import gov.nysenate.sage.client.response.job.JobUploadErrorResponse;
 import gov.nysenate.sage.client.response.job.JobUploadSuccessResponse;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.model.JobProcessDao;
+import gov.nysenate.sage.dao.model.SqlJobProcessDao;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.JobErrorResult;
 import gov.nysenate.sage.util.FormatUtil;
@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,26 +37,24 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
-import static gov.nysenate.sage.util.controller.ConstantUtil.JOB_LOGIN_JSP;
-import static gov.nysenate.sage.util.controller.ConstantUtil.JOB_MAIN_JSP;
+import static gov.nysenate.sage.util.controller.ConstantUtil.*;
 import static gov.nysenate.sage.util.controller.JobControllerUtil.*;
 
 @Controller
-@RequestMapping(value = ConstantUtil.REST_PATH + "job")
+@RequestMapping(value = "job")
 public class JobController
 {
     private Logger logger = LoggerFactory.getLogger(JobController.class);
     private Environment env;
     private JobUserAuth jobUserAuth;
-    private JobProcessDao jobProcessDao;
+    private SqlJobProcessDao sqlJobProcessDao;
 
 
     @Autowired
-    public JobController(Environment env, JobUserAuth jobUserAuth, JobProcessDao jobProcessDao) {
+    public JobController(Environment env, JobUserAuth jobUserAuth, SqlJobProcessDao sqlJobProcessDao) {
         this.env = env;
         this.jobUserAuth = jobUserAuth;
-        this.jobProcessDao = jobProcessDao;
+        this.sqlJobProcessDao = sqlJobProcessDao;
     }
 
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
@@ -73,7 +70,7 @@ public class JobController
             /* Clear out previous info */
             getJobRequest(request).clear();
             request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
-            request.getRequestDispatcher(JOB_MAIN_JSP).forward(request, response);
+            response.sendRedirect(request.getContextPath() + "/job/home");
         }
         else {
             logger.debug("Authentication failed! Sending to login page");
@@ -285,10 +282,10 @@ public class JobController
         if (jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
             for (JobProcess jobProcess : jobRequest.getProcesses()) {
                 /* Store the job process and status */
-                int processId = jobProcessDao.addJobProcess(jobProcess);
+                int processId = sqlJobProcessDao.addJobProcess(jobProcess);
                 if (processId > -1) {
                     JobProcessStatus status = new JobProcessStatus(processId);
-                    jobProcessDao.setJobProcessStatus(status);
+                    sqlJobProcessDao.setJobProcessStatus(status);
                     logger.info("Added job process and status for file " + jobProcess.getFileName());
                 }
                 else {
@@ -313,11 +310,11 @@ public class JobController
     {
         logger.info("Cancelling job process");
         try {
-            JobProcessStatus jps = jobProcessDao.getJobProcessStatus(id);
+            JobProcessStatus jps = sqlJobProcessDao.getJobProcessStatus(id);
             jps.setCondition(JobProcessStatus.Condition.CANCELLED);
             jps.setCompleted(false);
             jps.setMessages(Arrays.asList("Cancelled by user",""));
-            int update = jobProcessDao.setJobProcessStatus(jps);
+            int update = sqlJobProcessDao.setJobProcessStatus(jps);
             if (update > 0) {
                 setJobResponse(new JobActionResponse(true, "Job " + id + " has been cancelled."), response);
                 return;

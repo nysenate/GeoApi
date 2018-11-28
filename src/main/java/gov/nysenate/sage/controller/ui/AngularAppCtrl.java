@@ -30,9 +30,30 @@ public class AngularAppCtrl {
     }
 
     @RequestMapping({"/admin"})
-    public String admin(HttpServletRequest request) {
+    public String adminLogin(HttpServletRequest request) {
         String forwardedForIp = request.getHeader("x-forwarded-for");
         String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
         return "adminlogin";
+    }
+
+    @RequestMapping({"/admin/home"})
+    public String adminHome(HttpServletRequest request) {
+        String forwardedForIp = request.getHeader("x-forwarded-for");
+        String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        return "adminmain";
+    }
+
+    @RequestMapping({"/job"})
+    public String jobLogin(HttpServletRequest request) {
+        String forwardedForIp = request.getHeader("x-forwarded-for");
+        String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        return "joblogin";
+    }
+
+    @RequestMapping({"/job/home"})
+    public String jobHome(HttpServletRequest request) {
+        String forwardedForIp = request.getHeader("x-forwarded-for");
+        String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        return "jobmain";
     }
 }

@@ -50,6 +50,7 @@ public class WebApplicationConfig implements WebMvcConfigurer
         registry.addResourceHandler("/js/**").addResourceLocations("/js/").setCachePeriod(64000);
         registry.addResourceHandler("/css/**").addResourceLocations("/css/").setCachePeriod(64000);
         registry.addResourceHandler("/static/img/**").addResourceLocations("/static/img/").setCachePeriod(64000);
+        registry.addResourceHandler("/docs/**").addResourceLocations("/docs/html/").setCachePeriod(64000);
     }
 
     /**

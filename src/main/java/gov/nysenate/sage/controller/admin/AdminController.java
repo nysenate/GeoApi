@@ -1,10 +1,10 @@
 package gov.nysenate.sage.controller.admin;
 
-import gov.nysenate.sage.dao.logger.ApiRequestLogger;
-import gov.nysenate.sage.dao.model.AdminUserDao;
-import gov.nysenate.sage.dao.stats.ApiUsageStatsDao;
-import gov.nysenate.sage.dao.stats.ApiUserStatsDao;
-import gov.nysenate.sage.dao.stats.DeploymentStatsDao;
+import gov.nysenate.sage.dao.logger.SqlApiRequestLogger;
+import gov.nysenate.sage.dao.model.SqlAdminUserDao;
+import gov.nysenate.sage.dao.stats.SqlApiUsageStatsDao;
+import gov.nysenate.sage.dao.stats.SqlApiUserStatsDao;
+import gov.nysenate.sage.dao.stats.SqlDeploymentStatsDao;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import gov.nysenate.sage.util.controller.ConstantUtil;
@@ -25,26 +25,26 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_MAIN_JSP;
 import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_MAIN_PATH;
 
 @Controller
-@RequestMapping(value = ConstantUtil.REST_PATH + "admin")
+@RequestMapping(value = "admin")
 public class AdminController
 {
     private Logger logger = LoggerFactory.getLogger(AdminController.class);
 
-    private ApiRequestLogger apiRequestLogger;
-    private ApiUserStatsDao apiUserStatsDao;
-    private ApiUsageStatsDao apiUsageStatsDao;
-    private DeploymentStatsDao deploymentStatsDao;
-    private AdminUserDao adminUserDao;
+    private SqlApiRequestLogger sqlApiRequestLogger;
+    private SqlApiUserStatsDao sqlApiUserStatsDao;
+    private SqlApiUsageStatsDao sqlApiUsageStatsDao;
+    private SqlDeploymentStatsDao sqlDeploymentStatsDao;
+    private SqlAdminUserDao sqlAdminUserDao;
 
     @Autowired
-    public AdminController(ApiRequestLogger apiRequestLogger, ApiUserStatsDao apiUserStatsDao,
-                           ApiUsageStatsDao apiUsageStatsDao, DeploymentStatsDao deploymentStatsDao,
-                           AdminUserDao adminUserDao) {
-        this.apiRequestLogger = apiRequestLogger;
-        this.apiUserStatsDao = apiUserStatsDao;
-        this.apiUsageStatsDao = apiUsageStatsDao;
-        this.deploymentStatsDao = deploymentStatsDao;
-        this.adminUserDao = adminUserDao;
+    public AdminController(SqlApiRequestLogger sqlApiRequestLogger, SqlApiUserStatsDao sqlApiUserStatsDao,
+                           SqlApiUsageStatsDao sqlApiUsageStatsDao, SqlDeploymentStatsDao sqlDeploymentStatsDao,
+                           SqlAdminUserDao sqlAdminUserDao) {
+        this.sqlApiRequestLogger = sqlApiRequestLogger;
+        this.sqlApiUserStatsDao = sqlApiUserStatsDao;
+        this.sqlApiUsageStatsDao = sqlApiUsageStatsDao;
+        this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;
+        this.sqlAdminUserDao = sqlAdminUserDao;
     }
 
     /**
@@ -59,10 +59,10 @@ public class AdminController
                            @RequestParam String username, @RequestParam String password)
             throws ServletException, IOException {
 
-        if (adminUserDao.checkAdminUser(username, password)) {
+        if (sqlAdminUserDao.checkAdminUser(username, password)) {
             logger.debug("Granted admin access to " + username);
             setAuthenticated(request, true, username);
-            response.sendRedirect(request.getContextPath() + ADMIN_MAIN_PATH);
+            response.sendRedirect(request.getContextPath() + ADMIN_MAIN_PATH + "/home");
         }
         else {
             setAuthenticated(request, false, null);
@@ -81,6 +81,6 @@ public class AdminController
     public void adminLogout(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         setAuthenticated(request, false, null);
-        request.getRequestDispatcher(ADMIN_MAIN_JSP).forward(request, response);
+        request.getRequestDispatcher(ADMIN_LOGIN_JSP).forward(request, response);
     }
 }
