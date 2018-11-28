@@ -5,8 +5,8 @@ import gov.nysenate.sage.client.response.geo.BatchGeocodeResponse;
 import gov.nysenate.sage.client.response.geo.GeocodeResponse;
 import gov.nysenate.sage.client.response.geo.RevGeocodeResponse;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
-import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
+import gov.nysenate.sage.dao.logger.SqlGeocodeRequestLogger;
+import gov.nysenate.sage.dao.logger.SqlGeocodeResultLogger;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
@@ -56,17 +56,17 @@ public class GeocodeController {
      */
     private static Boolean SINGLE_LOGGING_ENABLED = false;
     private static Boolean BATCH_LOGGING_ENABLED = false;
-    private static GeocodeRequestLogger geocodeRequestLogger;
-    private static GeocodeResultLogger geocodeResultLogger;
+    private static SqlGeocodeRequestLogger sqlGeocodeRequestLogger;
+    private static SqlGeocodeResultLogger sqlGeocodeResultLogger;
     private final Environment env;
 
     @Autowired
-    public GeocodeController(Environment env, GeocodeRequestLogger geocodeRequestLogger,
-                             GeocodeResultLogger geocodeResultLogger, GeocodeServiceProvider geocodeServiceProvider,
+    public GeocodeController(Environment env, SqlGeocodeRequestLogger sqlGeocodeRequestLogger,
+                             SqlGeocodeResultLogger sqlGeocodeResultLogger, GeocodeServiceProvider geocodeServiceProvider,
                              RevGeocodeServiceProvider revGeocodeServiceProvider, AddressServiceProvider addressProvider) {
         this.env = env;
-        this.geocodeRequestLogger = geocodeRequestLogger;
-        this.geocodeResultLogger = geocodeResultLogger;
+        this.sqlGeocodeRequestLogger = sqlGeocodeRequestLogger;
+        this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         this.geocodeServiceProvider = geocodeServiceProvider;
         this.revGeocodeServiceProvider = revGeocodeServiceProvider;
         this.addressProvider = addressProvider;
@@ -119,7 +119,7 @@ public class GeocodeController {
 
             /** Log geocode request/result to database */
             if (SINGLE_LOGGING_ENABLED && requestId != -1) {
-                geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
+                sqlGeocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
             }
         } else {
             geocodeResponse = new ApiError(this.getClass(), MISSING_ADDRESS);
@@ -162,7 +162,7 @@ public class GeocodeController {
 
             /** Log rev geocode request/result to database */
             if (SINGLE_LOGGING_ENABLED) {
-                geocodeResultLogger.logGeocodeResult(requestId, revGeocodeResult);
+                sqlGeocodeResultLogger.logGeocodeResult(requestId, revGeocodeResult);
                 requestId = -1;
             }
         } else {
@@ -207,7 +207,7 @@ public class GeocodeController {
             geocodeResponse = new BatchGeocodeResponse(geocodeResults);
 
             if (BATCH_LOGGING_ENABLED) {
-                geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
+                sqlGeocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
             }
         } else {
             geocodeResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
@@ -255,7 +255,7 @@ public class GeocodeController {
             geocodeResponse = new BatchGeocodeResponse(revGeocodeResults);
 
             if (BATCH_LOGGING_ENABLED) {
-                geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, revGeocodeResults, true);
+                sqlGeocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, revGeocodeResults, true);
             }
         } else {
             geocodeResponse = new ApiError(this.getClass(), INVALID_BATCH_POINTS);
@@ -276,7 +276,7 @@ public class GeocodeController {
         logger.info("=======================================================");
 
         if (SINGLE_LOGGING_ENABLED) {
-            requestId = geocodeRequestLogger.logGeocodeRequest(geocodeRequest);
+            requestId = sqlGeocodeRequestLogger.logGeocodeRequest(geocodeRequest);
         }
     }
 

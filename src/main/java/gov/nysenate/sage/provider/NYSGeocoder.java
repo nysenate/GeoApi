@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider;
 
-import gov.nysenate.sage.dao.provider.NYSGeoDao;
+import gov.nysenate.sage.dao.provider.HttpNYSGeoDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
@@ -18,18 +18,18 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
 
     private static final Logger logger = LoggerFactory.getLogger(NYSGeocoder.class);
 
-    private NYSGeoDao nysGeoDao;
+    private HttpNYSGeoDao httpNysGeoDao;
     private GeocodeServiceValidator geocodeServiceValidator;
     private RevGeocodeServiceValidator revGeocodeServiceValidator;
     private ParallelGeocodeService parallelGeocodeService;
     private ParallelRevGeocodeService parallelRevGeocodeService;
 
     @Autowired
-    public NYSGeocoder(NYSGeoDao nysGeoDao, GeocodeServiceValidator geocodeServiceValidator,
+    public NYSGeocoder(HttpNYSGeoDao httpNysGeoDao, GeocodeServiceValidator geocodeServiceValidator,
                        RevGeocodeServiceValidator revGeocodeServiceValidator,
                        ParallelGeocodeService parallelGeocodeService,
                        ParallelRevGeocodeService parallelRevGeocodeService) {
-        this.nysGeoDao = nysGeoDao;
+        this.httpNysGeoDao = httpNysGeoDao;
         this.geocodeServiceValidator = geocodeServiceValidator;
         this.revGeocodeServiceValidator = revGeocodeServiceValidator;
         this.parallelGeocodeService = parallelGeocodeService;
@@ -56,7 +56,7 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
         }
 
         /** Retrieve geocoded address from dao */
-        GeocodedAddress geocodedAddress = this.nysGeoDao.getGeocodedAddress(address);
+        GeocodedAddress geocodedAddress = this.httpNysGeoDao.getGeocodedAddress(address);
 
         /** Validate and set result */
         if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
@@ -83,7 +83,7 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
         }
 
         /** Perform reverse geocoding */
-        GeocodedAddress revGeocodedAddress = this.nysGeoDao.getGeocodedAddress(point);
+        GeocodedAddress revGeocodedAddress = this.httpNysGeoDao.getGeocodedAddress(point);
 
         /** Validate and set response */
         if (!revGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {

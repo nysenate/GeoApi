@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider;
 
-import gov.nysenate.sage.dao.provider.USPSAMSDao;
+import gov.nysenate.sage.dao.provider.HttpUSPSAMSDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -21,11 +21,11 @@ import java.util.List;
 public class USPSAMS implements AddressService
 {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private USPSAMSDao uspsAmsDao;
+    private HttpUSPSAMSDao uspsAmsDaoSql;
 
     @Autowired
-    public USPSAMS(USPSAMSDao uspsAmsDao) {
-        this.uspsAmsDao = uspsAmsDao;
+    public USPSAMS(HttpUSPSAMSDao uspsAmsDaoSql) {
+        this.uspsAmsDaoSql = uspsAmsDaoSql;
     }
 
     /**
@@ -37,7 +37,7 @@ public class USPSAMS implements AddressService
     public AddressResult validate(Address address) 
     {
         if (address != null && !address.isEmpty()) {
-            AddressResult result = uspsAmsDao.getValidatedAddressResult(address);
+            AddressResult result = uspsAmsDaoSql.getValidatedAddressResult(address);
             if (result != null) {
                 result.setSource(this.getClass());
                 return result;
@@ -66,7 +66,7 @@ public class USPSAMS implements AddressService
         if (addresses == null) return null;
 
         if (!addresses.isEmpty()) {
-            List<AddressResult> results = uspsAmsDao.getValidatedAddressResults(addresses);
+            List<AddressResult> results = uspsAmsDaoSql.getValidatedAddressResults(addresses);
             if (results != null && results.size() == addresses.size()) {
                 for (AddressResult result : results) {
                     result.setSource(this.getClass());
@@ -90,7 +90,7 @@ public class USPSAMS implements AddressService
     {
         if(address != null && !address.isEmpty() && address.getZip5() != null)
         {
-            AddressResult result = uspsAmsDao.getCityStateResult(address);
+            AddressResult result = uspsAmsDaoSql.getCityStateResult(address);
             if (result != null) {
                 result.setSource(this.getClass());
                 return result;
@@ -104,7 +104,7 @@ public class USPSAMS implements AddressService
     {
         if(addresses != null && !addresses.isEmpty())
         {
-            List<AddressResult> results = uspsAmsDao.getCityStateResults(addresses);
+            List<AddressResult> results = uspsAmsDaoSql.getCityStateResults(addresses);
             if (results != null && results.size() == addresses.size()) {
                 return results;
             }

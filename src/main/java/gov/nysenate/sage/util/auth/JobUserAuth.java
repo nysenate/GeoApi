@@ -1,6 +1,6 @@
 package gov.nysenate.sage.util.auth;
 
-import gov.nysenate.sage.dao.model.JobUserDao;
+import gov.nysenate.sage.dao.model.SqlJobUserDao;
 import gov.nysenate.sage.model.job.JobUser;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 public class JobUserAuth
 {
     private Logger logger = LoggerFactory.getLogger(JobUserAuth.class);
-    private JobUserDao jobUserDao;
+    private SqlJobUserDao sqlJobUserDao;
 
     @Autowired
-    public JobUserAuth(JobUserDao jobUserDao)
+    public JobUserAuth(SqlJobUserDao sqlJobUserDao)
     {
-        this.jobUserDao = jobUserDao;
+        this.sqlJobUserDao = sqlJobUserDao;
     }
 
     /**
@@ -29,7 +29,7 @@ public class JobUserAuth
      */
     public JobUser getJobUser(String email, String password)
     {
-        JobUser jobUser = jobUserDao.getJobUserByEmail(email);
+        JobUser jobUser = sqlJobUserDao.getJobUserByEmail(email);
         if (jobUser != null) {
             /** Simple password validation */
             if (BCrypt.checkpw(password, jobUser.getPassword())) {
@@ -51,10 +51,10 @@ public class JobUserAuth
         JobUser jobUser = new JobUser(email, BCrypt.hashpw(password, BCrypt.gensalt()), firstname, lastname, admin);
         jobUser.setActive(true);
 
-        int status = jobUserDao.addJobUser(jobUser);
+        int status = sqlJobUserDao.addJobUser(jobUser);
         if (status == 1) {
             logger.info("Added new job user: " + jobUser.getEmail());
-            return jobUserDao.getJobUserByEmail(email);
+            return sqlJobUserDao.getJobUserByEmail(email);
         }
         return null;
     }

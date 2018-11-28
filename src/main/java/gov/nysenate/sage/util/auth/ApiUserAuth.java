@@ -1,6 +1,6 @@
 package gov.nysenate.sage.util.auth;
 
-import gov.nysenate.sage.dao.model.ApiUserDao;
+import gov.nysenate.sage.dao.model.SqlApiUserDao;
 import gov.nysenate.sage.model.api.ApiUser;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.LoggerFactory;
@@ -15,12 +15,12 @@ import org.springframework.stereotype.Component;
 public class ApiUserAuth
 {
     private Logger logger = LoggerFactory.getLogger(ApiUserAuth.class);
-    private ApiUserDao apiUserDao;
+    private SqlApiUserDao sqlApiUserDao;
 
     @Autowired
-    public ApiUserAuth(ApiUserDao apiUserDao)
+    public ApiUserAuth(SqlApiUserDao sqlApiUserDao)
     {
-        this.apiUserDao = apiUserDao;
+        this.sqlApiUserDao = sqlApiUserDao;
     }
 
     /**
@@ -30,7 +30,7 @@ public class ApiUserAuth
      */
     public ApiUser getApiUser(String apiKey)
     {
-        return apiUserDao.getApiUserByKey(apiKey);
+        return sqlApiUserDao.getApiUserByKey(apiKey);
     }
 
     /**
@@ -47,9 +47,9 @@ public class ApiUserAuth
         apiUser.setDescription(description);
         apiUser.setApiKey(this.generateRandomKey());
 
-        if (apiUserDao.addApiUser(apiUser) == 1)
+        if (sqlApiUserDao.addApiUser(apiUser) == 1)
         {
-            return apiUserDao.getApiUserByKey(apiUser.getApiKey());
+            return sqlApiUserDao.getApiUserByKey(apiUser.getApiKey());
         }
 
         return null;

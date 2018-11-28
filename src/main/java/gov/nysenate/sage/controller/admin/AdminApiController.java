@@ -2,10 +2,10 @@ package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.client.view.job.JobProcessStatusView;
-import gov.nysenate.sage.dao.logger.ApiRequestLogger;
-import gov.nysenate.sage.dao.model.ApiUserDao;
-import gov.nysenate.sage.dao.model.JobProcessDao;
-import gov.nysenate.sage.dao.model.JobUserDao;
+import gov.nysenate.sage.dao.logger.SqlApiRequestLogger;
+import gov.nysenate.sage.dao.model.SqlApiUserDao;
+import gov.nysenate.sage.dao.model.SqlJobProcessDao;
+import gov.nysenate.sage.dao.model.SqlJobUserDao;
 import gov.nysenate.sage.dao.stats.*;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.job.JobProcessStatus;
@@ -37,33 +37,33 @@ public class AdminApiController
 {
     private Logger logger = LoggerFactory.getLogger(AdminApiController.class);
 
-    private ApiRequestLogger apiRequestLogger;
-    private ApiUserStatsDao apiUserStatsDao;
-    private ApiUsageStatsDao apiUsageStatsDao;
-    private DeploymentStatsDao deploymentStatsDao;
-    private ExceptionInfoDao exceptionInfoDao;
-    private ApiUserDao apiUserDao;
-    private JobUserDao jobUserDao;
-    private GeocodeStatsDao geocodeStatsDao;
-    private JobProcessDao jobProcessDao;
+    private SqlApiRequestLogger sqlApiRequestLogger;
+    private SqlApiUserStatsDao sqlApiUserStatsDao;
+    private SqlApiUsageStatsDao sqlApiUsageStatsDao;
+    private SqlDeploymentStatsDao sqlDeploymentStatsDao;
+    private SqlExceptionInfoDao sqlExceptionInfoDao;
+    private SqlApiUserDao sqlApiUserDao;
+    private SqlJobUserDao sqlJobUserDao;
+    private SqlGeocodeStatsDao sqlGeocodeStatsDao;
+    private SqlJobProcessDao sqlJobProcessDao;
     private ApiUserAuth apiUserAuth;
     private JobUserAuth jobUserAuth;
 
     @Autowired
-    public AdminApiController(ApiRequestLogger apiRequestLogger, ApiUserStatsDao apiUserStatsDao,
-                              ApiUsageStatsDao apiUsageStatsDao, DeploymentStatsDao deploymentStatsDao,
-                              ExceptionInfoDao exceptionInfoDao, ApiUserDao apiUserDao,
-                              JobUserDao jobUserDao, GeocodeStatsDao geocodeStatsDao,
-                              JobProcessDao jobProcessDao, ApiUserAuth apiUserAuth, JobUserAuth jobUserAuth) {
-        this.apiRequestLogger = apiRequestLogger;
-        this.apiUserStatsDao = apiUserStatsDao;
-        this.apiUsageStatsDao = apiUsageStatsDao;
-        this.deploymentStatsDao = deploymentStatsDao;
-        this.exceptionInfoDao = exceptionInfoDao;
-        this.apiUserDao = apiUserDao;
-        this.jobUserDao = jobUserDao;
-        this.geocodeStatsDao = geocodeStatsDao;
-        this.jobProcessDao = jobProcessDao;
+    public AdminApiController(SqlApiRequestLogger sqlApiRequestLogger, SqlApiUserStatsDao sqlApiUserStatsDao,
+                              SqlApiUsageStatsDao sqlApiUsageStatsDao, SqlDeploymentStatsDao sqlDeploymentStatsDao,
+                              SqlExceptionInfoDao sqlExceptionInfoDao, SqlApiUserDao sqlApiUserDao,
+                              SqlJobUserDao sqlJobUserDao, SqlGeocodeStatsDao sqlGeocodeStatsDao,
+                              SqlJobProcessDao sqlJobProcessDao, ApiUserAuth apiUserAuth, JobUserAuth jobUserAuth) {
+        this.sqlApiRequestLogger = sqlApiRequestLogger;
+        this.sqlApiUserStatsDao = sqlApiUserStatsDao;
+        this.sqlApiUsageStatsDao = sqlApiUsageStatsDao;
+        this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;
+        this.sqlExceptionInfoDao = sqlExceptionInfoDao;
+        this.sqlApiUserDao = sqlApiUserDao;
+        this.sqlJobUserDao = sqlJobUserDao;
+        this.sqlGeocodeStatsDao = sqlGeocodeStatsDao;
+        this.sqlJobProcessDao = sqlJobProcessDao;
         this.apiUserAuth = apiUserAuth;
         this.jobUserAuth = jobUserAuth;
 
@@ -247,7 +247,7 @@ public class AdminApiController
      */
     private List getCurrentApiUsers(HttpServletRequest request)
     {
-        return apiUserDao.getApiUsers();
+        return sqlApiUserDao.getApiUsers();
     }
 
     /**
@@ -257,7 +257,7 @@ public class AdminApiController
      */
     private List getCurrentJobUsers(HttpServletRequest request)
     {
-        return jobUserDao.getJobUsers();
+        return sqlJobUserDao.getJobUsers();
     }
 
     /**
@@ -296,9 +296,9 @@ public class AdminApiController
         GenericResponse response;
         try {
             int id = Integer.parseInt(request.getParameter("id"));
-            ApiUser apiUserToRemove = apiUserDao.getApiUserById(id);
+            ApiUser apiUserToRemove = sqlApiUserDao.getApiUserById(id);
             if (apiUserToRemove != null) {
-                apiUserDao.removeApiUser(apiUserToRemove);
+                sqlApiUserDao.removeApiUser(apiUserToRemove);
                 response = new GenericResponse(true, "Deleted Api User: " + apiUserToRemove.getName());
             }
             else {
@@ -350,9 +350,9 @@ public class AdminApiController
         GenericResponse response;
         try {
             int id = Integer.parseInt(request.getParameter("id"));
-            JobUser jobUserToDelete = jobUserDao.getJobUserById(id);
+            JobUser jobUserToDelete = sqlJobUserDao.getJobUserById(id);
             if (jobUserToDelete != null) {
-                int status = jobUserDao.removeJobUser(jobUserToDelete);
+                int status = sqlJobUserDao.removeJobUser(jobUserToDelete);
                 if (status == 1) {
                     response = new GenericResponse(true, "Deleted Job User");
                 }
@@ -378,30 +378,30 @@ public class AdminApiController
      */
     private DeploymentStats getDeploymentStats(HttpServletRequest request)
     {
-        DeploymentStats deploymentStats = deploymentStatsDao.getDeploymentStats();
+        DeploymentStats deploymentStats = sqlDeploymentStatsDao.getDeploymentStats();
         return deploymentStats;
     }
 
     /**
      * Retrieves interval-based api usage stats within a specified time frame or per hour by default.
      * @see ApiUsageStats
-     * @see ApiUsageStatsDao.RequestInterval
+     * @see SqlApiUsageStatsDao.RequestInterval
      * @param request HttpServletRequest with optional query parameter 'interval' which should be a
      *                string representation of a RequestInterval value (e.g 'HOUR').
      * @return ApiUsageStats
      */
     private ApiUsageStats getApiUsageStats(HttpServletRequest request)
     {
-        ApiUsageStatsDao.RequestInterval requestInterval;
+        SqlApiUsageStatsDao.RequestInterval requestInterval;
         try {
-            requestInterval = ApiUsageStatsDao.RequestInterval.valueOf(request.getParameter("interval"));
+            requestInterval = SqlApiUsageStatsDao.RequestInterval.valueOf(request.getParameter("interval"));
         }
         catch (Exception ex) {
             logger.warn("Invalid interval parameter; defaulting to HOUR.");
-            requestInterval = ApiUsageStatsDao.RequestInterval.HOUR;
+            requestInterval = SqlApiUsageStatsDao.RequestInterval.HOUR;
         }
 
-        return apiUsageStatsDao.getApiUsageStats(getBeginTimestamp(request), getEndTimestamp(request), requestInterval);
+        return sqlApiUsageStatsDao.getApiUsageStats(getBeginTimestamp(request), getEndTimestamp(request), requestInterval);
     }
 
     /**
@@ -416,7 +416,7 @@ public class AdminApiController
             sinceDays = Integer.parseInt(request.getParameter("sinceDays"));
         }
         catch (NumberFormatException ex) {}
-        return geocodeStatsDao.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
+        return sqlGeocodeStatsDao.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
     }
 
     /**
@@ -431,7 +431,7 @@ public class AdminApiController
         List<JobProcessStatusView> statusViews = new ArrayList<>();
         Timestamp from = getBeginTimestamp(request);
         Timestamp to = getEndTimestamp(request);
-        statuses = jobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), null, from, to);
+        statuses = sqlJobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), null, from, to);
         for (JobProcessStatus jobProcessStatus : statuses) {
             statusViews.add(new JobProcessStatusView(jobProcessStatus));
         }
@@ -440,12 +440,12 @@ public class AdminApiController
 
     private Map<Integer, ApiUserStats> getApiUserStats(HttpServletRequest request)
     {
-        return apiUserStatsDao.getRequestCounts(getBeginTimestamp(request), getEndTimestamp(request));
+        return sqlApiUserStatsDao.getRequestCounts(getBeginTimestamp(request), getEndTimestamp(request));
     }
 
     private List<ExceptionInfo> getExceptionStats(HttpServletRequest request)
     {
-        return exceptionInfoDao.getExceptionInfoList(true);
+        return sqlExceptionInfoDao.getExceptionInfoList(true);
     }
 
     /**
@@ -462,7 +462,7 @@ public class AdminApiController
         catch (NumberFormatException ex) {
             return new GenericResponse(false, "Must supply a valid exception id to hide!");
         }
-        int update = exceptionInfoDao.hideExceptionInfo(id);
+        int update = sqlExceptionInfoDao.hideExceptionInfo(id);
         return (update > 0) ? new GenericResponse(true, "Exception hidden")
                             : new GenericResponse(false, "Failed to hide exception!");
     }

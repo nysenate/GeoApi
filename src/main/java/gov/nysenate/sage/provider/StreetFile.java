@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider;
 
-import gov.nysenate.sage.dao.provider.StreetFileDao;
+import gov.nysenate.sage.dao.provider.SqlStreetFileDao;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -39,12 +39,12 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 public class StreetFile implements DistrictService, StreetLookupService
 {
     private Logger logger = LoggerFactory.getLogger(StreetFile.class);
-    private StreetFileDao streetFileDao;
+    private SqlStreetFileDao sqlStreetFileDao;
     private ParallelDistrictService parallelDistrictService;
 
     @Autowired
-    public StreetFile(StreetFileDao streetFileDao, ParallelDistrictService parallelDistrictService) {
-        this.streetFileDao = streetFileDao;
+    public StreetFile(SqlStreetFileDao sqlStreetFileDao, ParallelDistrictService parallelDistrictService) {
+        this.sqlStreetFileDao = sqlStreetFileDao;
         this.parallelDistrictService = parallelDistrictService;
         logger.debug("Instantiated StreetFile.");
     }
@@ -56,7 +56,7 @@ public class StreetFile implements DistrictService, StreetLookupService
     public List<DistrictedStreetRange> streetLookup(String zip5)
     {
         try {
-            return streetFileDao.getDistrictStreetRangesByZip(zip5);
+            return sqlStreetFileDao.getDistrictStreetRangesByZip(zip5);
         }
         catch (NumberFormatException ex) {
             logger.error("Zip5 was not valid. Possible non-NY entry.", ex);
@@ -90,15 +90,15 @@ public class StreetFile implements DistrictService, StreetLookupService
 
             if (!streetAddr.isStreetEmpty()) {
                 /** Try a House level match */
-                match = streetFileDao.getDistAddressByHouse(streetAddr);
+                match = sqlStreetFileDao.getDistAddressByHouse(streetAddr);
                 /** Try a Street level match */
                 if (match == null) {
-                    match = streetFileDao.getDistAddressByStreet(streetAddr);
+                    match = sqlStreetFileDao.getDistAddressByStreet(streetAddr);
                 }
             }
             /** Try a Zip5 level match */
             if (match == null) {
-                match = streetFileDao.getDistAddressByZip(streetAddr);
+                match = sqlStreetFileDao.getDistAddressByZip(streetAddr);
             }
 
             /** Validate result and return error status */

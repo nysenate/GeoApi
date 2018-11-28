@@ -3,10 +3,10 @@ package gov.nysenate.sage.scripts;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.model.AssemblyDao;
-import gov.nysenate.sage.dao.model.CongressionalDao;
-import gov.nysenate.sage.dao.model.SenateDao;
-import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
+import gov.nysenate.sage.dao.model.SqlAssemblyDao;
+import gov.nysenate.sage.dao.model.SqlCongressionalDao;
+import gov.nysenate.sage.dao.model.SqlSenateDao;
+import gov.nysenate.sage.dao.provider.SqlDistrictShapefileDao;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -45,16 +45,16 @@ public class GenerateMetadata {
     Environment env;
 
     @Autowired
-    SenateDao senateDao;
+    SqlSenateDao sqlSenateDao;
 
     @Autowired
-    CongressionalDao congressionalDao;
+    SqlCongressionalDao sqlCongressionalDao;
 
     @Autowired
-    AssemblyDao assemblyDao;
+    SqlAssemblyDao sqlAssemblyDao;
 
     @Autowired
-    DistrictShapefileDao districtShapefileDao;
+    SqlDistrictShapefileDao sqlDistrictShapefileDao;
 
     private static Logger logger = LoggerFactory.getLogger(GenerateSenatorImages.class);
 
@@ -140,15 +140,15 @@ public class GenerateMetadata {
         List<Congressional> congressionals = CongressScraper.getCongressionals();
         for (Congressional congressional : congressionals) {
             int district = congressional.getDistrict();
-            Congressional existingCongressional = congressionalDao.getCongressionalByDistrict(district);
+            Congressional existingCongressional = sqlCongressionalDao.getCongressionalByDistrict(district);
 
             if (existingCongressional == null) {
                 updated = true;
-                congressionalDao.insertCongressional(congressional);
+                sqlCongressionalDao.insertCongressional(congressional);
             } else if (isCongressionalDataUpdated(existingCongressional, congressional)) {
                 updated = true;
-                congressionalDao.deleteCongressional(district);
-                congressionalDao.insertCongressional(congressional);
+                sqlCongressionalDao.deleteCongressional(district);
+                sqlCongressionalDao.insertCongressional(congressional);
             }
         }
         return updated;
@@ -166,15 +166,15 @@ public class GenerateMetadata {
         List<Assembly> assemblies = AssemblyScraper.getAssemblies();
         for (Assembly assembly : assemblies) {
             int district = assembly.getDistrict();
-            Assembly existingAssembly = assemblyDao.getAssemblyByDistrict(district);
+            Assembly existingAssembly = sqlAssemblyDao.getAssemblyByDistrict(district);
 
             if (existingAssembly == null) {
                 updated = true;
-                assemblyDao.insertAssembly(assembly);
+                sqlAssemblyDao.insertAssembly(assembly);
             } else if (isAssemblyDataUpdated(existingAssembly, assembly)) {
                 updated = true;
-                assemblyDao.deleteAssemblies(district);
-                assemblyDao.insertAssembly(assembly);
+                sqlAssemblyDao.deleteAssemblies(district);
+                sqlAssemblyDao.insertAssembly(assembly);
             }
         }
         return updated;
@@ -204,18 +204,18 @@ public class GenerateMetadata {
         for (Senator senator : senators) {
             int district = senator.getDistrict().getNumber();
             if (district > 0) {
-                Senator existingSenator = senateDao.getSenatorByDistrict(district);
+                Senator existingSenator = sqlSenateDao.getSenatorByDistrict(district);
                 for (Office office : senator.getOffices()) {
                     getUpdatedGeocode(office);
                 }
                 if (verifyOfficeGeocode(senator)) {
                     if (existingSenator == null) {
-                        senateDao.insertSenate(senator.getDistrict());
-                        senateDao.insertSenator(senator);
+                        sqlSenateDao.insertSenate(senator.getDistrict());
+                        sqlSenateDao.insertSenator(senator);
                     }
                     else {
-                        senateDao.deleteSenator(district);
-                        senateDao.insertSenator(senator);
+                        sqlSenateDao.deleteSenator(district);
+                        sqlSenateDao.insertSenator(senator);
                     }
                 }
                 else {
@@ -225,7 +225,7 @@ public class GenerateMetadata {
             }
         }
         if (updated) {
-            districtShapefileDao.cacheDistrictMaps();
+            sqlDistrictShapefileDao.cacheDistrictMaps();
         }
         return updated;
     }

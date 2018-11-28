@@ -3,10 +3,10 @@ package gov.nysenate.sage.controller.api;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.district.*;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.logger.DistrictRequestLogger;
-import gov.nysenate.sage.dao.logger.DistrictResultLogger;
-import gov.nysenate.sage.dao.logger.GeocodeRequestLogger;
-import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
+import gov.nysenate.sage.dao.logger.SqlDistrictRequestLogger;
+import gov.nysenate.sage.dao.logger.SqlDistrictResultLogger;
+import gov.nysenate.sage.dao.logger.SqlGeocodeRequestLogger;
+import gov.nysenate.sage.dao.logger.SqlGeocodeResultLogger;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
@@ -65,10 +65,10 @@ public class DistrictController
 
 
     /** Loggers */
-    private GeocodeRequestLogger geocodeRequestLogger;
-    private GeocodeResultLogger geocodeResultLogger;
-    private DistrictRequestLogger districtRequestLogger;
-    private DistrictResultLogger districtResultLogger;
+    private SqlGeocodeRequestLogger sqlGeocodeRequestLogger;
+    private SqlGeocodeResultLogger sqlGeocodeResultLogger;
+    private SqlDistrictRequestLogger sqlDistrictRequestLogger;
+    private SqlDistrictResultLogger sqlDistrictResultLogger;
 
     private static String BLUEBIRD_DISTRICT_STRATEGY;
 
@@ -78,10 +78,10 @@ public class DistrictController
     private static Boolean BATCH_LOGGING_ENABLED = false;
 
     @Autowired
-    public DistrictController(Environment env,AddressServiceProvider addressProvider, DistrictServiceProvider districtProvider,
+    public DistrictController(Environment env, AddressServiceProvider addressProvider, DistrictServiceProvider districtProvider,
                               RevGeocodeServiceProvider revGeocodeProvider, MapServiceProvider mapProvider,
-                              GeocodeRequestLogger geocodeRequestLogger, GeocodeResultLogger geocodeResultLogger,
-                              DistrictRequestLogger districtRequestLogger, DistrictResultLogger districtResultLogger,
+                              SqlGeocodeRequestLogger sqlGeocodeRequestLogger, SqlGeocodeResultLogger sqlGeocodeResultLogger,
+                              SqlDistrictRequestLogger sqlDistrictRequestLogger, SqlDistrictResultLogger sqlDistrictResultLogger,
                               DistrictMemberProvider districtMemberProvider, GeocodeServiceProvider geocodeProvider) {
 
         this.addressProvider = addressProvider;
@@ -91,10 +91,10 @@ public class DistrictController
         this.mapProvider = mapProvider;
         this.districtMemberProvider = districtMemberProvider;
         this.env = env;
-        this.geocodeRequestLogger = geocodeRequestLogger;
-        this.geocodeResultLogger = geocodeResultLogger;
-        this.districtRequestLogger = districtRequestLogger;
-        this.districtResultLogger = districtResultLogger;
+        this.sqlGeocodeRequestLogger = sqlGeocodeRequestLogger;
+        this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
+        this.sqlDistrictRequestLogger = sqlDistrictRequestLogger;
+        this.sqlDistrictResultLogger = sqlDistrictResultLogger;
 
         BLUEBIRD_DISTRICT_STRATEGY = env.getDistrictStrategyBluebird();
         boolean API_LOGGING_ENABLED = env.isApiLoggingEnabled();
@@ -322,7 +322,7 @@ public class DistrictController
         logger.info("=======================================================");
 
         if (SINGLE_LOGGING_ENABLED) {
-            requestId = districtRequestLogger.logDistrictRequest(districtRequest);
+            requestId = sqlDistrictRequestLogger.logDistrictRequest(districtRequest);
         }
     }
 
@@ -450,7 +450,7 @@ public class DistrictController
         }
 
         if (SINGLE_LOGGING_ENABLED && requestId != -1) {
-            districtResultLogger.logDistrictResult(requestId, districtResult);
+            sqlDistrictResultLogger.logDistrictResult(requestId, districtResult);
             requestId = -1;
         }
 
@@ -501,8 +501,8 @@ public class DistrictController
 
         /** Log geocode request/result to database */
         if (SINGLE_LOGGING_ENABLED) {
-            int requestId = geocodeRequestLogger.logGeocodeRequest(geoRequest);
-            geocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
+            int requestId = sqlGeocodeRequestLogger.logGeocodeRequest(geoRequest);
+            sqlGeocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
         }
 
         return (geocodeResult != null) ? geocodeResult.getGeocodedAddress() : null;
@@ -633,7 +633,7 @@ public class DistrictController
                 }
             }
             if (BATCH_LOGGING_ENABLED) {
-                geocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
+                sqlGeocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
             }
         }
 
@@ -650,7 +650,7 @@ public class DistrictController
 
         /** Perform batch logging */
         if (BATCH_LOGGING_ENABLED) {
-            districtResultLogger.logBatchDistrictResults(batchDistrictRequest, districtResults, true);
+            sqlDistrictResultLogger.logBatchDistrictResults(batchDistrictRequest, districtResults, true);
         }
         return districtResults;
     }

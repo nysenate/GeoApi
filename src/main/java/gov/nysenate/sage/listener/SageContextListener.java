@@ -1,19 +1,5 @@
 package gov.nysenate.sage.listener;
 
-import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.logger.DeploymentLogger;
-import gov.nysenate.sage.dao.logger.ExceptionLogger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
-import java.sql.Timestamp;
-import java.util.Date;
-
 /**
  * SageContextListener is used to call initialization methods when the context is (re)deployed and
  * perform cleanup when the context is being shut down.

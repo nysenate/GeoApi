@@ -1,6 +1,6 @@
 package gov.nysenate.sage.filter;
 
-import gov.nysenate.sage.dao.logger.ExceptionLogger;
+import gov.nysenate.sage.dao.logger.SqlExceptionLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.slf4j.LoggerFactory;
@@ -17,11 +17,11 @@ public class ExceptionFilter implements Filter
 {
     private static Logger logger = LoggerFactory.getLogger(ExceptionFilter.class);
     Marker fatal = MarkerFactory.getMarker("FATAL");
-    private ExceptionLogger exceptionLogger;
+    private SqlExceptionLogger sqlExceptionLogger;
 
     @Autowired
-    public ExceptionFilter(ExceptionLogger exceptionLogger) {
-        this.exceptionLogger = exceptionLogger;
+    public ExceptionFilter(SqlExceptionLogger sqlExceptionLogger) {
+        this.sqlExceptionLogger = sqlExceptionLogger;
     }
 
     @Override
@@ -36,7 +36,7 @@ public class ExceptionFilter implements Filter
         catch (Exception ex) {
             logger.error(fatal, "Logging uncaught exception!", ex);
             Integer apiRequestId = (Integer) request.getAttribute("apiRequestId");
-            exceptionLogger.logException(ex, new Timestamp(new Date().getTime()), apiRequestId);
+            sqlExceptionLogger.logException(ex, new Timestamp(new Date().getTime()), apiRequestId);
         }
     }
 

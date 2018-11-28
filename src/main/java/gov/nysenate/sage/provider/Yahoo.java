@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider;
 
-import gov.nysenate.sage.dao.provider.YahooDao;
+import gov.nysenate.sage.dao.provider.HttpYahooDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
@@ -18,16 +18,16 @@ import java.util.List;
 public class Yahoo implements GeocodeService, RevGeocodeService
 {
     private final Logger logger = LoggerFactory.getLogger(Yahoo.class);
-    private YahooDao yahooDao;
+    private HttpYahooDao httpYahooDao;
     private GeocodeServiceValidator geocodeServiceValidator;
     private ParallelRevGeocodeService parallelRevGeocodeService;
     private RevGeocodeServiceValidator revGeocodeServiceValidator;
 
     @Autowired
-    public Yahoo(YahooDao yahooDao, GeocodeServiceValidator geocodeServiceValidator,
+    public Yahoo(HttpYahooDao httpYahooDao, GeocodeServiceValidator geocodeServiceValidator,
                  ParallelRevGeocodeService parallelRevGeocodeService, RevGeocodeServiceValidator revGeocodeServiceValidator)
     {
-        this.yahooDao = yahooDao;
+        this.httpYahooDao = httpYahooDao;
         this.geocodeServiceValidator = geocodeServiceValidator;
         this.parallelRevGeocodeService = parallelRevGeocodeService;
         this.revGeocodeServiceValidator = revGeocodeServiceValidator;
@@ -53,7 +53,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
         }
 
         /** Retrieve geocoded address from dao */
-        GeocodedAddress geocodedAddress = this.yahooDao.getGeocodedAddress(address);
+        GeocodedAddress geocodedAddress = this.httpYahooDao.getGeocodedAddress(address);
 
         /** Validate and set result */
         if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
@@ -75,7 +75,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
         }
 
         /** Retrieve geocoded addresses from dao */
-        List<GeocodedAddress> geocodedAddresses = this.yahooDao.getGeocodedAddresses(addresses);
+        List<GeocodedAddress> geocodedAddresses = this.httpYahooDao.getGeocodedAddresses(addresses);
 
         /** Validate batch */
         if (!geocodeServiceValidator.validateBatchGeocodeResult(
@@ -104,7 +104,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
         }
 
         /** Perform reverse geocoding */
-        GeocodedAddress revGeocodedAddress = this.yahooDao.getGeocodedAddress(point);
+        GeocodedAddress revGeocodedAddress = this.httpYahooDao.getGeocodedAddress(point);
 
         /** Validate and set response */
         if (!revGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {

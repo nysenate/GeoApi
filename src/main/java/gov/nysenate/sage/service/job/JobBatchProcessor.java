@@ -1,9 +1,9 @@
 package gov.nysenate.sage.service.job;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.logger.DistrictResultLogger;
-import gov.nysenate.sage.dao.logger.GeocodeResultLogger;
-import gov.nysenate.sage.dao.model.JobProcessDao;
+import gov.nysenate.sage.dao.logger.SqlDistrictResultLogger;
+import gov.nysenate.sage.dao.logger.SqlGeocodeResultLogger;
+import gov.nysenate.sage.dao.model.SqlJobProcessDao;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -17,7 +17,6 @@ import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.*;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -66,10 +65,10 @@ public class JobBatchProcessor {
     public AddressServiceProvider addressProvider;
     public GeocodeServiceProvider geocodeProvider;
     public DistrictServiceProvider districtProvider;
-    public JobProcessDao jobProcessDao;
+    public SqlJobProcessDao sqlJobProcessDao;
 
-    public GeocodeResultLogger geocodeResultLogger;
-    public DistrictResultLogger districtResultLogger;
+    public SqlGeocodeResultLogger sqlGeocodeResultLogger;
+    public SqlDistrictResultLogger sqlDistrictResultLogger;
 
 
 
@@ -77,8 +76,8 @@ public class JobBatchProcessor {
     public JobBatchProcessor(Environment env, Mailer mailer, AddressServiceProvider addressServiceProvider,
                              GeocodeServiceProvider geocodeServiceProvider,
                              DistrictServiceProvider districtServiceProvider,
-                             JobProcessDao jobProcessDao, GeocodeResultLogger geocodeResultLogger,
-                             DistrictResultLogger districtResultLogger)
+                             SqlJobProcessDao sqlJobProcessDao, SqlGeocodeResultLogger sqlGeocodeResultLogger,
+                             SqlDistrictResultLogger sqlDistrictResultLogger)
     {
         this.env = env;
         BASE_URL = env.getBaseUrl();
@@ -96,10 +95,10 @@ public class JobBatchProcessor {
         this.addressProvider = addressServiceProvider;
         this.geocodeProvider = geocodeServiceProvider;
         this.districtProvider = districtServiceProvider;
-        this.jobProcessDao = jobProcessDao;
+        this.sqlJobProcessDao = sqlJobProcessDao;
 
-        this.geocodeResultLogger = geocodeResultLogger;
-        this.districtResultLogger = districtResultLogger;
+        this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
+        this.sqlDistrictResultLogger = sqlDistrictResultLogger;
     }
 
     /** Entry point for cron job */
@@ -176,7 +175,7 @@ public class JobBatchProcessor {
      */
     public List<JobProcessStatus> getWaitingJobProcesses()
     {
-        return jobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
+        return sqlJobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
     }
 
     /**
@@ -185,7 +184,7 @@ public class JobBatchProcessor {
      */
     public List<JobProcessStatus> getRunningJobProcesses()
     {
-        return jobProcessDao.getJobStatusesByCondition(RUNNING, null);
+        return sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
     }
 
     /**
@@ -234,7 +233,7 @@ public class JobBatchProcessor {
                 logger.warn("Warning: Skipping job file - No usps, geocode, or dist assign columns!");
                 jobStatus.setCondition(SKIPPED);
                 jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
-                jobProcessDao.setJobProcessStatus(jobStatus);
+                sqlJobProcessDao.setJobProcessStatus(jobStatus);
             }
             else {
                 final CellProcessor[] processors = jobFile.getProcessors().toArray(new CellProcessor[0]);
@@ -257,7 +256,7 @@ public class JobBatchProcessor {
                     jobWriter.writeHeader(header);
                     jobStatus.setCondition(RUNNING);
                     jobStatus.setStartTime(new Timestamp(new Date().getTime()));
-                    jobProcessDao.setJobProcessStatus(jobStatus);
+                    sqlJobProcessDao.setJobProcessStatus(jobStatus);
                 }
 
                 /** Read records into a JobFile */
@@ -291,14 +290,14 @@ public class JobBatchProcessor {
                     if (jobFile.requiresGeocode() || jobFile.requiresDistrictAssign()) {
                         Future<JobBatch> futureGeocodedBatch;
                         if (jobFile.requiresAddressValidation() && futureValidatedBatch != null) {
-                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(futureValidatedBatch, jobProcess,geocodeProvider, geocodeResultLogger));
+                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(futureValidatedBatch, jobProcess,geocodeProvider, sqlGeocodeResultLogger));
                         }
                         else {
-                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(jobBatch, jobProcess, geocodeProvider, geocodeResultLogger));
+                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(jobBatch, jobProcess, geocodeProvider, sqlGeocodeResultLogger));
                         }
 
                         if (jobFile.requiresDistrictAssign() && futureGeocodedBatch != null) {
-                            Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new JobBatchProcessor.DistrictJobBatch(futureGeocodedBatch, districtTypes, jobProcess, districtProvider, districtResultLogger));
+                            Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new JobBatchProcessor.DistrictJobBatch(futureGeocodedBatch, districtTypes, jobProcess, districtProvider, sqlDistrictResultLogger));
                             jobResultsQueue.add(futureDistrictedBatch);
                         }
                         else {
@@ -322,7 +321,7 @@ public class JobBatchProcessor {
                         jobWriter.flush(); // Ensure records have been written
 
                         /** Determine if this job process has been cancelled by the user */
-                        jobStatus = jobProcessDao.getJobProcessStatus(jobProcess.getId());
+                        jobStatus = sqlJobProcessDao.getJobProcessStatus(jobProcess.getId());
                         if (jobStatus.getCondition().equals(CANCELLED)) {
                             logger.warn("Job process has been cancelled by the user!");
                             interrupted = true;
@@ -330,7 +329,7 @@ public class JobBatchProcessor {
                         }
 
                         jobStatus.setCompletedRecords(jobStatus.getCompletedRecords() + batch.getJobRecords().size());
-                        jobProcessDao.setJobProcessStatus(jobStatus);
+                        sqlJobProcessDao.setJobProcessStatus(jobStatus);
                         logger.info("Wrote results of batch # " + batchNum);
                         batchNum++;
                     }
@@ -344,7 +343,7 @@ public class JobBatchProcessor {
                     jobStatus.setCompleted(true);
                     jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
                     jobStatus.setCondition(COMPLETED);
-                    jobProcessDao.setJobProcessStatus(jobStatus);
+                    sqlJobProcessDao.setJobProcessStatus(jobStatus);
                 }
 
                 if (SEND_EMAILS) {
@@ -368,8 +367,8 @@ public class JobBatchProcessor {
                     try {
                         logger.info("Flushing log cache...");
                         logMemoryUsage();
-                        geocodeResultLogger.flushBatchRequestsCache();
-                        districtResultLogger.flushBatchRequestsCache();
+                        sqlGeocodeResultLogger.flushBatchRequestsCache();
+                        sqlDistrictResultLogger.flushBatchRequestsCache();
                         logMemoryUsage();
                     }
                     catch (Exception ex) {
@@ -425,7 +424,7 @@ public class JobBatchProcessor {
         if (jobStatus != null) {
             jobStatus.setCondition(condition);
             jobStatus.setMessages(Arrays.asList(message));
-            jobProcessDao.setJobProcessStatus(jobStatus);
+            sqlJobProcessDao.setJobProcessStatus(jobStatus);
         }
     }
 
@@ -478,23 +477,23 @@ public class JobBatchProcessor {
         private JobProcess jobProcess;
 
         private GeocodeServiceProvider geocodeServiceProvider;
-        private GeocodeResultLogger geocodeResultLogger;
+        private SqlGeocodeResultLogger sqlGeocodeResultLogger;
 
         public GeocodeJobBatch(JobBatch jobBatch, JobProcess jobProcess,
                                GeocodeServiceProvider geocodeServiceProvider,
-                               GeocodeResultLogger geocodeResultLogger) {
+                               SqlGeocodeResultLogger sqlGeocodeResultLogger) {
             this.jobBatch = jobBatch;
             this.jobProcess = jobProcess;
         }
 
         public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, JobProcess jobProcess,
                                GeocodeServiceProvider geocodeServiceProvider,
-                               GeocodeResultLogger geocodeResultLogger) {
+                               SqlGeocodeResultLogger sqlGeocodeResultLogger) {
             this.futureJobBatch = futureValidatedJobBatch;
             this.jobProcess = jobProcess;
 
             this.geocodeServiceProvider = geocodeServiceProvider;
-            this.geocodeResultLogger = geocodeResultLogger;
+            this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         }
 
         @Override
@@ -520,9 +519,9 @@ public class JobBatchProcessor {
             }
 
             if (LOGGING_ENABLED) {
-                geocodeResultLogger.logBatchGeocodeResults(batchGeoRequest, geocodeResults, false);
-                if (geocodeResultLogger.getLogCacheSize() > LOGGING_THRESHOLD) {
-                    geocodeResultLogger.flushBatchRequestsCache();
+                sqlGeocodeResultLogger.logBatchGeocodeResults(batchGeoRequest, geocodeResults, false);
+                if (sqlGeocodeResultLogger.getLogCacheSize() > LOGGING_THRESHOLD) {
+                    sqlGeocodeResultLogger.flushBatchRequestsCache();
                     logMemoryUsage();
                 }
             }
@@ -542,10 +541,10 @@ public class JobBatchProcessor {
         private DistrictStrategy districtStrategy = DistrictStrategy.shapeFallback;
 
         private DistrictServiceProvider districtServiceProvider;
-        private DistrictResultLogger districtResultLogger;
+        private SqlDistrictResultLogger sqlDistrictResultLogger;
 
         public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types, JobProcess jobProcess,
-                                DistrictServiceProvider districtServiceProvider, DistrictResultLogger districtResultLogger)
+                                DistrictServiceProvider districtServiceProvider, SqlDistrictResultLogger sqlDistrictResultLogger)
                 throws InterruptedException, ExecutionException
         {
             this.jobProcess = jobProcess;
@@ -556,7 +555,7 @@ public class JobBatchProcessor {
                 this.districtStrategy = DistrictStrategy.streetFallback;
             }
             this.districtServiceProvider = districtServiceProvider;
-            this.districtResultLogger = districtResultLogger;
+            this.sqlDistrictResultLogger = sqlDistrictResultLogger;
         }
 
         @Override
@@ -578,9 +577,9 @@ public class JobBatchProcessor {
             }
 
             if (LOGGING_ENABLED) {
-                districtResultLogger.logBatchDistrictResults(batchDistRequest, districtResults, false);
-                if (districtResultLogger.getLogCacheSize() > LOGGING_THRESHOLD) {
-                    districtResultLogger.flushBatchRequestsCache();
+                sqlDistrictResultLogger.logBatchDistrictResults(batchDistRequest, districtResults, false);
+                if (sqlDistrictResultLogger.getLogCacheSize() > LOGGING_THRESHOLD) {
+                    sqlDistrictResultLogger.flushBatchRequestsCache();
                     logMemoryUsage();
                 }
             }
@@ -650,12 +649,12 @@ public class JobBatchProcessor {
     public void cancelRunningJobs()
     {
         logger.info("Cancelling all running jobs!");
-        List<JobProcessStatus> jobStatuses = jobProcessDao.getJobStatusesByCondition(RUNNING, null);
+        List<JobProcessStatus> jobStatuses = sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
         for (JobProcessStatus jobStatus : jobStatuses) {
             jobStatus.setCondition(CANCELLED);
             jobStatus.setMessages(Arrays.asList("Cancelled during cleanup."));
             jobStatus.setCompleteTime(TimeUtil.currentTimestamp());
-            jobProcessDao.setJobProcessStatus(jobStatus);
+            sqlJobProcessDao.setJobProcessStatus(jobStatus);
         }
     }
 

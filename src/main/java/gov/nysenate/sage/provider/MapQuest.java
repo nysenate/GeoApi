@@ -2,14 +2,12 @@ package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.provider.MapQuestDao;
+import gov.nysenate.sage.dao.provider.HttpMapQuestDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.*;
-import gov.nysenate.sage.util.Config;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -30,21 +28,21 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public class MapQuest implements GeocodeService, RevGeocodeService
 {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private MapQuestDao mapQuestDao;
+    private HttpMapQuestDao httpMapQuestDao;
 
     private GeocodeServiceValidator geocodeServiceValidator;
     private ParallelRevGeocodeService parallelRevGeocodeService;
     private BaseDao baseDao;
     private Environment env;
 
-    public MapQuest(BaseDao baseDao, MapQuestDao mapQuestDao, GeocodeServiceValidator geocodeServiceValidator,
+    public MapQuest(BaseDao baseDao, HttpMapQuestDao httpMapQuestDao, GeocodeServiceValidator geocodeServiceValidator,
                     ParallelRevGeocodeService parallelRevGeocodeService, Environment env)
     {
         this.baseDao = baseDao;
         this.env = env;
         this.geocodeServiceValidator = geocodeServiceValidator;
         this.parallelRevGeocodeService = parallelRevGeocodeService;
-        this.mapQuestDao = mapQuestDao;
+        this.httpMapQuestDao = httpMapQuestDao;
 
     }
 
@@ -94,7 +92,7 @@ public class MapQuest implements GeocodeService, RevGeocodeService
         }
 
         /** Retrieve geocoded addresses from dao */
-        List<GeocodedAddress> geocodedAddresses = this.mapQuestDao.getGeocodedAddresses(addresses);
+        List<GeocodedAddress> geocodedAddresses = this.httpMapQuestDao.getGeocodedAddresses(addresses);
 
         /** Validate and return */
         if (!geocodeServiceValidator.validateBatchGeocodeResult(this.getClass(), addresses, geocodeResults, geocodedAddresses, true)){
@@ -122,7 +120,7 @@ public class MapQuest implements GeocodeService, RevGeocodeService
         }
 
         /** Perform reverse geocoding */
-        GeocodedAddress revGeocodedAddress = this.mapQuestDao.getGeocodedAddress(point);
+        GeocodedAddress revGeocodedAddress = this.httpMapQuestDao.getGeocodedAddress(point);
 
         /** Validate and set response */
         if (!RevGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {

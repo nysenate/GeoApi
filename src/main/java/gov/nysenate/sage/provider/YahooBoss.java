@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider;
 
-import gov.nysenate.sage.dao.provider.YahooBossDao;
+import gov.nysenate.sage.dao.provider.HttpYahooBossDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
@@ -21,15 +21,15 @@ import java.util.ArrayList;
 public class YahooBoss implements GeocodeService
 {
     private final Logger logger = LoggerFactory.getLogger(YahooBoss.class);
-    private YahooBossDao yahooBossDao;
+    private HttpYahooBossDao httpYahooBossDao;
     private GeocodeServiceValidator geocodeServiceValidator;
     private ParallelGeocodeService parallelGeocodeService;
 
     @Autowired
-    public YahooBoss(YahooBossDao yahooBossDao, GeocodeServiceValidator geocodeServiceValidator,
+    public YahooBoss(HttpYahooBossDao httpYahooBossDao, GeocodeServiceValidator geocodeServiceValidator,
                      ParallelGeocodeService parallelGeocodeService)
     {
-        this.yahooBossDao = yahooBossDao;
+        this.httpYahooBossDao = httpYahooBossDao;
         this.geocodeServiceValidator = geocodeServiceValidator;
         this.parallelGeocodeService = parallelGeocodeService;
     }
@@ -55,7 +55,7 @@ public class YahooBoss implements GeocodeService
         }
 
         /** Retrieve geocoded address from dao */
-        GeocodedAddress geocodedAddress = this.yahooBossDao.getGeocodedAddress(address);
+        GeocodedAddress geocodedAddress = this.httpYahooBossDao.getGeocodedAddress(address);
 
         /** Validate and set result */
         if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {

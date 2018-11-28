@@ -1,7 +1,7 @@
 package gov.nysenate.sage.controller.job;
 
 import gov.nysenate.sage.client.response.job.JobStatusResponse;
-import gov.nysenate.sage.dao.model.JobProcessDao;
+import gov.nysenate.sage.dao.model.SqlJobProcessDao;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
@@ -11,18 +11,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -46,13 +41,13 @@ import static gov.nysenate.sage.util.controller.JobControllerUtil.setJobResponse
 public class JobStatusController
 {
     private static Logger logger = LoggerFactory.getLogger(JobStatusController.class);
-    private static JobProcessDao jobProcessDao;
+    private static SqlJobProcessDao sqlJobProcessDao;
     private static String TEMP_DIR = "/tmp";
     private static String LOCK_FILENAME = "batchJobProcess.lock";
 
     @Autowired
-    public JobStatusController(JobProcessDao jobProcessDao) {
-        this.jobProcessDao = jobProcessDao;
+    public JobStatusController(SqlJobProcessDao sqlJobProcessDao) {
+        this.sqlJobProcessDao = sqlJobProcessDao;
     }
 
     @RequestMapping(value = "/process/{processId}", method = RequestMethod.GET)
@@ -133,28 +128,28 @@ public class JobStatusController
 
     private JobProcessStatus getJobProcessStatusById(int processId, JobUser jobUser)
     {
-        JobProcessStatus jobProcessStatus = jobProcessDao.getJobProcessStatus(processId);
+        JobProcessStatus jobProcessStatus = sqlJobProcessDao.getJobProcessStatus(processId);
         return jobProcessStatus;
     }
 
     private List<JobProcessStatus> getRunningJobProcesses(JobUser jobUser)
     {
-        return jobProcessDao.getJobStatusesByCondition(JobProcessStatus.Condition.RUNNING, jobUser);
+        return sqlJobProcessDao.getJobStatusesByCondition(JobProcessStatus.Condition.RUNNING, jobUser);
     }
 
     private List<JobProcessStatus> getActiveJobProcesses(JobUser jobUser)
     {
-        return jobProcessDao.getActiveJobStatuses(jobUser);
+        return sqlJobProcessDao.getActiveJobStatuses(jobUser);
     }
 
     private List<JobProcessStatus> getInactiveJobProcesses(JobUser jobUser)
     {
-        return jobProcessDao.getInactiveJobStatuses(jobUser);
+        return sqlJobProcessDao.getInactiveJobStatuses(jobUser);
     }
 
     private List<JobProcessStatus> getAllJobProcesses(JobUser jobUser)
     {
-        return jobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), jobUser, null, null);
+        return sqlJobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), jobUser, null, null);
     }
 
     private List<JobProcessStatus> getRecentlyCompletedJobProcesses(JobUser jobUser)
@@ -163,7 +158,7 @@ public class JobStatusController
         calendar.add(Calendar.DATE, -1);
         Timestamp yesterday = new Timestamp(calendar.getTimeInMillis());
 
-        return jobProcessDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, jobUser, yesterday);
+        return sqlJobProcessDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, jobUser, yesterday);
     }
 
     private boolean isProcessorRunning()

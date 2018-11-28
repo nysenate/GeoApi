@@ -1,7 +1,7 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.ApiError;
-import gov.nysenate.sage.dao.provider.DistrictShapefileDao;
+import gov.nysenate.sage.dao.provider.SqlDistrictShapefileDao;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.slf4j.Logger;
@@ -25,11 +25,11 @@ public class DataController {
 
     private Logger logger = LoggerFactory.getLogger(DataController.class);
 
-    private DistrictShapefileDao districtShapefileDao;
+    private SqlDistrictShapefileDao sqlDistrictShapefileDao;
 
     @Autowired
-    public DataController(DistrictShapefileDao districtShapefileDao) {
-        this.districtShapefileDao = districtShapefileDao;
+    public DataController(SqlDistrictShapefileDao sqlDistrictShapefileDao) {
+        this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
     }
 
     @RequestMapping(value = "/sencache", method = RequestMethod.GET)
@@ -46,7 +46,7 @@ public class DataController {
         if (apiRequest.getRequest().equalsIgnoreCase("sencache")) {
             try {
                 responseCode = new ApiError(this.getClass(), SUCCESS);
-                districtShapefileDao.cacheDistrictMaps();
+                sqlDistrictShapefileDao.cacheDistrictMaps();
             } catch (Exception e) {
                 responseCode = new ApiError(this.getClass(), INTERNAL_ERROR);
             }

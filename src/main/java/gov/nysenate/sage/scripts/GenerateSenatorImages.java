@@ -1,6 +1,6 @@
 package gov.nysenate.sage.scripts;
 
-import gov.nysenate.sage.dao.model.SenateDao;
+import gov.nysenate.sage.dao.model.SqlSenateDao;
 import gov.nysenate.sage.util.ImageUtil;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.cli.CommandLine;
@@ -18,7 +18,7 @@ import static gov.nysenate.sage.scripts.BaseScript.getCommandLine;
 public class GenerateSenatorImages
 {
     @Autowired
-    SenateDao senateDao;
+    SqlSenateDao sqlSenateDao;
 
     private static Logger logger = LoggerFactory.getLogger(GenerateSenatorImages.class);
 
@@ -37,7 +37,7 @@ public class GenerateSenatorImages
     public void generateImages(String[] args) throws IOException {
         String path = args[1];
         Integer height = Integer.parseInt(args[2]);
-        Collection<Senator> senators = senateDao.getSenators();
+        Collection<Senator> senators = sqlSenateDao.getSenators();
         for (Senator senator : senators) {
             String filePath =  path + senator.getShortName() + ".png";
             File file = new File(filePath);

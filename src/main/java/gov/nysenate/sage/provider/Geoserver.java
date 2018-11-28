@@ -2,7 +2,7 @@ package gov.nysenate.sage.provider;
 
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.provider.GeoserverDao;
+import gov.nysenate.sage.dao.provider.SqlGeoserverDao;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
@@ -14,16 +14,12 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.DistrictService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
-import gov.nysenate.sage.util.Config;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
 
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
@@ -38,18 +34,18 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 public class Geoserver implements DistrictService
 {
     private static Logger logger = LoggerFactory.getLogger(Geoserver.class);
-    private GeoserverDao geoserverDao;
+    private SqlGeoserverDao sqlGeoserverDao;
     private boolean fetchMaps = false;
     private BaseDao baseDao;
     private Environment env;
 
     private ParallelDistrictService parallelDistrictService;
 
-    public Geoserver(GeoserverDao geoserverDao, BaseDao baseDao, ParallelDistrictService parallelDistrictService,
+    public Geoserver(SqlGeoserverDao sqlGeoserverDao, BaseDao baseDao, ParallelDistrictService parallelDistrictService,
                      Environment env)
     {
         this.env = env;
-        this.geoserverDao = geoserverDao;
+        this.sqlGeoserverDao = sqlGeoserverDao;
         this.baseDao = baseDao;
         this.parallelDistrictService = parallelDistrictService;
         logger.debug("Geoserver instantiated");
@@ -81,7 +77,7 @@ public class Geoserver implements DistrictService
         }
         try {
             Geocode geocode = geocodedAddress.getGeocode();
-            DistrictInfo districtInfo = this.geoserverDao.getDistrictInfo(geocode.getLatLon(), reqTypes);
+            DistrictInfo districtInfo = this.sqlGeoserverDao.getDistrictInfo(geocode.getLatLon(), reqTypes);
 
             /** Validate response */
             if (!validateDistrictInfo(districtInfo, reqTypes, districtResult)) {

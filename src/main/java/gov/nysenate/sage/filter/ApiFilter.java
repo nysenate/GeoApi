@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.logger.ApiRequestLogger;
+import gov.nysenate.sage.dao.logger.SqlApiRequestLogger;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -48,7 +48,7 @@ public class ApiFilter implements Filter, Observer
 {
     private static Logger logger = LoggerFactory.getLogger(ApiFilter.class);
     Marker fatal = MarkerFactory.getMarker("FATAL");
-    private ApiRequestLogger apiRequestLogger;
+    private SqlApiRequestLogger sqlApiRequestLogger;
     private ApiUserAuth apiUserAuth;
     private static String ipFilter;
     private static String defaultKey;
@@ -82,9 +82,9 @@ public class ApiFilter implements Filter, Observer
     Environment env;
 
     @Autowired
-    public ApiFilter(Environment env, ApiRequestLogger apiRequestLogger, ApiUserAuth apiUserAuth) {
+    public ApiFilter(Environment env, SqlApiRequestLogger sqlApiRequestLogger, ApiUserAuth apiUserAuth) {
         this.env = env;
-        this.apiRequestLogger = apiRequestLogger;
+        this.sqlApiRequestLogger = sqlApiRequestLogger;
         this.apiUserAuth = apiUserAuth;
     }
 
@@ -170,7 +170,7 @@ public class ApiFilter implements Filter, Observer
                 /** Log Api Request into the database */
                 int id = -1;
                 if (API_LOGGING_ENABLED && service.matches(loggedServices)) {
-                    id = apiRequestLogger.logApiRequest(apiRequest);
+                    id = sqlApiRequestLogger.logApiRequest(apiRequest);
                     apiRequest.setId(id);
                 }
 

@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider;
 
-import gov.nysenate.sage.dao.provider.TigerGeocoderDao;
+import gov.nysenate.sage.dao.provider.SqlTigerGeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
@@ -30,17 +30,17 @@ import java.util.ArrayList;
 public class TigerGeocoder implements GeocodeService, RevGeocodeService
 {
     private static Logger logger = LoggerFactory.getLogger(TigerGeocoder.class);
-    private TigerGeocoderDao tigerGeocoderDao;
+    private SqlTigerGeocoderDao sqlTigerGeocoderDao;
     private GeocodeServiceValidator geocodeServiceValidator;
     private ParallelGeocodeService parallelGeocodeService;
     private ParallelRevGeocodeService parallelRevGeocodeService;
 
     @Autowired
-    public TigerGeocoder(TigerGeocoderDao tigerGeocoderDao, GeocodeServiceValidator geocodeServiceValidator,
+    public TigerGeocoder(SqlTigerGeocoderDao sqlTigerGeocoderDao, GeocodeServiceValidator geocodeServiceValidator,
                          ParallelGeocodeService parallelGeocodeService,
                          ParallelRevGeocodeService parallelRevGeocodeService)
     {
-        this.tigerGeocoderDao = tigerGeocoderDao;
+        this.sqlTigerGeocoderDao = sqlTigerGeocoderDao;
         this.geocodeServiceValidator = geocodeServiceValidator;
         this.parallelGeocodeService = parallelGeocodeService;
         this.parallelRevGeocodeService = parallelRevGeocodeService;
@@ -74,7 +74,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
             }
 
             /** Retrieve geocoded addresses from dao */
-            GeocodedStreetAddress gsa = tigerGeocoderDao.getGeocodedStreetAddress(address);
+            GeocodedStreetAddress gsa = sqlTigerGeocoderDao.getGeocodedStreetAddress(address);
 
             if (gsa != null) {
                 Geocode geocode = gsa.getGeocode();
@@ -103,7 +103,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
     public GeocodeResult reverseGeocode(Point point)
     {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
-        StreetAddress streetAddress = tigerGeocoderDao.getStreetAddress(point);
+        StreetAddress streetAddress = sqlTigerGeocoderDao.getStreetAddress(point);
         if (streetAddress != null && !streetAddress.isStreetEmpty()){
             Address address = streetAddress.toAddress();
             Geocode geocode = new Geocode(point);

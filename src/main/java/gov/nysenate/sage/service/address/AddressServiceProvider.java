@@ -1,7 +1,7 @@
 package gov.nysenate.sage.service.address;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.logger.AddressLogger;
+import gov.nysenate.sage.dao.logger.SqlAddressLogger;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -25,7 +25,7 @@ import java.util.Map;
 public class AddressServiceProvider extends ServiceProviders<AddressService>
 {
     private static Logger logger = LoggerFactory.getLogger(AddressServiceProvider.class);
-    private AddressLogger addressLogger;
+    private SqlAddressLogger sqlAddressLogger;
     private Environment env;
 
     private boolean API_LOGGING_ENABLED = false;
@@ -33,8 +33,8 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
     private boolean BATCH_LOGGING_ENABLED = false;
 
     @Autowired
-    public AddressServiceProvider(AddressLogger addressLogger, Environment env) {
-        this.addressLogger = addressLogger;
+    public AddressServiceProvider(SqlAddressLogger sqlAddressLogger, Environment env) {
+        this.sqlAddressLogger = sqlAddressLogger;
         this.env = env;
         API_LOGGING_ENABLED = env.isApiLoggingEnabled();
         SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isDetailedLoggingEnabled();
@@ -134,7 +134,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
             for (AddressResult addressResult: addressResults) {
                 try {
                     if (addressResult.getAddress() != null) {
-                        addressLogger.logAddress(addressResult.getAddress());
+                        sqlAddressLogger.logAddress(addressResult.getAddress());
                     }
                 }
                 catch (Exception e) {
@@ -171,7 +171,7 @@ public class AddressServiceProvider extends ServiceProviders<AddressService>
         if (SINGLE_LOGGING_ENABLED) {
             try {
                 if (addressResult.getAddress() != null) {
-                    addressLogger.logAddress(addressResult.getAddress());
+                    sqlAddressLogger.logAddress(addressResult.getAddress());
                 }
             }
             catch (Exception e) {

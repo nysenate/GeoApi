@@ -3,7 +3,7 @@ package gov.nysenate.sage.dao.provider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.model.CountyDao;
+import gov.nysenate.sage.dao.model.SqlCountyDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.GeometryTypes;
 import gov.nysenate.sage.model.geo.Line;
@@ -31,14 +31,14 @@ import java.util.*;
  * overlaps and intersections between districts.
  */
 @Repository
-public class DistrictShapefileDao
+public class SqlDistrictShapefileDao
 {
     private static final String SCHEMA = "districts";
-    private final Logger logger = LoggerFactory.getLogger(DistrictShapefileDao.class);
+    private final Logger logger = LoggerFactory.getLogger(SqlDistrictShapefileDao.class);
     private QueryRunner run;
 
     private BaseDao baseDao;
-    private CountyDao countyDao;
+    private SqlCountyDao sqlCountyDao;
 
     /** Memory Cached District Maps */
     private static Map<DistrictType, List<DistrictMap>> districtMapCache;
@@ -52,9 +52,9 @@ public class DistrictShapefileDao
     }
 
     @Autowired
-    public DistrictShapefileDao(BaseDao baseDao, CountyDao countyDao) {
+    public SqlDistrictShapefileDao(BaseDao baseDao, SqlCountyDao sqlCountyDao) {
         this.baseDao = baseDao;
-        this.countyDao = countyDao;
+        this.sqlCountyDao = sqlCountyDao;
         run = this.baseDao.getQueryRunner();
         /** Initialize district map cache */
         if (!cacheDistrictMaps()) {
@@ -502,7 +502,7 @@ public class DistrictShapefileDao
 
             /** County codes need to be mapped from FIPS code */
             if (type == DistrictType.COUNTY){
-                code = Integer.toString(countyDao.getFipsCountyMap().get(rs.getInt("code")).getId());
+                code = Integer.toString(sqlCountyDao.getFipsCountyMap().get(rs.getInt("code")).getId());
             }
             /** Normal district code */
             else {
