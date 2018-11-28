@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
-@Component
+@Component("environment")
 public class Environment {
 
     @Value("${base.url}") private String baseUrl;

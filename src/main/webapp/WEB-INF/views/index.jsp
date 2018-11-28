@@ -1,14 +1,19 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="gov.nysenate.sage.config.Environment" %>
+<%@ page import="org.springframework.web.servlet.support.RequestContextUtils" %>
+<%@ page import="org.springframework.context.ApplicationContext" %>
+<%@ page import="gov.nysenate.sage.service.geo.GeocodeServiceProvider" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 
 <fmt:setLocale value = "es_ES"/>
 <%
-    Environment env = new Environment();
+    ApplicationContext ac = RequestContextUtils.findWebApplicationContext(request);
+    Environment env = (Environment) ac.getBean("environment");
+    GeocodeServiceProvider geocodeServiceProvider = (GeocodeServiceProvider) ac.getBean("geocodeServiceProvider");
     request.setAttribute("amsUrl", env.getUspsAmsUiUrl());
-    request.setAttribute("activeGeocoders", env.getGeocoderActive());
+    request.setAttribute("activeGeocoders", geocodeServiceProvider.getActiveGeoProviders());
     String googleMapsUrl = env.getGoogleMapsUrl();
     String googleMapsKey = env.getGoogleMapsKey();
     if (googleMapsKey != null && !googleMapsKey.equals("")) {
