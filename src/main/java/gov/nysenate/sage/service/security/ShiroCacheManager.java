@@ -7,12 +7,14 @@ import net.sf.ehcache.config.MemoryUnit;
 import org.apache.shiro.cache.AbstractCacheManager;
 import org.apache.shiro.cache.Cache;
 import org.apache.shiro.cache.CacheException;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 /**
  * Created by Chenguang He on 10/19/2016.
  */
+@Component
 public class ShiroCacheManager extends AbstractCacheManager {
     public static net.sf.ehcache.Cache cache = new net.sf.ehcache.Cache(new CacheConfiguration().name(ContentCache.SHIRO.name())
             .eternal(true)
