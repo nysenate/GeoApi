@@ -32,7 +32,7 @@ import java.util.List;
 @EnableAsync
 @EnableScheduling
 @ComponentScan("gov.nysenate.sage")
-@Import(DatabaseConfig.class)
+@Import({DatabaseConfig.class, SecurityConfig.class, ApplicationConfig.class })
 public class WebApplicationConfig implements WebMvcConfigurer
 {
     private static final Logger logger = LogManager.getLogger(WebApplicationConfig.class);
