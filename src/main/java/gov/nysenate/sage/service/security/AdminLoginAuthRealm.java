@@ -58,8 +58,7 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm
     @PostConstruct
     public void setup() throws RuntimeException {
         if (!adminUserAuth.checkAdminUser(defaultAdminName, defaultAdminPass)) {
-            logger.info("Default admin user not present in database.  " +
-                    "Creating default admin according to properties...");
+            logger.info("Default admin user not present in database, the SAGE database was built incorrectly");
             throw new RuntimeException("Missing Admin in DB");
         }
     }
