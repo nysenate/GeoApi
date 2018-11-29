@@ -27,6 +27,9 @@ public class SqlAdminUserDao
     private static String SCHEMA = "public";
     private static String TABLE = "admin";
 
+    String sql = "SELECT * FROM " + SCHEMA + "." + TABLE + "\n" +
+            "WHERE username = ?";
+
     @Autowired
     public SqlAdminUserDao(BaseDao baseDao) {
         this.baseDao = baseDao;
@@ -42,8 +45,6 @@ public class SqlAdminUserDao
     public boolean checkAdminUser(String username, String password)
     {
         AdminUser adminUser = null;
-        String sql = "SELECT * FROM " + SCHEMA + "." + TABLE + "\n" +
-                     "WHERE username = ?";
         try {
             adminUser = run.query(sql, handler, username);
         }
@@ -55,5 +56,16 @@ public class SqlAdminUserDao
             return BCrypt.checkpw(password, adminUser.getPassword());
         }
         return false;
+    }
+
+    public AdminUser getAdminUser(String username) {
+        AdminUser adminUser = null;
+        try {
+            adminUser = run.query(sql, handler, username);
+        }
+        catch (SQLException ex) {
+            logger.error("Failed to retrieve admin user!", ex);
+        }
+        return adminUser;
     }
 }

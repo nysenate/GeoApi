@@ -41,6 +41,13 @@ public class JobUserAuth
         return null;
     }
 
+    public JobUser getJobUser(String email)
+    {
+        JobUser jobUser = null;
+        jobUser = sqlJobUserDao.getJobUserByEmail(email);
+        return jobUser;
+    }
+
     public JobUser addActiveJobUser(String email, String password, String firstname, String lastname)
     {
         return addActiveJobUser(email, password, firstname, lastname, false);
