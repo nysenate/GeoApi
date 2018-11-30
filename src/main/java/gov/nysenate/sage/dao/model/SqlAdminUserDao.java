@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
@@ -29,6 +30,8 @@ public class SqlAdminUserDao
 
     String sql = "SELECT * FROM " + SCHEMA + "." + TABLE + "\n" +
             "WHERE username = ?";
+
+    String insertAdmin = "insert into " + SCHEMA +"." + TABLE + " (username, password) values(':username',':password') RETURNING id;";
 
     @Autowired
     public SqlAdminUserDao(BaseDao baseDao) {
@@ -67,5 +70,20 @@ public class SqlAdminUserDao
             logger.error("Failed to retrieve admin user!", ex);
         }
         return adminUser;
+    }
+
+    public void insertAdmin(String username, String password) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("username", username);
+        params.addValue("password", password);
+//        baseDao.geoApiNamedJbdcTemaplate.update(insertAdmin, params);
+
+        try {
+            run.update(insertAdmin, params);
+        }
+        catch (SQLException e) {
+            logger.error("Failed to insert admin user!", e);
+        }
+
     }
 }
