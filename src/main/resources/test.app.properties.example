@@ -235,3 +235,10 @@ geocache.enabled = true
 # The cache buffer size indicates the number of geocode results that
 # are queued before being written to the cache database.
 geocache.buffer.size = 100
+
+
+#####################################
+## Cache Configuration
+#####################################
+#Specify the max number of MB to be used by Sage for caching
+cache.max.size = 200
