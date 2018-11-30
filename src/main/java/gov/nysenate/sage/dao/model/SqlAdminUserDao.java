@@ -31,7 +31,7 @@ public class SqlAdminUserDao
     String sql = "SELECT * FROM " + SCHEMA + "." + TABLE + "\n" +
             "WHERE username = ?";
 
-    String insertAdmin = "insert into " + SCHEMA +"." + TABLE + " (username, password) values(':username',':password') RETURNING id;";
+    String insertAdmin = "INSERT INTO " + SCHEMA +"." + TABLE + " (username, password) VALUES (?,?) RETURNING id;";
 
     @Autowired
     public SqlAdminUserDao(BaseDao baseDao) {
@@ -73,13 +73,13 @@ public class SqlAdminUserDao
     }
 
     public void insertAdmin(String username, String password) {
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("username", username);
-        params.addValue("password", password);
+//        MapSqlParameterSource params = new MapSqlParameterSource();
+//        params.addValue("username", username);
+//        params.addValue("password", password);
 //        baseDao.geoApiNamedJbdcTemaplate.update(insertAdmin, params);
 
         try {
-            run.update(insertAdmin, params);
+            run.update(insertAdmin, username, password);
         }
         catch (SQLException e) {
             logger.error("Failed to insert admin user!", e);

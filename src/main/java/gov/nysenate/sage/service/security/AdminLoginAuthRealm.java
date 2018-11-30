@@ -52,7 +52,7 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm
         this.adminUserAuth = adminUserAuth;
     }
 
-    @Value("${default.admin.user}") private String defaultAdminName;
+    @Value("${default.admin.username}") private String defaultAdminName;
     @Value("${default.admin.password}") private String defaultAdminPass;
 
     @PostConstruct
