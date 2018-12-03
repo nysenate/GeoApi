@@ -15,8 +15,14 @@ public class AuthRealmConfigurer
 {
     private static final Logger logger = LoggerFactory.getLogger(AuthRealmConfigurer.class);
 
-    @Autowired protected List<Realm> realmList;
-    @Autowired protected DefaultWebSecurityManager securityManager;
+    protected List<Realm> realmList;
+    protected DefaultWebSecurityManager securityManager;
+
+    @Autowired
+    public AuthRealmConfigurer(List<Realm> realmList, DefaultWebSecurityManager securityManager) {
+        this.realmList = realmList;
+        this.securityManager = securityManager;
+    }
 
     @PostConstruct
     public void setUp() {

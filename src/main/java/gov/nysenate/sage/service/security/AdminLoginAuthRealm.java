@@ -24,7 +24,7 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm
     private static final Logger logger = LoggerFactory.getLogger(AdminLoginAuthRealm.class);
 
     /** The IP whitelist is used here to restrict access to admin login to internal IPs only. */
-    @Value("${api.auth.ip.whitelist}") private String ipWhitelist;
+    @Value("${user.ip.filter}") private String ipWhitelist;
 
     private static class BCryptCredentialsMatcher implements CredentialsMatcher {
 
@@ -38,7 +38,8 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm
         public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
             UsernamePasswordToken userToken = (UsernamePasswordToken) token;
             String newPass = new String(userToken.getPassword());
-            return (BCrypt.checkpw(newPass, info.getCredentials().toString()));
+            String registeredPass = (String) info.getCredentials();
+            return newPass.equals(registeredPass);
         }
     }
 
@@ -127,5 +128,10 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm
     @Override
     public CredentialsMatcher getCredentialsMatcher() {
         return credentialsMatcher;
+    }
+
+    @Override
+    public Class getAuthenticationTokenClass() {
+        return UsernamePasswordToken.class;
     }
 }

@@ -17,16 +17,24 @@ public class AngularAppCtrl {
 
     private Environment environment;
 
+    private String ipWhitelist;
+
     @Autowired
     public AngularAppCtrl(Environment environment) {
         this.environment = environment;
+        ipWhitelist = environment.getUserIpFilter();
     }
 
     @RequestMapping({"/"})
     public String home(HttpServletRequest request) {
         String forwardedForIp = request.getHeader("x-forwarded-for");
         String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
-        return "index";
+        Subject subject = SecurityUtils.getSubject();
+        // Senate staff and API users will be routed to the internal dev interface.
+        if (subject.isPermitted("ui:view") || ipAddr.matches(ipWhitelist)) {
+            return "index";
+        }
+        return "404";
     }
 
     @RequestMapping({"/admin"})

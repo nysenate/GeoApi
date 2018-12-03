@@ -5,6 +5,10 @@ import gov.nysenate.sage.dao.model.SqlAdminUserDao;
 import gov.nysenate.sage.dao.stats.SqlApiUsageStatsDao;
 import gov.nysenate.sage.dao.stats.SqlApiUserStatsDao;
 import gov.nysenate.sage.dao.stats.SqlDeploymentStatsDao;
+import gov.nysenate.sage.model.admin.AdminUser;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.UsernamePasswordToken;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import gov.nysenate.sage.util.controller.ConstantUtil;
@@ -58,9 +62,13 @@ public class AdminController
     public void adminLogin(HttpServletRequest request, HttpServletResponse response,
                            @RequestParam String username, @RequestParam String password)
             throws ServletException, IOException {
+        String forwardedForIp = request.getHeader("x-forwarded-for");
+        String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
 
         if (sqlAdminUserDao.checkAdminUser(username, password)) {
             logger.debug("Granted admin access to " + username);
+            AdminUser dbAdmin = sqlAdminUserDao.getAdminUser(username);
+            SecurityUtils.getSubject().login(new UsernamePasswordToken(username, dbAdmin.getPassword() , ipAddr));
             setAuthenticated(request, true, username);
             response.sendRedirect(request.getContextPath() + ADMIN_MAIN_PATH + "/home");
         }

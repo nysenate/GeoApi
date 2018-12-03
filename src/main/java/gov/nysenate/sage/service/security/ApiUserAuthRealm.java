@@ -118,4 +118,9 @@ public class ApiUserAuthRealm extends SageAuthorizingRealm
     public CredentialsMatcher getCredentialsMatcher() {
         return apiCredentialsMatcher;
     }
+
+    @Override
+    public Class getAuthenticationTokenClass() {
+        return ApiKeyLoginToken.class;
+    }
 }

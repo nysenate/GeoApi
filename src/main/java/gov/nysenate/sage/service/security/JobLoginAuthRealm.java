@@ -116,4 +116,9 @@ public class JobLoginAuthRealm extends SageAuthorizingRealm
     public CredentialsMatcher getCredentialsMatcher() {
         return credentialsMatcher;
     }
+
+    @Override
+    public Class getAuthenticationTokenClass() {
+        return UsernamePasswordToken.class;
+    }
 }
