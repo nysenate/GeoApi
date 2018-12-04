@@ -18,6 +18,8 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,24 +62,7 @@ public class JobController
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
     public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
         doLogout(request, response);
-        request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
     }
-
-    @RequestMapping(value = "/main", method = RequestMethod.GET)
-    public void jobMain(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
-        if (isAuthenticated(request)) {
-            logger.debug("Authenticated! Sending to main job page");
-            /* Clear out previous info */
-            getJobRequest(request).clear();
-            request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
-            response.sendRedirect(request.getContextPath() + "/job/home");
-        }
-        else {
-            logger.debug("Authentication failed! Sending to login page");
-            request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
-        }
-    }
-
 
 
     //post requests
@@ -115,11 +100,18 @@ public class JobController
      */
     public void doLogin(HttpServletRequest request, HttpServletResponse response, String email, String password) throws ServletException, IOException
     {
+
+        String forwardedForIp = request.getHeader("x-forwarded-for");
+        String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+
         JobUser jobUser = jobUserAuth.getJobUser(email, password);
         if (jobUser != null) {
+            SecurityUtils.getSubject().login(new UsernamePasswordToken(email, jobUser.getPassword() , ipAddr));
             logger.debug("Granted job service access to " + email);
             setJobUser(request, jobUser);
-            response.sendRedirect(request.getContextPath() + "/job/main");
+            getJobRequest(request).clear();
+            request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
+            response.sendRedirect(request.getContextPath() + "/job/home");
         }
         else {
             logger.debug("Denied job service access to " + email);
@@ -332,8 +324,9 @@ public class JobController
      * @param response http response from sage
      * @throws IOException An exception containing a message about the root cause
      */
-    public void doLogout(HttpServletRequest request, HttpServletResponse response)
+    public void doLogout(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
-        unsetJobUser(request);
+        SecurityUtils.getSubject().logout();
+        request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
     }
 }

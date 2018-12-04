@@ -21,12 +21,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAuthenticated;
-import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_LOGIN_JSP;
-import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_MAIN_JSP;
-import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_MAIN_PATH;
+import static gov.nysenate.sage.util.controller.ConstantUtil.*;
 
 @Controller
 @RequestMapping(value = "admin")
@@ -88,7 +87,9 @@ public class AdminController
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
     public void adminLogout(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        setAuthenticated(request, false, null);
+        HttpSession session = request.getSession();
+        session.setAttribute(ADMIN_USERNAME_ATTR, null);
+        SecurityUtils.getSubject().logout();
         request.getRequestDispatcher(ADMIN_LOGIN_JSP).forward(request, response);
     }
 }

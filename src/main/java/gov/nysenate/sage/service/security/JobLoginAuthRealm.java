@@ -37,7 +37,8 @@ public class JobLoginAuthRealm extends SageAuthorizingRealm
         public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
             UsernamePasswordToken userToken = (UsernamePasswordToken) token;
             String newPass = new String(userToken.getPassword());
-            return (BCrypt.checkpw(newPass, info.getCredentials().toString()));
+            String registeredPass = (String) info.getCredentials();
+            return newPass.equals(registeredPass);
         }
     }
 
