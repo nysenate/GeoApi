@@ -72,7 +72,6 @@ public class AdminController
             response.sendRedirect(request.getContextPath() + ADMIN_MAIN_PATH + "/home");
         }
         else {
-            setAuthenticated(request, false, null);
             request.setAttribute("errorMessage", "Invalid admin credentials!");
             request.getRequestDispatcher(ADMIN_LOGIN_JSP).forward(request, response);
         }
