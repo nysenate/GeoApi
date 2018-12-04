@@ -32,7 +32,7 @@ import java.util.Map;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 @Controller
-@RequestMapping(value = ConstantUtil.REST_PATH + "admin")
+@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "api")
 public class AdminApiController
 {
     private Logger logger = LoggerFactory.getLogger(AdminApiController.class);
