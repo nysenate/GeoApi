@@ -5,7 +5,6 @@ import gov.nysenate.sage.dao.model.SqlJobProcessDao;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
-import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,7 +36,7 @@ import static gov.nysenate.sage.util.controller.JobControllerUtil.setJobResponse
  *    /job/status/all                   - Get all processes (basically a job history)
  */
 @Controller
-@RequestMapping(value = ConstantUtil.REST_PATH + "job/status")
+@RequestMapping(value = "job/status")
 public class JobStatusController
 {
     private static Logger logger = LoggerFactory.getLogger(JobStatusController.class);
@@ -115,7 +114,7 @@ public class JobStatusController
         setJobResponse(statusResponse, response);
     }
 
-    @RequestMapping(value = "/All", method = RequestMethod.GET)
+    @RequestMapping(value = "/all", method = RequestMethod.GET)
     public void jobAll(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
         if (isAuthenticated(request)) {
