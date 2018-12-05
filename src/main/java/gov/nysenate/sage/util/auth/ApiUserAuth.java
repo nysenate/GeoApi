@@ -1,6 +1,6 @@
 package gov.nysenate.sage.util.auth;
 
-import gov.nysenate.sage.dao.model.SqlApiUserDao;
+import gov.nysenate.sage.dao.model.api.SqlApiUserDao;
 import gov.nysenate.sage.model.api.ApiUser;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.LoggerFactory;

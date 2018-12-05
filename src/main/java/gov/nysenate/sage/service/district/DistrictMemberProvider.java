@@ -1,9 +1,9 @@
 package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.model.SqlAssemblyDao;
-import gov.nysenate.sage.dao.model.SqlCongressionalDao;
-import gov.nysenate.sage.dao.model.SqlSenateDao;
+import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
+import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
+import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictOverlap;

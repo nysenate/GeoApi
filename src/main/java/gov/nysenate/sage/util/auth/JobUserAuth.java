@@ -1,6 +1,6 @@
 package gov.nysenate.sage.util.auth;
 
-import gov.nysenate.sage.dao.model.SqlJobUserDao;
+import gov.nysenate.sage.dao.model.job.SqlJobUserDao;
 import gov.nysenate.sage.model.job.JobUser;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;

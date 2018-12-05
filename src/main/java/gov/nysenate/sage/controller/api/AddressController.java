@@ -4,7 +4,7 @@ import gov.nysenate.sage.client.response.address.*;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
-import gov.nysenate.sage.service.address.AddressService;
+import gov.nysenate.sage.provider.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;

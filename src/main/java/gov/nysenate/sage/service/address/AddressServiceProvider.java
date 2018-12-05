@@ -1,12 +1,13 @@
 package gov.nysenate.sage.service.address;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.logger.SqlAddressLogger;
+import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.provider.USPSAIS;
-import gov.nysenate.sage.provider.USPSAMS;
+import gov.nysenate.sage.provider.address.AddressService;
+import gov.nysenate.sage.provider.address.USPSAIS;
+import gov.nysenate.sage.provider.address.USPSAMS;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.TimeUtil;

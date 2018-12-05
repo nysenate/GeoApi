@@ -1,6 +1,6 @@
 package gov.nysenate.sage.filter;
 
-import gov.nysenate.sage.dao.logger.SqlExceptionLogger;
+import gov.nysenate.sage.dao.logger.exception.SqlExceptionLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.slf4j.LoggerFactory;

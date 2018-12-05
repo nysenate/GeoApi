@@ -1,9 +1,9 @@
 package gov.nysenate.sage.service.job;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.logger.SqlDistrictResultLogger;
-import gov.nysenate.sage.dao.logger.SqlGeocodeResultLogger;
-import gov.nysenate.sage.dao.model.SqlJobProcessDao;
+import gov.nysenate.sage.dao.logger.district.SqlDistrictResultLogger;
+import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeResultLogger;
+import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.district.DistrictType;

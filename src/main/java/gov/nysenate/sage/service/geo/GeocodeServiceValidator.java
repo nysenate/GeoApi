@@ -1,14 +1,13 @@
 package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.provider.GoogleGeocoder;
-import gov.nysenate.sage.provider.TigerGeocoder;
-import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
+import gov.nysenate.sage.provider.geocode.GoogleGeocoder;
+import gov.nysenate.sage.provider.geocode.TigerGeocoder;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;

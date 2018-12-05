@@ -2,7 +2,8 @@ package gov.nysenate.sage.service.map;
 
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.result.MapResult;
-import gov.nysenate.sage.provider.DistrictShapefile;
+import gov.nysenate.sage.provider.district.DistrictShapefile;
+import gov.nysenate.sage.provider.district.MapService;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;

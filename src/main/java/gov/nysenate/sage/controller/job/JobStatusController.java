@@ -1,7 +1,7 @@
 package gov.nysenate.sage.controller.job;
 
 import gov.nysenate.sage.client.response.job.JobStatusResponse;
-import gov.nysenate.sage.dao.model.SqlJobProcessDao;
+import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;

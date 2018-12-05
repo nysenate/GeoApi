@@ -1,11 +1,10 @@
 package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;

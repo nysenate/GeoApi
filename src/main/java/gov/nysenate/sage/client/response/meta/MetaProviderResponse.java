@@ -1,7 +1,7 @@
 package gov.nysenate.sage.client.response.meta;
 
 import gov.nysenate.sage.client.view.meta.ActiveGeocoderView;
-import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
 
 import java.util.ArrayList;
 import java.util.List;

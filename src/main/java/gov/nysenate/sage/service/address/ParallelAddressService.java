@@ -1,12 +1,10 @@
 package gov.nysenate.sage.service.address;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
-import gov.nysenate.sage.provider.USPSAMS;
-import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.provider.address.AddressService;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

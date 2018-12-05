@@ -1,6 +1,6 @@
 package gov.nysenate.sage.scripts;
 
-import gov.nysenate.sage.dao.model.SqlSenateDao;
+import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.util.ImageUtil;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.cli.CommandLine;

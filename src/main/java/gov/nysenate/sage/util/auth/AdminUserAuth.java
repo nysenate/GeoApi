@@ -1,6 +1,6 @@
 package gov.nysenate.sage.util.auth;
 
-import gov.nysenate.sage.dao.model.SqlAdminUserDao;
+import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.model.admin.AdminUser;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;

@@ -7,7 +7,7 @@ import gov.nysenate.sage.client.response.map.MultipleMetadataResponse;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
-import gov.nysenate.sage.provider.DistrictShapefile;
+import gov.nysenate.sage.provider.district.DistrictShapefile;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;

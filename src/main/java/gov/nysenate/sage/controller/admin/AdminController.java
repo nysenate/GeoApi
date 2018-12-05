@@ -1,17 +1,15 @@
 package gov.nysenate.sage.controller.admin;
 
-import gov.nysenate.sage.dao.logger.SqlApiRequestLogger;
-import gov.nysenate.sage.dao.model.SqlAdminUserDao;
-import gov.nysenate.sage.dao.stats.SqlApiUsageStatsDao;
-import gov.nysenate.sage.dao.stats.SqlApiUserStatsDao;
-import gov.nysenate.sage.dao.stats.SqlDeploymentStatsDao;
+import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
+import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
+import gov.nysenate.sage.dao.stats.api.SqlApiUsageStatsDao;
+import gov.nysenate.sage.dao.stats.api.SqlApiUserStatsDao;
+import gov.nysenate.sage.dao.stats.deployment.SqlDeploymentStatsDao;
 import gov.nysenate.sage.model.admin.AdminUser;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

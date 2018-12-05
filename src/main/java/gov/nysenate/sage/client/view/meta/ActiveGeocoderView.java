@@ -1,6 +1,6 @@
 package gov.nysenate.sage.client.view.meta;
 
-import gov.nysenate.sage.service.geo.GeocodeService;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
 
 public class ActiveGeocoderView
 {
