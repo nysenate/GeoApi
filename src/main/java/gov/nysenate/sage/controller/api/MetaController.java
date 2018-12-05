@@ -5,6 +5,7 @@ import gov.nysenate.sage.client.response.meta.MetaInfoResponse;
 import gov.nysenate.sage.client.response.meta.MetaProviderResponse;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.*;
 
 import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
@@ -71,9 +73,7 @@ public class MetaController
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
         logMetaRequest(apiRequest);
-
-        metaResponse = new MetaProviderResponse(geocodeServiceProvider.getActiveGeoProviders());
-
+        metaResponse = new MetaProviderResponse(geocodeServiceProvider.getActiveGeocoderClassMap());
         setApiResponse(metaResponse,request);
     }
 

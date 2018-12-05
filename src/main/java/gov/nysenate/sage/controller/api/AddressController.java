@@ -119,7 +119,7 @@ public final class AddressController
 
         if (checkProvider(provider, addressResponse)) {
             if (addresses != null && !addresses.isEmpty()) {
-                AddressService addressService = addressProvider.newInstance(provider, true);
+                AddressService addressService = addressProvider.getProviders().get(provider);
                 addressResponse = new BatchValidateResponse(addressService.validate(addresses));
             }
         }
@@ -139,7 +139,7 @@ public final class AddressController
 
         if (checkProvider(provider, addressResponse)) {
             if (addresses != null && !addresses.isEmpty()) {
-                AddressService addressService = addressProvider.newInstance(provider, true);
+                AddressService addressService = addressProvider.getProviders().get(provider);
                 addressResponse = new BatchCityStateResponse(addressService.lookupCityState(addresses));
             }
         }
@@ -163,7 +163,7 @@ public final class AddressController
     private boolean checkProvider(String provider, Object addressResponse) {
         boolean providerIsGood = true;
         if (provider != null && !provider.isEmpty()) {
-            if (!addressProvider.isRegistered(provider)) {
+            if (!addressProvider.getProviders().containsKey(provider)) {
                 providerIsGood = false;
             }
         }

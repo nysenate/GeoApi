@@ -332,11 +332,11 @@ public class DistrictController
          * api error and return if the provider is not supported.
          */
         boolean validProviders = true;
-        if (provider != null && !provider.isEmpty() && !districtProvider.isRegistered(provider)) {
+        if (provider != null && !provider.isEmpty() && !districtProvider.getProviders().containsKey(provider)) {
             setApiResponse(new ApiError(this.getClass(), DISTRICT_PROVIDER_NOT_SUPPORTED), request);
             validProviders = false;
         }
-        if (geoProvider != null && !geoProvider.isEmpty() && !geocodeProvider.isRegistered(geoProvider)) {
+        if (geoProvider != null && !geoProvider.isEmpty() && !districtProvider.getProviders().containsKey(provider)) {
             setApiResponse(new ApiError(this.getClass(), GEOCODE_PROVIDER_NOT_SUPPORTED), request);
             validProviders = false;
         }

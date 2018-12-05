@@ -6,14 +6,29 @@ import gov.nysenate.sage.service.base.ServiceProviders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Point of access for street lookup requests.
 */
 @Service
-public class StreetLookupServiceProvider extends ServiceProviders<StreetLookupService> {
+public class StreetLookupServiceProvider { //Streetfile
+
+    protected StreetLookupService defaultProvider;
+    protected Map<String,StreetLookupService> providers = new HashMap<>();
 
     @Autowired
-    public StreetLookupServiceProvider() {
-        registerDefaultProvider("streetfile", StreetFile.class);
+    public StreetLookupServiceProvider(StreetFile streetFile) {
+        this.defaultProvider = streetFile;
+        providers.put("streetfile", this.defaultProvider);
+    }
+
+    public StreetLookupService getDefaultProvider() {
+        return defaultProvider;
+    }
+
+    public Map<String, StreetLookupService> getProviders() {
+        return providers;
     }
 }

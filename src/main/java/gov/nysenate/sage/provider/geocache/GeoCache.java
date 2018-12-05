@@ -24,7 +24,7 @@ import java.util.Set;
 public class GeoCache implements GeocodeCacheService
 {
     private final Logger logger = LoggerFactory.getLogger(GeoCache.class);
-    private static Set<Class<? extends GeocodeService>> cacheableProviders = new HashSet<>();
+    private static Set<GeocodeService> cacheableProviders = new HashSet<>();
     private SqlGeoCacheDao sqlGeoCacheDao;
     private ParallelGeocodeService parallelGeocodeService;
     private GeocodeServiceValidator geocodeServiceValidator;
@@ -41,7 +41,7 @@ public class GeoCache implements GeocodeCacheService
      * Designates a provider (that has been registered) as a reliable source for caching results.
      * @param provider the provider to be added to the cacheableProviders list
      */
-    public void registerProviderAsCacheable(Class<? extends GeocodeService> provider)
+    public void registerProviderAsCacheable(GeocodeService provider)
     {
         if (provider != null) {
             cacheableProviders.add(provider);

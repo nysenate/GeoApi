@@ -11,9 +11,7 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.DistrictShapefile;
-import gov.nysenate.sage.provider.district.Geoserver;
 import gov.nysenate.sage.provider.district.StreetFile;
-import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +28,7 @@ import java.util.concurrent.*;
  * district providers and contains logic for distributing requests and collecting responses from the providers.
  */
 @Service
-public class DistrictServiceProvider extends ServiceProviders<DistrictService> implements Observer
+public class DistrictServiceProvider //shapefile and streetfile
 {
     public enum DistrictStrategy {
         neighborMatch,  /** Perform shape and street lookup, performing neighbor consolidation as needed. */
@@ -56,20 +54,18 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         allowNeighborAssignSet.add(DistrictType.SENATE);
     }
 
+    protected DistrictService defaultProvider;
+    protected Map<String,DistrictService> providers = new HashMap<>();
+    protected LinkedList<String> defaultFallBack = new LinkedList<>();
+
     @Autowired
-    public DistrictServiceProvider(Environment env)
+    public DistrictServiceProvider(Environment env, DistrictShapefile districtShapefile, StreetFile streetFile)
     {
         this.env = env;
-
-        registerDefaultProvider("shapefile", DistrictShapefile.class);
-        registerProvider("streetfile", StreetFile.class);
-        registerProvider("geoserver", Geoserver.class);
-        setProviderFallbackChain(Arrays.asList("streetfile"));
-    }
-
-    @Override
-    public void update(Observable o, Object arg)
-    {
+        this.defaultProvider = districtShapefile;
+        providers.put("shapefile", districtShapefile);
+        providers.put("streetfile", streetFile);
+        defaultFallBack.add("streetifle");
         PROXIMITY_THRESHOLD = env.getBorderProximity();
         SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf(env.getDistrictStrategySingle());
         BATCH_DISTRICT_STRATEGY = DistrictStrategy.valueOf(env.getDistrictStrategyBatch());
@@ -129,14 +125,14 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         DistrictResult districtResult = null, streetFileResult, shapeFileResult;
         ExecutorService districtExecutor = null;
 
-        if (this.isRegistered(distProvider)) {
-            DistrictService districtService = this.getInstance(distProvider);
+        if (this.providers.containsKey(distProvider)) {
+            DistrictService districtService = this.providers.get(distProvider);
             districtResult = districtService.assignDistricts(geocodedAddress, districtTypes);
         }
         else {
             try {
-                DistrictService shapeFileService = this.getInstance("shapefile");
-                DistrictService streetFileService = this.getInstance("streetfile");
+                DistrictService shapeFileService = this.providers.get("shapefile");
+                DistrictService streetFileService = this.providers.get("streetfile");
                 if (districtStrategy == null) {
                     districtStrategy = SINGLE_DISTRICT_STRATEGY;
                 }
@@ -281,11 +277,11 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
         ExecutorService districtExecutor = null;
         List<DistrictResult> districtResults = new ArrayList<>(), streetFileResults, shapeFileResults;
 
-        DistrictService streetFileService = this.getInstance("streetfile");
-        DistrictService shapeFileService = this.getInstance("shapefile");
+        DistrictService streetFileService = this.providers.get("streetfile");
+        DistrictService shapeFileService = this.providers.get("shapefile");
 
-        if (this.isRegistered(distProvider)) {
-            DistrictService districtService = this.getInstance(distProvider);
+        if (this.providers.containsKey(distProvider)) {
+            DistrictService districtService = this.providers.get(distProvider);
             districtResults = districtService.assignDistricts(geocodedAddresses, districtTypes);
         }
         else {
@@ -405,7 +401,7 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
     public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, Boolean zipProvided)
     {
         Timestamp startTime = TimeUtil.currentTimestamp();
-        DistrictShapefile districtShapeFile = (DistrictShapefile) this.getInstance("shapefile");
+        DistrictShapefile districtShapeFile = (DistrictShapefile) this.providers.get("shapefile");
         DistrictResult districtResult = districtShapeFile.getMultiMatchResult(geocodedAddress, zipProvided);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
         logger.info(String.format("Multi-match district assign in %d ms.", TimeUtil.getElapsedMs(startTime)));
@@ -641,5 +637,17 @@ public class DistrictServiceProvider extends ServiceProviders<DistrictService> i
             }
         }
         return null;
+    }
+
+    public DistrictService getDefaultProvider() {
+        return defaultProvider;
+    }
+
+    public Map<String, DistrictService> getProviders() {
+        return providers;
+    }
+
+    public LinkedList<String> getDefaultFallBack() {
+        return defaultFallBack;
     }
 }

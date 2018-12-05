@@ -285,7 +285,8 @@ public class GeocodeController {
          * If provider is specified then make sure it matches the available providers. Send an
          * api error and return if the provider is not supported.
          */
-        if (provider != null && !provider.isEmpty() && !geocodeServiceProvider.isRegistered(provider) && !provider.equals("geocache")) {
+        if (provider != null && !provider.isEmpty() &&
+                !geocodeServiceProvider.getActiveGeoProviders().containsKey(provider) && !provider.equals("geocache")) {
             geocodeResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
             setApiResponse(geocodeResponse, request);
             return false;
@@ -293,7 +294,8 @@ public class GeocodeController {
         return true;
     }
 
-    private void determineCacheProviderProps(boolean useCache, boolean bypassCache, boolean doNotCache, String provider) {
+    private void determineCacheProviderProps(boolean useCache, boolean bypassCache, boolean doNotCache,
+                                             String provider) {
         /** Only want to use cache when the provider is not specified */
         useCache = (provider == null);
         if (bypassCache || doNotCache) {

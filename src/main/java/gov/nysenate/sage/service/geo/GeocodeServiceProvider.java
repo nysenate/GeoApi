@@ -8,9 +8,11 @@ import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.geocache.GeoCache;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.GoogleGeocoder;
+import gov.nysenate.sage.provider.geocode.NYSGeocoder;
 import gov.nysenate.sage.provider.geocode.TigerGeocoder;
 import gov.nysenate.sage.service.base.ServiceProviders;
 import gov.nysenate.sage.util.TimeUtil;
@@ -28,66 +30,62 @@ import java.util.*;
  * from the providers.
  */
 @Service
-public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> implements Observer
+public class GeocodeServiceProvider
 {
     private final Environment env;
-    private Map<String, Class<? extends GeocodeService>> activeGeoProviders = new HashMap<>();
+    private Map<String, GeocodeService> activeGeoProviders = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(GeocodeServiceProvider.class);
 
     /** Caching members */
     private GeoCache geocache;
     private boolean CACHE_ENABLED = true;
 
+
+    protected String defaultProvider;
+    protected Map<String,GeocodeService> providers = new HashMap<>();
+    protected LinkedList<String> defaultFallback = new LinkedList<>();
+
+
     @Autowired
-    public GeocodeServiceProvider(Environment env, GeoCache geocache) {
+    public GeocodeServiceProvider(Environment env, GeoCache geocache, GoogleGeocoder googleGeocoder,
+                                  TigerGeocoder tigerGeocoder, NYSGeocoder nysGeocoder) {
         this.env = env;
         this.geocache = geocache;
         /** Setup geocode service providers. */
-        Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
-        geoProviders.put("google", GoogleGeocoder.class);
-        geoProviders.put("tiger", TigerGeocoder.class);
-
-        for (String key : geoProviders.keySet()) {
-            logger.debug("Adding geocoder: " + key);
-            registerProvider(key, geoProviders.get(key));
-        }
+        providers.put("google", googleGeocoder);
+        providers.put("nysgeo", nysGeocoder);
+        providers.put("tiger", tigerGeocoder);
 
         String[] activeList = env.getGeocoderActive().split(",");
         for (String provider : activeList) {
-            activeGeoProviders.put(provider, geoProviders.get(provider));
+            activeGeoProviders.put(provider, this.providers.get(provider.trim()));
         }
 
         LinkedList<String> geocoderRankList = new LinkedList<>(Arrays.asList(env.getGeocoderRank().split(",")));
         if (!geocoderRankList.isEmpty()) {
             /** Set the first geocoder as the default. */
-            setDefaultProvider(geocoderRankList.removeFirst());
+            this.defaultProvider = geocoderRankList.removeFirst();
             /** Set the fallback chain in the order of the ranking (excluding first). */
-            setProviderFallbackChain(geocoderRankList);
+            this.defaultFallback = new LinkedList<>(geocoderRankList);
         }
 
         /** Designate which geocoders are allowed to cache. */
         List<String> cacheableProviderList = Arrays.asList(env.getGeocoderCacheable().split(","));
         for (String provider : cacheableProviderList) {
-            registerProviderAsCacheable(provider);
+            registerProviderAsCacheable(this.providers.get(provider.trim()));
         }
-
-        update(null, null);
-    }
-
-    @Override
-    public void update(Observable o, Object arg) {
         CACHE_ENABLED = env.getGeocahceEnabled();
     }
 
     /**
+     * MAY NEED TO BE A STRING
      * Designates a provider (that has been registered) as a reliable source for caching results.
-     * @param providerName Same providerName used when registering the provider
+     * @param provider Same providerName used when registering the provider
      */
-    public void registerProviderAsCacheable(String providerName)
+    public void registerProviderAsCacheable(GeocodeService provider)
     {
-        GeocodeService provider = this.getInstance(providerName);
         if (provider != null) {
-            geocache.registerProviderAsCacheable(provider.getClass());
+            geocache.registerProviderAsCacheable(provider);
         }
     }
 
@@ -173,11 +171,11 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             }
 
             /** Geocode using the supplied provider if valid */
-            if (this.isRegistered(provider)) {
+            if (this.activeGeoProviders.containsKey(provider)) {
                 /** Remove the provider if it's set in the fallback chain */
                 fallback.remove(provider);
                 startTime = TimeUtil.currentTimestamp();
-                geocodeResult = this.getInstance(provider).geocode(address);
+                geocodeResult = this.activeGeoProviders.get(provider).geocode(address);
                 logger.info(String.format("%s response time: %d ms.", provider, TimeUtil.getElapsedMs(startTime)));
             }
             else {
@@ -199,7 +197,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
                 provider = fallbackIterator.next();
                 logger.info(String.format("Sending through %s.", provider));
                 startTime = TimeUtil.currentTimestamp();
-                geocodeResult = this.getInstance(provider).geocode(address);
+                geocodeResult = this.activeGeoProviders.get(provider).geocode(address);
                 logger.info(String.format("%s response time: %d ms.", provider, TimeUtil.getElapsedMs(startTime)));
             }
         }
@@ -324,11 +322,11 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             }
         }
         /** Use the specified provider without cache */
-        else if (this.isRegistered(provider)) {
+        else if (this.activeGeoProviders.containsKey(provider)) {
             /** Remove the provider if it's set in the fallback chain */
             fallback.remove(provider);
             logger.info(String.format("Skipped cache lookup. Using %s.", provider));
-            geocodeResults = this.getInstance(provider).geocode((ArrayList<Address>) validAddresses);
+            geocodeResults = this.activeGeoProviders.get(provider).geocode((ArrayList<Address>) validAddresses);
         }
         /** Otherwise populate the results array with failed results so they get picked up
          *  during the fallback stage. */
@@ -362,7 +360,7 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
             }
 
             Timestamp startTime = TimeUtil.currentTimestamp();
-            List<GeocodeResult> fallbackResults = this.getInstance(provider).geocode(fallbackBatch);
+            List<GeocodeResult> fallbackResults = this.activeGeoProviders.get(provider).geocode(fallbackBatch);
             long elapsedMs = TimeUtil.getElapsedMs(startTime);
             String responseTimeMsg = String.format("%s response time: %d ms.", provider, elapsedMs);
             if (elapsedMs > 10000) {
@@ -446,7 +444,30 @@ public class GeocodeServiceProvider extends ServiceProviders<GeocodeService> imp
         return failedIndices;
     }
 
-    public Map<String, Class<? extends GeocodeService>> getActiveGeoProviders() {
+    public Map<String,GeocodeService> getActiveGeoProviders() {
         return activeGeoProviders;
+    }
+
+
+    public Map<String, Class<? extends GeocodeService>> getActiveGeocoderClassMap() {
+        try {
+            Map<String, Class<? extends GeocodeService>> activeGeocoderMap = new HashMap<>();
+            Set<String> geoProviderKeySet = this.activeGeoProviders.keySet();
+            List<String> geocoderList = new ArrayList<>(geoProviderKeySet);
+
+            for (int i=0; i < geocoderList.size(); i++) {
+                String name = geocoderList.get(i);
+                GeocodeService geocodeService = this.activeGeoProviders.get(geocoderList.get(i));
+
+                activeGeocoderMap.put(geocoderList.get(i), geocodeService.getClass());
+            }
+
+            return activeGeocoderMap;
+        }
+        catch (Exception e) {
+            logger.error("Failed to create class map ", e);
+        }
+
+        return null;
     }
 }

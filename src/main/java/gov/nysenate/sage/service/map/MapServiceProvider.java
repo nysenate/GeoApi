@@ -10,16 +10,23 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @Service
-public class MapServiceProvider extends ServiceProviders<MapService>
+public class MapServiceProvider
 {
     protected Logger logger = LoggerFactory.getLogger(MapServiceProvider.class);
+
+    protected MapService defaultProvider;
+    protected Map<String,MapService> providers = new HashMap<>();
+
     @Autowired
-    public MapServiceProvider() {
-        registerDefaultProvider("shapefile", DistrictShapefile.class);
+    public MapServiceProvider(DistrictShapefile districtShapefile) {
+        this.defaultProvider = districtShapefile;
+        providers.put("shapefile", this.defaultProvider);
     }
 
 
@@ -31,7 +38,7 @@ public class MapServiceProvider extends ServiceProviders<MapService>
      */
     public DistrictInfo assignMapsToDistrictInfo(DistrictInfo districtInfo, DistrictMatchLevel matchLevel, boolean override)
     {
-        MapService mapService = this.getInstance();
+        MapService mapService = this.defaultProvider;
         if (districtInfo != null && mapService != null) {
             for (DistrictType districtType : districtInfo.getAssignedDistricts()) {
                 if (districtInfo.getDistMap(districtType) == null || override) {
@@ -69,5 +76,13 @@ public class MapServiceProvider extends ServiceProviders<MapService>
             }
         }
         return districtInfo;
+    }
+
+    public MapService getDefaultProvider() {
+        return defaultProvider;
+    }
+
+    public Map<String, MapService> getProviders() {
+        return providers;
     }
 }

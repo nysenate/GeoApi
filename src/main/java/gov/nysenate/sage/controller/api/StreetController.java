@@ -50,7 +50,7 @@ public class StreetController
         if (zip5 != null && !zip5.isEmpty()) {
             logger.info("Getting street data for zip5 " + zip5);
             StreetResult streetResult = new StreetResult(this.getClass());
-            List<DistrictedStreetRange> streets = streetProvider.getInstance().streetLookup(zip5);
+            List<DistrictedStreetRange> streets = streetProvider.getDefaultProvider().streetLookup(zip5);
             if (streets != null) {
                 streetResult.setDistrictedStreetRanges(streets);
                 streetResult.setStatusCode(ResultStatus.SUCCESS);
