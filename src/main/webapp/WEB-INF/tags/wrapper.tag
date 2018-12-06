@@ -14,7 +14,7 @@
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/normalize.css" />
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/main.css" />
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/icons.css" />
-        <link rel="shortcut icon" href="${pageContext.request.contextPath}/img/icons/favicon.ico" />
+        <link rel="shortcut icon" href="${pageContext.request.contextPath}/static/img/icons/favicon.ico" />
         <jsp:invoke fragment="cssIncludes"/>
         <script>contextPath = "<%=request.getContextPath()%>";</script>
     <!--[if lte IE 8]>
