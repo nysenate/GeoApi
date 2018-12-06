@@ -82,9 +82,13 @@ public class AddressServiceProvider
             }
         }
         /** Use USPS if address is eligible */
-        else if (address.isEligibleForUSPS()) {
+        else if (address.isEligibleForUSPS() && provider != null) {
             addressResult = this.providers.get(provider).validate(address);
         }
+        else if (address.isEligibleForUSPS() && provider == null) {
+            addressResult = this.defaultProvider.validate(address);
+        }
+
         /** Otherwise address is insufficient */
         else {
             addressResult = new AddressResult(this.getClass(), ResultStatus.INSUFFICIENT_ADDRESS);
