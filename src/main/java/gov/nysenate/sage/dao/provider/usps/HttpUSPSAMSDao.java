@@ -45,6 +45,7 @@ public class HttpUSPSAMSDao
     {
         this.env = env;
         this.baseDao = baseDao;
+        this.DEFAULT_BASE_URL = env.getUspsAmsApiUrl();
     }
 
     /**
