@@ -1,5 +1,6 @@
 package gov.nysenate.sage.config;
 
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -65,6 +66,11 @@ public class WebInitializer implements WebApplicationInitializer
         shiroFilter.setTargetFilterLifecycle(true);
         servletContext.addFilter("shiroFilter", shiroFilter)
                 .addMappingForUrlPatterns(EnumSet.of(REQUEST, FORWARD, INCLUDE), false, "/*");
+
+        /** Api Key Authentication */
+        DelegatingFilterProxy apiAuthFilter = new DelegatingFilterProxy("apiFilter", dispatcherContext);
+        servletContext.addFilter("apiFilter", apiAuthFilter)
+                .addMappingForUrlPatterns(EnumSet.of(REQUEST, FORWARD, INCLUDE), false, ConstantUtil.REST_PATH + "*");
     }
 }
 

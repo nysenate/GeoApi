@@ -86,6 +86,11 @@ public class ApiFilter implements Filter, Observer
         this.env = env;
         this.sqlApiRequestLogger = sqlApiRequestLogger;
         this.apiUserAuth = apiUserAuth;
+        ipFilter = env.getUserIpFilter();
+        defaultKey = env.getUserDefaultKey();
+        publicApiFilter = env.getPublicApiFilter();
+        publicKey = env.getUserPublicKey();
+        API_LOGGING_ENABLED = env.isApiLoggingEnabled();
     }
 
     @Override
@@ -98,11 +103,6 @@ public class ApiFilter implements Filter, Observer
 
     public void configure()
     {
-        ipFilter = env.getUserIpFilter();
-        defaultKey = env.getUserDefaultKey();
-        publicApiFilter = env.getPublicApiFilter();
-        publicKey = env.getUserPublicKey();
-        API_LOGGING_ENABLED = env.isApiLoggingEnabled();
         logger.info(String.format("Configured default access on %s via key %s", ipFilter, defaultKey));
     }
 
