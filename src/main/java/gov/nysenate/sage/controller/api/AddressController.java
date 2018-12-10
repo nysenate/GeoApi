@@ -47,10 +47,15 @@ public final class AddressController
 
     @RequestMapping(value = "/validate", method = RequestMethod.GET)
     public void addressValidate(HttpServletRequest request, HttpServletResponse response,
-                                @RequestParam String provider, @RequestParam boolean punct,
-                                @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
-                                @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
-                                @RequestParam String zip4) {
+                                @RequestParam(required = false) String provider,
+                                @RequestParam(required = false) boolean punct,
+                                @RequestParam(required = false) String addr,
+                                @RequestParam(required = false) String addr1,
+                                @RequestParam(required = false) String addr2,
+                                @RequestParam(required = false) String city,
+                                @RequestParam(required = false) String state,
+                                @RequestParam(required = false) String zip5,
+                                @RequestParam(required = false) String zip4) {
         Object addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
 
         /** Get the ApiRequest */
@@ -68,10 +73,15 @@ public final class AddressController
 
     @RequestMapping(value = "/citystate", method = RequestMethod.GET)
     public void addressCityState(HttpServletRequest request, HttpServletResponse response,
-                                 @RequestParam String provider, @RequestParam boolean punct,
-                                 @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
-                                 @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
-                                 @RequestParam String zip4) {
+                                 @RequestParam(required = false) String provider,
+                                 @RequestParam(required = false) boolean punct,
+                                 @RequestParam(required = false) String addr,
+                                 @RequestParam(required = false) String addr1,
+                                 @RequestParam(required = false) String addr2,
+                                 @RequestParam(required = false) String city,
+                                 @RequestParam(required = false) String state,
+                                 @RequestParam String zip5,
+                                 @RequestParam(required = false) String zip4) {
         Object addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
 
         /** Get the ApiRequest */
@@ -87,10 +97,15 @@ public final class AddressController
 
     @RequestMapping(value = "/zipcode", method = RequestMethod.GET)
     public void addressZipcode(HttpServletRequest request, HttpServletResponse response,
-                               @RequestParam String provider, @RequestParam boolean punct,
-                               @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
-                               @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
-                               @RequestParam String zip4) {
+                               @RequestParam(required = false) String provider,
+                               @RequestParam(required = false) boolean punct,
+                               @RequestParam(required = false) String addr,
+                               @RequestParam(required = false) String addr1,
+                               @RequestParam(required = false) String addr2,
+                               @RequestParam(required = false) String city,
+                               @RequestParam(required = false) String state,
+                               @RequestParam(required = false) String zip5,
+                               @RequestParam(required = false) String zip4) {
         Object addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
 
         /** Get the ApiRequest */
@@ -107,7 +122,8 @@ public final class AddressController
 
     @RequestMapping(value = "/batch/validate", method = RequestMethod.GET)
     public void addressBatchValidate(HttpServletRequest request, HttpServletResponse response,
-                                     @RequestParam String provider, @RequestParam boolean punct) throws IOException {
+                                     @RequestParam(required = false) String provider,
+                                     @RequestParam(required = false) boolean punct) throws IOException {
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
         logAddressInput(apiRequest, request, punct);
@@ -127,7 +143,8 @@ public final class AddressController
 
     @RequestMapping(value = "/batch/citystate", method = RequestMethod.GET)
     public void addressBatchCityState(HttpServletRequest request, HttpServletResponse response,
-                                      @RequestParam String provider, @RequestParam boolean punct) throws IOException {
+                                      @RequestParam(required = false) String provider,
+                                      @RequestParam(required = false) boolean punct) throws IOException {
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
         logAddressInput(apiRequest, request, punct);

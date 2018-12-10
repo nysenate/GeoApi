@@ -79,12 +79,18 @@ public class GeocodeController {
 
     @RequestMapping(value = "/geocode", method = RequestMethod.GET)
     public void geocode(HttpServletRequest request, HttpServletResponse response,
-                        @RequestParam String provider,
-                        @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
-                        @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
-                        @RequestParam String zip4, @RequestParam boolean useFallback,
-                        @RequestParam boolean doNotCache, @RequestParam boolean bypassCache,
-                        @RequestParam boolean uspsValidate) {
+                        @RequestParam(required = false) String provider,
+                        @RequestParam(required = false) String addr,
+                        @RequestParam(required = false) String addr1,
+                        @RequestParam(required = false) String addr2,
+                        @RequestParam(required = false) String city,
+                        @RequestParam(required = false) String state,
+                        @RequestParam(required = false) String zip5,
+                        @RequestParam(required = false) String zip4,
+                        @RequestParam(required = false) boolean useFallback,
+                        @RequestParam(required = false) boolean doNotCache,
+                        @RequestParam(required = false) boolean bypassCache,
+                        @RequestParam(required = false) boolean uspsValidate) {
 
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
@@ -96,7 +102,8 @@ public class GeocodeController {
         int requestId = -1;
 
         /** Construct a GeocodeRequest using the supplied params */
-        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest, getAddressFromParams(request), provider,
+        GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest,
+                getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4), provider,
                 useFallback, useCache, bypassCache, doNotCache, uspsValidate);
 
         StreetAddress inputStreetAddress = StreetAddressParser.parseAddress(geocodeRequest.getAddress());
@@ -131,9 +138,12 @@ public class GeocodeController {
 
     @RequestMapping(value = "/revgeocode", method = RequestMethod.GET)
     public void revGeocode(HttpServletRequest request, HttpServletResponse response,
-                           @RequestParam String provider, @RequestParam String lat, @RequestParam String lon,
-                           @RequestParam boolean useFallback, @RequestParam boolean doNotCache,
-                           @RequestParam boolean bypassCache) {
+                           @RequestParam(required = false) String provider,
+                           @RequestParam String lat,
+                           @RequestParam String lon,
+                           @RequestParam(required = false) boolean useFallback,
+                           @RequestParam(required = false) boolean doNotCache,
+                           @RequestParam(required = false) boolean bypassCache) {
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
         ApiRequest apiRequest = getApiRequest(request);
@@ -175,8 +185,10 @@ public class GeocodeController {
 
     @RequestMapping(value = "/batch/geocode", method = RequestMethod.GET)
     public void batchGeocode(HttpServletRequest request, HttpServletResponse response,
-                             @RequestParam String provider, @RequestParam boolean useFallback,
-                             @RequestParam boolean doNotCache, @RequestParam boolean bypassCache) throws IOException {
+                             @RequestParam(required = false) String provider,
+                             @RequestParam(required = false) boolean useFallback,
+                             @RequestParam(required = false) boolean doNotCache,
+                             @RequestParam(required = false) boolean bypassCache) throws IOException {
 
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
@@ -219,11 +231,10 @@ public class GeocodeController {
 
     @RequestMapping(value = "/batch/revgeocode", method = RequestMethod.GET)
     public void batchRevGeocode(HttpServletRequest request, HttpServletResponse response,
-                                @RequestParam String provider,
-                                @RequestParam String addr, @RequestParam String addr1, @RequestParam String addr2,
-                                @RequestParam String city, @RequestParam String state, @RequestParam String zip5,
-                                @RequestParam String zip4, @RequestParam boolean useFallback,
-                                @RequestParam boolean doNotCache, @RequestParam boolean bypassCache) throws IOException {
+                                @RequestParam(required = false) String provider,
+                                @RequestParam(required = false) boolean useFallback,
+                                @RequestParam(required = false) boolean doNotCache,
+                                @RequestParam(required = false) boolean bypassCache) throws IOException {
 
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();

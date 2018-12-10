@@ -18,6 +18,8 @@ import gov.nysenate.sage.model.stats.*;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.auth.JobUserAuth;
 import gov.nysenate.sage.util.controller.ConstantUtil;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -76,7 +78,8 @@ public class AdminApiController
     @RequestMapping(value = "/currentApiUsers", method = RequestMethod.GET)
     public void currentApiUsers(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if ( subject.hasRole("ADMIN") ) {
             adminResponse = getCurrentApiUsers(request);
         }
         else {
@@ -89,7 +92,8 @@ public class AdminApiController
     @RequestMapping(value = "/currentJobUsers", method = RequestMethod.GET)
     public void currentJobUsers(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse =  getCurrentJobUsers(request);
         }
         else {
@@ -102,7 +106,8 @@ public class AdminApiController
     @RequestMapping(value = "/apiUserUsage", method = RequestMethod.GET)
     public void apiUserUsage(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse = getApiUserStats(request);
         }
         else {
@@ -115,7 +120,8 @@ public class AdminApiController
     @RequestMapping(value = "/usage", method = RequestMethod.GET)
     public void usage(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse = getApiUsageStats(request);
         }
         else {
@@ -128,7 +134,8 @@ public class AdminApiController
     @RequestMapping(value = "/geocodeUsage", method = RequestMethod.GET)
     public void geocodeUsage(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse = getGeocodeUsageStats(request);
         }
         else {
@@ -141,7 +148,8 @@ public class AdminApiController
     @RequestMapping(value = "/jobStatuses", method = RequestMethod.GET)
     public void jobStatuses(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse = getJobProcessStatusList(request);
         }
         else {
@@ -154,7 +162,8 @@ public class AdminApiController
     @RequestMapping(value = "/deployment", method = RequestMethod.GET)
     public void deployment(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse = getDeploymentStats(request);
         }
         else {
@@ -167,7 +176,8 @@ public class AdminApiController
     @RequestMapping(value = "/exception", method = RequestMethod.GET)
     public void exception(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN")) {
             adminResponse = getExceptionStats(request);
         }
         else {
@@ -182,7 +192,8 @@ public class AdminApiController
     @RequestMapping(value = "/createApiUser", method = RequestMethod.POST)
     public void createApiUser(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse = createApiUser(request);
         }
         else {
@@ -195,7 +206,8 @@ public class AdminApiController
     @RequestMapping(value = "/deleteApiUser", method = RequestMethod.POST)
     public void deleteApiUser(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse = deleteApiUser(request);
         }
         else {
@@ -207,7 +219,8 @@ public class AdminApiController
     @RequestMapping(value = "/createJobUser", method = RequestMethod.POST)
     public void createJobUser(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse = createJobUser(request);
         }
         else {
@@ -219,7 +232,8 @@ public class AdminApiController
     @RequestMapping(value = "/deleteJobUser", method = RequestMethod.POST)
     public void deleteJobUser(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse = deleteJobUser(request);
         }
         else {
@@ -231,7 +245,8 @@ public class AdminApiController
     @RequestMapping(value = "/hideException", method = RequestMethod.POST)
     public void hideException(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
-        if (isAuthenticated(request) ) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("ADMIN") ) {
             adminResponse = hideException(request);
         }
         else {

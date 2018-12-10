@@ -155,9 +155,16 @@ public class AddressServiceProvider
     /**
      * Use USPS for a city state lookup by default.
      */
-    public AddressResult lookupCityState(Address address, String provider)
+    public AddressResult lookupCityState(Address address, String providerName)
     {
-        AddressResult addressResult = this.providers.get(provider).lookupCityState(address);
+        AddressService provider;
+        if (providerName == null || providerName.isEmpty()) {
+            provider = this.defaultProvider;
+        }
+        else {
+            provider = this.providers.get(providerName);
+        }
+        AddressResult addressResult = provider.lookupCityState(address);
         logAddressResult(addressResult);
         return addressResult;
     }
