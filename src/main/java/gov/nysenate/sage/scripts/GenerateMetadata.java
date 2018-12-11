@@ -269,7 +269,7 @@ public class GenerateMetadata {
             InputStream is = url.openStream();
             String sageReponse = IOUtils.toString(is, "UTF-8");
             JsonNode jsonResonse = new ObjectMapper().readTree(sageReponse);
-            IOUtils.closeQuietly(is);
+            is.close();
             Geocode geocodedOffice = new ObjectMapper().readValue(jsonResonse.get("geocode").toString(), Geocode.class);
             if (geocodedOffice != null) {
                 senatorOffice.setLatitude( geocodedOffice.getLat() );

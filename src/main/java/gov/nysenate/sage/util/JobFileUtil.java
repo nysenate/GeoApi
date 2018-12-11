@@ -26,7 +26,7 @@ public abstract class JobFileUtil
             BufferedReader sourceReader = new BufferedReader(new FileReader(file));
             String firstLine = sourceReader.readLine();
 
-            IOUtils.closeQuietly(sourceReader);
+            sourceReader.close();
             int [] delimiterCounts = new int[3];
             delimiterCounts[0] = StringUtils.countMatches(firstLine, "\t");
             delimiterCounts[1] = StringUtils.countMatches(firstLine, ",");

@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public abstract class UrlRequest
 {
@@ -45,7 +46,7 @@ public abstract class UrlRequest
     private static String getResponseFromInputStream(InputStream inputStream) throws IOException
     {
         if (inputStream != null) {
-            String response = IOUtils.toString(inputStream);
+            String response = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             logger.trace("Retrieved string of length " + response.length());
             logger.trace("Response: " + response);
             return response;
@@ -143,7 +144,8 @@ public abstract class UrlRequest
 
             int responseCode = uc.getResponseCode();
             if (responseCode >= 400) {
-                logger.error("Service responded with error code (" + responseCode + "): " + uc.getResponseMessage() + ". " + IOUtils.toString(uc.getErrorStream()));
+                logger.error("Service responded with error code (" + responseCode + "): " + uc.getResponseMessage()
+                        + ". " + IOUtils.toString(uc.getErrorStream(), StandardCharsets.UTF_8));
                 return null;
             }
 
