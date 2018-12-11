@@ -178,6 +178,8 @@ public class Environment {
 
     @Value("${ruby.geocoder.bulk.url}") private String rubyGeocoderBulkUrl;
 
+    @Value("${job.process.cron}") private String jobProcessCron;
+
     public Environment() {}
 
     @PostConstruct
@@ -863,5 +865,13 @@ public class Environment {
 
     public void setRubyGeocoderBulkUrl(String rubyGeocoderBulkUrl) {
         this.rubyGeocoderBulkUrl = rubyGeocoderBulkUrl;
+    }
+
+    public String getJobProcessCron() {
+        return jobProcessCron;
+    }
+
+    public void setJobProcessCron(String jobProcessCron) {
+        this.jobProcessCron = jobProcessCron;
     }
 }

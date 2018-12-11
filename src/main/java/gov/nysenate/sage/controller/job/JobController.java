@@ -43,8 +43,7 @@ import static gov.nysenate.sage.util.controller.JobControllerUtil.*;
 
 @Controller
 @RequestMapping(value = "job")
-public class JobController
-{
+public class JobController {
     private Logger logger = LoggerFactory.getLogger(JobController.class);
     private Environment env;
     private JobUserAuth jobUserAuth;
@@ -59,19 +58,22 @@ public class JobController
     }
 
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
-    public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
+    public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doLogout(request, response);
     }
 
 
     //post requests
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public void jobLogin(HttpServletRequest request, HttpServletResponse response, @RequestParam String email, @RequestParam String password) throws ServletException,IOException {
+    public void jobLogin(HttpServletRequest request, HttpServletResponse response,
+                         @RequestParam String email, @RequestParam String password)
+            throws ServletException, IOException {
         doLogin(request, response, email, password);
     }
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public void jobUpload(HttpServletRequest request, HttpServletResponse response, @RequestParam String qqfile) {
+    public void jobUpload(HttpServletRequest request, HttpServletResponse response,
+                          @RequestParam String qqfile) throws Exception {
         doUpload(request, response, qqfile);
     }
 
@@ -91,28 +93,25 @@ public class JobController
     }
 
     /**
-     *
-     * @param request http request from client
+     * @param request  http request from client
      * @param response http response from sage
      * @throws ServletException An exception containing a message about the root cause
-     * @throws IOException An exception containing a message about the root cause
+     * @throws IOException      An exception containing a message about the root cause
      */
-    public void doLogin(HttpServletRequest request, HttpServletResponse response, String email, String password) throws ServletException, IOException
-    {
+    public void doLogin(HttpServletRequest request, HttpServletResponse response, String email, String password) throws ServletException, IOException {
 
         String forwardedForIp = request.getHeader("x-forwarded-for");
-        String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        String ipAddr = forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
 
         JobUser jobUser = jobUserAuth.getJobUser(email, password);
         if (jobUser != null) {
-            SecurityUtils.getSubject().login(new UsernamePasswordToken(email, jobUser.getPassword() , ipAddr));
+            SecurityUtils.getSubject().login(new UsernamePasswordToken(email, jobUser.getPassword(), ipAddr));
             logger.debug("Granted job service access to " + email);
             setJobUser(request, jobUser);
             getJobRequest(request).clear();
             request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
             response.sendRedirect(request.getContextPath() + "/job/home");
-        }
-        else {
+        } else {
             logger.debug("Denied job service access to " + email);
             request.setAttribute("errorMessage", "Invalid credentials");
             request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
@@ -122,11 +121,11 @@ public class JobController
     /**
      * Uploads the job file and verifies that it meets the criteria. If it does the file is copied
      * to the upload dir and a success response is sent. Otherwise an error response is sent.
-     * @param request http request from client
+     *
+     * @param request  http request from client
      * @param response http response from sage
      */
-    public void doUpload(HttpServletRequest request, HttpServletResponse response, String qqfile)
-    {
+    public void doUpload(HttpServletRequest request, HttpServletResponse response, String qqfile) throws Exception {
         String uploadDir = env.getJobUploadDir();
 
         JobRequest jobRequest = getJobRequest(request);
@@ -149,12 +148,10 @@ public class JobController
                         FileItem fileItem = (FileItem) fileItems.get(0);
                         sourceFilename = fileItem.getName();
                     }
-                }
-                catch (FileUploadException ex) {
+                } catch (FileUploadException ex) {
                     logger.error("File upload exception using Apache FileUpload!", ex);
                 }
-            }
-            else {
+            } else {
                 uploadResponse = new JobUploadErrorResponse("No file upload request found.");
             }
         }
@@ -163,11 +160,11 @@ public class JobController
             try {
                 /* Save the uploaded file to a temporary location */
                 String tempDir = System.getProperty("java.io.tmpdir", "/tmp");
-                String targetFileName = (new Date().getTime()) + "-" + sourceFilename.replaceAll("( |%20)","_");
+                String targetFileName = (new Date().getTime()) + "-" + sourceFilename.replaceAll("( |%20)", "_");
                 File tempFile = File.createTempFile(targetFileName, null, new File(tempDir));
                 FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
                 IOUtils.copy(request.getInputStream(), fileOutputStream);
-                IOUtils.closeQuietly(fileOutputStream);
+                fileOutputStream.close();
                 logger.debug("Saved uploaded file to temp location: " + tempFile.getAbsolutePath());
 
                 /* Determine the formatting by inspecting the header */
@@ -189,7 +186,7 @@ public class JobController
                         uploadResponse = new JobUploadErrorResponse("Uploaded file does not have the required address columns!");
                     }
                     /* Check for geocoding or district assignment fields in header */
-                    else if(!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
+                    else if (!jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
                         logger.error("Uploaded job file does not have any geocode or district assignment columns.");
                         uploadResponse = new JobErrorResult("Uploaded job file does not have any geocode or district assignment columns!");
                     }
@@ -223,25 +220,21 @@ public class JobController
                         /* Send a success status back to the ajax uploader */
                         uploadResponse = new JobUploadSuccessResponse(process);
                     }
-                }
-                else {
+                } else {
                     uploadResponse = new JobUploadErrorResponse("Sorry, the formatting for the file is not supported. " +
-                                                                "Please use tab, comma, or semi-colon to delimit the data.");
+                            "Please use tab, comma, or semi-colon to delimit the data.");
                 }
-            }
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 logger.error("IO Exception during file upload processing!", ex);
-            }
-            finally {
-                IOUtils.closeQuietly(sourceReader);
-                IOUtils.closeQuietly(jobReader);
+            } finally {
+                sourceReader.close();
+                jobReader.close();
             }
         }
         setJobResponse(uploadResponse, response);
     }
 
-    private void doRemove(HttpServletRequest request, HttpServletResponse response, String fileName)
-    {
+    private void doRemove(HttpServletRequest request, HttpServletResponse response, String fileName) {
         logger.info("User requested job file removal prior to submission");
         JobRequest jobRequest = getJobRequest(request);
         if (fileName != null && jobRequest != null) {
@@ -260,13 +253,11 @@ public class JobController
     }
 
     /**
-     *
-     * @param request http request from client
+     * @param request  http request from client
      * @param response http response from sage
      * @throws IOException An exception containing a message about the root cause
      */
-    public void doSubmit(HttpServletRequest request, HttpServletResponse response)
-    {
+    public void doSubmit(HttpServletRequest request, HttpServletResponse response) {
         logger.info("Processing Job Request Submission.");
         JobRequest jobRequest = getJobRequest(request);
 
@@ -278,14 +269,12 @@ public class JobController
                     JobProcessStatus status = new JobProcessStatus(processId);
                     sqlJobProcessDao.setJobProcessStatus(status);
                     logger.info("Added job process and status for file " + jobProcess.getFileName());
-                }
-                else {
+                } else {
                     logger.error("Failed to add job process for file " + jobProcess.getFileName());
                 }
             }
             setJobResponse(new JobActionResponse(true, null), response);
-        }
-        else {
+        } else {
             setJobResponse(new JobActionResponse(false, "You must upload a file before submitting."), response);
         }
         /* The request should be cleared out */
@@ -294,37 +283,34 @@ public class JobController
 
     /**
      * Sets the condition of a job process status to cancelled.
-     * @param request http request from client
+     *
+     * @param request  http request from client
      * @param response http response from sage
      */
-    public void doCancel(HttpServletRequest request, HttpServletResponse response, int id)
-    {
+    public void doCancel(HttpServletRequest request, HttpServletResponse response, int id) {
         logger.info("Cancelling job process");
         try {
             JobProcessStatus jps = sqlJobProcessDao.getJobProcessStatus(id);
             jps.setCondition(JobProcessStatus.Condition.CANCELLED);
             jps.setCompleted(false);
-            jps.setMessages(Arrays.asList("Cancelled by user",""));
+            jps.setMessages(Arrays.asList("Cancelled by user", ""));
             int update = sqlJobProcessDao.setJobProcessStatus(jps);
             if (update > 0) {
                 setJobResponse(new JobActionResponse(true, "Job " + id + " has been cancelled."), response);
                 return;
             }
-        }
-        catch (NumberFormatException ex) {
+        } catch (NumberFormatException ex) {
             logger.warn("Failed to parse job process id for cancellation!");
         }
         setJobResponse(new JobActionResponse(false, "Failed to cancel job process!"), response);
     }
 
     /**
-     *
-     * @param request http request from client
+     * @param request  http request from client
      * @param response http response from sage
      * @throws IOException An exception containing a message about the root cause
      */
-    public void doLogout(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
-    {
+    public void doLogout(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         SecurityUtils.getSubject().logout();
         request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
     }

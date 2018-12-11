@@ -306,7 +306,7 @@
                                         <td>{{completedProcess.startTime | date:'short'}}</td>
                                         <td>{{completedProcess.completeTime | date:'short'}}</td>
                                         <td>
-                                            <a style="background:#477326;color:white;padding:2px;" ng-href="${downloadBaseUrl}{{completedProcess.process.fileName}}">Download</a>
+                                            <a style="background:#477326;color:white;padding:2px;" ng-href="${downloadBaseUrl}download/{{completedProcess.process.fileName}}">Download</a>
                                         </td>
                                     </tr>
                                     <tr ng-hide="completedProcesses">

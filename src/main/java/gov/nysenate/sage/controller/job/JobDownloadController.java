@@ -5,6 +5,7 @@ import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,7 +24,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Controller
-@RequestMapping(value = ConstantUtil.REST_PATH + "job")
+@RequestMapping(value = "job")
 public class JobDownloadController
 {
     private static Logger logger = LoggerFactory.getLogger(JobDownloadController.class);
@@ -36,8 +37,8 @@ public class JobDownloadController
         DOWNLOAD_DIR = env.getJobDownloadDir();
     }
 
-    @RequestMapping(value = "/download", method = RequestMethod.GET)
-    public void jobDownload(HttpServletRequest request, HttpServletResponse response, @RequestParam String fileName) throws IOException {
+    @RequestMapping(value = "/download/{fileName}", method = RequestMethod.GET)
+    public void jobDownload(HttpServletRequest request, HttpServletResponse response, @PathVariable String fileName) throws IOException {
         if (fileName != null) {
             fileName = fileName.replaceFirst("/", "");
             File file = new File(DOWNLOAD_DIR + fileName);
@@ -51,7 +52,7 @@ public class JobDownloadController
                     }
                 }
                 finally {
-                    IOUtils.closeQuietly(inputStream);
+                    inputStream.close();
                 }
             }
             else {

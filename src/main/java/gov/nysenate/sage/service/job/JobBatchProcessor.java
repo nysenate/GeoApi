@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.job;
 
+import gov.nysenate.sage.config.ApplicationConfig;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.district.SqlDistrictResultLogger;
 import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeResultLogger;
@@ -17,6 +18,8 @@ import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.*;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -48,9 +51,6 @@ public class JobBatchProcessor {
     private static String UPLOAD_DIR;
     private static String DOWNLOAD_DIR;
     private static String DOWNLOAD_URL;
-    private static Integer ADDRESS_THREAD_COUNT;
-    private static Integer GEOCODE_THREAD_COUNT;
-    private static Integer DISTRICT_THREAD_COUNT;
     private static Integer JOB_BATCH_SIZE;
     private static String TEMP_DIR = "/tmp";
     private static String LOCK_FILENAME = "batchJobProcess.lock";
@@ -60,15 +60,16 @@ public class JobBatchProcessor {
 
     public static Logger logger = LoggerFactory.getLogger(JobBatchProcessor.class);
     Marker fatal = MarkerFactory.getMarker("FATAL");
-    public Environment env;
-    public Mailer mailer;
-    public AddressServiceProvider addressProvider;
-    public GeocodeServiceProvider geocodeProvider;
-    public DistrictServiceProvider districtProvider;
-    public SqlJobProcessDao sqlJobProcessDao;
+    private Environment env;
+    private Mailer mailer;
+    private AddressServiceProvider addressProvider;
+    private GeocodeServiceProvider geocodeProvider;
+    private DistrictServiceProvider districtProvider;
+    private SqlJobProcessDao sqlJobProcessDao;
 
-    public SqlGeocodeResultLogger sqlGeocodeResultLogger;
-    public SqlDistrictResultLogger sqlDistrictResultLogger;
+    private SqlGeocodeResultLogger sqlGeocodeResultLogger;
+    private SqlDistrictResultLogger sqlDistrictResultLogger;
+    private ApplicationConfig applicationConfig;
 
 
 
@@ -77,16 +78,13 @@ public class JobBatchProcessor {
                              GeocodeServiceProvider geocodeServiceProvider,
                              DistrictServiceProvider districtServiceProvider,
                              SqlJobProcessDao sqlJobProcessDao, SqlGeocodeResultLogger sqlGeocodeResultLogger,
-                             SqlDistrictResultLogger sqlDistrictResultLogger)
+                             SqlDistrictResultLogger sqlDistrictResultLogger, ApplicationConfig applicationConfig)
     {
         this.env = env;
         BASE_URL = env.getBaseUrl();
         UPLOAD_DIR = env.getJobUploadDir();
         DOWNLOAD_DIR = env.getJobDownloadDir();
         DOWNLOAD_URL = BASE_URL + DOWNLOAD_BASE_URL;
-        ADDRESS_THREAD_COUNT = env.getJobThreadsValidate();
-        GEOCODE_THREAD_COUNT = env.getJobThreadsGeocode();
-        DISTRICT_THREAD_COUNT = env.getJobThreadsDistassign();
         JOB_BATCH_SIZE = env.getJobBatchSize();
         SEND_EMAILS = env.getJobSendEmail();
         LOGGING_ENABLED = env.isBatchDetailedLoggingEnabled();
@@ -99,15 +97,22 @@ public class JobBatchProcessor {
 
         this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         this.sqlDistrictResultLogger = sqlDistrictResultLogger;
+        this.applicationConfig = applicationConfig;
+    }
+
+    @Scheduled(cron = "${job.process.cron}")
+    public void jobCron() throws Exception {
+        String[] args = new String[1];
+        args[0] = "process";
+        logger.info("Job Cron Triggered");
+        run(args);
     }
 
     /** Entry point for cron job */
     public void run(String[] args) throws Exception
     {
         /** Ensure another job process is not running */
-        if (checkLockFile()) {
-            return;
-        }
+        checkLockFile();
 
         if (args.length > 0) {
 
@@ -152,9 +157,8 @@ public class JobBatchProcessor {
      * If the lock file already exists, then fail. Otherwise, create it and arrange for it to be automatically
      * deleted on exit.
      */
-    public static boolean checkLockFile() throws IOException
+    public static void checkLockFile() throws IOException
     {
-        boolean locked = false;
         File lockFile = new File(TEMP_DIR, LOCK_FILENAME);
         boolean rc = lockFile.createNewFile();
         if (rc == true) {
@@ -164,9 +168,7 @@ public class JobBatchProcessor {
         else {
             logger.error("Lock file [" + lockFile.getAbsolutePath() + "] already exists; exiting immediately");
             //back out of api call?
-            locked = true;
         }
-        return locked;
     }
 
     /**
@@ -191,16 +193,17 @@ public class JobBatchProcessor {
      * Main routine for processing a JobProcess.
      * @param jobStatus
      */
-    public void processJob(JobProcessStatus jobStatus)
+    public void processJob(JobProcessStatus jobStatus) throws Exception
     {
         JobProcess jobProcess = jobStatus.getJobProcess();
         String fileName = jobProcess.getFileName();
 
-        ExecutorService addressExecutor = Executors.newFixedThreadPool(ADDRESS_THREAD_COUNT);
-        ExecutorService geocodeExecutor = Executors.newFixedThreadPool(GEOCODE_THREAD_COUNT);
-        ExecutorService districtExecutor = Executors.newFixedThreadPool(DISTRICT_THREAD_COUNT);
-        ICsvListReader jobReader = null;
-        ICsvListWriter jobWriter = null;
+        ThreadPoolTaskExecutor addressExecutor = applicationConfig.getJobAddressValidationExecutor();
+        ThreadPoolTaskExecutor geocodeExecutor = applicationConfig.getJobGeocodeExecutor();
+        ThreadPoolTaskExecutor districtExecutor = applicationConfig.getJobDistrictAssignExecutor();
+
+        CsvListReader jobReader = null;
+        CsvListWriter jobWriter = null;
 
         try {
             /** Initialize file readers and writers */
@@ -403,11 +406,11 @@ public class JobBatchProcessor {
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         finally {
-            IOUtils.closeQuietly(jobReader);
-            IOUtils.closeQuietly(jobWriter);
-            addressExecutor.shutdownNow();
-            geocodeExecutor.shutdownNow();
-            districtExecutor.shutdownNow();
+            jobReader.close();
+            jobWriter.close();
+            addressExecutor.shutdown();
+            geocodeExecutor.shutdown();
+            districtExecutor.shutdown();
             logger.info("Closed resources.");
         }
         return;
@@ -484,6 +487,8 @@ public class JobBatchProcessor {
                                SqlGeocodeResultLogger sqlGeocodeResultLogger) {
             this.jobBatch = jobBatch;
             this.jobProcess = jobProcess;
+            this.geocodeServiceProvider = geocodeServiceProvider;
+            this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         }
 
         public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, JobProcess jobProcess,

@@ -40,6 +40,12 @@ public class ApplicationConfig implements CachingConfigurer, SchedulingConfigure
 
     @Value("${cache.max.size}") private String cacheMaxHeapSize;
 
+    @Value("${validate.threads}") private int validateThreads;
+
+    @Value("${distassign.threads}") private int distassignThreads;
+
+    @Value("${geocode.threads}") private int geocodeThreads;
+
     @Bean(destroyMethod = "shutdown")
     public net.sf.ehcache.CacheManager pooledCacheManger() {
         // Set the upper limit when computing heap size for objects. Once it reaches the limit
@@ -117,16 +123,36 @@ public class ApplicationConfig implements CachingConfigurer, SchedulingConfigure
     @Override
     @Bean(name = "sageAsync", destroyMethod = "shutdown")
     public ThreadPoolTaskExecutor getAsyncExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setThreadFactory(new SageThreadFactory("spring-async"));
-        executor.setCorePoolSize(10);
-        executor.initialize();
-        return executor;
+        return createExecutor("spring-async", 10);
     }
 
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
         return new SimpleAsyncUncaughtExceptionHandler();
+    }
+
+    @Bean(name = "jobValidator", destroyMethod = "shutdown")
+    public ThreadPoolTaskExecutor getJobAddressValidationExecutor() {
+        return createExecutor("job-validator", validateThreads);
+    }
+
+    @Bean(name = "jobGeocoder", destroyMethod = "shutdown")
+    public ThreadPoolTaskExecutor getJobGeocodeExecutor() {
+        return createExecutor("job-geocoder", geocodeThreads);
+    }
+
+    @Bean(name = "jobDistAssign", destroyMethod = "shutdown")
+    public ThreadPoolTaskExecutor getJobDistrictAssignExecutor() {
+        return createExecutor("job-dist-assign", distassignThreads);
+    }
+
+
+    private ThreadPoolTaskExecutor createExecutor(String threadName, Integer poolSize) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setThreadFactory(new SageThreadFactory("spring-async"));
+        executor.setCorePoolSize(10);
+        executor.initialize();
+        return executor;
     }
 
     /**
