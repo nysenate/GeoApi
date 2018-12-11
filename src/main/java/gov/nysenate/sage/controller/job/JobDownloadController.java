@@ -37,10 +37,9 @@ public class JobDownloadController
         DOWNLOAD_DIR = env.getJobDownloadDir();
     }
 
-    @RequestMapping(value = "/download/{fileName}", method = RequestMethod.GET)
+    @RequestMapping(value = "/download/{fileName:.+}", method = RequestMethod.GET)
     public void jobDownload(HttpServletRequest request, HttpServletResponse response, @PathVariable String fileName) throws IOException {
         if (fileName != null) {
-            fileName = fileName.replaceFirst("/", "");
             File file = new File(DOWNLOAD_DIR + fileName);
             if (file.exists()) {
                 response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
