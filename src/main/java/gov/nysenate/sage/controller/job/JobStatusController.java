@@ -5,6 +5,8 @@ import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,7 +24,6 @@ import java.util.Calendar;
 import java.util.List;
 
 import static gov.nysenate.sage.util.controller.JobControllerUtil.getJobUser;
-import static gov.nysenate.sage.util.controller.JobControllerUtil.isAuthenticated;
 import static gov.nysenate.sage.util.controller.JobControllerUtil.setJobResponse;
 
 /**
@@ -53,7 +54,8 @@ public class JobStatusController
     public void jobProcess(HttpServletRequest request, HttpServletResponse response,
                                      @PathVariable int processId) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        if (isAuthenticated(request)) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getJobProcessStatusById(processId, jobUser), running);
@@ -64,7 +66,8 @@ public class JobStatusController
     @RequestMapping(value = "/running", method = RequestMethod.GET)
     public void jobRunning(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        if (isAuthenticated(request)) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getRunningJobProcesses(jobUser), running);
@@ -75,7 +78,8 @@ public class JobStatusController
     @RequestMapping(value = "/active", method = RequestMethod.GET)
     public void jobActive(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        if (isAuthenticated(request)) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getActiveJobProcesses(jobUser), running);
@@ -86,7 +90,8 @@ public class JobStatusController
     @RequestMapping(value = "/inactive", method = RequestMethod.GET)
     public void jobInactive(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        if (isAuthenticated(request)) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getInactiveJobProcesses(jobUser), running);
@@ -97,7 +102,8 @@ public class JobStatusController
     @RequestMapping(value = "/completed", method = RequestMethod.GET)
     public void jobCompleted(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        if (isAuthenticated(request)) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getRecentlyCompletedJobProcesses(jobUser), running);
@@ -108,7 +114,8 @@ public class JobStatusController
     @RequestMapping(value = "/processor", method = RequestMethod.GET)
     public void jobProcessor(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        if (isAuthenticated(request)) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("JOB_USER")) {
             statusResponse = isProcessorRunning();
         }
         setJobResponse(statusResponse, response);
@@ -117,7 +124,8 @@ public class JobStatusController
     @RequestMapping(value = "/all", method = RequestMethod.GET)
     public void jobAll(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        if (isAuthenticated(request)) {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getAllJobProcesses(jobUser), running);
