@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.cache.CacheEvictEvent;
 import gov.nysenate.sage.model.cache.CacheEvictIdEvent;
 import gov.nysenate.sage.model.cache.CacheWarmEvent;
 import gov.nysenate.sage.model.cache.ContentCache;
+import gov.nysenate.sage.service.base.CachingService;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Ehcache;
 import org.slf4j.Logger;

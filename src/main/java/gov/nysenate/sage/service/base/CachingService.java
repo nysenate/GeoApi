@@ -1,4 +1,4 @@
-package gov.nysenate.sage.service.security;
+package gov.nysenate.sage.service.base;
 
 import gov.nysenate.sage.model.cache.CacheEvictEvent;
 import gov.nysenate.sage.model.cache.CacheEvictIdEvent;
