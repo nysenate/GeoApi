@@ -63,7 +63,7 @@ public class DatabaseConfig
      */
     @Bean
     public DataSource geoApiPostgresDataSource() {
-        final String jdbcUrlTemplate = "jdbc:%s//%s/%s";
+        final String jdbcUrlTemplate = "jdbc:%s://%s/%s";
         ComboPooledDataSource pool = new ComboPooledDataSource();
         try {
             pool.setDriverClass(dbDriver);
@@ -92,7 +92,7 @@ public class DatabaseConfig
      */
     @Bean
     public DataSource tigerPostgresDataSource() {
-        final String jdbcUrlTemplate = "jdbc:%s//%s/%s";
+        final String jdbcUrlTemplate = "jdbc:%s://%s/%s";
         ComboPooledDataSource pool = new ComboPooledDataSource();
         try {
             pool.setDriverClass(tigerDbDriver);
