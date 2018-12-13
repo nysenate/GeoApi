@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.config.DatabaseConfig;
 //import javax.sql.DataSource;
+import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.listener.SageConfigurationListener;
 import gov.nysenate.sage.model.geo.GeometryTypes;
 import gov.nysenate.sage.model.geo.Line;
@@ -54,11 +55,12 @@ public class BaseDao
     private ParallelRevGeocodeService parallelRevGeocodeService;
     private ParallelAddressService parallelAddressService;
     private DatabaseConfig databaseConfig;
+    private Environment env;
 
     @Autowired
     public BaseDao(ParallelDistrictService parallelDistrictService, ParallelGeocodeService parallelGeocodeService,
                    ParallelRevGeocodeService parallelRevGeocodeService, ParallelAddressService parallelAddressService,
-                   DatabaseConfig databaseConfig)
+                   DatabaseConfig databaseConfig, Environment env)
     {
         try {
             SageConfigurationListener configurationListener = new SageConfigurationListener();
@@ -83,6 +85,7 @@ public class BaseDao
         this.parallelDistrictService = parallelDistrictService;
         this.parallelGeocodeService = parallelGeocodeService;
         this.parallelRevGeocodeService = parallelRevGeocodeService;
+        this.env = env;
     }
 
     public QueryRunner getQueryRunner()
@@ -222,5 +225,37 @@ public class BaseDao
             logger.error("Failed to close data connections/threads!", ex);
         }
         return false;
+    }
+
+    public String getDistrictSchema() {
+        return env.getDistrictsSchema();
+    }
+
+    public String getJobSchema() {
+        return env.getJobSchema();
+    }
+
+    public String getPublicSchema() {
+        return env.getPublicSchema();
+    }
+
+    public String getLogSchema() {
+        return env.getLogSchema();
+    }
+
+    public String getCacheSchema() {
+        return env.getCacheSchema();
+    }
+
+    public String getTigerSchema() {
+        return env.getTigerSchema();
+    }
+
+    public String getTigerDataSchema() {
+        return env.getTigerDataSchema();
+    }
+
+    public String getGeocoderPublicSchema() {
+        return env.getGeocoderPublicSchema();
     }
 }

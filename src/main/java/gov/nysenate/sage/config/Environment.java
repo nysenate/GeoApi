@@ -180,6 +180,22 @@ public class Environment {
 
     @Value("${job.process.cron}") private String jobProcessCron;
 
+    @Value("${env.districts.schema}") private String districtsSchema;
+
+    @Value("${env.job.schema}") private String jobSchema;
+
+    @Value("${env.log.schema}") private String logSchema;
+
+    @Value("${env.public.schema}") private String publicSchema;
+
+    @Value("${env.cache.schema}") private String cacheSchema;
+
+    @Value("${env.tiger.schema}") private String tigerSchema;
+
+    @Value("${env.tiger.data.schema}") private String tigerDataSchema;
+
+    @Value("${env.geocoder.public.schema}") private String geocoderPublicSchema;
+
     public Environment() {}
 
     @PostConstruct
@@ -873,5 +889,69 @@ public class Environment {
 
     public void setJobProcessCron(String jobProcessCron) {
         this.jobProcessCron = jobProcessCron;
+    }
+
+    public String getDistrictsSchema() {
+        return districtsSchema;
+    }
+
+    public void setDistrictsSchema(String districtsSchema) {
+        this.districtsSchema = districtsSchema;
+    }
+
+    public String getJobSchema() {
+        return jobSchema;
+    }
+
+    public void setJobSchema(String jobSchema) {
+        this.jobSchema = jobSchema;
+    }
+
+    public String getLogSchema() {
+        return logSchema;
+    }
+
+    public void setLogSchema(String logSchema) {
+        this.logSchema = logSchema;
+    }
+
+    public String getPublicSchema() {
+        return publicSchema;
+    }
+
+    public void setPublicSchema(String publicSchema) {
+        this.publicSchema = publicSchema;
+    }
+
+    public String getCacheSchema() {
+        return cacheSchema;
+    }
+
+    public void setCacheSchema(String cacheSchema) {
+        this.cacheSchema = cacheSchema;
+    }
+
+    public String getTigerSchema() {
+        return tigerSchema;
+    }
+
+    public void setTigerSchema(String tigerSchema) {
+        this.tigerSchema = tigerSchema;
+    }
+
+    public String getTigerDataSchema() {
+        return tigerDataSchema;
+    }
+
+    public void setTigerDataSchema(String tigerDataSchema) {
+        this.tigerDataSchema = tigerDataSchema;
+    }
+
+    public String getGeocoderPublicSchema() {
+        return geocoderPublicSchema;
+    }
+
+    public void setGeocoderPublicSchema(String geocoderPublicSchema) {
+        this.geocoderPublicSchema = geocoderPublicSchema;
     }
 }
