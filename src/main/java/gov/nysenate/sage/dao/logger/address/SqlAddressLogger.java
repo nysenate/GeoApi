@@ -7,12 +7,16 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 @Repository
-public class SqlAddressLogger
+public class SqlAddressLogger implements AddressLogger
 {
     private static Logger logger = LoggerFactory.getLogger(SqlAddressLogger.class);
     private static String SCHEMA = "log";
@@ -27,12 +31,7 @@ public class SqlAddressLogger
         this.run = this.baseDao.getQueryRunner();
     }
 
-    /**
-     * Inserts an address into the address table and returns the address id. If an exact match already exists
-     * that address id is returned instead of inserting an identical entry.
-     * @param address
-     * @return int address id or -1 if not found
-     */
+    /** {@inheritDoc} */
     public int logAddress(Address address)
     {
         if (address != null) {
@@ -40,39 +39,49 @@ public class SqlAddressLogger
                 int retrievedId = getAddressId(address);
                 if (retrievedId > 0) return retrievedId;
 
-                String sql = "INSERT INTO " + SCHEMA + "." + TABLE + "(addr1, addr2, city, state, zip5, zip4) \n" +
-                             "VALUES (?, ?, ?, ?, ?, ?) \n" +
-                             "RETURNING id";
-                return run.query(sql, new ReturnIdHandler(), address.getAddr1(), address.getAddr2(), address.getCity(),
-                                                             address.getState(), address.getZip5(), address.getZip4());
+                MapSqlParameterSource params = getAddrParams(address);
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(AddressQuery.INSERT_ADDRESS.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
+                return idList.get(0);
             }
-            catch (SQLException ex) {
+            catch (Exception ex) {
                 logger.error("Failed to log address!", ex);
             }
         }
         return 0;
     }
 
-    /**
-     * Attempts to retrieve the address id of the given address by
-     * @param address
-     * @return int address id or -1 if not found
-     */
+    /** {@inheritDoc} */
     public int getAddressId(Address address)
     {
         if (address != null) {
-            String sql = "SELECT * FROM " + SCHEMA + "." + TABLE + "\n" +
-                         "WHERE addr1 ILIKE ? AND addr2 ILIKE ? AND city ILIKE ? AND state ILIKE ? AND " +
-                               "zip5 ILIKE ? AND zip4 ILIKE ?" +
-                         "LIMIT 1";
             try {
-                return run.query(sql, new ReturnIdHandler(), address.getAddr1(), address.getAddr2(), address.getCity(),
-                                                             address.getState(), address.getZip5(), address.getZip4());
+
+                MapSqlParameterSource params = getAddrParams(address);
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(AddressQuery.GET_ADDRESS_ID.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
+                return idList.get(0);
             }
-            catch (SQLException ex) {
+            catch (Exception ex) {
                 logger.error("Failed to get address id!", ex);
             }
         }
         return 0;
+    }
+
+    private MapSqlParameterSource getAddrParams(Address address) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("addr1",address.getAddr1());
+        params.addValue("addr2", address.getAddr2());
+        params.addValue("city", address.getCity());
+        params.addValue("state",address.getState());
+        params.addValue("zip5", address.getZip5());
+        params.addValue("zip4",address.getZip4());
+        return params;
+    }
+
+    private static class AddressIdHandler implements RowMapper<Integer> {
+        @Override
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getInt("id");
+        }
     }
 }
