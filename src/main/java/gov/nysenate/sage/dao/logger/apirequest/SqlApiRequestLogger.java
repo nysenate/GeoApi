@@ -9,6 +9,8 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -19,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 @Repository
-public class SqlApiRequestLogger
+public class SqlApiRequestLogger implements ApiRequestLogger
 {
     private static Logger logger = LoggerFactory.getLogger(SqlApiRequestLogger.class);
     private static String SCHEMA = "log";
@@ -43,18 +45,23 @@ public class SqlApiRequestLogger
     {
         if (apiRequest != null) {
             ApiUser apiUser = apiRequest.getApiUser();
-            String sql = "INSERT INTO " + SCHEMA + "." + TABLE + "(ipAddress, apiUserId, version, requestTypeId, isBatch, requestTime) \n" +
-                    "SELECT inet '" + apiRequest.getIpAddress().getHostAddress() + "', ?, 2, rt.id, ?, ? \n" +
-                    "FROM log.requestTypes AS rt \n" +
-                    "LEFT JOIN log.services ser ON rt.serviceId = ser.id \n" +
-                    "WHERE rt.name = ? AND ser.name = ?\n" +
-                    "RETURNING id";
             try {
-                int id = run.query(sql, new ReturnIdHandler(), apiUser.getId(), apiRequest.isBatch(), apiRequest.getApiRequestTime(), apiRequest.getRequest(), apiRequest.getService());
+                MapSqlParameterSource params = new MapSqlParameterSource();
+                params.addValue("ipAddress", apiRequest.getIpAddress().getHostAddress());
+                params.addValue("apiUserId", apiUser.getId());
+                params.addValue("version",2);
+                params.addValue("requestTime", apiRequest.getApiRequestTime());
+                params.addValue("isBatch",apiRequest.isBatch());
+                params.addValue("requestTypeName",apiRequest.getRequest());
+                params.addValue("serviceName", apiRequest.getService());
+
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(
+                        ApiRequestQuery.INSERT_API_REQUEST.getSql(baseDao.getLogSchema()), params, new ApiRequestIdHandler());
+                int id = idList.get(0);
                 logger.debug("Saved apiRequest " + id + " to log");
                 return id;
             }
-            catch (SQLException ex) {
+            catch (Exception ex) {
                 logger.error("Failed to log Api Request into the database", ex);
             }
         }
@@ -67,20 +74,18 @@ public class SqlApiRequestLogger
      * @return ApiRequest
      */
     public ApiRequest getApiRequest(int apiRequestId) {
-        String sql = "SELECT " + SCHEMA + "." + TABLE + ".id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, isBatch, requestTime, \n" +
-                             "au.id AS apiUserId, au.name AS apiUserName, au.apiKey AS apiKey, au.description AS apiUserDesc " +
-                     "FROM " + SCHEMA + "." + TABLE + "\n" +
-                     "LEFT JOIN " + "public.apiUser au ON apiUserId = au.id \n" +
-                     "LEFT JOIN " + SCHEMA + ".requestTypes rt ON requestTypeId = rt.id \n" +
-                     "LEFT JOIN " + SCHEMA + ".services serv ON rt.serviceId = serv.id \n" +
-                     "WHERE " + SCHEMA + "." + TABLE + ".id = ?";
         try {
-            List<ApiRequest> apiRequestList = run.query(sql, new ListApiRequestResultHandler(), apiRequestId);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("apiRequestId", apiRequestId);
+
+            List<ApiRequest> apiRequestList =  baseDao.geoApiNamedJbdcTemaplate.query(
+                    ApiRequestQuery.GET_API_REQUEST.getSql(baseDao.getLogSchema()), params,
+                    new ListApiRequestResultHandler());
             if (!apiRequestList.isEmpty()) {
                 return apiRequestList.get(0);
             }
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to retrieve ApiRequest by id!", ex);
         }
         return null;
@@ -111,34 +116,34 @@ public class SqlApiRequestLogger
      * @param orderByRecent  If true, sort by most recent first. Otherwise return least recent first.
      * @return               List of ApiRequest
      */
-    public List<ApiRequest> getApiRequestsDuring(String apiKey, String service, String method, Timestamp from, Timestamp to, int limit,
-                                                 int offset, boolean orderByRecent)
+    public List<ApiRequest> getApiRequestsDuring(String apiKey, String service, String method, Timestamp from,
+                                                 Timestamp to, int limit, int offset, boolean orderByRecent)
     {
-        String sql = "SELECT log.apiRequest.id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, isBatch, requestTime, \n" +
-                     "       au.id AS apiUserId, au.name AS apiUserName, au.apiKey AS apiKey, au.description AS apiUserDesc \n" +
-                     "FROM " + SCHEMA + "." + TABLE + "\n" +
-                     "LEFT JOIN " + "public.apiUser au ON apiUserId = au.id \n" +
-                     "LEFT JOIN " + SCHEMA + ".requestTypes rt ON requestTypeId = rt.id \n" +
-                     "LEFT JOIN " + SCHEMA + ".services serv ON rt.serviceId = serv.id \n" +
-                     "WHERE requestTime >= ? AND requestTime <= ? \n" +
-                     "AND CASE WHEN ? != '' THEN rt.name = ? ELSE true END\n" +
-                     "AND CASE WHEN ? != '' THEN serv.name = ? ELSE true END\n" +
-                     ((limit > 0) ? "LIMIT ? OFFSET ?" : "");
         try {
-            return run.query(sql, new ListApiRequestResultHandler(), from, to, service, service, method, method, limit, offset);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("from", from);
+            params.addValue("to", to);
+            params.addValue("service", service);
+            params.addValue("method", method);
+
+            String sql = ApiRequestQuery.GET_RANGE_API_REQUESTS.getSql(baseDao.getLogSchema());
+            if (limit > 0) {
+                sql = sql + " limit " + limit + " offset " + offset;
+            }
+
+            return baseDao.geoApiNamedJbdcTemaplate.query(sql, params, new ListApiRequestResultHandler());
+
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to retrieve logged api requests!", ex);
         }
         return null;
     }
 
-    private static class ListApiRequestResultHandler implements ResultSetHandler<List<ApiRequest>> {
+    private static class ListApiRequestResultHandler implements RowMapper<ApiRequest> {
 
         @Override
-        public List<ApiRequest> handle(ResultSet rs) throws SQLException {
-            List<ApiRequest> apiRequests = new ArrayList<>();
-            while (rs.next()) {
+        public ApiRequest mapRow(ResultSet rs, int rowNum) throws SQLException {
                 ApiRequest ar = new ApiRequest();
                 ar.setId(rs.getInt("requestId"));
                 ApiUser au = new ApiUser(rs.getInt("apiUserId"), rs.getString("apiKey"),
@@ -149,11 +154,14 @@ public class SqlApiRequestLogger
                 ar.setApiRequestTime(rs.getTimestamp("requestTime"));
                 ar.setVersion(rs.getInt("version"));
                 ar.setBatch(rs.getBoolean("isBatch"));
-                apiRequests.add(ar);
-            }
-            return apiRequests;
+                return ar;
         }
     }
 
-
+    private static class ApiRequestIdHandler implements RowMapper<Integer> {
+        @Override
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getInt("id");
+        }
+    }
 }
