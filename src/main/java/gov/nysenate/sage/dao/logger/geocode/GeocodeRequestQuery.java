@@ -1,4 +1,23 @@
 package gov.nysenate.sage.dao.logger.geocode;
 
-public class GeocodeRequestQuery {
+import gov.nysenate.sage.dao.base.BasicSqlQuery;
+import gov.nysenate.sage.dao.base.SqlTable;
+
+public enum GeocodeRequestQuery implements BasicSqlQuery {
+
+    INSERT_REQUEST("INSERT INTO ${schema}. " + SqlTable.GEOCODE_REQUEST + "(apiRequestId, jobProcessId, addressId, pointId, provider, useFallback, useCache, requestTime) \n" +
+            "VALUES (:apiRequestId, :jobProcessId, :addressId, :pointId, :provider, :useFallback, :useCache, :requestTime) \n" +
+            "RETURNING id")
+    ;
+
+    private String sql;
+
+    GeocodeRequestQuery(String sql) {
+        this.sql = sql;
+    }
+
+    @Override
+    public String getSql() {
+        return this.sql;
+    }
 }

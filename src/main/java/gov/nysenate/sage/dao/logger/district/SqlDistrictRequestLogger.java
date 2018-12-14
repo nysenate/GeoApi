@@ -8,11 +8,15 @@ import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.job.JobProcess;
 import org.apache.commons.dbutils.QueryRunner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 @Repository
 public class SqlDistrictRequestLogger
@@ -46,17 +50,27 @@ public class SqlDistrictRequestLogger
             try {
                 int addressId = (dr.getGeocodedAddress() != null) ? sqlAddressLogger.logAddress(dr.getGeocodedAddress().getAddress()) : 0;
                 String strategy = (dr.getDistrictStrategy() != null) ? dr.getDistrictStrategy().name() : null;
-                int requestId = run.query(
-                    "INSERT INTO " + SCHEMA + "." + TABLE + "(apiRequestId, jobProcessId, addressId, provider, geoProvider, showMembers, showMaps, uspsValidate, skipGeocode, districtStrategy, requestTime) \n" +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \n" +
-                    "RETURNING id", new ReturnIdHandler(), (apiRequest != null) ? apiRequest.getId() : null,
-                                                           (jobProcess != null) ? jobProcess.getId() : null,
-                                                           (addressId > 0) ? addressId : null, dr.getProvider(), dr.getGeoProvider(), dr.isShowMembers(),
-                                                           dr.isShowMaps(), dr.isUspsValidate(), dr.isSkipGeocode(), strategy, dr.getRequestTime());
-                dr.setId(requestId);
-                return requestId;
+
+                MapSqlParameterSource params = new MapSqlParameterSource();
+                params.addValue("apiRequestId",(apiRequest != null) ? apiRequest.getId() : null);
+                params.addValue("jobProcessId",(jobProcess != null) ? jobProcess.getId() : null);
+                params.addValue("addressId",(addressId > 0) ? addressId : null);
+                params.addValue("provider", dr.getProvider());
+                params.addValue("geoProvider",dr.getGeoProvider());
+                params.addValue("showMembers",dr.isShowMembers());
+                params.addValue("showMaps",dr.isShowMaps());
+                params.addValue("uspsValidate",dr.isUspsValidate());
+                params.addValue("skipGeocode",dr.isSkipGeocode());
+                params.addValue("districtStrategy",strategy);
+                params.addValue("requestTime",dr.getRequestTime());
+
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(
+                        DistrictRequestQuery.INSERT_REQUEST.getSql(baseDao.getLogSchema()),
+                        params, new DistrictRequestIdHandler());
+                dr.setId(idList.get(0));
+                return idList.get(0);
             }
-            catch (SQLException ex) {
+            catch (Exception ex) {
                 logger.error("Failed to log district request!", ex);
             }
         }
@@ -64,5 +78,12 @@ public class SqlDistrictRequestLogger
             logger.error("DistrictRequest was null, cannot be logged!");
         }
         return 0;
+    }
+
+    private static class DistrictRequestIdHandler implements RowMapper<Integer> {
+        @Override
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getInt("id");
+        }
     }
 }

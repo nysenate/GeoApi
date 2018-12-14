@@ -9,11 +9,15 @@ import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.job.JobProcess;
 import org.apache.commons.dbutils.QueryRunner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 @Repository
 public class SqlGeocodeRequestLogger
@@ -51,19 +55,31 @@ public class SqlGeocodeRequestLogger
                 int addressId = (!geoRequest.isReverse()) ? sqlAddressLogger.logAddress(geoRequest.getAddress()) : 0;
                 int pointId = (geoRequest.isReverse()) ? sqlPointLogger.logPoint(geoRequest.getPoint()) : 0;
 
-                int requestId = run.query(
-                          "INSERT INTO " + SCHEMA + "." + TABLE + "(apiRequestId, jobProcessId, addressId, pointId, provider, useFallback, useCache, requestTime) \n" +
-                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?) \n" +
-                          "RETURNING id", new ReturnIdHandler(), (apiRequest != null) ? apiRequest.getId() : null, (jobProcess != null) ? jobProcess.getId() : null,
-                                                                 (addressId > 0) ? addressId : null, (pointId > 0) ? pointId : null, geoRequest.getProvider(), geoRequest.isUseFallback(),
-                                                                 geoRequest.isUseCache(), geoRequest.getRequestTime());
-                geoRequest.setId(requestId);
-                return requestId;
+                MapSqlParameterSource params = new MapSqlParameterSource();
+                params.addValue("apiRequestId",(apiRequest != null) ? apiRequest.getId() : null);
+                params.addValue("jobProcessId",(jobProcess != null) ? jobProcess.getId() : null);
+                params.addValue("addressId",(addressId > 0) ? addressId : null);
+                params.addValue("pointId",(pointId > 0) ? pointId : null);
+                params.addValue("provider",geoRequest.getProvider());
+                params.addValue("useFallback",geoRequest.isUseFallback());
+                params.addValue("useCache",geoRequest.isUseCache());
+                params.addValue("requestTime",geoRequest.getRequestTime());
+
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(GeocodeRequestQuery.INSERT_REQUEST.getSql(baseDao.getLogSchema()), params, new GeocodeRequestIdHandler());
+                geoRequest.setId(idList.get(0));
+                return idList.get(0);
             }
-            catch (SQLException ex) {
+            catch (Exception ex) {
                 logger.error("Failed to log geocode request!", ex);
             }
         }
         return 0;
+    }
+
+    private static class GeocodeRequestIdHandler implements RowMapper<Integer> {
+        @Override
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getInt("id");
+        }
     }
 }

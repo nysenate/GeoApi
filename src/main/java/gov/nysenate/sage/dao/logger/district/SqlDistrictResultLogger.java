@@ -12,10 +12,13 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -79,17 +82,30 @@ public class SqlDistrictResultLogger
                 town = dinfo.getDistCode(DistrictType.TOWN);
                 school = dinfo.getDistCode(DistrictType.SCHOOL);
             }
-            String sql = "INSERT INTO " + SCHEMA + "." + TABLE + "(districtrequestid, assigned, status, senatecode, assemblycode," +
-                                                                  "congressionalcode, countycode, town_code, school_code, matchLevel, resulttime) \n" +
-                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \n" +
-                         "RETURNING id";
             try {
-                int id = run.query(sql, new ReturnIdHandler(), (districtRequestId > 0) ? districtRequestId : null, dr.isSuccess(), dr.getStatusCode().name(),
-                                                             sd, ad, cd, cc, town, school, dr.getDistrictMatchLevel().name(), dr.getResultTime());
+
+                MapSqlParameterSource params = new MapSqlParameterSource();
+                params.addValue("districtrequestid",(districtRequestId > 0) ? districtRequestId : null);
+                params.addValue("assigned",dr.isSuccess());
+                params.addValue("status",dr.getStatusCode().name());
+                params.addValue("senatecode",sd);
+                params.addValue("assemblycode",ad);
+                params.addValue("congressionalcode",cd);
+                params.addValue("countycode",cc);
+                params.addValue("town_code",town);
+                params.addValue("school_code",school);
+                params.addValue("matchLevel",dr.getDistrictMatchLevel().name());
+                params.addValue("resulttime",dr.getResultTime());
+
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(
+                        DistrictResultQuery.INSERT_RESULT.getSql(baseDao.getLogSchema()),
+                        params, new DistrictRequestIdHandler());
+
+                int id = idList.get(0);
                 logger.trace("Saved district result id: " + id);
                 return id;
             }
-            catch (SQLException ex) {
+            catch (Exception ex) {
                 logger.error("Failed to log district result!", ex);
             }
         }
@@ -180,5 +196,12 @@ public class SqlDistrictResultLogger
         batchDistLogCache.addAll(new ArrayList<>(tempCache));
         tempCache.clear();
         logger.debug("Main batch size: " + batchDistLogCache.size());
+    }
+
+    private static class DistrictRequestIdHandler implements RowMapper<Integer> {
+        @Override
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getInt("id");
+        }
     }
 }

@@ -10,15 +10,18 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
 @Repository
-public class SqlExceptionLogger
+public class SqlExceptionLogger implements ExceptionLogger
 {
     private static Logger logger = LoggerFactory.getLogger(SqlExceptionLogger.class);
     private SqlApiRequestLogger sqlApiRequestLogger;
@@ -43,18 +46,30 @@ public class SqlExceptionLogger
      */
     public void logException(Exception ex, Timestamp catchTime, Integer apiRequestId)
     {
-        String sql = "INSERT INTO " + SCHEMA + "." + TABLE + "(apiRequestId, type, message, stackTrace, catchTime) \n" +
-                     "VALUES (?, ?, ?, ?, ?) \n" +
-                     "RETURNING id";
         try {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             ex.printStackTrace(pw);
 
-            run.query(sql, new ReturnIdHandler(), apiRequestId, ex.getClass().getName(), ex.getMessage(), FormatUtil.toJsonString(sw.toString()), catchTime);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("apiRequestId",apiRequestId);
+            params.addValue("type",ex.getClass().getName());
+            params.addValue("message",ex.getMessage());
+            params.addValue("stackTrace",FormatUtil.toJsonString(sw.toString()));
+            params.addValue("catchTime",catchTime);
+
+            baseDao.geoApiNamedJbdcTemaplate.query(ExceptionQuery.INSERT_EXCEPTION.getSql(baseDao.getLogSchema()),
+                    params, new ExceptionIdHandler());
         }
-        catch (SQLException ex2) {
+        catch (Exception ex2) {
             logger.error(fatal, "Failed to log unhandled exception!", ex2);
+        }
+    }
+
+    private static class ExceptionIdHandler implements RowMapper<Integer> {
+        @Override
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getInt("id");
         }
     }
 }

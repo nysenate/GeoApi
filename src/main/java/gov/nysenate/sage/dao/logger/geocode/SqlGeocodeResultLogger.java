@@ -17,15 +17,18 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 @Repository
-public class SqlGeocodeResultLogger
+public class SqlGeocodeResultLogger implements GeocodeResultLogger
 {
     private static Logger logger = LoggerFactory.getLogger(SqlGeocodeResultLogger.class);
     private SqlAddressLogger sqlAddressLogger;
@@ -80,19 +83,29 @@ public class SqlGeocodeResultLogger
             int addressId = (success) ? sqlAddressLogger.logAddress(geocodeResult.getAddress()) : 0;
             int latLonId = (success) ? sqlPointLogger.logPoint(geocodeResult.getGeocode().getLatLon()) : 0;
 
-            String sql =
-                    "INSERT INTO " + SCHEMA + "." + TABLE + "(geocodeRequestId, success, cacheHit, addressId, method, quality, latLonId, resultTime) \n" +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?) \n" +
-                    "RETURNING id";
             try {
                 Geocode geocode = geocodeResult.getGeocode();
                 String method = (success) ? geocode.getMethod() : null;
                 String quality = (success) ? geocode.getQuality().name() : null;
-                return run.query(sql, new ReturnIdHandler(), (geocodeRequestId > 0) ? geocodeRequestId : null, success, cacheHit,
-                                                             (addressId > 0) ? addressId : null, method, quality, (latLonId > 0) ? latLonId : null,
-                                                             geocodeResult.getResultTime());
+
+                MapSqlParameterSource params = new MapSqlParameterSource();
+                params.addValue("geocodeRequestId",(geocodeRequestId > 0) ? geocodeRequestId : null);
+                params.addValue("success",success);
+                params.addValue("cacheHit",cacheHit);
+                params.addValue("addressId",(addressId > 0) ? addressId : null);
+                params.addValue("method",method);
+                params.addValue("quality",quality);
+                params.addValue("latLonId",(latLonId > 0) ? latLonId : null);
+                params.addValue("resultTime",geocodeResult.getResultTime());
+
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(
+                        GeocodeResultQuery.INSERT_RESULT.getSql(baseDao.getLogSchema()),
+                        params, new GeocodeResultIdHandler());
+
+                return idList.get(0);
+
             }
-            catch (SQLException ex) {
+            catch (Exception ex) {
                 logger.error("Failed to log geocode result!", ex);
             }
         }
@@ -198,5 +211,13 @@ public class SqlGeocodeResultLogger
         batchGeoLogCache.addAll(new ArrayList<>(tempCache));
         tempCache.clear();
         logger.debug("Main batch size: " + batchGeoLogCache.size());
+    }
+
+
+    private static class GeocodeResultIdHandler implements RowMapper<Integer> {
+        @Override
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getInt("id");
+        }
     }
 }
