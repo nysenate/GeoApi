@@ -1,5 +1,6 @@
 package gov.nysenate.sage.config;
 
+import gov.nysenate.sage.dao.logger.deployment.SqlDeploymentLogger;
 import gov.nysenate.sage.util.AsciiArt;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +25,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import javax.annotation.PostConstruct;
 import javax.xml.transform.Source;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -37,11 +39,15 @@ public class WebApplicationConfig implements WebMvcConfigurer
 {
     private static final Logger logger = LogManager.getLogger(WebApplicationConfig.class);
 
-    //@Autowired ApplicationConfig appConfig;
+    @Autowired
+    SqlDeploymentLogger sqlDeploymentLogger;
 
     @PostConstruct
     public void init() {
-        logger.info("{}", AsciiArt.SAGE.getText().replace("DATE", LocalDateTime.now().toString()));
+        LocalDateTime deployTime = LocalDateTime.now();
+        Timestamp timestamp = java.sql.Timestamp.valueOf(deployTime);
+        logger.info("{}", AsciiArt.SAGE.getText().replace("DATE", deployTime.toString()));
+        sqlDeploymentLogger.logDeploymentStatus(true,-1,timestamp);
     }
 
     /** Sets paths that should not be intercepted by a controller (e.g css/ js/). */
