@@ -5,6 +5,8 @@ import gov.nysenate.sage.model.stats.ApiUsageStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -18,7 +20,7 @@ import java.util.List;
 import static gov.nysenate.sage.model.stats.ApiUsageStats.IntervalUsage;
 
 @Repository
-public class SqlApiUsageStatsDao
+public class SqlApiUsageStatsDao implements ApiUsageStatsDao
 {
     private static Logger logger = LoggerFactory.getLogger(SqlApiUsageStatsDao.class);
     private QueryRunner run;
@@ -43,34 +45,37 @@ public class SqlApiUsageStatsDao
     public ApiUsageStats getApiUsageStats(Timestamp from, Timestamp to, RequestInterval requestInterval)
     {
         ApiUsageStats apiUsageStats = new ApiUsageStats();
-        String sql = "SELECT date_trunc('" + requestInterval.field + "', requestTime) AS requestInterval, COUNT(*) AS requests \n" +
-                     "FROM log.apiRequest AS ar \n" +
-                     "WHERE ar.requestTime >= ? AND ar.requestTime <= ? \n" +
-                     "GROUP BY date_trunc('" + requestInterval.field + "', requestTime)\n" +
-                     "ORDER BY requestInterval";
         try {
-            List<IntervalUsage> intervalUsageCounts = run.query(sql, new ApiIntervalUsageHandler(), from, to);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("from",from);
+            params.addValue("to", to);
+            params.addValue("requestInterval", requestInterval.field);
+
+            List<IntervalUsage> intervalUsageCounts = baseDao.geoApiNamedJbdcTemaplate.query(
+//                    sql,
+                    ApiUsageStatsQuery.GET_USAGE_STATS.getSql(baseDao.getLogSchema()),
+                    params, new ApiIntervalUsageHandler());
+
+
+
             apiUsageStats.setIntervalSizeInMinutes(requestInterval.minutes);
             apiUsageStats.setIntervalFrom(from);
             apiUsageStats.setIntervalTo(to);
             apiUsageStats.setIntervalUsageCounts(intervalUsageCounts);
             return apiUsageStats;
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to get ApiUsageStats", ex);
         }
         return null;
     }
 
-    private static class ApiIntervalUsageHandler implements ResultSetHandler<List<IntervalUsage>> {
+    private static class ApiIntervalUsageHandler implements RowMapper<IntervalUsage> {
 
         @Override
-        public List<IntervalUsage> handle(ResultSet rs) throws SQLException {
-            List<IntervalUsage> usageCounts = new ArrayList<>();
-            while (rs.next()) {
-                usageCounts.add(new IntervalUsage(rs.getTimestamp("requestInterval"), rs.getInt("requests")));
-            }
-            return usageCounts;
+        public IntervalUsage mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return new IntervalUsage(rs.getTimestamp("requestInterval"), rs.getInt("requests"));
+
         }
     }
 }

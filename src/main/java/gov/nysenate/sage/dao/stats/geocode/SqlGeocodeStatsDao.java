@@ -8,17 +8,20 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * Retrieves stats pertaining to geocoder usage.
  */
 @Repository
-public class SqlGeocodeStatsDao
+public class SqlGeocodeStatsDao implements GeocodeStatsDao
 {
     private static Logger logger = LoggerFactory.getLogger(SqlGeocodeStatsDao.class);
     private SqlDeploymentStatsDao sqlDeploymentStatsDao;
@@ -38,61 +41,54 @@ public class SqlGeocodeStatsDao
      */
     public GeocodeStats getGeocodeStats(Timestamp from, Timestamp to)
     {
-        String totalCountsSql =
-                "SELECT COUNT(*) AS totalGeocodes,\n" +
-                "COUNT( DISTINCT resultTime ) AS totalRequests,\n" +
-                "COUNT(NULLIF(cacheHit, false)) AS cacheHits\n" +
-                "FROM log.geocodeResult\n" +
-                "WHERE resultTime >= ? AND resultTime <= ?";
-
-        String geocoderUsageSql =
-                "SELECT replace(method, 'Dao', '') AS method, COUNT(DISTINCT resultTime) AS requests\n" +
-                "FROM log.geocodeResult\n" +
-                "WHERE cacheHit = false\n" +
-                "AND resultTime >= ? AND resultTime <= ?\n" +
-                "GROUP BY method\n" +
-                "ORDER BY requests DESC";
-
-        /** Handler for result set of totalCountsSql */
-        class TotalCountsHandler implements ResultSetHandler<GeocodeStats> {
-            @Override
-            public GeocodeStats handle(ResultSet rs) throws SQLException {
-                GeocodeStats gs = new GeocodeStats();
-                if (rs.next()) {
-                    gs.setTotalGeocodes(rs.getInt("totalGeocodes"));
-                    gs.setTotalRequests(rs.getInt("totalRequests"));
-                    gs.setTotalCacheHits(rs.getInt("cacheHits"));
-                    return gs;
-                }
-                return null;
-            }
-        };
-
-        /** Handler for result set of geocoderUsageSql */
-        class GeocoderUsageHandler implements ResultSetHandler<GeocodeStats> {
-            GeocodeStats gs;
-            public GeocoderUsageHandler(GeocodeStats gs) {
-                this.gs = gs;
-            }
-
-            @Override
-            public GeocodeStats handle(ResultSet rs) throws SQLException {
-                while (rs.next()) {
-                    gs.addGeocoderUsage(rs.getString("method"), rs.getInt("requests"));
-                }
-                return gs;
-            }
-        }
-
         try {
-            GeocodeStats gs = run.query(totalCountsSql, new TotalCountsHandler(), from, to);
-            if (gs != null) {
-                return run.query(geocoderUsageSql, new GeocoderUsageHandler(gs), from, to);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("from", from);
+            params.addValue("to", to);
+
+            List<GeocodeStats> gsList = baseDao.geoApiNamedJbdcTemaplate.query(
+                    GeocodeStatsQuery.GET_TOTAL_COUNT.getSql(baseDao.getLogSchema()), params, new TotalCountsHandler());
+            if (gsList != null && gsList.get(0) != null) {
+                GeocodeStats gs =  gsList.get(0);
+                List<GeocodeStats> geocodeStats =
+                        baseDao.geoApiNamedJbdcTemaplate.query(
+                                GeocodeStatsQuery.GET_GEOCODER_USAGE.getSql(baseDao.getLogSchema()),
+                                params ,new GeocoderUsageHandler(gs));
+                return geocodeStats.get(0);
             }
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to get geocode stats!", ex);
         }
         return null;
+    }
+
+    /** Handler for result set of totalCountsSql */
+    class TotalCountsHandler implements RowMapper<GeocodeStats> {
+        public GeocodeStats mapRow(ResultSet rs, int rowNum) throws SQLException {
+            GeocodeStats gs = new GeocodeStats();
+            if (rs.next()) {
+                gs.setTotalGeocodes(rs.getInt("totalGeocodes"));
+                gs.setTotalRequests(rs.getInt("totalRequests"));
+                gs.setTotalCacheHits(rs.getInt("cacheHits"));
+                return gs;
+            }
+            return null;
+        }
+    }
+
+    /** Handler for result set of geocoderUsageSql */
+    class GeocoderUsageHandler implements RowMapper<GeocodeStats> {
+        GeocodeStats gs;
+        public GeocoderUsageHandler(GeocodeStats gs) {
+            this.gs = gs;
+        }
+
+        public GeocodeStats mapRow(ResultSet rs, int rowNum) throws SQLException {
+            while (rs.next()) {
+                gs.addGeocoderUsage(rs.getString("method"), rs.getInt("requests"));
+            }
+            return gs;
+        }
     }
 }

@@ -6,6 +6,8 @@ import gov.nysenate.sage.model.stats.ApiUserStats;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -13,12 +15,13 @@ import org.slf4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository
-public class SqlApiUserStatsDao
-{
+public class SqlApiUserStatsDao implements ApiUserStatsDao {
     private static Logger logger = LoggerFactory.getLogger(SqlApiUserStatsDao.class);
     private SqlApiUserDao sqlApiUserDao;
     private BaseDao baseDao;
@@ -31,43 +34,47 @@ public class SqlApiUserStatsDao
         run = this.baseDao.getQueryRunner();
     }
 
-    public Map<Integer, ApiUserStats> getRequestCounts(Timestamp from, Timestamp to)
-    {
-        String requestCounts = "SELECT ar.apiUserId, COUNT(DISTINCT ar.id) AS apiRequests, \n" +
-                "                          COUNT(DISTINCT gr.id) AS geoRequests,\n" +
-                "                          COUNT(DISTINCT dr.id) AS distRequests\n" +
-                "FROM log.apiRequest ar\n" +
-                "LEFT JOIN log.geocodeRequest gr ON gr.apiRequestId = ar.id\n" +
-                "LEFT JOIN log.districtRequest dr ON dr.apiRequestId = ar.id\n" +
-                "WHERE ar.requestTime >= ? AND ar.requestTime <= ?\n" +
-                "GROUP BY ar.apiUserId";
-
-        String methodCounts = "SELECT ar.apiUserId, s.name AS service, rt.name AS method, COUNT(*) AS requests\n" +
-                "FROM log.apiRequest ar\n" +
-                "LEFT JOIN log.requestTypes rt ON ar.requestTypeId = rt.Id\n" +
-                "LEFT JOIN log.services s ON rt.serviceId = s.id\n" +
-                "WHERE ar.requestTime >= ? AND ar.requestTime <= ?\n" +
-                "GROUP BY ar.apiUserId, s.name, rt.name\n" +
-                "ORDER BY ar.apiUserId, service, method";
+    public Map<Integer, ApiUserStats> getRequestCounts(Timestamp from, Timestamp to) {
         try {
-            Map<Integer, ApiUserStats> apiUserStatsMap = run.query(requestCounts, new RequestCountHandler(sqlApiUserDao), from, to);
-            return run.query(methodCounts, new MethodRequestCountHandler(apiUserStatsMap), from, to);
-        }
-        catch (SQLException ex) {
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("from", from);
+            params.addValue("to", to);
+
+
+            List<Map<Integer, ApiUserStats>> apiUserStatsMapList = baseDao.geoApiNamedJbdcTemaplate.query(
+                    ApiUserStatsQuery.GET_REQUEST_COUNTS.getSql(baseDao.getLogSchema()), params ,new RequestCountHandler(sqlApiUserDao));
+
+            Map<Integer, ApiUserStats> apiUserStatsMap = collapseListIntoMap(apiUserStatsMapList);
+
+
+
+            baseDao.geoApiNamedJbdcTemaplate.query(
+                    ApiUserStatsQuery.GET_METHOD_COUNTS.getSql(baseDao.getLogSchema()),
+                    params ,new MethodRequestCountHandler(apiUserStatsMap));
+
+            return apiUserStatsMap;
+        } catch (Exception ex) {
             logger.error("Failed to get ApiUser stats!", ex);
         }
         return null;
     }
 
-    public static class MethodRequestCountHandler implements ResultSetHandler<Map<Integer, ApiUserStats>>
-    {
+    private Map<Integer, ApiUserStats> collapseListIntoMap(List<Map<Integer, ApiUserStats>> apiUserStatsMapList) {
+        Map<Integer, ApiUserStats> apiUserStatsMap = new HashMap<>();
+        for(int i=0; i < apiUserStatsMapList.size(); i++) {
+            apiUserStatsMap.putAll(apiUserStatsMapList.get(i));
+        }
+        return apiUserStatsMap;
+    }
+
+    public static class MethodRequestCountHandler implements RowMapper<Map<Integer, ApiUserStats>> {
         Map<Integer, ApiUserStats> apiUserStatsMap;
+
         public MethodRequestCountHandler(Map<Integer, ApiUserStats> apiUserStatsMap) {
             this.apiUserStatsMap = apiUserStatsMap;
         }
 
-        @Override
-        public Map<Integer, ApiUserStats> handle(ResultSet rs) throws SQLException {
+        public Map<Integer, ApiUserStats> mapRow(ResultSet rs, int rowNum) throws SQLException {
             while (rs.next()) {
                 Integer apiUserId = rs.getInt("apiUserId");
                 if (this.apiUserStatsMap.get(apiUserId) != null) {
@@ -78,25 +85,21 @@ public class SqlApiUserStatsDao
         }
     }
 
-    public static class RequestCountHandler implements ResultSetHandler<Map<Integer, ApiUserStats>>
-    {
+    public static class RequestCountHandler implements RowMapper<Map<Integer, ApiUserStats>> {
         private SqlApiUserDao sqlApiUserDao;
 
         public RequestCountHandler(SqlApiUserDao sqlApiUserDao) {
             this.sqlApiUserDao = sqlApiUserDao;
         }
 
-        @Override
-        public Map<Integer, ApiUserStats> handle(ResultSet rs) throws SQLException {
+        public Map<Integer, ApiUserStats> mapRow(ResultSet rs, int rowNum) throws SQLException {
             Map<Integer, ApiUserStats> requestCountMap = new HashMap<>();
-            while (rs.next()) {
-                ApiUserStats apiUserStats = new ApiUserStats();
-                apiUserStats.setApiUser(sqlApiUserDao.getApiUserById(rs.getInt("apiUserId")));
-                apiUserStats.setApiRequests(rs.getInt("apiRequests"));
-                apiUserStats.setGeoRequests(rs.getInt("geoRequests"));
-                apiUserStats.setDistRequests(rs.getInt("distRequests"));
-                requestCountMap.put(rs.getInt("apiUserId"),apiUserStats);
-            }
+            ApiUserStats apiUserStats = new ApiUserStats();
+            apiUserStats.setApiUser(sqlApiUserDao.getApiUserById(rs.getInt("apiUserId")));
+            apiUserStats.setApiRequests(rs.getInt("apiRequests"));
+            apiUserStats.setGeoRequests(rs.getInt("geoRequests"));
+            apiUserStats.setDistRequests(rs.getInt("distRequests"));
+            requestCountMap.put(rs.getInt("apiUserId"), apiUserStats);
             return requestCountMap;
         }
     }
