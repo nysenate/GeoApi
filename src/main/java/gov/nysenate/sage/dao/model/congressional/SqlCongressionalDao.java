@@ -1,40 +1,37 @@
 package gov.nysenate.sage.dao.model.congressional;
 
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.dao.model.assembly.AssemblyQuery;
 import gov.nysenate.sage.model.district.Congressional;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.handlers.BeanHandler;
-import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class SqlCongressionalDao
+public class SqlCongressionalDao implements CongressionalDao
 {
     private Logger logger = LoggerFactory.getLogger(SqlCongressionalDao.class);
-    private QueryRunner run;
     private BaseDao baseDao;
 
     @Autowired
     public SqlCongressionalDao(BaseDao baseDao) {
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
     public List<Congressional> getCongressionals()
     {
-        String sql = "SELECT * FROM congressional";
-        BeanListHandler<Congressional> congressionalListHandler = new BeanListHandler<>(Congressional.class);
         try {
-            List<Congressional> congressionals = run.query(sql, congressionalListHandler);
-            return congressionals;
+            return baseDao.geoApiNamedJbdcTemaplate.query(
+                    AssemblyQuery.GET_ALL_ASSEMBLY_MEMBERS.getSql(baseDao.getPublicSchema()), new CongressionalHandler());
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.error("Failed to retrieve congressionals", ex);
         }
         return null;
@@ -42,13 +39,19 @@ public class SqlCongressionalDao
 
     public Congressional getCongressionalByDistrict(int district)
     {
-        String sql = "SELECT * FROM congressional WHERE district = ?";
-        BeanHandler<Congressional> congressionalHandler = new BeanHandler<>(Congressional.class);
         try {
-            Congressional congressional = run.query(sql, congressionalHandler, district);
-            return congressional;
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("district", district);
+
+            List<Congressional> congressionalList = baseDao.geoApiNamedJbdcTemaplate.query(
+                    CongressionalQuery.GET_CONGRESSIONAL_MEMBER_BY_DISTRICT.getSql(baseDao.getPublicSchema()),
+                    params, new CongressionalHandler());
+
+            if (congressionalList != null && congressionalList.get(0) != null) {
+                return congressionalList.get(0);
+            }
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.error("Failed to retrieve congressional", ex);
         }
         return null;
@@ -56,12 +59,17 @@ public class SqlCongressionalDao
 
     public void insertCongressional(Congressional congressional)
     {
-        String sql = "INSERT INTO congressional (district, memberName, memberUrl) VALUES (?,?,?)";
         try {
-            int numRows = run.update(sql, congressional.getDistrict(), congressional.getMemberName(), congressional.getMemberUrl());
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("district",congressional.getDistrict());
+            params.addValue("memberName", congressional.getMemberName());
+            params.addValue("memberUrl",congressional.getMemberUrl());
+
+            int numRows = baseDao.geoApiNamedJbdcTemaplate.update(
+                    CongressionalQuery.INSERT_CONGRESSIONAL_MEMBER.getSql(baseDao.getPublicSchema()), params);
             if (numRows > 0) { logger.info("Added Congressional member " + congressional.getMemberName()); }
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.error("Failed to insert Congressional member", ex);
         }
     }
@@ -71,11 +79,10 @@ public class SqlCongressionalDao
      */
     public void deleteCongressionals()
     {
-        String sql = "DELETE FROM congressional";
         try {
-            run.update(sql);
+            baseDao.geoApiJbdcTemplate.update(CongressionalQuery.CLEAR_CONGRESS.getSql(baseDao.getPublicSchema()));
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to delete congressionals " + ex.getMessage());
         }
     }
@@ -85,12 +92,26 @@ public class SqlCongressionalDao
      */
     public void deleteCongressional(int district)
     {
-        String sql = "DELETE FROM congressional WHERE district = ?";
         try {
-            run.update(sql, district);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("district", district);
+
+            baseDao.geoApiJbdcTemplate.update(
+                    CongressionalQuery.DELETE_CONGRESSIONAL_DISTRICT.getSql(baseDao.getPublicSchema()), params);
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to delete congressional " + district + ": " + ex.getMessage());
+        }
+    }
+
+    private static class CongressionalHandler implements RowMapper<Congressional> {
+        @Override
+        public Congressional mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Congressional congressional = new Congressional();
+            congressional.setDistrict(rs.getInt("district"));
+            congressional.setMemberName(rs.getString("membername"));
+            congressional.setMemberUrl(rs.getString("memberurl"));
+            return congressional;
         }
     }
 }
