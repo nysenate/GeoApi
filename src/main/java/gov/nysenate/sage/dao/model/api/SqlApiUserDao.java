@@ -2,15 +2,14 @@ package gov.nysenate.sage.dao.model.api;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.api.ApiUser;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.dbutils.handlers.BeanHandler;
-import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -18,18 +17,14 @@ import java.util.List;
  * ApiUserDao provides database persistence for the ApiUser model.
  */
 @Repository
-public class SqlApiUserDao
+public class SqlApiUserDao implements ApiUserDao
 {
     private Logger logger = LoggerFactory.getLogger(SqlApiUserDao.class);
-    private ResultSetHandler<ApiUser> handler = new BeanHandler<>(ApiUser.class);
-    private ResultSetHandler<List<ApiUser>> listHandler = new BeanListHandler<>(ApiUser.class);
-    private QueryRunner run;
     private BaseDao baseDao;
 
     @Autowired
     public SqlApiUserDao(BaseDao baseDao) {
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
     /**
@@ -40,9 +35,16 @@ public class SqlApiUserDao
     public ApiUser getApiUserById(int id)
     {
         try {
-            return run.query("SELECT * FROM apiuser WHERE id = ?", handler, id);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("id", id);
+
+            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemaplate.query(ApiUserQuery.GET_API_USER_BY_ID.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
+
+            if (apiUserList != null) {
+                return apiUserList.get(0);
+            }
         }
-        catch (SQLException sqlEx) {
+        catch (Exception sqlEx) {
             logger.error("Failed to get ApiUser by id in ApiUserDAO!");
             logger.error(sqlEx.getMessage());
         }
@@ -57,9 +59,16 @@ public class SqlApiUserDao
     public ApiUser getApiUserByName(String name)
     {
         try {
-            return run.query("SELECT * FROM apiuser WHERE name = ?", handler, name);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("name", name);
+
+            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemaplate.query(ApiUserQuery.GET_API_USER_BY_NAME.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
+
+            if (apiUserList != null) {
+                return apiUserList.get(0);
+            }
         }
-        catch (SQLException sqlEx)         {
+        catch (Exception sqlEx)         {
             logger.error("Failed to get ApiUser by name in ApiUserDAO!");
             logger.error(sqlEx.getMessage());
         }
@@ -74,9 +83,16 @@ public class SqlApiUserDao
     public ApiUser getApiUserByKey(String key)
     {
         try {
-            return run.query("SELECT * FROM apiuser WHERE apikey = ?", handler, key);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("apikey", key);
+
+            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemaplate.query(ApiUserQuery.GET_API_USER_BY_KEY.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
+
+            if (apiUserList != null) {
+                return apiUserList.get(0);
+            }
         }
-        catch (SQLException sqlEx) {
+        catch (Exception sqlEx) {
             logger.error("Failed to get ApiUser by key in ApiUserDAO!");
             logger.error(sqlEx.getMessage());
         }
@@ -90,9 +106,10 @@ public class SqlApiUserDao
     public List<ApiUser> getApiUsers()
     {
         try {
-            return run.query("SELECT * FROM apiuser", listHandler);
+            return baseDao.geoApiNamedJbdcTemaplate.query(
+                    ApiUserQuery.GET_ALL_API_USERS.getSql(baseDao.getPublicSchema()), new ApiUserHandler());
         }
-        catch (SQLException sqlEx) {
+        catch (Exception sqlEx) {
             logger.error("Failed to get ApiUsers!");
             logger.error(sqlEx.getMessage());
         }
@@ -107,10 +124,15 @@ public class SqlApiUserDao
     public int addApiUser(ApiUser apiUser)
     {
         try {
-            return run.update("INSERT INTO apiuser (apikey,name,description) VALUES (?,?,?)",
-                              apiUser.getApiKey(), apiUser.getName(), apiUser.getDescription());
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("apikey",  apiUser.getApiKey());
+            params.addValue("name",  apiUser.getName());
+            params.addValue("description",  apiUser.getDescription());
+
+            return baseDao.geoApiNamedJbdcTemaplate.update(
+                    ApiUserQuery.INSERT_API_USER.getSql(baseDao.getPublicSchema()), params);
         }
-        catch (SQLException sqlEx) {
+        catch (Exception sqlEx) {
             logger.error("Failed to add ApiUser in ApiUserDAO!");
             logger.error(sqlEx.getMessage());
         }
@@ -125,12 +147,28 @@ public class SqlApiUserDao
     public int removeApiUser(ApiUser apiUser)
     {
         try {
-            return run.update("DELETE FROM apiuser WHERE id = ?", apiUser.getId());
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("id", apiUser.getId());
+
+            return baseDao.geoApiNamedJbdcTemaplate.update(
+                    ApiUserQuery.REMOVE_API_USER.getSql(baseDao.getPublicSchema()), params);
         }
-        catch (SQLException sqlEx) {
+        catch (Exception sqlEx) {
             logger.error("Failed to remove ApiUser in ApiUserDAO!");
             logger.error(sqlEx.getMessage());
         }
         return 0;
+    }
+
+    private static class ApiUserHandler implements RowMapper<ApiUser> {
+        @Override
+        public ApiUser mapRow(ResultSet rs, int rowNum) throws SQLException {
+            ApiUser apiUser = new ApiUser();
+            apiUser.setId(rs.getInt("id"));
+            apiUser.setApiKey(rs.getString("apikey"));
+            apiUser.setName(rs.getString("name"));
+            apiUser.setDescription(rs.getString("description"));
+            return apiUser;
+        }
     }
 }
