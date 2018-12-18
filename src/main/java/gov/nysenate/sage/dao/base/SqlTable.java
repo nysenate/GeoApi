@@ -4,6 +4,7 @@ public enum SqlTable {
     /**
      * Geoapi Database table names
      */
+    //Districts Schema
     DISTRICT_ASSEMBLY ("assembly"),
     DISTRICT_CONGRESSIONAL ("congressional"),
     DISTRICT_COUNTY ("county"),
@@ -13,10 +14,12 @@ public enum SqlTable {
     DISTRICT_TOWN ("town"),
     DISTRICT_ZIP ("zip"),
 
+    //Job Schema
     PROCESS ("process"),
     STATUS ("status"),
     USER ("user"),
 
+    //Log Schema
     ADDRESS ("address"),
     API_REQUEST ("apirequest"),
     DEPLOYMENT ("deployment"),
@@ -29,6 +32,7 @@ public enum SqlTable {
     REQUESTTYPES ("requesttypes"),
     SERVICES ("services"),
 
+    //Public Schema
     ADMIN ("admin"),
     API_USER ("apiuser"),
     PUBLIC_ASSEMBLY("assembly"),
@@ -44,7 +48,9 @@ public enum SqlTable {
      * Geocoder Database table names
      * Home of the geocache, and Tiger
      */
+    //Cache Schema
     GEOCACHE ("geocache"),
+    //Public Schema
     ADDRESS_POINTS_SAM ("addresspoints_sam")
     //For now, the tables used by Tiger will be left out. There are ~50 tables used only by TIGER
 
