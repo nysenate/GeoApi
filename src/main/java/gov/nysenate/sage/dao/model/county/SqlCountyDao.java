@@ -2,15 +2,14 @@ package gov.nysenate.sage.dao.model.county;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.district.County;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.dbutils.handlers.BeanHandler;
-import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -20,29 +19,25 @@ import java.util.Map;
  * Simple Dao to retrieve county information.
  */
 @Repository
-public class SqlCountyDao
+public class SqlCountyDao implements CountyDao
 {
     private Logger logger = LoggerFactory.getLogger(SqlCountyDao.class);
-    private ResultSetHandler<County> handler = new BeanHandler<>(County.class);
-    private ResultSetHandler<List<County>> listHandler = new BeanListHandler<>(County.class);
-    private QueryRunner run;
     private BaseDao baseDao;
 
     @Autowired
     public SqlCountyDao(BaseDao baseDao) {
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
     private static Map<Integer, County> fipsCountyMap;
 
     public List<County> getCounties()
     {
-        String sql = "SELECT id, name, fips_code AS fipsCode FROM county";
         try {
-            return run.query(sql, listHandler);
+            return baseDao.geoApiNamedJbdcTemaplate.query(
+                    CountyQuery.GET_ALL_COUNTIES.getSql(baseDao.getPublicSchema()), new CountyHandler());
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.error("Failed to get counties! " + ex.getMessage());
         }
         return null;
@@ -64,11 +59,18 @@ public class SqlCountyDao
 
     public County getCountyById(int id)
     {
-        String sql = "SELECT id, name, fips_code AS fipsCode FROM county WHERE id = ?";
         try {
-            return run.query(sql, handler, id);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("id", id);
+
+            List<County> countyList= baseDao.geoApiNamedJbdcTemaplate.query(
+                    CountyQuery.GET_COUNTY_BY_ID.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
+
+            if (countyList != null && countyList.get(0) != null) {
+                return countyList.get(0);
+            }
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.error("Failed to get county by id:" + id + "\n" + ex.getMessage());
         }
         return null;
@@ -76,11 +78,19 @@ public class SqlCountyDao
 
     public County getCountyByName(String name)
     {
-        String sql = "SELECT id, name, fips_code AS fipsCode FROM county WHERE LOWER(name) = LOWER(?)";
         try {
-            return run.query(sql, handler, name);
+
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("name", name);
+
+            List<County> countyList= baseDao.geoApiNamedJbdcTemaplate.query(
+                    CountyQuery.GET_COUNTY_BY_NAME.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
+
+            if (countyList != null && countyList.get(0) != null) {
+                return countyList.get(0);
+            }
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.error("Failed to get county by name:" + name + "\n" + ex.getMessage());
         }
         return null;
@@ -88,13 +98,31 @@ public class SqlCountyDao
 
     public County getCountyByFipsCode(int fipsCode)
     {
-        String sql = "SELECT id, name, fips_code AS fipsCode FROM county WHERE fips_code = ?";
         try {
-            return run.query(sql, handler, fipsCode);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("fipsCode", fipsCode);
+
+            List<County> countyList= baseDao.geoApiNamedJbdcTemaplate.query(
+                    CountyQuery.GET_COUNTY_BY_FIPS_CODE.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
+
+            if (countyList != null && countyList.get(0) != null) {
+                return countyList.get(0);
+            }
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.error("Failed to get county by fipsCode:" + fipsCode + "\n" + ex.getMessage());
         }
         return null;
+    }
+
+    private static class CountyHandler implements RowMapper<County> {
+        @Override
+        public County mapRow(ResultSet rs, int rowNum) throws SQLException {
+            County county = new County();
+            county.setId(rs.getInt("id"));
+            county.setName(rs.getString("name"));
+            county.setFipsCode(rs.getInt("fipsCode"));
+            return county;
+        }
     }
 }
