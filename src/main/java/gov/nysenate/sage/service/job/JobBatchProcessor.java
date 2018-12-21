@@ -145,6 +145,7 @@ public class JobBatchProcessor {
 
             /** Clean up and exit */
             logger.info("Wrapping things up..");
+            deleteLockFile();
         }
         else {
             logger.error("Usage: jobBatchProcessor [process | clean]");
@@ -166,9 +167,14 @@ public class JobBatchProcessor {
             lockFile.deleteOnExit();
         }
         else {
-            logger.error("Lock file [" + lockFile.getAbsolutePath() + "] already exists; exiting immediately");
+            logger.info("Lock file [" + lockFile.getAbsolutePath() + "] already exists; exiting immediately");
             //back out of api call?
         }
+    }
+
+    public static void deleteLockFile() throws IOException {
+        File lockFile = new File(TEMP_DIR, LOCK_FILENAME);
+        lockFile.deleteOnExit();
     }
 
     /**
@@ -613,8 +619,8 @@ public class JobBatchProcessor {
 
         logger.info("Sending email to " + jobUser.getEmail());
         mailer.sendMail(jobUser.getEmail(), subject, message);
-        logger.info("Sending email to " + mailer.getAdminEmail());
-        mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
+//        logger.info("Sending email to " + mailer.getAdminEmail());
+//        mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
     }
 
     /**
@@ -642,8 +648,8 @@ public class JobBatchProcessor {
         try {
             logger.info("Sending email to " + jobUser.getEmail());
             mailer.sendMail(jobUser.getEmail(), subject, message);
-            logger.info("Sending email to " + mailer.getAdminEmail());
-            mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
+//            logger.info("Sending email to " + mailer.getAdminEmail());
+//            mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
         }
         catch (Exception ex2) { logger.error(fatal, "Failed to send error email.. sheesh", ex2); }
     }

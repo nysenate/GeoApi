@@ -72,12 +72,19 @@ public class SqlAdminUserDao implements AdminUserDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("username", username);
             List<AdminUser> adminUserList = baseDao.geoApiNamedJbdcTemaplate.query(AdminUserQuery.GET_ADMIN.getSql(baseDao.getPublicSchema()), params, new AdminUserHandler() );
-            if (adminUserList != null) {
+            if (adminUserList != null && adminUserList.get(0) != null) {
                 adminUser = adminUserList.get(0);
             }
         }
         catch (Exception ex) {
-            logger.error("Failed to retrieve admin user!", ex);
+            if (username.contains("@")) {
+                logger.debug("Job Users cant be validated in the Admin Dao");
+            }
+            else {
+                logger.error("Failed to retrieve admin user!", ex);
+            }
+
+
         }
         return adminUser;
     }
