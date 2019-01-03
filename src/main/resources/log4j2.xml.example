@@ -24,6 +24,7 @@
         </Root>
         <logger name="org.apache.log4j" level="info"/>
         <logger name="org.apache.commons" level="info"/>
+        <logger name="com.mchange.v2.c3p0.impl" level="WARN"/>
         <logger name="org.springframework.web.servlet.mvc.method.annotation" level="WARN" additivity="false"/>
         <logger name="org.springframework.web.servlet.handler" level="WARN" additivity="false"/>
         <logger name="org.springframework.context.support" level="WARN" additivity="false"/>

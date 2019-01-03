@@ -119,10 +119,10 @@ public class StreetFile implements DistrictService, StreetLookupService
 
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
         if (districtResult.getGeocodedAddress() != null) {
-            logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
+            logger.debug(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
         }
         else {
-            logger.info("The geocoded address was null");
+            logger.debug("The geocoded address was null");
         }
         return districtResult;
     }
