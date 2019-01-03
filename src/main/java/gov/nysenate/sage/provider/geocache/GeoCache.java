@@ -65,15 +65,21 @@ public class GeoCache implements GeocodeCacheService
         GeocodeResult geocodeResult  = new GeocodeResult(this.getClass());
 
         /* Proceed only on valid input */
-        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) return geocodeResult;
-
+        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
+            logger.info(address + " is invalid");
+            geocodeResult.setGeocodedAddress(new GeocodedAddress());
+            return geocodeResult;
+        }
         /* Retrieve geocoded address from cache */
         StreetAddress sa = StreetAddressParser.parseAddress(address);
         GeocodedStreetAddress geocodedStreetAddress = sqlGeoCacheDao.getCacheHit(sa);
+        if ( geocodedStreetAddress == null )  {
+            geocodedStreetAddress = new GeocodedStreetAddress(sa);
+        }
 
         /* Validate and return */
         if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedStreetAddress.toGeocodedAddress(), geocodeResult, false)) {
-            logger.trace("Failed to find cache hit for " + address.toString());
+            logger.info("Failed to find cache hit for " + address.toString());
         }
         return geocodeResult;
     }

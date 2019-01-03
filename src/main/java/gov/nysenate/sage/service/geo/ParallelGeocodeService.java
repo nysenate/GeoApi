@@ -23,7 +23,7 @@ public class ParallelGeocodeService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelGeocodeService.class);
     private int THREAD_COUNT;
-    private ExecutorService executor;
+    private static ExecutorService executor;
     private Environment env;
 
     @Autowired
@@ -47,8 +47,8 @@ public class ParallelGeocodeService
             try {
                 geocodeResults.add(geocodeResult.get());
             }
-            catch (InterruptedException | ExecutionException ex) {
-                logger.error(ex.getMessage());
+            catch (Exception ex) {
+                logger.error(ex + "");
             }
         }
         return geocodeResults;

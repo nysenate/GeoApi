@@ -22,7 +22,7 @@ import java.util.concurrent.*;
 public class ParallelAddressService {
 
     private int THREAD_COUNT;
-    private ExecutorService executor;
+    private static ExecutorService executor;
     private static Logger logger = LoggerFactory.getLogger(ParallelAddressService.class);
     private Environment env;
 

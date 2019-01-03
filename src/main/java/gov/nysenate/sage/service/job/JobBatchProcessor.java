@@ -32,6 +32,7 @@ import org.supercsv.io.ICsvListReader;
 import org.supercsv.io.ICsvListWriter;
 import org.supercsv.prefs.CsvPreference;
 
+import javax.annotation.PreDestroy;
 import java.io.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -71,7 +72,9 @@ public class JobBatchProcessor {
     private SqlDistrictResultLogger sqlDistrictResultLogger;
     private ApplicationConfig applicationConfig;
 
-
+    private ThreadPoolTaskExecutor addressExecutor;
+    private ThreadPoolTaskExecutor geocodeExecutor;
+    private ThreadPoolTaskExecutor districtExecutor;
 
     @Autowired
     public JobBatchProcessor(Environment env, Mailer mailer, AddressServiceProvider addressServiceProvider,
@@ -98,7 +101,19 @@ public class JobBatchProcessor {
         this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         this.sqlDistrictResultLogger = sqlDistrictResultLogger;
         this.applicationConfig = applicationConfig;
+
+        this.addressExecutor = this.applicationConfig.getJobAddressValidationExecutor();
+        this.geocodeExecutor = this.applicationConfig.getJobGeocodeExecutor();
+        this.districtExecutor = this.applicationConfig.getJobDistrictAssignExecutor();
     }
+
+    @PreDestroy
+    public void closeExecutors() {
+        addressExecutor.shutdown();
+        geocodeExecutor.shutdown();
+        districtExecutor.shutdown();
+    }
+
 
     @Scheduled(cron = "${job.process.cron}")
     public void jobCron() throws Exception {
@@ -203,10 +218,6 @@ public class JobBatchProcessor {
     {
         JobProcess jobProcess = jobStatus.getJobProcess();
         String fileName = jobProcess.getFileName();
-
-        ThreadPoolTaskExecutor addressExecutor = applicationConfig.getJobAddressValidationExecutor();
-        ThreadPoolTaskExecutor geocodeExecutor = applicationConfig.getJobGeocodeExecutor();
-        ThreadPoolTaskExecutor districtExecutor = applicationConfig.getJobDistrictAssignExecutor();
 
         CsvListReader jobReader = null;
         CsvListWriter jobWriter = null;
@@ -412,13 +423,15 @@ public class JobBatchProcessor {
             if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
         }
         finally {
-            jobReader.close();
-            jobWriter.close();
-            addressExecutor.shutdown();
-            geocodeExecutor.shutdown();
-            districtExecutor.shutdown();
+            try {
+                jobReader.close();
+                jobWriter.close();
+            }
+            catch (NullPointerException e) {}
+
             logger.info("Closed resources.");
         }
+
         return;
     }
 

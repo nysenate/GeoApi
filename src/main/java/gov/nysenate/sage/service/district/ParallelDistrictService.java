@@ -23,7 +23,7 @@ public class ParallelDistrictService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelDistrictService.class);
     private int THREAD_COUNT;
-    private ExecutorService executor;
+    private static ExecutorService executor;
     private Environment env;
 
     @Autowired

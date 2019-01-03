@@ -19,7 +19,7 @@ public class ParallelRevGeocodeService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelRevGeocodeService.class);
     private int THREAD_COUNT;
-    private ExecutorService executor;
+    private static ExecutorService executor;
     private Environment env;
 
     @Autowired
