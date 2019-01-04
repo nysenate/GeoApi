@@ -149,8 +149,8 @@ public class ApplicationConfig implements CachingConfigurer, SchedulingConfigure
 
     private ThreadPoolTaskExecutor createExecutor(String threadName, Integer poolSize) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setThreadFactory(new SageThreadFactory("spring-async"));
-        executor.setCorePoolSize(10);
+        executor.setThreadFactory(new SageThreadFactory(threadName));
+        executor.setCorePoolSize(poolSize);
         executor.initialize();
         return executor;
     }
