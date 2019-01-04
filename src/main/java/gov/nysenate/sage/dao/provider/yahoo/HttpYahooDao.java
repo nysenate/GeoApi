@@ -31,7 +31,7 @@ import java.util.List;
  *  http://developer.yahoo.com/boss/geo/docs/free_YQL.html#table_pf
  */
 @Repository
-public class HttpYahooDao
+public class HttpYahooDao implements YahooDao
 {
     private static final String DEFAULT_BASE_URL = "http://query.yahooapis.com/v1/public/yql";
     private static final String SET_QUERY_AS = "?format=json&crossProduct=optimized&q=";

@@ -28,7 +28,7 @@ import java.util.*;
  * lookups.
  */
 @Repository
-public class HttpUSPSAMSDao
+public class HttpUSPSAMSDao implements USPSAMSDao
 {
     private Environment env;
     private static String DEFAULT_BASE_URL = "";

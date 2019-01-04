@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.provider.geocode.GoogleGeocoder;
 import gov.nysenate.sage.util.UrlRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -22,7 +23,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 @Repository
-public class HttpGoogleDao implements Observer
+public class HttpGoogleDao implements GoogleDao
 {
     private static final Logger logger = LoggerFactory.getLogger(HttpGoogleDao.class);
 
@@ -40,12 +41,6 @@ public class HttpGoogleDao implements Observer
     public HttpGoogleDao(Environment env, BaseDao baseDao) {
         this.env = env;
         this.baseDao = baseDao;
-        this.update(null, null);
-    }
-
-    @Override
-    public void update(Observable o, Object arg)
-    {
         this.baseUrl = env.getGoogleGeocoderUrl();
         this.apiKey = env.getGoogleGeocoderKey();
     }

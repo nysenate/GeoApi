@@ -27,7 +27,7 @@ import java.util.List;
 import static gov.nysenate.sage.model.geo.GeocodeQuality.*;
 
 @Repository
-public class HttpMapQuestDao
+public class HttpMapQuestDao implements MapQuestDao
 {
     private static final String DEFAULT_GEO_URL = "http://www.mapquestapi.com/geocoding/v1/batch";
     private static final String DEFAULT_REV_URL = "http://www.mapquestapi.com/geocoding/v1/reverse";
@@ -48,6 +48,7 @@ public class HttpMapQuestDao
         this.geoUrl = this.env.getMapquestGeoUrl();
         this.revGeoUrl = this.env.getMapquestRevUrl();
         this.key = this.env.getMapquestKey();
+        this.objectMapper = new ObjectMapper();
     }
 
     private static HashMap<String, GeocodeQuality> qualityMap;
@@ -71,10 +72,6 @@ public class HttpMapQuestDao
         qualityMap.put("COUNTRY", STATE);
         qualityMap.put("ZIP", ZIP);
         qualityMap.put("ZIP_EXTENDED", ZIP_EXT);
-    }
-
-    public HttpMapQuestDao() {
-        this.objectMapper = new ObjectMapper();
     }
 
     public String getGeoUrl() {

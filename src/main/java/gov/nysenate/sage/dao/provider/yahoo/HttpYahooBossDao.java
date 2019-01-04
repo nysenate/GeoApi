@@ -20,7 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 @Repository
-public class HttpYahooBossDao
+public class HttpYahooBossDao implements YahooBossDao
 {
     private static final Logger logger = LoggerFactory.getLogger(HttpYahooBossDao.class);
     private static final String DEFAULT_BASE_URL = "http://yboss.yahooapis.com/geo/placefinder";
