@@ -12,7 +12,6 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.sql.DataSource;
 import java.beans.PropertyVetoException;
 
 @EnableTransactionManagement
@@ -61,28 +60,10 @@ public class DatabaseConfig
      * Configures the sql data source using a connection pool.
      * @return DataSource
      */
-    @Bean
-    public DataSource geoApiPostgresDataSource() {
-        final String jdbcUrlTemplate = "jdbc:%s://%s/%s";
-        ComboPooledDataSource pool = new ComboPooledDataSource();
-        try {
-            pool.setDriverClass(dbDriver);
-        }
-        catch (PropertyVetoException ex) {
-            logger.error("Error when setting the database driver " + dbDriver + "{}", ex.getMessage());
-        }
-        pool.setJdbcUrl(String.format(jdbcUrlTemplate, dbType, dbHost, dbName));
+    @Bean(destroyMethod = "close")
+    public ComboPooledDataSource geoApiPostgresDataSource() {
+        ComboPooledDataSource pool = getComboPooledDataSource(dbType,dbHost,dbName,dbDriver,dbUser, dbPass);
         logger.info("Connecting to Postgres: " + pool.getJdbcUrl());
-        pool.setUser(dbUser);
-        pool.setPassword(dbPass);
-        pool.setMinPoolSize(1);
-        pool.setMaxPoolSize(100);
-        pool.setUnreturnedConnectionTimeout(30000);
-
-        // Test each connection every 30 sec after first check-in
-        pool.setTestConnectionOnCheckout(false);
-        pool.setTestConnectionOnCheckin(true);
-        pool.setIdleConnectionTestPeriod(30);
         return pool;
     }
 
@@ -90,28 +71,49 @@ public class DatabaseConfig
      * Configures the sql data source using a connection pool.
      * @return DataSource
      */
-    @Bean
-    public DataSource tigerPostgresDataSource() {
+    @Bean(destroyMethod = "close")
+    public ComboPooledDataSource tigerPostgresDataSource() {
+        ComboPooledDataSource pool = getComboPooledDataSource(tigerDbType, tigerDbHost, tigerDbName, tigerDbDriver,
+                tigerDbUser, tigerDbPass);
+        logger.info("Connecting to Postgres: " + pool.getJdbcUrl());
+        return pool;
+    }
+
+    /**
+     * Creates a basic pooled DataSource.
+     *
+     * @param type Database type
+     * @param host Database host address
+     * @param name Database name
+     * @param driver Database driver string
+     * @param user Database user
+     * @param pass Database password
+     * @return PoolProperties
+     */
+    private ComboPooledDataSource getComboPooledDataSource(String type, String host, String name, String driver,
+                                                           String user, String pass) {
         final String jdbcUrlTemplate = "jdbc:%s://%s/%s";
         ComboPooledDataSource pool = new ComboPooledDataSource();
         try {
-            pool.setDriverClass(tigerDbDriver);
+            pool.setDriverClass(driver);
         }
         catch (PropertyVetoException ex) {
-            logger.error("Error when setting the database driver " + tigerDbDriver + "{}", ex.getMessage());
+            logger.error("Error when setting the database driver " + driver + "{}", ex.getMessage());
         }
-        pool.setJdbcUrl(String.format(jdbcUrlTemplate, tigerDbType, tigerDbHost, tigerDbName));
-        logger.info("Connecting to Postgres: " + pool.getJdbcUrl());
-        pool.setUser(tigerDbUser);
-        pool.setPassword(tigerDbPass);
+        final String jdbcUrl = String.format(jdbcUrlTemplate, type, host, name);
+
+        pool.setJdbcUrl(jdbcUrl);
+        pool.setUser(user);
+        pool.setPassword(pass);
+
         pool.setMinPoolSize(1);
         pool.setMaxPoolSize(100);
         pool.setUnreturnedConnectionTimeout(30000);
-
         // Test each connection every 30 sec after first check-in
-        pool.setTestConnectionOnCheckout(false);
-        pool.setTestConnectionOnCheckin(true);
-        pool.setIdleConnectionTestPeriod(30);
+//        pool.setTestConnectionOnCheckout(false);
+//        pool.setTestConnectionOnCheckin(true);
+//        pool.setIdleConnectionTestPeriod(30);
+
         return pool;
     }
 
