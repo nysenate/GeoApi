@@ -5,7 +5,9 @@ import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.RevGeocodeService;
+import gov.nysenate.sage.util.ExecutorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -19,14 +21,15 @@ public class ParallelRevGeocodeService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelRevGeocodeService.class);
     private int THREAD_COUNT;
-    private static ExecutorService executor;
+    private static ThreadPoolTaskExecutor executor;
     private Environment env;
 
     @Autowired
     public ParallelRevGeocodeService(Environment env) {
         this.env = env;
         this.THREAD_COUNT = this.env.getValidateThreads();
-        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("revgeo"));
+        this.executor = ExecutorUtil.createExecutor("revgeo", THREAD_COUNT);
+//        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("revgeo"));
     }
 
     /**
@@ -61,7 +64,7 @@ public class ParallelRevGeocodeService
     }
 
     public void shutdownThread() {
-        executor.shutdownNow();
+        executor.shutdown();
     }
 
     /**

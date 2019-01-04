@@ -5,9 +5,11 @@ import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.provider.address.AddressService;
+import gov.nysenate.sage.util.ExecutorUtil;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ import java.util.concurrent.*;
 public class ParallelAddressService {
 
     private int THREAD_COUNT;
-    private static ExecutorService executor;
+    private static ThreadPoolTaskExecutor executor;
     private static Logger logger = LoggerFactory.getLogger(ParallelAddressService.class);
     private Environment env;
 
@@ -30,7 +32,8 @@ public class ParallelAddressService {
     public ParallelAddressService(Environment env) {
         this.env = env;
         this.THREAD_COUNT = this.env.getValidateThreads();
-        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("address"));
+        this.executor = ExecutorUtil.createExecutor("address", THREAD_COUNT);
+//        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("address"));
     }
 
     public List<AddressResult> validate(AddressService addressService, List<Address> addresses)
@@ -58,7 +61,7 @@ public class ParallelAddressService {
     }
 
     public void shutdownThread() {
-        executor.shutdownNow();
+        executor.shutdown();
     }
 
     private static class ParallelValidate implements Callable<AddressResult>

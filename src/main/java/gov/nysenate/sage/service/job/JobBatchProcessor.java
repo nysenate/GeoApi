@@ -108,10 +108,16 @@ public class JobBatchProcessor {
     }
 
     @PreDestroy
-    public void closeExecutors() {
-        addressExecutor.shutdown();
-        geocodeExecutor.shutdown();
-        districtExecutor.shutdown();
+    public void closeProcessor() {
+        this.mailer = null;
+        this.addressProvider = null;
+        this.geocodeProvider = null;
+        this.districtProvider = null;
+        this.sqlJobProcessDao = null;
+
+        this.sqlGeocodeResultLogger = null;
+        this.sqlDistrictResultLogger = null;
+        this.applicationConfig = null;
     }
 
 

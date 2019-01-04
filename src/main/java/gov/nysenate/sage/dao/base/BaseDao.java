@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -86,6 +88,11 @@ public class BaseDao
         this.parallelGeocodeService = parallelGeocodeService;
         this.parallelRevGeocodeService = parallelRevGeocodeService;
         this.env = env;
+    }
+
+    @PreDestroy
+    public void destroy(){
+        close();
     }
 
     public QueryRunner getQueryRunner()

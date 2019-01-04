@@ -5,7 +5,9 @@ import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
+import gov.nysenate.sage.util.ExecutorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -23,14 +25,15 @@ public class ParallelGeocodeService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelGeocodeService.class);
     private int THREAD_COUNT;
-    private static ExecutorService executor;
+    private static ThreadPoolTaskExecutor executor;
     private Environment env;
 
     @Autowired
     public ParallelGeocodeService(Environment env) {
         this.env = env;
         this.THREAD_COUNT = this.env.getValidateThreads();
-        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("geocode"));
+        this.executor = ExecutorUtil.createExecutor("geocode", THREAD_COUNT);
+//        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("geocode"));
     }
 
     public ArrayList<GeocodeResult> geocode(GeocodeService geocodeService, List<Address> addresses)
@@ -55,7 +58,7 @@ public class ParallelGeocodeService
     }
 
     public void shutdownThread() {
-        executor.shutdownNow();
+        executor.shutdown();
     }
 
     /**

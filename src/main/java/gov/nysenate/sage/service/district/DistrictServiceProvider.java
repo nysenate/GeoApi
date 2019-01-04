@@ -12,9 +12,11 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.DistrictShapefile;
 import gov.nysenate.sage.provider.district.StreetFile;
+import gov.nysenate.sage.util.ExecutorUtil;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -123,7 +125,7 @@ public class DistrictServiceProvider //shapefile and streetfile
         logger.debug("Assigning districts " + ((geocodedAddress != null) ? geocodedAddress.getAddress() : ""));
         Timestamp startTime = TimeUtil.currentTimestamp();
         DistrictResult districtResult = null, streetFileResult, shapeFileResult;
-        ExecutorService districtExecutor = null;
+        ThreadPoolTaskExecutor districtExecutor = null;
 
         if (this.providers.containsKey(distProvider)) {
             DistrictService districtService = this.providers.get(distProvider);
@@ -140,7 +142,8 @@ public class DistrictServiceProvider //shapefile and streetfile
 
                 switch (districtStrategy) {
                     case neighborMatch:
-                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("neighborMatch"));
+                        districtExecutor = ExecutorUtil.createExecutor("neighborMatch", 2);
+//                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("neighborMatch"));
 
                         Callable<DistrictResult> shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes);
                         Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes);
@@ -157,7 +160,8 @@ public class DistrictServiceProvider //shapefile and streetfile
                         break;
 
                     case streetFallback:
-                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("streetFallback"));
+                        districtExecutor = ExecutorUtil.createExecutor("streetFallBack", 2);
+//                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("streetFallback"));
 
                         shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes);
                         streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes);
@@ -199,7 +203,7 @@ public class DistrictServiceProvider //shapefile and streetfile
             }
             finally {
                 if (districtExecutor != null) {
-                    districtExecutor.shutdownNow();
+                    districtExecutor.shutdown();
                 }
             }
         }
@@ -274,7 +278,7 @@ public class DistrictServiceProvider //shapefile and streetfile
         long districtElapsedMs = 0;
         Timestamp startTime = TimeUtil.currentTimestamp();
 
-        ExecutorService districtExecutor = null;
+        ThreadPoolTaskExecutor districtExecutor = null;
         List<DistrictResult> districtResults = new ArrayList<>(), streetFileResults, shapeFileResults;
 
         DistrictService streetFileService = this.providers.get("streetfile");
@@ -293,7 +297,8 @@ public class DistrictServiceProvider //shapefile and streetfile
             try {
                 switch (districtStrategy) {
                     case neighborMatch:
-                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("neighborMatchBatch"));
+                        districtExecutor = ExecutorUtil.createExecutor("neighborMatchBatch", 2);
+//                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("neighborMatchBatch"));
 
                         Callable<List<DistrictResult>> streetFileCall = getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes);
                         Callable<List<DistrictResult>> shapeFileCall = getDistrictsCallable(geocodedAddresses, shapeFileService, districtTypes);
@@ -321,7 +326,8 @@ public class DistrictServiceProvider //shapefile and streetfile
                         break;
 
                     case streetFallback:
-                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("streetFallbackBatch"));
+                        districtExecutor = ExecutorUtil.createExecutor("streetFallbackBatch", 2);
+//                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("streetFallbackBatch"));
 
                         streetFileCall = getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes);
                         shapeFileCall = getDistrictsCallable(geocodedAddresses, shapeFileService, districtTypes);
@@ -385,7 +391,7 @@ public class DistrictServiceProvider //shapefile and streetfile
             }
             finally {
                 if (districtExecutor != null) {
-                    districtExecutor.shutdownNow();
+                    districtExecutor.shutdown();
                 }
             }
         }

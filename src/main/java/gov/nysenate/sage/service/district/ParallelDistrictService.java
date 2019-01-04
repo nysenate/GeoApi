@@ -6,7 +6,9 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.district.DistrictService;
+import gov.nysenate.sage.util.ExecutorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -23,14 +25,15 @@ public class ParallelDistrictService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelDistrictService.class);
     private int THREAD_COUNT;
-    private static ExecutorService executor;
+    private static ThreadPoolTaskExecutor executor;
     private Environment env;
 
     @Autowired
     public ParallelDistrictService(Environment env) {
         this.env = env;
         this.THREAD_COUNT = this.env.getValidateThreads();
-        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("district"));
+        this.executor = ExecutorUtil.createExecutor("district", THREAD_COUNT);
+//        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("district"));
     }
 
     public List<DistrictResult> assignDistricts(DistrictService districtService, List<GeocodedAddress> geocodedAddresses, List<DistrictType> types)
@@ -58,7 +61,7 @@ public class ParallelDistrictService
     }
 
     public void shutdownThread() {
-        executor.shutdownNow();
+        executor.shutdown();
     }
 
     private static class ParallelDistAssign implements Callable<DistrictResult>
