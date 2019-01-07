@@ -6,6 +6,8 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -13,7 +15,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Repository
-public class SqlCityZipDBDao
+public class SqlCityZipDBDao implements CityZipDBDao
 {
     private Logger logger = LoggerFactory.getLogger(SqlCityZipDBDao.class);
     private QueryRunner run;
@@ -42,24 +44,25 @@ public class SqlCityZipDBDao
         if (city == null || city.isEmpty()) return null; // Short circuit
         String sql = "SELECT DISTINCT zip5 \n" +
                      "FROM " + SCHEMA + "." + TABLE + "\n" +
-                     "WHERE city = upper(trim(?)) AND (type = 'STANDARD' OR type = 'PO BOX') \n" +
+                     "WHERE city = upper(trim(:city)) AND (type = 'STANDARD' OR type = 'PO BOX') \n" +
                      (!cityExceptions.contains(city) ? " AND (locationType = 'PRIMARY' OR locationType = 'ACCEPTABLE')"
                                                      : "");
         try {
-            return run.query(sql, new ResultSetHandler<List<String>>() {
-                @Override
-                public List<String> handle(ResultSet rs) throws SQLException {
-                    List<String> zip5s = new ArrayList<>();
-                    while (rs.next()) {
-                        zip5s.add(rs.getString(1));
-                    }
-                    return zip5s;
-                }
-            }, city);
+            MapSqlParameterSource params =  new MapSqlParameterSource();
+            params.addValue("city", city);
+
+            return baseDao.geoApiNamedJbdcTemaplate.query(sql, params, new zip5Handler());
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to get zip5 list by city!", ex);
         }
         return new ArrayList<>();
+    }
+
+    private static class zip5Handler implements RowMapper<String> {
+        @Override
+        public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getString("zip5");
+        }
     }
 }
