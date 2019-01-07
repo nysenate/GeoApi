@@ -11,6 +11,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ import java.util.*;
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 @Repository
-public class SqlStreetFileDao
+public class SqlStreetFileDao implements StreetFileDao
 {
     private Logger logger = LoggerFactory.getLogger(SqlStreetFileDao.class);
     private QueryRunner run;
@@ -132,7 +133,8 @@ public class SqlStreetFileDao
         }
         /** Only do a lookup if we have meaningful filters on the query */
         if (whereZip || whereStreet) {
-            return run.query(sqlBuilder.toString(), new DistrictStreetRangeMapHandler(), params.toArray());
+            return baseDao.geoApiJbdcTemplate.query(sqlBuilder.toString(),
+                    new DistrictStreetRangeMapHandler(), params.toArray());
         }
         else {
             logger.debug("Skipping address: no identifying information " + streetAddr);
@@ -186,7 +188,7 @@ public class SqlStreetFileDao
         sql = String.format(sql, zip5WhereSql);
         try {
             Map<StreetAddressRange, DistrictInfo> resultMap =
-                    run.query(sql, new DistrictStreetRangeMapHandler(), street, street);
+                    baseDao.geoApiJbdcTemplate.query(sql, new DistrictStreetRangeMapHandler(), street, street);
             if (resultMap != null && resultMap.size() > 0) {
                 List<DistrictedStreetRange> districtedStreetRanges = new ArrayList<>();
                 for (StreetAddressRange sar : resultMap.keySet()) {
@@ -195,7 +197,7 @@ public class SqlStreetFileDao
                 return districtedStreetRanges;
             }
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to get district street range lookup!", ex);
         }
         return null;
@@ -267,9 +269,9 @@ public class SqlStreetFileDao
         }
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
         try {
-            return run.query(sqlQuery, new ResultSetHandler<Map<DistrictType, Set<String>>>() {
+            return baseDao.geoApiJbdcTemplate.query(sqlQuery, new ResultSetExtractor<Map<DistrictType, Set<String>>>() {
                 @Override
-                public Map<DistrictType, Set<String>> handle(ResultSet rs) throws SQLException {
+                public Map<DistrictType, Set<String>> extractData(ResultSet rs) throws SQLException {
                     Map<DistrictType, Set<String>> resultMap = new HashMap<>();
                     while (rs.next()) {
                         DistrictType type = DistrictType.resolveType(rs.getString("type"));
@@ -283,7 +285,7 @@ public class SqlStreetFileDao
                 }
             });
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to get all possible state districts!", ex);
         }
         logger.info(sqlQuery);
@@ -444,10 +446,10 @@ public class SqlStreetFileDao
         return "";
     }
 
-    public static class DistrictStreetRangeMapHandler implements ResultSetHandler<Map<StreetAddressRange,DistrictInfo>>
+    public static class DistrictStreetRangeMapHandler implements ResultSetExtractor<Map<StreetAddressRange,DistrictInfo>>
     {
         @Override
-        public Map<StreetAddressRange, DistrictInfo> handle(ResultSet rs) throws SQLException
+        public Map<StreetAddressRange, DistrictInfo> extractData(ResultSet rs) throws SQLException
         {
             Map<StreetAddressRange, DistrictInfo> streetRangeMap = new LinkedHashMap<>();
             while (rs.next()) {

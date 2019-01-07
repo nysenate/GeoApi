@@ -10,10 +10,9 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang3.text.WordUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -31,14 +30,12 @@ public class SqlGeoCacheDao
     private static Logger logger = LoggerFactory.getLogger(SqlGeoCacheDao.class);
     private static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
     private static int BUFFER_SIZE = 100;
-    private QueryRunner tigerRun;
     private final Environment env;
     private BaseDao baseDao;
 
     @Autowired
     public SqlGeoCacheDao(Environment env, BaseDao baseDao) {
         this.baseDao = baseDao;
-        this.tigerRun = this.baseDao.getTigerQueryRunner();
         this.env = env;
         BUFFER_SIZE = env.getGeocahceBufferSize();
     }
@@ -74,11 +71,11 @@ public class SqlGeoCacheDao
     "AND gc.zip5 = ? \n";
 //    "AND gc.zip4 = ? \n";
 
-    private final static String SQL_CACHE_HIT_OLD = String.format("%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WHERE_FULL_MATCH);
+    private final static String SQL_CACHE_HIT_FULL_WITHOUT_ZIP =
+            String.format("%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WITHOUT_ZIP);
 
-    private final static String SQL_CACHE_HIT_FULL_WITHOUT_ZIP = String.format("%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WITHOUT_ZIP);
-
-    private final static String SQL_CACHE_HIT_FULL_WITH_ZIP = String.format("%s\n%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WITHOUT_ZIP, SQLFRAG_WITH_ZIP);
+    private final static String SQL_CACHE_HIT_FULL_WITH_ZIP =
+            String.format("%s\n%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WITHOUT_ZIP, SQLFRAG_WITH_ZIP);
 
     /**
      * Performs a lookup on the cache table and returns a GeocodedStreetAddress upon match.
@@ -97,32 +94,22 @@ public class SqlGeoCacheDao
             }
             try {
 
-//                GeocodedStreetAddress test = tigerRun.query(SQL_CACHE_HIT_OLD, new GeocodedStreetAddressHandler(buildingMatch),
-//                        sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
-//                        sa.getStreetType(), sa.getZip5(), sa.getZip4(), sa.getLocation(), sa.getState());
-//
-//                GeocodedStreetAddress withoutZip = tigerRun.query(SQL_CACHE_HIT_FULL_WITHOUT_ZIP, new GeocodedStreetAddressHandler(buildingMatch),
-//                        sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
-//                        sa.getStreetType(), sa.getLocation(), sa.getState());
-//
-//                GeocodedStreetAddress withZip = tigerRun.query(SQL_CACHE_HIT_FULL_WITH_ZIP, new GeocodedStreetAddressHandler(buildingMatch),
-//                        sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
-//                        sa.getStreetType(), sa.getLocation(), sa.getState(), sa.getZip5());
-
                 if (sa.getZip5().isEmpty()) {
                     //without zip
-                    return tigerRun.query(SQL_CACHE_HIT_FULL_WITHOUT_ZIP, new GeocodedStreetAddressHandler(buildingMatch),
+                    return baseDao.tigerJbdcTemplate.query(SQL_CACHE_HIT_FULL_WITHOUT_ZIP,
+                            new GeocodedStreetAddressHandler(buildingMatch),
                             sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
                             sa.getStreetType(), sa.getLocation(), sa.getState());
                 }
                 else {
                     //with zip
-                    return tigerRun.query(SQL_CACHE_HIT_FULL_WITH_ZIP, new GeocodedStreetAddressHandler(buildingMatch),
+                    return baseDao.tigerJbdcTemplate.query(SQL_CACHE_HIT_FULL_WITH_ZIP,
+                            new GeocodedStreetAddressHandler(buildingMatch),
                             sa.getBldgNum(), sa.getPreDir(), sa.getStreetName(), sa.getPostDir(),
                             sa.getStreetType(), sa.getLocation(), sa.getState(), sa.getZip5());
                 }
             }
-            catch (SQLException ex) {
+            catch (Exception ex) {
                 logger.error("Error retrieving geo cache hit!", ex);
             }
         }
@@ -189,7 +176,7 @@ public class SqlGeoCacheDao
                     StreetAddress sa = StreetAddressParser.parseAddress(address);
                     if (isCacheableStreetAddress(sa)) {
                         try {
-                            tigerRun.update(SQL_INSERT_CACHE_ENTRY, Integer.valueOf(sa.getBldgNum()),
+                            baseDao.tigerJbdcTemplate.update(SQL_INSERT_CACHE_ENTRY, Integer.valueOf(sa.getBldgNum()),
                                 sa.getPreDir(), sa.getStreetName(), sa.getStreetType(), sa.getPostDir(), sa.getLocation(),
                                 sa.getState(), sa.getZip5(), "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
                                 gc.getMethod(), gc.getQuality().name(), sa.getZip4());
@@ -197,11 +184,11 @@ public class SqlGeoCacheDao
                                 logger.trace("Saved " + sa.toString() + " in cache.");
                             }
                         }
-                        catch(SQLException ex) {
+                        catch(Exception ex) {
                             // Duplicate row warnings are expected sometimes and can be suppressed.
                             if (ex.getMessage().contains("duplicate key")) {
                                 try {
-                                    tigerRun.update(SQL_UPDATE_CACHE_ENTRY,
+                                    baseDao.tigerJbdcTemplate.update(SQL_UPDATE_CACHE_ENTRY,
                                             "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
                                             gc.getMethod(),
                                             gc.getQuality().name(),
@@ -218,7 +205,7 @@ public class SqlGeoCacheDao
                                         logger.trace("Saved " + sa.toString() + " in cache.");
                                     }
                                 }
-                                catch (SQLException e) {
+                                catch (Exception e) {
                                     logger.info("SQL EXCEPTION WHILE UPDATE DUP");
                                     logger.warn(e.getMessage());
                                 }
@@ -227,9 +214,6 @@ public class SqlGeoCacheDao
                                 logger.warn("NON UPDATE DUP SQL EXCEPTION");
                                 logger.warn(ex.getMessage());
                             }
-                        }
-                        catch(Exception ex) {
-                            logger.error("" + ex);
                         }
                     }
                 }
@@ -245,7 +229,7 @@ public class SqlGeoCacheDao
      * If the constructor is initialized with true, the result will be null if the geocode is not of HOUSE quality.
      * Otherwise the geocode quality won't be checked.
      */
-    public class GeocodedStreetAddressHandler implements ResultSetHandler<GeocodedStreetAddress>
+    public class GeocodedStreetAddressHandler implements ResultSetExtractor<GeocodedStreetAddress>
     {
         private boolean buildingMatch;
 
@@ -254,7 +238,7 @@ public class SqlGeoCacheDao
         }
 
         @Override
-        public GeocodedStreetAddress handle(ResultSet rs) throws SQLException {
+        public GeocodedStreetAddress extractData(ResultSet rs) throws SQLException {
             if (rs.next()) {
                 Geocode gc = getGeocodeFromResultSet(rs);
                 if (gc == null || gc.getQuality() == null ||

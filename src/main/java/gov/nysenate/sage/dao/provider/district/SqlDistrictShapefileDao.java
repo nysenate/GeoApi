@@ -15,6 +15,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -103,7 +104,7 @@ public class SqlDistrictShapefileDao
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
 
         try {
-            return run.query(sqlQuery, new DistrictInfoHandler());
+            return baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictInfoHandler());
         }
         catch (Exception ex){
             logger.error("" + ex);
@@ -160,9 +161,9 @@ public class SqlDistrictShapefileDao
                                                  refWhereSql, targetWhereSql);
         try {
             DistrictOverlap overlap = new DistrictOverlap(refDistrictType, targetDistrictType, refCodes, DistrictOverlap.AreaUnit.SQ_METERS);
-            return run.query(sqlQuery, new DistrictOverlapHandler(overlap));
+            return baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictOverlapHandler(overlap));
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to determine district overlap!", ex);
         }
         return null;
@@ -186,9 +187,9 @@ public class SqlDistrictShapefileDao
         String whereSql = StringUtils.join(whereCodeList, " OR ");
         String sql = String.format(sqlTmpl, resolveCodeColumn(districtType), districtType.name(), resolveSRID(districtType), whereSql);
         try {
-            return run.query(sql, new StreetLineIntersectHandler(this.baseDao), jsonGeom);
+            return baseDao.geoApiJbdcTemplate.query(sql, new StreetLineIntersectHandler(this.baseDao), jsonGeom);
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to retrieve intersecting district street lines!", ex);
         }
         return null;
@@ -215,9 +216,9 @@ public class SqlDistrictShapefileDao
         String sqlQuery = String.format(sql, refDistrictType.name(), refWhereSql);
 
         try {
-            return run.query(sqlQuery, new ResultSetHandler<DistrictMap>(){
+            return baseDao.geoApiJbdcTemplate.query(sqlQuery, new ResultSetExtractor<DistrictMap>(){
                 @Override
-                public DistrictMap handle(ResultSet rs) throws SQLException {
+                public DistrictMap extractData(ResultSet rs) throws SQLException {
                     if (rs.next()) {
                         return getDistrictMapFromJson(rs.getString("source_map"));
                     }
@@ -225,7 +226,7 @@ public class SqlDistrictShapefileDao
                 }
             });
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.debug("Failed to get overlap reference boundary!", ex);
         }
         return null;
@@ -280,11 +281,11 @@ public class SqlDistrictShapefileDao
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ") + " ORDER BY type, code";
 
         try {
-            run.query(sqlQuery, new DistrictMapsCacheHandler());
+            baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictMapsCacheHandler());
             logger.info("Cached standard district maps");
             return true;
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("" + ex);
             return false;
         }
@@ -317,9 +318,9 @@ public class SqlDistrictShapefileDao
                     pointText, pointText, count);    // ST_ClosestPoint -> Order By
 
             try {
-                return run.query(sqlQuery, new NearbyDistrictMapsHandler());
+                return baseDao.geoApiJbdcTemplate.query(sqlQuery, new NearbyDistrictMapsHandler());
             }
-            catch (SQLException ex) {
+            catch (Exception ex) {
                 logger.error("" + ex);
             }
         }
@@ -347,10 +348,10 @@ public class SqlDistrictShapefileDao
     /**
      * Projects the result set into a DistrictInfo object.
      */
-    private class DistrictInfoHandler implements ResultSetHandler<DistrictInfo>
+    private class DistrictInfoHandler implements ResultSetExtractor<DistrictInfo>
     {
         @Override
-        public DistrictInfo handle(ResultSet rs) throws SQLException {
+        public DistrictInfo extractData(ResultSet rs) throws SQLException {
             DistrictInfo districtInfo = new DistrictInfo();
             while (rs.next()) {
                 DistrictType type = DistrictType.resolveType(rs.getString("type"));
@@ -380,10 +381,10 @@ public class SqlDistrictShapefileDao
      * data based on district type and code:
      * { DistrictType:type -> { String:code -> DistrictMap:map} }
      */
-    private class DistrictMapsCacheHandler implements ResultSetHandler<Map<DistrictType, Map<String, DistrictMap>>>
+    private class DistrictMapsCacheHandler implements ResultSetExtractor<Map<DistrictType, Map<String, DistrictMap>>>
     {
         @Override
-        public Map<DistrictType, Map<String, DistrictMap>> handle(ResultSet rs) throws SQLException
+        public Map<DistrictType, Map<String, DistrictMap>> extractData(ResultSet rs) throws SQLException
         {
             /** Initialize the cache maps */
             districtMapCache = new HashMap<>();
@@ -415,10 +416,10 @@ public class SqlDistrictShapefileDao
         }
     }
 
-    private class NearbyDistrictMapsHandler implements ResultSetHandler<LinkedHashMap<String, DistrictMap>>
+    private class NearbyDistrictMapsHandler implements ResultSetExtractor<LinkedHashMap<String, DistrictMap>>
     {
         @Override
-        public LinkedHashMap<String, DistrictMap> handle(ResultSet rs) throws SQLException
+        public LinkedHashMap<String, DistrictMap> extractData(ResultSet rs) throws SQLException
         {
             LinkedHashMap<String, DistrictMap> nearbyDistrictMaps = new LinkedHashMap<>();
             while (rs.next()) {
@@ -437,7 +438,7 @@ public class SqlDistrictShapefileDao
         }
     }
 
-    private class DistrictOverlapHandler implements ResultSetHandler<DistrictOverlap>
+    private class DistrictOverlapHandler implements ResultSetExtractor<DistrictOverlap>
     {
         private DistrictOverlap districtOverlap;
 
@@ -446,7 +447,7 @@ public class SqlDistrictShapefileDao
         }
 
         @Override
-        public DistrictOverlap handle(ResultSet rs) throws SQLException {
+        public DistrictOverlap extractData(ResultSet rs) throws SQLException {
             while (rs.next()) {
                 String code = getDistrictCode(rs);
                 BigDecimal area = rs.getBigDecimal("intersected_area");
@@ -466,7 +467,7 @@ public class SqlDistrictShapefileDao
         }
     }
 
-    private class StreetLineIntersectHandler implements ResultSetHandler<Map<String, List<Line>>>
+    private class StreetLineIntersectHandler implements ResultSetExtractor<Map<String, List<Line>>>
     {
         BaseDao baseDao;
 
@@ -475,7 +476,7 @@ public class SqlDistrictShapefileDao
         }
 
         @Override
-        public Map<String, List<Line>> handle(ResultSet rs) throws SQLException
+        public Map<String, List<Line>> extractData(ResultSet rs) throws SQLException
         {
             Map<String, List<Line>> intersectMap = new HashMap<>();
             while (rs.next()) {
