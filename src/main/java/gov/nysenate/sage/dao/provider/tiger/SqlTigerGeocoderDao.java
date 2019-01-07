@@ -15,6 +15,8 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -31,7 +33,7 @@ import java.util.*;
  * http://postgis.net/docs/Extras.html
  */
 @Repository
-public class SqlTigerGeocoderDao implements Observer
+public class SqlTigerGeocoderDao implements TigerGeocoderDao
 {
     private static Logger logger = LoggerFactory.getLogger(SqlTigerGeocoderDao.class);
     private Environment env;
@@ -44,11 +46,6 @@ public class SqlTigerGeocoderDao implements Observer
         this.baseDao = baseDao;
         run = this.baseDao.getTigerQueryRunner();
         this.env = env;
-        update(null, null);
-    }
-
-    @Override
-    public void update(Observable o, Object arg) {
         GEOCODER_TIMEOUT = env.getTigerGeocoderTimeout();
     }
 
@@ -63,12 +60,19 @@ public class SqlTigerGeocoderDao implements Observer
     {
         GeocodedStreetAddress geoStreetAddress = null;
         String sql = "SELECT g.rating, ST_Y(geomout) As lat, ST_X(geomout) As lon, (addy).* \n" +
-                     "FROM geocode(?, 1) AS g;";
+                     "FROM geocode(:address, 1) AS g;";
         try {
-            this.baseDao.setTimeOut(conn, run, GEOCODER_TIMEOUT);
-            geoStreetAddress = run.query(conn, sql, new GeocodedStreetAddressHandler(), address.toString());
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("address", address.toString());
+
+            List<GeocodedStreetAddress> geocodedStreetAddressList =
+                    this.baseDao.geoApiNamedJbdcTemaplate.query(sql, params, new GeocodedStreetAddressHandler());
+
+            if (geocodedStreetAddressList.size() > 0 && geocodedStreetAddressList.get(0) != null) {
+                return geocodedStreetAddressList.get(0);
+            }
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.warn(ex.getMessage());
         }
         finally {
@@ -91,12 +95,19 @@ public class SqlTigerGeocoderDao implements Observer
      */
     public StreetAddress getStreetAddress(Address address)
     {
-        String sql = "SELECT * FROM normalize_address(?)";
+        String sql = "SELECT * FROM normalize_address(:address)";
         try {
-            StreetAddress streetAddress = run.query(sql, new StreetAddressHandler(), address.toNormalizedString());
-            return streetAddress;
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("params", address.toNormalizedString());
+
+            List<StreetAddress> streetAddressList =
+                    this.baseDao.geoApiNamedJbdcTemaplate.query(sql, params ,new StreetAddressHandler());
+
+            if (streetAddressList.size() > 0 && streetAddressList.get(0) != null) {
+                return streetAddressList.get(0);
+            }
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.error(ex.getMessage());
         }
         return null;
@@ -115,11 +126,14 @@ public class SqlTigerGeocoderDao implements Observer
                      "FROM reverse_geocode(ST_GeomFromText('POINT(" + point.getLon() + " " + point.getLat() + ")',4269),true) As r;";
         try {
             if (point != null){
-                StreetAddress streetAddress = run.query(sql, new StreetAddressHandler());
-                return streetAddress;
+                List<StreetAddress> streetAddressList =
+                        this.baseDao.geoApiNamedJbdcTemaplate.query(sql, new StreetAddressHandler());
+                if (streetAddressList.size() > 0 && streetAddressList.get(0) != null) {
+                    return streetAddressList.get(0);
+                }
             }
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.warn(ex.getMessage());
         }
         return null;
@@ -135,12 +149,15 @@ public class SqlTigerGeocoderDao implements Observer
         String sql =
                 "SELECT DISTINCT featnames.fullname FROM addr \n" +
                 "JOIN featnames ON addr.tlid = featnames.tlid \n" +
-                "WHERE zip = ? \n" +
+                "WHERE zip = :zip5 \n" +
                 "ORDER BY featnames.fullname";
         try {
-            return run.query(sql, new StreetListHandler(), zip5);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("zip5", zip5);
+
+            return this.baseDao.geoApiNamedJbdcTemaplate.query(sql, params , new StreetListHandler());
         }
-        catch (SQLException ex){
+        catch (Exception ex){
             logger.error(ex.getMessage());
         }
         return null;
@@ -157,7 +174,7 @@ public class SqlTigerGeocoderDao implements Observer
         String sql =
                 "WITH streets AS (\n" +
                 "  SELECT * FROM tiger_data.ny_edges edges\n" +
-                "  WHERE fullname ILIKE ? AND (%s)\n" +
+                "  WHERE fullname ILIKE :streetName AND (%s)\n" +
                 ")\n" +
                 "SELECT fullname, " +
                     "ST_AsGeoJson(\n" +
@@ -174,17 +191,15 @@ public class SqlTigerGeocoderDao implements Observer
         String zip5Where = (!zip5WhereList.isEmpty()) ? StringUtils.join(zip5WhereList, " OR ") : "FALSE";
         sql = String.format(sql, zip5Where);
         try {
-            return run.query(sql, new ResultSetHandler<String>(){
-                @Override
-                public String handle(ResultSet rs) throws SQLException {
-                    if (rs.next()) {
-                        return rs.getString("lines");
-                    }
-                    return null;
-                }
-            }, streetName);
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("streetName", streetName);
+
+            List<String> zip5QueryList =  this.baseDao.geoApiNamedJbdcTemaplate.query(sql, params, new zip5Handler());
+            if (zip5QueryList.size() > 0 && zip5QueryList.get(0) != null) {
+                return zip5QueryList.get(0);
+            }
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             logger.error("Failed to retrieve street line geometry!", ex);
         }
         return null;
@@ -205,15 +220,44 @@ public class SqlTigerGeocoderDao implements Observer
         return null;
     }
 
-    /** Converts the geocode result set into a GeocodedStreetAddress */
-    public static class GeocodedStreetAddressHandler implements ResultSetHandler<GeocodedStreetAddress>
+    /** Converts result into a list of street names */
+    public static class StreetListHandler implements RowMapper<String>
     {
         @Override
-        public GeocodedStreetAddress handle(ResultSet rs) throws SQLException
+        public String mapRow(ResultSet rs, int rowNum) throws SQLException
         {
-            StreetAddress streetAddress = new StreetAddressHandler().handle(rs);
+            return rs.getString(1);
+        }
+    }
+
+    /** Converts the parsed address result set into a StreetAddress */
+    private static class StreetAddressHandler implements RowMapper<StreetAddress> {
+        @Override
+        public StreetAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
+            StreetAddress streetAddress = new StreetAddress();
+
+            streetAddress.setBldgNum(rs.getInt("bldgNum"));
+            streetAddress.setPreDir(rs.getString("preDir"));
+            streetAddress.setStreetName(rs.getString("streetName"));
+            streetAddress.setStreetType(rs.getString("streetType"));
+            streetAddress.setPostDir(rs.getString("postDir"));
+            streetAddress.setInternal(rs.getString("internal"));
+            streetAddress.setLocation(rs.getString("location"));
+            streetAddress.setState(rs.getString("state"));
+            streetAddress.setZip5(rs.getString("zip5"));
+
+            return streetAddress;
+        }
+    }
+
+    /** Converts the geocode result set into a GeocodedStreetAddress */
+    private static class GeocodedStreetAddressHandler implements RowMapper<GeocodedStreetAddress> {
+        @Override
+        public GeocodedStreetAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
+            StreetAddress streetAddress = new StreetAddressHandler().mapRow(rs, rowNum);
             if (streetAddress != null) {
-                Geocode geocode = new Geocode(new Point(rs.getDouble("lat"), rs.getDouble("lon")), null, SqlTigerGeocoderDao.class.getSimpleName());
+                Geocode geocode = new Geocode(new Point(rs.getDouble("lat"), rs.getDouble("lon")), null,
+                        SqlTigerGeocoderDao.class.getSimpleName());
                 geocode.setRawQuality(rs.getInt("rating"));
                 return new GeocodedStreetAddress(streetAddress, geocode);
             }
@@ -221,43 +265,11 @@ public class SqlTigerGeocoderDao implements Observer
         }
     }
 
-    /** Converts result into a list of street names */
-    public static class StreetListHandler implements ResultSetHandler<ArrayList<String>>
-    {
+    private static class zip5Handler implements RowMapper<String> {
         @Override
-        public ArrayList<String> handle(ResultSet rs) throws SQLException
-        {
-            ArrayList<String> streets = new ArrayList<>();
-            while (rs.next()){
-                streets.add(rs.getString(1));
-            }
-            return streets;
+        public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getString("zip5");
         }
     }
 
-    /** Converts the parsed address result set into a StreetAddress */
-    private static class StreetAddressHandler implements ResultSetHandler<StreetAddress>
-    {
-        private static Map<String, String> saColumns = new HashMap<>();
-        private static BeanProcessor rowProcessor;
-        static
-        {
-            saColumns.put("address", "bldgNum");
-            saColumns.put("predirabbrev", "preDir");
-            saColumns.put("streetname", "streetName");
-            saColumns.put("streettypeabbrev", "streetType");
-            saColumns.put("postdirabbrev", "postDir");
-            saColumns.put("internal", "internal");
-            saColumns.put("location", "location");
-            saColumns.put("stateabbrev", "state");
-            saColumns.put("zip", "zip5");
-            rowProcessor = new BeanProcessor(saColumns);
-        }
-
-        @Override
-        public StreetAddress handle(ResultSet rs) throws SQLException
-        {
-            return new BeanHandler<>(StreetAddress.class, new BasicRowProcessor(rowProcessor)).handle(rs);
-        }
-    }
 }
