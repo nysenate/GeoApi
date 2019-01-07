@@ -30,14 +30,14 @@ import static gov.nysenate.sage.model.district.DistrictType.COUNTY;
  * http://docs.geoserver.org/stable/en/user/services/wfs/reference.html
  */
 @Repository
-public class SqlGeoserverDao
+public class HttpGeoserverDao implements GeoserverDao
 {
     private static final String DEFAULT_BASE_URL = "http://geoserver.nysenate.gov:8080/wfs";
     private static final String DEFAULT_WORKSPACE = "nysenate";
     private static final String FEATURE_QUERY = "?service=WFS&version=1.1.0&request=GetFeature";
     private static final String INTERSECT_FILTER = "INTERSECTS(the_geom, POINT ( %f %f ))";
 
-    private Logger logger = LoggerFactory.getLogger(SqlGeoserverDao.class);
+    private Logger logger = LoggerFactory.getLogger(HttpGeoserverDao.class);
     private Map<Integer, County> fipsCountyMap; /** Mapping between fips codes and associated county */
     private ObjectMapper mapper;
 
@@ -49,7 +49,7 @@ public class SqlGeoserverDao
     private Environment env;
 
     @Autowired
-    public SqlGeoserverDao(BaseDao baseDao, SqlCountyDao sqlCountyDao, Environment env) {
+    public HttpGeoserverDao(BaseDao baseDao, SqlCountyDao sqlCountyDao, Environment env) {
         this.baseDao = baseDao;
         this.sqlCountyDao = sqlCountyDao;
         this.env = env;

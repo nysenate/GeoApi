@@ -2,7 +2,7 @@ package gov.nysenate.sage.provider.district;
 
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.provider.geoserver.SqlGeoserverDao;
+import gov.nysenate.sage.dao.provider.geoserver.HttpGeoserverDao;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
@@ -33,18 +33,18 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 public class Geoserver implements DistrictService
 {
     private static Logger logger = LoggerFactory.getLogger(Geoserver.class);
-    private SqlGeoserverDao sqlGeoserverDao;
+    private HttpGeoserverDao httpGeoserverDao;
     private boolean fetchMaps = false;
     private BaseDao baseDao;
     private Environment env;
 
     private ParallelDistrictService parallelDistrictService;
 
-    public Geoserver(SqlGeoserverDao sqlGeoserverDao, BaseDao baseDao, ParallelDistrictService parallelDistrictService,
+    public Geoserver(HttpGeoserverDao httpGeoserverDao, BaseDao baseDao, ParallelDistrictService parallelDistrictService,
                      Environment env)
     {
         this.env = env;
-        this.sqlGeoserverDao = sqlGeoserverDao;
+        this.httpGeoserverDao = httpGeoserverDao;
         this.baseDao = baseDao;
         this.parallelDistrictService = parallelDistrictService;
         logger.debug("Geoserver instantiated");
@@ -76,7 +76,7 @@ public class Geoserver implements DistrictService
         }
         try {
             Geocode geocode = geocodedAddress.getGeocode();
-            DistrictInfo districtInfo = this.sqlGeoserverDao.getDistrictInfo(geocode.getLatLon(), reqTypes);
+            DistrictInfo districtInfo = this.httpGeoserverDao.getDistrictInfo(geocode.getLatLon(), reqTypes);
 
             /** Validate response */
             if (!validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
