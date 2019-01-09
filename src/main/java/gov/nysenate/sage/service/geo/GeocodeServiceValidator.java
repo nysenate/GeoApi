@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.GoogleGeocoder;
+import gov.nysenate.sage.provider.geocode.NYSGeocoder;
 import gov.nysenate.sage.provider.geocode.TigerGeocoder;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
@@ -48,6 +49,7 @@ public class GeocodeServiceValidator
         Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
         geoProviders.put("google", GoogleGeocoder.class);
         geoProviders.put("tiger", TigerGeocoder.class);
+        geoProviders.put("nysgeo", NYSGeocoder.class);
 
         String[] activeList = env.getGeocoderActive().split(",");
         for (String provider : activeList) {
