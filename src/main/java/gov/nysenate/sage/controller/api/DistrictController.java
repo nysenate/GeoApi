@@ -1,5 +1,6 @@
 package gov.nysenate.sage.controller.api;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.district.*;
 import gov.nysenate.sage.config.Environment;
@@ -18,6 +19,7 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
@@ -391,11 +393,13 @@ public class DistrictController {
          * api error and return if the provider is not supported.
          */
         boolean validProviders = true;
-        if (provider != null && !provider.isEmpty() && !districtProvider.getProviders().containsKey(provider)) {
+        if (provider != null && !provider.isEmpty() &&
+                !districtProvider.getProviders().containsKey(provider.toLowerCase())) {
             setApiResponse(new ApiError(this.getClass(), DISTRICT_PROVIDER_NOT_SUPPORTED), request);
             validProviders = false;
         }
-        if (geoProvider != null && !geoProvider.isEmpty() && !districtProvider.getProviders().containsKey(provider)) {
+        if (geoProvider != null && !geoProvider.isEmpty() &&
+                !geocodeProvider.getActiveGeoProviders().containsKey(geoProvider.toLowerCase())) {
             setApiResponse(new ApiError(this.getClass(), GEOCODE_PROVIDER_NOT_SUPPORTED), request);
             validProviders = false;
         }
