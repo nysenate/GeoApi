@@ -1,7 +1,6 @@
 package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.RevGeocodeService;

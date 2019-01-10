@@ -1,7 +1,6 @@
 package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
