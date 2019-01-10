@@ -109,10 +109,6 @@ public class DatabaseConfig
         pool.setMinPoolSize(1);
         pool.setMaxPoolSize(100);
         pool.setUnreturnedConnectionTimeout(30000);
-        // Test each connection every 30 sec after first check-in
-//        pool.setTestConnectionOnCheckout(false);
-//        pool.setTestConnectionOnCheckin(true);
-//        pool.setIdleConnectionTestPeriod(30);
 
         return pool;
     }

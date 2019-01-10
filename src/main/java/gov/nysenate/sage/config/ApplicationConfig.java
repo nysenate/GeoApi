@@ -5,6 +5,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.notification.Notification;
+import gov.nysenate.sage.util.ExecutorUtil;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.SizeOfPolicyConfiguration;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -123,7 +124,7 @@ public class ApplicationConfig implements CachingConfigurer, SchedulingConfigure
     @Override
     @Bean(name = "sageAsync", destroyMethod = "shutdown")
     public ThreadPoolTaskExecutor getAsyncExecutor() {
-        return createExecutor("spring-async", 10);
+        return ExecutorUtil.createExecutor("spring-async", 10);
     }
 
     @Override
@@ -133,26 +134,17 @@ public class ApplicationConfig implements CachingConfigurer, SchedulingConfigure
 
     @Bean(name = "jobValidator", destroyMethod = "shutdown")
     public ThreadPoolTaskExecutor getJobAddressValidationExecutor() {
-        return createExecutor("job-validator", validateThreads);
+        return ExecutorUtil.createExecutor("job-validator", validateThreads);
     }
 
     @Bean(name = "jobGeocoder", destroyMethod = "shutdown")
     public ThreadPoolTaskExecutor getJobGeocodeExecutor() {
-        return createExecutor("job-geocoder", geocodeThreads);
+        return ExecutorUtil.createExecutor("job-geocoder", geocodeThreads);
     }
 
     @Bean(name = "jobDistAssign", destroyMethod = "shutdown")
     public ThreadPoolTaskExecutor getJobDistrictAssignExecutor() {
-        return createExecutor("job-dist-assign", distassignThreads);
-    }
-
-
-    private ThreadPoolTaskExecutor createExecutor(String threadName, Integer poolSize) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setThreadFactory(new SageThreadFactory(threadName));
-        executor.setCorePoolSize(poolSize);
-        executor.initialize();
-        return executor;
+        return ExecutorUtil.createExecutor("job-dist-assign", distassignThreads);
     }
 
     /**
