@@ -2,7 +2,6 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.street.StreetResponse;
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -17,11 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
 import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
@@ -41,7 +37,7 @@ public class StreetController
 
     @RequestMapping(value = "/lookup", method = RequestMethod.GET)
     public void addressBatchCityState(HttpServletRequest request, HttpServletResponse response,
-                                      @RequestParam String zip5) throws IOException {
+                                      @RequestParam String zip5) {
         Object streetLookupResponse;
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);

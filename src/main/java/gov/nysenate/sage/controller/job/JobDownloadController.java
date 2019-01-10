@@ -24,11 +24,9 @@ public class JobDownloadController
 {
     private static Logger logger = LoggerFactory.getLogger(JobDownloadController.class);
     private static String DOWNLOAD_DIR;
-    private final Environment env;
 
     @Autowired
     public JobDownloadController(Environment env) {
-        this.env = env;
         DOWNLOAD_DIR = env.getJobDownloadDir();
     }
 

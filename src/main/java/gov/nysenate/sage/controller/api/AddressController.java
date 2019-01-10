@@ -6,8 +6,11 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.provider.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.service.security.ApiKeyLoginToken;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,10 +63,9 @@ public final class AddressController
 
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
-
         logAddressInput(apiRequest, request, punct);
 
-        if (checkProvider(provider, addressResponse)) {
+        if (checkProvider(provider)) {
             Address address = getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4);
             addressResponse = new ValidateResponse(addressProvider.validate(address, provider, punct));
         }
@@ -88,7 +90,7 @@ public final class AddressController
         ApiRequest apiRequest = getApiRequest(request);
         logAddressInput(apiRequest, request, punct);
 
-        if (checkProvider(provider, addressResponse)) {
+        if (checkProvider(provider)) {
             Address address = getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4);
             addressResponse = new CityStateResponse(addressProvider.lookupCityState(address, provider));
         }
@@ -112,7 +114,7 @@ public final class AddressController
         ApiRequest apiRequest = getApiRequest(request);
         logAddressInput(apiRequest, request, punct);
 
-        if (checkProvider(provider, addressResponse)) {
+        if (checkProvider(provider)) {
             Address address = getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4);
             addressResponse = new ZipcodeResponse(addressProvider.lookupZipcode(address, provider));
         }
@@ -133,12 +135,14 @@ public final class AddressController
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
         ArrayList<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
 
-        if (checkProvider(provider, addressResponse)) {
+        if (checkProvider(provider)) {
             if (addresses != null && !addresses.isEmpty()) {
                 AddressService addressService = addressProvider.getProviders().get(provider);
                 addressResponse = new BatchValidateResponse(addressService.validate(addresses));
             }
         }
+
+        setApiResponse(addressResponse, request);
     }
 
     @RequestMapping(value = "/batch/citystate", method = RequestMethod.GET)
@@ -154,7 +158,7 @@ public final class AddressController
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
         ArrayList<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
 
-        if (checkProvider(provider, addressResponse)) {
+        if (checkProvider(provider)) {
             if (addresses != null && !addresses.isEmpty()) {
                 AddressService addressService = addressProvider.getProviders().get(provider);
                 addressResponse = new BatchCityStateResponse(addressService.lookupCityState(addresses));
@@ -177,7 +181,7 @@ public final class AddressController
         logger.info("--------------------------------------");
     }
 
-    private boolean checkProvider(String provider, Object addressResponse) {
+    private boolean checkProvider(String provider) {
         boolean providerIsGood = true;
         if (provider != null && !provider.isEmpty()) {
             if (!addressProvider.getProviders().containsKey(provider)) {

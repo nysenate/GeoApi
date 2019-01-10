@@ -1,6 +1,5 @@
 package gov.nysenate.sage.controller.api;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.district.*;
 import gov.nysenate.sage.config.Environment;
@@ -19,7 +18,6 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
@@ -78,9 +76,6 @@ public class DistrictController {
     private SqlDistrictResultLogger sqlDistrictResultLogger;
 
     private static String BLUEBIRD_DISTRICT_STRATEGY;
-
-    private final Environment env;
-
     private static Boolean SINGLE_LOGGING_ENABLED = false;
     private static Boolean BATCH_LOGGING_ENABLED = false;
 
@@ -97,7 +92,6 @@ public class DistrictController {
         this.revGeocodeProvider = revGeocodeProvider;
         this.mapProvider = mapProvider;
         this.districtMemberProvider = districtMemberProvider;
-        this.env = env;
         this.sqlGeocodeRequestLogger = sqlGeocodeRequestLogger;
         this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         this.sqlDistrictRequestLogger = sqlDistrictRequestLogger;
@@ -161,7 +155,7 @@ public class DistrictController {
     }
 
     @RequestMapping(value = "/assign/batch", method = RequestMethod.POST)
-    public void districtBatchAssign(HttpServletRequest request,
+    public void districtBatchAssign(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam(required = false) String provider,
                                     @RequestParam(required = false) String geoProvider,
                                     @RequestParam(required = false) boolean showMembers,

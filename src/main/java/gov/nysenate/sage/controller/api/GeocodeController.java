@@ -117,6 +117,11 @@ public class GeocodeController {
             return;
         }
 
+        Address uspsAddress = performAddressCorrection(geocodeRequest.getAddress());
+        if (uspsAddress != null) {
+            geocodeRequest.setAddress(uspsAddress);
+        }
+
         if (geocodeRequest.getAddress() != null && !geocodeRequest.getAddress().isEmpty()) {
             /** Obtain geocode result */
             GeocodeResult geocodeResult = geocodeServiceProvider.geocode(geocodeRequest);
@@ -333,7 +338,7 @@ public class GeocodeController {
      *
      * @return GeocodedAddress the address corrected geocodedAddress.
      */
-    private Address performAddressCorrection(Address address, GeocodeRequest geocodeRequest) {
+    private Address performAddressCorrection(Address address) {
         AddressResult addressResult = addressProvider.validate(address, null, false);
         if (addressResult != null && addressResult.isValidated()) {
             if (logger.isTraceEnabled()) {

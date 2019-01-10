@@ -2,7 +2,6 @@ package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.client.view.job.JobProcessStatusView;
-import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
 import gov.nysenate.sage.dao.model.api.SqlApiUserDao;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.dao.model.job.SqlJobUserDao;
@@ -43,7 +42,6 @@ public class AdminApiController
 {
     private Logger logger = LoggerFactory.getLogger(AdminApiController.class);
 
-    private SqlApiRequestLogger sqlApiRequestLogger;
     private SqlApiUserStatsDao sqlApiUserStatsDao;
     private SqlApiUsageStatsDao sqlApiUsageStatsDao;
     private SqlDeploymentStatsDao sqlDeploymentStatsDao;
@@ -56,12 +54,11 @@ public class AdminApiController
     private JobUserAuth jobUserAuth;
 
     @Autowired
-    public AdminApiController(SqlApiRequestLogger sqlApiRequestLogger, SqlApiUserStatsDao sqlApiUserStatsDao,
+    public AdminApiController(SqlApiUserStatsDao sqlApiUserStatsDao,
                               SqlApiUsageStatsDao sqlApiUsageStatsDao, SqlDeploymentStatsDao sqlDeploymentStatsDao,
                               SqlExceptionInfoDao sqlExceptionInfoDao, SqlApiUserDao sqlApiUserDao,
                               SqlJobUserDao sqlJobUserDao, SqlGeocodeStatsDao sqlGeocodeStatsDao,
                               SqlJobProcessDao sqlJobProcessDao, ApiUserAuth apiUserAuth, JobUserAuth jobUserAuth) {
-        this.sqlApiRequestLogger = sqlApiRequestLogger;
         this.sqlApiUserStatsDao = sqlApiUserStatsDao;
         this.sqlApiUsageStatsDao = sqlApiUsageStatsDao;
         this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;

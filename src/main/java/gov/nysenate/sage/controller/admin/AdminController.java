@@ -1,10 +1,6 @@
 package gov.nysenate.sage.controller.admin;
 
-import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
-import gov.nysenate.sage.dao.stats.api.SqlApiUsageStatsDao;
-import gov.nysenate.sage.dao.stats.api.SqlApiUserStatsDao;
-import gov.nysenate.sage.dao.stats.deployment.SqlDeploymentStatsDao;
 import gov.nysenate.sage.model.admin.AdminUser;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -30,21 +26,10 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.*;
 public class AdminController
 {
     private Logger logger = LoggerFactory.getLogger(AdminController.class);
-
-    private SqlApiRequestLogger sqlApiRequestLogger;
-    private SqlApiUserStatsDao sqlApiUserStatsDao;
-    private SqlApiUsageStatsDao sqlApiUsageStatsDao;
-    private SqlDeploymentStatsDao sqlDeploymentStatsDao;
     private SqlAdminUserDao sqlAdminUserDao;
 
     @Autowired
-    public AdminController(SqlApiRequestLogger sqlApiRequestLogger, SqlApiUserStatsDao sqlApiUserStatsDao,
-                           SqlApiUsageStatsDao sqlApiUsageStatsDao, SqlDeploymentStatsDao sqlDeploymentStatsDao,
-                           SqlAdminUserDao sqlAdminUserDao) {
-        this.sqlApiRequestLogger = sqlApiRequestLogger;
-        this.sqlApiUserStatsDao = sqlApiUserStatsDao;
-        this.sqlApiUsageStatsDao = sqlApiUsageStatsDao;
-        this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;
+    public AdminController(SqlAdminUserDao sqlAdminUserDao) {
         this.sqlAdminUserDao = sqlAdminUserDao;
     }
 

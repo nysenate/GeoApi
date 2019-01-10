@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
 import static gov.nysenate.sage.model.result.ResultStatus.API_REQUEST_INVALID;
@@ -33,7 +34,7 @@ public class DataController {
     }
 
     @RequestMapping(value = "/sencache", method = RequestMethod.GET)
-    public void updateSencache(HttpServletRequest request) {
+    public void updateSencache(HttpServletRequest request, HttpServletResponse response) {
         Object responseCode = new ApiError(this.getClass(), API_REQUEST_INVALID);
 
         ApiRequest apiRequest = getApiRequest(request);

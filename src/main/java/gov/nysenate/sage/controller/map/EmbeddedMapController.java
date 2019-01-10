@@ -13,8 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static gov.nysenate.sage.util.controller.ConstantUtil.MAPS_JSP;
-
 /**
  * Provides a map view of a given district without any wrapper user interface elements.
  */
