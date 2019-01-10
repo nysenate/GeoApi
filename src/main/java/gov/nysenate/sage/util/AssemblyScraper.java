@@ -4,7 +4,6 @@ import gov.nysenate.sage.model.district.Assembly;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -13,8 +12,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
-
-import gov.nysenate.sage.model.district.Assembly;
 
 
 /**

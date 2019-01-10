@@ -13,6 +13,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ public class Geoserver implements DistrictService
 
     private ParallelDistrictService parallelDistrictService;
 
+    @Autowired
     public Geoserver(HttpGeoserverDao httpGeoserverDao, BaseDao baseDao, ParallelDistrictService parallelDistrictService,
                      Environment env)
     {
@@ -50,21 +52,25 @@ public class Geoserver implements DistrictService
         logger.debug("Geoserver instantiated");
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean requiresGeocode() { return true; }
 
+    /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
     {
         return assignDistricts(geocodedAddress, DistrictType.getStandardTypes());
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses)
     {
         return assignDistricts(geocodedAddresses, DistrictType.getStandardTypes());
     }
 
+    /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
     {
@@ -92,23 +98,27 @@ public class Geoserver implements DistrictService
         return districtResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes)
     {
         return parallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
     }
 
+    /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
         return assignDistricts(geocodedAddress, reqTypes);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType) {
         logger.warn("Nearby districts is not implemented in Geoserver");
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count) {
         logger.warn("Nearby districts is not implemented in Geoserver");

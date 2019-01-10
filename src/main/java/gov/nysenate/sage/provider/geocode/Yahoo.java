@@ -36,6 +36,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
 
     /** Geocode Service Implementation -----------------------------------------------------------*/
 
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult geocode(Address address)
     {
@@ -63,6 +64,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
         return geocodeResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
@@ -88,11 +90,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
 
     /** Reverse Geocode Service Implementation ---------------------------------------------------*/
 
-    /**
-    * Reverse Geocode using Yahoo Free
-    * @param point Point to lookup address for
-    * @return      GeocodeResult
-    */
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult reverseGeocode(Point point)
     {
@@ -113,11 +111,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
         return geocodeResult;
     }
 
-    /**
-    * Batch Reverse Geocode using Yahoo Free. Simply runs the single version in parallel.
-    * @param points Points to lookup addresses for
-    * @return       ArrayList<GeocodeResult>
-    */
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {

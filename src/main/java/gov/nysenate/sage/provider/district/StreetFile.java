@@ -47,9 +47,11 @@ public class StreetFile implements DistrictService, StreetLookupService
         logger.debug("Instantiated StreetFile.");
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean requiresGeocode() { return false; }
 
+    /** {@inheritDoc} */
     @Override
     public List<DistrictedStreetRange> streetLookup(String zip5)
     {
@@ -62,12 +64,14 @@ public class StreetFile implements DistrictService, StreetLookupService
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
     {
         return assignDistricts(geocodedAddress, DistrictType.getStateBasedTypes());
     }
 
+    /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
     {
@@ -127,24 +131,28 @@ public class StreetFile implements DistrictService, StreetLookupService
         return districtResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
     {
         return assignDistricts(geocodedAddress, reqTypes);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses)
     {
         return parallelDistrictService.assignDistricts(this, geocodedAddresses, DistrictType.getStateBasedTypes());
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> types)
     {
         return parallelDistrictService.assignDistricts(this, geocodedAddresses, types);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType)
     {
@@ -152,6 +160,7 @@ public class StreetFile implements DistrictService, StreetLookupService
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count)
     {

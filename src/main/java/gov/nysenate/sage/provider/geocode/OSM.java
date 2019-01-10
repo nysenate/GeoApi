@@ -50,6 +50,7 @@ public class OSM implements GeocodeService
         this.objectMapper = new ObjectMapper();
     }
 
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult geocode(Address address)
     {
@@ -73,7 +74,6 @@ public class OSM implements GeocodeService
             String json = UrlRequest.getResponseFromUrl(url);
             logger.debug(json);
 
-            /** TODO add proper status error code */
             if (json == null || json.isEmpty() || json.equals("[]")) {
                 logger.debug("No response from OSM");
                 geocodeResult.setStatusCode(ResultStatus.RESPONSE_ERROR);
@@ -140,6 +140,7 @@ public class OSM implements GeocodeService
         return geocodeResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {

@@ -40,6 +40,7 @@ public class GoogleGeocoder implements GeocodeService, RevGeocodeService
 
     /** Geocode Service Implementation -----------------------------------------------------------*/
 
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult geocode(Address address)
     {
@@ -67,6 +68,7 @@ public class GoogleGeocoder implements GeocodeService, RevGeocodeService
         return geocodeResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
@@ -75,6 +77,7 @@ public class GoogleGeocoder implements GeocodeService, RevGeocodeService
 
     /** Rev-Geocode Service Implementation -------------------------------------------------------*/
 
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult reverseGeocode(Point point)
     {
@@ -95,6 +98,7 @@ public class GoogleGeocoder implements GeocodeService, RevGeocodeService
         return geocodeResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {

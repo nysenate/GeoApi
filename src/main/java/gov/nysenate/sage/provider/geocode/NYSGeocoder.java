@@ -39,6 +39,7 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
 
     /** Geocode Service Implementation -----------------------------------------------------------*/
 
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult geocode(Address address)
     {
@@ -66,12 +67,14 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
         return geocodeResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
         return parallelGeocodeService.geocode(this, addresses);
     }
 
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult reverseGeocode(Point point)
     {
@@ -92,6 +95,7 @@ public class NYSGeocoder implements GeocodeService, RevGeocodeService {
         return geocodeResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {

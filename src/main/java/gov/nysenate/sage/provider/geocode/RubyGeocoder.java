@@ -38,17 +38,13 @@ public class RubyGeocoder implements GeocodeService
     {
         this.logger = LoggerFactory.getLogger(this.getClass());
         this.jsonMapper = new ObjectMapper();
-        configure();
+        m_baseUrl = DEFAULT_BASE_URL+"/geocode";
+        m_baseBulkUrl = DEFAULT_BASE_URL+"/bulk";
         logger.debug("Initialized RubyGeocoder Adapter");
         this.geocodeServiceValidator = geocodeServiceValidator;
     }
 
-    private void configure()
-    {
-        m_baseUrl = DEFAULT_BASE_URL+"/geocode";
-        m_baseBulkUrl = DEFAULT_BASE_URL+"/bulk";
-    }
-
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult geocode(Address address)
     {
@@ -98,6 +94,7 @@ public class RubyGeocoder implements GeocodeService
         return geocodeResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {

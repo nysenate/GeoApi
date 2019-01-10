@@ -33,11 +33,7 @@ public class YahooBoss implements GeocodeService
         this.parallelGeocodeService = parallelGeocodeService;
     }
 
-    /**
-     * Perform geocoding using Yahoo Boss
-     * @param address  Address to geocode
-     * @return         GeocodeResult
-     */
+    /** {@inheritDoc} */
     public GeocodeResult geocode(Address address)
     {
         logger.debug("Performing geocoding using Yahoo Boss");
@@ -63,12 +59,7 @@ public class YahooBoss implements GeocodeService
         return geocodeResult;
     }
 
-    /**
-    * Yahoo Boss doesn't implement batch geocoding so we use the single address geocoding
-    * method in parallel for performance improvements on our end.
-    * @param addresses Addresses to batch geocode
-    * @return ArrayList<GeocodeResult>
-    */
+    /** {@inheritDoc} */
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
         return parallelGeocodeService.geocode(this, addresses);

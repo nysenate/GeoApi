@@ -47,11 +47,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
         logger.debug("Instantiated TigerGeocoder.");
     }
 
-    /**
-     * Geocode a single address using TigerGeocoder.
-     * @param address   Address to geocode
-     * @return          GeocodeResult
-     */
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult geocode(Address address)
     {
@@ -93,12 +89,14 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
         return geocodeResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
         return parallelGeocodeService.geocode(this, addresses);
     }
 
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult reverseGeocode(Point point)
     {
@@ -116,6 +114,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
         return geocodeResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {

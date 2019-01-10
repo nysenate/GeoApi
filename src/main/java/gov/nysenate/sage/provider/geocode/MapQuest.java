@@ -8,6 +8,7 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.geo.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ public class MapQuest implements GeocodeService, RevGeocodeService
     private BaseDao baseDao;
     private Environment env;
 
+    @Autowired
     public MapQuest(BaseDao baseDao, HttpMapQuestDao httpMapQuestDao, GeocodeServiceValidator geocodeServiceValidator,
                     ParallelRevGeocodeService parallelRevGeocodeService, Environment env)
     {
@@ -48,11 +50,7 @@ public class MapQuest implements GeocodeService, RevGeocodeService
 
     /** Geocode Service Implementation ------------------------------------------------------------------*/
 
-    /**
-     * Geocodes a single address by delegating to the batch geocoding method
-     * @param address Address to geocode
-     * @return        GeocodeResult
-     */
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult geocode(Address address)
     {
@@ -74,12 +72,7 @@ public class MapQuest implements GeocodeService, RevGeocodeService
         return geocodeResult;
     }
 
-    /**
-    * Geocodes multiple addresses in a batch. Mapquest provides a native batch
-    * geocoding api so this is used for all requests.
-    * @param addresses List of Addresses to geocode
-    * @return          List of GeocodeResults
-    */
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
@@ -103,12 +96,7 @@ public class MapQuest implements GeocodeService, RevGeocodeService
 
     /** Reverse Geocode Service Implementation ----------------------------------------------------------*/
 
-    /**
-    * Given a lat lng pair return the address that is closest to that point.
-    * Mapquest does not have a bulk option for this operation.
-    * @param point     Point to reverse geocode.
-    * @return          GeocodeResult
-    */
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult reverseGeocode(Point point)
     {
@@ -129,11 +117,7 @@ public class MapQuest implements GeocodeService, RevGeocodeService
         return geocodeResult;
     }
 
-    /**
-    * Performs batch reverseGeocodes
-    * @param points    List<Point>
-    * @return          List<GeocodeResult>
-    */
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
     {

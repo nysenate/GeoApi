@@ -30,7 +30,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
 
 @Service
-public class DistrictShapefile implements DistrictService, MapService, Observer
+public class DistrictShapefile implements DistrictService, MapService
 {
     private static Logger logger = LoggerFactory.getLogger(DistrictShapefile.class);
     private final Environment env;
@@ -60,18 +60,15 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
         this.sqlTigerGeocoderDao = sqlTigerGeocoderDao;
         this.parallelDistrictService = parallelDistrictService;
         this.env = env;
-        update(null, null);
+        NEIGHBOR_PROXIMITY = env.getNeighborProximity();
         logger.debug("Instantiated DistrictShapefile.");
     }
 
-    @Override
-    public void update(Observable o, Object arg) {
-        NEIGHBOR_PROXIMITY = env.getNeighborProximity();
-    }
-
+    /** {@inheritDoc} */
     @Override
     public boolean requiresGeocode() { return true; }
 
+    /** {@inheritDoc} */
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes, boolean getSpecialMaps, boolean getProximity)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
@@ -106,60 +103,49 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
         return districtResult;
     }
 
-    /**
-     * Delegates to assignDistricts with reqTypes set as all state-based districts.
-     * @param geocodedAddress
-     * @return
-     */
+    /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
     {
         return assignDistricts(geocodedAddress, DistrictType.getStateBasedTypes());
     }
 
-    /**
-     * Performs district assign and retrieves certain map data along with proximities.
-     * @param geocodedAddress Geocoded address
-     * @param reqTypes        Required types to district assign.
-     * @return                DistrictResult
-     */
+    /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
     {
         return assignDistricts(geocodedAddress, reqTypes, true, true);
     }
 
-    /**
-     * Performs district assign but does not retrieve any maps or proximity info. This method is intended
-     * to be called through the ParallelDistrictService.
-     * @param geocodedAddress
-     * @param reqTypes
-     * @return
-     */
+    /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
     {
         return assignDistricts(geocodedAddress, reqTypes, false, false);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses)
     {
         return assignDistricts(geocodedAddresses, DistrictType.getStandardTypes());
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes)
     {
         return parallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType)
     {
         return nearbyDistricts(geocodedAddress, districtType, MAX_NEIGHBORS);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count)
     {
@@ -170,7 +156,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
         return null;
     }
 
-
+    /** {@inheritDoc} */
     @Override
     public MapResult getDistrictMap(DistrictType districtType, String code)
     {
@@ -197,6 +183,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
         return mapResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public MapResult getDistrictMaps(DistrictType districtType)
     {
@@ -218,7 +205,7 @@ public class DistrictShapefile implements DistrictService, MapService, Observer
      * @param geocodedAddress GeocodedAddress
      * @return DistrictResult with overlaps and street ranges set.
      */
-        public DistrictResult getMultiMatchResult(GeocodedAddress geocodedAddress, Boolean zipProvided)
+    public DistrictResult getMultiMatchResult(GeocodedAddress geocodedAddress, Boolean zipProvided)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
         DistrictedAddress districtedAddress = new DistrictedAddress(geocodedAddress, null, DistrictMatchLevel.NOMATCH);

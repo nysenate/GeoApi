@@ -2,7 +2,6 @@ package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.address.Address;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
 
 import java.util.HashSet;
 import java.util.Set;

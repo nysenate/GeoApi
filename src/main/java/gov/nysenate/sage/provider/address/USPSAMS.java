@@ -27,11 +27,7 @@ public class USPSAMS implements AddressService
         this.uspsAmsDaoSql = uspsAmsDaoSql;
     }
 
-    /**
-     * Performs USPS validation for a single address using the AMS Web Service.
-     * @param address Address to validate
-     * @return AddressResult
-     */
+    /** {@inheritDoc} */
     @Override
     public AddressResult validate(Address address) 
     {
@@ -45,20 +41,7 @@ public class USPSAMS implements AddressService
         return new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
-    /**
-     * Performs batch USPS validation using the AMS Web Service.
-     *
-     * If there was an error in retrieving the results, a list the same size as the
-     * input address list will be returned. Each entry in that list will contain an
-     * error AddressResult.
-     *
-     * If the input list is null, null will be returned.
-     *
-     * If the input list is empty, a single error AddressResult will be returned in the list.
-     *
-     * @param addresses Addresses to validate
-     * @return List<AddressResult>
-     */
+    /** {@inheritDoc} */
     @Override
     public List<AddressResult> validate(List<Address> addresses)
     {
@@ -84,6 +67,7 @@ public class USPSAMS implements AddressService
         return Arrays.asList(new AddressResult(this.getClass(), ResultStatus.MISSING_ADDRESS));
     }
 
+    /** {@inheritDoc} */
     @Override
     public AddressResult lookupCityState(Address address) 
     {
@@ -98,6 +82,7 @@ public class USPSAMS implements AddressService
         return new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<AddressResult> lookupCityState(List<Address> addresses)
     {
@@ -112,22 +97,14 @@ public class USPSAMS implements AddressService
         return Arrays.asList(new AddressResult(this.getClass(), ResultStatus.MISSING_ADDRESS));
     }
 
-    /**
-     * Proxies to validate since there is no specific API call available.
-     * @param address Address to lookup
-     * @return AddressResult
-     */
+    /** {@inheritDoc} */
     @Override
     public AddressResult lookupZipCode(Address address) 
     {
         return validate(address);
     }
 
-    /**
-     * Proxies to validate since there is no specific API call available.
-     * @param addresses Addresses to lookup
-     * @return List<AddressResult>
-     */
+    /** {@inheritDoc} */
     @Override
     public List<AddressResult> lookupZipCode(List<Address> addresses)
     {

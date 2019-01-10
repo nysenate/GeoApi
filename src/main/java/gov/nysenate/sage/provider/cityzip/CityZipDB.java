@@ -20,17 +20,14 @@ public class CityZipDB implements CityZipService
         this.sqlCityZipDBDao = sqlCityZipDBDao;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getCityByZip(String zip5)
     {
         return null;
     }
 
-    /**
-     * Retrieves a list of zip5 codes that are contained within the given city.
-     * @param city Name of the city
-     * @return List of zip5 codes
-     */
+    /** {@inheritDoc} */
     @Override
     public List<String> getZipsByCity(String city)
     {

@@ -58,6 +58,7 @@ public class GeoCache implements GeocodeCacheService
         return cacheableProviders.contains(provider);
     }
 
+    /** {@inheritDoc} */
     @Override
     public GeocodeResult geocode(Address address)
     {
@@ -84,12 +85,14 @@ public class GeoCache implements GeocodeCacheService
         return geocodeResult;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
     {
         return parallelGeocodeService.geocode(this, addresses);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void saveToCache(GeocodeResult geocodeResult)
     {
@@ -100,6 +103,7 @@ public class GeoCache implements GeocodeCacheService
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public void saveToCacheAndFlush(GeocodeResult geocodeResult)
     {
@@ -107,6 +111,7 @@ public class GeoCache implements GeocodeCacheService
         sqlGeoCacheDao.flushCacheBuffer();
     }
 
+    /** {@inheritDoc} */
     @Override
     public void saveToCache(List<GeocodeResult> geocodeResults)
     {
@@ -121,6 +126,7 @@ public class GeoCache implements GeocodeCacheService
         sqlGeoCacheDao.cacheGeocodedAddresses(geocodedAddresses);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void saveToCacheAndFlush(List<GeocodeResult> geocodeResults)
     {
