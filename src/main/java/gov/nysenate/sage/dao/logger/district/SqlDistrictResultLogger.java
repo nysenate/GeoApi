@@ -1,14 +1,12 @@
 package gov.nysenate.sage.dao.logger.district;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
-import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,23 +23,17 @@ import java.util.Iterator;
 import java.util.List;
 
 @Repository
-public class SqlDistrictResultLogger
+public class SqlDistrictResultLogger implements DistrictResultLogger
 {
     private static Logger logger = LoggerFactory.getLogger(SqlDistrictResultLogger.class);
     private static SqlDistrictRequestLogger distRequestLogger;
-
-    private static String SCHEMA = "log";
-    private static String TABLE = "districtResult";
     private static Boolean SAVE_LOCK = false;
-
-    private QueryRunner run;
     private BaseDao baseDao;
 
     @Autowired
     public SqlDistrictResultLogger(SqlDistrictRequestLogger distRequestLogger, BaseDao baseDao) {
         this.distRequestLogger = distRequestLogger;
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
     /** Batch cache */
@@ -50,24 +42,14 @@ public class SqlDistrictResultLogger
     /** Temporary cache for when the data is being saved to the database */
     private static List<Pair<DistrictRequest, DistrictResult>> tempCache = new ArrayList<>();
 
-    /**
-     * Logs a DistrictRequest and the corresponding DistrictResult to the database.
-     * @param districtRequest
-     * @param districtResult
-     * @return
-     */
+    /** {@inheritDoc} */
     public int logDistrictRequestAndResult(DistrictRequest districtRequest, DistrictResult districtResult)
     {
         int distRequestId = distRequestLogger.logDistrictRequest(districtRequest);
         return logDistrictResult(distRequestId, districtResult);
     }
 
-    /**
-     * Log a district result into the database
-     * @param districtRequestId Id of the logged district request
-     * @param dr DistrictResult
-     * @return id of the inserted DistrictResult
-     */
+    /** {@inheritDoc} */
     public int logDistrictResult(int districtRequestId, DistrictResult dr)
     {
         logger.trace("Starting to log district result");
@@ -115,12 +97,7 @@ public class SqlDistrictResultLogger
         return 0;
     }
 
-    /**
-     * Logs batch district results using a single BatchDistrictRequest and a List of DistrictResult objects.
-     * @param batchDistRequest
-     * @param districtResults
-     * @param flush if true, then db insert will happen right away. Otherwise it can be delayed.
-     */
+    /** {@inheritDoc} */
     public void logBatchDistrictResults(BatchDistrictRequest batchDistRequest, List<DistrictResult> districtResults, boolean flush) {
         if (batchDistRequest != null && districtResults != null) {
             for (int i = 0; i < batchDistRequest.getGeocodedAddresses().size(); i++) {
@@ -146,10 +123,7 @@ public class SqlDistrictResultLogger
         }
     }
 
-    /**
-     * Returns the current size of the batch log cache.
-     * @return int
-     */
+    /** {@inheritDoc} */
     public int getLogCacheSize()
     {
         return batchDistLogCache.size();

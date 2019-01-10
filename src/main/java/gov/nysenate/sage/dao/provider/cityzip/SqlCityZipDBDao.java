@@ -1,8 +1,6 @@
 package gov.nysenate.sage.dao.provider.cityzip;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +16,6 @@ import java.util.*;
 public class SqlCityZipDBDao implements CityZipDBDao
 {
     private Logger logger = LoggerFactory.getLogger(SqlCityZipDBDao.class);
-    private QueryRunner run;
     private BaseDao baseDao;
 
     private static String SCHEMA = "public";
@@ -31,14 +28,9 @@ public class SqlCityZipDBDao implements CityZipDBDao
     @Autowired
     public SqlCityZipDBDao(BaseDao baseDao) {
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
-    /**
-     * Returns a list of zip codes given a city name.
-     * @param city
-     * @return List of matching zip5 strings.
-     */
+    /** {@inheritDoc} */
     public List<String> getZipsByCity(String city)
     {
         if (city == null || city.isEmpty()) return null; // Short circuit

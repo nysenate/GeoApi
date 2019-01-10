@@ -23,7 +23,6 @@ import java.net.URLEncoder;
 public class HttpYahooBossDao implements YahooBossDao
 {
     private static final Logger logger = LoggerFactory.getLogger(HttpYahooBossDao.class);
-    private static final String DEFAULT_BASE_URL = "http://yboss.yahooapis.com/geo/placefinder";
     private static String CONSUMER_KEY;
     private static String CONSUMER_SECRET;
 
@@ -43,6 +42,7 @@ public class HttpYahooBossDao implements YahooBossDao
         this.CONSUMER_SECRET = this.env.getYahooBossConsumerSecret();
     }
 
+    /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Address address)
     {
         try {

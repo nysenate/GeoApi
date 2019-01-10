@@ -22,9 +22,6 @@ import java.io.IOException;
 public class HttpNYSGeoDao {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpNYSGeoDao.class);
-
-    private Environment env;
-
     private final String DEFAULT_BASE_URL;
 
     private final String GEOCODE_EXTENSION;
@@ -40,20 +37,12 @@ public class HttpNYSGeoDao {
 
     @Autowired
     public HttpNYSGeoDao(Environment env) {
-        this.env = env;
         this.DEFAULT_BASE_URL = env.getNysGeocoderUrl();
         this.GEOCODE_EXTENSION = env.getNysGeocdeExtension();
         this.REV_GEOCODE_EXTENSION = env.getNysRevGeocodeExtension();
     }
 
-    /**
-     * This method performs geocoding.
-     * Retrieves a GeocodedAddress given an Address using the NYS geocoder.
-     *
-     * @param address   Address to geocode
-     * @return          GeocodedAddress containing best matched Geocode.
-     *                  null if there was a fatal error
-     */
+    /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Address address)
     {
         StreetAddress streetAddress = StreetAddressParser.parseAddress(address);
@@ -72,14 +61,7 @@ public class HttpNYSGeoDao {
         return geocodedAddress;
     }
 
-    /**
-     * This method performs geocoding.
-     * Retrieves a GeocodedAddress given an Address using the NYS geocoder.
-     *
-     * @param point   Point to geocode
-     * @return          GeocodedAddress containing best matched Geocode.
-     *                  null if there was a fatal error
-     */
+    /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Point point)
     {
         GeocodedAddress geocodedAddress = null;
@@ -96,11 +78,7 @@ public class HttpNYSGeoDao {
         return geocodedAddress;
     }
 
-    /**
-     * Sends out a request to the NYS geocoder at the given url and returns a GeocodedAddress if successful.
-     * @param urlString String
-     * @return GeocodedAddress, or null if no match
-     */
+    /** {@inheritDoc} */
     private GeocodedAddress getGeocodedAddress(String urlString, boolean isRevGeocode) {
         GeocodedAddress geocodedAddress = null;
         boolean resultParsed = false;

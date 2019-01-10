@@ -8,11 +8,6 @@ import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
-import org.apache.commons.dbutils.BasicRowProcessor;
-import org.apache.commons.dbutils.BeanProcessor;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -21,7 +16,6 @@ import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -36,27 +30,17 @@ import java.util.*;
 public class SqlTigerGeocoderDao implements TigerGeocoderDao
 {
     private static Logger logger = LoggerFactory.getLogger(SqlTigerGeocoderDao.class);
-    private Environment env;
-    private QueryRunner run;
     private int GEOCODER_TIMEOUT = 15000; //ms
     private BaseDao baseDao;
 
     @Autowired
     public SqlTigerGeocoderDao(Environment env, BaseDao baseDao) {
         this.baseDao = baseDao;
-        run = this.baseDao.getTigerQueryRunner();
-        this.env = env;
         GEOCODER_TIMEOUT = env.getTigerGeocoderTimeout();
     }
 
-    /**
-     * Performs geocoding and returns a GeocodedStreetAddress. A timeout is also enabled because some queries
-     * can just go on indefinitely.
-     * @param conn
-     * @param address
-     * @return
-     */
-    public GeocodedStreetAddress getGeocodedStreetAddress(Connection conn, Address address)
+    /** {@inheritDoc} */
+    public GeocodedStreetAddress getGeocodedStreetAddress(Address address)
     {
         GeocodedStreetAddress geoStreetAddress = null;
         String sql = "SELECT g.rating, ST_Y(geomout) As lat, ST_X(geomout) As lon, (addy).* \n" +
@@ -75,24 +59,10 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
         catch (Exception ex){
             logger.warn(ex.getMessage());
         }
-        finally {
-            this.baseDao.closeConnection(conn);
-        }
-
         return geoStreetAddress;
     }
 
-    public GeocodedStreetAddress getGeocodedStreetAddress(Address address)
-    {
-        return getGeocodedStreetAddress(this.baseDao.getTigerConnection(), address);
-    }
-
-    /**
-     * This method may be used to parse an Address into it's street address components using
-     * Tiger Geocoder's built in address parser.
-     * @param address   Address to parse
-     * @return          Street Address containing the parsed components
-     */
+    /** {@inheritDoc} */
     public StreetAddress getStreetAddress(Address address)
     {
         String sql = "SELECT * FROM normalize_address(:address)";
@@ -113,13 +83,7 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
         return null;
     }
 
-    /**
-     * Reverse geocodes a point and returns a StreetAddress that is close to that point. The
-     * reverse geocoder actually returns an intersection but to keep the model simple the first
-     * street address is returned.
-     * @param point Point to reverse geocode
-     * @return      StreetAddress or null if no matches
-     */
+    /** {@inheritDoc} */
     public StreetAddress getStreetAddress(Point point)
     {
         String sql = "SELECT (addy[1]).* " +
@@ -139,11 +103,7 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
         return null;
     }
 
-    /**
-     * Retrieves a list of street names that are contained within the supplied zipcode
-     * @param zip5
-     * @return List<String>
-     */
+    /** {@inheritDoc} */
     public List<String> getStreetsInZip(String zip5)
     {
         String sql =
@@ -163,12 +123,7 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
         return null;
     }
 
-    /**
-     * Retrieves JSON geometry for a street that is matched in the set of zip5s.
-     * @param streetName
-     * @param zip5List
-     * @return GeoJSON string or null if no match.
-     */
+    /** {@inheritDoc} */
     public String getStreetLineGeometryAsJson(String streetName, List<String> zip5List) {
         if (zip5List == null || zip5List.isEmpty()) return null; // short circuit
         String sql =
@@ -205,12 +160,7 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
         return null;
     }
 
-    /**
-     * Retrieves a collection of line objects by processing the result of getStreetLineGeometryAsJson().
-     * @param streetName
-     * @param zip5List
-     * @return
-     */
+    /** {@inheritDoc} */
     public List<Line> getStreetLineGeometry(String streetName, List<String> zip5List)
     {
         String streetLineJson = getStreetLineGeometryAsJson(streetName, zip5List);

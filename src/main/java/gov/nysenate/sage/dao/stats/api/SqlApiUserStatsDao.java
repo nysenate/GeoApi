@@ -3,8 +3,6 @@ package gov.nysenate.sage.dao.stats.api;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.api.SqlApiUserDao;
 import gov.nysenate.sage.model.stats.ApiUserStats;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -15,7 +13,6 @@ import org.slf4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,15 +22,14 @@ public class SqlApiUserStatsDao implements ApiUserStatsDao {
     private static Logger logger = LoggerFactory.getLogger(SqlApiUserStatsDao.class);
     private SqlApiUserDao sqlApiUserDao;
     private BaseDao baseDao;
-    private QueryRunner run;
 
     @Autowired
     public SqlApiUserStatsDao(SqlApiUserDao sqlApiUserDao, BaseDao baseDao) {
         this.sqlApiUserDao = sqlApiUserDao;
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
+    /** {@inheritDoc} */
     public Map<Integer, ApiUserStats> getRequestCounts(Timestamp from, Timestamp to) {
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();

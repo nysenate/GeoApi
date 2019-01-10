@@ -4,8 +4,6 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
 import gov.nysenate.sage.dao.stats.deployment.SqlDeploymentStatsDao;
 import gov.nysenate.sage.model.stats.ExceptionInfo;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -15,17 +13,11 @@ import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class SqlExceptionInfoDao {
     private static Logger logger = LoggerFactory.getLogger(SqlDeploymentStatsDao.class);
-
-    private String SCHEMA = "log";
-    private String TABLE = "exception";
-
-    private QueryRunner run;
 
     private SqlApiRequestLogger sqlApiRequestLogger;
     private BaseDao baseDao;
@@ -34,15 +26,9 @@ public class SqlExceptionInfoDao {
     public SqlExceptionInfoDao(SqlApiRequestLogger sqlApiRequestLogger, BaseDao baseDao) {
         this.sqlApiRequestLogger = sqlApiRequestLogger;
         this.baseDao = baseDao;
-        run = baseDao.getQueryRunner();
     }
 
-    /**
-     * Retrieves a list of all unhandled exceptions.
-     *
-     * @param excludeHidden If true only non-hidden exceptions will be retrieved.
-     * @return List<ExceptionInfo>
-     */
+    /** {@inheritDoc} */
     public List<ExceptionInfo> getExceptionInfoList(Boolean excludeHidden) {
         try {
 
@@ -62,19 +48,13 @@ public class SqlExceptionInfoDao {
         return null;
     }
 
-    /**
-     * Marks an exception as hidden so that it won't appear in the interface.
-     *
-     * @param id Id of the exception info.
-     */
+    /** {@inheritDoc} */
     public int hideExceptionInfo(int id) {
-        String sql = "UPDATE " + SCHEMA + "." + TABLE + "\n" +
-                "SET hidden = true \n" +
-                "WHERE id = ?";
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("id", id);
-            return baseDao.geoApiNamedJbdcTemaplate.update(sql, params);
+            return baseDao.geoApiNamedJbdcTemaplate.update(
+                    ExceptionInfoQuery.HIDE_EXCEPTION.getSql(baseDao.getLogSchema()), params);
         } catch (Exception ex) {
             logger.error("Failed to hide exception with id: " + id, ex);
         }

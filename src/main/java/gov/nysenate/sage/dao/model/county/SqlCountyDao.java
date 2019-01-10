@@ -31,6 +31,7 @@ public class SqlCountyDao implements CountyDao
 
     private static Map<Integer, County> fipsCountyMap;
 
+    /** {@inheritDoc} */
     public List<County> getCounties()
     {
         try {
@@ -43,6 +44,7 @@ public class SqlCountyDao implements CountyDao
         return null;
     }
 
+    /** {@inheritDoc} */
     public Map<Integer, County> getFipsCountyMap()
     {
         if (fipsCountyMap == null) {
@@ -57,6 +59,7 @@ public class SqlCountyDao implements CountyDao
         return fipsCountyMap;
     }
 
+    /** {@inheritDoc} */
     public County getCountyById(int id)
     {
         try {
@@ -76,6 +79,7 @@ public class SqlCountyDao implements CountyDao
         return null;
     }
 
+    /** {@inheritDoc} */
     public County getCountyByName(String name)
     {
         try {
@@ -96,6 +100,7 @@ public class SqlCountyDao implements CountyDao
         return null;
     }
 
+    /** {@inheritDoc} */
     public County getCountyByFipsCode(int fipsCode)
     {
         try {

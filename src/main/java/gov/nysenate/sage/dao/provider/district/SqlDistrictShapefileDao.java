@@ -10,8 +10,6 @@ import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +30,10 @@ import java.util.*;
  * overlaps and intersections between districts.
  */
 @Repository
-public class SqlDistrictShapefileDao
+public class SqlDistrictShapefileDao implements DistrictShapeFileDao
 {
     private static final String SCHEMA = "districts";
     private final Logger logger = LoggerFactory.getLogger(SqlDistrictShapefileDao.class);
-    private QueryRunner run;
-
     private BaseDao baseDao;
     private SqlCountyDao sqlCountyDao;
 
@@ -56,21 +52,13 @@ public class SqlDistrictShapefileDao
     public SqlDistrictShapefileDao(BaseDao baseDao, SqlCountyDao sqlCountyDao) {
         this.baseDao = baseDao;
         this.sqlCountyDao = sqlCountyDao;
-        run = this.baseDao.getQueryRunner();
         /** Initialize district map cache */
         if (!cacheDistrictMaps()) {
             throw new RuntimeException("Failed to initialize district map cache");
         };
     }
 
-    /**
-     * Retrieves a DistrictInfo object based on the districts that intersect the given point.
-     * @param point          Point of interest
-     * @param districtTypes  Collection of district types to resolve
-     * @param getSpecialMaps If true then query will return DistrictMap values for districts in the retrieveMapSet
-     *                       since they do not have a unique district code identifier.
-     * @return  DistrictInfo if query was successful, null otherwise
-     */
+    /** {@inheritDoc} */
     public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps, boolean getProximity)
     {
         /** Template SQL for looking up district given a point */
@@ -112,17 +100,7 @@ public class SqlDistrictShapefileDao
         return null;
     }
 
-    /**
-     * Creates and returns a DistrictOverlap object which contains lists of all districts that contained
-     * within a collection of other districts and maps of intersections for senate districts. This is used
-     * for a zip/city level match where given a collection of zip codes, gather the other types of districts
-     * that overlap the zip area.
-     * @param targetDistrictType The DistrictType of get overlap info for.
-     * @param targetCodes        The list of codes that overlap the area (obtained through street files for performance)
-     * @param refDistrictType    The DistrictType to base the intersections of off.
-     * @param refCodes           The list of codes that represent the base area.
-     * @return DistrictOverlap
-     */
+    /** {@inheritDoc} */
     public DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType, Set<String> targetCodes,
                       DistrictType refDistrictType, Set<String> refCodes)
     {
@@ -169,6 +147,7 @@ public class SqlDistrictShapefileDao
         return null;
     }
 
+    /** {@inheritDoc} */
     public Map<String, List<Line>> getIntersectingStreetLine(DistrictType districtType, Set<String> codes, String jsonGeom)
     {
         String sqlTmpl =
@@ -195,14 +174,7 @@ public class SqlDistrictShapefileDao
         return null;
     }
 
-    /**
-     * Generates a DistrictMap containing geometry that represents the area contained within the
-     * supplied reference district codes of type refDistrictType. Useful for obtaining the polygon that
-     * represents a collection of zip codes for example.
-     * @param refDistrictType The reference district type.
-     * @param refCodes        The reference district codes.
-     * @return DistrictMap
-     */
+    /** {@inheritDoc} */
     public DistrictMap getOverlapReferenceBoundary(DistrictType refDistrictType, Set<String> refCodes)
     {
         String sql = "SELECT ST_AsGeoJson(ST_CollectionExtract(source.geom, 3)) AS source_map \n" +
@@ -232,10 +204,7 @@ public class SqlDistrictShapefileDao
         return null;
     }
 
-    /**
-     * Retrieves a mapped collection of district code to DistrictMap that's grouped by DistrictType.
-     * @return Map<DistrictType, Map<String, DistrictMap>>
-     */
+    /** {@inheritDoc} */
     public Map<DistrictType, Map<String, DistrictMap>> getDistrictMapLookup()
     {
         if (districtMapLookup == null) {
@@ -244,10 +213,7 @@ public class SqlDistrictShapefileDao
         return districtMapLookup;
     }
 
-    /**
-     * Retrieves a mapped collection of DistrictMaps.
-     * @return Map<DistrictType, List<DistrictMap>>
-     */
+    /** {@inheritDoc} */
     public Map<DistrictType, List<DistrictMap>> getCachedDistrictMaps()
     {
         if (districtMapCache == null) {
@@ -256,10 +222,7 @@ public class SqlDistrictShapefileDao
         return districtMapCache;
     }
 
-    /**
-     * Fetches all the district maps from the database and stores them in a collection as well as
-     * a lookup cache for fast retrieval.
-     */
+    /** {@inheritDoc} */
     public boolean cacheDistrictMaps()
     {
         String sql = "SELECT '%s' AS type, %s as name, %s as code, ST_AsGeoJson(ST_Union(geom)) AS map " +
@@ -291,13 +254,7 @@ public class SqlDistrictShapefileDao
         }
     }
 
-    /**
-     * Obtain a list of districts that are closest to the given point. This list does not include the
-     * district that the point actually resides within.
-     * @param districtType
-     * @param point
-     * @return
-     */
+    /** {@inheritDoc} */
     public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int proximity, int count)
     {
         if (DistrictShapeCode.contains(districtType)) {

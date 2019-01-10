@@ -25,18 +25,16 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Repository
-public class SqlGeoCacheDao
+public class SqlGeoCacheDao implements GeoCacheDao
 {
     private static Logger logger = LoggerFactory.getLogger(SqlGeoCacheDao.class);
     private static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
     private static int BUFFER_SIZE = 100;
-    private final Environment env;
     private BaseDao baseDao;
 
     @Autowired
     public SqlGeoCacheDao(Environment env, BaseDao baseDao) {
         this.baseDao = baseDao;
-        this.env = env;
         BUFFER_SIZE = env.getGeocahceBufferSize();
     }
 
@@ -77,11 +75,7 @@ public class SqlGeoCacheDao
     private final static String SQL_CACHE_HIT_FULL_WITH_ZIP =
             String.format("%s\n%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WITHOUT_ZIP, SQLFRAG_WITH_ZIP);
 
-    /**
-     * Performs a lookup on the cache table and returns a GeocodedStreetAddress upon match.
-     * @param sa  StreetAddress to lookup
-     * @return    GeocodedStreetAddress
-     */
+    /** {@inheritDoc} */
     public GeocodedStreetAddress getCacheHit(StreetAddress sa)
     {
         if (logger.isTraceEnabled()) {
@@ -119,10 +113,7 @@ public class SqlGeoCacheDao
         return null;
     }
 
-    /**
-     * Pushes a geocoded address to the buffer for saving to cache.
-     * @param geocodedAddress GeocodedAddress to cache.
-     */
+    /** {@inheritDoc} */
     public void cacheGeocodedAddress(GeocodedAddress geocodedAddress)
     {
         if (geocodedAddress != null && geocodedAddress.isValidAddress() && geocodedAddress.isValidGeocode()) {
@@ -136,10 +127,7 @@ public class SqlGeoCacheDao
         }
     }
 
-    /**
-     * Pushes a list of geocoded addresses to the buffer for saving to cache.
-     * @param geocodedAddresses GeocodedAddress List to cache.
-     */
+    /** {@inheritDoc} */
     public void cacheGeocodedAddresses(List<GeocodedAddress> geocodedAddresses)
     {
         if (geocodedAddresses != null) {

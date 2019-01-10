@@ -1,10 +1,8 @@
 package gov.nysenate.sage.dao.logger.point;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
 import gov.nysenate.sage.model.geo.Point;
-import org.apache.commons.dbutils.QueryRunner;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,23 +18,14 @@ import java.util.List;
 public class SqlPointLogger implements PointLogger
 {
     private static Logger logger = LoggerFactory.getLogger(SqlAddressLogger.class);
-    private static String SCHEMA = "log";
-    private static String TABLE = "point";
-    private QueryRunner run;
     private BaseDao baseDao;
 
     @Autowired
     public SqlPointLogger(BaseDao baseDao) {
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
-    /**
-     * Inserts a point into the points table. If a matching point already exists the id is returned instead of
-     * inserting an identical entry.
-     * @param point
-     * @return int point id or -1 if not found
-     */
+    /** {@inheritDoc} */
     public int logPoint(Point point)
     {
         if (point != null) {
@@ -60,11 +49,7 @@ public class SqlPointLogger implements PointLogger
         return -1;
     }
 
-    /**
-     * Attempt to retrieve the point id of the given Point
-     * @param point
-     * @return point id or -1 if not found
-     */
+    /** {@inheritDoc} */
     public int getPointId(Point point) {
         if (point != null) {
             try {

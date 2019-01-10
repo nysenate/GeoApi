@@ -74,37 +74,37 @@ public class HttpMapQuestDao implements MapQuestDao
         qualityMap.put("ZIP_EXTENDED", ZIP_EXT);
     }
 
+    /** {@inheritDoc} */
     public String getGeoUrl() {
         return (this.geoUrl != null && !this.geoUrl.isEmpty()) ? this.geoUrl : DEFAULT_GEO_URL;
     }
 
+    /** {@inheritDoc} */
     public void setGeoUrl(String geoUrl) {
         this.geoUrl = geoUrl;
     }
 
+    /** {@inheritDoc} */
     public String getRevGeoUrl() {
         return (this.revGeoUrl != null && !this.revGeoUrl.isEmpty()) ? this.revGeoUrl : DEFAULT_REV_URL;
     }
 
+    /** {@inheritDoc} */
     public void setRevGeoUrl(String revGeoUrl) {
         this.revGeoUrl = revGeoUrl;
     }
 
+    /** {@inheritDoc} */
     public String getKey() {
         return key;
     }
 
+    /** {@inheritDoc} */
     public void setKey(String key) {
         this.key = key;
     }
 
-    /**
-     * This method performs batch geocoding.
-     * Retrieves a GeocodedAddress given an Address using Yahoo.
-     *
-     * @param addresses Addresses to geocode
-     * @return          ArrayList of GeocodedAddress containing best matched Geocodes.
-     */
+    /** {@inheritDoc} */
     public List<GeocodedAddress> getGeocodedAddresses(ArrayList<Address> addresses)
     {
         /** Pre-populate the batch result with addresses */
@@ -151,6 +151,7 @@ public class HttpMapQuestDao implements MapQuestDao
         return geocodedAddresses;
     }
 
+    /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Point point)
     {
         String url = getRevGeoUrl() + "?key=" + getKey() + DEFAULT_FORMAT + String.format("&lat=%f&lng=%f", point.getLat(), point.getLon());

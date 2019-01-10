@@ -1,12 +1,10 @@
 package gov.nysenate.sage.dao.logger.district;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.job.JobProcess;
-import org.apache.commons.dbutils.QueryRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -19,28 +17,19 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class SqlDistrictRequestLogger
+public class SqlDistrictRequestLogger implements DistrictRequestLogger
 {
     private static Logger logger = LoggerFactory.getLogger(SqlDistrictRequestLogger.class);
     private static SqlAddressLogger sqlAddressLogger;
-    private static String SCHEMA = "log";
-    private static String TABLE = "districtRequest";
-    private QueryRunner run;
-
     private BaseDao baseDao;
 
     @Autowired
     public SqlDistrictRequestLogger(SqlAddressLogger sqlAddressLogger, BaseDao baseDao) {
         this.sqlAddressLogger = sqlAddressLogger;
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
-    /**
-     * Log a DistrictRequest to the database
-     * @param dr DistrictRequest
-     * @return id of district request. This id is set to the supplied districtRequest as well.
-     */
+    /** {@inheritDoc} */
     public int logDistrictRequest(DistrictRequest dr)
     {
         if (dr != null) {

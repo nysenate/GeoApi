@@ -10,7 +10,6 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,6 @@ import java.util.*;
 @Repository
 public class HttpUSPSAMSDao implements USPSAMSDao
 {
-    private Environment env;
     private static String DEFAULT_BASE_URL = "";
     private static String VALIDATE_METHOD = "validate";
     private static String CITYSTATE_METHOD = "citystate";
@@ -43,16 +41,11 @@ public class HttpUSPSAMSDao implements USPSAMSDao
     @Autowired
     public HttpUSPSAMSDao(Environment env, BaseDao baseDao)
     {
-        this.env = env;
         this.baseDao = baseDao;
         this.DEFAULT_BASE_URL = env.getUspsAmsApiUrl();
     }
 
-    /**
-     * Performs a single address validation request.
-     * @param address Input Address
-     * @return AddressResult
-     */
+    /** {@inheritDoc} */
     public AddressResult getValidatedAddressResult(Address address)
     {
         if (address != null) {
@@ -93,11 +86,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao
         return null;
     }
 
-    /**
-     * Performs batch address validation request.
-     * @param addresses List of Addresses to validate.
-     * @return List<AddressResult>
-     */
+    /** {@inheritDoc} */
     public List<AddressResult> getValidatedAddressResults(List<Address> addresses)
     {
         List<AddressResult> addressResults = new ArrayList<>();

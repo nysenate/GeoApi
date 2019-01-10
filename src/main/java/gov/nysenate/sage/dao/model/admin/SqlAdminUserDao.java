@@ -2,9 +2,6 @@ package gov.nysenate.sage.dao.model.admin;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.admin.AdminUser;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
@@ -24,29 +21,14 @@ import java.util.List;
 public class SqlAdminUserDao implements AdminUserDao
 {
     private Logger logger = LoggerFactory.getLogger(SqlAdminUserDao.class);
-    private QueryRunner run;
     private BaseDao baseDao;
-
-    private static String SCHEMA = "public";
-    private static String TABLE = "admin";
-
-    String sql = "SELECT * FROM " + SCHEMA + "." + TABLE + "\n" +
-            "WHERE username = ?";
-
-    String insertAdmin = "INSERT INTO " + SCHEMA +"." + TABLE + " (username, password) VALUES (?,?) RETURNING id;";
 
     @Autowired
     public SqlAdminUserDao(BaseDao baseDao) {
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
-    /**
-     * Check if the admin user credentials are valid.
-     * @param username  Admin username
-     * @param password  Admin password
-     * @return true if valid credentials, false otherwise.
-     */
+    /** {@inheritDoc} */
     public boolean checkAdminUser(String username, String password)
     {
         AdminUser adminUser = null;
@@ -66,12 +48,14 @@ public class SqlAdminUserDao implements AdminUserDao
         return false;
     }
 
+    /** {@inheritDoc} */
     public AdminUser getAdminUser(String username) {
         AdminUser adminUser = null;
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("username", username);
-            List<AdminUser> adminUserList = baseDao.geoApiNamedJbdcTemaplate.query(AdminUserQuery.GET_ADMIN.getSql(baseDao.getPublicSchema()), params, new AdminUserHandler() );
+            List<AdminUser> adminUserList = baseDao.geoApiNamedJbdcTemaplate.query(
+                    AdminUserQuery.GET_ADMIN.getSql(baseDao.getPublicSchema()), params, new AdminUserHandler() );
             if (adminUserList != null && adminUserList.get(0) != null) {
                 adminUser = adminUserList.get(0);
             }
@@ -89,6 +73,7 @@ public class SqlAdminUserDao implements AdminUserDao
         return adminUser;
     }
 
+    /** {@inheritDoc} */
     public void insertAdmin(String username, String password) {
 
 

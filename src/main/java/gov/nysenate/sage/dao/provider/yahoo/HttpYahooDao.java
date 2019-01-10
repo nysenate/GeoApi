@@ -63,19 +63,13 @@ public class HttpYahooDao implements YahooDao
         this.BATCH_SIZE = this.env.getYahooBatchSize();
     }
 
+    /** {@inheritDoc} */
     public String getBaseUrl()
     {
         return (this.baseUrl != null && !this.baseUrl.isEmpty()) ? this.baseUrl : DEFAULT_BASE_URL;
     }
 
-    /**
-     * This method performs geocoding.
-     * Retrieves a GeocodedAddress given an Address using Yahoo.
-     *
-     * @param address   Address to geocode
-     * @return          GeocodedAddress containing best matched Geocode.
-     *                  null if there was a fatal error
-     */
+    /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Address address)
     {
         GeocodedAddress geocodedAddress = null;
@@ -94,11 +88,7 @@ public class HttpYahooDao implements YahooDao
         return geocodedAddress;
     }
 
-    /**
-     * Batch geocode a list of addresses.
-     * @param addresses Addresses to geocode
-     * @return          List<GeocodedAddress>
-     */
+    /** {@inheritDoc} */
     public List<GeocodedAddress> getGeocodedAddresses(List<Address> addresses)
     {
         /** Pre-populate the batch result with addresses */
@@ -145,13 +135,7 @@ public class HttpYahooDao implements YahooDao
         return geocodedAddresses;
     }
 
-    /**
-     * This method performs reverse geocoding.
-     * Retrieves a GeocodedAddress given a Point using Yahoo.
-     *
-     * @param point Point to reverse geocode.
-     * @return      GeocodedAddress containing best matched Address.
-     */
+    /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Point point)
     {
         GeocodedAddress geocodedAddress = null;

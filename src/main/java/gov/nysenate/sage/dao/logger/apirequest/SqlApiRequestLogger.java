@@ -1,11 +1,8 @@
 package gov.nysenate.sage.dao.logger.apirequest;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +13,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -24,23 +20,14 @@ import java.util.List;
 public class SqlApiRequestLogger implements ApiRequestLogger
 {
     private static Logger logger = LoggerFactory.getLogger(SqlApiRequestLogger.class);
-    private static String SCHEMA = "log";
-    private static String TABLE = "apiRequest";
-    private QueryRunner run;
-
     private BaseDao baseDao;
 
     @Autowired
     public SqlApiRequestLogger(BaseDao baseDao) {
         this.baseDao = baseDao;
-        run = baseDao.getQueryRunner();
     }
 
-    /**
-     * Log an Api request to the database.
-     * @param apiRequest ApiRequest to log
-     * @return int id of ApiRequest
-     */
+    /** {@inheritDoc} */
     public int logApiRequest(ApiRequest apiRequest)
     {
         if (apiRequest != null) {
@@ -68,11 +55,7 @@ public class SqlApiRequestLogger implements ApiRequestLogger
         return 0;
     }
 
-    /**
-     * Retrieve a logged ApiRequest by id
-     * @param apiRequestId
-     * @return ApiRequest
-     */
+    /** {@inheritDoc} */
     public ApiRequest getApiRequest(int apiRequestId) {
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -91,13 +74,7 @@ public class SqlApiRequestLogger implements ApiRequestLogger
         return null;
     }
 
-    /**
-     * Retrieve all logged Api requests.
-     * @param apiKey         Api Key to search for. If null or blank, search for all Api keys.
-     * @param method         Method to filter by. If null or blank, search for all methods.
-     * @param orderByRecent  If true, sort by most recent first. Otherwise return least recent first.
-     * @return
-     */
+    /** {@inheritDoc} */
     public List<ApiRequest> getApiRequests(String apiKey, String service, String method, boolean orderByRecent)
     {
         Timestamp from = new Timestamp(0);
@@ -105,17 +82,7 @@ public class SqlApiRequestLogger implements ApiRequestLogger
         return getApiRequestsDuring(apiKey, service, method, from, to, -1, 0, orderByRecent);
     }
 
-    /**
-     * Retrieve logged Api requests within a specified time frame.
-     * @param apiKey         Api Key to search for. If null or blank, search for all Api keys.
-     * @param method         Method to filter by. If null or blank, search for all methods.
-     * @param from           Inclusive start date/time.
-     * @param to             Inclusive end date/time.
-     * @param limit          Limit results. If <= 0, return all results.
-     * @param offset         Row number to start from
-     * @param orderByRecent  If true, sort by most recent first. Otherwise return least recent first.
-     * @return               List of ApiRequest
-     */
+    /** {@inheritDoc} */
     public List<ApiRequest> getApiRequestsDuring(String apiKey, String service, String method, Timestamp from,
                                                  Timestamp to, int limit, int offset, boolean orderByRecent)
     {

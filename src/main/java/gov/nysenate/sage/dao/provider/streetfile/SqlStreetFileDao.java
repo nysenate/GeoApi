@@ -6,8 +6,6 @@ import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.StreetAddressParser;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +24,6 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 public class SqlStreetFileDao implements StreetFileDao
 {
     private Logger logger = LoggerFactory.getLogger(SqlStreetFileDao.class);
-    private QueryRunner run;
     private BaseDao baseDao;
 
     private static Map<DistrictType, String> distColMap = new HashMap<>();
@@ -49,18 +46,9 @@ public class SqlStreetFileDao implements StreetFileDao
     @Autowired
     public SqlStreetFileDao(BaseDao baseDao) {
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
-    /**
-     * Performs a street file lookup.
-     * @param streetAddr     The StreetAddress to base the search on
-     * @param useStreet      Use the street name as a criteria for the search
-     * @param fuzzy          Use a wildcard on the street name to expand the search space
-     * @param useHouse       Use the house number as a criteria for the search
-     * @return               A LinkedHashMap containing StreetAddressRange and DistrictInfo
-     * @throws SQLException
-     */
+    /** {@inheritDoc} */
     public Map<StreetAddressRange, DistrictInfo> getDistrictStreetRangeMap(
             StreetAddress streetAddr, boolean useStreet, boolean fuzzy, boolean useHouse) throws SQLException
     {
@@ -142,22 +130,13 @@ public class SqlStreetFileDao implements StreetFileDao
         }
     }
 
-    /**
-     * Returns a list of street ranges with district information for a given zip5.
-     * @param zip5
-     * @return List of DistrictedStreetRange
-     */
+    /** {@inheritDoc} */
     public List<DistrictedStreetRange> getDistrictStreetRangesByZip(String zip5)
     {
         return getDistrictStreetRanges("", Arrays.asList(zip5));
     }
 
-    /**
-     * Returns a list of street ranges with district information for a given street and zip5 list.
-     * @param street
-     * @param zip5List
-     * @return List of DistrictedStreetRange
-     */
+    /** {@inheritDoc} */
     public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<String> zip5List)
     {
         /** Format the street name to aid in street file match */
@@ -203,28 +182,25 @@ public class SqlStreetFileDao implements StreetFileDao
         return null;
     }
 
-
+    /** {@inheritDoc} */
     public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(String zip5)
     {
         return getAllStandardDistrictMatches(null, Arrays.asList(zip5));
     }
 
+    /** {@inheritDoc} */
     public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(String street, String zip5)
     {
         return getAllStandardDistrictMatches(Arrays.asList(street), Arrays.asList(zip5));
     }
 
+    /** {@inheritDoc} */
     public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> zip5)
     {
         return getAllStandardDistrictMatches(null, zip5);
     }
 
-    /**
-     * Finds state district codes that overlap a given street/zip range.
-     * @param streetList Optional street name
-     * @param zip5List   Zip5 to match against
-     * @return       A map of district types to a set of matched district codes.
-     */
+    /** {@inheritDoc} */
     public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List)
     {
         /** Short circuit on missing input */
@@ -292,11 +268,13 @@ public class SqlStreetFileDao implements StreetFileDao
         return null;
     }
 
+    /** {@inheritDoc} */
     public DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress) throws SQLException
     {
         return getDistAddressByHouse(streetAddress, false);
     }
 
+    /** {@inheritDoc} */
     public DistrictedAddress getDistAddressByStreet(StreetAddress streetAddress) throws SQLException
     {
         return getDistAddressByStreet(streetAddress, false);
@@ -352,6 +330,7 @@ public class SqlStreetFileDao implements StreetFileDao
         }
     }
 
+    /** {@inheritDoc} */
     public DistrictedAddress getDistAddressByZip(StreetAddress streetAddress) throws SQLException
     {
         Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, false, false, false);
@@ -370,13 +349,7 @@ public class SqlStreetFileDao implements StreetFileDao
         }
     }
 
-    /**
-     * Iterates over a list of DistrictInfo and returns a single DistrictInfo that represents the districts
-     * that were common amongst every entry.
-     * @param districtInfoList
-     * @return DistrictInfo containing the districts that were common.
-     *         If the senate code is not common, the return value will be null.
-     */
+    /** {@inheritDoc} */
     public DistrictInfo consolidateDistrictInfo(List<DistrictInfo> districtInfoList)
     {
         if (districtInfoList.size() == 0) return null;

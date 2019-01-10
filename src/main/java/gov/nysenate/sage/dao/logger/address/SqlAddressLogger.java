@@ -1,9 +1,7 @@
 package gov.nysenate.sage.dao.logger.address;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.model.address.Address;
-import org.apache.commons.dbutils.QueryRunner;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,16 +17,12 @@ import java.util.List;
 public class SqlAddressLogger implements AddressLogger
 {
     private static Logger logger = LoggerFactory.getLogger(SqlAddressLogger.class);
-    private static String SCHEMA = "log";
-    private static String TABLE = "address";
-    private QueryRunner run;
     private BaseDao baseDao;
 
 
     @Autowired
     public SqlAddressLogger(BaseDao baseDao) {
         this.baseDao = baseDao;
-        this.run = this.baseDao.getQueryRunner();
     }
 
     /** {@inheritDoc} */

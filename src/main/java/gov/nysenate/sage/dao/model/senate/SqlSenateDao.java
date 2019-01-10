@@ -6,8 +6,6 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Senator;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -23,8 +21,6 @@ import java.util.*;
 @Repository
 public class SqlSenateDao implements SenateDao {
     private static Logger logger = LoggerFactory.getLogger(SqlSenateDao.class);
-    private QueryRunner run;
-
     /**
      * Mapper used to serialize into json
      */
@@ -36,43 +32,26 @@ public class SqlSenateDao implements SenateDao {
     protected static Map<Integer, Senator> senatorMap;
     protected static Integer refreshIntervalHours = 12;
     protected static Timestamp cacheUpdated;
-
-    private Environment env;
     private BaseDao baseDao;
 
     @Autowired
     public SqlSenateDao(Environment env, BaseDao baseDao) {
-        this.env = env;
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
         getSenatorMap();
         refreshIntervalHours = env.getSenatorCacheRefreshHours();
     }
 
-    /**
-     * Retrieve a collection of all Senators.
-     *
-     * @return Collection of Senator
-     */
+    /** {@inheritDoc} */
     public Collection<Senator> getSenators() {
         return getSenatorMap().values();
     }
 
-    /**
-     * Retrieve a senator by the senate district number.
-     *
-     * @param senateCode Senate district number
-     * @return Senator
-     */
+    /** {@inheritDoc} */
     public Senator getSenatorByDistrict(int senateCode) {
         return getSenatorMap().get(senateCode);
     }
 
-    /**
-     * Inserts a Senator into the database.
-     *
-     * @param senator
-     */
+    /** {@inheritDoc} */
     public void insertSenator(Senator senator) {
         int senateCode = senator.getDistrict().getNumber();
         String senatorName = senator.getName();
@@ -94,11 +73,7 @@ public class SqlSenateDao implements SenateDao {
         }
     }
 
-    /**
-     * Inserts a senate district and it's associated url into the database.
-     *
-     * @param district
-     */
+    /** {@inheritDoc} */
     public void insertSenate(District district) {
         Integer senateCode = district.getNumber();
         String url = district.getUrl();
@@ -118,10 +93,7 @@ public class SqlSenateDao implements SenateDao {
         }
     }
 
-    /**
-     * Clears the senate table. Note that this method can only be called
-     * after clearing the senator table since there is a foreign key constraint.
-     */
+    /** {@inheritDoc} */
     public void deleteSenateDistricts() {
         try {
             baseDao.geoApiJbdcTemplate.update(SenateQuery.CLEAR_SENATE.getSql(baseDao.getPublicSchema()));
@@ -130,9 +102,7 @@ public class SqlSenateDao implements SenateDao {
         }
     }
 
-    /**
-     * Clears the senator table.
-     */
+    /** {@inheritDoc} */
     public void deleteSenators() {
         try {
             baseDao.geoApiJbdcTemplate.update(SenateQuery.CLEAR_SENATORS.getSql(baseDao.getPublicSchema()));
@@ -141,11 +111,7 @@ public class SqlSenateDao implements SenateDao {
         }
     }
 
-    /**
-     * Deletes a senator entry with the given district.
-     *
-     * @param district
-     */
+    /** {@inheritDoc} */
     public void deleteSenator(int district) {
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -158,11 +124,7 @@ public class SqlSenateDao implements SenateDao {
         }
     }
 
-    /**
-     * Creates the senate map if it does not exist and then returns it.
-     *
-     * @return
-     */
+    /** {@inheritDoc} */
     private Map<Integer, Senator> getSenatorMap() {
         if (senatorMap == null || cacheUpdated == null || refreshIntervalElapsed()) {
             senatorMap = new HashMap<>();

@@ -2,8 +2,6 @@ package gov.nysenate.sage.dao.stats.api;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.stats.ApiUsageStats;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -14,7 +12,6 @@ import org.slf4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 import static gov.nysenate.sage.model.stats.ApiUsageStats.IntervalUsage;
@@ -23,10 +20,9 @@ import static gov.nysenate.sage.model.stats.ApiUsageStats.IntervalUsage;
 public class SqlApiUsageStatsDao implements ApiUsageStatsDao
 {
     private static Logger logger = LoggerFactory.getLogger(SqlApiUsageStatsDao.class);
-    private QueryRunner run;
     private BaseDao baseDao;
 
-    public static enum RequestInterval {
+    public enum RequestInterval {
         MINUTE("minute", 1), HOUR("hour", 60), DAY("day", 1440), WEEK("week", 10080), MONTH("month", 43829), QUARTER("quarter", 131487);
         String field;
         int minutes;
@@ -39,9 +35,9 @@ public class SqlApiUsageStatsDao implements ApiUsageStatsDao
     @Autowired
     public SqlApiUsageStatsDao(BaseDao baseDao) {
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
+    /** {@inheritDoc} */
     public ApiUsageStats getApiUsageStats(Timestamp from, Timestamp to, RequestInterval requestInterval)
     {
         ApiUsageStats apiUsageStats = new ApiUsageStats();
@@ -52,7 +48,6 @@ public class SqlApiUsageStatsDao implements ApiUsageStatsDao
             params.addValue("requestInterval", requestInterval.field);
 
             List<IntervalUsage> intervalUsageCounts = baseDao.geoApiNamedJbdcTemaplate.query(
-//                    sql,
                     ApiUsageStatsQuery.GET_USAGE_STATS.getSql(baseDao.getLogSchema()),
                     params, new ApiIntervalUsageHandler());
 

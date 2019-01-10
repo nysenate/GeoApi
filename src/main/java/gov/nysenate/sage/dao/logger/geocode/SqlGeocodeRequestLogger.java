@@ -1,13 +1,11 @@
 package gov.nysenate.sage.dao.logger.geocode;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.dao.logger.point.SqlPointLogger;
 import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.job.JobProcess;
-import org.apache.commons.dbutils.QueryRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -25,11 +23,6 @@ public class SqlGeocodeRequestLogger
     private static SqlAddressLogger sqlAddressLogger;
     private static SqlPointLogger sqlPointLogger;
     private static Logger logger = LoggerFactory.getLogger(SqlGeocodeRequestLogger.class);
-
-    private static String SCHEMA = "log";
-    private static String TABLE = "geocodeRequest";
-
-    private QueryRunner run;
     private BaseDao baseDao;
 
     @Autowired
@@ -37,14 +30,9 @@ public class SqlGeocodeRequestLogger
         this.sqlAddressLogger = sqlAddressLogger;
         this.sqlPointLogger = sqlPointLogger;
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
-    /**
-    * Log a GeocodeRequest to the database
-    * @param geoRequest
-    * @return id of geocode request. This id is set to the supplied GeocodeRequest as well.
-    */
+    /** {@inheritDoc} */
     public int logGeocodeRequest(GeocodeRequest geoRequest)
     {
         if (geoRequest != null) {

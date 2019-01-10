@@ -1,7 +1,6 @@
 package gov.nysenate.sage.dao.logger.geocode;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.dao.logger.point.SqlPointLogger;
 import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
 import gov.nysenate.sage.model.address.Address;
@@ -11,7 +10,6 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocache.GeoCache;
-import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.LoggerFactory;
@@ -34,12 +32,7 @@ public class SqlGeocodeResultLogger implements GeocodeResultLogger
     private SqlAddressLogger sqlAddressLogger;
     private SqlPointLogger sqlPointLogger;
     private static SqlGeocodeRequestLogger sqlGeocodeRequestLogger;
-
-    private static String SCHEMA = "log";
-    private static String TABLE = "geocodeResult";
     private static Boolean SAVE_LOCK = false;
-
-    private QueryRunner run;
     private BaseDao baseDao;
 
     /** Batch cache */
@@ -55,7 +48,6 @@ public class SqlGeocodeResultLogger implements GeocodeResultLogger
         this.sqlPointLogger = sqlPointLogger;
         this.sqlGeocodeRequestLogger = sqlGeocodeRequestLogger;
         this.baseDao = baseDao;
-        run = this.baseDao.getQueryRunner();
     }
 
     /**

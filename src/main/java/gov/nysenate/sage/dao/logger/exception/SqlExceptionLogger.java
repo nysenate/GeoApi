@@ -1,10 +1,8 @@
 package gov.nysenate.sage.dao.logger.exception;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.base.ReturnIdHandler;
 import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.commons.dbutils.QueryRunner;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
@@ -26,24 +24,15 @@ public class SqlExceptionLogger implements ExceptionLogger
     private static Logger logger = LoggerFactory.getLogger(SqlExceptionLogger.class);
     private SqlApiRequestLogger sqlApiRequestLogger;
     private BaseDao baseDao;
-    private static String SCHEMA = "log";
-    private static String TABLE = "exception";
-    private QueryRunner run;
     Marker fatal = MarkerFactory.getMarker("FATAL");
 
     @Autowired
     public SqlExceptionLogger(BaseDao baseDao, SqlApiRequestLogger sqlApiRequestLogger) {
         this.sqlApiRequestLogger = sqlApiRequestLogger;
         this.baseDao = baseDao;
-        run = baseDao.getQueryRunner();
     }
 
-    /**
-     * Logs an uncaught exception to the database.
-     * @param ex            The exception
-     * @param catchTime     The time the unhandled exception was eventually caught
-     * @param apiRequestId  Associated apiRequestId set at the time when exception arose
-     */
+    /** {@inheritDoc} */
     public void logException(Exception ex, Timestamp catchTime, Integer apiRequestId)
     {
         try {

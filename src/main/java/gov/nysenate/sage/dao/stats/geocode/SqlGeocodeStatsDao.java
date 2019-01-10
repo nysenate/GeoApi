@@ -1,10 +1,7 @@
 package gov.nysenate.sage.dao.stats.geocode;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.stats.deployment.SqlDeploymentStatsDao;
 import gov.nysenate.sage.model.stats.GeocodeStats;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,21 +21,14 @@ import java.util.List;
 public class SqlGeocodeStatsDao implements GeocodeStatsDao
 {
     private static Logger logger = LoggerFactory.getLogger(SqlGeocodeStatsDao.class);
-    private SqlDeploymentStatsDao sqlDeploymentStatsDao;
     private BaseDao baseDao;
-    private QueryRunner run;
 
     @Autowired
-    public SqlGeocodeStatsDao(BaseDao baseDao, SqlDeploymentStatsDao sqlDeploymentStatsDao) {
+    public SqlGeocodeStatsDao(BaseDao baseDao) {
         this.baseDao = baseDao;
-        this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;
-        run = this.baseDao.getQueryRunner();
     }
 
-    /**
-     * Retrieve geocode stats within a specified time frame.
-     * @return GeocodeStats
-     */
+    /** {@inheritDoc} */
     public GeocodeStats getGeocodeStats(Timestamp from, Timestamp to)
     {
         try {

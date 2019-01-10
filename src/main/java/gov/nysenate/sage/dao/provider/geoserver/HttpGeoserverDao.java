@@ -59,29 +59,27 @@ public class HttpGeoserverDao implements GeoserverDao
         this.fipsCountyMap = this.sqlCountyDao.getFipsCountyMap();
     }
 
+    /** {@inheritDoc} */
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
     }
 
+    /** {@inheritDoc} */
     public String getBaseUrl() {
         return (this.baseUrl != null && !this.baseUrl.isEmpty()) ? this.baseUrl : DEFAULT_BASE_URL;
     }
 
+    /** {@inheritDoc} */
     public void setWorkspace(String workspace) {
         this.workspace = workspace;
     }
 
+    /** {@inheritDoc} */
     public String getWorkspace() {
         return (this.workspace != null && !this.workspace.isEmpty()) ? this.workspace : DEFAULT_WORKSPACE;
     }
 
-    /**
-     * Submits a url request to GeoServer, parses response, and returns a DistrictInfo object
-     *
-     * @param point            The Point to find districts at
-     * @param districtTypes    The types of districts to get features for
-     * @return DistrictInfo if successful, null otherwise
-     */
+    /** {@inheritDoc} */
     public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes)
     {
         ArrayList<String> featureTypesList = new ArrayList<>();

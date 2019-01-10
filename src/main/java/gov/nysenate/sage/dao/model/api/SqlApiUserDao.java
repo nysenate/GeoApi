@@ -27,18 +27,15 @@ public class SqlApiUserDao implements ApiUserDao
         this.baseDao = baseDao;
     }
 
-    /**
-     * Retrieves an ApiUser from the database by key.
-     * @param id         The api user id.
-     * @return ApiUser   The matched ApiUser or null if not found.
-     */
+    /** {@inheritDoc} */
     public ApiUser getApiUserById(int id)
     {
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("id", id);
 
-            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemaplate.query(ApiUserQuery.GET_API_USER_BY_ID.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
+            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemaplate.query(
+                    ApiUserQuery.GET_API_USER_BY_ID.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
 
             if (apiUserList != null) {
                 return apiUserList.get(0);
@@ -51,18 +48,15 @@ public class SqlApiUserDao implements ApiUserDao
         return null;
     }
 
-    /**
-     * Retrieves an ApiUser from the database by name.
-     * @param name         The api user name.
-     * @return ApiUser   The matched ApiUser or null if not found.
-     */
+    /** {@inheritDoc} */
     public ApiUser getApiUserByName(String name)
     {
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("name", name);
 
-            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemaplate.query(ApiUserQuery.GET_API_USER_BY_NAME.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
+            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemaplate.query(
+                    ApiUserQuery.GET_API_USER_BY_NAME.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
 
             if (apiUserList != null) {
                 return apiUserList.get(0);
@@ -75,11 +69,7 @@ public class SqlApiUserDao implements ApiUserDao
         return null;
     }
 
-    /**
-     * Retrieves an ApiUser from the database by key.
-     * @param key        The api key.
-     * @return ApiUser   The matched ApiUser or null if not found.
-     */
+    /** {@inheritDoc} */
     public ApiUser getApiUserByKey(String key)
     {
         try {
@@ -99,10 +89,7 @@ public class SqlApiUserDao implements ApiUserDao
         return null;
     }
 
-    /**
-     * Retrieves all ApiUsers.
-     * @return      List of ApiUser
-     */
+    /** {@inheritDoc} */
     public List<ApiUser> getApiUsers()
     {
         try {
@@ -116,11 +103,7 @@ public class SqlApiUserDao implements ApiUserDao
         return null;
     }
 
-    /**
-     * Adds an API User to the database.
-     * @param apiUser   The ApiUser to add.
-     * @return int      1 if user was inserted, 0 otherwise.
-     */
+    /** {@inheritDoc} */
     public int addApiUser(ApiUser apiUser)
     {
         try {
@@ -139,11 +122,7 @@ public class SqlApiUserDao implements ApiUserDao
         return 0;
     }
 
-    /**
-     * Removes an API User from the database.
-     * @param apiUser   The ApiUser to add.
-     * @return int      1 if user was removed, 0 otherwise.
-     */
+    /** {@inheritDoc} */
     public int removeApiUser(ApiUser apiUser)
     {
         try {

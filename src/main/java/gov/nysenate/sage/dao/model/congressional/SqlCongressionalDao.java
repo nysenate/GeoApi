@@ -25,6 +25,7 @@ public class SqlCongressionalDao implements CongressionalDao
         this.baseDao = baseDao;
     }
 
+    /** {@inheritDoc} */
     public List<Congressional> getCongressionals()
     {
         try {
@@ -37,6 +38,7 @@ public class SqlCongressionalDao implements CongressionalDao
         return null;
     }
 
+    /** {@inheritDoc} */
     public Congressional getCongressionalByDistrict(int district)
     {
         try {
@@ -57,6 +59,7 @@ public class SqlCongressionalDao implements CongressionalDao
         return null;
     }
 
+    /** {@inheritDoc} */
     public void insertCongressional(Congressional congressional)
     {
         try {
@@ -74,9 +77,7 @@ public class SqlCongressionalDao implements CongressionalDao
         }
     }
 
-    /**
-     * Clears the congressional table.
-     */
+    /** {@inheritDoc} */
     public void deleteCongressionals()
     {
         try {
@@ -87,9 +88,7 @@ public class SqlCongressionalDao implements CongressionalDao
         }
     }
 
-    /**
-     * Removes a congressional by district.
-     */
+    /** {@inheritDoc} */
     public void deleteCongressional(int district)
     {
         try {

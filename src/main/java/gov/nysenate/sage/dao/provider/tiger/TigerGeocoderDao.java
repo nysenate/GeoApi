@@ -14,12 +14,9 @@ public interface TigerGeocoderDao {
     /**
      * Performs geocoding and returns a GeocodedStreetAddress. A timeout is also enabled because some queries
      * can just go on indefinitely.
-     * @param conn
      * @param address
      * @return
      */
-    public GeocodedStreetAddress getGeocodedStreetAddress(Connection conn, Address address);
-
     public GeocodedStreetAddress getGeocodedStreetAddress(Address address);
 
     /**

@@ -3,13 +3,11 @@ package gov.nysenate.sage.dao.provider.google;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.provider.geocode.GoogleGeocoder;
 import gov.nysenate.sage.util.UrlRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -19,15 +17,11 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Observable;
-import java.util.Observer;
 
 @Repository
 public class HttpGoogleDao implements GoogleDao
 {
     private static final Logger logger = LoggerFactory.getLogger(HttpGoogleDao.class);
-
-    private final Environment env;
     private static final String DEFAULT_BASE_URL = "https://maps.googleapis.com/maps/api/geocode/json";
     private static final String GEOCODE_QUERY = "?address=%s&key=%s";
     private static final String REV_GEOCODE_QUERY = "?latlng=%s&key=%s";
@@ -35,12 +29,9 @@ public class HttpGoogleDao implements GoogleDao
 
     private String baseUrl;
     private String apiKey;
-    private BaseDao baseDao;
 
     @Autowired
-    public HttpGoogleDao(Environment env, BaseDao baseDao) {
-        this.env = env;
-        this.baseDao = baseDao;
+    public HttpGoogleDao(Environment env) {
         this.baseUrl = env.getGoogleGeocoderUrl();
         this.apiKey = env.getGoogleGeocoderKey();
     }

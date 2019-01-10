@@ -1,7 +1,6 @@
 package gov.nysenate.sage.dao.model.assembly;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.model.api.ApiUserQuery;
 import gov.nysenate.sage.model.district.Assembly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -25,7 +24,7 @@ public class SqlAssemblyDao implements AssemblyDao
         this.baseDao = baseDao;
     }
 
-
+    /** {@inheritDoc} */
     public List<Assembly> getAssemblies()
     {
         try {
@@ -38,6 +37,7 @@ public class SqlAssemblyDao implements AssemblyDao
         return null;
     }
 
+    /** {@inheritDoc} */
     public Assembly getAssemblyByDistrict(int district)
     {
         try {
@@ -58,6 +58,7 @@ public class SqlAssemblyDao implements AssemblyDao
         return null;
     }
 
+    /** {@inheritDoc} */
     public void insertAssembly(Assembly assembly)
     {
         try {
@@ -75,9 +76,7 @@ public class SqlAssemblyDao implements AssemblyDao
         }
     }
 
-    /**
-     * Clears the assembly table.
-     */
+    /** {@inheritDoc} */
     public void deleteAssemblies()
     {
         try {
@@ -88,9 +87,7 @@ public class SqlAssemblyDao implements AssemblyDao
         }
     }
 
-    /**
-     * Removes an assembly by district.
-     */
+    /** {@inheritDoc} */
     public void deleteAssemblies(int district)
     {
         try {

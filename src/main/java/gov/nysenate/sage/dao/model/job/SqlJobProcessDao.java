@@ -2,13 +2,10 @@ package gov.nysenate.sage.dao.model.job;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.base.SqlTable;
 import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -29,15 +26,11 @@ import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
  */
 @Repository
 public class SqlJobProcessDao implements JobProcessDao {
-    private static String SCHEMA = "job";
-    private static String TABLE = "process";
-    private static String STATUS_TABLE = "status";
     private Logger logger = LoggerFactory.getLogger(SqlJobUserDao.class);
     private RowMapper<JobProcess> processHandler;
     private RowMapper<JobProcessStatus> statusHandler;
     private RowMapper<JobProcess> processListHandler;
     private RowMapper<JobProcessStatus> statusListHandler;
-    private QueryRunner run;
     private BaseDao baseDao;
     private SqlJobUserDao sqlJobUserDao;
 
@@ -45,19 +38,13 @@ public class SqlJobProcessDao implements JobProcessDao {
     public SqlJobProcessDao(BaseDao baseDao, SqlJobUserDao sqlJobUserDao) {
         this.baseDao = baseDao;
         this.sqlJobUserDao = sqlJobUserDao;
-        run = this.baseDao.getQueryRunner();
         this.processHandler = new JobProcessHandler(this.sqlJobUserDao);
         this.statusHandler = new JobStatusHandler(this.sqlJobUserDao);
         this.processListHandler = new JobProcessListHandler(this.sqlJobUserDao);
         this.statusListHandler = new JobProcessStatusListHandler(this.sqlJobUserDao);
     }
 
-    /**
-     * Adds a new job process to the database queue.
-     *
-     * @param p JobProcess to insert
-     * @return The id of the inserted job process, or -1 on failure
-     */
+    /** {@inheritDoc} */
     public int addJobProcess(JobProcess p) {
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -83,12 +70,7 @@ public class SqlJobProcessDao implements JobProcessDao {
         return -1;
     }
 
-    /**
-     * Get JobProcess by job process id.
-     *
-     * @param id int
-     * @return JobProcess
-     */
+    /** {@inheritDoc} */
     public JobProcess getJobProcessById(int id) {
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -106,12 +88,7 @@ public class SqlJobProcessDao implements JobProcessDao {
         return null;
     }
 
-    /**
-     * Retrieve List of JobProcess objects by job userId.
-     *
-     * @param userId int
-     * @return List<JobProcess>
-     */
+    /** {@inheritDoc} */
     public List<JobProcess> getJobProcessesByUser(int userId) {
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -124,13 +101,7 @@ public class SqlJobProcessDao implements JobProcessDao {
         return null;
     }
 
-    /**
-     * Update or insert a JobProcessStatus. If a job status entry already exists, the record will be updated with the
-     * new information. Otherwise a new row will be created.
-     *
-     * @param jps JobProcessStatus
-     * @return int (rows affected) or -1 if failed.
-     */
+    /** {@inheritDoc} */
     public int setJobProcessStatus(JobProcessStatus jps) {
         /** In order to allow this method to both insert and update a status record, an update query is run first.
          *  If it fails then we can insert a new record. */
@@ -166,12 +137,7 @@ public class SqlJobProcessDao implements JobProcessDao {
         return -1;
     }
 
-    /**
-     * Retrieve JobProcessStatus by processId.
-     *
-     * @param processId int
-     * @return JobProcessStatus
-     */
+    /** {@inheritDoc} */
     public JobProcessStatus getJobProcessStatus(int processId) {
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -189,35 +155,17 @@ public class SqlJobProcessDao implements JobProcessDao {
         return null;
     }
 
-    /**
-     * Retrieves a List of JobProcessStatus matching the given Condition with no filtering on requestTime.
-     * Delegates to getJobStatusesByConditions(), see method for details.
-     *
-     * @return List<JobProcessStatus>
-     */
+    /** {@inheritDoc} */
     public List<JobProcessStatus> getJobStatusesByCondition(Condition condition, JobUser jobUser) {
         return getJobStatusesByCondition(condition, jobUser, null, null);
     }
 
-    /**
-     * Retrieves a List of JobProcessStatus matching the given Condition.
-     * Delegates to getJobStatusesByConditions(), see method for details.
-     *
-     * @return List<JobProcessStatus>
-     */
+    /** {@inheritDoc} */
     public List<JobProcessStatus> getJobStatusesByCondition(Condition condition, JobUser jobUser, Timestamp start, Timestamp end) {
         return getJobStatusesByConditions(Arrays.asList(condition), jobUser, start, end);
     }
 
-    /**
-     * Retrieves a List of JobProcessStatus matching the given Condition types.
-     *
-     * @param conditions List of Condition objects to filter results by.
-     * @param jobUser    JobUser to retrieve results for. If null or admin user, all results returned.
-     * @param start      Start requestTime to filter results by. If null, start will be defaulted to 0 UTC.
-     * @param end        End requestTime to filter results by. If null, end will be defaulted to current time.
-     * @return List<JobProcessStatus>
-     */
+    /** {@inheritDoc} */
     public List<JobProcessStatus> getJobStatusesByConditions(List<Condition> conditions, JobUser jobUser, Timestamp start, Timestamp end) {
         List<String> where = new ArrayList<>();
         for (Condition c : conditions) {
@@ -242,16 +190,7 @@ public class SqlJobProcessDao implements JobProcessDao {
         return null;
     }
 
-    /**
-     * Gets completed job statuses that finished on or after the 'afterThis' timestamp.
-     * This method is different from getJobStatusesByCondition because the completeTime is filtered on
-     * as opposed to the requestTime.
-     *
-     * @param condition Condition to filter by. If null, no filtering will occur on condition.
-     * @param jobUser   JobUser to retrieve results for. If null or admin user, all results returned.
-     * @param afterThis Filter results where completeTime is on or after the 'afterThis' timestamp.
-     * @return List<JobProcessStatus>
-     */
+    /** {@inheritDoc} */
     public List<JobProcessStatus> getRecentlyCompletedJobStatuses(Condition condition, JobUser jobUser, Timestamp afterThis) {
         String conditionFilter = (condition != null) ? " AND status.condition = '" + condition.name() + "' ": " ";
         String jobUserFilter = (jobUser != null && !jobUser.isAdmin()) ? " AND userId = " + jobUser.getId() + " ": " ";
@@ -269,10 +208,12 @@ public class SqlJobProcessDao implements JobProcessDao {
         return null;
     }
 
+    /** {@inheritDoc} */
     public List<JobProcessStatus> getActiveJobStatuses(JobUser jobUser) {
         return getJobStatusesByConditions(Condition.getActiveConditions(), jobUser, null, null);
     }
 
+    /** {@inheritDoc} */
     public List<JobProcessStatus> getInactiveJobStatuses(JobUser jobUser) {
         return getJobStatusesByConditions(Condition.getInactiveConditions(), jobUser, null, null);
     }
@@ -370,13 +311,5 @@ public class SqlJobProcessDao implements JobProcessDao {
         public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
             return rs.getInt("id");
         }
-    }
-
-    private String getProcessTableName() {
-        return SCHEMA + "." + TABLE;
-    }
-
-    private String getStatusTableName() {
-        return SCHEMA + "." + STATUS_TABLE;
     }
 }

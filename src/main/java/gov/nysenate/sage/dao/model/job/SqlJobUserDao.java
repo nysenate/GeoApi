@@ -27,6 +27,7 @@ public class SqlJobUserDao implements JobUserDao
         this.baseDao = baseDao;
     }
 
+    /** {@inheritDoc} */
     public List<JobUser> getJobUsers()
     {
         try {
@@ -40,6 +41,7 @@ public class SqlJobUserDao implements JobUserDao
         return null;
     }
 
+    /** {@inheritDoc} */
     public JobUser getJobUserById(int id)
     {
         try {
@@ -65,11 +67,7 @@ public class SqlJobUserDao implements JobUserDao
         return null;
     }
 
-    /**
-     * Retrieves an JobUser from the database by email.
-     * @param email
-     * @return JobUser   The matched JobUser or null if not found.
-     */
+    /** {@inheritDoc} */
     public JobUser getJobUserByEmail(String email)
     {
         try {
@@ -91,11 +89,7 @@ public class SqlJobUserDao implements JobUserDao
         return null;
     }
 
-    /**
-     * Adds a JobUser to the database.
-     * @param jobUser   The JobUser to add.
-     * @return int      1 if user was inserted, 0 otherwise.
-     */
+    /** {@inheritDoc} */
     public int addJobUser(JobUser jobUser)
     {
         try {
@@ -117,11 +111,7 @@ public class SqlJobUserDao implements JobUserDao
         }
     }
 
-    /**
-     * Removes a JobUser from the database.
-     * @param jobUser
-     * @return  1 if user was removed, 0 otherwise.
-     */
+    /** {@inheritDoc} */
     public int removeJobUser(JobUser jobUser)
     {
         try {
