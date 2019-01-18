@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.GeocodeUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ public class GoogleDao implements Observer
     private static final String DEFAULT_BASE_URL = "https://maps.googleapis.com/maps/api/geocode/json";
     private static final String GEOCODE_QUERY = "?address=%s&key=%s";
     private static final String REV_GEOCODE_QUERY = "?latlng=%s&key=%s";
+    private static final String ZIP_CODE_QUERY = "?components=postal_code:%s|country:US&key=%s";
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private String baseUrl;
@@ -66,7 +68,14 @@ public class GoogleDao implements Observer
         }
 
         try {
-            String formattedQuery = String.format(GEOCODE_QUERY, URLEncoder.encode(address.toString(), "UTF-8"), apiKey);
+            String formattedQuery = "";
+            if (GeocodeUtil.isZipCode(address)) {
+                logger.info("Input address is a zip code");
+                formattedQuery = String.format(ZIP_CODE_QUERY, URLEncoder.encode(address.getZip5(), "UTF-8"), apiKey);
+            }
+            else {
+                formattedQuery = String.format(GEOCODE_QUERY, URLEncoder.encode(address.toString(), "UTF-8"), apiKey);
+            }
             String url = getBaseUrl() + formattedQuery;
             geocodedAddress = getGeocodedAddress(url);
         }

@@ -1,6 +1,9 @@
 package gov.nysenate.sage.util;
 
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 
 public abstract class GeocodeUtil
@@ -61,5 +64,33 @@ public abstract class GeocodeUtil
     {
         double meters = getDistanceInMeters(g1, g2);
         return (meters != -1.0) ? meters * 3.28084 : -1;
+    }
+
+    /**
+     * Manually correct improperly matched quality for zip codes.
+     * We found that Google Maps sometimes returns the wrong results when a zip code input is sent
+     * @param geocodedAddress
+     */
+    public static void resolveZipCodeQuality(GeocodedAddress geocodedAddress) {
+
+        Address address = geocodedAddress.getAddress();
+        Geocode geocode = geocodedAddress.getGeocode();
+
+        if (address.getAddr1().isEmpty() && address.getState().equals("NY") && !address.getZip5().isEmpty()
+        && (geocode.getQuality() ==  GeocodeQuality.CITY || geocode.getQuality() == GeocodeQuality.UNKNOWN) ) {
+            geocodedAddress.getGeocode().setQuality(GeocodeQuality.ZIP);
+        }
+    }
+
+    /**
+     * Determine if an input address is a zip code only
+     * @param address
+     * @return true if the address is a zip code input
+     */
+    public static boolean isZipCode(Address address) {
+        if (address.getAddr1().isEmpty() && address.getState().equals("NY") && !address.getZip5().isEmpty()) {
+            return true;
+        }
+        return false;
     }
 }
