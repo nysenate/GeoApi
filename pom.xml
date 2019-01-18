@@ -2,11 +2,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>gov.nysenate</groupId>
-    <artifactId>geoapi</artifactId>
-    <name>GeoApi</name>
-    <version>2.5.1</version>
-    <packaging>war</packaging>
+  <groupId>gov.nysenate</groupId>
+  <artifactId>geoapi</artifactId>
+  <name>GeoApi</name>
+  <version>2.5.2</version>
+  <packaging>war</packaging>
 
     <repositories>
         <repository>
