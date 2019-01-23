@@ -94,7 +94,7 @@ public class SqlAssemblyDao implements AssemblyDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("district", district);
 
-            baseDao.geoApiJbdcTemplate.update(
+            baseDao.geoApiNamedJbdcTemaplate.update(
                     AssemblyQuery.DELETE_ASSEMBLY_DISTRICT.getSql(baseDao.getPublicSchema()), params);
         }
         catch (Exception ex) {

@@ -117,7 +117,7 @@ public class SqlSenateDao implements SenateDao {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("district", district);
 
-            baseDao.geoApiJbdcTemplate.update(
+            baseDao.geoApiNamedJbdcTemaplate.update(
                     SenateQuery.DELETE_SENATOR_BY_DISTRICT.getSql(baseDao.getPublicSchema()), params);
         } catch (Exception ex) {
             logger.error("Failed to delete senator in district " + district);

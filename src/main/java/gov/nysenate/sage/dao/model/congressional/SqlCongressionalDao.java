@@ -95,7 +95,7 @@ public class SqlCongressionalDao implements CongressionalDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("district", district);
 
-            baseDao.geoApiJbdcTemplate.update(
+            baseDao.geoApiNamedJbdcTemaplate.update(
                     CongressionalQuery.DELETE_CONGRESSIONAL_DISTRICT.getSql(baseDao.getPublicSchema()), params);
         }
         catch (Exception ex) {

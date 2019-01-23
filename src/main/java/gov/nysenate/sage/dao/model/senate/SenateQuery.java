@@ -13,7 +13,7 @@ public enum SenateQuery implements BasicSqlQuery  {
 
     CLEAR_SENATORS("DELETE FROM ${schema}." + SqlTable.PUBLIC_SENATE),
 
-    DELETE_SENATOR_BY_DISTRICT("DELETE FROM ${schema}." + SqlTable.SENATOR + " WHERE district = :district"),
+    DELETE_SENATOR_BY_DISTRICT("DELETE FROM ${schema}." + SqlTable.SENATOR + " s WHERE s.district = :district"),
 
     GET_ALL_SENATORS("SELECT * FROM ${schema}." + SqlTable.SENATOR),
 
