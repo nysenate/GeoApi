@@ -22,6 +22,8 @@ import gov.nysenate.services.NYSenateJSONClient;
 import gov.nysenate.services.model.Office;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.io.IOUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.apache.xmlrpc.XmlRpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,13 +84,15 @@ public class DataGenController {
     @RequestMapping(value = "/gensenatorimages/", method = RequestMethod.GET)
     public void generateSenatorImages(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam String path, @RequestParam int height,
-                                      @RequestParam String username, @RequestParam String password) {
+                                      @RequestParam String username,
+                                      @RequestParam(required = false) String password) {
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID );
 
         String forwardedForIp = request.getHeader("x-forwarded-for");
         String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        Subject subject = SecurityUtils.getSubject();
 
-        if (sqlAdminUserDao.checkAdminUser(username, password)) {
+        if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
             adminUserAuth.setUpPermissions(request, username, ipAddr);
             try {
                 Collection<Senator> senators = sqlSenateDao.getSenators();
@@ -123,12 +127,14 @@ public class DataGenController {
      */
     @RequestMapping(value = "/genmetadata/{option}", method = RequestMethod.GET)
     public void generateMetaData(HttpServletRequest request, HttpServletResponse response,
-                                 @PathVariable String option, @RequestParam String username, @RequestParam String password) {
+                                 @PathVariable String option, @RequestParam String username,
+                                 @RequestParam(required = false) String password) {
         Object apiResponse;
         String forwardedForIp = request.getHeader("x-forwarded-for");
         String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        Subject subject = SecurityUtils.getSubject();
 
-        if (sqlAdminUserDao.checkAdminUser(username, password)) {
+        if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
             adminUserAuth.setUpPermissions(request, username, ipAddr);
             try {
                 apiResponse = generateMetaData(option);
