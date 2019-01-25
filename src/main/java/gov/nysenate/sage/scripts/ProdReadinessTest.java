@@ -1,8 +1,5 @@
 package gov.nysenate.sage.scripts;
 
-import gov.nysenate.sage.config.Environment;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -11,21 +8,13 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-import static gov.nysenate.sage.scripts.BaseScript.getCommandLine;
 import static org.junit.Assert.*;
 
-@Component
 public class ProdReadinessTest {
-
-    @Autowired
-    Environment env;
 
     private static Logger logger = LoggerFactory.getLogger(ProdReadinessTest.class);
 
@@ -37,16 +26,14 @@ public class ProdReadinessTest {
             + "{ \"addr1\" : \"46-08 74th Street\", \"addr2\" : \"\", \"city\" : \"flushing\", \"state\" : \"NY\", \"zip5\" : \"11373\", \"zip4\" : \"\" }"
             + "{ \"addr1\" : \"200 state street\", \"addr2\" : \"\", \"city\" : \"albany\", \"state\" : \"NY\", \"zip5\" : \"12210\", \"zip4\" : \"\" }]";
 
-    public void execute(CommandLine opts) throws Exception
-    {
-        String[] args = opts.getArgs();
-        this.testReadiness(args);
-    }
+    public static void main(String[] args) throws Exception {
 
-    public void testReadiness(String[] args) throws Exception {
+        if (args.length != 1) {
+            logger.error("Improper usage! The only argument should be the host i.e. localhost:8080");
+        }
+        String baseUrl = args[0];
+
         ProdReadinessTest prodReadinessTest = new ProdReadinessTest();
-
-        String baseUrl = env.getBaseUrl();
 
         //Test Address Api Functionality
         HttpURLConnection addressValidate = prodReadinessTest.createHttpRequest(
@@ -221,13 +208,6 @@ public class ProdReadinessTest {
                 "/api/v2/district/bluebird/batch");
         assertEquals(200, standardBluebirdBatchValidate.getStatusLine().getStatusCode());
         standardBluebirdBatchValidate.close();
-    }
-
-
-    public static void main(String[] args) throws Exception {
-        logger.info("running");
-        CommandLine cmd = getCommandLine(new Options(), args);
-        new ProdReadinessTest().execute(cmd);
     }
 
     private HttpURLConnection createHttpRequest(String ctxPath, String apiPath) throws Exception {
