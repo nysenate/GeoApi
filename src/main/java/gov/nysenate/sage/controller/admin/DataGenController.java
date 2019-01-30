@@ -101,4 +101,22 @@ public class DataGenController {
         }
         setAdminResponse(apiResponse, response);
     }
+
+    @RequestMapping(value = "/countycodes", method = RequestMethod.GET)
+    public void ensureCountyCodeFileExists(HttpServletRequest request, HttpServletResponse response) {
+        Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        if (dataGenService.ensureCountyCodeFile()) {
+            apiResponse = new ApiError(this.getClass(), SUCCESS);
+        }
+        setAdminResponse(apiResponse, response);
+    }
+
+    @RequestMapping(value = "/towncodes", method = RequestMethod.GET)
+    public void ensureTownCodeFileExists(HttpServletRequest request, HttpServletResponse response) {
+        Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        if (dataGenService.ensureTownCodeFile()) {
+            apiResponse = new ApiError(this.getClass(), SUCCESS);
+        }
+        setAdminResponse(apiResponse, response);
+    }
 }

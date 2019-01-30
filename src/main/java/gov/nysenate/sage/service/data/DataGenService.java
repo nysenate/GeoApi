@@ -2,9 +2,11 @@ package gov.nysenate.sage.service.data;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.corba.se.impl.orbutil.closure.Constant;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.controller.admin.DataGenController;
+import gov.nysenate.sage.dao.data.SqlDataGenDao;
 import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
 import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
@@ -12,13 +14,18 @@ import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.scripts.streetfinder.County;
+import gov.nysenate.sage.scripts.streetfinder.TownCode;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.sage.util.ImageUtil;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import gov.nysenate.services.NYSenateClientService;
 import gov.nysenate.services.NYSenateJSONClient;
 import gov.nysenate.services.model.Office;
 import gov.nysenate.services.model.Senator;
+import org.apache.commons.dbutils.ResultSetHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.io.IOUtils;
 import org.apache.xmlrpc.XmlRpcException;
 import org.slf4j.Logger;
@@ -26,10 +33,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
@@ -43,17 +49,81 @@ public class DataGenService {
     private SqlAssemblyDao sqlAssemblyDao;
     private SqlCongressionalDao sqlCongressionalDao;
     private SqlSenateDao sqlSenateDao;
+    private SqlDataGenDao sqlDataGenDao;
     private Environment env;
 
     @Autowired
     public DataGenService(SqlSenateDao sqlSenateDao, SqlDistrictShapefileDao sqlDistrictShapefileDao,
                           SqlAssemblyDao sqlAssemblyDao, SqlCongressionalDao sqlCongressionalDao,
-                          Environment env) {
+                          Environment env, SqlDataGenDao sqlDataGenDao) {
         this.sqlSenateDao = sqlSenateDao;
         this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
         this.sqlAssemblyDao = sqlAssemblyDao;
         this.sqlCongressionalDao = sqlCongressionalDao;
+        this.sqlDataGenDao = sqlDataGenDao;
         this.env = env;
+    }
+
+    public boolean ensureTownCodeFile() {
+        try {
+            File towns = new File(ConstantUtil.TOWN_FILE_DIRECTORY);
+            if (towns.exists()) {
+                logger.info("Town code file already exists");
+                return true;
+            }
+
+            towns.createNewFile();
+            List<TownCode> townCodes = sqlDataGenDao.getTownCodes();
+
+            FileWriter fileWriter = new FileWriter(ConstantUtil.TOWN_FILE_DIRECTORY);
+            PrintWriter outputWriter = new PrintWriter(fileWriter);
+
+            int count = 0;
+            for (TownCode townCode : townCodes) {
+                count++;
+                outputWriter.println(townCode.toString());
+            }
+
+            logger.info("Wrote " + count + " town codes to file");
+            fileWriter.close();
+            outputWriter.close();
+            return true;
+
+        } catch (IOException ex) {
+            logger.error("Error creating town code file", ex);
+            return false;
+        }
+    }
+
+    public boolean ensureCountyCodeFile() {
+        try {
+            File senateCounties = new File(ConstantUtil.COUNTY_FILE_DIRECTORY);
+            if (senateCounties.exists()) {
+                logger.info("Senate county code file already exists");
+                return true;
+            }
+
+            senateCounties.createNewFile();
+            List<County> counties = sqlDataGenDao.getCountyCodes();
+
+            FileWriter fileWriter = new FileWriter(ConstantUtil.COUNTY_FILE_DIRECTORY);
+            PrintWriter outputWriter = new PrintWriter(fileWriter);
+
+            int count = 0;
+            for (County county : counties) {
+                count++;
+                outputWriter.println(county.toString());
+            }
+
+            logger.info("Wrote " + count + " Senate county codes to file");
+            fileWriter.close();
+            outputWriter.close();
+            return true;
+
+        }  catch (IOException ex) {
+            logger.error("Error creating town code file", ex);
+            return false;
+        }
     }
 
     public Object generateSenatorImages(String path, int height) {
