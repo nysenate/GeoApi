@@ -20,6 +20,9 @@ public class DatabaseConfig
 {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
 
+    public static final String geoApiTxManager = "geoApiTxManager";
+    public static final String geocoderTxManager = "geocoderTxManager";
+
     /** PostgreSQL Database Configuration */
     @Value("${db.driver}") private String dbDriver;
     @Value("${db.type}")  private String dbType;
@@ -117,7 +120,7 @@ public class DatabaseConfig
      * Configures a Spring transaction manager for the postgres data source.
      * @return PlatformTransactionManager
      */
-    @Bean
+    @Bean(name = "geoApiTxManager")
     public PlatformTransactionManager geoApiTransactionManager() {
         return new DataSourceTransactionManager(geoApiPostgresDataSource());
     }
@@ -126,7 +129,7 @@ public class DatabaseConfig
      * Configures a Spring transaction manager for the postgres data source.
      * @return PlatformTransactionManager
      */
-    @Bean
+    @Bean(name = "geocoderTxManager")
     public PlatformTransactionManager tigerTransactionManager() {
         return new DataSourceTransactionManager(tigerPostgresDataSource());
     }

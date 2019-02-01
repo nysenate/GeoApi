@@ -38,33 +38,6 @@ public class MetaController
     @Autowired
     public MetaController(GeocodeServiceProvider geocodeServiceProvider) {
         this.geocodeServiceProvider = geocodeServiceProvider;
-        try {
-            pomModel = pomReader.read(Thread.currentThread().getContextClassLoader().getResourceAsStream("pom.xml"));
-        }
-        catch (IOException ex) {
-            logger.error("Failed to read pom.xml.", ex);
-        }
-        catch (XmlPullParserException ex) {
-            logger.error("Failed to parse pom.xml.", ex);
-        }
-    }
-
-    @RequestMapping(value = "/info", method = RequestMethod.GET)
-    public void metaInfo(HttpServletRequest request, HttpServletResponse response) {
-        Object metaResponse;
-        /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
-        logMetaRequest(apiRequest);
-
-        if (pomModel != null) {
-            metaResponse = new MetaInfoResponse(pomModel);
-        }
-        else {
-            logger.error("POM file is missing from the WEB-INF/classes folder!");
-            metaResponse = new ApiError(MetaController.class, ResultStatus.CONFIG_FILE_MISSING);
-        }
-
-        setApiResponse(metaResponse,request);
     }
 
     @RequestMapping(value = "/provider", method = RequestMethod.GET)
