@@ -30,5 +30,7 @@
         <logger name="org.springframework.context.support" level="WARN" additivity="false"/>
         <logger name="org.springframework.beans.factory.annotation" level="WARN" additivity="false"/>
         <logger name="org.springframework.context.annotation.AnnotationConfigApplicationContext" level="WARN" additivity="false"/>
+        <logger name="org.springframework.test.context.transaction" level="WARN" additivity="false"/>
+        <logger name="org.springframework.test.context.support" level="WARN" additivity="false"/>
     </Loggers>
 </Configuration>
