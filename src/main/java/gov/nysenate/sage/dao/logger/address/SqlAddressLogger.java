@@ -35,6 +35,9 @@ public class SqlAddressLogger implements AddressLogger
 
                 MapSqlParameterSource params = getAddrParams(address);
                 List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(AddressQuery.INSERT_ADDRESS.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
+                if (idList == null || idList.size() <= 0) {
+                    return 0;
+                }
                 return idList.get(0);
             }
             catch (Exception ex) {
@@ -52,6 +55,9 @@ public class SqlAddressLogger implements AddressLogger
 
                 MapSqlParameterSource params = getAddrParams(address);
                 List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(AddressQuery.GET_ADDRESS_ID.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
+                if (idList == null || idList.size() <= 0) {
+                    return 0;
+                }
                 return idList.get(0);
             }
             catch (Exception ex) {
