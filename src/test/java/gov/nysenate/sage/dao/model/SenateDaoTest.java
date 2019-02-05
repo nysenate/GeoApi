@@ -37,7 +37,7 @@ public class SenateDaoTest extends BaseTests {
     }
 
     @Test
-
+    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void getSenatorByDistrictNumberTest()
     {
         Senator senator = this.sqlSenateDao.getSenatorByDistrict(44);
