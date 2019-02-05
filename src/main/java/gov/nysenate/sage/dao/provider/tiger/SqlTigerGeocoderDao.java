@@ -44,17 +44,19 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
     {
         GeocodedStreetAddress geoStreetAddress = null;
         String sql = "SELECT g.rating, ST_Y(geomout) As lat, ST_X(geomout) As lon, (addy).* \n" +
-                     "FROM geocode(:address, 1) AS g;";
+                     "FROM geocode(:address, 1) AS g";
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("address", address.toString());
 
             List<GeocodedStreetAddress> geocodedStreetAddressList =
-                    this.baseDao.geoApiNamedJbdcTemaplate.query(sql, params, new GeocodedStreetAddressHandler());
+                    this.baseDao.tigerNamedJdbcTemplate.query(sql, params, new GeocodedStreetAddressHandler());
 
-            if (geocodedStreetAddressList.size() > 0 && geocodedStreetAddressList.get(0) != null) {
-                return geocodedStreetAddressList.get(0);
+            if(geocodedStreetAddressList == null || geocodedStreetAddressList.size() == 0) {
+                return null;
             }
+
+            return geocodedStreetAddressList.get(0);
         }
         catch (Exception ex){
             logger.warn(ex.getMessage());
@@ -71,7 +73,7 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
             params.addValue("params", address.toNormalizedString());
 
             List<StreetAddress> streetAddressList =
-                    this.baseDao.geoApiNamedJbdcTemaplate.query(sql, params ,new StreetAddressHandler());
+                    this.baseDao.tigerNamedJdbcTemplate.query(sql, params ,new StreetAddressHandler());
 
             if (streetAddressList.size() > 0 && streetAddressList.get(0) != null) {
                 return streetAddressList.get(0);
@@ -91,7 +93,7 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
         try {
             if (point != null){
                 List<StreetAddress> streetAddressList =
-                        this.baseDao.geoApiNamedJbdcTemaplate.query(sql, new StreetAddressHandler());
+                        this.baseDao.tigerNamedJdbcTemplate.query(sql, new StreetAddressHandler());
                 if (streetAddressList.size() > 0 && streetAddressList.get(0) != null) {
                     return streetAddressList.get(0);
                 }
@@ -115,7 +117,7 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("zip5", zip5);
 
-            return this.baseDao.geoApiNamedJbdcTemaplate.query(sql, params , new StreetListHandler());
+            return this.baseDao.tigerNamedJdbcTemplate.query(sql, params , new StreetListHandler());
         }
         catch (Exception ex){
             logger.error(ex.getMessage());
@@ -149,7 +151,7 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("streetName", streetName);
 
-            List<String> zip5QueryList =  this.baseDao.geoApiNamedJbdcTemaplate.query(sql, params, new zip5Handler());
+            List<String> zip5QueryList =  this.baseDao.tigerNamedJdbcTemplate.query(sql, params, new LineHandler());
             if (zip5QueryList.size() > 0 && zip5QueryList.get(0) != null) {
                 return zip5QueryList.get(0);
             }
@@ -186,15 +188,15 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
         public StreetAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
             StreetAddress streetAddress = new StreetAddress();
 
-            streetAddress.setBldgNum(rs.getInt("bldgNum"));
-            streetAddress.setPreDir(rs.getString("preDir"));
+            streetAddress.setBldgNum(rs.getInt("address"));
+            streetAddress.setPreDir(rs.getString("predirabbrev"));
             streetAddress.setStreetName(rs.getString("streetName"));
-            streetAddress.setStreetType(rs.getString("streetType"));
-            streetAddress.setPostDir(rs.getString("postDir"));
+            streetAddress.setStreetType(rs.getString("streettypeabbrev"));
+            streetAddress.setPostDir(rs.getString("postdirabbrev"));
             streetAddress.setInternal(rs.getString("internal"));
             streetAddress.setLocation(rs.getString("location"));
-            streetAddress.setState(rs.getString("state"));
-            streetAddress.setZip5(rs.getString("zip5"));
+            streetAddress.setState(rs.getString("stateabbrev"));
+            streetAddress.setZip5(rs.getString("zip"));
 
             return streetAddress;
         }
@@ -215,10 +217,10 @@ public class SqlTigerGeocoderDao implements TigerGeocoderDao
         }
     }
 
-    private static class zip5Handler implements RowMapper<String> {
+    private static class LineHandler implements RowMapper<String> {
         @Override
         public String mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return rs.getString("zip5");
+            return rs.getString("lines");
         }
     }
 
