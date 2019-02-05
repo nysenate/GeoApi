@@ -36,7 +36,9 @@ public class SqlDeploymentLogger implements DeploymentLogger
 
             List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(
                     DeploymentQuery.INSERT_DEPLOYMENT.getSql(baseDao.getLogSchema()), params, new DeploymentIdHandler());
-
+            if (idList == null || idList.size() <= 0) {
+                return 0;
+            }
             return  idList.get(0);
         }
         catch (Exception ex) {

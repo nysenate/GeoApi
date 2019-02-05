@@ -30,7 +30,8 @@ public class SqlCongressionalDao implements CongressionalDao
     {
         try {
             return baseDao.geoApiNamedJbdcTemaplate.query(
-                    AssemblyQuery.GET_ALL_ASSEMBLY_MEMBERS.getSql(baseDao.getPublicSchema()), new CongressionalHandler());
+                    CongressionalQuery.GET_ALL_CONGRESSIONAL_MEMBERS
+                            .getSql(baseDao.getPublicSchema()), new CongressionalHandler());
         }
         catch (Exception ex){
             logger.error("Failed to retrieve congressionals", ex);
@@ -49,9 +50,11 @@ public class SqlCongressionalDao implements CongressionalDao
                     CongressionalQuery.GET_CONGRESSIONAL_MEMBER_BY_DISTRICT.getSql(baseDao.getPublicSchema()),
                     params, new CongressionalHandler());
 
-            if (congressionalList != null && congressionalList.get(0) != null) {
-                return congressionalList.get(0);
+            if (congressionalList == null || congressionalList.size() == 0) {
+                return null;
             }
+            return congressionalList.get(0);
+
         }
         catch (Exception ex){
             logger.error("Failed to retrieve congressional", ex);

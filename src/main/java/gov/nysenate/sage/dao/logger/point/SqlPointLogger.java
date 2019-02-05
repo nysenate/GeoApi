@@ -39,7 +39,9 @@ public class SqlPointLogger implements PointLogger
 
                 List<Integer> idList =  baseDao.geoApiNamedJbdcTemaplate.query(PointQuery.INSERT_POINT.getSql(baseDao.getLogSchema()),
                         params, new PointIdHandler());
-
+                if (idList == null || idList.size() <= 0) {
+                    return 0;
+                }
                 return idList.get(0);
             }
             catch (Exception ex) {
@@ -63,9 +65,8 @@ public class SqlPointLogger implements PointLogger
                 if (idList.size() == 0) {
                     return 0;
                 }
-                else {
-                    return idList.get(0);
-                }
+                return idList.get(0);
+
             }
             catch (Exception ex) {
                 logger.error("Failed to retrieve point id!", ex);

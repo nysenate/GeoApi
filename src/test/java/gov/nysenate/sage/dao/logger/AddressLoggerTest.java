@@ -1,4 +1,4 @@
-package gov.nysenate.sage.dao;
+package gov.nysenate.sage.dao.logger;
 
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
