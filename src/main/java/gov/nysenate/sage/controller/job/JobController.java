@@ -7,6 +7,7 @@ import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.JobErrorResult;
+import gov.nysenate.sage.service.job.JobBatchProcessor;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.JobFileUtil;
 import gov.nysenate.sage.util.auth.JobUserAuth;
@@ -48,13 +49,16 @@ public class JobController {
     private Environment env;
     private JobUserAuth jobUserAuth;
     private SqlJobProcessDao sqlJobProcessDao;
+    private JobBatchProcessor jobBatchProcessor;
 
 
     @Autowired
-    public JobController(Environment env, JobUserAuth jobUserAuth, SqlJobProcessDao sqlJobProcessDao) {
+    public JobController(Environment env, JobUserAuth jobUserAuth, SqlJobProcessDao sqlJobProcessDao,
+                         JobBatchProcessor jobBatchProcessor) {
         this.env = env;
         this.jobUserAuth = jobUserAuth;
         this.sqlJobProcessDao = sqlJobProcessDao;
+        this.jobBatchProcessor = jobBatchProcessor;
     }
 
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
@@ -90,6 +94,22 @@ public class JobController {
     @RequestMapping(value = "/cancel", method = RequestMethod.POST)
     public void jobCancel(HttpServletRequest request, HttpServletResponse response, @RequestParam int id) {
         doCancel(request, response, id);
+    }
+
+    @RequestMapping(value = "/cancel/running", method = RequestMethod.POST)
+    public void jobCancelRunning(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        JobRequest jobRequest = getJobRequest(request);
+        String[] args = new String[1];
+        args[0] = "clean";
+        jobBatchProcessor.run(args);
+    }
+
+    @RequestMapping(value = "/run", method = RequestMethod.POST)
+    public void jobRun(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        JobRequest jobRequest = getJobRequest(request);
+        String[] args = new String[1];
+        args[0] = "process";
+        jobBatchProcessor.run(args);
     }
 
     /**

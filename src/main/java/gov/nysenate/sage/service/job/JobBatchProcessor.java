@@ -122,7 +122,7 @@ public class JobBatchProcessor {
     public void jobCron() throws Exception {
         String[] args = new String[1];
         args[0] = "process";
-        logger.info("Job Cron Triggered");
+        logger.info("Starting Job Processor");
         run(args);
     }
 
@@ -162,7 +162,7 @@ public class JobBatchProcessor {
             }
 
             /** Clean up and exit */
-            logger.info("Wrapping things up..");
+            logger.info("Finishing processing, Exiting Data Processor");
             deleteLockFile();
         }
         else {
@@ -185,7 +185,8 @@ public class JobBatchProcessor {
             lockFile.deleteOnExit();
         }
         else {
-            logger.info("Lock file [" + lockFile.getAbsolutePath() + "] already exists; exiting immediately");
+            logger.info("Exiting Data Processor");
+            logger.debug("Lock file [" + lockFile.getAbsolutePath() + "] already exists; exiting immediately");
             //back out of api call?
         }
     }
