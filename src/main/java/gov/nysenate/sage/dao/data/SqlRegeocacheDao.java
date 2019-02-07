@@ -49,9 +49,15 @@ public class SqlRegeocacheDao implements RegeocacheDao {
         geocacheParams.addValue("streettype", nysStreetAddress.getStreetType());
         geocacheParams.addValue("zip5", nysStreetAddress.getZip5().toString());
         geocacheParams.addValue("location", nysStreetAddress.getLocation());
-        return baseDao.tigerNamedJdbcTemplate
-                .queryForObject(
-                        RegeocacheQuery.GEOCACHE_SELECT.getSql(baseDao.getCacheSchema()), geocacheParams, String.class);
+
+        List<String> providerList = baseDao.tigerNamedJdbcTemplate
+                .query(RegeocacheQuery.GEOCACHE_SELECT.getSql(
+                                baseDao.getCacheSchema()), geocacheParams, (rs, rowNum) -> rs.getString("method"));
+
+        if (providerList == null || providerList.isEmpty()) {
+            return "";
+        }
+        return providerList.get(0);
     }
 
     public void insetIntoGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) {
@@ -77,7 +83,8 @@ public class SqlRegeocacheDao implements RegeocacheDao {
 
     public List<String> getAllZips() {
         return baseDao.geoApiJbdcTemplate.query(
-                RegeocacheQuery.SELECT_ZIPS.getSql(), (rs, rowNum) -> rs.getString("zcta5ce10"));
+                RegeocacheQuery.SELECT_ZIPS.getSql(baseDao.getDistrictSchema()),
+                (rs, rowNum) -> rs.getString("zcta5ce10"));
     }
 
     public static class NysGeoAddressRowMapper implements RowMapper<NYSGeoAddress> {
@@ -93,6 +100,14 @@ public class SqlRegeocacheDao implements RegeocacheDao {
             nysGeoAddress.setLongitude(rs.getDouble("longitude"));
             nysGeoAddress.setPointtype(rs.getInt("pointtype"));
             return nysGeoAddress;
+        }
+    }
+
+    public static class GeocacheMethodRowMapper implements RowMapper<String> {
+
+        @Override
+        public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getString("method");
         }
     }
 
