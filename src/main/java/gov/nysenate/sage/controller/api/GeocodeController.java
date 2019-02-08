@@ -188,7 +188,7 @@ public class GeocodeController {
         setApiResponse(geocodeResponse, request);
     }
 
-    @RequestMapping(value = "/batch/geocode", method = RequestMethod.GET)
+    @RequestMapping(value = "/geocode/batch", method = RequestMethod.POST)
     public void batchGeocode(HttpServletRequest request, HttpServletResponse response,
                              @RequestParam(required = false) String provider,
                              @RequestParam(required = false) boolean useFallback,
@@ -234,7 +234,7 @@ public class GeocodeController {
         setApiResponse(geocodeResponse, request);
     }
 
-    @RequestMapping(value = "/batch/revgeocode", method = RequestMethod.GET)
+    @RequestMapping(value = "/revgeocode/batch", method = RequestMethod.POST)
     public void batchRevGeocode(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false) String provider,
                                 @RequestParam(required = false) boolean useFallback,
