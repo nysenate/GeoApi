@@ -8,45 +8,45 @@ import javax.annotation.PostConstruct;
 @Component("environment")
 public class Environment {
 
-    @Value("${base.url}") private String baseUrl;
+    @Value("${base.url:http://localhost:8080}") private String baseUrl;
 
-    @Value("${init.caches}") private boolean initCaches;
+    @Value("${init.caches:true}") private boolean initCaches;
 
-    @Value("${senator.cache.refresh.hours}") private int senatorCacheRefreshHours;
+    @Value("${senator.cache.refresh.hours:12}") private int senatorCacheRefreshHours;
 
-    @Value("${user.ip.filter}") private String userIpFilter;
+    @Value("${user.ip.filter:(127.0.0.1)}") private String userIpFilter;
 
     @Value("${user.default.key}") private String userDefaultKey;
 
-    @Value("${public.api.filter}") private String publicApiFilter;
+    @Value("${public.api.filter:(map)}") private String publicApiFilter;
 
     @Value("${user.public.key}") private String userPublicKey;
 
-    @Value("${api.logging.enabled}") private boolean apiLoggingEnabled;
+    @Value("${api.logging.enabled:true}") private boolean apiLoggingEnabled;
 
-    @Value("${detailed.logging.enabled}") private boolean detailedLoggingEnabled;
+    @Value("${detailed.logging.enabled:true}") private boolean detailedLoggingEnabled;
 
-    @Value("${batch.detailed.logging.enabled}") private boolean batchDetailedLoggingEnabled;
+    @Value("${batch.detailed.logging.enabled:false}") private boolean batchDetailedLoggingEnabled;
 
-    @Value("${usps.ais.url}") private String uspsAisUrl;
+    @Value("${usps.ais.url:http://production.shippingapis.com/ShippingAPI.dll}") private String uspsAisUrl;
 
-    @Value("${usps.ais.key}") private String uspsAisKey;
+    @Value("${usps.ais.key:API key obtained from USPS}") private String uspsAisKey;
 
-    @Value("${usps.ams.api.url}") private String uspsAmsApiUrl;
+    @Value("${usps.ams.api.url:http://localhost:8081/USPS-AMS/api/}") private String uspsAmsApiUrl;
 
-    @Value("${usps.ams.ui.url}") private String uspsAmsUiUrl;
+    @Value("${usps.ams.ui.url:http://localhost:8081/USPS-AMS/}") private String uspsAmsUiUrl;
 
-    @Value("${nysenate.domain}") private String nysenateDomain;
+    @Value("${nysenate.domain:http://www.nysenate.gov}") private String nysenateDomain;
 
-    @Value("${google.geocoder.url}") private String googleGeocoderUrl;
+    @Value("${google.geocoder.url:https://maps.googleapis.com/maps/api/geocode/json}") private String googleGeocoderUrl;
 
-    @Value("${google.geocoder.key}") private String googleGeocoderKey;
+    @Value("${google.geocoder.key:API Key obtained from Google}") private String googleGeocoderKey;
 
-    @Value("${google.maps.url}") private String googleMapsUrl;
+    @Value("${google.maps.url:https://maps.google.com/maps/api/js?v=3&libraries=places}") private String googleMapsUrl;
 
-    @Value("${google.maps.key}") private String googleMapsKey;
+    @Value("${google.maps.key:API Key obtained from Google (this key is public facing)}") private String googleMapsKey;
 
-    @Value("${usps.default}") private String uspsDefault;
+    @Value("${usps.default:usps}") private String uspsDefault;
 
     @Value("${geocoder.active}") private String geocoderActive;
 
@@ -54,25 +54,25 @@ public class Environment {
 
     @Value("${geocoder.cacheable}") private String geocoderCacheable;
 
-    @Value("${geocoder.failure.threshold}") private int geocoderFailureThreshold;
+    @Value("${geocoder.failure.threshold:20}") private int geocoderFailureThreshold;
 
-    @Value("${geocoder.retry.interval}") private int geocoderRetryInterval;
+    @Value("${geocoder.retry.interval:300}") private int geocoderRetryInterval;
 
-    @Value("${tiger.geocoder.timeout}") private int tigerGeocoderTimeout;
+    @Value("${tiger.geocoder.timeout:15000}") private int tigerGeocoderTimeout;
 
-    @Value("${validate.threads}") private int validateThreads;
+    @Value("${validate.threads:3}") private int validateThreads;
 
-    @Value("${distassign.threads}") private int distassignThreads;
+    @Value("${distassign.threads:3}") private int distassignThreads;
 
-    @Value("${geocode.threads}") private int geocodeThreads;
+    @Value("${geocode.threads:3}") private int geocodeThreads;
 
-    @Value("${revgeocode.threads}") private int revgeocodeThreads;
+    @Value("${revgeocode.threads:3}") private int revgeocodeThreads;
 
-    @Value("${geoserver.url}") private String geoServerUrl;
+    @Value("${geoserver.url:http://geoserver:8080/wfs}") private String geoServerUrl;
 
-    @Value("${geoserver.workspace}") private String geoserverWorkspace;
+    @Value("${geoserver.workspace:nysenate}") private String geoserverWorkspace;
 
-    @Value("${db.driver}") private String geoapiDriver;
+    @Value("${db.driver:org.postgresql.Driver}") private String geoapiDriver;
 
     @Value("${db.type}") private String geoapiDbType;
 
@@ -84,7 +84,7 @@ public class Environment {
 
     @Value("${db.pass}") private String gepapiDbPass;
 
-    @Value("${tiger.db.driver}") private String tigerDriver;
+    @Value("${tiger.db.driver:org.postgresql.Driver}") private String tigerDriver;
 
     @Value("${tiger.db.type}") private String tigerDbType;
 
@@ -116,85 +116,86 @@ public class Environment {
 
     @Value("${smtp.context}") private String smtpContext;
 
-    @Value("${job.send.email}") private Boolean jobSendEmail;
+    @Value("${job.send.email:true}") private Boolean jobSendEmail;
 
-    @Value("${job.upload.dir}") private String jobUploadDir;
+    @Value("${job.upload.dir:/data/geoapi_data/uploads/}") private String jobUploadDir;
 
-    @Value("${job.download.dir}") private String jobDownloadDir;
+    @Value("${job.download.dir:/data/geoapi_data/downloads/}") private String jobDownloadDir;
 
-    @Value("${job.batch.size}") private int jobBatchSize;
+    @Value("${job.batch.size:40}") private int jobBatchSize;
 
-    @Value("${job.threads.validate}") private int jobThreadsValidate;
+    @Value("${job.threads.validate:1}") private int jobThreadsValidate;
 
-    @Value("${job.threads.geocode}") private int jobThreadsGeocode;
+    @Value("${job.threads.geocode:2}") private int jobThreadsGeocode;
 
-    @Value("${job.threads.distassign}") private int jobThreadsDistassign;
+    @Value("${job.threads.distassign:2}") private int jobThreadsDistassign;
 
-    @Value("${border.proximity}") private int borderProximity;
+    @Value("${border.proximity:200}") private int borderProximity;
 
-    @Value("${neighbor.proximity}") private int neighborProximity;
+    @Value("${neighbor.proximity:500}") private int neighborProximity;
 
-    @Value("${district.strategy.single}") private String districtStrategySingle;
+    @Value("${district.strategy.single:neighborMatch}") private String districtStrategySingle;
 
-    @Value("${district.strategy.bluebird}") private String districtStrategyBluebird;
+    @Value("${district.strategy.bluebird:streetFallback}") private String districtStrategyBluebird;
 
-    @Value("${district.strategy.batch}") private String districtStrategyBatch;
+    @Value("${district.strategy.batch:shapeFallback}") private String districtStrategyBatch;
 
-    @Value("${geocache.enabled}") private Boolean geocahceEnabled;
+    @Value("${geocache.enabled:true}") private Boolean geocahceEnabled;
 
-    @Value("${geocache.buffer.size}") private int geocahceBufferSize;
+    @Value("${geocache.buffer.size:100}") private int geocahceBufferSize;
 
-    @Value("${nys.geocoder.url}") private String nysGeocoderUrl;
+    @Value("${nys.geocoder.url:https://gisservices.its.ny.gov/arcgis/rest/services/Locators/Street_and_Address_Composite/GeocodeServer}")
+    private String nysGeocoderUrl;
 
-    @Value("${nys.geocode.ext}") private String nysGeocdeExtension;
+    @Value("${nys.geocode.ext:/findAddressCandidates}") private String nysGeocdeExtension;
 
-    @Value("${nys.revgeocode.ext}") private String nysRevGeocodeExtension;
+    @Value("${nys.revgeocode.ext:/reverseGeocode}") private String nysRevGeocodeExtension;
 
-    @Value("$yahoo.url}") private String yahooUrl;
+    @Value("$yahoo.url:http://query.yahooapis.com/v1/yql}") private String yahooUrl;
 
-    @Value("${yahoo.consumer.key}") private String yahooConsumerKey;
+    @Value("${yahoo.consumer.key:API key obtained from Yahoo}") private String yahooConsumerKey;
 
-    @Value("${yahoo.consumer.secret}") private String yahooConsumerSecret;
+    @Value("${yahoo.consumer.secret:API key obtained from Yahoo}") private String yahooConsumerSecret;
 
-    @Value("${yahoo.batch.size}") private int yahooBatchSize;
+    @Value("${yahoo.batch.size:100}") private int yahooBatchSize;
 
-    @Value("${yahoo.boss.url}") private String yahooBossUrl;
+    @Value("${yahoo.boss.url:http://yboss.yahooapis.com/geo/placefinder}") private String yahooBossUrl;
 
-    @Value("${yahoo.boss.consumer_key}") private String yahooBossConsumerKey;
+    @Value("${yahoo.boss.consumer_key:API key obtained from Yahoo}") private String yahooBossConsumerKey;
 
-    @Value("${yahoo.boss.consumer_secret}") private String yahooBossConsumerSecret;
+    @Value("${yahoo.boss.consumer_secret:API key obtained from Yahoo}") private String yahooBossConsumerSecret;
 
-    @Value("${bing.key}") private String bingKey;
+    @Value("${bing.key:API key obtained from Bing}") private String bingKey;
 
-    @Value("${mapquest.geo.url}") private String mapquestGeoUrl;
+    @Value("${mapquest.geo.url:http://www.mapquestapi.com/geocoding/v1/batch}") private String mapquestGeoUrl;
 
-    @Value("${mapquest.rev.url}") private String mapquestRevUrl;
+    @Value("${mapquest.rev.url:http://www.mapquestapi.com/geocoding/v1/reverse}") private String mapquestRevUrl;
 
-    @Value("${mapquest.key}") private String mapquestKey;
+    @Value("${mapquest.key:API key obtained from Mapquest}") private String mapquestKey;
 
-    @Value("${osm.url}") private String osmUrl;
+    @Value("${osm.url:http://open.mapquestapi.com/nominatim/v1/search}") private String osmUrl;
 
-    @Value("${ruby.geocoder.url}") private String rubyGeocoderUrl;
+    @Value("${ruby.geocoder.url:http://geocoder.nysenate.gov/GeoRubyAdapter/api/geocode}") private String rubyGeocoderUrl;
 
-    @Value("${ruby.geocoder.bulk.url}") private String rubyGeocoderBulkUrl;
+    @Value("${ruby.geocoder.bulk.urlhttp://geocoder.nysenate.gov/GeoRubyAdapter/api/bulk}") private String rubyGeocoderBulkUrl;
 
-    @Value("${job.process.cron}") private String jobProcessCron;
+    @Value("${job.process.cron:0 * * * * *}") private String jobProcessCron;
 
-    @Value("${env.districts.schema}") private String districtsSchema;
+    @Value("${env.districts.schema:districts}") private String districtsSchema;
 
-    @Value("${env.job.schema}") private String jobSchema;
+    @Value("${env.job.schema:job}") private String jobSchema;
 
-    @Value("${env.log.schema}") private String logSchema;
+    @Value("${env.log.schema:log}") private String logSchema;
 
-    @Value("${env.public.schema}") private String publicSchema;
+    @Value("${env.public.schema:public}") private String publicSchema;
 
-    @Value("${env.cache.schema}") private String cacheSchema;
+    @Value("${env.cache.schema:cache}") private String cacheSchema;
 
-    @Value("${env.tiger.schema}") private String tigerSchema;
+    @Value("${env.tiger.schema:tiger}") private String tigerSchema;
 
-    @Value("${env.tiger.data.schema}") private String tigerDataSchema;
+    @Value("${env.tiger.data.schema:tiger_data}") private String tigerDataSchema;
 
-    @Value("${env.geocoder.public.schema}") private String geocoderPublicSchema;
+    @Value("${env.geocoder.public.schema:public}") private String geocoderPublicSchema;
 
     public Environment() {}
 
