@@ -39,13 +39,13 @@ public class ApplicationConfig implements CachingConfigurer, SchedulingConfigure
 
     /** --- Eh Cache Spring Configuration --- */
 
-    @Value("${cache.max.size}") private String cacheMaxHeapSize;
+    @Value("${cache.max.size:200}") private String cacheMaxHeapSize;
 
-    @Value("${validate.threads}") private int validateThreads;
+    @Value("${validate.threads:3}") private int validateThreads;
 
-    @Value("${distassign.threads}") private int distassignThreads;
+    @Value("${distassign.threads:3}") private int distassignThreads;
 
-    @Value("${geocode.threads}") private int geocodeThreads;
+    @Value("${geocode.threads:3}") private int geocodeThreads;
 
     @Bean(destroyMethod = "shutdown")
     public net.sf.ehcache.CacheManager pooledCacheManger() {

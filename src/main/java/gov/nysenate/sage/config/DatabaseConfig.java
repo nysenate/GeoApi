@@ -24,7 +24,7 @@ public class DatabaseConfig
     public static final String geocoderTxManager = "geocoderTxManager";
 
     /** PostgreSQL Database Configuration */
-    @Value("${db.driver}") private String dbDriver;
+    @Value("${db.driver:org.postgresql.Driver}") private String dbDriver;
     @Value("${db.type}")  private String dbType;
     @Value("${db.host}")  private String dbHost;
     @Value("${db.name}")  private String dbName;
@@ -32,7 +32,7 @@ public class DatabaseConfig
     @Value("${db.pass}")  private String dbPass;
 
     /** PostgreSQL Database Configuration */
-    @Value("${tiger.db.driver}") private String tigerDbDriver;
+    @Value("${tiger.db.driver:org.postgresql.Driver}") private String tigerDbDriver;
     @Value("${tiger.db.type}")  private String tigerDbType;
     @Value("${tiger.db.host}")  private String tigerDbHost;
     @Value("${tiger.db.name}")  private String tigerDbName;
