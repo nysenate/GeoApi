@@ -2,7 +2,6 @@ package gov.nysenate.sage.service.data;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.corba.se.impl.orbutil.closure.Constant;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.controller.admin.DataGenController;
@@ -24,8 +23,6 @@ import gov.nysenate.services.NYSenateClientService;
 import gov.nysenate.services.NYSenateJSONClient;
 import gov.nysenate.services.model.Office;
 import gov.nysenate.services.model.Senator;
-import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.io.IOUtils;
 import org.apache.xmlrpc.XmlRpcException;
 import org.slf4j.Logger;
@@ -35,7 +32,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
