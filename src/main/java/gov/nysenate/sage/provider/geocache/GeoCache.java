@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +26,7 @@ public class GeoCache implements GeocodeCacheService
 {
     private final Logger logger = LoggerFactory.getLogger(GeoCache.class);
     private static Set<GeocodeService> cacheableProviders = new HashSet<>();
+    private static Set<Class<? extends GeocodeService>> cacheableProvidersClasses = new HashSet<>();
     private SqlGeoCacheDao sqlGeoCacheDao;
     private ParallelGeocodeService parallelGeocodeService;
     private GeocodeServiceValidator geocodeServiceValidator;
@@ -45,6 +47,7 @@ public class GeoCache implements GeocodeCacheService
     {
         if (provider != null) {
             cacheableProviders.add(provider);
+            cacheableProvidersClasses.add(provider.getClass());
         }
     }
 
@@ -55,7 +58,7 @@ public class GeoCache implements GeocodeCacheService
      */
     public boolean isProviderCacheable(Class<? extends GeocodeService> provider)
     {
-        return cacheableProviders.contains(provider);
+        return cacheableProvidersClasses.contains(provider);
     }
 
     /** {@inheritDoc} */

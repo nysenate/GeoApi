@@ -34,6 +34,7 @@ public class GeocodeServiceValidator
 
     /** Keep track of GeocodeService implementations that are temporarily unavailable. */
     private static Set<Class<? extends GeocodeService>> activeGeocoders = new HashSet<>();
+    private static Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
     private static Map<Class<? extends GeocodeService>, Timestamp> frozenGeocoders = new ConcurrentHashMap<>();
     private static Map<Class<? extends GeocodeService>, Integer> failedRequests = new ConcurrentHashMap<>();
     private Integer FAILURE_THRESHOLD;
@@ -46,7 +47,6 @@ public class GeocodeServiceValidator
         this.FAILURE_THRESHOLD = this.env.getGeocoderFailureThreshold();
         this.RETRY_INTERVAL_SECS = this.env.getGeocoderRetryInterval();
 
-        Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
         geoProviders.put("google", GoogleGeocoder.class);
         geoProviders.put("tiger", TigerGeocoder.class);
         geoProviders.put("nysgeo", NYSGeocoder.class);
