@@ -30,7 +30,7 @@ public abstract class GeocodeTestBase
 {
     private static Logger logger = LoggerFactory.getLogger(GeocodeTestBase.class);
     /** Indicates how far apart two lat or lon values can be and yet considered similar. */
-    private static double GEOCODE_EPSILON = 0.2;
+    private static double GEOCODE_EPSILON = 0.4;
 
     public static ArrayList<Address> addresses = new ArrayList<>(Arrays.asList(
             new Address("214 8th Street", "", "Troy", "NY", "12180", ""),
@@ -51,8 +51,8 @@ public abstract class GeocodeTestBase
     public static void assertSingleAddressGeocode(GeocodeService geocodeService)
     {
         Address address = new Address("44 Fairlawn Ave", "", "Albany", "NY", "12203", "");
-        Point latlon = new Point(42.671669, -73.798577);
-
+//        Point latlon = new Point(42.671669, -73.798577);
+        Point latlon = new Point(42.67166963437981, -73.79857701653509);
         assertSingleAddressGeocode(geocodeService, address, latlon);
     }
 
@@ -108,7 +108,7 @@ public abstract class GeocodeTestBase
     public static void assertSingleReverseGeocode(RevGeocodeService revGeocodeService)
     {
         /** This is not an accuracy test, but rather a check to see if the address returned is reasonable */
-        GeocodeResult geocodeResult = revGeocodeService.reverseGeocode(new Point(42.6716696, -73.7985770));
+        GeocodeResult geocodeResult = revGeocodeService.reverseGeocode(new Point(42.67166963437981, -73.79857701653509));
         assertNotNull(geocodeResult);
 
         Address expected = new Address("44 Fairlawn Ave", "", "Albany", "NY", "12203", "");
