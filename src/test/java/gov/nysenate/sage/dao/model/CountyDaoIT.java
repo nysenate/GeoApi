@@ -16,7 +16,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 @Category(IntegrationTest.class)
-public class CountyDaoTest extends BaseTests {
+public class CountyDaoIT extends BaseTests {
 
     @Autowired
     SqlCountyDao sqlCountyDao;

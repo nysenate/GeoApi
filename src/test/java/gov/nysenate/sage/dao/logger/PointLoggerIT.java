@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 @Category(IntegrationTest.class)
-public class PointLoggerTest extends BaseTests {
+public class PointLoggerIT extends BaseTests {
 
     @Autowired
     SqlPointLogger sqlPointLogger;

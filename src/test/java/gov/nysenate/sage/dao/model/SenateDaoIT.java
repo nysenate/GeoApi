@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @Category(IntegrationTest.class)
-public class SenateDaoTest extends BaseTests {
+public class SenateDaoIT extends BaseTests {
 
     @Autowired
     SqlSenateDao sqlSenateDao;

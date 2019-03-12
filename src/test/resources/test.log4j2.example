@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" strict="true">
+    <Properties>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss,SSS} %5p %t %c{2}:%L - %m%n</Property>
+    </Properties>
+    <Appenders>
+        <Appender type="Console" name="stdout" target="SYSTEM_OUT">
+            <Layout type="PatternLayout" pattern="${LOG_PATTERN}"/>
+        </Appender>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="stdout"/>
+        </Root>
+        <logger name="org.apache.log4j" level="info"/>
+        <logger name="org.apache.commons" level="info"/>
+        <logger name="com.mchange.v2.c3p0.impl" level="WARN"/>
+        <logger name="org.springframework.web.servlet.mvc.method.annotation" level="WARN" additivity="false"/>
+        <logger name="org.springframework.web.servlet.handler" level="WARN" additivity="false"/>
+        <logger name="org.springframework.context.support" level="WARN" additivity="false"/>
+        <logger name="org.springframework.beans.factory.annotation" level="WARN" additivity="false"/>
+        <logger name="org.springframework.context.annotation.AnnotationConfigApplicationContext" level="WARN" additivity="false"/>
+        <logger name="org.springframework.test.context.transaction" level="WARN" additivity="false"/>
+        <logger name="org.springframework.test.context.support" level="WARN" additivity="false"/>
+    </Loggers>
+</Configuration>

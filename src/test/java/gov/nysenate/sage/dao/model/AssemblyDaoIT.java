@@ -15,7 +15,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 @Category(IntegrationTest.class)
-public class AssemblyDaoTest extends BaseTests {
+public class AssemblyDaoIT extends BaseTests {
 
     @Autowired
     SqlAssemblyDao sqlAssemblyDao;

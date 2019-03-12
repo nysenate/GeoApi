@@ -3,10 +3,6 @@ package gov.nysenate.sage.dao.data;
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.config.DatabaseConfig;
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.NYSGeoAddress;
-import gov.nysenate.sage.model.address.StreetAddress;
-import gov.nysenate.sage.util.StreetAddressParser;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
@@ -19,12 +15,12 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 @Category(IntegrationTest.class)
-public class RegeocacheDaoTest extends BaseTests {
+public class RegeocacheDaoIT extends BaseTests {
 
     @Autowired
     SqlRegeocacheDao sqlRegeocacheDao;
 
-    private static Logger logger = LoggerFactory.getLogger(RegeocacheDaoTest.class);
+    private static Logger logger = LoggerFactory.getLogger(RegeocacheDaoIT.class);
 
     /**
      * THIS TEST IS VALID, BUT SHOULD NOT BE RUN ON BUILDING.

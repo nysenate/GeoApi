@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @Category(IntegrationTest.class)
-public class AddressLoggerTest extends BaseTests {
+public class AddressLoggerIT extends BaseTests {
 
     @Autowired
     SqlAddressLogger sqlAddressLogger;

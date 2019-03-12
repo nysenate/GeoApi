@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.junit.Assert.assertNotNull;
 
 @Category(IntegrationTest.class)
-public class DistrictServiceProviderTest extends BaseTests {
+public class DistrictServiceProviderIT extends BaseTests {
 
     @Autowired
     GeocodeServiceProvider geocodeServiceProvider;

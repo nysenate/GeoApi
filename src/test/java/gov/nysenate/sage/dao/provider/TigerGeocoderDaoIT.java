@@ -19,7 +19,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 @Category(IntegrationTest.class)
-public class TigerGeocoderDaoTest extends BaseTests {
+public class TigerGeocoderDaoIT extends BaseTests {
 
     @Autowired
     SqlTigerGeocoderDao sqlTigerGeocoderDao;

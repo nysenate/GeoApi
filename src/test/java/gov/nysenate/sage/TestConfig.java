@@ -17,7 +17,8 @@ import org.springframework.core.io.Resource;
 @Configuration
 @Profile({"test"})
 public class TestConfig {
-    private static final Logger logger = LoggerFactory.getLogger(TestConfig.class);
+
+    private static Logger logger = LoggerFactory.getLogger(TestConfig.class);
 
     public static final String PROPERTY_FILENAME = "test.app.properties";
 

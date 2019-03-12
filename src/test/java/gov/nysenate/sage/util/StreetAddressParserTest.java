@@ -1,7 +1,7 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.BaseTests;
-import gov.nysenate.sage.annotation.IntegrationTest;
+import gov.nysenate.sage.annotation.UnitTest;
 import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.StreetAddress;
@@ -14,7 +14,7 @@ import static junit.framework.TestCase.assertNotNull;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
-@Category(IntegrationTest.class)
+@Category(UnitTest.class)
 public class StreetAddressParserTest extends BaseTests {
 
     @Test

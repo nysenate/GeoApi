@@ -21,7 +21,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 
 @Category(IntegrationTest.class)
-public class GeocacheDaoTest extends BaseTests {
+public class GeocacheDaoIT extends BaseTests {
 
     @Autowired
     SqlGeoCacheDao sqlGeoCacheDao;

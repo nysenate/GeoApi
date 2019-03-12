@@ -2,6 +2,7 @@ package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
+import gov.nysenate.sage.annotation.UnitTest;
 import gov.nysenate.sage.config.DatabaseConfig;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -9,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
 
-@Category(IntegrationTest.class)
+@Category(UnitTest.class)
 public class FormatUtilTest extends BaseTests {
 
     @Test
