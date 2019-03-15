@@ -1,10 +1,9 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import java.io.File;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Scanner;
 
 /**
  * Parses Wyoming County 2018 .txt
@@ -15,16 +14,6 @@ public class WyomingParser extends NTSParser{
 
     //location indexes are used to determine where data is
     private String file;
-    private int townLocation = 0;
-    private int DirLocation = 0;
-    private int StreetLocation = 0;
-    private int RoadTypeLocation = 0;
-    private int PDLocation = 0;
-    private int CityLocation = 0;
-    private int FromLocation = 0;
-    private int ThruLocation = 0;
-    private int RangeTypeLocation = 0;
-    private int ZipLocation = 0;
 
     /**
      * Calls the super constructor which sets up the tsv file
@@ -44,49 +33,7 @@ public class WyomingParser extends NTSParser{
      */
     public void parseFile() throws IOException {
 
-        Scanner scanner = new Scanner(new File(file));
-        String currentLine = scanner.nextLine();
-        boolean inData = false;
-
-        while(scanner.hasNext()) {
-            //if inData
-            if(inData) {
-                //split the line by whitespace
-                String[] splitLine = currentLine.split("\\s+");
-                //if < 2 then it must be a blank line so skip
-                if(splitLine.length < 2) {
-                    //skip
-                } else if(currentLine.contains("COMMISSIONERS OF ELECTIONS")) {
-                    //signals the end of data
-                    inData = false;
-                } else {
-                    parseLine(currentLine);
-                }
-                currentLine = scanner.nextLine();
-            }
-            else {
-                //look for "DIR STREET" to signal that data is starting
-                if(currentLine.contains("DIR STREET")) {
-                    inData = true;
-                    //if DirLocation is still 0 then all the location fields need to be set
-                    if(DirLocation == 0) {
-                        DirLocation = currentLine.indexOf("DIR");
-                        StreetLocation = currentLine.indexOf("STREET");
-                        RoadTypeLocation = currentLine.indexOf("TYPE");
-                        PDLocation = currentLine.indexOf("PD");
-                        CityLocation = currentLine.indexOf("CITY");
-                        FromLocation = currentLine.indexOf("FROM");
-                        ThruLocation = currentLine.indexOf("THRU");
-                        RangeTypeLocation = currentLine.indexOf("O/E");
-                        ZipLocation = currentLine.indexOf("ZIP");
-                    }
-                }
-                //gets the next line
-                currentLine = scanner.nextLine();
-            }
-        }
-        scanner.close();
-        super.closeWriters();
+        super.readFile();
     }
 
     /**
@@ -94,179 +41,194 @@ public class WyomingParser extends NTSParser{
      * @param line
      */
     protected void parseLine(String line) {
-        StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
+        StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
 
-        //use the location of the columns at the top because they are all the same
-        getTownCode(StreetFinderAddress, line);
-        getPreDirection(StreetFinderAddress, line);
-        getStreet(StreetFinderAddress, line);
-        getStreetSuffix(StreetFinderAddress, line);
-        getPostDirection(StreetFinderAddress, line);
-        getTown(StreetFinderAddress, line);
-        getLowRange(StreetFinderAddress, line);
-        getHighRange(StreetFinderAddress, line);
-        getRangeType(StreetFinderAddress, line);
-        getZip(StreetFinderAddress, line);
+        if (line.contains("ODD_EVEN")) {
+            return;
+        }
 
-        super.writeToFile(StreetFinderAddress);
+        //split the line by ,
+        String[] splitLine = line.split(",");
+
+        //splitLine[0] Town
+        //splitLine[1] District
+        //splitLine[2] Dir
+        //splitLine[3] Street
+        //splitLine[4] Type
+        //splitLine[5] P_Dir
+        //splitLine[6] Lo
+        //splitLine[7] Hi
+        //splitLine[8] Odd_Even
+        //splitLine[9] City
+        //splitLine[10] Zip
+        //splitLine[11] Precinct
+        //splitLine[12] CD
+        //splitLine[13] SD
+        //splitLine[14] AD
+        //splitLine[15] TW
+
+        getPreDirection(splitLine, streetFinderAddress);
+        getStreet(splitLine, streetFinderAddress);
+        getStreetType(splitLine,streetFinderAddress);
+        getPostDirection(splitLine, streetFinderAddress);
+        getLowRange(splitLine, streetFinderAddress);
+        getHighRange(splitLine, streetFinderAddress);
+        getRangeType(splitLine, streetFinderAddress);
+        getTown(splitLine, streetFinderAddress);
+        getZip(splitLine, streetFinderAddress);
+        handlePrecinct(splitLine, streetFinderAddress);
+        getCongongressional(splitLine, streetFinderAddress);
+        getSenate(splitLine,streetFinderAddress);
+        getAssembly(splitLine,streetFinderAddress);
+
+        super.writeToFile(streetFinderAddress);
 
     }
 
-    /**
-     * Gets the boe_townCode
-     * @param StreetFinderAddress
-     * @param line
-     */
-    private void getTownCode(StreetFinderAddress StreetFinderAddress, String line) {
-        //go char by char until pre-Direction location
-        StringBuilder temp = new StringBuilder();
-        for(int i = townLocation; i < DirLocation; i++) {
-            temp.append(line.charAt(i));
+    private void handlePrecinct(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        //always 6 digits
+        //leading zero if only 5 digits
+        //first 2 digits are town code
+        //second 2 digits are the ward
+        //third 2 digits are the ED
+
+        String precinct = splitLine[11];
+        if (precinct.length() == 5) {
+            precinct = "0" + precinct;
         }
-        //trim any excess spacing
-        StreetFinderAddress.setTownCode(temp.toString().trim());
+        getTownCode(precinct.substring(0,2), streetFinderAddress);
+        getWard(precinct.substring(2,4), streetFinderAddress);
+        getED(precinct.substring(precinct.length() - 2), streetFinderAddress);
+
+    }
+
+
+    private void getTownCode(String townCode, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setTownCode(townCode);
+    }
+
+    private void getWard(String ward, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setWard(ward);
+    }
+
+    private void getED(String electionDistrict, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setED(electionDistrict);
     }
 
     /**
      * Gets the pre-Direction if there is one
-     * @param StreetFinderAddress
-     * @param line
+     * @param streetFinderAddress
+     * @param splitLine
      */
-    private void getPreDirection(StreetFinderAddress StreetFinderAddress, String line) {
-        //look from pre-Directionlocation to street location for a pre-Direction
-        StringBuilder temp = new StringBuilder();
-        for(int i = DirLocation; i < StreetLocation; i++) {
-            temp.append(line.charAt(i));
-        }
-        //trim any whitespace
-        //if there is no pre-Direction then this will be blank
-        StreetFinderAddress.setPreDirection(temp.toString().trim());
+    private void getPreDirection(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setPreDirection(splitLine[2]);
     }
 
     /**
      * Gets the street name
-     * @param StreetFinderAddress
-     * @param line
+     * @param streetFinderAddress
+     * @param splitLine
      */
-    private void getStreet(StreetFinderAddress StreetFinderAddress, String line) {
-        //go char by char from street location until street suffix location
-        StringBuilder temp = new StringBuilder();
-        for(int i = StreetLocation; i < RoadTypeLocation; i++) {
-            temp.append(line.charAt(i));
-        }
-        //trim any whitespace
-        StreetFinderAddress.setStreet(temp.toString().trim());
+    private void getStreet(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setStreet(splitLine[3]);
     }
 
     /**
      * Gets the street suffix
-     * @param StreetFinderAddress
-     * @param line
+     * @param streetFinderAddress
+     * @param splitLine
      */
-    private void getStreetSuffix(StreetFinderAddress StreetFinderAddress, String line) {
-        //look from Road Type location to post-direction location
-        StringBuilder temp = new StringBuilder();
-        for(int i = RoadTypeLocation; i < PDLocation; i++) {
-            temp.append(line.charAt(i));
-        }
-        //trim any whitespace
-        StreetFinderAddress.setStreetSuffix(temp.toString().trim());
+    private void getStreetType(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setStreetSuffix(splitLine[4]);
     }
 
     /**
      * Gets post-Direction if there is one
-     * @param StreetFinderAddress
-     * @param line
+     * @param streetFinderAddress
+     * @param splitLine
      */
-    private void getPostDirection(StreetFinderAddress StreetFinderAddress, String line) {
-        //look from post-direction location to the city location
-        StringBuilder temp = new StringBuilder();
-        for(int i = PDLocation; i < CityLocation; i++) {
-            temp.append(line.charAt(i));
-        }
-        //trim any whitespace
-        //will be blank if no post-Direction
-        StreetFinderAddress.setPostDirection(temp.toString().trim());
+    private void getPostDirection(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setPostDirection(splitLine[5]);
     }
 
     /**
      * Gets the Town
-     * @param StreetFinderAddress
-     * @param line
+     * @param streetFinderAddress
+     * @param splitLine
      */
-    private void getTown(StreetFinderAddress StreetFinderAddress, String line) {
-        //look from city location to the From location
-        StringBuilder temp = new StringBuilder();
-        for(int i = CityLocation; i < FromLocation; i++) {
-            temp.append(line.charAt(i));
-        }
-        //trim any whitespaces
-        StreetFinderAddress.setTown(temp.toString().trim());
+    private void getTown(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setTown(splitLine[9]);
     }
 
     /**
      * gets the low range
-     * @param StreetFinderAddress
-     * @param line
+     * @param streetFinderAddress
+     * @param splitLine
      */
-    private void getLowRange(StreetFinderAddress StreetFinderAddress, String line) {
-        //look from From location to Thru location
-        StringBuilder temp = new StringBuilder();
-        for(int i = FromLocation; i < ThruLocation; i++) {
-            temp.append(line.charAt(i));
-        }
-        //trim any whitespace
-        StreetFinderAddress.setBldg_low(temp.toString().trim());
+    private void getLowRange(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setBldg_low(splitLine[6]);
     }
 
     /**
      * Gets the high Range
-     * @param StreetFinderAddress
-     * @param line
+     * @param streetFinderAddress
+     * @param splitLine
      */
-    private void getHighRange(StreetFinderAddress StreetFinderAddress, String line) {
-        //look from Thru location to O/E location
-        StringBuilder temp = new StringBuilder();
-        for(int i = ThruLocation; i < RangeTypeLocation; i++) {
-            temp.append(line.charAt(i));
-        }
-        //trim any whitespace
-        StreetFinderAddress.setBldg_high(temp.toString().trim());
+    private void getHighRange(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setBldg_high(splitLine[7]);
     }
 
     /**
      * Gets the range type and converts to standard format
-     * @param StreetFinderAddress
-     * @param line
+     * @param streetFinderAddress
+     * @param splitLine
      */
-    private void getRangeType(StreetFinderAddress StreetFinderAddress, String line) {
-        //look from O/E location to the zip location
-        StringBuilder temp = new StringBuilder();
-        for(int i = RangeTypeLocation; i < ZipLocation; i++) {
-            temp.append(line.charAt(i));
-        }
-        //trim any whitespace and convert to correct format
-        String string = temp.toString().trim();
-        if(string.equals("O")) {
-            StreetFinderAddress.setBldg_parity("ODDS");
-        } else if(string.equals("E")) {
-            StreetFinderAddress.setBldg_parity("EVENS");
+    private void getRangeType(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        if(splitLine[8].equals("O")) {
+            streetFinderAddress.setBldg_parity("ODDS");
+        } else if(splitLine[8].equals("E")) {
+            streetFinderAddress.setBldg_parity("EVENS");
         } else {
-            StreetFinderAddress.setBldg_parity("ALL");
+            streetFinderAddress.setBldg_parity("ALL");
         }
     }
 
     /**
      * Gets the zip
-     * @param StreetFinderAddress
-     * @param line
+     * @param streetFinderAddress
+     * @param splitLine
      */
-    private void getZip(StreetFinderAddress StreetFinderAddress, String line) {
-        //look from zip location
-        StringBuilder temp = new StringBuilder();
-        for(int i = ZipLocation; i < ZipLocation + 5; i++) {
-            temp.append(line.charAt(i));
-        }
-        StreetFinderAddress.setZip(temp.toString());
+    private void getZip(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setZip(splitLine[10]);
+    }
+
+    /**
+     * Gets the Cong. Also gets rid of the "CD-"
+     * @param splitLine
+     * @param StreetFinderAddress
+     */
+    private void getCongongressional(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
+        String cd = splitLine[14].substring(splitLine[12].length() - 2);
+        StreetFinderAddress.setCong(cd);
+    }
+
+    /**
+     * Gets the sen. Also gets rid of the "SD-"
+     * @param splitLine
+     * @param StreetFinderAddress
+     */
+    private void getSenate(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
+        String sd = splitLine[14].substring(splitLine[13].length() - 2);
+        StreetFinderAddress.setSen(sd);
+    }
+
+    /**
+     * Gets the asm. Also gets rid of the "AD-"
+     * @param splitLine
+     * @param StreetFinderAddress
+     */
+    private void getAssembly(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
+        String ad = splitLine[14].substring(splitLine[14].length() - 3);
+        StreetFinderAddress.setAsm(ad);
     }
 }

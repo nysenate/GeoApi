@@ -73,5 +73,5 @@ Warren="./PDFConversion Warren*.pdf; ./MoveFile Warren*.txt; ./ParseFile Warren*
 Washington="./PDFConversion Washington*.pdf; ./MoveFile Washington*.txt; ./ParseFile Washington*.txt; ./MoveTsv Washington*.tsv; ./InsertTownCodes.sh ${tsv_dir}/Washington*.tsv; ./InsertSenateCountyCodes.sh ${tsv_dir}/Washington*.tsv"
 Wayne="./PDFConversion Wayne*.pdf; ./MoveFile Wayne*.txt; ./ParseFile Wayne*.txt; ./MoveTsv Wayne*.tsv; ./InsertTownCodes.sh ${tsv_dir}/Wayne*.tsv; ./InsertSenateCountyCodes.sh ${tsv_dir}/Wayne*.tsv"
 Westchester="./CopyFile Westchester*.csv; ./ParseFile Westchester*.csv; ./MoveTsv Westchester*.tsv; ./InsertTownCodes.sh ${tsv_dir}/Westchester*.tsv; ./InsertSenateCountyCodes.sh ${tsv_dir}/Westchester*.tsv"
-Wyoming="./CopyFile Wyoming*.txt; ./ParseFile Wyoming*.txt; ./MoveTsv Wyoming*.tsv; ./InsertTownCodes.sh ${tsv_dir}/Wyoming*.tsv; ./InsertSenateCountyCodes.sh ${tsv_dir}/Wyoming*.tsv"
+Wyoming="./CopyFile Wyoming*.csv; ./ParseFile Wyoming*.csv; ./MoveTsv Wyoming*.tsv; ./InsertTownCodes.sh ${tsv_dir}/Wyoming*.tsv; ./InsertSenateCountyCodes.sh ${tsv_dir}/Wyoming*.tsv"
 Yates="./PDFConversion Yates*.pdf; ./MoveFile Yates*.txt; ./ParseFile Yates*.txt; ./MoveTsv Yates*.tsv; ./InsertTownCodes.sh ${tsv_dir}/Yates*.tsv; ./InsertSenateCountyCodes.sh ${tsv_dir}/Yates*.tsv"
