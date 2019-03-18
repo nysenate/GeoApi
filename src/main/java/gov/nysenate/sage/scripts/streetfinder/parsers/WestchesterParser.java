@@ -37,27 +37,52 @@ public class WestchesterParser extends NTSParser {
      * @param line
      */
     protected void parseLine(String line) {
-        StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
+        StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
 
         //split the line by ,
         String[] splitLine = line.split(",");
 
-        getTown(splitLine, StreetFinderAddress);              //splitLine[0]
-        getED(splitLine, StreetFinderAddress);                  //precinct splitLine[1]
-        getPreDirection(splitLine, StreetFinderAddress);      //splitLine[2]
-        getStreet(splitLine, StreetFinderAddress);            //splitLine[3]
-        getStreetSuffix(splitLine, StreetFinderAddress);      //splitLine[4]
-        getPostDirection(splitLine, StreetFinderAddress);     //splitLine[5]
-        getLow(splitLine, StreetFinderAddress);               //splitLine[6]
-        getHigh(splitLine, StreetFinderAddress);              //splitLine[7]
-        getRangeType(splitLine, StreetFinderAddress);         //splitLine[8]
-        getZip(splitLine, StreetFinderAddress);               //splitLine[9]
-        getCong(splitLine, StreetFinderAddress);                 //splitLine[10]
-        getSen(splitLine, StreetFinderAddress);               //splitLine[11]
-        getAsm(splitLine, StreetFinderAddress);               //splitLine[12]
-        getCle(splitLine, StreetFinderAddress);          //splitLine[13]
+        getTown(splitLine, streetFinderAddress);              //splitLine[0]
+        handlePrecinct(splitLine, streetFinderAddress);                //precinct splitLine[1]
+        getPreDirection(splitLine, streetFinderAddress);      //splitLine[2]
+        getStreet(splitLine, streetFinderAddress);            //splitLine[3]
+        getStreetSuffix(splitLine, streetFinderAddress);      //splitLine[4]
+        getPostDirection(splitLine, streetFinderAddress);     //splitLine[5]
+        getLow(splitLine, streetFinderAddress);               //splitLine[6]
+        getHigh(splitLine, streetFinderAddress);              //splitLine[7]
+        getRangeType(splitLine, streetFinderAddress);         //splitLine[8]
+        getZip(splitLine, streetFinderAddress);               //splitLine[9]
+        getCong(splitLine, streetFinderAddress);                 //splitLine[10]
+        getSen(splitLine, streetFinderAddress);               //splitLine[11]
+        getAsm(splitLine, streetFinderAddress);               //splitLine[12]
+        getCle(splitLine, streetFinderAddress);          //splitLine[13]
         //ignore CNL-DT
-        super.writeToFile(StreetFinderAddress);
+        super.writeToFile(streetFinderAddress);
+    }
+
+    private void handlePrecinct(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        //always 6 digits
+        //leading zero if only 5 digits
+        //first 2 digits are town code
+        //second 2 digits are the ward
+        //third 2 digits are the ED
+
+        String precinct = splitLine[1];
+        if (precinct.length() == 5) {
+            precinct = "0" + precinct;
+        }
+        getTownCode(precinct.substring(0,2), streetFinderAddress);
+        getWard(precinct.substring(2,4), streetFinderAddress);
+        getED(precinct.substring(precinct.length() - 2), streetFinderAddress);
+
+    }
+
+    private void getTownCode(String townCode, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setTownCode(townCode);
+    }
+
+    private void getWard(String ward, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setED(ward);
     }
 
     /**
@@ -65,9 +90,7 @@ public class WestchesterParser extends NTSParser {
      *      * @param splitLine
      *      * @param StreetFinderAddress
      */
-    private void getED(String[] splitLine, StreetFinderAddress streetFinderAddress) {
-        String ed = splitLine[1];
-        ed = ed.substring(ed.length() - 3);
+    private void getED(String ed, StreetFinderAddress streetFinderAddress) {
         streetFinderAddress.setED(ed);
     }
 

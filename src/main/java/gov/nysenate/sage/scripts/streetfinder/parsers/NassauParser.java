@@ -36,26 +36,42 @@ public class NassauParser extends NTSParser {
      * @param line
      */
     protected void parseLine(String line) {
-        StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
+        StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
 
         //split the line by ,
         String[] splitLine = line.split(",");
 
-        getED(splitLine, StreetFinderAddress);                //skip precinct splitLine[0]
-        getStreet(splitLine, StreetFinderAddress);            //splitLine[1]
-        getSuffix(splitLine, StreetFinderAddress);            //splitLine[2]
-        getTown(splitLine, StreetFinderAddress);              //splitLine[3]
-        getZip(splitLine, StreetFinderAddress);               //splitLine[4]
-        getLow(splitLine, StreetFinderAddress);               //splitLine[5]
-        getHigh(splitLine, StreetFinderAddress);              //splitLine[6]
-        getRangeType(splitLine, StreetFinderAddress);         //splitLine[7]
-        getWard(splitLine, StreetFinderAddress);              //splitLine[8]
-        getCong(splitLine, StreetFinderAddress);              //splitLine[9]
-        getSen(splitLine, StreetFinderAddress);               //splitLine[10]
-        getAsm(splitLine, StreetFinderAddress);               //splitLine[11]
-        getCleg(splitLine, StreetFinderAddress);              //splitLine[12]
+        handlePrecinct(splitLine, streetFinderAddress);        //skip precinct splitLine[0]
+        getStreet(splitLine, streetFinderAddress);            //splitLine[1]
+        getSuffix(splitLine, streetFinderAddress);            //splitLine[2]
+        getTown(splitLine, streetFinderAddress);              //splitLine[3]
+        getZip(splitLine, streetFinderAddress);               //splitLine[4]
+        getLow(splitLine, streetFinderAddress);               //splitLine[5]
+        getHigh(splitLine, streetFinderAddress);              //splitLine[6]
+        getRangeType(splitLine, streetFinderAddress);         //splitLine[7]         //splitLine[8]
+        getCong(splitLine, streetFinderAddress);              //splitLine[9]
+        getSen(splitLine, streetFinderAddress);               //splitLine[10]
+        getAsm(splitLine, streetFinderAddress);               //splitLine[11]
+        getCleg(splitLine, streetFinderAddress);              //splitLine[12]
         //ignore TD
-        super.writeToFile(StreetFinderAddress);
+        super.writeToFile(streetFinderAddress);
+    }
+
+    private void handlePrecinct(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        //always 6 digits
+        //leading zero if only 5 digits
+        //first 2 digits are town code
+        //second 2 digits are the ward
+        //third 2 digits are the ED
+
+        String precinct = splitLine[0];
+        if (precinct.length() == 5) {
+            precinct = "0" + precinct;
+        }
+        getTownCode(precinct.substring(0,2), streetFinderAddress);
+        getWard(precinct.substring(2,4), streetFinderAddress);
+        getED(precinct.substring(precinct.length() - 2), streetFinderAddress);
+
     }
 
     /**
@@ -91,14 +107,16 @@ public class NassauParser extends NTSParser {
         }
     }
 
+    private void getTownCode(String towncode, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setTownCode(towncode);
+    }
+
     /**
      * Pulls ED out of precinct. It is the last 3 characters of the precinct
-     * @param splitLine
+     * @param ed
      * @param streetFinderAddress
      */
-    private void getED(String[] splitLine, StreetFinderAddress streetFinderAddress) {
-        String ed = splitLine[0];
-        ed = ed.substring(ed.length() - 3);
+    private void getED(String ed, StreetFinderAddress streetFinderAddress) {
         streetFinderAddress.setED(ed);
     }
 
@@ -155,11 +173,11 @@ public class NassauParser extends NTSParser {
 
     /**
      * Gets the ward
-     * @param splitLine
+     * @param ward
      * @param StreetFinderAddress
      */
-    private void getWard(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setWard(this.trim(splitLine[8]));
+    private void getWard(String ward, StreetFinderAddress StreetFinderAddress) {
+        StreetFinderAddress.setWard(ward);
     }
 
     /**

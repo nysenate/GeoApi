@@ -49,12 +49,29 @@ public class ErieParser extends NTSParser {
         getRangeType(splitLine[3], streetFinderAddress);                //3 parity
         getZip(splitLine[4], streetFinderAddress);                      //4 zipcode
         getTownship(splitLine[5], streetFinderAddress);                 //5 town
-        getElectionDistrict(splitLine[9], streetFinderAddress);         //9 precinct / ed
+        handlePrecinct(splitLine, streetFinderAddress);         //9 precinct / ed
         getSenateDistrict(splitLine[10], streetFinderAddress);          //10 senate district
         getAssemblyDistrict(splitLine[11], streetFinderAddress);        //11 assem district
         getLegislativeDistrict(splitLine[12], streetFinderAddress);     //12 legislative district
         getCongressionalDistrict(splitLine[13], streetFinderAddress);   //13 congressional district
         super.writeToFile(streetFinderAddress);
+    }
+
+    private void handlePrecinct(String[] splitLine, StreetFinderAddress streetFinderAddress) {
+        //always 6 digits
+        //leading zero if only 5 digits
+        //first 2 digits are town code
+        //second 2 digits are the ward
+        //third 2 digits are the ED
+
+        String precinct = splitLine[9];
+        if (precinct.length() == 5) {
+            precinct = "0" + precinct;
+        }
+        getTownCode(precinct.substring(0,2), streetFinderAddress);
+        getWard(precinct.substring(2,4), streetFinderAddress);
+        getElectionDistrict(precinct.substring(precinct.length() - 2), streetFinderAddress);
+
     }
 
     /**
@@ -130,8 +147,16 @@ public class ErieParser extends NTSParser {
         streetFinderAddress.setTown(splitline);
     }
 
-    private void getElectionDistrict(String splitline, StreetFinderAddress streetFinderAddress) {
-        streetFinderAddress.setED(splitline.substring(splitline.length() - 2));
+    private void getElectionDistrict(String ed, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setED(ed);
+    }
+
+    private void getWard(String ward, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setWard(ward);
+    }
+
+    private void getTownCode(String townCode, StreetFinderAddress streetFinderAddress) {
+        streetFinderAddress.setTownCode(townCode);
     }
 
     private void getSenateDistrict(String splitline, StreetFinderAddress streetFinderAddress) {
