@@ -138,7 +138,7 @@ public class Environment {
 
     @Value("${district.strategy.bluebird:streetFallback}") private String districtStrategyBluebird;
 
-    @Value("${district.strategy.batch:shapeFallback}") private String districtStrategyBatch;
+    @Value("${district.strategy.batch:streetFallback}") private String districtStrategyBatch;
 
     @Value("${geocache.enabled:true}") private Boolean geocahceEnabled;
 
