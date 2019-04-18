@@ -14,7 +14,7 @@ public class GetTownCodes {
     private static Logger logger = LoggerFactory.getLogger(GetTownCodes.class);
 
     public static void main(String[] args) {
-        String urlString = args[0] + "/admin/datagen/countycodes";
+        String urlString = args[0] + "/admin/datagen/towncodes";
         urlString = urlString.replaceAll(" ", "%20");
         logger.info(urlString);
         try {
