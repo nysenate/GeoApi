@@ -86,16 +86,14 @@
     <commons-configuration>1.9</commons-configuration>
     <commons-dbutils.version>1.7</commons-dbutils.version>
     <commons-el.version>1.0</commons-el.version>
-    <commons-fileupload.version>1.2.1</commons-fileupload.version>
+    <commons-fileupload.version>1.3.3</commons-fileupload.version>
     <commons-io.version>2.6</commons-io.version>
     <commons-lang3.version>3.3.2</commons-lang3.version>
     <fluent-hc.version>4.2.2</fluent-hc.version>
     <hamcrest-core.version>1.3</hamcrest-core.version>
     <httpclient.version>4.5.5</httpclient.version>
     <httpcore.version>4.4.9</httpcore.version>
-    <jackson-databind.version>2.9.7</jackson-databind.version>
-    <jackson-dataformat.version>2.9.7</jackson-dataformat.version>
-    <jackson-datatype.version>2.9.7</jackson-datatype.version>
+    <jackson.version>2.9.9</jackson.version>
     <jasypt.version>1.9.0</jasypt.version>
     <javamail.version>1.4.7</javamail.version>
     <jbcrypt.version>0.3m</jbcrypt.version>
@@ -109,7 +107,7 @@
     <super-csv.version>2.0.1</super-csv.version>
     <woodstox-core>4.0.6</woodstox-core>
     <xmlrpc-client.version>3.1.3</xmlrpc-client.version>
-    <xstream.version>1.4.3</xstream.version>
+    <xstream.version>1.4.11.1</xstream.version>
   </properties>
 
   <dependencies>
@@ -227,17 +225,17 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson-databind.version}</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
-      <version>${jackson-dataformat.version}</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-json-org</artifactId>
-      <version>${jackson-datatype.version}</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sf.supercsv</groupId>
