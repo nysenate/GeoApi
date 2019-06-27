@@ -68,18 +68,13 @@ public class StreetAddress
     }
 
     public boolean equals(StreetAddress streetAddress) {
-        boolean equals = false;
-        if (this.bldgNum == streetAddress.getBldgNum() &&
+        return (this.bldgNum == streetAddress.getBldgNum() &&
                 this.preDir.equalsIgnoreCase(streetAddress.getPreDir()) &&
                 this.postDir.equalsIgnoreCase(streetAddress.getPostDir()) &&
                 this.streetName.equalsIgnoreCase(streetAddress.getStreetName()) &&
                 this.streetType.equalsIgnoreCase(streetAddress.getStreetType()) &&
                 this.location.equalsIgnoreCase(streetAddress.getLocation()) &&
-                this.zip5.equalsIgnoreCase(streetAddress.getZip5())
-        ) {
-            equals = true;
-        }
-        return equals;
+                this.zip5.equalsIgnoreCase(streetAddress.getZip5()));
     }
 
     public boolean isStreetEmpty()
