@@ -2,22 +2,24 @@ package gov.nysenate.sage.scripts;
 
 import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
-import org.postgresql.core.SqlCommand;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,7 +34,7 @@ public class NYSRefreshGeocache {
     private Config config;
     private QueryRunner tigerRun;
     private static final int limit = 2000;
-    private static int offset = 0;
+    private static int offset = 162000;
     private static final String table = "public.addresspoints_sam";
 
     public NYSRefreshGeocache() {
@@ -92,7 +94,9 @@ public class NYSRefreshGeocache {
                     nysGeocode.getMethod(), nysGeocode.getQuality().name(), nysStreetAddress.getZip4(),
                     nysStreetAddress.getBldgNum(), nysStreetAddress.getStreetName(),
                     nysStreetAddress.getStreetType(), nysStreetAddress.getPreDir(),
-                    nysStreetAddress.getPostDir()
+                    nysStreetAddress.getPostDir(),
+                    nysStreetAddress.getLocation(),
+                    nysStreetAddress.getZip5()
             );
         }
     }
@@ -136,7 +140,7 @@ public class NYSRefreshGeocache {
         String NYS_COUNT_SQL = "select count(*) from public.addresspoints_sam";
 
         String GEOCACHE_SELECT =
-                "SELECT gc.method \n" +
+                "SELECT * \n" +
                         "FROM cache.geocache AS gc \n" +
                         "WHERE gc.bldgnum = ? \n" +
                         "AND gc.predir = ? \n" +
@@ -153,10 +157,12 @@ public class NYSRefreshGeocache {
 
         String UPDATE_GEOCACHE = "update cache.geocache\n" +
                 "set latlon = ST_GeomFromText(?), method = ?, quality = ?, zip4 = ?, updated = now()\n" +
-                "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ?;";
+                "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ? and location = ? and zip5 = ?;";
 
         BeanListHandler<NYSGeoAddress> nysGeoAddressBeanListHandler
                 = new BeanListHandler<>(NYSGeoAddress.class);
+
+        int updatedRecordsCount = 0;
 
         HttpClient httpClient = HttpClientBuilder.create().build();
         /*
@@ -215,18 +221,31 @@ public class NYSRefreshGeocache {
                     } catch (Exception e) {
                         System.err.println("Failed to make Http request because of exception" + e.getMessage());
                         System.err.println("Failed address was: " + nysAddress.toString());
+                        continue; //only put it in the database if USPS has data on it / corrected the address
                     }
 
                     //Determine if address exits in our Geocache by getting the method of its results (GoogleDao, YahooDao, etc)
-                    String geocachedStreetAddressProvider = nysRefreshGeocache.getTigerRun().query(GEOCACHE_SELECT, new ResultSetHandler<String>() {
+                    GeocodedStreetAddress geocachedStreetAddress = nysRefreshGeocache.getTigerRun().query(GEOCACHE_SELECT,
+                    new ResultSetHandler<GeocodedStreetAddress>() {
                                 @Override
-                                public String handle(ResultSet rs) throws SQLException {
-                                    if (!rs.isBeforeFirst()) {
-                                        return "";
-                                    } else {
-                                        rs.next();
-                                        return rs.getString("method");
+                                public GeocodedStreetAddress handle(ResultSet rs) throws SQLException {
+                                    if (rs != null && rs.next()) {
+                                        Geocode gc = new Geocode();
+                                        gc.setMethod(rs.getString("method"));
+                                        gc.setQuality(GeocodeQuality.valueOf(rs.getString("quality").toUpperCase()));
+                                        StreetAddress sa = new StreetAddress();
+                                        sa.setBldgNum(rs.getInt("bldgnum"));
+                                        sa.setPreDir(rs.getString("predir"));
+                                        sa.setStreetName(WordUtils.capitalizeFully(rs.getString("street")));
+                                        sa.setStreetType(WordUtils.capitalizeFully(rs.getString("streettype")));
+                                        sa.setPostDir(rs.getString("postdir"));
+                                        sa.setLocation(WordUtils.capitalizeFully(rs.getString("location")));
+                                        sa.setState(rs.getString("state"));
+                                        sa.setZip5(rs.getString("zip5"));
+                                        sa.setZip4(rs.getString("zip4"));
+                                        return new GeocodedStreetAddress(sa, gc);
                                     }
+                                    return null;
                                 }
                             }, nysStreetAddress.getBldgNum(),
                             nysStreetAddress.getPreDir(),
@@ -236,47 +255,43 @@ public class NYSRefreshGeocache {
                             nysStreetAddress.getZip5(),
                             nysStreetAddress.getLocation());
 
-
-                    //If the geocacheStreetAddressProvider is empty, we don't have the address cached, so insert the address
-                    if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
-                        //insert
-                        try {
-                            nysRefreshGeocache.insert(nysStreetAddress, nysGeocode, INSERT_GEOCACHE);
-                        } catch (SQLException e) {
-//                            System.out.println("Insert Failed for " + nysStreetAddress.toString() + " attempting update");
+                    String geocachedStreetAddressProvider = "";
+                    if (geocachedStreetAddress != null && geocachedStreetAddress.getStreetAddress().equals(nysStreetAddress) ) {
+                        geocachedStreetAddressProvider = geocachedStreetAddress.getGeocode().getMethod();
+                        //update only if its not google. Address was matched so it should insert fine
+                        if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointtype() == 1) {
                             try {
                                 nysRefreshGeocache.update(nysStreetAddress, nysGeocode,
                                         UPDATE_GEOCACHE, geocachedStreetAddressProvider, nysGeoAddress);
-                            } catch (SQLException ex) {
+                                updatedRecordsCount++;
+                            } catch (SQLException e) {
+                                //should not happen beacause it was verified
                                 System.out.println("Update Failed for " + nysStreetAddress.toString());
                             }
                         }
-
                     }
-                    //If the provider is not Google and NYS Geo has a rooftop coordinate, update the cache
-                    else if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointtype() == 1) {
-                        //update
+                    //If the geocacheStreetAddressProvider is empty, we don't have the address cached, so insert the address
+                    else if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
+                        //insert
                         try {
-                            nysRefreshGeocache.update(nysStreetAddress, nysGeocode,
-                                    UPDATE_GEOCACHE, geocachedStreetAddressProvider, nysGeoAddress);
+                            nysRefreshGeocache.insert(nysStreetAddress, nysGeocode, INSERT_GEOCACHE);
+                            updatedRecordsCount++;
                         } catch (SQLException e) {
-                            System.out.println("Update Failed for " + nysStreetAddress.toString());
+                            System.out.println("Insert Failed for " + nysStreetAddress.toString() );
                         }
                     }
                 }
             }
-
             try {
                 ((CloseableHttpClient) httpClient).close();
+                System.out.println(updatedRecordsCount + " were updated");
             } catch (IOException e) {
                 System.err.println("Failed to close http connection \n" + e);
             }
-
             ApplicationFactory.close();
             System.exit(0);
         } catch (SQLException ex) {
             System.err.println("Error retrieving addresses from geocache \n" + ex);
         }
     }
-
 }
