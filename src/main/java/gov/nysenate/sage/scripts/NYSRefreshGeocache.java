@@ -34,7 +34,7 @@ public class NYSRefreshGeocache {
     private Config config;
     private QueryRunner tigerRun;
     private static final int limit = 2000;
-    private static int offset = 162000;
+    private static int offset = 0;
     private static final String table = "public.addresspoints_sam";
 
     public NYSRefreshGeocache() {
