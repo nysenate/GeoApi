@@ -162,7 +162,7 @@ public class GeoCacheDao extends BaseDao
 
     private final static String SQL_UPDATE_CACHE_ENTRY = "update cache.geocache\n" +
             "set latlon = ST_GeomFromText(?), method = ?, quality = ?, zip4 = ?, updated = now()\n" +
-            "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ? and zip5 = ? ;";
+            "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ? and zip5 = ? and location = ?;";
 
     /**
      * Saves any GeocodedAddress objects stored in the buffer into the database. The address is parsed into
@@ -205,7 +205,8 @@ public class GeoCacheDao extends BaseDao
                                             sa.getStreetType(),
                                             sa.getPreDir(),
                                             sa.getPostDir(),
-                                            sa.getZip5()
+                                            sa.getZip5(),
+                                            sa.getLocation()
                                             );
                                     if (logger.isTraceEnabled()) {
                                         logger.trace("Saved " + sa.toString() + " in cache.");
