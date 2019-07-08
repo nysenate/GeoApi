@@ -67,6 +67,16 @@ public class StreetAddress
         return new Address(addr1.trim(), addr2.trim(), city.trim(), state.trim(), zip5.trim(), zip4.trim());
     }
 
+    public boolean equals(StreetAddress streetAddress) {
+        return (this.bldgNum == streetAddress.getBldgNum() &&
+                this.preDir.equalsIgnoreCase(streetAddress.getPreDir()) &&
+                this.postDir.equalsIgnoreCase(streetAddress.getPostDir()) &&
+                this.streetName.equalsIgnoreCase(streetAddress.getStreetName()) &&
+                this.streetType.equalsIgnoreCase(streetAddress.getStreetType()) &&
+                this.location.equalsIgnoreCase(streetAddress.getLocation()) &&
+                this.zip5.equalsIgnoreCase(streetAddress.getZip5()));
+    }
+
     public boolean isStreetEmpty()
     {
         return this.getStreet().isEmpty();
