@@ -12,7 +12,7 @@ public enum RegeocacheQuery implements BasicSqlQuery {
 
     NYS_COUNT_SQL("select count(*) from ${schema}." + SqlTable.ADDRESS_POINTS_SAM),
 
-    GEOCACHE_SELECT("SELECT gc.method \n" +
+    GEOCACHE_SELECT("SELECT * \n" +
             "FROM ${schema}." + SqlTable.GEOCACHE + " AS gc \n" +
             "WHERE gc.bldgnum = :bldgnum \n" +
             "AND gc.predir = :predir \n" +
@@ -28,7 +28,7 @@ public enum RegeocacheQuery implements BasicSqlQuery {
 
     UPDATE_GEOCACHE("update ${schema}." + SqlTable.GEOCACHE + "\n" +
             "set latlon = ST_GeomFromText(?), method = ?, quality = ?, zip4 = ?, updated = now()\n" +
-            "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ?;"),
+            "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ? and location = ?;"),
 
     SELECT_ZIPS("select zcta5ce10 from ${schema}." + SqlTable.DISTRICT_ZIP + ";")
     ;

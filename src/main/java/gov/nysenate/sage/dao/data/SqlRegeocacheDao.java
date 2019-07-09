@@ -1,9 +1,12 @@
 package gov.nysenate.sage.dao.data;
 
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
+import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,27 +43,27 @@ public class SqlRegeocacheDao implements RegeocacheDao {
                 new NysGeoAddressRowMapper());
     }
 
-    public String getProviderOfAddressInCacheIfExists(StreetAddress nysStreetAddress) {
+    public GeocodedStreetAddress getProviderOfAddressInCacheIfExists(StreetAddress nysStreetAddress) {
         MapSqlParameterSource geocacheParams = new MapSqlParameterSource();
         geocacheParams.addValue("bldgnum", nysStreetAddress.getBldgNum());
         geocacheParams.addValue("predir", nysStreetAddress.getPreDir());
         geocacheParams.addValue("street", nysStreetAddress.getStreetName());
         geocacheParams.addValue("postdir", nysStreetAddress.getPostDir());
         geocacheParams.addValue("streettype", nysStreetAddress.getStreetType());
-        geocacheParams.addValue("zip5", nysStreetAddress.getZip5().toString());
+        geocacheParams.addValue("zip5", nysStreetAddress.getZip5());
         geocacheParams.addValue("location", nysStreetAddress.getLocation());
 
-        List<String> providerList = baseDao.tigerNamedJdbcTemplate
+        List<GeocodedStreetAddress> providerList = baseDao.tigerNamedJdbcTemplate
                 .query(RegeocacheQuery.GEOCACHE_SELECT.getSql(
-                                baseDao.getCacheSchema()), geocacheParams, (rs, rowNum) -> rs.getString("method"));
+                        baseDao.getCacheSchema()), geocacheParams, new geocodedStreetAddressdRowMapper());
 
         if (providerList == null || providerList.isEmpty()) {
-            return "";
+            return null;
         }
         return providerList.get(0);
     }
 
-    public void insetIntoGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) {
+    public void insetIntoGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) throws SQLException {
         baseDao.tigerJbdcTemplate.update(RegeocacheQuery.INSERT_GEOCACHE.getSql(baseDao.getCacheSchema()),
                 Integer.valueOf(nysStreetAddress.getBldgNum()),
                 nysStreetAddress.getPreDir(), nysStreetAddress.getStreetName(),
@@ -71,13 +74,20 @@ public class SqlRegeocacheDao implements RegeocacheDao {
                 nysGeocode.getMethod(), nysGeocode.getQuality().name(), nysStreetAddress.getZip4());
     }
 
-    public void updateGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) {
-        baseDao.tigerJbdcTemplate.update(RegeocacheQuery.UPDATE_GEOCACHE.getSql(baseDao.getCacheSchema()),
+    public void updateGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) throws SQLException {
+        baseDao.tigerJbdcTemplate.update(
+                RegeocacheQuery.UPDATE_GEOCACHE.getSql(
+                baseDao.getCacheSchema()),
                 "POINT(" + nysGeocode.getLon() + " " + nysGeocode.getLat() + ")",
-                nysGeocode.getMethod(), nysGeocode.getQuality().name(), nysStreetAddress.getZip4(),
-                nysStreetAddress.getBldgNum(), nysStreetAddress.getStreetName(),
-                nysStreetAddress.getStreetType(), nysStreetAddress.getPreDir(),
-                nysStreetAddress.getPostDir()
+                nysGeocode.getMethod(),
+                nysGeocode.getQuality().name(),
+                nysStreetAddress.getZip4(),
+                nysStreetAddress.getBldgNum(),
+                nysStreetAddress.getStreetName(),
+                nysStreetAddress.getStreetType(),
+                nysStreetAddress.getPreDir(),
+                nysStreetAddress.getPostDir(),
+                nysStreetAddress.getLocation()
         );
     }
 
@@ -103,11 +113,24 @@ public class SqlRegeocacheDao implements RegeocacheDao {
         }
     }
 
-    public static class GeocacheMethodRowMapper implements RowMapper<String> {
+    public static class geocodedStreetAddressdRowMapper implements RowMapper<GeocodedStreetAddress> {
 
         @Override
-        public String mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return rs.getString("method");
+        public GeocodedStreetAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Geocode gc = new Geocode();
+            gc.setMethod(rs.getString("method"));
+            gc.setQuality(GeocodeQuality.valueOf(rs.getString("quality").toUpperCase()));
+            StreetAddress sa = new StreetAddress();
+            sa.setBldgNum(rs.getInt("bldgnum"));
+            sa.setPreDir(rs.getString("predir"));
+            sa.setStreetName(WordUtils.capitalizeFully(rs.getString("street")));
+            sa.setStreetType(WordUtils.capitalizeFully(rs.getString("streettype")));
+            sa.setPostDir(rs.getString("postdir"));
+            sa.setLocation(WordUtils.capitalizeFully(rs.getString("location")));
+            sa.setState(rs.getString("state"));
+            sa.setZip5(rs.getString("zip5"));
+            sa.setZip4(rs.getString("zip4"));
+            return new GeocodedStreetAddress(sa, gc);
         }
     }
 

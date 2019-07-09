@@ -4,6 +4,7 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.data.SqlRegeocacheDao;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -25,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
@@ -92,6 +94,7 @@ public class RegeocacheService {
     public Object updateGeocacheWithNYSGeoData(int nys_offset) {
         Object apiResponse;
         HttpClient httpClient = HttpClientBuilder.create().build();
+        int updatedRecordsCount = 0;
         try {
             //Get total number of addresses that will be used to update our geocache
             Integer total = sqlRegeocacheDao.getNYSTotalAddresses();
@@ -140,26 +143,42 @@ public class RegeocacheService {
                     } catch (Exception e) {
                         logger.error("Failed to make Http request because of exception" + e.getMessage());
                         logger.error("Failed address was: " + nysAddress.toString());
+                        continue; //only put it in the database if USPS has data on it / corrected the address
                     }
 
                     //Determine if address exits in our Geocache by getting
                     // the method of its results (GoogleDao, YahooDao, etc)
-                    String geocachedStreetAddressProvider =
+                    GeocodedStreetAddress geocachedStreetAddress =
                             sqlRegeocacheDao.getProviderOfAddressInCacheIfExists(nysStreetAddress);
 
-                    //If the geocacheStreetAddressProvider is empty,
-                    // we don't have the address cached, so insert the address
-                    if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
-                        //insert
-                        sqlRegeocacheDao.insetIntoGeocache(nysStreetAddress, nysGeocode);
+                    String geocachedStreetAddressProvider = "";
+                    if (geocachedStreetAddress != null && geocachedStreetAddress.getStreetAddress().equals(nysStreetAddress) ) {
+                        geocachedStreetAddressProvider = geocachedStreetAddress.getGeocode().getMethod();
+                        //update only if its not google. Address was matched so it should insert fine
+                        if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointtype() == 1) {
+                            try {
+                                sqlRegeocacheDao.updateGeocache(nysStreetAddress, nysGeocode);
+                                updatedRecordsCount++;
+                            } catch (SQLException e) {
+                                //should not happen beacause it was verified
+                                logger.warn("Update Failed for " + nysStreetAddress.toString());
+                            }
+                        }
                     }
-                    //If the provider is not Google and NYS Geo has a rooftop coordinate, update the cache
-                    else if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointtype() == 1) {
-                        //update
-                        sqlRegeocacheDao.updateGeocache(nysStreetAddress, nysGeocode);
+                    //If the geocacheStreetAddressProvider is empty, we don't have the address cached, so insert the address
+                    else if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
+                        //insert
+                        try {
+                            sqlRegeocacheDao.insetIntoGeocache(nysStreetAddress, nysGeocode);
+                            updatedRecordsCount++;
+                        } catch (SQLException e) {
+                            logger.warn("Insert Failed for " + nysStreetAddress.toString() );
+                        }
                     }
                 }
             }
+
+            logger.info("Updated " + updatedRecordsCount + " records");
 
             try {
                 ((CloseableHttpClient) httpClient).close();

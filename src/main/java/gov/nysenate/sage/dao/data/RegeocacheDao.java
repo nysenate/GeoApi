@@ -1,9 +1,12 @@
 package gov.nysenate.sage.dao.data;
 
+import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
+import org.springframework.jdbc.support.xml.SqlXmlFeatureNotImplementedException;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public interface RegeocacheDao {
@@ -28,21 +31,21 @@ public interface RegeocacheDao {
      * @param nysStreetAddress
      * @return
      */
-    public String getProviderOfAddressInCacheIfExists(StreetAddress nysStreetAddress);
+    public GeocodedStreetAddress getProviderOfAddressInCacheIfExists(StreetAddress nysStreetAddress);
 
     /**
      * Inserts a new address into our geocache
      * @param nysStreetAddress
      * @param nysGeocode
      */
-    public void insetIntoGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode);
+    public void insetIntoGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) throws SQLException;
 
     /**
      * Updates an address we already have in the geocache
      * @param nysStreetAddress
      * @param nysGeocode
      */
-    public void updateGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode);
+    public void updateGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) throws SQLException;
 
     /**
      * Reteives a list of all zip codes that we have in the geoapi database
