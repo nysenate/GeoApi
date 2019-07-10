@@ -11,6 +11,7 @@ import gov.nysenate.sage.service.job.JobBatchProcessor;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.JobFileUtil;
 import gov.nysenate.sage.util.auth.JobUserAuth;
+import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.FileUploadException;
@@ -120,8 +121,7 @@ public class JobController {
      */
     public void doLogin(HttpServletRequest request, HttpServletResponse response, String email, String password) throws ServletException, IOException {
 
-        String forwardedForIp = request.getHeader("x-forwarded-for");
-        String ipAddr = forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
 
         JobUser jobUser = jobUserAuth.getJobUser(email, password);
         if (jobUser != null) {

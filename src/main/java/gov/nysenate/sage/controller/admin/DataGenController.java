@@ -4,6 +4,7 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.service.data.DataGenService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
+import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -54,9 +55,7 @@ public class DataGenController {
                                       @RequestParam String username,
                                       @RequestParam(required = false) String password) {
         Object apiResponse;
-
-        String forwardedForIp = request.getHeader("x-forwarded-for");
-        String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
@@ -83,8 +82,7 @@ public class DataGenController {
                                  @PathVariable String option, @RequestParam String username,
                                  @RequestParam(required = false) String password) {
         Object apiResponse;
-        String forwardedForIp = request.getHeader("x-forwarded-for");
-        String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {

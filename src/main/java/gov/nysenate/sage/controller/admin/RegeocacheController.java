@@ -6,6 +6,7 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.service.data.RegeocacheService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
+import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -58,9 +59,7 @@ public class RegeocacheController {
     public void geocacheZips(HttpServletRequest request, HttpServletResponse response,
                              @RequestParam String username, @RequestParam(required = false) String password) {
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
-
-        String forwardedForIp = request.getHeader("x-forwarded-for");
-        String ipAddr = forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
@@ -84,9 +83,7 @@ public class RegeocacheController {
                                    @RequestParam(required = false) String password) {
 
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
-
-        String forwardedForIp = request.getHeader("x-forwarded-for");
-        String ipAddr = forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {

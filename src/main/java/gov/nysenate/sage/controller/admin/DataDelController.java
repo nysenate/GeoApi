@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.admin;
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.service.data.DataDelService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
+import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -37,14 +38,13 @@ public class DataDelController {
         this.dataDelService = dataDelService;
     }
 
-
     @RequestMapping(value = "/zips/{offset}", method = RequestMethod.GET)
     public void cleanUpBadZipsInGeocache(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam String username,
                                       @RequestParam(required = false) String password,
                                         @PathVariable Integer offset) {
         Object apiResponse;
-        String ipAddr= getIpAddress(request);
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
@@ -63,7 +63,7 @@ public class DataDelController {
                                       @RequestParam String username,
                                       @RequestParam(required = false) String password) {
         Object apiResponse;
-        String ipAddr= getIpAddress(request);
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
@@ -74,12 +74,6 @@ public class DataDelController {
             apiResponse = invalidAuthResponse();
         }
         setAdminResponse(apiResponse, response);
-    }
-
-
-    private String getIpAddress(HttpServletRequest request) {
-        String forwardedForIp = request.getHeader("x-forwarded-for");
-        return forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
     }
 
 }

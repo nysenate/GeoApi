@@ -2,6 +2,7 @@ package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.model.admin.AdminUser;
+import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.slf4j.LoggerFactory;
@@ -44,9 +45,8 @@ public class AdminController
     public void adminLogin(HttpServletRequest request, HttpServletResponse response,
                            @RequestParam String username, @RequestParam String password)
             throws ServletException, IOException {
-        String forwardedForIp = request.getHeader("x-forwarded-for");
-        String ipAddr= forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
 
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
         if (sqlAdminUserDao.checkAdminUser(username, password)) {
             logger.debug("Granted admin access to " + username);
             AdminUser dbAdmin = sqlAdminUserDao.getAdminUser(username);

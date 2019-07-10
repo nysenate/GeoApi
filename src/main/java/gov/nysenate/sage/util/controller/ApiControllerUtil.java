@@ -279,4 +279,14 @@ public class ApiControllerUtil {
         }
         return to;
     }
+
+    /**
+     * This method retrieves the ip address from HttpServletRequest
+     * @param request
+     * @return
+     */
+    public static String getIpAddress(HttpServletRequest request) {
+        String forwardedForIp = request.getHeader("x-forwarded-for");
+        return forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+    }
 }
