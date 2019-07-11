@@ -1,6 +1,7 @@
 package gov.nysenate.sage.service.data;
 
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.data.SqlDataDelDao;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class DataDelService {
 
         logger.info("Geocache Zip clean Up completed");
 
-        return new ApiError(this.getClass(), SUCCESS);
+        return new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
     }
 
     public Object cleanUpBadStates() {
@@ -91,7 +92,7 @@ public class DataDelService {
 
         logger.info("Geocache State clean Up completed");
 
-        return new ApiError(this.getClass(), SUCCESS);
+        return new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
     }
 
 }

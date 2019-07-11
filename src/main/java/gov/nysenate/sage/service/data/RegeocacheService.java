@@ -1,6 +1,7 @@
 package gov.nysenate.sage.service.data;
 
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.data.SqlRegeocacheDao;
 import gov.nysenate.sage.model.address.Address;
@@ -87,7 +88,7 @@ public class RegeocacheService {
                 return apiResponse;
             }
         }
-        apiResponse = new ApiError(this.getClass(), SUCCESS);
+        apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         return apiResponse;
     }
 
@@ -193,7 +194,7 @@ public class RegeocacheService {
             apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
             return apiResponse;
         }
-        apiResponse = new ApiError(this.getClass(), SUCCESS);
+        apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         return apiResponse;
     }
 

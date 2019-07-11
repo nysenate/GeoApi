@@ -3,6 +3,7 @@ package gov.nysenate.sage.service.data;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.controller.admin.DataGenController;
 import gov.nysenate.sage.dao.data.SqlDataGenDao;
@@ -137,7 +138,7 @@ public class DataGenService {
                 String url = baseImageDir + senator.getImageUrl()
                         .replace(baseImageDir, "").replace(" ", "%20");
                 ImageUtil.saveResizedImage(url, "png", file, height);
-                apiResponse = new ApiError(this.getClass(), SUCCESS);
+                apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
             }
         }
         catch (IOException e) {
@@ -186,7 +187,7 @@ public class DataGenService {
         }
 
         if (updated) {
-            return new ApiError(this.getClass(), SUCCESS);
+            return new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         }
         else {
             return new ApiError(this.getClass(), INTERNAL_ERROR);

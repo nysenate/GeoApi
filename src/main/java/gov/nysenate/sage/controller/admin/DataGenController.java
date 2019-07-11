@@ -1,6 +1,7 @@
 package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.service.data.DataGenService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
@@ -104,7 +105,7 @@ public class DataGenController {
     public void ensureCountyCodeFileExists(HttpServletRequest request, HttpServletResponse response) {
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
         if (dataGenService.ensureCountyCodeFile()) {
-            apiResponse = new ApiError(this.getClass(), SUCCESS);
+            apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         }
         setAdminResponse(apiResponse, response);
     }
@@ -113,7 +114,7 @@ public class DataGenController {
     public void ensureTownCodeFileExists(HttpServletRequest request, HttpServletResponse response) {
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
         if (dataGenService.ensureTownCodeFile()) {
-            apiResponse = new ApiError(this.getClass(), SUCCESS);
+            apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         }
         setAdminResponse(apiResponse, response);
     }

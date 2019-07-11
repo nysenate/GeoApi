@@ -1,6 +1,7 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.util.controller.ConstantUtil;
@@ -46,7 +47,7 @@ public class DataController {
 
         if (apiRequest.getRequest().equalsIgnoreCase("sencache")) {
             try {
-                responseCode = new ApiError(this.getClass(), SUCCESS);
+                responseCode = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
                 sqlDistrictShapefileDao.cacheDistrictMaps();
             } catch (Exception e) {
                 responseCode = new ApiError(this.getClass(), INTERNAL_ERROR);
