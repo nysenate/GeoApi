@@ -34,7 +34,7 @@ public class NYSRefreshGeocache {
     private Config config;
     private QueryRunner tigerRun;
     private static final int limit = 2000;
-    private static int offset = 0;
+    private static int offset = 0; // offset 1435308 for 447 73rd Street, Niagara Falls, NY, USA
     private static final String table = "public.addresspoints_sam";
 
     public NYSRefreshGeocache() {
@@ -199,8 +199,8 @@ public class NYSRefreshGeocache {
                     StreetAddress nysStreetAddress = nysGeoAddress.toStreetAddress();
 
                     //Run new Address through USPS
-                    String url = nysRefreshGeocache.config.getValue("usps.ams.api.url") + "validate?detail=true&addr1=%s&addr2=&city=%s&state=%s&zip5=%s&zip4=";
-                    url = String.format(url, nysAddress.getAddr1(), nysAddress.getCity(), nysAddress.getState(), nysAddress.getZip5());
+                    String url = nysRefreshGeocache.config.getValue("usps.ams.api.url") + "validate?detail=true&addr1=%s&addr2=%s&city=%s&state=%s&zip5=%s";
+                    url = String.format(url, nysAddress.getAddr1(), nysAddress.getAddr2() ,nysAddress.getCity(), nysAddress.getState(), nysAddress.getZip5());
                     url = url.replaceAll(" ", "%20");
                     url = StringUtils.deleteWhitespace(url);
                     url = url.replaceAll("`", "");
