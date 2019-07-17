@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.StreetAddressParser;
+import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -40,28 +41,6 @@ public class NYSRefreshGeocache {
     public NYSRefreshGeocache() {
         config = ApplicationFactory.getConfig();
         tigerRun = new QueryRunner(ApplicationFactory.getTigerDataSource());
-    }
-
-    public String convertStreamToString(InputStream is) {
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-
-        String line = null;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                System.err.println(e.getMessage());
-            }
-        }
-        return sb.toString();
     }
 
     public Config getConfig() {
@@ -210,7 +189,7 @@ public class NYSRefreshGeocache {
                         HttpGet request = new HttpGet(url);
                         HttpResponse response = httpClient.execute(request);
 
-                        JSONObject uspsJson = new JSONObject(nysRefreshGeocache.convertStreamToString(response.getEntity().getContent()));
+                        JSONObject uspsJson = new JSONObject(UrlRequest.convertStreamToString(response.getEntity().getContent()));
                         if (uspsJson.getBoolean("validated")) {
                             JSONObject uspsAddressJson = uspsJson.getJSONObject("address");
                             nysStreetAddress = StreetAddressParser.parseAddress(new Address(
