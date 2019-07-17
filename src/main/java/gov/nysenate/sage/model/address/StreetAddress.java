@@ -67,14 +67,21 @@ public class StreetAddress
         return new Address(addr1.trim(), addr2.trim(), city.trim(), state.trim(), zip5.trim(), zip4.trim());
     }
 
-    public boolean equals(StreetAddress streetAddress) {
-        return (this.bldgNum == streetAddress.getBldgNum() &&
-                this.preDir.equalsIgnoreCase(streetAddress.getPreDir()) &&
-                this.postDir.equalsIgnoreCase(streetAddress.getPostDir()) &&
-                this.streetName.equalsIgnoreCase(streetAddress.getStreetName()) &&
-                this.streetType.equalsIgnoreCase(streetAddress.getStreetType()) &&
-                this.location.equalsIgnoreCase(streetAddress.getLocation()) &&
-                this.zip5.equalsIgnoreCase(streetAddress.getZip5()));
+    public boolean equals(StreetAddress streetAddress) { //(str1 == null ? str2 == null : str1.equals(str2))
+        boolean bldgNumEquals = (this.bldgNum == streetAddress.getBldgNum() );
+        boolean preDirEquals = compareStrings(this.preDir, streetAddress.getPreDir());
+        boolean postDirEquals = compareStrings(this.postDir, streetAddress.getPostDir());
+        boolean streetNameEquals = compareStrings(this.streetName, streetAddress.getStreetName());
+        boolean streetTypeEquals = compareStrings(this.streetType, streetAddress.getStreetType());
+        boolean locationEquals = compareStrings(this.location, streetAddress.getLocation());
+        boolean zip5Equals = compareStrings(this.zip5, streetAddress.getZip5());
+
+        return (bldgNumEquals && preDirEquals && postDirEquals && streetNameEquals && streetTypeEquals &&
+                locationEquals && zip5Equals);
+    }
+
+    private boolean compareStrings(String str1, String str2) {
+        return (str1 == null ? str2 == null : str1.equals(str2));
     }
 
     public boolean isStreetEmpty()
