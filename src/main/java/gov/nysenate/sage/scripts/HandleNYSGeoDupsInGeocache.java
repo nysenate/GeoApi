@@ -4,7 +4,6 @@ import gov.nysenate.sage.factory.ApplicationFactory;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
-import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.util.Config;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.UrlRequest;
@@ -21,7 +20,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class HandleNYSGeoDupsInGeocache {
@@ -29,7 +27,7 @@ public class HandleNYSGeoDupsInGeocache {
     private Config config;
     private QueryRunner tigerRun;
     private static final int limit = 2000;
-    private static int offset = 0; // offset 1435308 for 447 73rd Street, Niagara Falls, NY, USA
+    private static int offset = 0;
     private static final String table = "public.addresspoints_sam";
 
     public HandleNYSGeoDupsInGeocache() {
@@ -104,6 +102,7 @@ public class HandleNYSGeoDupsInGeocache {
         int updatedRecords = 0;
         int badRecords = 0;
         int nysGeoDups = 0;
+        int queriesToNYSGEO = 0;
 
         try {
             //Get total number of addresses that will be used to update our geocache
@@ -131,9 +130,36 @@ public class HandleNYSGeoDupsInGeocache {
                 //if the same address comes up again sequentially we need to skip it
 
                 for (NYSGeoAddress nysGeoAddress : nysGeoAddresses) {
+
                     StreetAddress nysStreetAddress = nysGeoAddress.toStreetAddress();
                     Address nysAddress = nysStreetAddress.toAddress();
                     StreetAddress uspsStreetAddress = null;
+
+
+                    if (nysGeoAddress.getPointtype() != 1) {
+                        //if its not a rooftop point, we need to send it to google to get the rooftop
+                        String googleUrl = nysGeoDupsInGeocache.config.getValue("base.url") +
+                                "/api/v2/geo/geocode?addr1=%s&addr2=%s&city=%s&state=%s&zip5=%s&provider=nysgeo";
+                        googleUrl = String.format(googleUrl, nysAddress.getAddr1(), nysAddress.getAddr2(),
+                                nysAddress.getCity(), nysAddress.getState(), nysAddress.getZip5());
+                        googleUrl = googleUrl.replaceAll(" ", "%20");
+                        googleUrl = StringUtils.deleteWhitespace(googleUrl);
+                        googleUrl = googleUrl.replaceAll("`", "");
+                        googleUrl = googleUrl.replaceAll("#", "");
+
+                        try {
+                            HttpGet request = new HttpGet(googleUrl);
+                            HttpResponse response = httpClient.execute(request);
+                            UrlRequest.convertStreamToString(response.getEntity().getContent());
+                            queriesToNYSGEO++;
+                        }
+                        catch (IOException e) {
+                            continue;
+                        }
+
+                        continue; //Only Send it to
+                    }
+
 
                     if (lastAddress != null && nysStreetAddress.equals(lastAddress)) {
                         nysGeoDups++;
@@ -168,11 +194,6 @@ public class HandleNYSGeoDupsInGeocache {
                         continue;
                     }
 
-
-//                    uspsStreetAddress = StreetAddressParser.parseAddress(
-//                            ApplicationFactory.getAddressServiceProvider()
-//                                    .validate(nysAddress,null,false).getAddress());
-
                     if (uspsStreetAddress == null) {
                         badRecords++;
                         continue;
@@ -198,8 +219,9 @@ public class HandleNYSGeoDupsInGeocache {
                 }
             }
 
+            System.out.println("Queries to NYS GEO: " + queriesToNYSGEO );
             System.out.println("Updated Records: " + updatedRecords);
-            System.out.println("Bad Records (Not found by USPS or not rooftop level quality): " + badRecords);
+            System.out.println("Bad Records (Not found by USPS but rooftop level): " + badRecords);
             System.out.println("NYS Geo duplicate address records: " + nysGeoDups);
         }
         catch (SQLException e) {
