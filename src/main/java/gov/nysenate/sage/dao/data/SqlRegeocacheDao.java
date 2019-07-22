@@ -87,6 +87,7 @@ public class SqlRegeocacheDao implements RegeocacheDao {
                 nysStreetAddress.getStreetType(),
                 nysStreetAddress.getPreDir(),
                 nysStreetAddress.getPostDir(),
+                nysStreetAddress.getZip5(),
                 nysStreetAddress.getLocation()
         );
     }
@@ -95,6 +96,20 @@ public class SqlRegeocacheDao implements RegeocacheDao {
         return baseDao.geoApiJbdcTemplate.query(
                 RegeocacheQuery.SELECT_ZIPS.getSql(baseDao.getDistrictSchema()),
                 (rs, rowNum) -> rs.getString("zcta5ce10"));
+    }
+
+    public List<NYSGeoAddress> getBatchOfNysGeoDups(int nys_limit, int nys_offset) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("limit", nys_limit);
+        params.addValue("offset", nys_offset);
+        return baseDao.tigerNamedJdbcTemplate.query(
+                RegeocacheQuery.DUP_BATCH_SQL.getSql(baseDao.getPublicSchema()), params,
+                new NysGeoAddressRowMapper());
+    }
+
+    public Integer getNYSTotalDupAddressesCount() {
+        return baseDao.tigerJbdcTemplate.queryForObject(
+                RegeocacheQuery.DUP_TOTAL_COUNT_SQL.getSql(baseDao.getPublicSchema()), Integer.class);
     }
 
     public static class NysGeoAddressRowMapper implements RowMapper<NYSGeoAddress> {

@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.util.StreetAddressParser;
+import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -88,7 +89,120 @@ public class RegeocacheService {
                 return apiResponse;
             }
         }
-        apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        return apiResponse;
+    }
+
+    public Object updatesDupsInGeocacheWithNysGeo(int nys_offset) {
+        Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        final int limit = 2000;
+        int offset = 0;
+        //data loggers
+        int updatedRecords = 0;
+        int badRecords = 0;
+        int nysGeoDups = 0;
+        int queriesToNYSGEO = 0;
+
+        try {
+            //Get total number of addresses that will be used to update our geocache
+            int total = sqlRegeocacheDao.getNYSTotalDupAddressesCount();
+            System.out.println("NYS Geo Dup total iteration count: " + total);
+
+            StreetAddress lastAddress = null;
+
+
+            while (total > offset) {
+                //Get batch of 2000
+                List<NYSGeoAddress> nysGeoAddresses = sqlRegeocacheDao.getBatchOfNysGeoDups(limit, offset);
+                System.out.println("At offset: " + offset);
+                offset = limit + offset;
+
+                //For some reason NYS GEO has the same address multiple times
+                //which is different from the issue we are trying to address with this script
+                //if the same address comes up again sequentially we need to skip it
+
+                for (NYSGeoAddress nysGeoAddress : nysGeoAddresses) {
+
+                    StreetAddress nysStreetAddress = nysGeoAddress.toStreetAddress();
+                    Address nysAddress = nysStreetAddress.toAddress();
+                    StreetAddress uspsStreetAddress = null;
+
+
+                    if (nysGeoAddress.getPointtype() != 1) {
+                        //if its not a rooftop point, we need to send it to google to get the rooftop
+                        String nysGeoUrl = env.getUspsAmsApiUrl() +
+                                "/api/v2/geo/geocode?addr1=%s&addr2=%s&city=%s&state=%s&zip5=%s&provider=nysgeo";
+                        nysGeoUrl = formatUrlString(nysGeoUrl,nysAddress);
+
+                        try {
+                            HttpGet request = new HttpGet(nysGeoUrl);
+                            HttpResponse response = httpClient.execute(request);
+                            UrlRequest.convertStreamToString(response.getEntity().getContent());
+                            queriesToNYSGEO++;
+                        } catch (IOException e) {
+                            continue;
+                        }
+
+                        continue; //Only Send it to
+                    }
+
+
+                    if (lastAddress != null && nysStreetAddress.equals(lastAddress)) {
+                        nysGeoDups++;
+                        continue;
+                    } else {
+                        lastAddress = nysStreetAddress;
+                    }
+
+                    String url = env.getUspsAmsApiUrl() + "validate?detail=true&addr1=%s&addr2=%s&city=%s&state=%s&zip5=%s";
+                    url = formatUrlString(url, nysAddress);
+
+                    try {
+                        HttpGet request = new HttpGet(url);
+                        HttpResponse response = httpClient.execute(request);
+
+                        JSONObject json = new JSONObject(UrlRequest.convertStreamToString(response.getEntity().getContent()));
+                        if (json.getBoolean("validated")) {
+                            JSONObject addressJson = json.getJSONObject("address");
+                            uspsStreetAddress = constructStreetAddressFromUSPSJson(addressJson);
+                        }
+                    } catch (IOException e) {
+                        badRecords++;
+                        continue;
+                    }
+
+                    if (uspsStreetAddress == null) {
+                        badRecords++;
+                        continue;
+                    }
+
+                    if (nysGeoAddress.getPointtype() == 1) {
+                        sqlRegeocacheDao.updateGeocache(uspsStreetAddress, nysGeoAddress.toGeocode());
+                        updatedRecords++;
+                    } else {
+                        badRecords++;
+                    }
+
+                }
+            }
+
+            String repsonseString = "Duplicate addresses Geocded \n" +
+                    "Queries to NYS GEO: " + queriesToNYSGEO + "\n" +
+                    "Updated Records: " + updatedRecords + "\n" +
+                    "Bad Records (Not found by USPS but rooftop level): " + badRecords + "\n" +
+                    "NYS Geo duplicate address records: " + nysGeoDups;
+
+            logger.info("Queries to NYS GEO: " + queriesToNYSGEO);
+            logger.info("Updated Records: " + updatedRecords);
+            logger.info("Bad Records (Not found by USPS but rooftop level): " + badRecords);
+            logger.info("NYS Geo duplicate address records: " + nysGeoDups);
+
+            apiResponse = new GenericResponse(true,repsonseString);
+        } catch (SQLException e) {
+            System.err.println("Error reading from the geocoder database");
+            return apiResponse;
+        }
         return apiResponse;
     }
 
@@ -122,24 +236,17 @@ public class RegeocacheService {
                     //Run new Address through USPS
                     String httpRequestString = env.getUspsAmsApiUrl()
                             + "validate?detail=true&addr1=%s&addr2=&city=%s&state=%s&zip5=%s&zip4=";
-                    httpRequestString = String.format(httpRequestString, nysAddress.getAddr1(),
-                            nysAddress.getCity(), nysAddress.getState(), nysAddress.getZip5());
-                    httpRequestString = httpRequestString.replaceAll(" ", "%20");
-                    httpRequestString = StringUtils.deleteWhitespace(httpRequestString);
-                    httpRequestString = httpRequestString.replaceAll("`", "");
+                    httpRequestString = formatUrlString(httpRequestString, nysAddress);
 
                     try {
                         HttpGet httpRequest = new HttpGet(httpRequestString);
                         HttpResponse httpResponse = httpClient.execute(httpRequest);
 
                         JSONObject uspsJson =
-                                new JSONObject(convertStreamToString(httpResponse.getEntity().getContent()));
+                                new JSONObject(UrlRequest.convertStreamToString(httpResponse.getEntity().getContent()));
                         if (uspsJson.getBoolean("validated")) {
                             JSONObject uspsAddressJson = uspsJson.getJSONObject("address");
-                            nysStreetAddress = StreetAddressParser.parseAddress(new Address(
-                                    uspsAddressJson.getString("addr1"), uspsAddressJson.getString("addr2"),
-                                    uspsAddressJson.getString("city"), uspsAddressJson.getString("state"),
-                                    uspsAddressJson.getString("zip5"), uspsAddressJson.getString("zip4")));
+                            nysStreetAddress = constructStreetAddressFromUSPSJson(uspsAddressJson);
                         }
                     } catch (Exception e) {
                         logger.error("Failed to make Http request because of exception" + e.getMessage());
@@ -153,7 +260,7 @@ public class RegeocacheService {
                             sqlRegeocacheDao.getProviderOfAddressInCacheIfExists(nysStreetAddress);
 
                     String geocachedStreetAddressProvider = "";
-                    if (geocachedStreetAddress != null && geocachedStreetAddress.getStreetAddress().equals(nysStreetAddress) ) {
+                    if (geocachedStreetAddress != null && geocachedStreetAddress.getStreetAddress().equals(nysStreetAddress)) {
                         geocachedStreetAddressProvider = geocachedStreetAddress.getGeocode().getMethod();
                         //update only if its not google. Address was matched so it should insert fine
                         if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointtype() == 1) {
@@ -173,7 +280,7 @@ public class RegeocacheService {
                             sqlRegeocacheDao.insetIntoGeocache(nysStreetAddress, nysGeocode);
                             updatedRecordsCount++;
                         } catch (SQLException e) {
-                            logger.warn("Insert Failed for " + nysStreetAddress.toString() );
+                            logger.warn("Insert Failed for " + nysStreetAddress.toString());
                         }
                     }
                 }
@@ -194,29 +301,24 @@ public class RegeocacheService {
             apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
             return apiResponse;
         }
-        apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         return apiResponse;
     }
 
-    private String convertStreamToString(InputStream is) {
+    private String formatUrlString(String urlToFormat, Address addressToFormat) {
+        urlToFormat = String.format(urlToFormat, addressToFormat.getAddr1(), addressToFormat.getAddr2(),
+                addressToFormat.getCity(), addressToFormat.getState(), addressToFormat.getZip5());
+        urlToFormat = urlToFormat.replaceAll(" ", "%20");
+        urlToFormat = StringUtils.deleteWhitespace(urlToFormat);
+        urlToFormat = urlToFormat.replaceAll("`", "");
+        urlToFormat = urlToFormat.replaceAll("#", "");
+        return urlToFormat;
+    }
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-
-        String line = null;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-            }
-        }
-        return sb.toString();
+    private StreetAddress constructStreetAddressFromUSPSJson(JSONObject uspsJson) {
+        return StreetAddressParser.parseAddress(new Address(
+                uspsJson.getString("addr1"), uspsJson.getString("addr2"),
+                uspsJson.getString("city"), uspsJson.getString("state"),
+                uspsJson.getString("zip5"), uspsJson.getString("zip4")));
     }
 }

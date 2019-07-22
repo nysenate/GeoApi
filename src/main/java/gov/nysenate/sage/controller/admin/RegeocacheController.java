@@ -92,4 +92,29 @@ public class RegeocacheController {
         }
         setApiResponse(apiResponse, request);
     }
+
+
+    /**
+     * REQUIRES ADMIN PERMISSIONS
+     *
+     * @param request
+     * @param response
+     * @param username
+     * @param password
+     */
+    @RequestMapping(value = "/nysrefresh/dups/{offset}", method = RequestMethod.GET)
+    public void handleNysDupsInGeocache(HttpServletRequest request, HttpServletResponse response,
+                                   @PathVariable int offset, @RequestParam String username,
+                                   @RequestParam(required = false) String password) {
+
+        Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
+            adminUserAuth.setUpPermissions(request, username, ipAddr);
+            apiResponse = regeocacheService.updatesDupsInGeocacheWithNysGeo(offset);
+        }
+        setApiResponse(apiResponse, request);
+    }
 }
