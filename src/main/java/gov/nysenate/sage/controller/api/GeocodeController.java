@@ -77,6 +77,30 @@ public class GeocodeController {
         BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
     }
 
+    /**
+     * Geocode Api
+     * ---------------------------
+     *
+     * Geocode a single address
+     *
+     * Usage:
+     * (GET)    /api/v2/geo/geocode
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param addr String
+     * @param addr1 String
+     * @param addr2 String
+     * @param city String
+     * @param state String
+     * @param zip5 String
+     * @param zip4 String
+     * @param uspsValidate boolean
+     * @param bypassCache boolean
+     * @param doNotCache boolean
+     * @param useFallback boolean
+     */
     @RequestMapping(value = "/geocode", method = RequestMethod.GET)
     public void geocode(HttpServletRequest request, HttpServletResponse response,
                         @RequestParam(required = false) String provider,
@@ -141,6 +165,24 @@ public class GeocodeController {
         setApiResponse(geocodeResponse, request);
     }
 
+    /**
+     * Reverse Geocode Api
+     * ---------------------------
+     *
+     * Reverse geocode a single pair of latlon coordinates
+     *
+     * Usage:
+     * (GET)    /api/v2/geo/revgeocode
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param lat String
+     * @param lon String
+     * @param bypassCache boolean
+     * @param doNotCache boolean
+     * @param useFallback boolean
+     */
     @RequestMapping(value = "/revgeocode", method = RequestMethod.GET)
     public void revGeocode(HttpServletRequest request, HttpServletResponse response,
                            @RequestParam(required = false) String provider,
@@ -188,6 +230,22 @@ public class GeocodeController {
         setApiResponse(geocodeResponse, request);
     }
 
+    /**
+     * Batch Geocode Api
+     * ---------------------------
+     *
+     * Geocode a batch of addresses
+     *
+     * Usage:
+     * (POST)    /api/v2/geo/geocode/batch
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param bypassCache boolean
+     * @param doNotCache boolean
+     * @param useFallback boolean
+     */
     @RequestMapping(value = "/geocode/batch", method = RequestMethod.POST)
     public void batchGeocode(HttpServletRequest request, HttpServletResponse response,
                              @RequestParam(required = false) String provider,
@@ -234,6 +292,22 @@ public class GeocodeController {
         setApiResponse(geocodeResponse, request);
     }
 
+    /**
+     * Batch Reverse Geocode Api
+     * ---------------------------
+     *
+     * Reverse geocode a batch of latlon coordinates
+     *
+     * Usage:
+     * (POST)    /api/v2/geo/revgeocode/batch
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param bypassCache boolean
+     * @param doNotCache boolean
+     * @param useFallback boolean
+     */
     @RequestMapping(value = "/revgeocode/batch", method = RequestMethod.POST)
     public void batchRevGeocode(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false) String provider,

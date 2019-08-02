@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.admin;
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.model.admin.AdminUser;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
+import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAuthenticat
 import static gov.nysenate.sage.util.controller.ConstantUtil.*;
 
 @Controller
-@RequestMapping(value = "admin")
+@RequestMapping(value = ADMIN_REST_PATH)
 public class AdminController
 {
     private Logger logger = LoggerFactory.getLogger(AdminController.class);
@@ -35,11 +36,22 @@ public class AdminController
     }
 
     /**
-     * Attempt to log in using the supplied admin credentials.
-     * @param request
-     * @param response
-     * @throws ServletException
+     * Admin Login Api
+     * ---------------------
+     *
+     * Attempt to login to the sage admin panel with the supplied credentials
+     *
+     * Usage:
+     * (POST)    /admin/login
+     *
+     * PathParams
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param username String
+     * @param password String
      * @throws IOException
+     * @throws ServletException
+     *
      */
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public void adminLogin(HttpServletRequest request, HttpServletResponse response,
@@ -61,10 +73,20 @@ public class AdminController
     }
 
     /**
-     * Logs out the admin user from the current session.
-     * @param request
-     * @param response
+     * Admin Logout Api
+     * ---------------------
+     *
+     * Logs the admin user out of the sage admin panel
+     *
+     * Usage:
+     * (GET)    /admin/logout
+     *
+     * PathParams
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @throws ServletException
      * @throws IOException
+     *
      */
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
     public void adminLogout(HttpServletRequest request, HttpServletResponse response)

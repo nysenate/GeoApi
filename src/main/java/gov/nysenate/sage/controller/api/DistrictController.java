@@ -103,6 +103,36 @@ public class DistrictController {
         BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
     }
 
+    /**
+     * District Assignment Api
+     * ---------------------------
+     *
+     * Assign a postal address to its corresponding NY Districts
+     *
+     * Usage:
+     * (GET)    /api/v2/district/assign
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param usePunct boolean
+     * @param addr String
+     * @param addr1 String
+     * @param addr2 String
+     * @param city String
+     * @param state String
+     * @param zip5 String
+     * @param zip4 String
+     * @param lat String
+     * @param lon String
+     * @param districtStrategy String
+     * @param geoProvider String
+     * @param uspsValidate boolean
+     * @param showMaps boolean
+     * @param showMembers boolean
+     * @param showMultiMatch boolean
+     * @param skipGeocode boolean
+     */
     @RequestMapping(value = "/assign", method = RequestMethod.GET)
     public void districtAssign(HttpServletRequest request, HttpServletResponse response,
                                @RequestParam(required = false) String provider,
@@ -154,6 +184,27 @@ public class DistrictController {
         logElapsedTime(startTime, apiRequest);
     }
 
+    /**
+     * District Assignment Api
+     * ---------------------------
+     *
+     * Assign a postal address to its corresponding NY Districts
+     *
+     * Usage:
+     * (POST)    /api/v2/district/assign
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param usePunct boolean
+     * @param districtStrategy String
+     * @param geoProvider String
+     * @param uspsValidate boolean
+     * @param showMaps boolean
+     * @param showMembers boolean
+     * @param skipGeocode boolean
+     *
+     */
     @RequestMapping(value = "/assign/batch", method = RequestMethod.POST)
     public void districtBatchAssign(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam(required = false) String provider,
@@ -205,6 +256,31 @@ public class DistrictController {
         logElapsedTime(startTime, apiRequest);
     }
 
+    /**
+     * District Assignment Api
+     * ---------------------------
+     *
+     * Assign a postal address to its corresponding NY Districts
+     *
+     * Usage:
+     * (GET)    /api/v2/district/assign
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param usePunct boolean
+     * @param addr String
+     * @param addr1 String
+     * @param addr2 String
+     * @param city String
+     * @param state String
+     * @param zip5 String
+     * @param zip4 String
+     * @param lat String
+     * @param lon String
+     * @param geoProvider String
+     *
+     */
     @RequestMapping(value = "/bluebird", method = RequestMethod.GET)
     public void bluebirdAssign(HttpServletRequest request, HttpServletResponse response,
                                @RequestParam(required = false) String provider,
@@ -246,6 +322,21 @@ public class DistrictController {
         logElapsedTime(startTime, apiRequest);
     }
 
+    /**
+     * District Assignment Api
+     * ---------------------------
+     *
+     * Assign a postal address to its corresponding NY Districts
+     *
+     * Usage:
+     * (POST)    /api/v2/district/assign
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param usePunct boolean
+     * @param geoProvider String
+     */
     @RequestMapping(value = "/bluebird/batch", method = RequestMethod.POST)
     public void bluebirdBatchAssign(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam(required = false) String provider,

@@ -48,6 +48,27 @@ public final class AddressController
         this.addressProvider = addressProvider;
     }
 
+    /**
+     * Address Validation Api
+     * ---------------------------
+     *
+     * Validates an address with USPS
+     *
+     * Usage:
+     * (GET)    /api/v2/address/validate
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param punct boolean
+     * @param addr String
+     * @param addr1 String
+     * @param addr2 String
+     * @param city String
+     * @param state String
+     * @param zip5 String
+     * @param zip4 String
+     */
     @RequestMapping(value = "/validate", method = RequestMethod.GET)
     public void addressValidate(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false) String provider,
@@ -73,6 +94,27 @@ public final class AddressController
 
     }
 
+    /**
+     * City State Validation Api
+     * ---------------------------
+     *
+     * Looks up a city state with USPS
+     *
+     * Usage:
+     * (GET)    /api/v2/address/citystate
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param punct boolean
+     * @param addr String
+     * @param addr1 String
+     * @param addr2 String
+     * @param city String
+     * @param state String
+     * @param zip5 String
+     * @param zip4 String
+     */
     @RequestMapping(value = "/citystate", method = RequestMethod.GET)
     public void addressCityState(HttpServletRequest request, HttpServletResponse response,
                                  @RequestParam(required = false) String provider,
@@ -97,6 +139,27 @@ public final class AddressController
         setApiResponse(addressResponse, request);
     }
 
+    /**
+     * Zipcode validation Api
+     * ---------------------------
+     *
+     * Looks up a zipcode from an address input with USPS
+     *
+     * Usage:
+     * (GET)    /api/v2/address/citystate
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param punct boolean
+     * @param addr String
+     * @param addr1 String
+     * @param addr2 String
+     * @param city String
+     * @param state String
+     * @param zip5 String
+     * @param zip4 String
+     */
     @RequestMapping(value = "/zipcode", method = RequestMethod.GET)
     public void addressZipcode(HttpServletRequest request, HttpServletResponse response,
                                @RequestParam(required = false) String provider,
@@ -121,7 +184,21 @@ public final class AddressController
         setApiResponse(addressResponse, request);
     }
 
-
+    /**
+     * Batch Address Validation Api
+     * ---------------------------
+     *
+     * Batch address validation with USPS
+     *
+     * Usage:
+     * (GET)    /api/v2/address/citystate
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param punct boolean
+     * @throws IOException
+     */
     @RequestMapping(value = "/batch/validate", method = RequestMethod.GET)
     public void addressBatchValidate(HttpServletRequest request, HttpServletResponse response,
                                      @RequestParam(required = false) String provider,
@@ -145,6 +222,20 @@ public final class AddressController
         setApiResponse(addressResponse, request);
     }
 
+    /**
+     * Batch City State Validation Api
+     * ---------------------------
+     *
+     * Batch city state validation with USPS
+     *
+     * Usage:
+     * (GET)    /api/v2/address/citystate
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param provider String
+     * @param punct boolean
+     */
     @RequestMapping(value = "/batch/citystate", method = RequestMethod.GET)
     public void addressBatchCityState(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(required = false) String provider,

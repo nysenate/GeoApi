@@ -23,7 +23,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.invalidAuthRes
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminResponse;
 
 @Controller
-@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "data/delete")
+@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/data/delete")
 public class DataDelController {
 
     private Logger logger = LoggerFactory.getLogger(DataGenController.class);
@@ -38,16 +38,35 @@ public class DataDelController {
         this.dataDelService = dataDelService;
     }
 
+
+    /**
+     * Remove Bad Zips Api
+     * ---------------------
+     *
+     * Removes non integer zip codes from the geocache
+     *
+     * Usage:
+     * (GET)    /admin/data/delete/zips/{offset}
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param username String
+     * @param password String
+     * @param offset Integer
+     *
+     */
     @RequestMapping(value = "/zips/{offset}", method = RequestMethod.GET)
     public void cleanUpBadZipsInGeocache(HttpServletRequest request, HttpServletResponse response,
-                                      @RequestParam String username,
-                                      @RequestParam(required = false) String password,
+                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                      @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                         @PathVariable Integer offset) {
         Object apiResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
+        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
+
+        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
             adminUserAuth.setUpPermissions(request, username, ipAddr);
 
             apiResponse = dataDelService.cleanUpBadZips(offset);
@@ -58,15 +77,32 @@ public class DataDelController {
         setAdminResponse(apiResponse, response);
     }
 
+    /**
+     * Remove Bad States Api
+     * ---------------------
+     *
+     * Removes invalid states from the geocache
+     *
+     * Usage:
+     * (GET)    /admin/data/delete/states
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param username String
+     * @param password String
+     *
+     */
     @RequestMapping(value = "/states", method = RequestMethod.GET)
     public void cleanUpBadStatesInGeocache(HttpServletRequest request, HttpServletResponse response,
-                                      @RequestParam String username,
-                                      @RequestParam(required = false) String password) {
+                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                      @RequestParam(required = false, defaultValue = "defaultPass") String password) {
         Object apiResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
+        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
+
+        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
             adminUserAuth.setUpPermissions(request, username, ipAddr);
             apiResponse = dataDelService.cleanUpBadStates();
         }

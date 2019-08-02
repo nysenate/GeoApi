@@ -26,7 +26,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
 
 @Controller
-@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "regeocache")
+@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/regeocache")
 public class RegeocacheController {
 
     private Logger logger = LoggerFactory.getLogger(RegeocacheController.class);
@@ -48,21 +48,31 @@ public class RegeocacheController {
     }
 
     /**
-     * REQUIRES ADMIN PERMISSIONS
+     * Regeocache Zips Api
+     * ---------------------------
      *
-     * @param request
-     * @param response
-     * @param username
-     * @param password
+     * Generates Senator images with the specified height
+     *
+     * Usage:
+     * (GET)    /admin/regeocache/zip
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param username String
+     * @param password String
+     *
      */
     @RequestMapping(value = "/zip", method = RequestMethod.GET)
     public void geocacheZips(HttpServletRequest request, HttpServletResponse response,
-                             @RequestParam String username, @RequestParam(required = false) String password) {
+                             @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                             @RequestParam(required = false, defaultValue = "defaultPass") String password) {
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
+        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
+
+        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
             adminUserAuth.setUpPermissions(request, username, ipAddr);
             apiResponse = regeocacheService.updateZipsInGeocache();
         }
@@ -70,23 +80,33 @@ public class RegeocacheController {
     }
 
     /**
-     * REQUIRES ADMIN PERMISSIONS
+     * NYS Geocache Refresh Api
+     * ---------------------------
      *
-     * @param request
-     * @param response
-     * @param username
-     * @param password
+     * Generates Senator images with the specified height
+     *
+     * Usage:
+     * (GET)    /admin/regeocache/nysrefresh/{offset}
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param username String
+     * @param password String
+     *
      */
     @RequestMapping(value = "/nysrefresh/{offset}", method = RequestMethod.GET)
     public void nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
-                                   @PathVariable int offset, @RequestParam String username,
-                                   @RequestParam(required = false) String password) {
+                                   @PathVariable int offset,
+                                   @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                   @RequestParam(required = false, defaultValue = "defaultPass") String password) {
 
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
+        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
+
+        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
             adminUserAuth.setUpPermissions(request, username, ipAddr);
             apiResponse = regeocacheService.updateGeocacheWithNYSGeoData(offset);
         }
@@ -95,23 +115,33 @@ public class RegeocacheController {
 
 
     /**
-     * REQUIRES ADMIN PERMISSIONS
+     * NYS Geocache Dups Refresh Api
+     * ---------------------------
      *
-     * @param request
-     * @param response
-     * @param username
-     * @param password
+     * Generates Senator images with the specified height
+     *
+     * Usage:
+     * (GET)    /admin/regeocache/nysrefresh/dups/{offset}
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param username String
+     * @param password String
+     *
      */
     @RequestMapping(value = "/nysrefresh/dups/{offset}", method = RequestMethod.GET)
     public void handleNysDupsInGeocache(HttpServletRequest request, HttpServletResponse response,
-                                   @PathVariable int offset, @RequestParam String username,
-                                   @RequestParam(required = false) String password) {
+                                   @PathVariable int offset,
+                                        @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                   @RequestParam(required = false, defaultValue = "defaultPass") String password) {
 
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
+        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
+
+        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
             adminUserAuth.setUpPermissions(request, username, ipAddr);
             apiResponse = regeocacheService.updatesDupsInGeocacheWithNysGeo(offset);
         }

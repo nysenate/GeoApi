@@ -35,6 +35,19 @@ public class StreetController
         this.streetProvider = streetProvider;
     }
 
+    /**
+     * Street Lookup Api
+     * ---------------------------
+     *
+     * Look up street data for a zip5 code
+     *
+     * Usage:
+     * (GET)    /api/v2/street/lookup
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param zip5 String
+     */
     @RequestMapping(value = "/lookup", method = RequestMethod.GET)
     public void addressBatchCityState(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam String zip5) {

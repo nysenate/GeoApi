@@ -34,6 +34,18 @@ public class DataController {
         this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
     }
 
+    /**
+     * Cache Shape Files Api
+     * -------------------------------
+     *
+     * Batch city state validation with USPS
+     *
+     * Usage:
+     * (GET)    /api/v2/data/sencache
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     */
     @RequestMapping(value = "/sencache", method = RequestMethod.GET)
     public void updateSencache(HttpServletRequest request, HttpServletResponse response) {
         Object responseCode = new ApiError(this.getClass(), API_REQUEST_INVALID);

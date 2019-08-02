@@ -37,6 +37,21 @@ public class MapController {
         this.districtMemberProvider = districtMemberProvider;
     }
 
+    /**
+     * Senate Map Api
+     * ---------------------------
+     *
+     * Get a requested senate district map if it exists
+     *
+     * Usage:
+     * (GET)    /api/v2/map/senate
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param district String
+     * @param showMembers boolean
+     * @param meta boolean
+     */
     @RequestMapping(value = "/senate", method = RequestMethod.GET)
     public void mapSenate(HttpServletRequest request, HttpServletResponse response,
                           @RequestParam(required = false) String district,
@@ -49,6 +64,21 @@ public class MapController {
         setApiResponse(mapResponse, request);
     }
 
+    /**
+     * Assembly Map Api
+     * ---------------------------
+     *
+     * Get a requested assembly district map if it exists
+     *
+     * Usage:
+     * (GET)    /api/v2/map/assembly
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param district String
+     * @param showMembers boolean
+     * @param meta boolean
+     */
     @RequestMapping(value = "/assembly", method = RequestMethod.GET)
     public void mapAssembly(HttpServletRequest request, HttpServletResponse response,
                             @RequestParam(required = false) String district,
@@ -62,6 +92,21 @@ public class MapController {
         setApiResponse(mapResponse, request);
     }
 
+    /**
+     * Congressional Map Api
+     * ---------------------------
+     *
+     * Get a requested congressional district map if it exists
+     *
+     * Usage:
+     * (GET)    /api/v2/map/congressional
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param district String
+     * @param showMembers boolean
+     * @param meta boolean
+     */
     @RequestMapping(value = "/congressional", method = RequestMethod.GET)
     public void mapCongressional(HttpServletRequest request, HttpServletResponse response,
                                  @RequestParam(required = false) String district,
@@ -75,6 +120,21 @@ public class MapController {
         setApiResponse(mapResponse, request);
     }
 
+    /**
+     * County Map Api
+     * ---------------------------
+     *
+     * Get a requested county district map if it exists
+     *
+     * Usage:
+     * (GET)    /api/v2/map/county
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param district String
+     * @param showMembers boolean
+     * @param meta boolean
+     */
     @RequestMapping(value = "/county", method = RequestMethod.GET)
     public void mapCounty(HttpServletRequest request, HttpServletResponse response,
                           @RequestParam(required = false) String district,
@@ -88,6 +148,21 @@ public class MapController {
         setApiResponse(mapResponse, request);
     }
 
+    /**
+     * Town Map Api
+     * ---------------------------
+     *
+     * Get a requested town district map if it exists
+     *
+     * Usage:
+     * (GET)    /api/v2/map/town
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param district String
+     * @param showMembers boolean
+     * @param meta boolean
+     */
     @RequestMapping(value = "/town", method = RequestMethod.GET)
     public void mapTown(HttpServletRequest request, HttpServletResponse response,
                         @RequestParam(required = false) String district,
@@ -100,6 +175,21 @@ public class MapController {
         setApiResponse(mapResponse, request);
     }
 
+    /**
+     * School Map Api
+     * ---------------------------
+     *
+     * Get a requested school district map if it exists
+     *
+     * Usage:
+     * (GET)    /api/v2/map/school
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param district String
+     * @param showMembers boolean
+     * @param meta boolean
+     */
     @RequestMapping(value = "/school", method = RequestMethod.GET)
     public void mapSchool(HttpServletRequest request, HttpServletResponse response,
                           @RequestParam(required = false) String district,

@@ -34,6 +34,14 @@ public class AdminUserAuth {
         return sqlAdminUserDao.checkAdminUser(username, password);
     }
 
+    public boolean isUserNamePasswordValidInput(String username, String password) {
+        boolean validInput = true;
+        if (username.equals("defaultUser") || password.equals("defaultPass")) {
+            validInput = false;
+        }
+        return validInput;
+    }
+
     public AdminUser insertAdminUser(String username, String password) {
         sqlAdminUserDao.insertAdmin(username, BCrypt.hashpw(password, BCrypt.gensalt()));
         return sqlAdminUserDao.getAdminUser(username);

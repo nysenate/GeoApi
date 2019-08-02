@@ -29,6 +29,18 @@ public class MetaController
         this.geocodeServiceProvider = geocodeServiceProvider;
     }
 
+    /**
+     * Meta Data Api
+     * ---------------------------
+     *
+     * returns a map containing the current active geocoders
+     *
+     * Usage:
+     * (GET)    /api/v2/meta/provider
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     */
     @RequestMapping(value = "/provider", method = RequestMethod.GET)
     public void metaProvider(HttpServletRequest request, HttpServletResponse response) {
         Object metaResponse;

@@ -25,7 +25,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 @Controller
-@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "datagen")
+@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datagen")
 public class DataGenController {
 
     private Logger logger = LoggerFactory.getLogger(DataGenController.class);
@@ -42,24 +42,34 @@ public class DataGenController {
     }
 
     /**
-     * REQUIRES ADMIN PERMISSIONS
-     * @param request
-     * @param response
-     * @param path
-     * @param height
-     * @param username
-     * @param password
+     * Generate Senator Images Api
+     * ---------------------------
+     *
+     * Generates Senator images with the specified height
+     *
+     * Usage:
+     * (GET)    /admin/datagen/gensenatorimages
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param path String
+     * @param height int
+     * @param username String
+     * @param password String
+     *
      */
     @RequestMapping(value = "/gensenatorimages/", method = RequestMethod.GET)
     public void generateSenatorImages(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam String path, @RequestParam int height,
-                                      @RequestParam String username,
-                                      @RequestParam(required = false) String password) {
+                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                      @RequestParam(required = false, defaultValue = "defaultPass") String password) {
         Object apiResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
+        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
+
+        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password))) {
             adminUserAuth.setUpPermissions(request, username, ipAddr);
             apiResponse = dataGenService.generateSenatorImages(path, height);
         }
@@ -70,23 +80,33 @@ public class DataGenController {
     }
 
     /**
-     * REQUIRES ADMIN PERMISSIONS
-     * Generate Assembly, Congressional, and Senate meta data
-     * @param request
-     * @param response
+     * Generate Meta Data Api
+     * -----------------------
+     *
+     * Removes invalid states from the geocache
+     *
+     * Usage:
+     * (GET)    /admin/datagen/genmetadata/{option}
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
      * @param option String value that can be either all, assembly, congress, senate, a, c, s
-     * @param username
-     * @param password
+     * @param username String
+     * @param password String
+     *
      */
     @RequestMapping(value = "/genmetadata/{option}", method = RequestMethod.GET)
     public void generateMetaData(HttpServletRequest request, HttpServletResponse response,
-                                 @PathVariable String option, @RequestParam String username,
-                                 @RequestParam(required = false) String password) {
+                                 @PathVariable String option,
+                                 @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                 @RequestParam(required = false, defaultValue = "defaultPass") String password) {
         Object apiResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        if (subject.hasRole("ADMIN") || sqlAdminUserDao.checkAdminUser(username, password)) {
+        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
+
+        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
             adminUserAuth.setUpPermissions(request, username, ipAddr);
             try {
                 apiResponse = dataGenService.generateMetaData(option);
@@ -101,6 +121,19 @@ public class DataGenController {
         setAdminResponse(apiResponse, response);
     }
 
+    /**
+     * Generate County Code File Api
+     * -----------------------------
+     *
+     * Creates a county code file for use with the Street File parsing
+     *
+     * Usage:
+     * (GET)    /admin/datagen/countycodes
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/countycodes", method = RequestMethod.GET)
     public void ensureCountyCodeFileExists(HttpServletRequest request, HttpServletResponse response) {
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
@@ -110,6 +143,19 @@ public class DataGenController {
         setAdminResponse(apiResponse, response);
     }
 
+    /**
+     * Generate Town Code File Api
+     * ---------------------------
+     *
+     * Creates a town code file for use with the Street File parsing
+     *
+     * Usage:
+     * (GET)    /admin/datagen/towncodes
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/towncodes", method = RequestMethod.GET)
     public void ensureTownCodeFileExists(HttpServletRequest request, HttpServletResponse response) {
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);

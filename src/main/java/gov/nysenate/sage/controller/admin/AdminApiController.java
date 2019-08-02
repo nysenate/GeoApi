@@ -37,7 +37,7 @@ import java.util.Map;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 @Controller
-@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "api")
+@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/api")
 public class AdminApiController
 {
     private Logger logger = LoggerFactory.getLogger(AdminApiController.class);
@@ -72,6 +72,19 @@ public class AdminApiController
 
     }
 
+    /**
+     * Current Api Users Api
+     * ---------------------
+     *
+     * Returns the current api users
+     *
+     * Usage:
+     * (GET)    /admin/api/currentApiUsers
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/currentApiUsers", method = RequestMethod.GET)
     public void currentApiUsers(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -86,6 +99,19 @@ public class AdminApiController
 
     }
 
+    /**
+     * Current Job Users Api
+     * ---------------------
+     *
+     * Returns the current job users
+     *
+     * Usage:
+     * (GET)    /admin/api/currentJobUsers
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/currentJobUsers", method = RequestMethod.GET)
     public void currentJobUsers(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -100,6 +126,19 @@ public class AdminApiController
 
     }
 
+    /**
+     * Api User Usage Api
+     * ---------------------
+     *
+     * Returns api user request stats
+     *
+     * Usage:
+     * (GET)    /admin/api/apiUserUsage
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/apiUserUsage", method = RequestMethod.GET)
     public void apiUserUsage(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -114,6 +153,19 @@ public class AdminApiController
 
     }
 
+    /**
+     * Api Usage Api
+     * ---------------------
+     *
+     * Returns api user usage request stats
+     *
+     * Usage:
+     * (GET)    /admin/api/usage
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/usage", method = RequestMethod.GET)
     public void usage(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -128,6 +180,19 @@ public class AdminApiController
 
     }
 
+    /**
+     * Geocode Usage Api
+     * ---------------------
+     *
+     * Returns geocode usage stats
+     *
+     * Usage:
+     * (GET)    /admin/api/geocodeUsage
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/geocodeUsage", method = RequestMethod.GET)
     public void geocodeUsage(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -142,6 +207,19 @@ public class AdminApiController
 
     }
 
+    /**
+     * Job Statuses Api
+     * ---------------------
+     *
+     * Returns current job statuses
+     *
+     * Usage:
+     * (GET)    /admin/api/jobStatuses
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/jobStatuses", method = RequestMethod.GET)
     public void jobStatuses(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -156,6 +234,19 @@ public class AdminApiController
 
     }
 
+    /**
+     * Deployment Stats Api
+     * ---------------------
+     *
+     * Returns deployment stats
+     *
+     * Usage:
+     * (GET)    /admin/api/deployment
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/deployment", method = RequestMethod.GET)
     public void deployment(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -170,6 +261,19 @@ public class AdminApiController
 
     }
 
+    /**
+     * Exception Stats Api
+     * ---------------------
+     *
+     * Returns exception stats
+     *
+     * Usage:
+     * (GET)    /admin/api/exception
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/exception", method = RequestMethod.GET)
     public void exception(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -185,7 +289,19 @@ public class AdminApiController
     }
 
 
-
+    /**
+     * Create Api Users Api
+     * ---------------------
+     *
+     * Creates an api user
+     *
+     * Usage:
+     * (POST)    /admin/api/createApiUser
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/createApiUser", method = RequestMethod.POST)
     public void createApiUser(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -200,6 +316,20 @@ public class AdminApiController
 
 
     }
+
+    /**
+     * Delete Api Users Api
+     * ---------------------
+     *
+     * Deletes an api user
+     *
+     * Usage:
+     * (POST)    /admin/api/deleteApiUser
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/deleteApiUser", method = RequestMethod.POST)
     public void deleteApiUser(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -213,6 +343,20 @@ public class AdminApiController
         setAdminResponse(adminResponse, response);
 
     }
+
+    /**
+     * Create Job Users Api
+     * ---------------------
+     *
+     * Creates a job user
+     *
+     * Usage:
+     * (POST)    /admin/api/createJobUser
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/createJobUser", method = RequestMethod.POST)
     public void createJobUser(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -226,6 +370,20 @@ public class AdminApiController
         setAdminResponse(adminResponse, response);
 
     }
+
+    /**
+     * Delete Job Users Api
+     * ---------------------
+     *
+     * Deletes a job user
+     *
+     * Usage:
+     * (POST)    /admin/api/deleteJobUser
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/deleteJobUser", method = RequestMethod.POST)
     public void deleteJobUser(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -239,6 +397,20 @@ public class AdminApiController
         setAdminResponse(adminResponse, response);
 
     }
+
+    /**
+     * Hide exception Api
+     * ---------------------
+     *
+     * Hides an exception from the admin user interface
+     *
+     * Usage:
+     * (POST)    /admin/api/hideException
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/hideException", method = RequestMethod.POST)
     public void hideException(HttpServletRequest request, HttpServletResponse response) {
         Object adminResponse;
@@ -252,8 +424,6 @@ public class AdminApiController
         setAdminResponse(adminResponse, response);
 
     }
-
-    //adminResponse = new GenericResponse(false, "Invalid admin API request.");
 
     /**
      * Retrieves all registered Api Users. This method should not be exposed through a non-admin API as it contains
