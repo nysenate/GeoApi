@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Controller
-@RequestMapping(value = "job")
+@RequestMapping(value = "/job")
 public class JobDownloadController
 {
     private static Logger logger = LoggerFactory.getLogger(JobDownloadController.class);
@@ -30,6 +30,21 @@ public class JobDownloadController
         DOWNLOAD_DIR = env.getJobDownloadDir();
     }
 
+    /**
+     * Job Download Api
+     * ---------------------
+     *
+     * Download a completed job file
+     *
+     * Usage:
+     * (GET)    /job/download/{fileName:.+}
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param fileName String
+     * @throws IOException
+     *
+     */
     @RequestMapping(value = "/download/{fileName:.+}", method = RequestMethod.GET)
     public void jobDownload(HttpServletRequest request, HttpServletResponse response, @PathVariable String fileName) throws IOException {
         Subject subject = SecurityUtils.getSubject();

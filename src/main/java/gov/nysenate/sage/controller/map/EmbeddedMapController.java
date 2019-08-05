@@ -21,6 +21,29 @@ public class EmbeddedMapController {
     private static Logger logger = LoggerFactory.getLogger(EmbeddedMapController.class);
     private static String MAPS_JSP = "/WEB-INF/views/maps.jsp";
 
+    /**
+     * Embedded Map Api
+     * ---------------------
+     *
+     * Returns an embedded google map with the specified request params
+     *
+     * Usage:
+     * (GET)    /map
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param width int
+     * @param height int
+     * @param customMapStyle boolean
+     * @param saturation int
+     * @param customPolyStyle boolean
+     * @param hue String
+     * @param lightness int
+     * @param polyHue String
+     * @throws ServletException
+     * @throws IOException
+     *
+     */
     @RequestMapping(value = "/map", method = RequestMethod.GET)
     public void map(HttpServletRequest request, HttpServletResponse response,
                     @RequestParam(required = false, defaultValue = "0") int width,
@@ -40,6 +63,29 @@ public class EmbeddedMapController {
 
     }
 
+    /**
+     * Embedded District Type Map Api
+     * ------------------------------
+     *
+     * Returns an embedded google map with the specified district type and request params
+     *
+     * Usage:
+     * (GET)    /map/{districtType}
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param width int
+     * @param height int
+     * @param customMapStyle boolean
+     * @param saturation int
+     * @param customPolyStyle boolean
+     * @param hue String
+     * @param lightness int
+     * @param polyHue String
+     * @throws ServletException
+     * @throws IOException
+     *
+     */
     @RequestMapping(value = "/map/{districtType}", method = RequestMethod.GET)
     public void mapDistrictType(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false, defaultValue = "0") int width,
@@ -62,6 +108,29 @@ public class EmbeddedMapController {
 
     }
 
+    /**
+     * Embedded District Type, Code Map Api
+     * ------------------------------
+     *
+     * Returns an embedded google map with the specified district type, district code and request params
+     *
+     * Usage:
+     * (GET)    /map/{districtType}/{districtCode}
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param width int
+     * @param height int
+     * @param customMapStyle boolean
+     * @param saturation int
+     * @param customPolyStyle boolean
+     * @param hue String
+     * @param lightness int
+     * @param polyHue String
+     * @throws ServletException
+     * @throws IOException
+     *
+     */
     @RequestMapping(value = "/map/{districtType}/{districtCode}", method = RequestMethod.GET)
     public void mapDistrictCode(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false, defaultValue = "0") int width,

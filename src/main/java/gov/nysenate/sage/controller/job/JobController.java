@@ -44,7 +44,7 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.*;
 import static gov.nysenate.sage.util.controller.JobControllerUtil.*;
 
 @Controller
-@RequestMapping(value = "job")
+@RequestMapping(value = "/job")
 public class JobController {
     private Logger logger = LoggerFactory.getLogger(JobController.class);
     private Environment env;
@@ -62,13 +62,44 @@ public class JobController {
         this.jobBatchProcessor = jobBatchProcessor;
     }
 
+    /**
+     * Job Logout Api
+     * ---------------------
+     *
+     * Logs a job user out of the batch job section of Sage
+     *
+     * Usage:
+     * (GET)    /job/logout
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @throws IOException
+     * @throws ServletException
+     *
+     */
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
     public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doLogout(request, response);
     }
 
 
-    //post requests
+    /**
+     * Job Login Api
+     * ---------------------
+     *
+     * Logs a job user into the batch job section of Sage
+     *
+     * Usage:
+     * (POST)    /job/login
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param email String
+     * @param password String
+     * @throws IOException
+     * @throws ServletException
+     *
+     */
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public void jobLogin(HttpServletRequest request, HttpServletResponse response,
                          @RequestParam String email, @RequestParam String password)
@@ -76,27 +107,105 @@ public class JobController {
         doLogin(request, response, email, password);
     }
 
+    /**
+     * Job Upload Api
+     * ---------------------
+     *
+     * Upload a batch job file to Sage
+     *
+     * Usage:
+     * (POST)    /job/upload
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param qqfile String
+     * @throws IOException
+     * @throws ServletException
+     *
+     */
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     public void jobUpload(HttpServletRequest request, HttpServletResponse response,
                           @RequestParam String qqfile) throws Exception {
         doUpload(request, response, qqfile);
     }
 
+    /**
+     * Job Submit Api
+     * ---------------------
+     *
+     * Submit a batch job file to Sage. This begins the processing of the job batch file
+     *
+     * Usage:
+     * (POST)    /job/submit
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @throws IOException
+     * @throws ServletException
+     *
+     */
     @RequestMapping(value = "/submit", method = RequestMethod.POST)
     public void jobSubmit(HttpServletRequest request, HttpServletResponse response) {
         doSubmit(request, response);
     }
 
+    /**
+     * Remove Job Api
+     * ---------------------
+     *
+     * Remove a job from the job processor queue
+     *
+     * Usage:
+     * (POST)    /job/remove
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param fileName String
+     * @throws IOException
+     * @throws ServletException
+     *
+     */
     @RequestMapping(value = "/remove", method = RequestMethod.POST)
     public void jobRemove(HttpServletRequest request, HttpServletResponse response, @RequestParam String fileName) {
         doRemove(request, response, fileName);
     }
 
+    /**
+     * Cancel Job Api
+     * ---------------------
+     *
+     * Sets the condition of a job process status to cancelled
+     *
+     * Usage:
+     * (POST)    /job/cancel
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param id int
+     * @throws IOException
+     * @throws ServletException
+     *
+     */
     @RequestMapping(value = "/cancel", method = RequestMethod.POST)
     public void jobCancel(HttpServletRequest request, HttpServletResponse response, @RequestParam int id) {
         doCancel(request, response, id);
     }
 
+    /**
+     * Cancel Running Job Api
+     * ---------------------
+     *
+     * Cancel a running job in the job processor
+     *
+     * Usage:
+     * (POST)    /job/cancel/running
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @throws IOException
+     * @throws ServletException
+     *
+     */
     @RequestMapping(value = "/cancel/running", method = RequestMethod.POST)
     public void jobCancelRunning(HttpServletRequest request, HttpServletResponse response) throws Exception {
         JobRequest jobRequest = getJobRequest(request);
@@ -105,6 +214,21 @@ public class JobController {
         jobBatchProcessor.run(args);
     }
 
+    /**
+     * Job Run Api
+     * ---------------------
+     *
+     * Run a job in the queue for the job processor
+     *
+     * Usage:
+     * (POST)    /job/run
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @throws IOException
+     * @throws ServletException
+     *
+     */
     @RequestMapping(value = "/run", method = RequestMethod.POST)
     public void jobRun(HttpServletRequest request, HttpServletResponse response) throws Exception {
         JobRequest jobRequest = getJobRequest(request);

@@ -16,6 +16,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
 
+/**
+ * Simple entry point to the front-end. Returns the main angular-js driven web page which will handle
+ * all the heavy lifting.
+ */
 @Controller
 public class AngularAppCtrl {
     private static final Logger logger = LoggerFactory.getLogger(AngularAppCtrl.class);

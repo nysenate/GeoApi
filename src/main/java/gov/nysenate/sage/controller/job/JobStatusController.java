@@ -28,16 +28,9 @@ import static gov.nysenate.sage.util.controller.JobControllerUtil.setJobResponse
 
 /**
  * This controller provides an API for accessing the status of a batch job request.
- * The available calls are as follows:
- *
- *    /job/status/process/{Process Id}  - Get process information for a given process
- *    /job/status/active                - Get all active processes
- *    /job/status/completed             - Get processes that completed successfully within the past day
- *    /job/status/inactive              - Get all inactive processes
- *    /job/status/all                   - Get all processes (basically a job history)
  */
 @Controller
-@RequestMapping(value = "job/status")
+@RequestMapping(value = "/job/status")
 public class JobStatusController
 {
     private static Logger logger = LoggerFactory.getLogger(JobStatusController.class);
@@ -50,6 +43,20 @@ public class JobStatusController
         this.sqlJobProcessDao = sqlJobProcessDao;
     }
 
+    /**
+     * Get Job Process Api
+     * ---------------------
+     *
+     * Get process information for a given process
+     *
+     * Usage:
+     * (GET)    /job/status/process/{Process Id}
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param processId int
+     *
+     */
     @RequestMapping(value = "/process/{processId}", method = RequestMethod.GET)
     public void jobProcess(HttpServletRequest request, HttpServletResponse response,
                                      @PathVariable int processId) {
@@ -63,6 +70,19 @@ public class JobStatusController
         setJobResponse(statusResponse, response);
     }
 
+    /**
+     * Running Job Processes Api
+     * ---------------------
+     *
+     * Get all running jobs
+     *
+     * Usage:
+     * (GET)    /job/status/running
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/running", method = RequestMethod.GET)
     public void jobRunning(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
@@ -75,6 +95,19 @@ public class JobStatusController
         setJobResponse(statusResponse, response);
     }
 
+    /**
+     * Active Job Processes Api
+     * ---------------------
+     *
+     * Get all active jobs
+     *
+     * Usage:
+     * (GET)    /job/status/active
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/active", method = RequestMethod.GET)
     public void jobActive(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
@@ -87,6 +120,19 @@ public class JobStatusController
         setJobResponse(statusResponse, response);
     }
 
+    /**
+     * Inactive Job Processes Api
+     * ---------------------
+     *
+     * Get all inactive jobs
+     *
+     * Usage:
+     * (GET)    /job/status/inactive
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/inactive", method = RequestMethod.GET)
     public void jobInactive(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
@@ -99,6 +145,19 @@ public class JobStatusController
         setJobResponse(statusResponse, response);
     }
 
+    /**
+     * Completed Job Processes Api
+     * ---------------------
+     *
+     * Get processes that completed successfully within the past day
+     *
+     * Usage:
+     * (GET)    /job/status/completed
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/completed", method = RequestMethod.GET)
     public void jobCompleted(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
@@ -111,6 +170,19 @@ public class JobStatusController
         setJobResponse(statusResponse, response);
     }
 
+    /**
+     * Processor Api
+     * ---------------------
+     *
+     * Get the current status of the processor (Is it running or not)
+     *
+     * Usage:
+     * (GET)    /job/status/processor
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/processor", method = RequestMethod.GET)
     public void jobProcessor(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
@@ -121,6 +193,19 @@ public class JobStatusController
         setJobResponse(statusResponse, response);
     }
 
+    /**
+     * All Job Processes Api
+     * ---------------------
+     *
+     * Get all processes (basically a job history)
+     *
+     * Usage:
+     * (GET)    /job/status/all
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
     @RequestMapping(value = "/all", method = RequestMethod.GET)
     public void jobAll(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");

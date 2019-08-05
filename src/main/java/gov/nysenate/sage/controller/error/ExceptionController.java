@@ -11,14 +11,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Date;
 
-@Controller
+import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_REST_PATH;
 
+@Controller
 public class ExceptionController
 {
     private static Logger logger = LoggerFactory.getLogger(ExceptionController.class);
@@ -30,6 +32,21 @@ public class ExceptionController
         this.sqlExceptionLogger = sqlExceptionLogger;
     }
 
+    /**
+     * Get Exception Api
+     * ---------------------
+     *
+     * Get an exception from an ApiRequestId
+     *
+     * Usage:
+     * (GET)    /exception
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param apiRequestId int
+     * @throws IOException
+     *
+     */
     @RequestMapping(value ="/exception")
     public void doGet(HttpServletRequest request, HttpServletResponse response, @RequestParam int apiRequestId) throws IOException
     {
