@@ -113,7 +113,7 @@
 
     <properties>
         <nysenate-java-client.version>2.2</nysenate-java-client.version>
-        <tomcat.version>8.5.34</tomcat.version>
+        <tomcat.version>9.0.22</tomcat.version>
         <maven-core.version>3.5.0</maven-core.version>
         <commons-configuration>1.10</commons-configuration>
         <commons-dbutils.version>1.7</commons-dbutils.version>
@@ -141,13 +141,14 @@
         <woodstox-core>4.0.6</woodstox-core>
         <xmlrpc-client.version>3.1.3</xmlrpc-client.version>
         <xstream.version>1.4.11.1</xstream.version>
-        <spring.version>5.1.3.RELEASE</spring.version>
+        <spring.version>5.1.9.RELEASE</spring.version>
         <shiro.version>1.2.3</shiro.version>
         <c3p0.version>0.9.5.2</c3p0.version>
         <commons-cli.version>1.2</commons-cli.version>
         <guava.version>18.0</guava.version>
         <guava.jackson.version>2.4.0</guava.jackson.version>
         <eh-cache.version>2.8.3</eh-cache.version>
+        <openlocationcode.version>1.0.4</openlocationcode.version>
     </properties>
 
     <dependencies>
@@ -442,6 +443,13 @@
             <groupId>net.sf.ehcache</groupId>
             <artifactId>ehcache</artifactId>
             <version>${eh-cache.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.google.openlocationcode/openlocationcode -->
+        <dependency>
+            <groupId>com.google.openlocationcode</groupId>
+            <artifactId>openlocationcode</artifactId>
+            <version>${openlocationcode.version}</version>
         </dependency>
 
         <!-- Testing Dependencies -->
