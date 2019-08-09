@@ -329,6 +329,15 @@
                                 <small style="color:teal;">{{geocode.method | remove:'Dao'}}</small>
                                 <p ng-show="geocode.cached" class="icon-database icon-teal" style="color:teal;"></p>
                             </td>
+<%--                            <td><p style="font-size: 16px;color:teal;">({{geocode.openLocCode}})</p></td>--%>
+                        </tr>
+                        <tr>
+                            <td><div class="icon-target icon-teal"></div></td>
+                            <td><p style="font-size: 16px;color:teal;">({{geocode.openLocCode}})</p></td>
+                            <td style="text-align:right;">
+                                <small style="color:teal;">Open Location Code</small>
+                            </td>
+
                         </tr>
                     </table>
                 </div>

@@ -1,5 +1,6 @@
 package gov.nysenate.sage.client.view.geo;
 
+import com.google.openlocationcode.OpenLocationCode;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 
@@ -13,6 +14,7 @@ public class GeocodeView
     protected String quality = GeocodeQuality.NOMATCH.name();
     protected String method = "";
     protected boolean cached = false;
+    protected String openLocCode = "";
 
     public GeocodeView(Geocode geocode)
     {
@@ -22,6 +24,7 @@ public class GeocodeView
             this.quality = geocode.getQuality().name();
             this.method = geocode.getMethod();
             this.cached = geocode.isCached();
+            this.openLocCode = OpenLocationCode.encode(this.lat, this.lon);
         }
     }
 
@@ -44,4 +47,6 @@ public class GeocodeView
     public boolean isCached() {
         return cached;
     }
+
+    public String getOpenLocCode() { return openLocCode; }
 }
