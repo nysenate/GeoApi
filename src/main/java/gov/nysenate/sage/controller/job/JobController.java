@@ -319,6 +319,7 @@ public class JobController {
                     jobReader = new CsvListReader(sourceReader, preference);
                     String[] header = jobFile.processHeader(jobReader.getHeader(true));
                     logger.debug("Header: " + FormatUtil.toJsonString(header));
+                    jobReader.close();
 
                     /* Close and re-open the source reader */
                     sourceReader.close();
@@ -372,7 +373,6 @@ public class JobController {
                 logger.error("IO Exception during file upload processing!", ex);
             } finally {
                 sourceReader.close();
-                jobReader.close();
             }
         }
         setJobResponse(uploadResponse, response);
