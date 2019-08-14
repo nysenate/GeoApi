@@ -138,17 +138,17 @@ public class HandleNYSGeoDupsInGeocache {
 
                     if (nysGeoAddress.getPointtype() != 1) {
                         //if its not a rooftop point, we need to send it to google to get the rooftop
-                        String googleUrl = nysGeoDupsInGeocache.config.getValue("base.url") +
+                        String nysgeo = nysGeoDupsInGeocache.config.getValue("base.url") +
                                 "/api/v2/geo/geocode?addr1=%s&addr2=%s&city=%s&state=%s&zip5=%s&provider=nysgeo";
-                        googleUrl = String.format(googleUrl, nysAddress.getAddr1(), nysAddress.getAddr2(),
+                        nysgeo = String.format(nysgeo, nysAddress.getAddr1(), nysAddress.getAddr2(),
                                 nysAddress.getCity(), nysAddress.getState(), nysAddress.getZip5());
-                        googleUrl = googleUrl.replaceAll(" ", "%20");
-                        googleUrl = StringUtils.deleteWhitespace(googleUrl);
-                        googleUrl = googleUrl.replaceAll("`", "");
-                        googleUrl = googleUrl.replaceAll("#", "");
+                        nysgeo = nysgeo.replaceAll(" ", "%20");
+                        nysgeo = StringUtils.deleteWhitespace(nysgeo);
+                        nysgeo = nysgeo.replaceAll("`", "");
+                        nysgeo = nysgeo.replaceAll("#", "");
 
                         try {
-                            HttpGet request = new HttpGet(googleUrl);
+                            HttpGet request = new HttpGet(nysgeo);
                             HttpResponse response = httpClient.execute(request);
                             UrlRequest.convertStreamToString(response.getEntity().getContent());
                             queriesToNYSGEO++;
