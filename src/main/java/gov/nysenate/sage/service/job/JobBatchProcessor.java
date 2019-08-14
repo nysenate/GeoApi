@@ -254,10 +254,7 @@ public class JobBatchProcessor {
 
             /** Check if file can be skipped */
             if (!jobFile.requiresAny()) {
-                logger.warn("Warning: Skipping job file - No usps, geocode, or dist assign columns!");
-                jobStatus.setCondition(SKIPPED);
-                jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
-                sqlJobProcessDao.setJobProcessStatus(jobStatus);
+                skipFile(jobStatus);
             }
             else {
                 final CellProcessor[] processors = jobFile.getProcessors().toArray(new CellProcessor[0]);
@@ -364,10 +361,7 @@ public class JobBatchProcessor {
                 }
 
                 if (!interrupted) {
-                    jobStatus.setCompleted(true);
-                    jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
-                    jobStatus.setCondition(COMPLETED);
-                    sqlJobProcessDao.setJobProcessStatus(jobStatus);
+                    successfulProcessHandling(jobStatus);
                 }
 
                 if (SEND_EMAILS) {
@@ -402,29 +396,24 @@ public class JobBatchProcessor {
             }
         }
         catch (FileNotFoundException ex) {
-            logger.error("Job process " + jobProcess.getId() + "'s file could not be found!");
-            setJobStatusError(jobStatus, SKIPPED, "Could not open file!");
-            if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
+            handleErrors("Job process " + jobProcess.getId() + "'s file could not be found!",
+                    "Could not open file!", ex, jobStatus, SKIPPED);
         }
         catch (IOException ex){
-            logger.error("" + ex);
-            setJobStatusError(jobStatus, FAILED, "IO Error! " + ex.getMessage());
-            if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
+            handleErrors("IOException exception occurred!", "IO Error! ", ex,
+                    jobStatus, FAILED);
         }
         catch (InterruptedException ex) {
-            logger.error("" + ex);
-            setJobStatusError(jobStatus, FAILED, "Job Interrupted! " + ex.getMessage());
-            if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
+            handleErrors("Interrupted exception occurred!", "Job Interrupted! ", ex,
+                    jobStatus, FAILED);
         }
         catch (ExecutionException ex) {
-            logger.error("" + ex);
-            setJobStatusError(jobStatus, FAILED, "Execution Error! " + ex.getMessage());
-            if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
+            handleErrors("Execution exception occurred!", "Execution Error! ", ex,
+                    jobStatus, FAILED);
         }
         catch (Exception ex) {
-            logger.error(fatal, "Unknown exception occurred!", ex);
-            setJobStatusError(jobStatus, FAILED, "Fatal Error! " + ex.getMessage());
-            if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
+            handleErrors("Unknown exception occurred!", "Fatal Error! ", ex,
+                    jobStatus, FAILED);
         }
         finally {
             try {
@@ -437,6 +426,27 @@ public class JobBatchProcessor {
         }
 
         return;
+    }
+
+    private void successfulProcessHandling(JobProcessStatus jobStatus) {
+        jobStatus.setCompleted(true);
+        jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
+        jobStatus.setCondition(COMPLETED);
+        sqlJobProcessDao.setJobProcessStatus(jobStatus);
+    }
+
+    private void handleErrors(String loggerMessage , String jobStatusMessage, Exception ex, JobProcessStatus jobStatus,
+                              JobProcessStatus.Condition condition) {
+        logger.error(fatal, loggerMessage, ex);
+        setJobStatusError(jobStatus, condition, jobStatusMessage + ex.getMessage());
+        if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
+    }
+
+    private void skipFile(JobProcessStatus jobStatus) {
+        logger.warn("Warning: Skipping job file - No usps, geocode, or dist assign columns!");
+        jobStatus.setCondition(SKIPPED);
+        jobStatus.setCompleteTime(new Timestamp(new Date().getTime()));
+        sqlJobProcessDao.setJobProcessStatus(jobStatus);
     }
 
     /**
