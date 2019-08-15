@@ -31,6 +31,9 @@ import org.supercsv.prefs.CsvPreference;
 
 import javax.annotation.PreDestroy;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -227,6 +230,10 @@ public class JobBatchProcessor {
         CsvListWriter jobWriter = null;
 
         try {
+            /** Ensure directories for uploading and downloading exist*/
+            ensureDirectoryExists(UPLOAD_DIR);
+            ensureDirectoryExists(DOWNLOAD_DIR);
+
             /** Initialize file readers and writers */
             File uploadedFile = new File(UPLOAD_DIR + fileName);
             File targetFile = new File(DOWNLOAD_DIR, fileName);
@@ -426,6 +433,18 @@ public class JobBatchProcessor {
         }
 
         return;
+    }
+
+    private void ensureDirectoryExists(String dir)  {
+        try {
+            if ( Files.notExists(Paths.get(dir)) ) {
+                Files.createDirectory(Paths.get(dir));
+            }
+        }
+        catch (IOException e) {
+            logger.warn("Unable to create directory " + dir);
+        }
+
     }
 
     private void successfulProcessHandling(JobProcessStatus jobStatus) {
