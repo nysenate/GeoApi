@@ -8,11 +8,16 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
     $scope.id = 2;
     $scope.minimized = false;
     $scope.type = "";
+    $scope.selectedDistrict = "";
+    $scope.intersectType = "none";
+    $scope.geoProvider = "default";
+    $scope.provider = "default";
     $scope.showMemberOption = false;
     $scope.showMemberList = false;
+    $scope.showOptions = false;
     $scope.sortedMemberList = [];
     $scope.districtList = [];
-    $scope.selectedDistrict = "";
+
 
     $scope.$on(menuService.menuToggleEvent, function() {
         $scope.visible = menuService.isMethodActive($scope.id);
@@ -72,14 +77,27 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
      * Performs request to district map API to retrieve map data and delegates to the `districtMap` handler.
      */
     $scope.lookup = function () {
-        uiBlocker.block("Loading " + this.type + " maps..");
-        $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.district, false))
-            .success(function(data) {
-                dataBus.setBroadcast("districtMap", data);
-            }).error(function(data) {
-            uiBlocker.unBlock();
-            alert("Failed to retrieve district maps.");
-        });
+        uiBlocker.block("Loading " + this.type + " maps...");
+        if (this.intersectType === "none") {
+            $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.district, false))
+                .success(function(data) {
+                    dataBus.setBroadcast("districtMap", data);
+                }).error(function(data) {
+                uiBlocker.unBlock();
+                alert("Failed to retrieve district maps.");
+            });
+            $scope.visible = false;
+            this.intersectType = 'senate';
+        }
+        else {
+            $http.get(this.getIntersectUrl())
+                .success(function(data) {
+                    dataBus.setBroadcastAndView("districtInfo", data, "districtsView");
+                }).error(function(data, status, headers, config) {
+                uiBlocker.unBlock();
+                alert("Failed to lookup districts. The application did not return a response.");
+            });
+        }
     };
 
     /**
@@ -91,5 +109,16 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
         return contextPath + baseApi + "/map/" + type + "?showMembers=true"
             + ((meta === true) ? "&meta=true" :
                 ((district) ? ("&district=" + district) : ""));
-    }
+    };
+
+    /**
+     * Returns the url for accessing the district assignment API.
+     * @returns {string}
+     */
+    $scope.getIntersectUrl = function () {
+        var url = contextPath + baseApi + "/district/intersect?sourceType=" + this.type + "&sourceId=" + this.selectedDistrict.district;
+        url += "&intersectType=" + this.intersectType;
+        url = url.replace(/#/g, ""); // Pound marks mess up the query string
+        return url;
+    };
 });

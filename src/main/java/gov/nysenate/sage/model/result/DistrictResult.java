@@ -19,6 +19,9 @@ public class DistrictResult extends BaseResult
     /** Contains the geocoded address and district information */
     protected DistrictedAddress districtedAddress;
 
+    /** Contains the geocoded address and district information */
+    protected DistrictType intersectType = DistrictType.SENATE;
+
     public DistrictResult()
     {
         this(null, null);
@@ -112,5 +115,13 @@ public class DistrictResult extends BaseResult
 
     public boolean isUspsValidated() {
         return (getAddress() != null) ? getAddress().isUspsValidated() : false;
+    }
+
+    public DistrictType getIntersectType(){
+        return intersectType;
+    }
+
+    public void setIntersectType(DistrictType intersectType){
+        this.intersectType = intersectType;
     }
 }

@@ -200,6 +200,24 @@ public class SqlStreetFileDao implements StreetFileDao
         return getAllStandardDistrictMatches(null, zip5);
     }
 
+    private Map<DistrictType, Set<String>> extractMapResults(String sqlQuery) {
+        return baseDao.geoApiJbdcTemplate.query(sqlQuery, new ResultSetExtractor<Map<DistrictType, Set<String>>>() {
+            @Override
+            public Map<DistrictType, Set<String>> extractData(ResultSet rs) throws SQLException {
+                Map<DistrictType, Set<String>> resultMap = new HashMap<>();
+                while (rs.next()) {
+                    DistrictType type = DistrictType.resolveType(rs.getString("type"));
+                    String code = rs.getString("code");
+                    if (!resultMap.containsKey(type)) {
+                        resultMap.put(type, new HashSet<>());
+                    }
+                    resultMap.get(type).add(code);
+                }
+                return resultMap;
+            }
+        });
+    }
+
     /** {@inheritDoc} */
     public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List)
     {
@@ -245,21 +263,35 @@ public class SqlStreetFileDao implements StreetFileDao
         }
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
         try {
-            return baseDao.geoApiJbdcTemplate.query(sqlQuery, new ResultSetExtractor<Map<DistrictType, Set<String>>>() {
-                @Override
-                public Map<DistrictType, Set<String>> extractData(ResultSet rs) throws SQLException {
-                    Map<DistrictType, Set<String>> resultMap = new HashMap<>();
-                    while (rs.next()) {
-                        DistrictType type = DistrictType.resolveType(rs.getString("type"));
-                        String code = rs.getString("code");
-                        if (!resultMap.containsKey(type)) {
-                            resultMap.put(type, new HashSet<String>());
-                        }
-                        resultMap.get(type).add(code);
-                    }
-                    return resultMap;
-                }
-            });
+            return extractMapResults(sqlQuery);
+        }
+        catch (Exception ex) {
+            logger.error("Failed to get all possible state districts!", ex);
+        }
+        logger.info(sqlQuery);
+        return null;
+    }
+
+    /** {@inheritDoc} */
+    public Map<DistrictType, Set<String>> getAllIntersections(DistrictType distType, String sourceId)
+    {
+        /** Short circuit on missing input */
+        if (distType == null || sourceId == null) return null;
+
+        String sqlTmpl = "SELECT DISTINCT %s::character varying AS code, '%s' AS type\n" +
+                "FROM streetfile\n" +
+                "WHERE (%s)";
+
+        /** Format final query */
+        String districtSpec = distColMap.get(distType) + " = " + String.format("'%s'", sourceId);
+        List<String> queryList = new ArrayList<>();
+        for (DistrictType dType : DistrictType.getStandardTypes()) {
+            String column = distColMap.get(dType);
+            queryList.add(String.format(sqlTmpl, column, dType.name(), districtSpec));
+        }
+        String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
+        try {
+            return extractMapResults(sqlQuery);
         }
         catch (Exception ex) {
             logger.error("Failed to get all possible state districts!", ex);

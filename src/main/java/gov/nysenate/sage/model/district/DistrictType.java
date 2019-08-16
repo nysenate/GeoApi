@@ -51,6 +51,6 @@ public enum DistrictType
     /** Returns the DistrictType that matches the string representation */
     public static DistrictType resolveType(String type)
     {
-        return resolveMap.get(type.toUpperCase());
+        return (type == null? null : resolveMap.get(type.toUpperCase()));
     }
 }

@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.*;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
@@ -184,6 +185,8 @@ public class DistrictController {
         logElapsedTime(startTime, apiRequest);
     }
 
+
+
     /**
      * District Assignment Api
      * ---------------------------
@@ -253,6 +256,42 @@ public class DistrictController {
 
         setApiResponse(districtResponse, request);
 
+        logElapsedTime(startTime, apiRequest);
+    }
+
+    /**
+     * District Assignment Api
+     * ---------------------------
+     *
+     * Find the intersection between one type of NY District and another
+     *
+     * Usage:
+     * (GET)    /api/v2/district/intersect
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param sourceType String
+     * @param sourceId String
+     * @param intersectType String
+     */
+    @RequestMapping(value = "/intersect", method = RequestMethod.GET)
+    public void districtIntersect(HttpServletRequest request, HttpServletResponse response,
+                                  @RequestParam String sourceType, @RequestParam String sourceId,
+                                  @RequestParam String intersectType) {
+        int requestId = -1;
+        Timestamp startTime = getCurrentTimeStamp();
+
+        /** Create the ApiRequest */
+        ApiRequest apiRequest = getApiRequest(request);
+
+        DistrictRequest districtRequest = createFullIntersectRequest(apiRequest, DistrictType.resolveType(sourceType),
+                sourceId, DistrictType.resolveType(intersectType));
+        logIntersectRequest(apiRequest, districtRequest);
+
+        DistrictResult districtResult = handleIntersectRequest(districtRequest, requestId);
+        MappedMultiDistrictResponse districtResponse = new MappedMultiDistrictResponse(districtResult);
+
+        setApiResponse(districtResponse, request);
         logElapsedTime(startTime, apiRequest);
     }
 
@@ -446,6 +485,20 @@ public class DistrictController {
         return districtRequest;
     }
 
+    private DistrictRequest createFullIntersectRequest(ApiRequest apiRequest, DistrictType sourceType, String sourceId,
+                                                         DistrictType intersectType) {
+
+        DistrictRequest districtRequest = new DistrictRequest();
+        districtRequest.setApiRequest(apiRequest);
+        districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
+        districtRequest.setDistrictType(sourceType);
+        districtRequest.setDistrictId(sourceId);
+        districtRequest.setIntersectType(intersectType);
+        districtRequest.setShowMembers(true);
+        districtRequest.setShowMaps(true);
+        return districtRequest;
+    }
+
     private void reorderAddress(DistrictRequest districtRequest) {
         Address reorderdAddress = StreetAddressParser.parseAddress(districtRequest.getAddress()).toAddress();
         if (reorderdAddress.getState().isEmpty()) {
@@ -469,6 +522,19 @@ public class DistrictController {
 
         if (SINGLE_LOGGING_ENABLED) {
             requestId = sqlDistrictRequestLogger.logDistrictRequest(districtRequest);
+        }
+    }
+
+    private void logIntersectRequest(ApiRequest apiRequest, DistrictRequest districtRequest) {
+        logger.info("=======================================================");
+        logger.info(String.format("| '%s' Request %d |", apiRequest.getRequest(), apiRequest.getId()));
+        logger.info(String.format("| IP: %s | Source %s %s | Intersect %s",
+                apiRequest.getIpAddress(), districtRequest.getDistrictType(), districtRequest.getDistrictId(),
+                districtRequest.getIntersectType()));
+        logger.info("=======================================================");
+
+        if (SINGLE_LOGGING_ENABLED) {
+            sqlDistrictRequestLogger.logDistrictRequest(districtRequest);
         }
     }
 
@@ -583,6 +649,25 @@ public class DistrictController {
             districtResult.getAddress().setAddr1("PO Box " + streetAddress.getPoBox());
         }
 
+        setDistrictResultInfo(districtResult, districtRequest, requestId);
+
+        return districtResult;
+    }
+
+    /**
+     * Handle intersect requests and executes functions based on settings in the supplied DistrictRequest.
+     *
+     * @param districtRequest Contains the various parameters for the District Assign/Bluebird API
+     * @return DistrictResult
+     */
+    private DistrictResult handleIntersectRequest(DistrictRequest districtRequest, int requestId) {
+        DistrictResult districtResult = performIntersect(districtRequest);
+        districtResult.setIntersectType(districtRequest.getIntersectType());
+        setDistrictResultInfo(districtResult, districtRequest, requestId);
+        return districtResult;
+    }
+
+    private void setDistrictResultInfo(DistrictResult districtResult, DistrictRequest districtRequest, int requestId) {
         /** Add map and boundary information to the district result */
         if (districtRequest.isShowMaps() && districtResult.isSuccess()) {
             mapProvider.assignMapsToDistrictInfo(districtResult.getDistrictInfo(), districtResult.getDistrictMatchLevel(), false);
@@ -595,10 +680,7 @@ public class DistrictController {
 
         if (SINGLE_LOGGING_ENABLED && requestId != -1) {
             sqlDistrictResultLogger.logDistrictResult(requestId, districtResult);
-            requestId = -1;
         }
-
-        return districtResult;
     }
 
     /**
@@ -792,4 +874,15 @@ public class DistrictController {
         }
         return districtResults;
     }
+
+
+    private DistrictResult performIntersect(DistrictRequest districtRequest) {
+        DistrictResult districtResult = new DistrictResult(this.getClass());
+        districtResult.setStatusCode(NO_DISTRICT_RESULT);
+
+        districtResult = districtProvider.assignIntersect(districtRequest.getDistrictType(),
+                districtRequest.getDistrictId());
+        return districtResult;
+    }
+
 }

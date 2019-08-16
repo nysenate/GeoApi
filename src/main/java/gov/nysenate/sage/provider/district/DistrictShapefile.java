@@ -1,6 +1,9 @@
 package gov.nysenate.sage.provider.district;
 
+import com.google.common.collect.Sets;
 import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.dao.model.county.SqlCountyDao;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
 import gov.nysenate.sage.dao.provider.streetfile.SqlStreetFileDao;
 import gov.nysenate.sage.dao.provider.tiger.SqlTigerGeocoderDao;
@@ -322,6 +325,32 @@ public class DistrictShapefile implements DistrictService, MapService
         else {
             logger.info("The geocoded address was null");
         }
+        return districtResult;
+    }
+
+
+    public DistrictResult getIntersectionResult(DistrictType districtType, String districtId)
+    {
+        DistrictResult districtResult = new DistrictResult(this.getClass());
+        DistrictedAddress districtedAddress = new DistrictedAddress(null, null, DistrictMatchLevel.STATE);
+        DistrictInfo districtInfo = new DistrictInfo();
+
+        Map<DistrictType, Set<String>> matches;
+        matches = sqlStreetFileDao.getAllIntersections(districtType, districtId);
+
+
+        DistrictMap sourceMap = sqlDistrictShapefileDao.getOverlapReferenceBoundary(districtType, Sets.newHashSet(districtId));
+        districtInfo.setReferenceMap(sourceMap);
+
+        for (DistrictType matchType : DistrictType.getStandardTypes()) {
+            DistrictOverlap overlap = sqlDistrictShapefileDao.getDistrictOverlap(matchType, matches.get(matchType),
+                    districtType, Sets.newHashSet(districtId));
+            districtInfo.addDistrictOverlap(matchType, overlap);
+        }
+
+        districtedAddress.setDistrictInfo(districtInfo);
+        districtResult.setDistrictedAddress(districtedAddress);
+
         return districtResult;
     }
 }

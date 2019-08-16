@@ -3,6 +3,7 @@ package gov.nysenate.sage.dao.provider.district;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.model.county.SqlCountyDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.GeometryTypes;
@@ -99,11 +100,29 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
         }
         return null;
     }
+    private String resolveCode(DistrictType districtType, String id) {
+        if (districtType.equals(DistrictType.COUNTY)) {
+            SqlCountyDao countyDao = new SqlCountyDao(baseDao);
+            return String.valueOf(countyDao.getCountyById(Integer.parseInt(id)).getFipsCode());
+        }
+        return id;
+    }
+
+    private String gatherRefWhereSql(DistrictType refDistrictType, Set<String> refCodes) {
+        List<String> refWhereList = new ArrayList<>();
+        for (String refCode : refCodes) {
+            refCode = resolveCode(refDistrictType, refCode);
+            refWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')",
+                    resolveCodeColumn(refDistrictType), StringEscapeUtils.escapeSql(refCode)));
+        }
+        return StringUtils.join(refWhereList, " OR ");
+    }
 
     /** {@inheritDoc} */
     public DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType, Set<String> targetCodes,
                       DistrictType refDistrictType, Set<String> refCodes)
     {
+
         if (targetCodes == null) targetCodes = new HashSet<>();
 
         String intersectSql = "ST_Intersection(ST_Transform(target.geom, %s), ST_Transform(source.geom, %s))";
@@ -118,22 +137,19 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
             "    ST_Area( \n" +
             "        ST_Transform(source.geom, utmzone(ST_Centroid(source.geom)))\n" +
             "    ) AS source_area \n" +
-            /** Get intersection polygon for senate districts */
-            (targetDistrictType.equals(DistrictType.SENATE) ? "" +
-                    String.format(", ST_AsGeoJson(ST_CollectionExtract(%s, 3)) AS intersect_geom \n", intersectSql) : "") +
+            /** Get intersection polygon*/
+            String.format(", ST_AsGeoJson(ST_CollectionExtract(%s, 3)) AS intersect_geom \n", intersectSql) +
             "FROM " + SCHEMA + ".%s target, " +
             "     (SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s WHERE %s) AS source\n" +
             "WHERE %s \n" +
             "ORDER BY intersected_area DESC";
-        List<String> refWhereList = new ArrayList<>();
-        for (String refCode : refCodes) {
-            refWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", resolveCodeColumn(refDistrictType), StringEscapeUtils.escapeSql(refCode)));
-        }
+
+        String refWhereSql = gatherRefWhereSql(refDistrictType, refCodes);
         List<String> targetWhereList = new ArrayList<>();
         for (String targetCode : targetCodes) {
+            targetCode = resolveCode(targetDistrictType, targetCode);
             targetWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", resolveCodeColumn(targetDistrictType), StringEscapeUtils.escapeSql(targetCode)));
         }
-        String refWhereSql = StringUtils.join(refWhereList, " OR ");
         String targetWhereSql = (targetWhereList.size() > 0) ? StringUtils.join(targetWhereList, " OR ") : intersectSql + " > 0";
         String sqlQuery = String.format(sqlTmpl, resolveCodeColumn(targetDistrictType), targetDistrictType.name(), targetDistrictType.name(), refDistrictType.name(),
                                                  refWhereSql, targetWhereSql);
@@ -179,14 +195,9 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
     {
         String sql = "SELECT ST_AsGeoJson(ST_CollectionExtract(source.geom, 3)) AS source_map \n" +
                      "FROM \n" +
-                     "(SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s WHERE (%s)) AS source";
-        List<String> refWhereList = new ArrayList<>();
-        for (String refCode : refCodes) {
-            refWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", resolveCodeColumn(refDistrictType), StringEscapeUtils.escapeSql(refCode)));
-        }
-        String refWhereSql = StringUtils.join(refWhereList, " OR ");
+                     "(SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s %s) AS source";
+        String refWhereSql = "WHERE " +  gatherRefWhereSql(refDistrictType, refCodes);
         String sqlQuery = String.format(sql, refDistrictType.name(), refWhereSql);
-
         try {
             return baseDao.geoApiJbdcTemplate.query(sqlQuery, new ResultSetExtractor<DistrictMap>(){
                 @Override
@@ -408,10 +419,8 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
             while (rs.next()) {
                 String code = getDistrictCode(rs);
                 BigDecimal area = rs.getBigDecimal("intersected_area");
-                if (rs.getString("type") != null && rs.getString("type").equalsIgnoreCase("SENATE")) {
-                    DistrictMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geom"));
-                    this.districtOverlap.addIntersectionMap(code, intersectMap);
-                }
+                DistrictMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geom"));
+                this.districtOverlap.addIntersectionMap(code, intersectMap);
                 /** Only add districts that actually intersect */
                 if (area != null && area.compareTo(BigDecimal.ZERO) == 1) {
                     this.districtOverlap.getTargetOverlap().put(code, area);

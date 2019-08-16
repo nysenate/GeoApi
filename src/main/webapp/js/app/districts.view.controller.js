@@ -26,16 +26,18 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         if ($scope.multiMatch) {
             var fillOpacity = 0.5;
             /** Draw the intersected senate maps */
-            if ($scope.overlaps.senate) {
+            if ($scope.overlaps[$scope.intersectType]) {
                 /** Sort the senate maps by greatest percentage first */
-                $scope.overlaps.senate = $scope.overlaps.senate.sort(function(a, b) {
+                $scope.overlaps[$scope.intersectType] = $scope.overlaps[$scope.intersectType].sort(function(a, b) {
                     return b.areaPercentage - a.areaPercentage;
                 });
                 /** Assign a unique color to each senate district */
-                $.each($scope.overlaps.senate, function(i,v){
-                    $scope.senateColors[v.district] = $scope.colors[i];
+                $.each($scope.overlaps[$scope.intersectType], function(i,v){
+                    $scope.senateColors[v.district] = $scope.colors[i % $scope.colors.length];
                     if (v.map != null) {
-                        mapService.setOverlay(v.map.geom, "NY Senate District " + v.district + " Coverage", false, false, null, $scope.colors[i], {fillOpacity:fillOpacity});
+                        var name =  "NY " + $scope.intersectType.charAt(0).toUpperCase() + $scope.intersectType.slice(1) + " District ";
+                        mapService.setOverlay(v.map.geom, name + v.district + " Coverage", false, false, null,
+                            $scope.colors[i % $scope.colors.length], {fillOpacity:fillOpacity});
                     }
                 });
             }
@@ -159,7 +161,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
 
     $scope.showFullMapForOverlap = function(index, overlap, matchLevel) {
         var geom = (matchLevel == "STREET") ? overlap.map.geom : overlap.fullMap.geom;
-        mapService.setOverlay(geom, overlap.name, false, true, null, this.colors[index]);
+        mapService.setOverlay(geom, overlap.name, false, true, null, this.colors[index % this.colors.length]);
     };
 
     $scope.showNeighborDistricts = function(type, neighbors) {
@@ -189,7 +191,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     };
 
     $scope.getBgStyle = function(i) {
-        return {"background-color" : this.colors[i]};
+        return {"background-color" : this.colors[i % this.colors.length]};
     };
 
     $scope.getColorStyle = function(senateDistrict) {

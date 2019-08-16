@@ -71,6 +71,13 @@ public interface StreetFileDao {
     public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List);
 
     /**
+     * Finds state district codes that overlap a given street/zip range.
+     * @param distType The district type to find intersections with
+     * @param sourceId The id of that district
+     * @return       A map of district types to a set of matched district codes.
+     */
+    public Map<DistrictType, Set<String>> getAllIntersections(DistrictType distType, String sourceId);
+    /**
      * Retreives a districted address by a house in th a street address
      * @param streetAddress
      * @return

@@ -219,7 +219,7 @@
                 </form>
             </div>
             <div id="districtMapViewSearch" class="search-container" ng-show="visible" ng-controller="DistrictMapController">
-                <form id="districtMapFormMini" action="" method="post">
+                <div id="districtMapFormMini" action="" method="post">
                     <div class="icon-list icon-teal"></div>
                     <label ng-hide="minimized">Select which district(s) to display</label>
                     <label ng-show="minimized" ng-click="minimized=false;" class="expand-search">Show search</label>
@@ -250,6 +250,21 @@
                             <div style="float:left">
                                 <label for="districtMemberMenu" class="menu-overhead">Member</label>
                                 <select id="districtMemberMenu" class="menu" style="width:325px;" ng-change="lookup()" ng-model="selectedDistrict" ng-options="d.member.name for d in sortedMemberList">
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-top:4px;padding:5px">
+                            <div style="float:left">
+                                <label for="IntersectionMenu" class="menu-overhead">Intersection with:</label>
+                                <select id="IntersectionMenu" class="menu" style="width:100px;" ng-model="intersectType">
+                                    <option value="none">No intersect</option>
+                                    <option value="senate">Senate</option>
+                                    <option value="congressional">Congressional</option>
+                                    <option value="assembly">Assembly</option>
+                                    <option value="county">County</option>
+                                    <option value="town">Town</option>
+                                    <option value="school">School</option>
+                                    <option value="zip">Zip</option>
                                 </select>
                             </div>
                         </div>
@@ -300,7 +315,7 @@
                 <div class="icon-arrow-up2 icon-hover-white small-right-icon"></div>
             </div>
             <div id="district-results" ng-show="visible" ng-controller="DistrictsViewController" class="scrollable-content">
-                <!-- District lookup error message -->
+                <!-- District lookup error message --
                 <div id="failed-district-result" ng-hide="districtAssigned || multiMatch" >
                     <div class="info-container">
                         <p class="member-name" style="color:orangered;">No District Lookup Result</p>
@@ -459,23 +474,24 @@
                         </div>
                     </div>
                 </div>
-                <div id="multi-senate-results" ng-show="multiMatch && overlaps.senate.length > 1">
+                <div id="multi-senate-results" ng-show="multiMatch && (visible || overlap.senate.length > 1)">
                     <div class="info-container title connected-bottom">
-                        <p class="member-name">{{overlaps.senate.length}} Senate District Matches</p>
+                        <p class="member-name" ng-click="">{{overlaps[intersectType].length + " " + intersectType.charAt(0).toUpperCase() +
+                                                intersectType.slice(1)}} District Matches </p>
                     </div>
-                    <div class="info-container title connected">
+                    <div class="info-container title connected" ng-show="id == 1">
                         <span class="message" ng-switch="matchLevel">
                             <span ng-switch-when="ZIP5">This zipcode area contains multiple Senate Districts.</span>
                             <span ng-switch-when="CITY">This approximated city area contains multiple Senate Districts.</span>
                             <span ng-switch-when="STREET">The indicated street contains multiple Senate Districts.</span>
                         </span>
                     </div>
-                    <div class="info-container connected clickable slim2" title="Show full district map" ng-repeat="(i, d) in overlaps.senate" ng-click="showFullMapForOverlap(i, d, matchLevel);">
+                    <div class="info-container connected clickable slim2" title="Show full district map" ng-repeat="(i, d) in overlaps[intersectType]" ng-click="showFullMapForOverlap(i, d, matchLevel);">
                         <table style="width:100%">
                             <tr>
                                 <td>
                                     <div ng-show="matchLevel != 'STREET'" style="line-height:42px;height:42px;margin-right:0;" class="small-box" ng-style="getBgStyle(i)">{{(d.areaPercentage*100).toFixed(0) || '<1'}}%</div>
-                                    <div class="senator" style="height:56px;">
+                                    <div class="senator" style="height:56px;" ng-show="intersectType == 'senate'">
                                         <div class="senator-pic-holder" style="width:50px;height:50px;">
                                             <a target="_blank" ng-href="{{d.member.url}}"><img ng-src="{{d.member.imageUrl | senatorPic}}" class="senator-pic"></a>
                                         </div>
@@ -483,8 +499,15 @@
                                             <p class="senator member-name" style="font-size:16px;">
                                                 <a target="_blank" ng-href="{{d.member.url}}">{{d.member.name}}</a>
                                             </p>
-                                            <p style="font-size:16px;" class="senate district" ng-style="getColorStyle(d.district)">Senate District {{d.district}}</p>
+                                            <p style="font-size:16px;" class="senate district" ng-style="getColorStyle(d.district)">
+                                                Senate District {{d.district}}
+                                            </p>
                                         </div>
+                                    </div>
+                                    <div ng-show="intersectType != 'senate'">
+                                        <p style="font-size:16px;padding-left: 10px;" class="senate district" ng-style="getColorStyle(d.district)">
+                                            {{intersectType.charAt(0).toUpperCase() + intersectType.slice(1)}} District {{d.district}}
+                                        </p>
                                     </div>
                                 </td>
                                 <td class="right-icon-placeholder">
@@ -495,7 +518,6 @@
                             </tr>
                         </table>
                     </div>
-
                 </div>
 
                 <div class="info-container title" ng-show="multiMatch && streets">
@@ -522,7 +544,7 @@
                     <span style="font-size: 13px;color:#333;">If you are looking for more detailed street range information, try the Street Finder option located on the
                     top menu.</span>
                 </div>
-                <div id="success-district-results" ng-show="districtAssigned ">
+                <div id="success-district-results" ng-show="districtAssigned">
                     <div class="info-container title connected-bottom">
                         <p class="member-name success-color">Matched New York State Districts</p>
                     </div>
@@ -692,7 +714,8 @@
                 </div>
             </div>
         </div>
-    </div>
+
+        </div>
 
     <!-- Tooltip -->
     <div id="mapTooltip"></div>

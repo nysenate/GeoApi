@@ -46,6 +46,10 @@ public class DistrictRequest implements Cloneable
     private boolean skipGeocode = false;
     private DistrictStrategy districtStrategy = DistrictStrategy.neighborMatch;
     private Timestamp requestTime;
+    // District Map Identifiers
+    private DistrictType districtType;
+    private String districtId;
+    private DistrictType intersectType;
 
     public DistrictRequest() {}
 
@@ -256,4 +260,25 @@ public class DistrictRequest implements Cloneable
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
+
+    public void setDistrictType(DistrictType distType) {
+        this.districtType = distType;
+    }
+    public void setDistrictId(String distId) {
+        this.districtId = distId;
+    }
+    public void setIntersectType(DistrictType intersectType) {
+        this.intersectType = intersectType;
+    }
+
+    public DistrictType getDistrictType() {
+        return districtType;
+    }
+    public String getDistrictId() {
+        return districtId;
+    }
+    public DistrictType getIntersectType() {
+        return intersectType;
+    }
+
 }

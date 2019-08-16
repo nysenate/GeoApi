@@ -63,12 +63,14 @@ public class MapServiceProvider
             /** Fill in senate overlap maps as well */
             if (!districtInfo.getDistrictOverlaps().isEmpty()) {
                 logger.trace("Getting overlap maps too!");
-                if (districtInfo.getDistrictOverlap(DistrictType.SENATE) != null) {
-                    DistrictOverlap senateOverlap = districtInfo.getDistrictOverlap(DistrictType.SENATE);
-                    for (String code : senateOverlap.getTargetOverlap().keySet()) {
-                        MapResult mapResult = mapService.getDistrictMap(DistrictType.SENATE, code);
-                        if (mapResult.isSuccess()) {
-                            senateOverlap.setTargetDistrictMap(code, mapResult.getDistrictMap());
+                for (DistrictType districtType : DistrictType.getStandardTypes()){
+                    if (districtInfo.getDistrictOverlap(districtType) != null) {
+                        DistrictOverlap senateOverlap = districtInfo.getDistrictOverlap(districtType);
+                        for (String code : senateOverlap.getTargetOverlap().keySet()) {
+                            MapResult mapResult = mapService.getDistrictMap(districtType, code);
+                            if (mapResult.isSuccess()) {
+                                senateOverlap.setTargetDistrictMap(code, mapResult.getDistrictMap());
+                            }
                         }
                     }
                 }

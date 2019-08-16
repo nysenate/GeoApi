@@ -23,6 +23,7 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
     protected MapView streetLine;
     protected BigDecimal totalReferenceArea;
     protected String areaUnit;
+    protected String intersectType;
     protected List<StreetRangeView> streets = new ArrayList<>();
 
     public MappedMultiDistrictResponse(DistrictResult districtResult) {
@@ -60,6 +61,7 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
                     this.streets.add(new StreetRangeView(dsr));
                 }
             }
+            this.intersectType = districtResult.getIntersectType().toString().toLowerCase();
         }
     }
 
@@ -85,5 +87,9 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
 
     public List<StreetRangeView> getStreets() {
         return streets;
+    }
+
+    public String getIntersectType() {
+        return intersectType;
     }
 }
