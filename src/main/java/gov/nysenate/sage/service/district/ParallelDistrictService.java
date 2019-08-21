@@ -20,7 +20,7 @@ import java.util.concurrent.*;
  * Parallel district assignment for use in a provider's batch district implementation.
  */
 @Service
-public class ParallelDistrictService
+public class ParallelDistrictService implements SageParallelDistrictService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelDistrictService.class);
     private int THREAD_COUNT;

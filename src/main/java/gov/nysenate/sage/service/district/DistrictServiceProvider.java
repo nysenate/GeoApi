@@ -29,7 +29,7 @@ import java.util.concurrent.*;
  * district providers and contains logic for distributing requests and collecting responses from the providers.
  */
 @Service
-public class DistrictServiceProvider //shapefile and streetfile
+public class DistrictServiceProvider implements SageDistrictServiceProvider //shapefile and streetfile
 {
     public enum DistrictStrategy {
         neighborMatch,  /** Perform shape and street lookup, performing neighbor consolidation as needed. */

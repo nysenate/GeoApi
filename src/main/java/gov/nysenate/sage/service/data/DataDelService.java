@@ -14,7 +14,7 @@ import java.util.List;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 
 @Service
-public class DataDelService {
+public class DataDelService implements SageDataDelService {
 
     private Logger logger = LoggerFactory.getLogger(DataDelService.class);
     private SqlDataDelDao sqlDataDelDao;

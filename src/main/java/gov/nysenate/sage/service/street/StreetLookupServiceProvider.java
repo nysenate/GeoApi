@@ -12,7 +12,7 @@ import java.util.Map;
  * Point of access for street lookup requests.
 */
 @Service
-public class StreetLookupServiceProvider { //Streetfile
+public class StreetLookupServiceProvider implements SageStreetLookUpProvider { //Streetfile
 
     protected StreetLookupService defaultProvider;
     protected Map<String,StreetLookupService> providers = new HashMap<>();

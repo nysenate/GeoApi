@@ -39,7 +39,7 @@ import java.util.List;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 @Service
-public class DataGenService {
+public class DataGenService implements SageDataGenService {
 
     private Logger logger = LoggerFactory.getLogger(DataGenController.class);
     private SqlDistrictShapefileDao sqlDistrictShapefileDao;

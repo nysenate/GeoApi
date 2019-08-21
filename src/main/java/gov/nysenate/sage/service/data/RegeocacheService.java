@@ -35,7 +35,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 
 @Service
-public class RegeocacheService {
+public class RegeocacheService implements SageRegeocacheService{
 
     private Logger logger = LoggerFactory.getLogger(RegeocacheService.class);
     private SqlRegeocacheDao sqlRegeocacheDao;

@@ -14,7 +14,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 /**
  * Simple validation methods that can be utilized by provider implementations of DistrictService
  */
-public abstract class DistrictServiceValidator
+public class DistrictServiceValidator
 {
     /**
      * Perform basic null checks on the input parameters.

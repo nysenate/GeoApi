@@ -21,7 +21,7 @@ import java.util.*;
 * Point of access for all reverse geocoding requests.
 */
 @Service
-public class RevGeocodeServiceProvider
+public class RevGeocodeServiceProvider implements SageRevGeocodeServiceProvider
 {
     private final Logger logger = LoggerFactory.getLogger(GeocodeServiceProvider.class);
 
