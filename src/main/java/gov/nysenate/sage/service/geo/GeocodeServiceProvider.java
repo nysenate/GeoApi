@@ -28,7 +28,7 @@ import java.util.*;
  * from the providers.
  */
 @Service
-public class GeocodeServiceProvider
+public class GeocodeServiceProvider implements SageGeocodeServiceProvider
 {
     private final Environment env;
     private Map<String, GeocodeService> activeGeoProviders = new HashMap<>();
@@ -76,7 +76,6 @@ public class GeocodeServiceProvider
     }
 
     /**
-     * MAY NEED TO BE A STRING
      * Designates a provider (that has been registered) as a reliable source for caching results.
      * @param provider Same providerName used when registering the provider
      */

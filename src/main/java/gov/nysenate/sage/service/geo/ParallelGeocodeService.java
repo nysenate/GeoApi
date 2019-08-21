@@ -20,7 +20,7 @@ import java.util.concurrent.*;
  * native batch methods.
  */
 @Service
-public class ParallelGeocodeService
+public class ParallelGeocodeService implements SageParallelGeocodeService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelGeocodeService.class);
     private int THREAD_COUNT;

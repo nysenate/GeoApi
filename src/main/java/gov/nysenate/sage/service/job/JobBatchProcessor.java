@@ -46,7 +46,7 @@ import static gov.nysenate.sage.service.district.DistrictServiceProvider.Distric
 import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 
 @Service
-public class JobBatchProcessor {
+public class JobBatchProcessor implements JobProcessor {
 
     private static String BASE_URL;
     private static String UPLOAD_DIR;

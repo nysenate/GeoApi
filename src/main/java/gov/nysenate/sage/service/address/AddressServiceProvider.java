@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 @Service
-public class AddressServiceProvider
+public class AddressServiceProvider implements AddressProvider
 {
     private static Logger logger = LoggerFactory.getLogger(AddressServiceProvider.class);
     private SqlAddressLogger sqlAddressLogger;

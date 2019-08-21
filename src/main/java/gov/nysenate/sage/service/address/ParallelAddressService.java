@@ -20,7 +20,7 @@ import java.util.concurrent.*;
  * native batch methods.
  */
 @Service
-public class ParallelAddressService {
+public class ParallelAddressService implements SageParallelAddressService {
 
     private int THREAD_COUNT;
     private static ThreadPoolTaskExecutor executor;

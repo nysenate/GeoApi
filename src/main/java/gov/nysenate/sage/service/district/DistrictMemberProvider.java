@@ -24,7 +24,7 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  * functionality should be invoked through a controller as opposed to the provider implementations.
  */
 @Component
-public class DistrictMemberProvider
+public class DistrictMemberProvider implements SageDistrictMemberProvider
 {
     private Environment env;
     private SqlSenateDao sqlSenateDao;

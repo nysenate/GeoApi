@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class MapServiceProvider
+public class MapServiceProvider implements SageMapServiceProvider
 {
     protected Logger logger = LoggerFactory.getLogger(MapServiceProvider.class);
 

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 @Service
-public class ParallelRevGeocodeService
+public class ParallelRevGeocodeService implements SageParallelRevGeocodeService
 {
     private static Logger logger = LoggerFactory.getLogger(ParallelRevGeocodeService.class);
     private int THREAD_COUNT;

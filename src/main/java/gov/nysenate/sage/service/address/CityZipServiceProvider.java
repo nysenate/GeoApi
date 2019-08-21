@@ -12,7 +12,7 @@ import java.util.Map;
  * Service provider definition for the cityZip service.
  */
 @Service
-public class CityZipServiceProvider { //cityzipdb
+public class CityZipServiceProvider implements CityZipProvider {
 
     protected CityZipService defaultProvider;
     protected Map<String,CityZipService> providers = new HashMap<>();
