@@ -87,11 +87,10 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
                 uiBlocker.unBlock();
                 alert("Failed to retrieve district maps.");
             });
-            // don't show the side bar if this is just a district lookup
-            $scope.visible = false;
         }
         // otherwise perform an intersect request
         else {
+            mapService.clearAll();
             $http.get(this.getIntersectUrl())
                 .success(function(data) {
                     dataBus.setBroadcastAndView("districtInfo", data, "districtsView");

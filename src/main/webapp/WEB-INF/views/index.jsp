@@ -255,7 +255,7 @@
                         </div>
                         <div style="margin-top:10px;padding:5px;">
                             <label for="IntersectionMenu" class="menu-overhead">View intersection with:</label>
-                            <select id="IntersectionMenu" class="menu" style="width:100px;" ng-model="intersectType">
+                            <select id="IntersectionMenu" class="menu" style="width:100px;" ng-model="intersectType" ng-change="lookup()">
                                 <option value="none">No intersection</option>
                                 <option value="senate">Senate</option>
                                 <option value="congressional">Congressional</option>
@@ -474,7 +474,7 @@
                 </div>
                 <div id="multi-senate-results" ng-show="multiMatch && (visible || overlap.senate.length > 1)">
                     <div class="info-container title connected-bottom">
-                        <p class="member-name">{{overlaps[intersectType].length + " " + intersectType.charAt(0).toUpperCase() +
+                        <p class="member-name" ng-click="drawIntersect()">{{overlaps[intersectType].length + " " + intersectType.charAt(0).toUpperCase() +
                                                 intersectType.slice(1)}} District Matches </p>
                     </div>
                     <div class="info-container title connected" ng-show="id == 1">

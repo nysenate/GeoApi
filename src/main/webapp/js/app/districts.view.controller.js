@@ -183,6 +183,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     };
 
     $scope.drawIntersect = function() {
+        mapService.clearPolygons();
         var fillOpacity = 0.5;
         /** Draw the intersected senate maps */
         if ($scope.overlaps[$scope.intersectType]) {
@@ -195,11 +196,12 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                 $scope.senateColors[v.district] = $scope.colors[i % $scope.colors.length];
                 if (v.map != null) {
                     var name = "NY " + $scope.intersectType.charAt(0).toUpperCase() + $scope.intersectType.slice(1) +
-                        " District ";
-                    mapService.setOverlay(v.map.geom, name + v.district + " Coverage", false, false, null,
+                        ($scope.intersectType == "zip" ? " Code " : " District ") + v.district;
+                    mapService.setOverlay(v.map.geom, name + " Coverage", false, false, null,
                         $scope.colors[i % $scope.colors.length], {fillOpacity: fillOpacity});
                 }
             });
         }
     };
+
 });
