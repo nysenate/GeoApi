@@ -78,6 +78,7 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
      */
     $scope.lookup = function () {
         uiBlocker.block("Loading " + this.type + " maps...");
+        // If there is no intersection type specified, we can just retrieve the map
         if (this.intersectType === "none") {
             $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.district, false))
                 .success(function(data) {
@@ -86,9 +87,10 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
                 uiBlocker.unBlock();
                 alert("Failed to retrieve district maps.");
             });
+            // don't show the side bar if this is just a district lookup
             $scope.visible = false;
-            this.intersectType = 'senate';
         }
+        // otherwise perform an intersect request
         else {
             $http.get(this.getIntersectUrl())
                 .success(function(data) {
@@ -112,7 +114,7 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
     };
 
     /**
-     * Returns the url for accessing the district assignment API.
+     * Returns the url for accessing the district intersection API.
      * @returns {string}
      */
     $scope.getIntersectUrl = function () {

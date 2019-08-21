@@ -246,27 +246,25 @@
                                 <select id="districtCodeMenu" class="menu" ng-change="lookup()" style="width:220px;" ng-model="selectedDistrict" ng-options="d.name for d in districtList"></select>
                             </div>
                         </div>
-                        <div style="margin-top:4px;padding:5px;" ng-show="showMemberOption">
+                        <div style="padding:5px;" ng-show="showMemberOption">
                             <div style="float:left">
                                 <label for="districtMemberMenu" class="menu-overhead">Member</label>
                                 <select id="districtMemberMenu" class="menu" style="width:325px;" ng-change="lookup()" ng-model="selectedDistrict" ng-options="d.member.name for d in sortedMemberList">
                                 </select>
                             </div>
                         </div>
-                        <div style="margin-top:4px;padding:5px">
-                            <div style="float:left">
-                                <label for="IntersectionMenu" class="menu-overhead">Intersection with:</label>
-                                <select id="IntersectionMenu" class="menu" style="width:100px;" ng-model="intersectType">
-                                    <option value="none">No intersect</option>
-                                    <option value="senate">Senate</option>
-                                    <option value="congressional">Congressional</option>
-                                    <option value="assembly">Assembly</option>
-                                    <option value="county">County</option>
-                                    <option value="town">Town</option>
-                                    <option value="school">School</option>
-                                    <option value="zip">Zip</option>
-                                </select>
-                            </div>
+                        <div style="margin-top:10px;padding:5px;">
+                            <label for="IntersectionMenu" class="menu-overhead">View intersection with:</label>
+                            <select id="IntersectionMenu" class="menu" style="width:100px;" ng-model="intersectType">
+                                <option value="none">No intersection</option>
+                                <option value="senate">Senate</option>
+                                <option value="congressional">Congressional</option>
+                                <option value="assembly">Assembly</option>
+                                <option value="county">County</option>
+                                <option value="town">Town</option>
+                                <option value="school">School</option>
+                                <option value="zip">Zip</option>
+                            </select>
                         </div>
                     </div>
                 </form>
@@ -476,7 +474,7 @@
                 </div>
                 <div id="multi-senate-results" ng-show="multiMatch && (visible || overlap.senate.length > 1)">
                     <div class="info-container title connected-bottom">
-                        <p class="member-name" ng-click="">{{overlaps[intersectType].length + " " + intersectType.charAt(0).toUpperCase() +
+                        <p class="member-name">{{overlaps[intersectType].length + " " + intersectType.charAt(0).toUpperCase() +
                                                 intersectType.slice(1)}} District Matches </p>
                     </div>
                     <div class="info-container title connected" ng-show="id == 1">

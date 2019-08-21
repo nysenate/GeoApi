@@ -661,6 +661,7 @@ public class DistrictController {
      * @return DistrictResult
      */
     private DistrictResult handleIntersectRequest(DistrictRequest districtRequest, int requestId) {
+        /** Get the map, boundary data and intersect statistics */
         DistrictResult districtResult = performIntersect(districtRequest);
         districtResult.setIntersectType(districtRequest.getIntersectType());
         setDistrictResultInfo(districtResult, districtRequest, requestId);
@@ -881,7 +882,7 @@ public class DistrictController {
         districtResult.setStatusCode(NO_DISTRICT_RESULT);
 
         districtResult = districtProvider.assignIntersect(districtRequest.getDistrictType(),
-                districtRequest.getDistrictId());
+                districtRequest.getDistrictId(), districtRequest.getIntersectType());
         return districtResult;
     }
 

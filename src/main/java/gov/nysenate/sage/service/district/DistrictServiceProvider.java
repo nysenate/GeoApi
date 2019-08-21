@@ -415,11 +415,11 @@ public class DistrictServiceProvider //shapefile and streetfile
 
     /** Intersection -------------------------------------------------------------------------------------------------*/
 
-    public DistrictResult assignIntersect(DistrictType districtType, String districtId)
+    public DistrictResult assignIntersect(DistrictType districtType, String districtId, DistrictType intersectType)
     {
         Timestamp startTime = TimeUtil.currentTimestamp();
         DistrictShapefile districtShapeFile = (DistrictShapefile) this.providers.get("shapefile");
-        DistrictResult districtResult = districtShapeFile.getIntersectionResult(districtType, districtId);
+        DistrictResult districtResult = districtShapeFile.getIntersectionResult(districtType, districtId, intersectType);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
         logger.info(String.format("Intersection in %d ms.", TimeUtil.getElapsedMs(startTime)));
         return districtResult;

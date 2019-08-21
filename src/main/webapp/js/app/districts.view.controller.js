@@ -24,23 +24,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         mapService.toggleMap(true);
 
         if ($scope.multiMatch) {
-            var fillOpacity = 0.5;
-            /** Draw the intersected senate maps */
-            if ($scope.overlaps[$scope.intersectType]) {
-                /** Sort the senate maps by greatest percentage first */
-                $scope.overlaps[$scope.intersectType] = $scope.overlaps[$scope.intersectType].sort(function(a, b) {
-                    return b.areaPercentage - a.areaPercentage;
-                });
-                /** Assign a unique color to each senate district */
-                $.each($scope.overlaps[$scope.intersectType], function(i,v){
-                    $scope.senateColors[v.district] = $scope.colors[i % $scope.colors.length];
-                    if (v.map != null) {
-                        var name =  "NY " + $scope.intersectType.charAt(0).toUpperCase() + $scope.intersectType.slice(1) + " District ";
-                        mapService.setOverlay(v.map.geom, name + v.district + " Coverage", false, false, null,
-                            $scope.colors[i % $scope.colors.length], {fillOpacity:fillOpacity});
-                    }
-                });
-            }
+            $scope.drawIntersect();
             /** Display senate street lines if available */
             if ($scope.matchLevel == "STREET") {
                 fillOpacity = 0.2;
@@ -196,5 +180,26 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
 
     $scope.getColorStyle = function(senateDistrict) {
         return {"color": this.senateColors[senateDistrict]};
+    };
+
+    $scope.drawIntersect = function() {
+        var fillOpacity = 0.5;
+        /** Draw the intersected senate maps */
+        if ($scope.overlaps[$scope.intersectType]) {
+            /** Sort the senate maps by greatest percentage first */
+            $scope.overlaps[$scope.intersectType] = $scope.overlaps[$scope.intersectType].sort(function (a, b) {
+                return b.areaPercentage - a.areaPercentage;
+            });
+            /** Assign a unique color to each senate district */
+            $.each($scope.overlaps[$scope.intersectType], function (i, v) {
+                $scope.senateColors[v.district] = $scope.colors[i % $scope.colors.length];
+                if (v.map != null) {
+                    var name = "NY " + $scope.intersectType.charAt(0).toUpperCase() + $scope.intersectType.slice(1) +
+                        " District ";
+                    mapService.setOverlay(v.map.geom, name + v.district + " Coverage", false, false, null,
+                        $scope.colors[i % $scope.colors.length], {fillOpacity: fillOpacity});
+                }
+            });
+        }
     };
 });

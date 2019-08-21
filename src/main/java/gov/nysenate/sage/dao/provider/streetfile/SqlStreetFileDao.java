@@ -275,14 +275,14 @@ public class SqlStreetFileDao implements StreetFileDao
     /** {@inheritDoc} */
     public Map<DistrictType, Set<String>> getAllIntersections(DistrictType distType, String sourceId)
     {
-        /** Short circuit on missing input */
+        /** Can't process if either of these are null */
         if (distType == null || sourceId == null) return null;
 
         String sqlTmpl = "SELECT DISTINCT %s::character varying AS code, '%s' AS type\n" +
                 "FROM streetfile\n" +
                 "WHERE (%s)";
 
-        /** Format final query */
+        /** Format query */
         String districtSpec = distColMap.get(distType) + " = " + String.format("'%s'", sourceId);
         List<String> queryList = new ArrayList<>();
         for (DistrictType dType : DistrictType.getStandardTypes()) {

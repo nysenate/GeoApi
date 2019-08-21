@@ -328,10 +328,17 @@ public class DistrictShapefile implements DistrictService, MapService
         return districtResult;
     }
 
-
-    public DistrictResult getIntersectionResult(DistrictType districtType, String districtId)
+    /**
+     * Attempts to obtain overlapping district information for a specific district of arbitrary type.
+     * @param districtType DistrictType the DistrictType of the district to get intersections with
+     * @param districtId String the id of the district to get intersections with
+     * @param intersectType DistrictType the type of district we are searching for intersections with districtId
+     * @return DistrictResult with overlaps set.
+     */
+    public DistrictResult getIntersectionResult(DistrictType districtType, String districtId, DistrictType intersectType)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
+        // The match can always be set to the state level
         DistrictedAddress districtedAddress = new DistrictedAddress(null, null, DistrictMatchLevel.STATE);
         DistrictInfo districtInfo = new DistrictInfo();
 
@@ -342,11 +349,10 @@ public class DistrictShapefile implements DistrictService, MapService
         DistrictMap sourceMap = sqlDistrictShapefileDao.getOverlapReferenceBoundary(districtType, Sets.newHashSet(districtId));
         districtInfo.setReferenceMap(sourceMap);
 
-        for (DistrictType matchType : DistrictType.getStandardTypes()) {
-            DistrictOverlap overlap = sqlDistrictShapefileDao.getDistrictOverlap(matchType, matches.get(matchType),
-                    districtType, Sets.newHashSet(districtId));
-            districtInfo.addDistrictOverlap(matchType, overlap);
-        }
+        // We only need the overlap for the specified intersect type
+        DistrictOverlap overlap = sqlDistrictShapefileDao.getDistrictOverlap(intersectType, matches.get(intersectType),
+                districtType, Sets.newHashSet(districtId));
+        districtInfo.addDistrictOverlap(intersectType, overlap);
 
         districtedAddress.setDistrictInfo(districtInfo);
         districtResult.setDistrictedAddress(districtedAddress);
