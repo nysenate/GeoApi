@@ -475,7 +475,7 @@
                 <div id="multi-senate-results" ng-show="multiMatch && (visible || overlap.senate.length > 1)">
                     <div class="info-container title connected-bottom">
                         <p class="member-name" ng-click="drawIntersect()">{{overlaps[intersectType].length + " " + intersectType.charAt(0).toUpperCase() +
-                                                intersectType.slice(1)}} District Matches </p>
+                            intersectType.slice(1)}} District Matches &nbsp; <a title="Show Map" class="icon-map"></a> </p>
                     </div>
                     <div class="info-container title connected" ng-show="id == 1">
                         <span class="message" ng-switch="matchLevel">
