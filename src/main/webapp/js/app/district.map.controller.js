@@ -96,7 +96,7 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
                     dataBus.setBroadcastAndView("districtInfo", data, "districtsView");
                 }).error(function(data, status, headers, config) {
                 uiBlocker.unBlock();
-                alert("Failed to lookup districts. The application did not return a response.");
+                alert("You must select the type and district / member first");
             });
         }
     };
