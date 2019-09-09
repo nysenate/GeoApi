@@ -122,9 +122,12 @@ public abstract class StreetAddressParser
             stAddr.setZip5(addr.getZip5());
             stAddr.setZip4(addr.getZip4());
 
-            String addrStr = addr.getAddr1() + ((!addr.getAddr2().isEmpty()) ? " " + addr.getAddr2() : "");
+            String addrStr = addr.getAddr1(); // + ((!addr.getAddr2().isEmpty()) ? " " + addr.getAddr2() : "");
             addrStr = extractBldgNum(addrStr, stAddr);
             extractStreet(normalize(addrStr), stAddr);
+            if (stAddr.getInternal().isEmpty() && !addr.getAddr2().isEmpty()) {
+                stAddr.setInternal(addr.getAddr2());
+            }
         }
         else {
             String addrStr = normalize(addr.toString());
@@ -391,7 +394,16 @@ public abstract class StreetAddressParser
                     logger.debug("StreetName: " + streetAddress.getStreetName());
                 }
                 else {
-                    streetAddress.setStreetName(streetName);
+                    String[] streetNameParts = streetName.trim().split(" ");
+                    if (streetNameParts.length == 2 && streetNameParts[1].matches("[0-9]+[a-zA-Z]?")) {
+                        streetAddress.setStreetName(streetNameParts[0]);
+                        streetAddress.setInternal(streetNameParts[1]);
+                    }
+                    else {
+                        streetAddress.setStreetName(streetName);
+                    }
+
+//                    streetAddress.setStreetName(streetName);
                     logger.debug("StreetName: " + streetAddress.getStreetName());
                 }
             }

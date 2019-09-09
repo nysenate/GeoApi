@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.Config;
+import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.slf4j.LoggerFactory;
@@ -75,6 +76,7 @@ public class USPSAMSDao implements Observer
                 if (response != null && !response.isEmpty()) {
                     JsonNode root = objectMapper.readTree(response);
                     AddressResult addressResult = getAddressResultFromJsonValidate(root);
+                    addressResult.setAddress(StreetAddressParser.parseAddress(addressResult.getAddress()).toAddress());
                     return addressResult;
                 }
                 else {
