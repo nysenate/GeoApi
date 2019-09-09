@@ -633,7 +633,9 @@ public class DistrictController {
             if (validatedAddress != null && !validatedAddress.isEmpty() && geocodedAddress.isValidGeocode()
                     && (geocodedAddress.getGeocode().getQuality().compareTo(GeocodeQuality.HOUSE) >= 0)) {
                 districtRequest.setGeocodedAddress(new GeocodedAddress(validatedAddress, geocodedAddress.getGeocode()));
-            } else {
+                districtRequest.getGeocodedAddress().getAddress().setUspsValidated(true);
+            }
+            else {
                 districtRequest.setGeocodedAddress(geocodedAddress);
             }
         }
