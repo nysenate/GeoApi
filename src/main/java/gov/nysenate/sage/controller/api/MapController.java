@@ -12,6 +12,7 @@ import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -38,148 +39,14 @@ public class MapController {
     }
 
     /**
-     * Senate Map Api
+     * District Map Api
      * ---------------------------
      *
-     * Get a requested senate district map if it exists
+     * Get a requested District type district map if it exists
      *
-     * Usage:
-     * (GET)    /api/v2/map/senate
+     * Senate, Assembly, Congressional, Zip, County, Town, School boundaries are retrieved with this api
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param district String
-     * @param showMembers boolean
-     * @param meta boolean
-     */
-    @RequestMapping(value = "/senate", method = RequestMethod.GET)
-    public void mapSenate(HttpServletRequest request, HttpServletResponse response,
-                          @RequestParam(required = false) String district,
-                          @RequestParam(required = false) boolean showMembers,
-                          @RequestParam(required = false) boolean meta) {
-
-        /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
-        Object mapResponse = getDistrictMap(district, "senate", showMembers, meta);
-        setApiResponse(mapResponse, request);
-    }
-
-    /**
-     * Assembly Map Api
-     * ---------------------------
-     *
-     * Get a requested assembly district map if it exists
-     *
-     * Usage:
-     * (GET)    /api/v2/map/assembly
-     *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param district String
-     * @param showMembers boolean
-     * @param meta boolean
-     */
-    @RequestMapping(value = "/assembly", method = RequestMethod.GET)
-    public void mapAssembly(HttpServletRequest request, HttpServletResponse response,
-                            @RequestParam(required = false) String district,
-                            @RequestParam(required = false) boolean showMembers,
-                            @RequestParam(required = false) boolean meta) {
-
-        /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
-
-        Object mapResponse = getDistrictMap(district, "assembly", showMembers, meta);
-        setApiResponse(mapResponse, request);
-    }
-
-    /**
-     * Congressional Map Api
-     * ---------------------------
-     *
-     * Get a requested congressional district map if it exists
-     *
-     * Usage:
-     * (GET)    /api/v2/map/congressional
-     *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param district String
-     * @param showMembers boolean
-     * @param meta boolean
-     */
-    @RequestMapping(value = "/congressional", method = RequestMethod.GET)
-    public void mapCongressional(HttpServletRequest request, HttpServletResponse response,
-                                 @RequestParam(required = false) String district,
-                                 @RequestParam(required = false) boolean showMembers,
-                                 @RequestParam(required = false) boolean meta) {
-
-        /** Get the ApiRequest*/
-        ApiRequest apiRequest = getApiRequest(request);
-
-        Object mapResponse = getDistrictMap(district, "congressional", showMembers, meta);
-        setApiResponse(mapResponse, request);
-    }
-
-    /**
-     * County Map Api
-     * ---------------------------
-     *
-     * Get a requested county district map if it exists
-     *
-     * Usage:
-     * (GET)    /api/v2/map/county
-     *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param district String
-     * @param showMembers boolean
-     * @param meta boolean
-     */
-    @RequestMapping(value = "/county", method = RequestMethod.GET)
-    public void mapCounty(HttpServletRequest request, HttpServletResponse response,
-                          @RequestParam(required = false) String district,
-                          @RequestParam(required = false) boolean showMembers,
-                          @RequestParam(required = false) boolean meta) {
-
-        /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
-
-        Object mapResponse = getDistrictMap(district, "county", showMembers, meta);
-        setApiResponse(mapResponse, request);
-    }
-
-    /**
-     * Town Map Api
-     * ---------------------------
-     *
-     * Get a requested town district map if it exists
-     *
-     * Usage:
-     * (GET)    /api/v2/map/town
-     *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param district String
-     * @param showMembers boolean
-     * @param meta boolean
-     */
-    @RequestMapping(value = "/town", method = RequestMethod.GET)
-    public void mapTown(HttpServletRequest request, HttpServletResponse response,
-                        @RequestParam(required = false) String district,
-                        @RequestParam(required = false) boolean showMembers,
-                        @RequestParam(required = false) boolean meta) {
-        /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
-
-        Object mapResponse = getDistrictMap(district, "town", showMembers, meta);
-        setApiResponse(mapResponse, request);
-    }
-
-    /**
-     * School Map Api
-     * ---------------------------
-     *
-     * Get a requested school district map if it exists
+     * @see DistrictType
      *
      * Usage:
      * (GET)    /api/v2/map/school
@@ -190,15 +57,16 @@ public class MapController {
      * @param showMembers boolean
      * @param meta boolean
      */
-    @RequestMapping(value = "/school", method = RequestMethod.GET)
+    @RequestMapping(value = "/{distType}", method = RequestMethod.GET)
     public void mapSchool(HttpServletRequest request, HttpServletResponse response,
+                          @PathVariable String distType,
                           @RequestParam(required = false) String district,
                           @RequestParam(required = false) boolean showMembers,
                           @RequestParam(required = false) boolean meta) {
         /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
 
-        Object mapResponse = getDistrictMap(district, "school", showMembers, meta);
+        Object mapResponse = getDistrictMap(district, distType, showMembers, meta);
         setApiResponse(mapResponse, request);
     }
 
