@@ -56,7 +56,7 @@ public class SqlAdminUserDao implements AdminUserDao
             params.addValue("username", username);
             List<AdminUser> adminUserList = baseDao.geoApiNamedJbdcTemaplate.query(
                     AdminUserQuery.GET_ADMIN.getSql(baseDao.getPublicSchema()), params, new AdminUserHandler() );
-            if (adminUserList != null && adminUserList.get(0) != null) {
+            if (adminUserList != null && adminUserList.size() != 0 && adminUserList.get(0) != null) {
                 adminUser = adminUserList.get(0);
             }
         }

@@ -56,7 +56,7 @@ public class SqlJobUserDao implements JobUserDao
                     JobUserQuery.GET_JOB_USER_BY_ID.getSql(baseDao.getJobSchema()),
                     params, new JobUserHandler());
 
-            if (jobUserList != null && jobUserList.get(0) != null) {
+            if (jobUserList != null && jobUserList.size() != 0 && jobUserList.get(0) != null) {
                 return jobUserList.get(0);
             }
         }
