@@ -49,7 +49,7 @@ public class MapController {
      * @see DistrictType
      *
      * Usage:
-     * (GET)    /api/v2/map/school
+     * (GET)    /api/v2/map/{distType}
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
