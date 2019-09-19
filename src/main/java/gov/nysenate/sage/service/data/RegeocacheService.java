@@ -193,10 +193,7 @@ public class RegeocacheService implements SageRegeocacheService{
                     "Bad Records (Not found by USPS but rooftop level): " + badRecords + "\n" +
                     "NYS Geo duplicate address records: " + nysGeoDups;
 
-            logger.info("Queries to NYS GEO: " + queriesToNYSGEO);
-            logger.info("Updated Records: " + updatedRecords);
-            logger.info("Bad Records (Not found by USPS but rooftop level): " + badRecords);
-            logger.info("NYS Geo duplicate address records: " + nysGeoDups);
+            logger.info(repsonseString);
 
             apiResponse = new GenericResponse(true,repsonseString);
         } catch (SQLException e) {

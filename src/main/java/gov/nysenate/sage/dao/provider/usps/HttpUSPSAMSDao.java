@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.StreetAddressParser;
@@ -68,7 +69,13 @@ public class HttpUSPSAMSDao implements USPSAMSDao
                 if (response != null && !response.isEmpty()) {
                     JsonNode root = objectMapper.readTree(response);
                     AddressResult addressResult = getAddressResultFromJsonValidate(root);
-                    addressResult.setAddress(StreetAddressParser.parseAddress(addressResult.getAddress()).toAddress());
+                    if (addressResult.getAddress() != null) {
+                        addressResult.setAddress(StreetAddressParser.parseAddress(addressResult.getAddress()).toAddress());
+                    }
+                    else { //This is what would happen if it was null but this prevents a null pointer exception
+                        addressResult.setAddress(StreetAddressParser.normalizeStreetAddress(new StreetAddress()).toAddress());
+                    }
+
                     return addressResult;
                 }
                 else {
