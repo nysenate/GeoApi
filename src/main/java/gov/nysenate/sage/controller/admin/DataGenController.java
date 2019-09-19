@@ -58,7 +58,7 @@ public class DataGenController {
      * @param password String
      *
      */
-    @RequestMapping(value = "/gensenatorimages/", method = RequestMethod.GET)
+    @RequestMapping(value = "/gensenatorimages", method = RequestMethod.GET)
     public void generateSenatorImages(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam String path, @RequestParam int height,
                                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
