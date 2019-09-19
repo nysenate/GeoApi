@@ -1,6 +1,5 @@
 package gov.nysenate.sage.client.view.geo;
 
-import com.google.openlocationcode.OpenLocationCode;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 
@@ -24,7 +23,7 @@ public class GeocodeView
             this.quality = geocode.getQuality().name();
             this.method = geocode.getMethod();
             this.cached = geocode.isCached();
-            this.openLocCode = OpenLocationCode.encode(this.lat, this.lon);
+            this.openLocCode = geocode.getOpenLocCode();
         }
     }
 

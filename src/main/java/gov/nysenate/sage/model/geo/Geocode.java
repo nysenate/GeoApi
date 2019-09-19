@@ -1,14 +1,21 @@
 package gov.nysenate.sage.model.geo;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.google.openlocationcode.OpenLocationCode;
+
 /**
  * The Geocode class represents the data obtained by an address geocoding
  * service. This includes the lat/lng pair represented by a Point and various
  * metrics describing the accuracy of the geocoding.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Geocode
 {
     /** Contains the lat lon pair returned by the geocoder */
     protected Point latlon;
+
+    /**The Open Location Code created from the latlon */
+    protected String openLocCode;
 
     /** Geocoding quality metric */
     protected GeocodeQuality quality;
@@ -40,6 +47,7 @@ public class Geocode
     public Geocode(Point latlon, GeocodeQuality quality, String method)
     {
         this.latlon = latlon;
+        this.openLocCode = OpenLocationCode.encode(this.latlon.getLat(), this.latlon.getLon());
         this.quality = quality;
         this.method = method;
         this.rawQuality = 0;
@@ -80,6 +88,8 @@ public class Geocode
     {
         return (this.latlon != null) ? this.latlon.getLon() : 0;
     }
+
+    public String getOpenLocCode() { return openLocCode; }
 
     public GeocodeQuality getQuality()
     {
