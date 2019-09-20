@@ -63,7 +63,7 @@ public class DataGenService implements SageDataGenService {
 
     public boolean ensureTownCodeFile() {
         try {
-            File towns = new File(ConstantUtil.TOWN_FILE_DIRECTORY);
+            File towns = new File(ConstantUtil.STREETFINDER_DIRECTORY + ConstantUtil.TOWN_FILE);
             if (towns.exists()) {
                 logger.info("Town code file already exists");
                 return true;
@@ -72,7 +72,7 @@ public class DataGenService implements SageDataGenService {
             towns.createNewFile();
             List<TownCode> townCodes = sqlDataGenDao.getTownCodes();
 
-            FileWriter fileWriter = new FileWriter(ConstantUtil.TOWN_FILE_DIRECTORY);
+            FileWriter fileWriter = new FileWriter(ConstantUtil.STREETFINDER_DIRECTORY + ConstantUtil.TOWN_FILE);
             PrintWriter outputWriter = new PrintWriter(fileWriter);
 
             int count = 0;
@@ -94,7 +94,7 @@ public class DataGenService implements SageDataGenService {
 
     public boolean ensureCountyCodeFile() {
         try {
-            File senateCounties = new File(ConstantUtil.COUNTY_FILE_DIRECTORY);
+            File senateCounties = new File(ConstantUtil.STREETFINDER_DIRECTORY + ConstantUtil.COUNTY_FILE);
             if (senateCounties.exists()) {
                 logger.info("Senate county code file already exists");
                 return true;
@@ -103,7 +103,7 @@ public class DataGenService implements SageDataGenService {
             senateCounties.createNewFile();
             List<County> counties = sqlDataGenDao.getCountyCodes();
 
-            FileWriter fileWriter = new FileWriter(ConstantUtil.COUNTY_FILE_DIRECTORY);
+            FileWriter fileWriter = new FileWriter(ConstantUtil.STREETFINDER_DIRECTORY + ConstantUtil.COUNTY_FILE);
             PrintWriter outputWriter = new PrintWriter(fileWriter);
 
             int count = 0;

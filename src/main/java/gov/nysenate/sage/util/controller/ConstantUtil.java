@@ -25,7 +25,9 @@ public class ConstantUtil {
     public static String JOB_LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
     public static String DOWNLOAD_BASE_URL = "/job/download/";
 
-    public static String COUNTY_FILE_DIRECTORY = "/data/geoapi_data/street_finder/senate_counties.txt";
+    public static String COUNTY_FILE = "senate_counties.txt";
 
-    public static String TOWN_FILE_DIRECTORY = "/data/geoapi_data/street_finder/towns.txt";
+    public static String TOWN_FILE = "towns.txt";
+
+    public static String STREETFINDER_DIRECTORY = "/data/geoapi_data/street_finder/";
 }
