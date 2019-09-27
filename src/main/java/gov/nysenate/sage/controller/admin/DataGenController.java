@@ -164,4 +164,44 @@ public class DataGenController {
         }
         setAdminResponse(apiResponse, response);
     }
+
+    /**
+     * Generate Zip Code CSV File Api [test case: scope public]
+     * ---------------------------
+     *
+     * Creates a zip code csv file for use with the Street File parsing
+     *
+     * Usage:
+     * (GET)    /admin/datagen/zipcodes
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     */
+
+    @RequestMapping(value = "/zipcodes", method = RequestMethod.GET)
+    public void generateZipCodeFiles(HttpServletRequest request, HttpServletResponse response,
+                                 @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                 @RequestParam(required = false, defaultValue = "defaultPass") String password) {
+        Object apiResponse;
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
+
+        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
+            adminUserAuth.setUpPermissions(request, username, ipAddr);
+            try {
+                apiResponse = dataGenService.generateZipCsv();
+            }
+            catch (Exception e) {
+                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+            }
+        }
+        else {
+            apiResponse = invalidAuthResponse();
+        }
+
+        setAdminResponse(apiResponse, response);
+    }
 }

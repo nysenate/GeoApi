@@ -26,6 +26,7 @@ import gov.nysenate.services.model.Office;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.io.IOUtils;
 import org.apache.xmlrpc.XmlRpcException;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,15 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
@@ -366,8 +374,95 @@ public class DataGenService implements SageDataGenService {
                 return false;
             }
         }
-
         return true;
     }
+
+    public Object generateZipCsv() {
+        Object generateResponse;
+
+        boolean createZipCodesToGoFile = false;
+        boolean createZipCodesFile = false;
+        createZipCodesToGoFile = siteZipCodesToGoCsv();
+        createZipCodesFile = siteZipCodesCsv();
+        if (createZipCodesToGoFile && createZipCodesFile) {
+            generateResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        }
+        else {
+            generateResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        }
+        return generateResponse;
+    }
+
+
+    /**
+     * Connects to zipcodestogo.com and retrieves all the zip codes
+     * present in the first table and writes to a csv file
+     */
+    private boolean siteZipCodesToGoCsv() {
+        try {
+            File zipCodesToGoFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODESTOGO_FILE);
+            if (zipCodesToGoFile.exists()) {
+                logger.info("zipcodestogo.csv file already exists");
+                return true;
+            }
+            Document pageZipCodesToGo;
+            pageZipCodesToGo = Jsoup.connect("https://www.zipcodestogo.com/New%20York/").get();
+            ArrayList<String> arrayZipCodesToGo = new ArrayList<>();
+            for(Element row : pageZipCodesToGo.select("td[align=center]")) {
+                String zip = row.select("a").first().text();
+                arrayZipCodesToGo.add(zip);
+            }
+            FileWriter writerZipsCodesToGo = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODESTOGO_FILE);
+            String collection = arrayZipCodesToGo.stream().collect(Collectors.joining("\n"));
+            writerZipsCodesToGo.write(collection);
+            writerZipsCodesToGo.close();
+            return true;
+        }
+        catch (IOException excep) {
+            logger.error("Error creating zipcodestogo.csv file", excep);
+            return false;
+        }
+    }
+
+    /**
+     * Connects to zip-codes.com and retrieves all the zip codes
+     * present in the first table and writes to a csv file
+     */
+    private boolean siteZipCodesCsv() {
+        try {
+            File zipCodesFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODES_FILE);
+            if (zipCodesFile.exists()) {
+                logger.info("zipcodes.csv file already exists");
+                return true;
+            }
+            Document pageZipCodes;
+            pageZipCodes = Jsoup.connect("https://www.zip-codes.com/state/ny.asp").get();
+            Elements trs = pageZipCodes.select("table.statTable tr");
+            trs.remove(0);
+            ArrayList<String> arrayZipCodes = new ArrayList<>();
+            for(Element row : trs) {
+                Elements tds = row.getElementsByTag("td");
+                Element td = tds.first();
+                Element tdType = tds.last();
+                if(td.text().contains("ZIP Code")) {
+                    String trimedzipCode = td.text();
+                    String type = tdType.text();
+                    trimedzipCode = trimedzipCode.substring(9);
+                    String zipandType = trimedzipCode.concat(", ").concat(type);
+                    arrayZipCodes.add(zipandType);
+                }
+            }
+            FileWriter writerZipsCodes = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODES_FILE);
+            String collection = arrayZipCodes.stream().collect(Collectors.joining("\n"));
+            writerZipsCodes.write(collection);
+            writerZipsCodes.close();
+            return true;
+        }
+        catch (IOException excep) {
+            logger.error("Error creating zipcodes.csv file", excep);
+            return false;
+        }
+    }
+
 
 }

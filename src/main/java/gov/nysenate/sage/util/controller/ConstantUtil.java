@@ -30,4 +30,11 @@ public class ConstantUtil {
     public static String TOWN_FILE = "towns.txt";
 
     public static String STREETFINDER_DIRECTORY = "/data/geoapi_data/street_finder/";
+
+
+    public static String ZIPS_DIRECTORY = "/data/geoapi_data/zips/";
+
+    public static String ZIPCODESTOGO_FILE = "zipcodestogo.csv";
+
+    public static String ZIPCODES_FILE = "zipcodes.csv";
 }
