@@ -34,15 +34,18 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.rmi.server.ExportException;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
@@ -377,15 +380,57 @@ public class DataGenService implements SageDataGenService {
         return true;
     }
 
-    public Object generateZipCsv() {
-        Object generateResponse;
 
+    /**
+     * Connects to the following two services: createZipCodesToGoFile and createZipCodesFile,
+     * creates and compares the two files that was created.
+     * A file that results from the comparison called final_list_zipcodes.csv will be created.
+     */
+    public Object generateZipCsv() throws Exception {
+        Object generateResponse;
         boolean createZipCodesToGoFile = false;
         boolean createZipCodesFile = false;
         createZipCodesToGoFile = siteZipCodesToGoCsv();
         createZipCodesFile = siteZipCodesCsv();
         if (createZipCodesToGoFile && createZipCodesFile) {
             generateResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+            HashMap<String,String> mapZips = new HashMap<String,String>();
+            try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
+                    + ConstantUtil.ZIPCODES_FILE))) {
+                stream.forEach(line -> {
+                    String[] zipcodeType = line.split(",");
+                    String zip = zipcodeType[0];
+                    String type = zipcodeType[1].trim();
+                    mapZips.put(zip,type);
+                });
+            }
+            catch (IOException e) {
+                logger.error("Unable to read " + ConstantUtil.ZIPCODES_FILE);
+            }
+            try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
+                    + ConstantUtil.ZIPCODESTOGO_FILE))) {
+                stream.forEach(line -> {
+                    if(!mapZips.containsKey(line)){
+                        mapZips.put(line,"");
+                    }
+                });
+            }
+            catch (IOException e) {
+                logger.error("Unable to read " + ConstantUtil.ZIPCODESTOGO_FILE);
+            }
+            ArrayList<String> finalList = new ArrayList<>();
+            try {
+                mapZips.entrySet().forEach(entry-> {
+                    finalList.add(entry.getKey()+","+entry.getValue());
+                });
+                FileWriter finalCSV = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
+                String collection = finalList.stream().collect(Collectors.joining("\n"));
+                finalCSV.write(collection);
+                finalCSV.close();
+            }
+            catch(IOException e) {
+                logger.error("Unable to write " + ConstantUtil.LAST_ZIPCODE_FILE);
+            }
         }
         else {
             generateResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
