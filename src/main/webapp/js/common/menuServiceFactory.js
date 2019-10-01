@@ -11,7 +11,7 @@ sageCommon.factory('menuService', function(dataBus) {
         },
 
         isMethodActive : function(methodIndex) {
-            return this.methodIndex == methodIndex;
+            return this.methodIndex === methodIndex;
         }
     };
     return menuService;
