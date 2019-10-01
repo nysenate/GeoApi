@@ -89,8 +89,8 @@ public class RevGeocodeServiceProvider implements SageRevGeocodeServiceProvider
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
                                                                   : new LinkedList<>(this.defaultFallback);
 
-        if (provider != null && !this.providers.containsKey(provider)) {
-            geocodeResult = this.providers.get(provider).reverseGeocode(point);
+        if (provider != null) {
+            geocodeResult = provider.reverseGeocode(point);
         }
 
         if (!geocodeResult.isSuccess() && useFallback) {
