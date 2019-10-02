@@ -92,6 +92,9 @@ public class RevGeocodeServiceProvider implements SageRevGeocodeServiceProvider
         if (provider != null) {
             geocodeResult = provider.reverseGeocode(point);
         }
+        else {
+            geocodeResult = defaultProvider.reverseGeocode(point);
+        }
 
         if (!geocodeResult.isSuccess() && useFallback) {
             Iterator<String> fallbackIterator = fallback.iterator();
