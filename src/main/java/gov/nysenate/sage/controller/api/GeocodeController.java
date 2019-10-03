@@ -121,14 +121,14 @@ public class GeocodeController {
         ApiRequest apiRequest = getApiRequest(request);
         Boolean useCache = true;
 
-        determineCacheProviderProps(useCache, bypassCache, doNotCache, provider);
-
         int requestId = -1;
 
         /** Construct a GeocodeRequest using the supplied params */
         GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest,
                 getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4), provider,
                 useFallback, useCache, bypassCache, doNotCache, uspsValidate);
+
+        determineCacheProviderProps(geocodeRequest); //useCache, bypassCache, doNotCache, provider
 
         StreetAddress inputStreetAddress = StreetAddressParser.parseAddress(geocodeRequest.getAddress());
         Address reorderdAddress = inputStreetAddress.toAddress();
@@ -196,13 +196,15 @@ public class GeocodeController {
         ApiRequest apiRequest = getApiRequest(request);
         Boolean useCache = true;
 
-        determineCacheProviderProps(useCache, bypassCache, doNotCache, provider);
+
 
         int requestId = -1;
 
         /** Construct a GeocodeRequest using the supplied params */
         GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest,
                 new Address(), provider, useFallback, useCache, bypassCache, doNotCache);
+
+        determineCacheProviderProps(geocodeRequest);
 
         logGeoRequest(apiRequest, geocodeRequest, requestId);
 
@@ -256,15 +258,15 @@ public class GeocodeController {
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
         ApiRequest apiRequest = getApiRequest(request);
-        Boolean useCache = true;
-
-        determineCacheProviderProps(useCache, bypassCache, doNotCache, provider);
+        boolean useCache = true;
 
         int requestId = -1;
 
         /** Construct a GeocodeRequest using the supplied params */
         GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest,
                 new Address(), provider, useFallback, useCache, bypassCache, doNotCache);
+
+        determineCacheProviderProps(geocodeRequest);
 
         logGeoRequest(apiRequest, geocodeRequest, requestId);
 
@@ -318,15 +320,15 @@ public class GeocodeController {
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
         ApiRequest apiRequest = getApiRequest(request);
-        Boolean useCache = true;
-
-        determineCacheProviderProps(useCache, bypassCache, doNotCache, provider);
+        boolean useCache = true;
 
         int requestId = -1;
 
         /** Construct a GeocodeRequest using the supplied params */
         GeocodeRequest geocodeRequest = new GeocodeRequest(apiRequest,
                 new Address(), provider, useFallback, useCache, bypassCache, doNotCache);
+
+        determineCacheProviderProps(geocodeRequest);
 
         logGeoRequest(apiRequest, geocodeRequest, requestId);
 
@@ -384,16 +386,21 @@ public class GeocodeController {
         return true;
     }
 
-    private void determineCacheProviderProps(boolean useCache, boolean bypassCache, boolean doNotCache,
-                                             String provider) {
+    private void determineCacheProviderProps(GeocodeRequest geocodeRequest) {
+        String provider = geocodeRequest.getProvider();
+        boolean bypassCache = geocodeRequest.isBypassCache();
+        boolean doNotCache = geocodeRequest.isDoNotCache();
+
         /** Only want to use cache when the provider is not specified */
-        useCache = (provider == null);
+        boolean useCache = (provider == null);
         if (bypassCache || doNotCache) {
             useCache = false;
         }
         if (provider != null && provider.equals("geocache")) {
             useCache = true;
         }
+
+        geocodeRequest.setUseCache(useCache);
     }
 
     private void logElaspedTime(Timestamp startTime) {
