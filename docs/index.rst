@@ -458,8 +458,6 @@ The available providers are:
 +-------------+--------------------------------------+------------------+
 | streetfile  | Street file database.                | Address          |
 +-------------+--------------------------------------+------------------+
-| geoserver   | Geoserver hosted shape files         | Geocode          |
-+-------------+--------------------------------------+------------------+
 
 ``assign`` has the following optional parameters:
 
@@ -1207,6 +1205,8 @@ actually represent the district type to retrieve maps for. The available methods
 | town          | NY Town Maps                   |
 +---------------+--------------------------------+
 | school        | NY School District Maps        |
++---------------+--------------------------------+
+| zip           | NY Zip District Maps           |
 +---------------+--------------------------------+
 
 The parameters are:
