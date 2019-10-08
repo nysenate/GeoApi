@@ -76,7 +76,9 @@ public class USPSAMSDao implements Observer
                 if (response != null && !response.isEmpty()) {
                     JsonNode root = objectMapper.readTree(response);
                     AddressResult addressResult = getAddressResultFromJsonValidate(root);
-                    addressResult.setAddress(StreetAddressParser.parseAddress(addressResult.getAddress()).toAddress());
+                    addressResult.setAddress(
+                            StreetAddressParser.performInitCapsOnAddress(
+                                    StreetAddressParser.parseAddress(addressResult.getAddress()).toAddress()) );
                     return addressResult;
                 }
                 else {

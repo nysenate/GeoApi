@@ -92,7 +92,7 @@ public class GeocodeController extends BaseApiController implements Observer
 
         boolean doNotCache = requestParameterEquals(request, "doNotCache", "false") ? true : false;
 
-        boolean isUspsValidate = requestParameterEquals(request, "uspsValidate", "true") ? true : false;
+        boolean isUspsValidate = requestParameterEquals(request, "uspsValidate", "false") ? false : true;
 
 
         /** Only want to use cache when the provider is not specified */
