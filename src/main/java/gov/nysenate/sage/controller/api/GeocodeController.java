@@ -86,13 +86,21 @@ public class GeocodeController extends BaseApiController implements Observer
         String provider = apiRequest.getProvider();
 
         /** Check whether or not to fallback */
-        boolean useFallback = requestParameterEquals(request, "useFallback", "false") ? false : true;
+        String fallbackSpecified = request.getParameter("useFallback");
+        boolean useFallback = Boolean.parseBoolean(request.getParameter("useFallback"));
+        if (fallbackSpecified == null || fallbackSpecified.isEmpty() ) {
+            useFallback = true;
+        }
 
-        boolean bypassCache = requestParameterEquals(request, "bypassCache", "false") ? false : true;
+        boolean bypassCache = Boolean.parseBoolean(request.getParameter("bypassCache"));
 
-        boolean doNotCache = requestParameterEquals(request, "doNotCache", "false") ? true : false;
+        boolean doNotCache = Boolean.parseBoolean(request.getParameter("doNotCache"));
 
-        boolean isUspsValidate = requestParameterEquals(request, "uspsValidate", "false") ? false : true;
+        String uspsSpecified = request.getParameter("uspsValidate");
+        boolean isUspsValidate = Boolean.parseBoolean(request.getParameter("uspsValidate"));
+        if (uspsSpecified == null || uspsSpecified.isEmpty()) {
+            isUspsValidate = true;
+        }
 
 
         /** Only want to use cache when the provider is not specified */
