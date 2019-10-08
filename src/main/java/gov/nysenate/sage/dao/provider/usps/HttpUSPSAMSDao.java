@@ -70,7 +70,9 @@ public class HttpUSPSAMSDao implements USPSAMSDao
                     JsonNode root = objectMapper.readTree(response);
                     AddressResult addressResult = getAddressResultFromJsonValidate(root);
                     if (addressResult.getAddress() != null) {
-                        addressResult.setAddress(StreetAddressParser.parseAddress(addressResult.getAddress()).toAddress());
+                        addressResult.setAddress(
+                                StreetAddressParser.performInitCapsOnAddress(
+                                        StreetAddressParser.parseAddress(addressResult.getAddress()).toAddress()) );
                     }
                     else { //This is what would happen if it was null but this prevents a null pointer exception
                         addressResult.setAddress(StreetAddressParser.normalizeStreetAddress(new StreetAddress()).toAddress());

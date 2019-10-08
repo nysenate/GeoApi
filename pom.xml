@@ -149,6 +149,7 @@
         <guava.jackson.version>2.4.0</guava.jackson.version>
         <eh-cache.version>2.8.3</eh-cache.version>
         <openlocationcode.version>1.0.4</openlocationcode.version>
+        <commons-text.version>1.8</commons-text.version>
     </properties>
 
     <dependencies>
@@ -268,6 +269,12 @@
             <artifactId>commons-lang3</artifactId>
             <version>${commons-lang3.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>${commons-text.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>
