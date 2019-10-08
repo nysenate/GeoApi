@@ -140,8 +140,8 @@ public class DistrictController {
                                @RequestParam(required = false) String geoProvider,
                                @RequestParam(required = false) boolean showMembers,
                                @RequestParam(required = false) boolean showMaps,
-                               @RequestParam(required = false) boolean uspsValidate,
-                               @RequestParam(required = false) boolean skipGeocode,
+                               @RequestParam(required = false, defaultValue = "true") boolean uspsValidate,
+                               @RequestParam(required = false, defaultValue = "false") boolean skipGeocode,
                                @RequestParam(required = false) boolean showMultiMatch,
                                @RequestParam(required = false) String districtStrategy,
                                @RequestParam(required = false) boolean usePunct,
@@ -194,7 +194,7 @@ public class DistrictController {
      * Assign a postal address to its corresponding NY Districts
      *
      * Usage:
-     * (POST)    /api/v2/district/assign
+     * (POST)    /api/v2/district/assign/batch
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
@@ -214,8 +214,8 @@ public class DistrictController {
                                     @RequestParam(required = false) String geoProvider,
                                     @RequestParam(required = false) boolean showMembers,
                                     @RequestParam(required = false) boolean showMaps,
-                                    @RequestParam(required = false) boolean uspsValidate,
-                                    @RequestParam(required = false) boolean skipGeocode,
+                                    @RequestParam(required = false, defaultValue = "true") boolean uspsValidate,
+                                    @RequestParam(required = false, defaultValue = "false") boolean skipGeocode,
                                     @RequestParam(required = false) String districtStrategy,
                                     @RequestParam(required = false) boolean usePunct)
             throws IOException {
@@ -302,7 +302,7 @@ public class DistrictController {
      * Assign a postal address to its corresponding NY Districts
      *
      * Usage:
-     * (GET)    /api/v2/district/assign
+     * (GET)    /api/v2/district/bluebird
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
@@ -368,7 +368,7 @@ public class DistrictController {
      * Assign a postal address to its corresponding NY Districts
      *
      * Usage:
-     * (POST)    /api/v2/district/assign
+     * (POST)    /api/v2/district/bluebird/batch
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
@@ -449,6 +449,10 @@ public class DistrictController {
         districtRequest.setUsePunct(usePunct);
         districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
         districtRequest.setAddress(address);
+        districtRequest.setShowMaps(false);
+        districtRequest.setShowMembers(false);
+        districtRequest.setUspsValidate(true);
+        districtRequest.setSkipGeocode(false);
         return districtRequest;
     }
 
@@ -460,6 +464,10 @@ public class DistrictController {
         districtRequest.setGeoProvider(geoProvider);
         districtRequest.setUsePunct(usePunct);
         districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
+        districtRequest.setShowMaps(false);
+        districtRequest.setShowMembers(false);
+        districtRequest.setUspsValidate(true);
+        districtRequest.setSkipGeocode(false);
         return districtRequest;
     }
 

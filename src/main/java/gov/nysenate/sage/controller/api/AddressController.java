@@ -146,7 +146,7 @@ public final class AddressController
      * Looks up a zipcode from an address input with USPS
      *
      * Usage:
-     * (GET)    /api/v2/address/citystate
+     * (GET)    /api/v2/address/zipcode
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
@@ -191,7 +191,7 @@ public final class AddressController
      * Batch address validation with USPS
      *
      * Usage:
-     * (GET)    /api/v2/address/citystate
+     * (GET)    /api/v2/address/batch/validate
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
@@ -229,7 +229,7 @@ public final class AddressController
      * Batch city state validation with USPS
      *
      * Usage:
-     * (GET)    /api/v2/address/citystate
+     * (GET)    /api/v2/address/batch/citystate
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
