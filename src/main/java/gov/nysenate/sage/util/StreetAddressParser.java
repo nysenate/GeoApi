@@ -1,8 +1,10 @@
 package gov.nysenate.sage.util;
 
+import gov.nysenate.sage.client.view.address.AddressView;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.StreetAddress;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.WordUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -521,5 +523,51 @@ public abstract class StreetAddressParser
         for (int i = 0; i < list.size(); i++) {
             list.set(i, normalize(list.get(i)));
         }
+    }
+
+    public static AddressView performInitCapsOnAddressView(AddressView addressView) {
+        Address initCapsAddress = performInitCapsOnAddress(new Address(addressView.getAddr1(), addressView.getAddr2(),
+                addressView.getCity(), addressView.getState(), addressView.getZip5(), addressView.getZip4()));
+        return new AddressView(initCapsAddress);
+    }
+    /**
+     * This method takes in a street address and ensures that it is in mixed case
+     * For example, W TYPICAL ST NW APT 1S -> W Typical St NW Apt 1S
+     *
+     * @param Address address
+     * @return
+     */
+    public static Address performInitCapsOnAddress(Address address) {
+        address.setAddr1(initCapStreetLine(address.getAddr1()));
+        address.setAddr2(initCapStreetLine(address.getAddr2()));
+        address.setCity( WordUtils.capitalizeFully(address.getCity().toLowerCase()) );
+        return address;
+    }
+    /**
+     * Makes the address line init capped as in:
+     *  W TYPICAL ST NW APT 1S -> W Typical St NW Apt 1S
+     * Some exceptions include unit characters and directionals.
+     * @param line String
+     * @return String
+     */
+    private static String initCapStreetLine(String line)
+    {
+        /** Perform init caps on the street address */
+        line = WordUtils.capitalizeFully(line.toLowerCase());
+        /** Ensure unit portion is fully uppercase e.g 2N */
+        Pattern p = Pattern.compile("([0-9]+-?[a-z]+[0-9]*)$");
+        Matcher m = p.matcher(line);
+        if (m.find()) {
+            line = m.replaceFirst(m.group().toUpperCase());
+        }
+        /** Ensure (SW|SE|NW|NE) are not init capped */
+        p = Pattern.compile("(?i)\\b(SW|SE|NW|NE)\\b");
+        m = p.matcher(line);
+        if (m.find()) {
+            line = m.replaceAll(m.group().toUpperCase());
+        }
+        /** Change Po Box to PO Box */
+        line = line.replaceAll("Po Box", "PO Box");
+        return line;
     }
 }
