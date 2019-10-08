@@ -42,44 +42,6 @@ public class DataGenController {
     }
 
     /**
-     * Generate Senator Images Api
-     * ---------------------------
-     *
-     * Generates Senator images with the specified height
-     *
-     * Usage:
-     * (GET)    /admin/datagen/gensenatorimages
-     *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param path String
-     * @param height int
-     * @param username String
-     * @param password String
-     *
-     */
-    @RequestMapping(value = "/gensenatorimages", method = RequestMethod.GET)
-    public void generateSenatorImages(HttpServletRequest request, HttpServletResponse response,
-                                      @RequestParam String path, @RequestParam int height,
-                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                      @RequestParam(required = false, defaultValue = "defaultPass") String password) {
-        Object apiResponse;
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-
-        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
-
-        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password))) {
-            adminUserAuth.setUpPermissions(request, username, ipAddr);
-            apiResponse = dataGenService.generateSenatorImages(path, height);
-        }
-        else {
-            apiResponse = invalidAuthResponse();
-        }
-        setAdminResponse(apiResponse, response);
-    }
-
-    /**
      * Generate Meta Data Api
      * -----------------------
      *
