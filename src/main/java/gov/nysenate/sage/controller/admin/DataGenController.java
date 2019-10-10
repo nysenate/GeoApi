@@ -45,7 +45,7 @@ public class DataGenController {
      * Generate Meta Data Api
      * -----------------------
      *
-     * Removes invalid states from the geocache
+     * Generate meta data related to Assembly, Senators and Congressional members
      *
      * Usage:
      * (GET)    /admin/datagen/genmetadata/{option}

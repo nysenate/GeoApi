@@ -97,7 +97,7 @@ public class RegeocacheService implements SageRegeocacheService{
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
         HttpClient httpClient = HttpClientBuilder.create().build();
         final int limit = 2000;
-        int offset = 0;
+        int offset = nys_offset;
         //data loggers
         int updatedRecords = 0;
         int badRecords = 0;

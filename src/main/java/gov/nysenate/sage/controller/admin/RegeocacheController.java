@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
+import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminResponse;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
 
 @Controller
@@ -51,7 +52,7 @@ public class RegeocacheController {
      * Regeocache Zips Api
      * ---------------------------
      *
-     * Generates Senator images with the specified height
+     * Regeocache the zip codes in the geocache
      *
      * Usage:
      * (GET)    /admin/regeocache/zip
@@ -83,7 +84,7 @@ public class RegeocacheController {
      * NYS Geocache Refresh Api
      * ---------------------------
      *
-     * Generates Senator images with the specified height
+     * Update the geocache with NYSGEO data
      *
      * Usage:
      * (GET)    /admin/regeocache/nysrefresh/{offset}
@@ -118,7 +119,7 @@ public class RegeocacheController {
      * NYS Geocache Dups Refresh Api
      * ---------------------------
      *
-     * Generates Senator images with the specified height
+     * Handle Duplicate records in the NYSGEO data with the nysgeo webservice
      *
      * Usage:
      * (GET)    /admin/regeocache/nysrefresh/dups/{offset}
@@ -145,6 +146,6 @@ public class RegeocacheController {
             adminUserAuth.setUpPermissions(request, username, ipAddr);
             apiResponse = regeocacheService.updatesDupsInGeocacheWithNysGeo(offset);
         }
-        setApiResponse(apiResponse, request);
+        setAdminResponse(apiResponse, response);
     }
 }

@@ -23,7 +23,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.invalidAuthRes
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminResponse;
 
 @Controller
-@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/data/delete")
+@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datadel")
 public class DataDelController {
 
     private Logger logger = LoggerFactory.getLogger(DataGenController.class);
@@ -46,7 +46,7 @@ public class DataDelController {
      * Removes non integer zip codes from the geocache
      *
      * Usage:
-     * (GET)    /admin/data/delete/zips/{offset}
+     * (GET)    /admin/datadel/zips/{offset}
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
@@ -84,7 +84,7 @@ public class DataDelController {
      * Removes invalid states from the geocache
      *
      * Usage:
-     * (GET)    /admin/data/delete/states
+     * (GET)    /admin/datadel/states
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
