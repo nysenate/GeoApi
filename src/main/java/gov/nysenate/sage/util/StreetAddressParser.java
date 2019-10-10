@@ -534,7 +534,7 @@ public abstract class StreetAddressParser
      * This method takes in a street address and ensures that it is in mixed case
      * For example, W TYPICAL ST NW APT 1S -> W Typical St NW Apt 1S
      *
-     * @param Address address
+     * @param address address
      * @return
      */
     public static Address performInitCapsOnAddress(Address address) {
