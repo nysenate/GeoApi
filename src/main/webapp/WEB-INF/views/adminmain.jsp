@@ -74,6 +74,8 @@
                     <a ng-class="{'active': activeTab=='uptime-stats'}" ng-click="changeTab('uptime-stats')">
                         <div class=" icon-statistics"></div>&nbsp;Uptime Stats</a></li>
 
+                <li><a ng-href="${pageContext.request.contextPath}/admindocs/html/index.html" target="_blank">Admin Docs</a></li>
+
                 <li><a ng-href="${pageContext.request.contextPath}/admin/logout">Logout</a></li>
             </ul>
 

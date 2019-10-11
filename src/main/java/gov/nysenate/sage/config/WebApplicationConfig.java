@@ -56,6 +56,7 @@ public class WebApplicationConfig implements WebMvcConfigurer
         registry.addResourceHandler("/css/**").addResourceLocations("/css/").setCachePeriod(64000);
         registry.addResourceHandler("/static/img/**").addResourceLocations("/static/img/").setCachePeriod(64000);
         registry.addResourceHandler("/docs/**").addResourceLocations("/docs/").setCachePeriod(64000);
+        registry.addResourceHandler("/admindocs/**").addResourceLocations("/admin-docs/").setCachePeriod(64000);
         registry.addResourceHandler("/favicon.ico").addResourceLocations("/static/img/icons/favicon.ico").setCachePeriod(64000);
     }
 

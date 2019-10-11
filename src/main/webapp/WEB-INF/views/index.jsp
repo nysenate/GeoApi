@@ -75,7 +75,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="${contextPath}/docs/html/index.html">Developer API
+                    <a href="${contextPath}/docs/html/index.html" target="_blank">Developer API
                     </a>
                 </li>
             </ul>

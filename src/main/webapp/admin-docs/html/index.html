@@ -1,0 +1,675 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>SAGE ADMIN API v2 Reference &#8212; Sage  3.0 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="#">Sage  3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="sage-admin-api-v2-reference">
+<h1>SAGE ADMIN API v2 Reference<a class="headerlink" href="#sage-admin-api-v2-reference" title="Permalink to this headline">¶</a></h1>
+<p>The SAGE API exposes methods for geocoding, address correction, and district assignment given addresses or geo-coordinates
+as input. The API supports <code class="docutils literal"><span class="pre">JSON</span></code>, <code class="docutils literal"><span class="pre">JSON-P</span></code>, and <code class="docutils literal"><span class="pre">XML</span></code> output formats.</p>
+<div class="section" id="basics">
+<h2>Basics<a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h2>
+<p>The API requests must be crafted to match the following structure:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/admin/&lt;group&gt;/&lt;method&gt;?params..
+</pre></div>
+</div>
+<p>All API requests need to be validated using an assigned API key however it is not required when requests are made from
+within the NY Senate’s network. The key is supplied using the query parameter <code class="docutils literal"><span class="pre">key</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/admin/&lt;group&gt;/&lt;method&gt;?params..&gt;&amp;key=YOUR KEY HERE
+</pre></div>
+</div>
+<p>The default output format is <code class="docutils literal"><span class="pre">JSON</span></code>. To change the output to <code class="docutils literal"><span class="pre">XML</span></code> or <code class="docutils literal"><span class="pre">JSON-P</span></code> simply set the <code class="docutils literal"><span class="pre">format</span></code> query
+parameter to <code class="docutils literal"><span class="pre">xml</span></code> or <code class="docutils literal"><span class="pre">jsonp</span></code>. For example to set to xml:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/admin/&lt;group&gt;/&lt;method&gt;?params..&amp;format=xml
+</pre></div>
+</div>
+<p>To output JSON-P a callback must also be specified.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/admin/&lt;group&gt;/&lt;method&gt;?params..&amp;format=jsonp&amp;callback=methodName
+</pre></div>
+</div>
+</div>
+<div class="section" id="groups">
+<h2>Groups<a class="headerlink" href="#groups" title="Permalink to this headline">¶</a></h2>
+<p>Each API method belongs in a logical group in order to make it easy to understand the goal of the request. The supported
+types for the <code class="docutils literal"><span class="pre">group</span></code> segment are as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Group</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><a class="reference internal" href="#api">api</a></td>
+<td>General api calls used by the UI</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#datadel">datadel</a></td>
+<td>Deletes bad data in the DB</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#datagen">datagen</a></td>
+<td>Generates data to be used by SAGE</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#regeocache">regeocache</a></td>
+<td>Updates the Geocache</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="common-query-parameters">
+<span id="id1"></span><h3>Common Query Parameters<a class="headerlink" href="#common-query-parameters" title="Permalink to this headline">¶</a></h3>
+<p>The only true common params are the Authentication params. You must have admin Authentication &amp; permissions to execute
+these api calls.</p>
+</div>
+<div class="section" id="api">
+<h3>Api<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h3>
+<p>The following methods are implemented for the <a class="reference internal" href="#api">api</a> service:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="31%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>currentApiUsers</td>
+<td>Returns the current api users</td>
+</tr>
+<tr class="row-odd"><td>currentJobUsers</td>
+<td>Returns the current job users</td>
+</tr>
+<tr class="row-even"><td>apiUserUsage</td>
+<td>Returns api user request stats</td>
+</tr>
+<tr class="row-odd"><td>usage</td>
+<td>Returns api user usage request stats</td>
+</tr>
+<tr class="row-even"><td>geocodeUsage</td>
+<td>Returns geocode usage stats</td>
+</tr>
+<tr class="row-odd"><td>jobStatuses</td>
+<td>Returns current job statuses</td>
+</tr>
+<tr class="row-even"><td>deployment</td>
+<td>Returns deployment stats</td>
+</tr>
+<tr class="row-odd"><td>exception</td>
+<td>Returns exception stats &amp; info</td>
+</tr>
+<tr class="row-even"><td>createApiUser</td>
+<td>Creates an api user</td>
+</tr>
+<tr class="row-odd"><td>deleteApiUser</td>
+<td>Deletes an api user</td>
+</tr>
+<tr class="row-even"><td>createJobUser</td>
+<td>Creates a job user</td>
+</tr>
+<tr class="row-odd"><td>deleteJobUser</td>
+<td>Deletes an job user</td>
+</tr>
+<tr class="row-even"><td>hideException</td>
+<td>Hides an exception from the admin UI</td>
+</tr>
+</tbody>
+</table>
+<p>All of these api calls were made to be used with the Admin UI. They can be seen by clicking the various admin tabs</p>
+</div>
+<div class="section" id="datadel">
+<h3>Datadel<a class="headerlink" href="#datadel" title="Permalink to this headline">¶</a></h3>
+<p>The following methods are implemented for the <a class="reference internal" href="#datadel">datadel</a> service:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="24%" />
+<col width="76%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>zips/{offset}</td>
+<td>Delete bad zips in the geocache from an offset</td>
+</tr>
+<tr class="row-odd"><td>states</td>
+<td>Delete bad zips from the geocache</td>
+</tr>
+</tbody>
+</table>
+<p>You must authenticate in one of the following ways an Api Key or username and password:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Param</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>apiKey</td>
+<td>A key to access admin api</td>
+</tr>
+<tr class="row-odd"><td>username</td>
+<td>Admin username that you used to log into the admin panel</td>
+</tr>
+<tr class="row-even"><td>password</td>
+<td>Admin password that you used to log into the admin panel</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="zips">
+<h4>Zips<a class="headerlink" href="#zips" title="Permalink to this headline">¶</a></h4>
+<p>The usage of zips api call:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">datadel</span><span class="o">/</span><span class="n">zips</span><span class="o">/</span><span class="mi">0</span>
+</pre></div>
+</div>
+<p>The zips successful response:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">success</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="n">message</span><span class="p">:</span> <span class="s2">&quot;0: Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="states">
+<h4>States<a class="headerlink" href="#states" title="Permalink to this headline">¶</a></h4>
+<p>The usage of stats api call:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">datadel</span><span class="o">/</span><span class="n">states</span>
+</pre></div>
+</div>
+<p>The states successful response:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">success</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="n">message</span><span class="p">:</span> <span class="s2">&quot;0: Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Refer to <a class="reference internal" href="#common-query-parameters"><span class="std std-ref">Common Query Parameters</span></a> to ensure that the correct fields are being used.</p>
+</div>
+</div>
+<div class="section" id="datagen">
+<h3>Datagen<a class="headerlink" href="#datagen" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="#datagen">datagen</a> service has the following method(s).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="12%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head" colspan="3">Method      | Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td colspan="2">genmetadata/{option}</td>
+<td>Generate meta data on Representatives of NYS</td>
+</tr>
+<tr class="row-odd"><td colspan="2">countycodes</td>
+<td>Create county code file for Street file parsing</td>
+</tr>
+<tr class="row-even"><td colspan="2">towncodes</td>
+<td>Create town code file for Street file parsing</td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal"><span class="pre">genmetadata</span></code> has the following optional parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="81%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Param</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>all</td>
+<td>Generate Meta data on Senate, Assembly, and Congressional members</td>
+</tr>
+<tr class="row-odd"><td>senate</td>
+<td>Generate Meta data on Senate members</td>
+</tr>
+<tr class="row-even"><td>assembly</td>
+<td>Generate Meta data on Assembly members</td>
+</tr>
+<tr class="row-odd"><td>congress</td>
+<td>Generate Meta data on Congressional members</td>
+</tr>
+<tr class="row-even"><td>s</td>
+<td>Generate Meta data on Senate members</td>
+</tr>
+<tr class="row-odd"><td>a</td>
+<td>Generate Meta data on Assembly members</td>
+</tr>
+<tr class="row-even"><td>c</td>
+<td>Generate Meta data on Congressional members</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="genmetadata">
+<h4>genmetadata<a class="headerlink" href="#genmetadata" title="Permalink to this headline">¶</a></h4>
+<p>The usage of generate meta data api call:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">datagen</span><span class="o">/</span><span class="n">genmetadata</span><span class="o">/</span><span class="nb">all</span>
+</pre></div>
+</div>
+<p>The Generate Meta Data successful response:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">success</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="n">message</span><span class="p">:</span> <span class="s2">&quot;0: Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="countycodes">
+<h4>countycodes<a class="headerlink" href="#countycodes" title="Permalink to this headline">¶</a></h4>
+<p>The usage of generate meta data api call:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">datagen</span><span class="o">/</span><span class="n">countycodes</span>
+</pre></div>
+</div>
+<p>The Generate Meta Data successful response:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">success</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="n">message</span><span class="p">:</span> <span class="s2">&quot;0: Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="towncodes">
+<h4>towncodes<a class="headerlink" href="#towncodes" title="Permalink to this headline">¶</a></h4>
+<p>The usage of generate meta data api call:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">datagen</span><span class="o">/</span><span class="n">countycodes</span>
+</pre></div>
+</div>
+<p>The Generate Meta Data successful response:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">success</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="n">message</span><span class="p">:</span> <span class="s2">&quot;0: Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="regeocache">
+<h3>Regeocache<a class="headerlink" href="#regeocache" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="#regeocache">regeocache</a> service has the following method(s):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td colspan="2">zip                       | Regeocache zip codes we have geometry for</td>
+</tr>
+<tr class="row-odd"><td colspan="2">nysrefresh/{offset}      | Refresh the geocache with NYSGEO data</td>
+</tr>
+<tr class="row-even"><td colspan="2">nysrefresh/dups/{offset} | Refresh just the dups with the NYSGEO web service</td>
+</tr>
+</tbody>
+</table>
+<p>A zip request is of the following form:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">regeocache</span><span class="o">/</span><span class="nb">zip</span>
+</pre></div>
+</div>
+<p>The zip regeocache successful response:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">success</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="n">message</span><span class="p">:</span> <span class="s2">&quot;0: Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>A /nysrefresh/{offset} request is of the following form:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">regeocache</span><span class="o">/</span><span class="n">nysrefresh</span><span class="o">/</span><span class="mi">0</span>
+</pre></div>
+</div>
+<p>The /nysrefresh/{offset} regeocache successful response:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">success</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="n">message</span><span class="p">:</span> <span class="s2">&quot;0: Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>A /nysrefresh/dups/{offset} request is of the following form:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">regeocache</span><span class="o">/</span><span class="n">nysrefresh</span><span class="o">/</span><span class="n">dups</span><span class="o">/</span><span class="mi">0</span>
+</pre></div>
+</div>
+<p>The /nysrefresh/dups/{offset} regeocache successful response:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">success</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="n">message</span><span class="p">:</span> <span class="s2">&quot;Duplicate addresses Geocded Queries to NYS GEO: 74 Updated Records: 1047 Bad Records (Not found by USPS but rooftop level): 74 NYS Geo duplicate address records: 0&quot;</span>
+<span class="p">}</span>
+
+<span class="n">Note</span><span class="p">:</span> <span class="n">The</span> <span class="n">numbers</span> <span class="n">can</span> <span class="n">change</span> <span class="n">drastically</span> <span class="n">depending</span> <span class="n">on</span> <span class="n">the</span> <span class="n">offset</span> <span class="ow">and</span> <span class="n">data</span> <span class="n">that</span> <span class="n">nysgeo</span> <span class="n">corrects</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="status-codes">
+<h2>Status Codes<a class="headerlink" href="#status-codes" title="Permalink to this headline">¶</a></h2>
+<p>The following table lists all status codes. A positive response will usually have a status code of 0 while the rest are
+generally error statuses:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%" />
+<col width="5%" />
+<col width="67%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Status</th>
+<th class="head">Code</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>SUCCESS</td>
+<td>0</td>
+<td>Success</td>
+</tr>
+<tr class="row-odd"><td>SERVICE_NOT_SUPPORTED</td>
+<td>1</td>
+<td>The requested service is unsupported</td>
+</tr>
+<tr class="row-even"><td>FEATURE_NOT_SUPPORTED</td>
+<td>2</td>
+<td>The requested feature is unsupported</td>
+</tr>
+<tr class="row-odd"><td>PROVIDER_NOT_SUPPORTED</td>
+<td>3</td>
+<td>The requested provider is unsupported</td>
+</tr>
+<tr class="row-even"><td>ADDRESS_PROVIDER_NOT_SUPPORTED</td>
+<td>4</td>
+<td>The requested address provider is unsupported</td>
+</tr>
+<tr class="row-odd"><td>GEOCODE_PROVIDER_NOT_SUPPORTED</td>
+<td>5</td>
+<td>The requested geocoding provider is unsupported</td>
+</tr>
+<tr class="row-even"><td>DISTRICT_PROVIDER_NOT_SUPPORTED</td>
+<td>6</td>
+<td>The requested district assignment provider is unsupported</td>
+</tr>
+<tr class="row-odd"><td>API_KEY_INVALID</td>
+<td>10</td>
+<td>The supplied API key could not be authenticated</td>
+</tr>
+<tr class="row-even"><td>API_KEY_MISSING</td>
+<td>11</td>
+<td>An API key is required</td>
+</tr>
+<tr class="row-odd"><td>API_REQUEST_INVALID</td>
+<td>20</td>
+<td>The request is not in a valid format. Check the documentation for proper usage</td>
+</tr>
+<tr class="row-even"><td>API_INPUT_FORMAT_UNSUPPORTED</td>
+<td>21</td>
+<td>The requested input format is currently not supported</td>
+</tr>
+<tr class="row-odd"><td>API_OUTPUT_FORMAT_UNSUPPORTED</td>
+<td>22</td>
+<td>The requested output format is currently not supported</td>
+</tr>
+<tr class="row-even"><td>JSONP_CALLBACK_NOT_SPECIFIED</td>
+<td>23</td>
+<td>A callback signature must be specified as a parameter e.g &amp;callback=method”)</td>
+</tr>
+<tr class="row-odd"><td>RESPONSE_MISSING_ERROR</td>
+<td>30</td>
+<td>No response from service provider</td>
+</tr>
+<tr class="row-even"><td>RESPONSE_PARSE_ERROR</td>
+<td>31</td>
+<td>Error parsing response from service provider</td>
+</tr>
+<tr class="row-odd"><td>MISSING_INPUT_PARAMS</td>
+<td>40</td>
+<td>One or more parameters are missing</td>
+</tr>
+<tr class="row-even"><td>MISSING_ADDRESS</td>
+<td>41</td>
+<td>An address is required</td>
+</tr>
+<tr class="row-odd"><td>MISSING_GEOCODE</td>
+<td>42</td>
+<td>A valid geocoded coordinate pair is required</td>
+</tr>
+<tr class="row-even"><td>MISSING_ZIPCODE</td>
+<td>43</td>
+<td>A zipcode is required</td>
+</tr>
+<tr class="row-odd"><td>MISSING_STATE</td>
+<td>44</td>
+<td>A state is required</td>
+</tr>
+<tr class="row-even"><td>MISSING_POINT</td>
+<td>45</td>
+<td>A coordinate pair is required</td>
+</tr>
+<tr class="row-odd"><td>MISSING_GEOCODED_ADDRESS</td>
+<td>46</td>
+<td>A valid geocoded address is required</td>
+</tr>
+<tr class="row-even"><td>INVALID_INPUT_PARAMS</td>
+<td>50</td>
+<td>One or more parameters are invalid</td>
+</tr>
+<tr class="row-odd"><td>INVALID_ADDRESS</td>
+<td>51</td>
+<td>The supplied address is invalid</td>
+</tr>
+<tr class="row-even"><td>INVALID_GEOCODE</td>
+<td>52</td>
+<td>The supplied geocoded coordinate pair is invalid</td>
+</tr>
+<tr class="row-odd"><td>INVALID_ZIPCODE</td>
+<td>53</td>
+<td>The supplied zipcode is invalid</td>
+</tr>
+<tr class="row-even"><td>INVALID_STATE</td>
+<td>54</td>
+<td>The supplied state is invalid or is not supported</td>
+</tr>
+<tr class="row-odd"><td>INVALID_BATCH_ADDRESSES</td>
+<td>55</td>
+<td>The supplied batch address list could not be parsed</td>
+</tr>
+<tr class="row-even"><td>INVALID_BATCH_POINTS</td>
+<td>56</td>
+<td>The supplied batch point list could not be parsed</td>
+</tr>
+<tr class="row-odd"><td>NON_NY_STATE</td>
+<td>57</td>
+<td>The address you have supplied is not a valid New York address.</td>
+</tr>
+<tr class="row-even"><td>INSUFFICIENT_INPUT_PARAMS</td>
+<td>60</td>
+<td>One or more parameters are insufficient</td>
+</tr>
+<tr class="row-odd"><td>INSUFFICIENT_ADDRESS</td>
+<td>61</td>
+<td>The supplied address is missing one or more parameters</td>
+</tr>
+<tr class="row-even"><td>INSUFFICIENT_GEOCODE</td>
+<td>62</td>
+<td>The supplied geocoded is missing one or more parameters</td>
+</tr>
+<tr class="row-odd"><td>NO_DISTRICT_RESULT</td>
+<td>70</td>
+<td>District assignment returned no results</td>
+</tr>
+<tr class="row-even"><td>NO_GEOCODE_RESULT</td>
+<td>71</td>
+<td>Geocode service returned no results</td>
+</tr>
+<tr class="row-odd"><td>NO_REVERSE_GEOCODE_RESULT</td>
+<td>72</td>
+<td>Reverse Geocode service returned no results</td>
+</tr>
+<tr class="row-even"><td>NO_ADDRESS_VALIDATE_RESULT</td>
+<td>73</td>
+<td>The address could not be validated</td>
+</tr>
+<tr class="row-odd"><td>NO_STREET_LOOKUP_RESULT</td>
+<td>74</td>
+<td>Street lookup returned no results for the given zip5</td>
+</tr>
+<tr class="row-even"><td>NO_MAP_RESULT</td>
+<td>80</td>
+<td>Map request returned no results</td>
+</tr>
+<tr class="row-odd"><td>UNSUPPORTED_DISTRICT_MAP</td>
+<td>81</td>
+<td>Maps for the requested district type are not available</td>
+</tr>
+<tr class="row-even"><td>MISSING_DISTRICT_CODE</td>
+<td>82</td>
+<td>A district code is required</td>
+</tr>
+<tr class="row-odd"><td>NOT_FOUND</td>
+<td>404</td>
+<td>Not Found</td>
+</tr>
+<tr class="row-even"><td>INTERNAL_ERROR</td>
+<td>500</td>
+<td>Internal Server Error</td>
+</tr>
+<tr class="row-odd"><td>DATABASE_ERROR</td>
+<td>501</td>
+<td>Database Error</td>
+</tr>
+<tr class="row-even"><td>RESPONSE_ERROR</td>
+<td>502</td>
+<td>Application failed to provide a response</td>
+</tr>
+<tr class="row-odd"><td>RESPONSE_SERIALIZATION_ERROR</td>
+<td>503</td>
+<td>Failed to serialize response</td>
+</tr>
+</tbody>
+</table>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">SAGE ADMIN API v2 Reference</a><ul>
+<li><a class="reference internal" href="#basics">Basics</a></li>
+<li><a class="reference internal" href="#groups">Groups</a></li>
+<li><a class="reference internal" href="#methods">Methods</a><ul>
+<li><a class="reference internal" href="#common-query-parameters">Common Query Parameters</a></li>
+<li><a class="reference internal" href="#api">Api</a></li>
+<li><a class="reference internal" href="#datadel">Datadel</a><ul>
+<li><a class="reference internal" href="#zips">Zips</a></li>
+<li><a class="reference internal" href="#states">States</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#datagen">Datagen</a><ul>
+<li><a class="reference internal" href="#genmetadata">genmetadata</a></li>
+<li><a class="reference internal" href="#countycodes">countycodes</a></li>
+<li><a class="reference internal" href="#towncodes">towncodes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#regeocache">Regeocache</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#status-codes">Status Codes</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="#">Sage  3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2013, NY Senate.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>
