@@ -34,16 +34,16 @@ public class Mailer
     @Autowired
     public Mailer(Environment env)
     {
-        SMTP_HOST_NAME = env.getSmtpHost();//config.getValue("smtp.host");
-        SMTP_DEBUG = env.getSmtpDebug().toString();//config.getValue("smtp.debug");
-        SMTP_ACTIVE = env.getSmtpActive().toString();//config.getValue("smtp.active");
-        SMTP_PORT = Integer.toString(env.getSmtpPort());//config.getValue("smtp.port");
-        SMTP_ACCOUNT_USER = env.getSmtpUser();//config.getValue("smtp.user");
-        SMTP_ACCOUNT_PASS = env.getSmtpPass();//config.getValue("smtp.pass");
-        SMTP_ADMIN = env.getSmtpAdmin();//config.getValue("smtp.admin");
-        SMTP_TLS_ENABLE = String.valueOf(env.getSmtpTlsEnable());//config.getValue("smtp.tls.enable");
-        SMTP_SSL_ENABLE = String.valueOf(env.getSmtpSslEnable());//config.getValue("smtp.ssl.enable");
-        SMTP_CONTEXT = env.getSmtpContext();//config.getValue("smtp.context");
+        SMTP_HOST_NAME = env.getSmtpHost();
+        SMTP_DEBUG = env.getSmtpDebug().toString();
+        SMTP_ACTIVE = env.getSmtpActive().toString();
+        SMTP_PORT = Integer.toString(env.getSmtpPort());
+        SMTP_ACCOUNT_USER = env.getSmtpUser();
+        SMTP_ACCOUNT_PASS = env.getSmtpPass();
+        SMTP_ADMIN = env.getSmtpAdmin();
+        SMTP_TLS_ENABLE = String.valueOf(env.getSmtpTlsEnable());
+        SMTP_SSL_ENABLE = String.valueOf(env.getSmtpSslEnable());
+        SMTP_CONTEXT = env.getSmtpContext();
     }
 
     public String getContext() {

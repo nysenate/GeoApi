@@ -665,8 +665,8 @@ public class JobBatchProcessor implements JobProcessor {
 
         logger.info("Sending email to " + jobUser.getEmail());
         mailer.sendMail(jobUser.getEmail(), subject, message);
-//        logger.info("Sending email to " + mailer.getAdminEmail());
-//        mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
+        logger.info("Sending email to " + mailer.getAdminEmail());
+        mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
     }
 
     /**
@@ -694,8 +694,8 @@ public class JobBatchProcessor implements JobProcessor {
         try {
             logger.info("Sending email to " + jobUser.getEmail());
             mailer.sendMail(jobUser.getEmail(), subject, message);
-//            logger.info("Sending email to " + mailer.getAdminEmail());
-//            mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
+            logger.info("Sending email to " + mailer.getAdminEmail());
+            mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
         }
         catch (Exception ex2) { logger.error(fatal, "Failed to send error email.. sheesh", ex2); }
     }
