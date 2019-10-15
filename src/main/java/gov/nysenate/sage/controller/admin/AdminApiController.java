@@ -456,9 +456,10 @@ public class AdminApiController
         GenericResponse response;
         String name = request.getParameter("name");
         String desc = request.getParameter("desc");
+        boolean admin = Boolean.parseBoolean( request.getParameter("admin") );
 
         if (name != null && !name.isEmpty()) {
-            ApiUser apiUser = apiUserAuth.addApiUser(name, desc);
+            ApiUser apiUser = apiUserAuth.addApiUser(name, desc, admin);
             if (apiUser != null) {
                 response = new GenericResponse(true, "Added new API User with id " + apiUser.getId());
             }

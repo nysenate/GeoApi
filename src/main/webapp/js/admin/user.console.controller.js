@@ -31,7 +31,7 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
             alert("A name is required!");
         }
         else {
-            $http.post(baseAdminApi + "/createApiUser?name=" + this.apiUserName + "&desc=" + this.apiUserDesc)
+            $http.post(baseAdminApi + "/createApiUser?name=" + this.apiUserName + "&desc=" + this.apiUserDesc + "&admin=" + this.apiUserAdmin)
                 .success(function(data){
                     if (data) {
                         alert(data.message);

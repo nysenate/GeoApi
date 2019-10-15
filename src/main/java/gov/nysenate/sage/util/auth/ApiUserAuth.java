@@ -40,12 +40,13 @@ public class ApiUserAuth
      * @return ApiUser      If success returns a new ApiUser with id and apikey.
      *                      Upon failure, null is returned.
      */
-    public ApiUser addApiUser(String name, String description)
+    public ApiUser addApiUser(String name, String description, boolean admin)
     {
         ApiUser apiUser = new ApiUser();
         apiUser.setName(name);
         apiUser.setDescription(description);
         apiUser.setApiKey(this.generateRandomKey());
+        apiUser.setAdmin(admin);
 
         if (sqlApiUserDao.addApiUser(apiUser) == 1)
         {

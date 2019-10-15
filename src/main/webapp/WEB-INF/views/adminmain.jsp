@@ -613,6 +613,7 @@
                                         <th>Api Key</th>
                                         <th>Name</th>
                                         <th>Description</th>
+                                        <th>Is Admin</th>
                                         <th>Actions</th>
                                     </tr>
                                     <tr ng-repeat="apiUser in currentApiUsers">
@@ -620,6 +621,7 @@
                                         <td>{{apiUser.apiKey}}</td>
                                         <td>{{apiUser.name}}</td>
                                         <td>{{apiUser.description}}</td>
+                                        <td>{{apiUser.admin}}</td>
                                         <td><a style="color:#CC333F;font-size: 13px;"
                                                ng-click="deleteApiUser(apiUser.id);">Delete</a></td>
                                     </tr>
@@ -632,6 +634,8 @@
                                         <input ng-model="apiUserName" type="text" name="name" id="new_apiUserName"/>
                                         <label for="new_apiUserDesc">Description</label>
                                         <input ng-model="apiUserDesc" type="text" name="desc" id="new_apiUserDesc"/>
+                                        <label for="new_apiUserAdmin">Is admin</label>
+                                        <input ng-model="apiUserAdmin" name="admin" id="new_apiUserAdmin" type="checkbox">
                                         <button style="width:80px;" class="submit">Create</button>
                                     </form>
                                 </div>

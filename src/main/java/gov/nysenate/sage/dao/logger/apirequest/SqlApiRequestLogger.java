@@ -114,7 +114,7 @@ public class SqlApiRequestLogger implements ApiRequestLogger
                 ApiRequest ar = new ApiRequest();
                 ar.setId(rs.getInt("requestId"));
                 ApiUser au = new ApiUser(rs.getInt("apiUserId"), rs.getString("apiKey"),
-                                         rs.getString("apiUserName"), rs.getString("apiUserDesc"));
+                                         rs.getString("apiUserName"), rs.getString("apiUserDesc"), rs.getBoolean("admin"));
                 ar.setApiUser(au);
                 ar.setService(rs.getString("service"));
                 ar.setRequest(rs.getString("request"));

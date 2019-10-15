@@ -13,7 +13,7 @@ public enum ApiRequestQuery implements BasicSqlQuery {
             "RETURNING id"),
 
     GET_API_REQUEST("SELECT ${schema}."+ SqlTable.API_REQUEST + ".id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, isBatch, requestTime, \n" +
-            "au.id AS apiUserId, au.name AS apiUserName, au.apiKey AS apiKey, au.description AS apiUserDesc " +
+            "au.id AS apiUserId, au.name AS apiUserName, au.apiKey AS apiKey, au.description AS apiUserDesc, au.admin " +
             "FROM ${schema}." + SqlTable.API_REQUEST + "\n" +
             "LEFT JOIN " + "public.apiUser au ON apiUserId = au.id \n" +
             "LEFT JOIN ${schema}."  + "requestTypes rt ON requestTypeId = rt.id \n" +

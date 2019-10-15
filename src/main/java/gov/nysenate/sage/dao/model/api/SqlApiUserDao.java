@@ -111,6 +111,7 @@ public class SqlApiUserDao implements ApiUserDao
             params.addValue("apikey",  apiUser.getApiKey());
             params.addValue("name",  apiUser.getName());
             params.addValue("description",  apiUser.getDescription());
+            params.addValue("admin", apiUser.isAdmin());
 
             return baseDao.geoApiNamedJbdcTemaplate.update(
                     ApiUserQuery.INSERT_API_USER.getSql(baseDao.getPublicSchema()), params);
@@ -147,6 +148,7 @@ public class SqlApiUserDao implements ApiUserDao
             apiUser.setApiKey(rs.getString("apikey"));
             apiUser.setName(rs.getString("name"));
             apiUser.setDescription(rs.getString("description"));
+            apiUser.setAdmin(rs.getBoolean("admin"));
             return apiUser;
         }
     }
