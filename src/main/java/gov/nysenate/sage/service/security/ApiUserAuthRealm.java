@@ -102,8 +102,12 @@ public class ApiUserAuthRealm extends SageAuthorizingRealm
             SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
             String principal = collection.iterator().next().toString();
             logger.info("Determining api user roles for {}", principal);
-            if (apiUserAuth.getApiUser(principal) != null) {
+            ApiUser potentialApiUser = apiUserAuth.getApiUser(principal);
+            if (potentialApiUser != null) {
                 info.addRole(SageRole.API_USER.name());
+                if (potentialApiUser.isAdmin()) {
+                    info.addRole(SageRole.ADMIN.name());
+                }
             }
             return info;
         }

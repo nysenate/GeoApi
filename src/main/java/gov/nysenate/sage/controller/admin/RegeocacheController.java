@@ -6,6 +6,7 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.service.data.RegeocacheService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
+import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
@@ -34,17 +35,18 @@ public class RegeocacheController {
 
     private BaseDao baseDao;
     private Environment env;
-    private SqlAdminUserDao sqlAdminUserDao;
     private AdminUserAuth adminUserAuth;
+    private ApiUserAuth apiUserAuth;
     private RegeocacheService regeocacheService;
 
     @Autowired
-    public RegeocacheController(BaseDao baseDao, Environment env, SqlAdminUserDao sqlAdminUserDao,
-                                AdminUserAuth adminUserAuth, RegeocacheService regeocacheService) {
+    public RegeocacheController(BaseDao baseDao, Environment env,
+                                AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth,
+                                RegeocacheService regeocacheService) {
         this.baseDao = baseDao;
         this.env = env;
-        this.sqlAdminUserDao = sqlAdminUserDao;
         this.adminUserAuth = adminUserAuth;
+        this.apiUserAuth = apiUserAuth;
         this.regeocacheService = regeocacheService;
     }
 
@@ -66,15 +68,15 @@ public class RegeocacheController {
     @RequestMapping(value = "/zip", method = RequestMethod.GET)
     public void geocacheZips(HttpServletRequest request, HttpServletResponse response,
                              @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                             @RequestParam(required = false, defaultValue = "defaultPass") String password) {
+                             @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                             @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
-
-        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
-            adminUserAuth.setUpPermissions(request, username, ipAddr);
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
             apiResponse = regeocacheService.updateZipsInGeocache();
         }
         setApiResponse(apiResponse, request);
@@ -99,16 +101,16 @@ public class RegeocacheController {
     public void nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
                                    @PathVariable int offset,
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                   @RequestParam(required = false, defaultValue = "defaultPass") String password) {
+                                   @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                   @RequestParam(required = false, defaultValue = "") String key) {
 
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
-
-        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
-            adminUserAuth.setUpPermissions(request, username, ipAddr);
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
             apiResponse = regeocacheService.updateGeocacheWithNYSGeoData(offset);
         }
         setApiResponse(apiResponse, request);
@@ -134,16 +136,16 @@ public class RegeocacheController {
     public void handleNysDupsInGeocache(HttpServletRequest request, HttpServletResponse response,
                                    @PathVariable int offset,
                                         @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                   @RequestParam(required = false, defaultValue = "defaultPass") String password) {
+                                   @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                        @RequestParam(required = false, defaultValue = "") String key) {
 
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
-
-        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
-            adminUserAuth.setUpPermissions(request, username, ipAddr);
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
             apiResponse = regeocacheService.updatesDupsInGeocacheWithNysGeo(offset);
         }
         setAdminResponse(apiResponse, response);

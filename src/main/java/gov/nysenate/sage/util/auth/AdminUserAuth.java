@@ -4,6 +4,7 @@ import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.model.admin.AdminUser;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.subject.Subject;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,10 +48,22 @@ public class AdminUserAuth {
         return sqlAdminUserDao.getAdminUser(username);
     }
 
-    public void setUpPermissions(HttpServletRequest request, String username, String ipAddr) {
+    public void setUpPermissions(HttpServletRequest request, Subject subject, String username, String ipAddr) {
         logger.debug("Granted admin access to " + username);
         AdminUser dbAdmin = sqlAdminUserDao.getAdminUser(username);
-        SecurityUtils.getSubject().login(new UsernamePasswordToken(username, dbAdmin.getPassword() , ipAddr));
+        subject.login(new UsernamePasswordToken(username, dbAdmin.getPassword() , ipAddr));
         setAuthenticated(request, true, username);
+    }
+
+    public boolean authenticateAdmin(HttpServletRequest request, String username, String password,
+                                     Subject subject, String ipAddr) {
+        boolean validInput = isUserNamePasswordValidInput(username, password)
+                && sqlAdminUserDao.checkAdminUser(username, password);
+
+        if (validInput) {
+            setUpPermissions(request, subject, username, ipAddr);
+            return true;
+        }
+        return false;
     }
 }

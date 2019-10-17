@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.admin;
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.service.data.DataDelService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
+import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
@@ -27,14 +28,15 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminRespon
 public class DataDelController {
 
     private Logger logger = LoggerFactory.getLogger(DataGenController.class);
-    private SqlAdminUserDao sqlAdminUserDao;
     private AdminUserAuth adminUserAuth;
+    private ApiUserAuth apiUserAuth;
     private DataDelService dataDelService;
 
     @Autowired
-    public DataDelController(SqlAdminUserDao sqlAdminUserDao, AdminUserAuth adminUserAuth, DataDelService dataDelService) {
-        this.sqlAdminUserDao = sqlAdminUserDao;
+    public DataDelController(AdminUserAuth adminUserAuth,
+                             ApiUserAuth apiUserAuth, DataDelService dataDelService) {
         this.adminUserAuth = adminUserAuth;
+        this.apiUserAuth = apiUserAuth;
         this.dataDelService = dataDelService;
     }
 
@@ -59,15 +61,15 @@ public class DataDelController {
     public void cleanUpBadZipsInGeocache(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                       @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                         @RequestParam(required = false, defaultValue = "") String key,
                                         @PathVariable Integer offset) {
         Object apiResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
-
-        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
-            adminUserAuth.setUpPermissions(request, username, ipAddr);
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
 
             apiResponse = dataDelService.cleanUpBadZips(offset);
         }
@@ -95,15 +97,15 @@ public class DataDelController {
     @RequestMapping(value = "/states", method = RequestMethod.GET)
     public void cleanUpBadStatesInGeocache(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                      @RequestParam(required = false, defaultValue = "defaultPass") String password) {
+                                      @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                           @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
-
-        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
-            adminUserAuth.setUpPermissions(request, username, ipAddr);
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
             apiResponse = dataDelService.cleanUpBadStates();
         }
         else {

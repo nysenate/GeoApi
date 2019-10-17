@@ -96,7 +96,8 @@ public class ApiControllerUtil {
 
     /**
      * Constructs a new Point object using the query parameters of the supplied HttpServletRequest
-     * @param r     HttpServletRequest
+     * @param lat String
+     * @param lon String
      * @return      new Point instance or null
      */
     public static Point getPointFromParams(String lat, String lon)

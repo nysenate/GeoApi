@@ -5,6 +5,7 @@ import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.service.data.DataGenService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
+import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
@@ -29,15 +30,15 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 public class DataGenController {
 
     private Logger logger = LoggerFactory.getLogger(DataGenController.class);
-    private SqlAdminUserDao sqlAdminUserDao;
     private AdminUserAuth adminUserAuth;
     private DataGenService dataGenService;
+    private ApiUserAuth apiUserAuth;
 
     @Autowired
-    public DataGenController(SqlAdminUserDao sqlAdminUserDao, AdminUserAuth adminUserAuth,
+    public DataGenController(AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth,
                              DataGenService dataGenService) {
-        this.sqlAdminUserDao = sqlAdminUserDao;
         this.adminUserAuth = adminUserAuth;
+        this.apiUserAuth = apiUserAuth;
         this.dataGenService = dataGenService;
     }
 
@@ -61,15 +62,15 @@ public class DataGenController {
     public void generateMetaData(HttpServletRequest request, HttpServletResponse response,
                                  @PathVariable String option,
                                  @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                 @RequestParam(required = false, defaultValue = "defaultPass") String password) {
+                                 @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                 @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
-
-        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
-            adminUserAuth.setUpPermissions(request, username, ipAddr);
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             try {
                 apiResponse = dataGenService.generateMetaData(option);
             }
@@ -97,11 +98,22 @@ public class DataGenController {
      *
      */
     @RequestMapping(value = "/countycodes", method = RequestMethod.GET)
-    public void ensureCountyCodeFileExists(HttpServletRequest request, HttpServletResponse response) {
+    public void ensureCountyCodeFileExists(HttpServletRequest request, HttpServletResponse response,
+                                           @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                           @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                           @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-        if (dataGenService.ensureCountyCodeFile()) {
-            apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+            if (dataGenService.ensureCountyCodeFile()) {
+                apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+            }
         }
+
         setAdminResponse(apiResponse, response);
     }
 
@@ -119,10 +131,20 @@ public class DataGenController {
      *
      */
     @RequestMapping(value = "/towncodes", method = RequestMethod.GET)
-    public void ensureTownCodeFileExists(HttpServletRequest request, HttpServletResponse response) {
+    public void ensureTownCodeFileExists(HttpServletRequest request, HttpServletResponse response,
+                                         @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                         @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                         @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-        if (dataGenService.ensureTownCodeFile()) {
-            apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+            if (dataGenService.ensureTownCodeFile()) {
+                apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+            }
         }
         setAdminResponse(apiResponse, response);
     }
@@ -144,15 +166,15 @@ public class DataGenController {
     @RequestMapping(value = "/zipcodes", method = RequestMethod.GET)
     public void generateZipCodeFiles(HttpServletRequest request, HttpServletResponse response,
                                  @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                 @RequestParam(required = false, defaultValue = "defaultPass") String password) {
+                                 @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                     @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
-        boolean validCredentialInput = adminUserAuth.isUserNamePasswordValidInput(username, password);
-
-        if (subject.hasRole("ADMIN") || ( validCredentialInput && sqlAdminUserDao.checkAdminUser(username, password)) ) {
-            adminUserAuth.setUpPermissions(request, username, ipAddr);
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
             try {
                 apiResponse = dataGenService.generateZipCsv();
             }
