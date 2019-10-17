@@ -8,7 +8,8 @@
 
 pathToGeoApi="/opt/sage_dev"
 baseUrl="http://localhost:8080"
-version="geoapi##2.5.2"
+adminKey="" #This key is generated from the SAGE admin panel
+version="geoapi##2.5.3"
 tsv_dir="/data/geoapi_data/street_finder/tsv_streetfiles"
 
 town="./GetTownCodes.sh"
