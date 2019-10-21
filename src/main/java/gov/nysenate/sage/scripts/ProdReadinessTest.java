@@ -1,5 +1,11 @@
 package gov.nysenate.sage.scripts;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import gov.nysenate.sage.model.address.Address;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -8,206 +14,35 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import static org.junit.Assert.*;
+import java.util.ArrayList;
+import java.util.function.Consumer;
 
 public class ProdReadinessTest {
 
     private static Logger logger = LoggerFactory.getLogger(ProdReadinessTest.class);
+    private String baseUrl = "http://localhost:8082"; //TODO change to 8080
 
-    public String json = "[ { \"addr1\" : \"100 Nyroy Dr\", \"addr2\" : \"\", \"city\" : \"Troy\", \"state\" : \"NY\", \"zip5\" : \"12180\", \"zip4\" : \"\" }, "
-            + "{ \"addr1\" : \"44 Fairlawn Ave\", \"addr2\" : \"\", \"city\" : \"Albany\", \"state\" : \"NY\", \"zip5\" : \"12203\", \"zip4\" : \"\" }, "
-            + "{ \"addr1\" : \"903 London Square Drive\", \"addr2\" : \"\", \"city\" : \"Clifton Park\", \"state\" : \"NY\", \"zip5\" : \"12065\", \"zip4\" : \"\" },"
-            + "{ \"addr1\" : \"2825 Kingsland Ave\", \"addr2\" : \"\", \"city\" : \"New York\", \"state\" : \"NY\", \"zip5\" : \"10496\", \"zip4\" : \"\" },"
-            + "{ \"addr1\" : \"535 Highland Ave\", \"addr2\" : \"\", \"city\" : \"Rochester\", \"state\" : \"NY\", \"zip5\" : \"14620\", \"zip4\" : \"\" },"
-            + "{ \"addr1\" : \"46-08 74th Street\", \"addr2\" : \"\", \"city\" : \"flushing\", \"state\" : \"NY\", \"zip5\" : \"11373\", \"zip4\" : \"\" }"
-            + "{ \"addr1\" : \"200 state street\", \"addr2\" : \"\", \"city\" : \"albany\", \"state\" : \"NY\", \"zip5\" : \"12210\", \"zip4\" : \"\" }]";
+    private ArrayList<Address> testAddresses = new ArrayList<>();
 
-    public static void main(String[] args) throws Exception {
+    public String getBaseUrl() {
+        return this.baseUrl;
+    }
 
-        if (args.length != 1) {
-            logger.error("Improper usage! The only argument should be the host i.e. localhost:8080");
-        }
-        String baseUrl = args[0];
-
-        ProdReadinessTest prodReadinessTest = new ProdReadinessTest();
-
-        //Test Address Api Functionality
-        HttpURLConnection addressValidate = prodReadinessTest.createHttpRequest(
-               baseUrl, "/api/v2/address/validate?addr1=44 Fairlawn Avenue&city=Albany&state=NY");
-        assertEquals(200, addressValidate.getResponseCode());
-        addressValidate.disconnect();
-
-        HttpURLConnection citystateValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/address/citystate?zip5=12210");
-        assertEquals(200, citystateValidate.getResponseCode());
-        citystateValidate.disconnect();
-
-        HttpURLConnection zipcodeValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/address/zipcode?addr1=44 Fairlawn Avenue&city=Albany&state=NY");
-        assertEquals(200, zipcodeValidate.getResponseCode());
-        zipcodeValidate.disconnect();
-
-
-        //Test Geo Api Functionality
-        HttpURLConnection standardGeoValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/geo/geocode?addr=200 State St, Albany NY 12210");
-        assertEquals(200, standardGeoValidate.getResponseCode());
-        standardGeoValidate.disconnect();
-
-        HttpURLConnection splitGeoValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210");
-        assertEquals(200, splitGeoValidate.getResponseCode());
-        splitGeoValidate.disconnect();
-
-        HttpURLConnection providerGeocacheValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=geocache");
-        assertEquals(200, providerGeocacheValidate.getResponseCode());
-        providerGeocacheValidate.disconnect();
-
-        HttpURLConnection providerGoogleValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=google");
-        assertEquals(200, providerGoogleValidate.getResponseCode());
-        providerGoogleValidate.disconnect();
-
-        HttpURLConnection providerTigerValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=tiger");
-        assertEquals(200, providerTigerValidate.getResponseCode());
-        providerTigerValidate.disconnect();
-
-        HttpURLConnection bypassCacheUseFallBackValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&bypassCache=true&useFallBack=true");
-        assertEquals(200, bypassCacheUseFallBackValidate.getResponseCode());
-        bypassCacheUseFallBackValidate.disconnect();
-
-        HttpURLConnection revGeocodeValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/geo/revgeocode?lat=42.652030&lon=-73.757590");
-        assertEquals(200, revGeocodeValidate.getResponseCode());
-        revGeocodeValidate.disconnect();
-
-
-        //Test Street Api
-        HttpURLConnection streetValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/street/lookup?zip5=12210");
-        assertEquals(200, streetValidate.getResponseCode());
-        streetValidate.disconnect();
-
-
-        //Test Bluebird District Assignment api
-        HttpURLConnection standardBluebirdValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/bluebird?addr=280 Madison Ave NY");
-        assertEquals(200, standardBluebirdValidate.getResponseCode());
-        standardBluebirdValidate.disconnect();
-
-        HttpURLConnection splitBluebirdValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/bluebird?addr1=280 Madison Ave&state=NY");
-        assertEquals(200, splitBluebirdValidate.getResponseCode());
-        splitBluebirdValidate.disconnect();
-
-
-        //Test Standard District Assignment
-        HttpURLConnection standardDistAssignValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/assign?addr=280 Madison Ave, New York, NY");
-        assertEquals(200, standardDistAssignValidate.getResponseCode());
-        standardDistAssignValidate.disconnect();
-
-        HttpURLConnection splitDistAssignValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY");
-        assertEquals(200, splitDistAssignValidate.getResponseCode());
-        splitDistAssignValidate.disconnect();
-
-        HttpURLConnection standardUIDistAssignValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/assign?addr=200 State Street,Albany,NY,USA&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true");
-        assertEquals(200, standardUIDistAssignValidate.getResponseCode());
-        standardUIDistAssignValidate.disconnect();
-
-        HttpURLConnection geoProviderGoogleDistAssignValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY&geoProvider=google");
-        assertEquals(200, geoProviderGoogleDistAssignValidate.getResponseCode());
-        geoProviderGoogleDistAssignValidate.disconnect();
-
-        HttpURLConnection geoProviderTigerDistAssignValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NYgeoProvider=tiger");
-        assertEquals(200, geoProviderTigerDistAssignValidate.getResponseCode());
-        geoProviderTigerDistAssignValidate.disconnect();
-
-        HttpURLConnection providerStreetfileDistAssignValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/assign?addr=200%20State%20Street,%20Albany,%20NY,%20USA&provider=streetfile&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true" );
-        assertEquals(200, providerStreetfileDistAssignValidate.getResponseCode());
-        providerStreetfileDistAssignValidate.disconnect();
-
-        HttpURLConnection providerShapefileDistAssignValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/assign?addr=200%20State%20Street,%20Albany,%20NY,%20USA&provider=shapefile&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true");
-        assertEquals(200, providerShapefileDistAssignValidate.getResponseCode());
-        providerShapefileDistAssignValidate.disconnect();
-
-        HttpURLConnection skipGeocodeStreetfileDistAssignValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/assign?addr=200%20State%20Street,%20Albany,%20NY,%20USA&provider=streetfile&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true&skipGeocode=true");
-        assertEquals(200, skipGeocodeStreetfileDistAssignValidate.getResponseCode());
-        skipGeocodeStreetfileDistAssignValidate.disconnect();
-
-        HttpURLConnection RevGeocodeDistAssignValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/assign?lat=40.751352&lon=-73.980335");
-        assertEquals(200, RevGeocodeDistAssignValidate.getResponseCode());
-        RevGeocodeDistAssignValidate.disconnect();
-
-
-        //Geocode Batch Validation
-        CloseableHttpResponse standardGeocodeBatchValidate = prodReadinessTest.createHttpPostRequest(
-                baseUrl,
-                "/api/v2/geo/geocode/batch");
-        assertEquals(200, standardGeocodeBatchValidate.getStatusLine().getStatusCode());
-        standardGeocodeBatchValidate.close();
-
-        CloseableHttpResponse providerGoogleGeocodeBatchValidate = prodReadinessTest.createHttpPostRequest(
-                baseUrl,
-                "/api/v2/geo/geocode/batch?provider=google");
-        assertEquals(200, providerGoogleGeocodeBatchValidate.getStatusLine().getStatusCode());
-        providerGoogleGeocodeBatchValidate.close();
-
-        CloseableHttpResponse providerTigerBatchValidate = prodReadinessTest.createHttpPostRequest(
-                baseUrl,
-                "/api/v2/geo/geocode/batch?provider=Tiger");
-        assertEquals(200, providerTigerBatchValidate.getStatusLine().getStatusCode());
-        providerTigerBatchValidate.close();
-
-        //Dist Assign Batch Validation
-        CloseableHttpResponse standardDistAssignBatchValidate = prodReadinessTest.createHttpPostRequest(
-                baseUrl,
-                "/api/v2/district/assign/batch");
-        assertEquals(200, standardDistAssignBatchValidate.getStatusLine().getStatusCode());
-        standardDistAssignBatchValidate.close();
-
-        //Bluebird Batch Validation
-        CloseableHttpResponse standardBluebirdBatchValidate = prodReadinessTest.createHttpPostRequest(
-                baseUrl,
-                "/api/v2/district/bluebird/batch");
-        assertEquals(200, standardBluebirdBatchValidate.getStatusLine().getStatusCode());
-        standardBluebirdBatchValidate.close();
+    private void initializeTestAddresses() {
+        testAddresses.add(new Address("100 Nyroy Dr", "Troy", "NY", "12180"));
+        testAddresses.add(new Address("44 Fairlawn Ave","Albany","NY","12203"));
+        testAddresses.add(new Address("903 London Square Drive","Clifton Park","NY","12065"));
+        testAddresses.add(new Address("2825 Kingsland Ave","New York","NY","10496"));
+        testAddresses.add(new Address("535 Highland Ave","Rochester","NY","14620"));
+        testAddresses.add(new Address("46-08 74th Street","Flushing","NY","11373"));
+        testAddresses.add(new Address("200 State Street","Albany","NY","12210"));
     }
 
     private HttpURLConnection createHttpRequest(String ctxPath, String apiPath) throws Exception {
@@ -229,7 +64,7 @@ public class ProdReadinessTest {
     }
 
 
-    private CloseableHttpResponse createHttpPostRequest(String ctxPath, String apiPath) throws Exception {
+    private CloseableHttpResponse createHttpPostRequest(String ctxPath, String apiPath, String json) throws Exception {
         apiPath = apiPath.replaceAll(" ","%20");
         logger.info(ctxPath + apiPath + "\n");
         CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
@@ -239,5 +74,248 @@ public class ProdReadinessTest {
         httpPost.setHeader("Accept", "application/json");
         httpPost.setHeader("Content-type", "application/json");
         return client.execute(httpPost);
+    }
+
+    private JsonNode getResponseAndCloseStream(HttpURLConnection conn) throws IOException {
+        JsonNode jsonResponse = getResponseFromInputStream(conn.getInputStream());
+        conn.disconnect();
+        return jsonResponse;
+    }
+
+    private JsonNode getResponseFromInputStream(InputStream is) throws IOException {
+        String sageReponse = IOUtils.toString(is, "UTF-8");
+        JsonNode jsonResonse = new ObjectMapper().readTree(sageReponse);
+        is.close();
+        return jsonResonse;
+    }
+
+    private String turnAddressesIntoJson() {
+        Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
+        String prettyJson = prettyGson.toJson(this.testAddresses);
+        return prettyJson;
+    }
+
+    private int standardSuccessResponseCheck(JsonNode jsonResponse) {
+        return jsonResponse.get("statusCode").asInt();
+    }
+
+    private void batchSuccessResponseCheck(JsonNode jsonResponse) {
+        JsonNode results = jsonResponse.get("results");
+        results.forEach( (JsonNode addrResponse) ->
+                assertEquals(0,standardSuccessResponseCheck(addrResponse) ));
+    }
+
+    public static void main(String[] args) throws Exception {
+        ProdReadinessTest prodReadinessTest = new ProdReadinessTest();
+        prodReadinessTest.initializeTestAddresses();
+        String baseUrl = prodReadinessTest.getBaseUrl();
+        JsonNode jsonResponse;
+
+        String json = prodReadinessTest.turnAddressesIntoJson();
+
+        /**
+         *Test Address Api Functionality
+         */
+        HttpURLConnection addressValidate = prodReadinessTest.createHttpRequest(
+               baseUrl, "/api/v2/address/validate?addr1=44 Fairlawn Avenue&city=Albany&state=NY");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(addressValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse)); //Expected - Actual
+
+        HttpURLConnection citystateValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/address/citystate?zip5=12210");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(citystateValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection zipcodeValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/address/zipcode?addr1=44 Fairlawn Avenue&city=Albany&state=NY");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(zipcodeValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        /**
+         * Test Geo Api Functionality
+         */
+        HttpURLConnection standardGeoValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/geo/geocode?addr=200 State St, Albany NY 12210");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(standardGeoValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection splitGeoValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(splitGeoValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection providerGeocacheValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=geocache");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerGeocacheValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection providerGoogleValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=google");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerGoogleValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection providerTigerValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=tiger");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerTigerValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection bypassCacheUseFallBackValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&bypassCache=true&useFallBack=true");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(bypassCacheUseFallBackValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection revGeocodeValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/geo/revgeocode?lat=42.6533668&lon=-73.7621715");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(revGeocodeValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        /**
+         * Test Street Api
+         */
+        HttpURLConnection streetValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/street/lookup?zip5=12210");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(streetValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        /**
+         * Test Bluebird District Assignment api
+         */
+        HttpURLConnection standardBluebirdValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/district/bluebird?addr=280 Madison Ave NY");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(standardBluebirdValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection splitBluebirdValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/district/bluebird?addr1=280 Madison Ave&state=NY");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(splitBluebirdValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+
+        /**
+         * Test Standard District Assignment
+         */
+        HttpURLConnection standardDistAssignValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/district/assign?addr=280 Madison Ave, New York, NY");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(standardDistAssignValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection splitDistAssignValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(splitDistAssignValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection standardUIDistAssignValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/district/assign?addr=200 State Street,Albany,NY,USA&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(standardUIDistAssignValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection geoProviderGoogleDistAssignValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY&geoProvider=google");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(geoProviderGoogleDistAssignValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection geoProviderTigerDistAssignValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY&geoProvider=tiger");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(geoProviderTigerDistAssignValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection providerStreetfileDistAssignValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/district/assign?addr=200%20State%20Street,%20Albany,%20NY,%20USA&provider=streetfile&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true" );
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerStreetfileDistAssignValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection providerShapefileDistAssignValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/district/assign?addr=200%20State%20Street,%20Albany,%20NY,%20USA&provider=shapefile&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerShapefileDistAssignValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        HttpURLConnection revGeocodeDistAssignValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/district/assign?lat=40.751352&lon=-73.980335");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(revGeocodeDistAssignValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+
+        /**
+         * Geocode Batch Validation
+         */
+        CloseableHttpResponse standardGeocodeBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/geo/geocode/batch", json);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(standardGeocodeBatchValidate.getEntity().getContent());
+        standardGeocodeBatchValidate.close();
+        prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
+
+        CloseableHttpResponse providerGoogleGeocodeBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/geo/geocode/batch?provider=google", json);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(providerGoogleGeocodeBatchValidate.getEntity().getContent());
+        providerGoogleGeocodeBatchValidate.close();
+        prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
+
+        CloseableHttpResponse providerTigerBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/geo/geocode/batch?provider=tiger", json);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(providerTigerBatchValidate.getEntity().getContent());
+        providerTigerBatchValidate.close();
+        prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
+
+        /**
+         * Dist Assign Batch Validation
+         */
+        CloseableHttpResponse standardDistAssignBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/district/assign/batch", json);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(standardDistAssignBatchValidate.getEntity().getContent());
+        standardDistAssignBatchValidate.close();
+        prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
+
+        /**
+         * Bluebird Batch Validation
+         */
+        CloseableHttpResponse standardBluebirdBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/district/bluebird/batch", json);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(standardBluebirdBatchValidate.getEntity().getContent());
+        standardBluebirdBatchValidate.close();
+        prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
     }
 }
