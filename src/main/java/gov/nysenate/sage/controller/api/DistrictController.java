@@ -509,7 +509,7 @@ public class DistrictController {
 
     private void reorderAddress(DistrictRequest districtRequest) {
         Address reorderdAddress = StreetAddressParser.parseAddress(districtRequest.getAddress()).toAddress();
-        if (reorderdAddress.getState().isEmpty()) {
+        if (reorderdAddress.getState().isEmpty() && !reorderdAddress.isAddressBlank()) {
             reorderdAddress.setState("NY");
         }
         districtRequest.setAddress(reorderdAddress);

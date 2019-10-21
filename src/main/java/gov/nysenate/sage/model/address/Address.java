@@ -208,6 +208,10 @@ public class Address implements Serializable, Cloneable
         return (!addr1.isEmpty() && (!zip5.isEmpty() || (!city.isEmpty() && !state.isEmpty())));
     }
 
+    public boolean isAddressBlank() {
+        return (addr1.isEmpty() && addr2.isEmpty() && city.isEmpty() && state.isEmpty() && zip5.isEmpty() && zip4.isEmpty());
+    }
+
     @Override
     public Address clone()
     {
