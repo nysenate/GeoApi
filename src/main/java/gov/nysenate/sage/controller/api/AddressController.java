@@ -199,7 +199,7 @@ public final class AddressController
      * @param punct boolean
      * @throws IOException
      */
-    @RequestMapping(value = "/batch/validate", method = RequestMethod.GET)
+    @RequestMapping(value = "/validate/batch", method = RequestMethod.POST)
     public void addressBatchValidate(HttpServletRequest request, HttpServletResponse response,
                                      @RequestParam(required = false) String provider,
                                      @RequestParam(required = false) boolean punct) throws IOException {
@@ -214,7 +214,14 @@ public final class AddressController
 
         if (checkProvider(provider)) {
             if (addresses != null && !addresses.isEmpty()) {
-                AddressService addressService = addressProvider.getProviders().get(provider);
+                AddressService addressService;
+                if (provider == null || provider.isEmpty()) {
+                    addressService = addressProvider.getDefaultProvider();
+                }
+                else {
+                    addressService = addressProvider.getProviders().get(provider);
+                }
+
                 addressResponse = new BatchValidateResponse(addressService.validate(addresses));
             }
         }
@@ -236,7 +243,7 @@ public final class AddressController
      * @param provider String
      * @param punct boolean
      */
-    @RequestMapping(value = "/batch/citystate", method = RequestMethod.GET)
+    @RequestMapping(value = "/citystate/batch", method = RequestMethod.POST)
     public void addressBatchCityState(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(required = false) String provider,
                                       @RequestParam(required = false) boolean punct) throws IOException {
@@ -251,7 +258,13 @@ public final class AddressController
 
         if (checkProvider(provider)) {
             if (addresses != null && !addresses.isEmpty()) {
-                AddressService addressService = addressProvider.getProviders().get(provider);
+                AddressService addressService;
+                if (provider == null || provider.isEmpty()) {
+                    addressService = addressProvider.getDefaultProvider();
+                }
+                else {
+                    addressService = addressProvider.getProviders().get(provider);
+                }
                 addressResponse = new BatchCityStateResponse(addressService.lookupCityState(addresses));
             }
         }

@@ -24,6 +24,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
 
+import static gov.nysenate.sage.model.result.ResultStatus.NO_ADDRESS_VALIDATE_RESULT;
+
 /**
  * Data abstraction layer for querying the USPS AMS web service to perform address and city/state
  * lookups.
@@ -177,7 +179,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao
                 addressResult.setAddress(validatedAddress);
             }
             else {
-                addressResult.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+                addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
             }
             addressResult.setResultTime(TimeUtil.currentTimestamp());
             return addressResult;
@@ -278,6 +280,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao
             else
             {
                 addressResult.setValidated(false);
+                addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
             }
             addressResult.setResultTime(TimeUtil.currentTimestamp());
             return addressResult;
