@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.geo.Point;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -14,7 +15,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import org.junit.Test;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.function.Consumer;
 
 public class ProdReadinessTest {
 
@@ -30,6 +29,8 @@ public class ProdReadinessTest {
     private String baseUrl = "http://localhost:8082"; //TODO change to 8080
 
     private ArrayList<Address> testAddresses = new ArrayList<>();
+    private ArrayList<Point> testPoints = new ArrayList<>();
+    private ArrayList<Integer> testZips = new ArrayList<>();
 
     public String getBaseUrl() {
         return this.baseUrl;
@@ -39,10 +40,28 @@ public class ProdReadinessTest {
         testAddresses.add(new Address("100 Nyroy Dr", "Troy", "NY", "12180"));
         testAddresses.add(new Address("44 Fairlawn Ave","Albany","NY","12203"));
         testAddresses.add(new Address("903 London Square Drive","Clifton Park","NY","12065"));
-        testAddresses.add(new Address("2825 Kingsland Ave","New York","NY","10496"));
         testAddresses.add(new Address("535 Highland Ave","Rochester","NY","14620"));
         testAddresses.add(new Address("46-08 74th Street","Flushing","NY","11373"));
         testAddresses.add(new Address("200 State Street","Albany","NY","12210"));
+    }
+
+    private void initializeTestPoints() { //These correspond directly to the addresses in the testAddresses array
+        testPoints.add(new Point(42.7410467,-73.6691371));
+        testPoints.add(new Point(42.6711474,-73.79940049999999));
+        testPoints.add(new Point(42.8666825,-73.8010151));
+        testPoints.add(new Point(40.8677979,-73.83986170000001));
+        testPoints.add(new Point(43.13010999999999,-77.5993111));
+        testPoints.add(new Point(40.7397789,-73.88993359999999));
+        testPoints.add(new Point(42.6533668, -73.7599828));
+    }
+
+    private void initializeTestZips() {
+        testZips.add(12180);
+        testZips.add(12203);
+        testZips.add(12065);
+        testZips.add(14620);
+        testZips.add(11373);
+        testZips.add(12210);
     }
 
     private HttpURLConnection createHttpRequest(String ctxPath, String apiPath) throws Exception {
@@ -90,9 +109,16 @@ public class ProdReadinessTest {
     }
 
     private String turnAddressesIntoJson() {
+        return convertObjToJson(this.testAddresses);
+    }
+
+    private String turnPointsIntoJson() {
+        return convertObjToJson(this.testPoints);
+    }
+
+    private String convertObjToJson(ArrayList arrayList) {
         Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
-        String prettyJson = prettyGson.toJson(this.testAddresses);
-        return prettyJson;
+        return prettyGson.toJson(arrayList);
     }
 
     private int standardSuccessResponseCheck(JsonNode jsonResponse) {
@@ -105,13 +131,28 @@ public class ProdReadinessTest {
                 assertEquals(0,standardSuccessResponseCheck(addrResponse) ));
     }
 
+    private void cityStateBatchResponseCheck(JsonNode jsonResponse) {
+        JsonNode results = jsonResponse.get("results");
+        results.forEach( (JsonNode result) ->
+                assertEquals(true, result.get("success").asBoolean() ));
+    }
+
+    private void addressBatchValidateResponseCheck(JsonNode jsonResponse) {
+        JsonNode results = jsonResponse.get("results");
+        results.forEach( (JsonNode result) ->
+                assertEquals("\"SUCCESS\"", result.get("status").toString() ));
+    }
+
     public static void main(String[] args) throws Exception {
         ProdReadinessTest prodReadinessTest = new ProdReadinessTest();
         prodReadinessTest.initializeTestAddresses();
+        prodReadinessTest.initializeTestPoints();
+        prodReadinessTest.initializeTestZips();
         String baseUrl = prodReadinessTest.getBaseUrl();
         JsonNode jsonResponse;
 
-        String json = prodReadinessTest.turnAddressesIntoJson();
+        String addressJson = prodReadinessTest.turnAddressesIntoJson();
+        String pointJson = prodReadinessTest.turnPointsIntoJson();
 
         /**
          *Test Address Api Functionality
@@ -273,29 +314,56 @@ public class ProdReadinessTest {
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(revGeocodeDistAssignValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
+        /**
+         * Address Batch Validation
+         */
+        CloseableHttpResponse addressBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/address/validate/batch", addressJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(addressBatchValidate.getEntity().getContent());
+        addressBatchValidate.close();
+        prodReadinessTest.addressBatchValidateResponseCheck(jsonResponse);
+
+
+        CloseableHttpResponse cityStateBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/address/citystate/batch", addressJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(cityStateBatchValidate.getEntity().getContent());
+        cityStateBatchValidate.close();
+        prodReadinessTest.cityStateBatchResponseCheck(jsonResponse);
 
         /**
          * Geocode Batch Validation
          */
         CloseableHttpResponse standardGeocodeBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
-                "/api/v2/geo/geocode/batch", json);
+                "/api/v2/geo/geocode/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(standardGeocodeBatchValidate.getEntity().getContent());
         standardGeocodeBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
         CloseableHttpResponse providerGoogleGeocodeBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
-                "/api/v2/geo/geocode/batch?provider=google", json);
+                "/api/v2/geo/geocode/batch?provider=google", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(providerGoogleGeocodeBatchValidate.getEntity().getContent());
         providerGoogleGeocodeBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
         CloseableHttpResponse providerTigerBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
-                "/api/v2/geo/geocode/batch?provider=tiger", json);
+                "/api/v2/geo/geocode/batch?provider=tiger", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(providerTigerBatchValidate.getEntity().getContent());
         providerTigerBatchValidate.close();
+        prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
+
+        /**
+         * RevGeocode Batch Validation
+         */
+        CloseableHttpResponse revGeocodeBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/geo/revgeocode/batch", pointJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(revGeocodeBatchValidate.getEntity().getContent());
+        revGeocodeBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
         /**
@@ -303,9 +371,16 @@ public class ProdReadinessTest {
          */
         CloseableHttpResponse standardDistAssignBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
-                "/api/v2/district/assign/batch", json);
+                "/api/v2/district/assign/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(standardDistAssignBatchValidate.getEntity().getContent());
         standardDistAssignBatchValidate.close();
+        prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
+
+        CloseableHttpResponse pointDistAssignBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/district/assign/batch", pointJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(pointDistAssignBatchValidate.getEntity().getContent());
+        pointDistAssignBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
         /**
@@ -313,9 +388,16 @@ public class ProdReadinessTest {
          */
         CloseableHttpResponse standardBluebirdBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
-                "/api/v2/district/bluebird/batch", json);
+                "/api/v2/district/bluebird/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(standardBluebirdBatchValidate.getEntity().getContent());
         standardBluebirdBatchValidate.close();
+        prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
+
+        CloseableHttpResponse pointBluebirdBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/district/bluebird/batch", pointJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(pointBluebirdBatchValidate.getEntity().getContent());
+        pointBluebirdBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
     }
 }
