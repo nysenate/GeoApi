@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
@@ -230,17 +232,16 @@ public class HttpUSPSAMSDao implements USPSAMSDao
         List<AddressResult> addressResults = new ArrayList<>();
         if (addresses != null)
         {
-            JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
-            ArrayNode requestRoot = jsonNodeFactory.arrayNode();
+            ArrayList<String> zip5List = new ArrayList();
             for (Address address : addresses) {
                 if(address.getZip5() != null)
                 {
-                    ObjectNode addressNode = jsonNodeFactory.objectNode();
-                    addressNode.put("zip5", address.getZip5());
-                    requestRoot.add(addressNode);
+                    zip5List.add(address.getZip5());
                 }
             }
-                String jsonPayload = requestRoot.toString();
+            Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
+
+                String jsonPayload = prettyGson.toJson(zip5List);
                 String url = DEFAULT_BASE_URL + CITYSTATE_METHOD + "?batch=true&initCaps=true";
                 try {
                     String json = UrlRequest.getResponseFromUrlUsingPOST(url, jsonPayload);

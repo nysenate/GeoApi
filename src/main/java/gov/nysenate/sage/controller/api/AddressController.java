@@ -236,7 +236,7 @@ public final class AddressController
      * Batch city state validation with USPS
      *
      * Usage:
-     * (GET)    /api/v2/address/batch/citystate
+     * (GET)    /api/v2/address/citystate/batch
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
