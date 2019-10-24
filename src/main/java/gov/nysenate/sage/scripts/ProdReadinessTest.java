@@ -22,18 +22,26 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Properties;
 
 public class ProdReadinessTest {
 
     private static Logger logger = LoggerFactory.getLogger(ProdReadinessTest.class);
-    private String baseUrl = "http://localhost:8082"; //TODO change to 8080
+    private String baseUrl = "http://localhost:8080";
 
+    Properties prop =  new Properties();
     private ArrayList<Address> testAddresses = new ArrayList<>();
     private ArrayList<Point> testPoints = new ArrayList<>();
     private ArrayList<Integer> testZips = new ArrayList<>();
 
     public String getBaseUrl() {
         return this.baseUrl;
+    }
+
+    private void initializeProperties() throws IOException, NullPointerException {
+        InputStream appPropsStream = getClass().getResourceAsStream("/app.properties");
+        this.prop.load(appPropsStream);
+        this.baseUrl = this.prop.getProperty("base.url");
     }
 
     private void initializeTestAddresses() {
@@ -145,12 +153,29 @@ public class ProdReadinessTest {
 
     public static void main(String[] args) throws Exception {
         ProdReadinessTest prodReadinessTest = new ProdReadinessTest();
+
+        /**
+         * Gets the base url from app.properties and ensures the content for testing is ready
+         */
+        try {
+            prodReadinessTest.initializeProperties();
+        }
+        catch (IOException e) {
+            logger.warn("Unable to initialize properties" + e);
+        }
+        catch (NullPointerException e) {
+            logger.warn("Unable to initialize properties" + e);
+        }
         prodReadinessTest.initializeTestAddresses();
         prodReadinessTest.initializeTestPoints();
         prodReadinessTest.initializeTestZips();
+
+
+        /**
+         * Common variables used by the test api calls
+         */
         String baseUrl = prodReadinessTest.getBaseUrl();
         JsonNode jsonResponse;
-
         String addressJson = prodReadinessTest.turnAddressesIntoJson();
         String pointJson = prodReadinessTest.turnPointsIntoJson();
 
