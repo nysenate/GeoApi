@@ -162,10 +162,21 @@ public class ProdReadinessTest {
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(addressValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse)); //Expected - Actual
 
-        HttpURLConnection citystateValidate = prodReadinessTest.createHttpRequest(
+        HttpURLConnection providerAisAddressValidate = prodReadinessTest.createHttpRequest(
+                baseUrl, "/api/v2/address/validate?addr1=44 Fairlawn Avenue&city=Albany&state=NY&provider=uspsais");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerAisAddressValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+        HttpURLConnection cityStateValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
                 "/api/v2/address/citystate?zip5=12210");
-        jsonResponse = prodReadinessTest.getResponseAndCloseStream(citystateValidate);
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(cityStateValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+        HttpURLConnection providerAisCityStateValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/address/citystate?zip5=12210&provider=uspsais");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerAisCityStateValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
 
@@ -173,6 +184,12 @@ public class ProdReadinessTest {
                 baseUrl,
                 "/api/v2/address/zipcode?addr1=44 Fairlawn Avenue&city=Albany&state=NY");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(zipcodeValidate);
+        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
+
+        HttpURLConnection providerAisZipcodeValidate = prodReadinessTest.createHttpRequest(
+                baseUrl,
+                "/api/v2/address/zipcode?addr1=44 Fairlawn Avenue&city=Albany&state=NY&provider=uspsais");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerAisZipcodeValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
 
