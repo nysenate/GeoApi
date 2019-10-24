@@ -134,7 +134,7 @@ public class ProdReadinessTest {
     private void cityStateBatchResponseCheck(JsonNode jsonResponse) {
         JsonNode results = jsonResponse.get("results");
         results.forEach( (JsonNode result) ->
-                assertEquals(true, result.get("success").asBoolean() ));
+                assertEquals(0, result.get("statusCode").asInt() ));
     }
 
     private void addressBatchValidateResponseCheck(JsonNode jsonResponse) {
@@ -324,12 +324,26 @@ public class ProdReadinessTest {
         addressBatchValidate.close();
         prodReadinessTest.addressBatchValidateResponseCheck(jsonResponse);
 
+        CloseableHttpResponse providerAisAddressBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/address/validate/batch?provider=uspsais", addressJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(providerAisAddressBatchValidate.getEntity().getContent());
+        providerAisAddressBatchValidate.close();
+        prodReadinessTest.addressBatchValidateResponseCheck(jsonResponse);
+
 
         CloseableHttpResponse cityStateBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
                 "/api/v2/address/citystate/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(cityStateBatchValidate.getEntity().getContent());
         cityStateBatchValidate.close();
+        prodReadinessTest.cityStateBatchResponseCheck(jsonResponse);
+
+        CloseableHttpResponse providerAisCityStateBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/address/citystate/batch?provider=uspsais", addressJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(providerAisCityStateBatchValidate.getEntity().getContent());
+        providerAisCityStateBatchValidate.close();
         prodReadinessTest.cityStateBatchResponseCheck(jsonResponse);
 
         /**
