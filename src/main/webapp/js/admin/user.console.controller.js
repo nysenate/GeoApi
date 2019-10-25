@@ -13,6 +13,7 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
     $scope.getCurrentApiUsers = function() {
         $http.get(baseAdminApi + "/currentApiUsers").success(function(data){
             $scope.currentApiUsers = data;
+            $scope.resetApiUser();
         }).error(function(data){
             console.log("Failed to retrieve list of current Api users!");
         });
@@ -21,6 +22,7 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
     $scope.getCurrentJobUsers = function() {
         $http.get(baseAdminApi + "/currentJobUsers").success(function(data){
             $scope.currentJobUsers = data;
+            $scope.resetJobUser();
         }).error(function(data){
             console.log("Failed to retrieve list of current Job users!")
         });
@@ -35,7 +37,11 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
                 .success(function(data){
                     if (data) {
                         alert(data.message);
-                        if (data.success) $scope.getCurrentApiUsers();
+                        if (data.success) {
+                            $scope.getCurrentApiUsers();
+                            $scope.resetApiUser();
+                        }
+
                     }
                     else {
                         alert("Failed to add Api User!")
@@ -44,6 +50,12 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
                 console.log("Failed to add Api User, invalid response from Admin Api.");
             });
         }
+    };
+
+    $scope.resetApiUser = function() {
+        this.apiUserName = '';
+        this.apiUserDesc = '';
+        this.apiUserAdmin = false;
     };
 
     $scope.deleteApiUser = function(id) {
@@ -72,12 +84,21 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
                         alert(data.message);
                         if (data.success) {
                             $scope.getCurrentJobUsers();
+                            $scope.resetJobUser();
                         }
                     }
                 }).error(function(data){
                 console.log("Failed to create Job User, invalid response from Admin Api");
             });
         }
+    };
+
+    $scope.resetJobUser = function() {
+        this.jobEmail = '';
+        this.jobPassword = '';
+        this.jobFirstName = '';
+        this.jobLastName = '';
+        this.jobAdmin = false;
     };
 
     $scope.deleteJobUser = function(id) {
