@@ -33,8 +33,13 @@ public class ConstantUtil {
 
 
     public static String ZIPS_DIRECTORY = "/data/geoapi_data/zips/";
+
     public static String ZIPCODESTOGO_FILE = "zipcodestogo.csv";
     public static String ZIPCODES_FILE = "zipcodes.csv";
     public static String LAST_ZIPCODE_FILE = "final_list_zipcodes.csv";
+
+    public static String ZIPS_IN_DISTRICTS_TABLE = "current_list_of_district_zipcodes.csv";
+    public static String ZIPS_IN_FINAL_LIST_ZIPCODES = "final_zips.csv";
+    public static String ZIPS_MISSING_FILE = "zipcodes_missing_from_db.csv";
 
 }
