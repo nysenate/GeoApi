@@ -349,7 +349,7 @@
                                     <td>{{process.completeTime | date:'medium'}}</td>
                                     <td ng-style="getConditionStyle(process.condition)">{{process.condition | conditionFilter}}</td>
                                     <td>
-                                        <a ng-show="process.condition | conditionSuccess" style="padding:2px;" ng-href="${downloadBaseUrl}{{process.process.fileName}}">Download</a>
+                                        <a ng-show="process.condition | conditionSuccess" style="padding:2px;" ng-href="${downloadBaseUrl}download/{{process.process.fileName}}">Download</a>
                                     </td>
                                 </tr>
                             </table>
