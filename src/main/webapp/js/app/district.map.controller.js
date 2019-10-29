@@ -117,6 +117,9 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
      * @returns {string}
      */
     $scope.getIntersectUrl = function () {
+        if(this.selectedDistrict.district === null) {
+            this.intersectType = "none";
+        }
         var url = contextPath + baseApi + "/district/intersect?sourceType=" + this.type + "&sourceId=" + this.selectedDistrict.district;
         url += "&intersectType=" + this.intersectType;
         url = url.replace(/#/g, ""); // Pound marks mess up the query string

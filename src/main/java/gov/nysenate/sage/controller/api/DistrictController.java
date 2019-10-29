@@ -1,6 +1,7 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.district.*;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.district.SqlDistrictRequestLogger;
@@ -284,14 +285,23 @@ public class DistrictController {
         /** Create the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
 
-        DistrictRequest districtRequest = createFullIntersectRequest(apiRequest, DistrictType.resolveType(sourceType),
-                sourceId, DistrictType.resolveType(intersectType));
-        logIntersectRequest(apiRequest, districtRequest);
+        if (sourceId == null || sourceId.equals("null")) {
+            BaseResponse districtResponse = new BaseResponse();
+            districtResponse.setSource("DistrictController");
+            ArrayList<String> message = new ArrayList<>();
+            message.add("All districts overlay is not supported");
+            districtResponse.setMessages(message);
+            setApiResponse(districtResponse, request);
+        }
+        else {
+            DistrictRequest districtRequest = createFullIntersectRequest(apiRequest, DistrictType.resolveType(sourceType),
+                    sourceId, DistrictType.resolveType(intersectType));
+            logIntersectRequest(apiRequest, districtRequest);
 
-        DistrictResult districtResult = handleIntersectRequest(districtRequest, requestId);
-        MappedMultiDistrictResponse districtResponse = new MappedMultiDistrictResponse(districtResult);
-
-        setApiResponse(districtResponse, request);
+            DistrictResult districtResult = handleIntersectRequest(districtRequest, requestId);
+            MappedMultiDistrictResponse districtResponse = new MappedMultiDistrictResponse(districtResult);
+            setApiResponse(districtResponse, request);
+        }
         logElapsedTime(startTime, apiRequest);
     }
 

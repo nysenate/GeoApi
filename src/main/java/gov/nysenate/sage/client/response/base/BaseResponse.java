@@ -60,4 +60,16 @@ public class BaseResponse
     {
         return this.messages;
     }
+
+    public void setStatus(ResultStatus status) {
+        this.status = status;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public void setMessages(List<String> messages) {
+        this.messages = messages;
+    }
 }
