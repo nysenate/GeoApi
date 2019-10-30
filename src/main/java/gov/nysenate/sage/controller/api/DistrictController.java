@@ -285,11 +285,11 @@ public class DistrictController {
         /** Create the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
 
-        if (sourceId == null || sourceId.equals("null")) {
+        if (sourceId == null || sourceId.equals("null") || sourceId.isEmpty() || sourceType.equals(intersectType)) {
             BaseResponse districtResponse = new BaseResponse();
             districtResponse.setSource("DistrictController");
             ArrayList<String> message = new ArrayList<>();
-            message.add("All districts overlay is not supported");
+            message.add("All districts overlay and same type overlay is not supported");
             districtResponse.setMessages(message);
             setApiResponse(districtResponse, request);
         }

@@ -68,7 +68,9 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
                         }
                     });
                 }
-                $scope.districtList.unshift({district:null, name:'All districts'});
+                if ($scope.type !== "") {
+                    $scope.districtList.unshift({district:null, name:'All districts'});
+                }
             })
             .error(function(data){});
     };
@@ -79,11 +81,13 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
     $scope.lookup = function () {
         uiBlocker.block("Loading " + this.type + " maps...");
         // If there is no intersection type specified, we can just retrieve the map
-        if (this.intersectType === "none") {
+        if (this.intersectType === "none" || this.type === this.intersectType || this.selectedDistrict.district === null) {
             $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.district, false))
                 .success(function(data) {
+                    mapService.clearAll();
                     dataBus.setBroadcast("districtMap", data);
                 }).error(function(data) {
+                mapService.clearAll();
                 uiBlocker.unBlock();
                 alert("Failed to retrieve district maps.");
             });
@@ -93,10 +97,12 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
             mapService.clearAll();
             $http.get(this.getIntersectUrl())
                 .success(function(data) {
+                    mapService.clearAll();
                     dataBus.setBroadcastAndView("districtInfo", data, "districtsView");
                 }).error(function(data, status, headers, config) {
+                mapService.clearAll();
                 uiBlocker.unBlock();
-                alert("You must select the type and district / member first");
+                alert("You must select the type and district / member first. Same source and Intersection type is not supported");
             });
         }
     };
@@ -117,8 +123,9 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
      * @returns {string}
      */
     $scope.getIntersectUrl = function () {
-        if(this.selectedDistrict.district === null) {
+        if(this.selectedDistrict.district === null || this.selectedDistrict.district === "") {
             this.intersectType = "none";
+            this.selectedDistrict.district = "";
         }
         var url = contextPath + baseApi + "/district/intersect?sourceType=" + this.type + "&sourceId=" + this.selectedDistrict.district;
         url += "&intersectType=" + this.intersectType;
