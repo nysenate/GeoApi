@@ -17,6 +17,7 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
     $scope.showOptions = false;
     $scope.sortedMemberList = [];
     $scope.districtList = [];
+    $scope.showIntersectMenu = false;
 
 
     $scope.$on(menuService.menuToggleEvent, function() {
@@ -81,10 +82,11 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
     $scope.lookup = function () {
         uiBlocker.block("Loading " + this.type + " maps...");
         // If there is no intersection type specified, we can just retrieve the map
-        if (this.intersectType === "none" || this.type === this.intersectType || this.selectedDistrict.district === null) {
+        if ($scope.intersectType === "none" || $scope.type === $scope.intersectType || $scope.selectedDistrict.district === null) {
             $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.district, false))
                 .success(function(data) {
                     mapService.clearAll();
+                    $scope.showIntersectMenu = $scope.selectedDistrict.name !== "All districts";
                     dataBus.setBroadcast("districtMap", data);
                 }).error(function(data) {
                 mapService.clearAll();
@@ -123,12 +125,13 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
      * @returns {string}
      */
     $scope.getIntersectUrl = function () {
-        if(this.selectedDistrict.district === null || this.selectedDistrict.district === "") {
-            this.intersectType = "none";
-            this.selectedDistrict.district = "";
+        if($scope.selectedDistrict.district === null || $scope.selectedDistrict.district === "") {
+            $scope.intersectType = "none";
+            $scope.selectedDistrict.district = "";
+            $scope.showIntersectMenu = false;
         }
-        var url = contextPath + baseApi + "/district/intersect?sourceType=" + this.type + "&sourceId=" + this.selectedDistrict.district;
-        url += "&intersectType=" + this.intersectType;
+        var url = contextPath + baseApi + "/district/intersect?sourceType=" + $scope.type + "&sourceId=" + $scope.selectedDistrict.district;
+        url += "&intersectType=" + $scope.intersectType;
         url = url.replace(/#/g, ""); // Pound marks mess up the query string
         return url;
     };

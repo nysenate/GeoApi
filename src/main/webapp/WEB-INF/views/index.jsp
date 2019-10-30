@@ -280,7 +280,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div style="margin-top:10px;padding:5px;">
+                        <div style="margin-top:10px;padding:5px;" ng-show="showIntersectMenu">
                             <label for="IntersectionMenu" class="menu-overhead">View intersection with:</label>
                             <select id="IntersectionMenu" class="menu" style="width:100px;" ng-model="intersectType"
                                     ng-change="lookup()">
