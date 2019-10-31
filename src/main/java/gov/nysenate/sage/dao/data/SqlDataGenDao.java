@@ -3,6 +3,7 @@ package gov.nysenate.sage.dao.data;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.scripts.streetfinder.County;
 import gov.nysenate.sage.scripts.streetfinder.TownCode;
+import gov.nysenate.sage.model.datagen.ZipCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -31,4 +32,16 @@ public class SqlDataGenDao implements DataGenDao {
                         baseDao.getDistrictSchema()), (rs, rowNum) ->
                         new TownCode(rs.getString("name"),rs.getString("abbrev") ));
     }
+
+    public List<ZipCode> getZipCodes() {
+
+        return baseDao.geoApiNamedJbdcTemaplate.query(
+                DataGenQuery.SELECT_DISTRICT_ZIP.getSql(
+                        baseDao.getDistrictSchema()), (rs, rowNum) ->
+                        new ZipCode(rs.getString("zcta5ce10")));
+
+
+    }
+
+
 }

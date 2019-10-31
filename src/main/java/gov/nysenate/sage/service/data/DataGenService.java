@@ -16,6 +16,7 @@ import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.scripts.streetfinder.County;
 import gov.nysenate.sage.scripts.streetfinder.TownCode;
+import gov.nysenate.sage.model.datagen.ZipCode;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.sage.util.ImageUtil;
@@ -36,8 +37,8 @@ import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.rmi.server.ExportException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -385,14 +386,29 @@ public class DataGenService implements SageDataGenService {
      * Connects to the following two services: createZipCodesToGoFile and createZipCodesFile,
      * creates and compares the two files that was created.
      * A file that results from the comparison called final_list_zipcodes.csv will be created.
+     *
+     * * IN CASE YOU'VE DELETED final_list_zipcodes.csv file:
+     *      * Run generateZipCsv(), a newly created Final_list_zipcodes.csv will have 58 missing types.
+     *      * Use the file missing.csv to manually enter the types, almost all the missing types
+     *      * are taken from the usps_zip_code_database.csv.
+     *      *
+     *      * Right now, I have entered the missing types.So, I would advise not to delete this file unless there
+     *      * is a major change.
+     *
+     * ~Levidu
      */
     public Object generateZipCsv() throws Exception {
         Object generateResponse;
-        boolean createZipCodesToGoFile = false;
-        boolean createZipCodesFile = false;
+        boolean createZipCodesToGoFile;
+        boolean createZipCodesFile;
         createZipCodesToGoFile = siteZipCodesToGoCsv();
         createZipCodesFile = siteZipCodesCsv();
+        File finalZipFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
         if (createZipCodesToGoFile && createZipCodesFile) {
+            if (finalZipFile.exists()) {
+                logger.info("final_list_zipcodes.csv file already exists");
+                return true;
+            }
             generateResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
             HashMap<String,String> mapZips = new HashMap<String,String>();
             try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
@@ -442,6 +458,8 @@ public class DataGenService implements SageDataGenService {
     /**
      * Connects to zipcodestogo.com and retrieves all the zip codes
      * present in the first table and writes to a csv file
+     *
+     * ~Levidu
      */
     private boolean siteZipCodesToGoCsv() {
         try {
@@ -463,8 +481,8 @@ public class DataGenService implements SageDataGenService {
             writerZipsCodesToGo.close();
             return true;
         }
-        catch (IOException excep) {
-            logger.error("Error creating zipcodestogo.csv file", excep);
+        catch (IOException e) {
+            logger.error("Error creating zipcodestogo.csv file", e);
             return false;
         }
     }
@@ -472,6 +490,8 @@ public class DataGenService implements SageDataGenService {
     /**
      * Connects to zip-codes.com and retrieves all the zip codes
      * present in the first table and writes to a csv file
+     *
+     * ~Levidu
      */
     private boolean siteZipCodesCsv() {
         try {
@@ -503,11 +523,207 @@ public class DataGenService implements SageDataGenService {
             writerZipsCodes.close();
             return true;
         }
-        catch (IOException excep) {
-            logger.error("Error creating zipcodes.csv file", excep);
+        catch (IOException e) {
+            logger.error("Error creating zipcodes.csv file", e);
             return false;
         }
     }
+
+    /**
+     * To find the zip codes we are currently missing, the best option is to get the difference of zip codes (zcta5ce10)
+     * from the current database (districts.zip) and the newly created zip codes file final final_list_zipcodes.csv
+     * A file that results from the intersection called zipcodes_missing_from_db.csv will be created.
+     * This file will be used to create geoJSON and shapefiles for the missing zip codes in the database.
+     *
+     * ~Levidu
+     */
+    public Object generateMissingZipCodeCSV() throws Exception {
+        Object generateResponse;
+        boolean copyZipCodesFromDb;
+        boolean copyFinalZipCodesFromFinalList;
+
+        copyZipCodesFromDb = copyCurrentZipCodesFile();
+        copyFinalZipCodesFromFinalList= copyFinalZipCodes();
+        if (copyFinalZipCodesFromFinalList && copyZipCodesFromDb) {
+            generateResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+            Set<String> newList = new HashSet<String>();
+            Set<String> oldList = new HashSet<String>();
+            Stream<String> firstStream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
+                    + ConstantUtil.ZIPS_IN_FINAL_LIST_ZIPCODES));
+            firstStream.forEach(newList::add);
+
+            Stream<String> secondStream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPS_IN_DISTRICTS_TABLE));
+            secondStream.forEach(oldList::add);
+            Set<String> difference = new HashSet<>(newList);
+            difference.removeAll(oldList);
+            try {
+                FileWriter writerMissingZips = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPS_MISSING_FILE);
+                PrintWriter outputWriter = new PrintWriter(writerMissingZips);
+                int count = 0;
+                for (String zip : difference) {
+                    outputWriter.println(zip);
+                    count++;
+                }
+                logger.info("Wrote " + count + " to zipcodes_missing_from_db.csv file");
+                writerMissingZips.close();
+                writerMissingZips.close();
+            }
+            catch (IOException e) {
+                logger.error("Error creating zipcodes_missing_from_db.csv file", e);
+                return false;
+            }
+        }
+        else {
+            generateResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        }
+        return generateResponse;
+    }
+
+    /**
+     * Zip codes from geoapi.district.zip will be copy to a file called current_list_of_district_zipcodes.csv.
+     *
+     * ~Levidu
+     */
+    private boolean copyCurrentZipCodesFile() {
+        try {
+            File zipCodesFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
+            if(zipCodesFile.exists()) {
+                List<ZipCode> zipCodesCodes = sqlDataGenDao.getZipCodes();
+                FileWriter fileWriter = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPS_IN_DISTRICTS_TABLE);
+                PrintWriter outputWriter = new PrintWriter(fileWriter);
+                int count = 0;
+                for (ZipCode zipCode : zipCodesCodes) {
+                    outputWriter.println(zipCode.toString());
+                    count++;
+                }
+                logger.info("Wrote " + count + " lines from district.zip to current_list_of_district_zipcodes.csv file");
+                fileWriter.close();
+                outputWriter.close();
+            }
+            return true;
+        }
+        catch (IOException e) {
+            logger.error("Error creating current_list_of_district_zipcodes.csv file", e);
+            return false;
+        }
+    }
+
+    /**
+     * Zip codes from final_list_zipcodes.csv will be copy to a file called final_zips.csv.
+     *
+     * ~Levidu
+     */
+    private boolean copyFinalZipCodes() {
+        try{
+            File zipCodesFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
+            if(zipCodesFile.exists()) {
+                FileWriter fileWriter = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPS_IN_FINAL_LIST_ZIPCODES);
+                PrintWriter outputWriter = new PrintWriter(fileWriter);
+                AtomicInteger atomicInteger = new AtomicInteger(0);
+                Stream<String> zipCodeStream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
+                        + ConstantUtil.LAST_ZIPCODE_FILE)); {
+//                    firstStream.forEach(f_list::add);
+                    zipCodeStream.forEach(line -> {
+                        String zip = line.split(",")[0];
+                        outputWriter.println(zip);
+                        atomicInteger.incrementAndGet();
+                    });
+                }
+                logger.info("Wrote " + atomicInteger.get() + " lines from final_list_zipcodes.csv to final_zips.csv file");
+
+                fileWriter.close();
+                outputWriter.close();
+                return true;
+            }
+            else {
+                logger.error("Error: Make sure final_list_zipcodes.csv file exists");
+                return false;
+            }
+        }
+        catch(IOException e) {
+            logger.error("Error creating current_list_of_district_zipcodes.csv file", e);
+            return false;
+        }
+    }
+
+
+    private boolean createGeoJson() {
+
+        File missingZipsFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
+
+        if(missingZipsFile.exists()) {
+
+            HashMap<String,String> mapZips = new HashMap<String,String>();
+
+            try (Stream<String> streamToMap = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
+                    + ConstantUtil.ZIPCODES_FILE))) {
+                streamToMap.forEach(line -> {
+                    String[] zipcodeType = line.split(",");
+                    String zip = zipcodeType[0];
+                    String type = zipcodeType[1].trim();
+                    mapZips.put(zip,type);
+                });
+            }
+            catch (IOException e) {
+                logger.error("Unable to read " + ConstantUtil.ZIPCODES_FILE);
+                return false;
+            }
+
+            ArrayList<String> missingZipCodes = new ArrayList<>();
+            try {
+                Stream < String > streamToCheck = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY +
+                        ConstantUtil.ZIPS_MISSING_FILE));
+                streamToCheck.forEach(missingZipCodes::add);
+            }
+            catch (IOException e) {
+                logger.error("Unable to read " + ConstantUtil.ZIPS_IN_DISTRICTS_TABLE);
+                return false;
+            }
+
+            for(String zip : missingZipCodes) {
+
+                if(mapZips.containsKey(zip)) {
+
+                    String type =   mapZips.get(zip);
+
+                    if(type.equals("Unique") || type.equals("Standard")) {
+                        sqlDataGenDao.getZipCodes();
+                    }
+
+                }
+
+
+            }
+
+            return true;
+
+
+
+
+
+        }
+        else {
+
+            logger.error("Error zipcodes_missing_from_db.csv file is not present");
+            return false;
+
+        }
+
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+
 
 
 }

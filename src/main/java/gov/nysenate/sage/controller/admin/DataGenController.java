@@ -167,7 +167,7 @@ public class DataGenController {
     public void generateZipCodeFiles(HttpServletRequest request, HttpServletResponse response,
                                  @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                  @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                                     @RequestParam(required = false, defaultValue = "") String key) {
+                                 @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
@@ -188,4 +188,39 @@ public class DataGenController {
 
         setAdminResponse(apiResponse, response);
     }
+
+
+
+    @RequestMapping(value = "zipcodes/missing", method = RequestMethod.GET)
+    public void generateMissingZipCodeFiles(HttpServletRequest request, HttpServletResponse response,
+                                     @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                     @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                     @RequestParam(required = false, defaultValue = "") String key) {
+        Object apiResponse;
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
+            try {
+                apiResponse = dataGenService.generateMissingZipCodeCSV();
+            }
+            catch (Exception e) {
+                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+            }
+        }
+        else {
+            apiResponse = invalidAuthResponse();
+        }
+
+        setAdminResponse(apiResponse, response);
+    }
+
+
+
+
+
+
+
 }
