@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.provider.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.security.ApiKeyLoginToken;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.SecurityUtils;
@@ -88,7 +89,13 @@ public final class AddressController
 
         if (checkProvider(provider)) {
             Address address = getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4);
-            addressResponse = new ValidateResponse(addressProvider.validate(address, provider, punct));
+            if (FormatUtil.isStringEmptyorNull(provider)) {
+                addressResponse = new ValidateResponse(addressProvider.validate(address, provider, punct));
+            }
+            else {
+                addressResponse = new ValidateResponse(addressProvider.validate(address, provider.toLowerCase(), punct));
+            }
+
         }
         setApiResponse(addressResponse, request);
 
@@ -134,7 +141,13 @@ public final class AddressController
 
         if (checkProvider(provider)) {
             Address address = getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4);
-            addressResponse = new CityStateResponse(addressProvider.lookupCityState(address, provider));
+            if (FormatUtil.isStringEmptyorNull(provider)) {
+                addressResponse = new CityStateResponse(addressProvider.lookupCityState(address, provider));
+            }
+            else {
+                addressResponse = new CityStateResponse(addressProvider.lookupCityState(address, provider.toLowerCase()));
+            }
+
         }
         setApiResponse(addressResponse, request);
     }
@@ -179,7 +192,13 @@ public final class AddressController
 
         if (checkProvider(provider)) {
             Address address = getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4);
-            addressResponse = new ZipcodeResponse(addressProvider.lookupZipcode(address, provider));
+            if (FormatUtil.isStringEmptyorNull(provider)) {
+                addressResponse = new ZipcodeResponse(addressProvider.lookupZipcode(address, provider));
+            }
+            else {
+                addressResponse = new ZipcodeResponse(addressProvider.lookupZipcode(address, provider.toLowerCase()));
+            }
+
         }
         setApiResponse(addressResponse, request);
     }
@@ -219,7 +238,7 @@ public final class AddressController
                     addressService = addressProvider.getDefaultProvider();
                 }
                 else {
-                    addressService = addressProvider.getProviders().get(provider);
+                    addressService = addressProvider.getProviders().get(provider.toLowerCase());
                 }
 
                 addressResponse = new BatchValidateResponse(addressService.validate(addresses));
@@ -263,7 +282,7 @@ public final class AddressController
                     addressService = addressProvider.getDefaultProvider();
                 }
                 else {
-                    addressService = addressProvider.getProviders().get(provider);
+                    addressService = addressProvider.getProviders().get(provider.toLowerCase());
                 }
                 addressResponse = new BatchCityStateResponse(addressService.lookupCityState(addresses));
             }
@@ -288,7 +307,7 @@ public final class AddressController
     private boolean checkProvider(String provider) {
         boolean providerIsGood = true;
         if (provider != null && !provider.isEmpty()) {
-            if (!addressProvider.getProviders().containsKey(provider)) {
+            if (!addressProvider.getProviders().containsKey(provider.toLowerCase())) {
                 providerIsGood = false;
             }
         }

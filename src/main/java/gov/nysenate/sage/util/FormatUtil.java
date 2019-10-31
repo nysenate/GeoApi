@@ -26,6 +26,13 @@ public abstract class FormatUtil {
     protected static Logger logger = LoggerFactory.getLogger(FormatUtil.class);
     protected static ObjectMapper mapper = new ObjectMapper();
 
+    public static boolean isStringEmptyorNull(String string) {
+        if (string == null || string.isEmpty() ) {
+            return true;
+        }
+        return false;
+    }
+
     public static String toCamelCase(String s)
     {
         if (s != null && s.contains("_")) {
