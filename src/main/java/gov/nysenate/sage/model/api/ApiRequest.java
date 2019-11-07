@@ -1,5 +1,7 @@
 package gov.nysenate.sage.model.api;
 
+import gov.nysenate.sage.util.FormatUtil;
+
 import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -31,10 +33,10 @@ public class ApiRequest
     public ApiRequest(){};
 
     public ApiRequest(int version, String service, String request, boolean batch, InetAddress ipAddress) {
-        this.version = version;
-        this.service = service;
+        setVersion(version);
+        setService(service);
         this.isBatch = batch;
-        if (request != null) { this.request = request.toLowerCase().trim(); }
+        setRequest(request);
         this.apiRequestTime = new Timestamp(new Date().getTime());
         this.ipAddress = ipAddress;
     }
@@ -68,11 +70,15 @@ public class ApiRequest
     }
 
     public void setService(String service) {
-        this.service = service;
+        if (service != null) {
+            this.service = FormatUtil.cleanString( service );
+        }
     }
 
     public void setRequest(String request) {
-        this.request = request;
+        if (request != null) {
+            this.request = FormatUtil.cleanString( request.toLowerCase().trim() );
+        }
     }
 
     public void setBatch(boolean batch) {
@@ -100,7 +106,9 @@ public class ApiRequest
     }
 
     public void setProvider(String provider) {
-        this.provider = provider;
+        if (provider != null) {
+            this.provider = FormatUtil.cleanString( provider );
+        }
     }
 
     public void setApiRequestTime(Timestamp apiRequestTime)

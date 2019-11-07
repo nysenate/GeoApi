@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.provider.district.DistrictShapefile;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -76,6 +77,7 @@ public class MapController {
         MapResult mapResult;
         DistrictType districtType = DistrictType.resolveType(distType);
         if (districtCode != null) {
+            districtCode = FormatUtil.cleanString(districtCode);
             logger.info("Retrieving " + districtType.name() + " district " + districtCode + " map.");
             mapResult = districtShapefile.getDistrictMap(districtType, districtCode);
             if (showMembers || meta) {

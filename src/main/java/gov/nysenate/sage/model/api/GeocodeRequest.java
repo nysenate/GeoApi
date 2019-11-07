@@ -154,7 +154,7 @@ public class GeocodeRequest implements Cloneable
             this.provider = provider;
         }
         else {
-            this.provider = provider.toLowerCase();
+            this.provider = FormatUtil.cleanString( provider.toLowerCase());
         }
     }
 

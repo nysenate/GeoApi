@@ -87,7 +87,8 @@ public class ApiControllerUtil {
         Point point = null;
         if (r != null){
             try {
-                point = new Point(Double.parseDouble(r.getParameter("lat")), Double.parseDouble(r.getParameter("lon")));
+                point = new Point(Double.parseDouble( FormatUtil.cleanString(r.getParameter("lat"))),
+                        Double.parseDouble(FormatUtil.cleanString( r.getParameter("lon")) ));
             }
             catch (Exception ex) { /** Ignored Exception */ }
         }
@@ -105,7 +106,8 @@ public class ApiControllerUtil {
         Point point = null;
         if (lat != null && lon != null){
             try {
-                point = new Point(Double.parseDouble(lat), Double.parseDouble(lon));
+                point = new Point(Double.parseDouble(FormatUtil.cleanString(lat)),
+                        Double.parseDouble(FormatUtil.cleanString(lon)));
             }
             catch (Exception ex) { /** Ignored Exception */ }
         }

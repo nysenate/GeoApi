@@ -99,7 +99,7 @@ public class DistrictRequest implements Cloneable
         this.showMaps = showMaps;
         this.uspsValidate = uspsValidate;
         this.skipGeocode = skipGeocode;
-        this.districtStrategy = districtStrategy;
+        setDistrictStrategy(districtStrategy);
         this.requestTime = new Timestamp(new Date().getTime());
     }
 
@@ -176,7 +176,7 @@ public class DistrictRequest implements Cloneable
             this.provider = provider;
         }
         else {
-            this.provider = provider.toLowerCase();
+            this.provider = FormatUtil.cleanString( provider.toLowerCase());
         }
     }
 
@@ -189,7 +189,7 @@ public class DistrictRequest implements Cloneable
             this.geoProvider = geoProvider;
         }
         else {
-            this.geoProvider = geoProvider.toLowerCase();
+            this.geoProvider = FormatUtil.cleanString( geoProvider.toLowerCase());
         }
     }
 
@@ -243,7 +243,7 @@ public class DistrictRequest implements Cloneable
 
     public void setDistrictStrategy(String districtStrategy) {
         try {
-            this.districtStrategy = DistrictStrategy.valueOf(districtStrategy);
+            this.districtStrategy = DistrictStrategy.valueOf(FormatUtil.cleanString(districtStrategy));
         }
         catch (Exception ex) {
             this.districtStrategy = null;
