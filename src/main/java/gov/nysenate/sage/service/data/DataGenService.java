@@ -11,6 +11,7 @@ import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
 import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -19,6 +20,7 @@ import gov.nysenate.sage.scripts.streetfinder.TownCode;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.sage.util.ImageUtil;
+import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import gov.nysenate.services.NYSenateClientService;
 import gov.nysenate.services.NYSenateJSONClient;
@@ -337,21 +339,28 @@ public class DataGenService implements SageDataGenService {
     }
 
     private void getUpdatedGeocode(Office senatorOffice) {
+        Address officeAddress = new Address(senatorOffice.getStreet(),senatorOffice.getCity(),"NY",senatorOffice.getPostalCode());
+        officeAddress.setAddr1( senatorOffice.getStreet().toLowerCase().replaceAll("avesuite", "ave suite").replaceAll("avenuesuite", "avenue suite") );
+        officeAddress = StreetAddressParser.parseAddress(officeAddress).toAddress();
 
-        String urlString = env.getBaseUrl() + "/api/v2/geo/geocode?addr1=" +
-                senatorOffice.getStreet() + "&city=" + senatorOffice.getCity() +
-                "&state=NY&zip5=" + senatorOffice.getPostalCode();
+        StreetAddressParser.performInitCapsOnAddress(officeAddress);
+        String urlString = env.getBaseUrl() + "/api/v2/geo/geocode?addr1=" + "/api/v2/geo/geocode?addr1=" +
+                officeAddress.getAddr1() + "&addr2=" + officeAddress.getAddr2() + "&city=" + officeAddress.getCity() +
+                "&state=NY&zip5=" + officeAddress.getZip5();
         urlString = urlString.replaceAll(" ", "%20");
         try {
             URL url = new URL(urlString);
             InputStream is = url.openStream();
-            String sageReponse = IOUtils.toString(is, "UTF-8");
-            JsonNode jsonResonse = new ObjectMapper().readTree(sageReponse);
+            String sageResponse = IOUtils.toString(is, "UTF-8");
+            JsonNode jsonResponse = new ObjectMapper().readTree(sageResponse);
             is.close();
-            Geocode geocodedOffice = new ObjectMapper().readValue(jsonResonse.get("geocode").toString(), Geocode.class);
-            if (geocodedOffice != null) {
-                senatorOffice.setLatitude( geocodedOffice.getLat() );
-                senatorOffice.setLongitude( geocodedOffice.getLon() );
+
+            if (jsonResponse.get("status").toString().equals("\"SUCCESS\"")) {
+                Geocode geocodedOffice = new ObjectMapper().readValue(jsonResponse.get("geocode").toString(), Geocode.class);
+                if (geocodedOffice != null) {
+                    senatorOffice.setLatitude( geocodedOffice.getLat() );
+                    senatorOffice.setLongitude( geocodedOffice.getLon() );
+                }
             }
             else {
                 logger.error("SAGE was unable to geocode the address in the url: " + urlString);
