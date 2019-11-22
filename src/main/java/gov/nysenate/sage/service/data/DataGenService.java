@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.rmi.server.ExportException;
@@ -339,11 +341,21 @@ public class DataGenService implements SageDataGenService {
     }
 
     private void getUpdatedGeocode(Office senatorOffice) {
-        Address officeAddress = new Address(senatorOffice.getStreet(),senatorOffice.getCity(),"NY",senatorOffice.getPostalCode());
-        officeAddress.setAddr1( senatorOffice.getStreet().toLowerCase().replaceAll("avesuite", "ave suite").replaceAll("avenuesuite", "avenue suite") );
+        //Convert Senator Object info into an address
+        Address officeAddress = new Address(senatorOffice.getStreet(),senatorOffice.getCity(),
+                "NY",senatorOffice.getPostalCode());
+        officeAddress.setAddr1( senatorOffice.getStreet().toLowerCase()
+                .replaceAll("avesuite", "ave suite").replaceAll("avenuesuite", "avenue suite"));
+        //Reorder the address
         officeAddress = StreetAddressParser.parseAddress(officeAddress).toAddress();
-
+        //URL Encode all of the address parts
+        officeAddress.setAddr1( URLEncoder.encode(officeAddress.getAddr1(), StandardCharsets.UTF_8.toString())  );
+        officeAddress.setAddr2( URLEncoder.encode(officeAddress.getAddr2(), StandardCharsets.UTF_8.toString()) );
+        officeAddress.setCity( URLEncoder.encode(officeAddress.getCity(), StandardCharsets.UTF_8.toString()) );
+        officeAddress.setZip5( URLEncoder.encode(officeAddress.getZip5(), StandardCharsets.UTF_8.toString()) );
+        //Ensure Mixed Case
         StreetAddressParser.performInitCapsOnAddress(officeAddress);
+        //Construct Url String
         String urlString = env.getBaseUrl() + "/api/v2/geo/geocode?addr1=" + "/api/v2/geo/geocode?addr1=" +
                 officeAddress.getAddr1() + "&addr2=" + officeAddress.getAddr2() + "&city=" + officeAddress.getCity() +
                 "&state=NY&zip5=" + officeAddress.getZip5();
