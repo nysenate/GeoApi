@@ -340,7 +340,7 @@ public class DataGenService implements SageDataGenService {
         return false;
     }
 
-    private void getUpdatedGeocode(Office senatorOffice) {
+    private void getUpdatedGeocode(Office senatorOffice) throws UnsupportedEncodingException {
         //Convert Senator Object info into an address
         Address officeAddress = new Address(senatorOffice.getStreet(),senatorOffice.getCity(),
                 "NY",senatorOffice.getPostalCode());
