@@ -156,6 +156,7 @@ public class HandleNYSGeoDBInGeocache {
                         regeocacheUrl = StringUtils.deleteWhitespace(regeocacheUrl);
                         regeocacheUrl = regeocacheUrl.replaceAll("`", "");
                         regeocacheUrl = regeocacheUrl.replaceAll("#", "");
+                        regeocacheUrl = regeocacheUrl.replaceAll("\\\\", "");
 
                         //Execute URL
                         try {
