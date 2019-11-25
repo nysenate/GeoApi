@@ -143,6 +143,7 @@ public class RegeocacheService implements SageRegeocacheService{
                         regeocacheUrl = StringUtils.deleteWhitespace(regeocacheUrl);
                         regeocacheUrl = regeocacheUrl.replaceAll("`", "");
                         regeocacheUrl = regeocacheUrl.replaceAll("#", "");
+                        regeocacheUrl = regeocacheUrl.replaceAll("\\\\", "");
 
                         //Execute URL
                         try {
@@ -150,7 +151,7 @@ public class RegeocacheService implements SageRegeocacheService{
                             HttpResponse response = httpClient.execute(request);
                             UrlRequest.convertStreamToString(response.getEntity().getContent());
                             regeocacheQueries++;
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             //Alert Admin to failures
                             logger.error("Failed to contact SAGE with the url: " + regeocacheUrl);
                             continue;
