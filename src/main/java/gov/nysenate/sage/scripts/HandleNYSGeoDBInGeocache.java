@@ -164,7 +164,7 @@ public class HandleNYSGeoDBInGeocache {
                             HttpResponse response = httpClient.execute(request);
                             UrlRequest.convertStreamToString(response.getEntity().getContent());
                             regeocacheQueries++;
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             //Alert Admin to failures
                             System.err.println("Failed to contact SAGE with the url: " + regeocacheUrl);
                             continue;
