@@ -46,7 +46,16 @@ public enum RegeocacheQuery implements BasicSqlQuery {
             "               GROUP BY t.addresslabel\n" +
             "               HAVING COUNT(t.addresslabel) > 1) y ON y.addresslabel = x.addresslabel\n" +
             "limit :limit\n" +
-            "offset :offset;")
+            "offset :offset;"),
+
+    METHOD_TOTAL_COUNT_SQL("select count(*) \n" +
+            "from ${schema}." + SqlTable.GEOCACHE + "\n" +
+            "where method = :method;"),
+
+    METHOD_BATCH_SQL("select * \n" +
+            "from ${schema}." + SqlTable.GEOCACHE + "\n" +
+            "where method = :method \n" +
+            "limit :limit offset :offset;")
 
 
     ;
