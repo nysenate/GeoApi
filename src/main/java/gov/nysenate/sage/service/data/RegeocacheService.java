@@ -118,8 +118,6 @@ public class RegeocacheService implements SageRegeocacheService{
             }
             int total = totalList.get(0);
             logger.info("Total number of records currently cached with the method " + method + " : " + total);
-            logger.info("For testing, the total will now be set to 2000");
-            total = 2000;
             //Where the magic happens
             while (total > offset) {
                 //Get batch of 2000
