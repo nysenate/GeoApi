@@ -90,7 +90,7 @@ public class AddressDictionary
         unitMap.put("DEPT","DEPT");
         unitMap.put("FLOOR","FL");
         unitMap.put("FL","FL");
-        unitMap.put("FRONT","FRNT");
+//        unitMap.put("FRONT","FRNT");
         unitMap.put("FRNT","FRNT");
         unitMap.put("HANGAR","HNGR");
         unitMap.put("HNGR","HNGR");
