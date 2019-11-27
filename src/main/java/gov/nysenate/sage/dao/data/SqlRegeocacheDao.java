@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
+import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,6 +113,24 @@ public class SqlRegeocacheDao implements RegeocacheDao {
                 RegeocacheQuery.DUP_TOTAL_COUNT_SQL.getSql(baseDao.getPublicSchema()), Integer.class);
     }
 
+    public List<Integer> getMethodTotalCount(String method) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("method", method);
+        return baseDao.tigerNamedJdbcTemplate.query(
+                RegeocacheQuery.METHOD_TOTAL_COUNT_SQL.getSql(baseDao.getCacheSchema()), params, new CountRowMapper());
+    }
+
+    public List<StreetAddress> getMethodBatch(int offset, int limit, String method) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("method", method);
+        params.addValue("limit", limit);
+        params.addValue("offset", offset);
+
+        return baseDao.tigerNamedJdbcTemplate.query(
+                RegeocacheQuery.METHOD_BATCH_SQL.getSql(baseDao.getCacheSchema()), params,
+                new StreetAddressdRowMapper());
+    }
+
     public static class NysGeoAddressRowMapper implements RowMapper<NYSGeoAddress> {
 
         @Override
@@ -146,6 +165,32 @@ public class SqlRegeocacheDao implements RegeocacheDao {
             sa.setZip5(rs.getString("zip5"));
             sa.setZip4(rs.getString("zip4"));
             return new GeocodedStreetAddress(sa, gc);
+        }
+    }
+
+    public static class StreetAddressdRowMapper implements RowMapper<StreetAddress> {
+
+        @Override
+        public StreetAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
+            StreetAddress streetAddress = new StreetAddress();
+            streetAddress.setBldgNum(rs.getInt("bldgnum"));
+            streetAddress.setPreDir(rs.getString("predir"));
+            streetAddress.setStreetName(WordUtils.capitalizeFully(rs.getString("street")));
+            streetAddress.setStreetType(WordUtils.capitalizeFully(rs.getString("streettype")));
+            streetAddress.setPostDir(rs.getString("postdir"));
+            streetAddress.setLocation(WordUtils.capitalizeFully(rs.getString("location")));
+            streetAddress.setState(rs.getString("state"));
+            streetAddress.setZip5(rs.getString("zip5"));
+            streetAddress.setZip4(rs.getString("zip4"));
+            return streetAddress;
+        }
+    }
+
+    public static class CountRowMapper implements RowMapper<Integer> {
+
+        @Override
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getInt("count");
         }
     }
 

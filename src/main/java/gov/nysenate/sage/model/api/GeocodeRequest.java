@@ -3,6 +3,7 @@ package gov.nysenate.sage.model.api;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.job.JobProcess;
+import gov.nysenate.sage.util.FormatUtil;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -35,7 +36,7 @@ public class GeocodeRequest implements Cloneable
     {
         this.apiRequest = apiRequest;
         this.address = address;
-        this.provider = provider;
+        setProvider(provider);
         this.useFallback = useFallback;
         this.useCache = useCache;
         this.isReverse = false;
@@ -48,7 +49,7 @@ public class GeocodeRequest implements Cloneable
     {
         this.apiRequest = apiRequest;
         this.address = address;
-        this.provider = provider;
+        setProvider(provider);
         this.useFallback = useFallback;
         this.useCache = useCache;
         this.isReverse = false;
@@ -62,7 +63,7 @@ public class GeocodeRequest implements Cloneable
     {
         this.apiRequest = apiRequest;
         this.address = address;
-        this.provider = provider;
+        setProvider(provider);
         this.useFallback = useFallback;
         this.useCache = useCache;
         this.isReverse = false;
@@ -149,7 +150,12 @@ public class GeocodeRequest implements Cloneable
     }
 
     public void setProvider(String provider) {
-        this.provider = provider;
+        if (FormatUtil.isStringEmptyorNull(provider)) {
+            this.provider = provider;
+        }
+        else {
+            this.provider = FormatUtil.cleanString( provider.toLowerCase());
+        }
     }
 
     public Timestamp getRequestTime() {

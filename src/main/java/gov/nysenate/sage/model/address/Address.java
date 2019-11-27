@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.address;
 
+import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -119,7 +120,7 @@ public class Address implements Serializable, Cloneable
     public void setAddr1(String addr1)
     {
         if (addr1 != null){
-            this.addr1 = addr1;
+            this.addr1 = FormatUtil.cleanString( addr1 );
         }
     }
 
@@ -131,7 +132,7 @@ public class Address implements Serializable, Cloneable
     public void setAddr2(String addr2)
     {
         if (addr2 != null){
-            this.addr2 = addr2;
+            this.addr2 = FormatUtil.cleanString( addr2 );
         }
     }
 
@@ -143,7 +144,7 @@ public class Address implements Serializable, Cloneable
     public void setCity(String city)
     {
         if (city != null) {
-            this.city = city;
+            this.city = FormatUtil.cleanString( city );
         }
     }
 
@@ -155,7 +156,7 @@ public class Address implements Serializable, Cloneable
     public void setState(String state)
     {
         if (state != null){
-            this.state = state;
+            this.state = FormatUtil.cleanString( state );
         }
     }
 
@@ -167,7 +168,7 @@ public class Address implements Serializable, Cloneable
     public void setZip5(String zip5)
     {
         if (zip5 != null && !zip5.isEmpty() && !zip5.equalsIgnoreCase("null")){
-            this.zip5 = StringUtils.leftPad(zip5, 5, "0");
+            this.zip5 = FormatUtil.cleanString( StringUtils.leftPad(zip5, 5, "0"));
         }
     }
 
@@ -179,7 +180,7 @@ public class Address implements Serializable, Cloneable
     public void setZip4(String zip4)
     {
         if (zip4 != null && !zip4.isEmpty() && !zip5.equalsIgnoreCase("null")){
-            this.zip4 = StringUtils.leftPad(zip4, 4, "0");
+            this.zip4 = FormatUtil.cleanString( StringUtils.leftPad(zip4, 4, "0") );
         }
     }
 

@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.model.result.StreetResult;
 import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
+import gov.nysenate.sage.util.FormatUtil;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import gov.nysenate.sage.util.controller.ConstantUtil;
@@ -53,6 +54,7 @@ public class StreetController
                                       @RequestParam String zip5) {
         Object streetLookupResponse;
         /** Get the ApiRequest */
+        zip5 = FormatUtil.cleanString(zip5);
         ApiRequest apiRequest = getApiRequest(request);
         logStreetRequest(apiRequest,zip5);
 

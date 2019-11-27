@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -25,6 +27,20 @@ public abstract class FormatUtil {
 
     protected static Logger logger = LoggerFactory.getLogger(FormatUtil.class);
     protected static ObjectMapper mapper = new ObjectMapper();
+
+    public static boolean isStringEmptyorNull(String string) {
+        if (string == null || string.isEmpty() ) {
+            return true;
+        }
+        return false;
+    }
+
+    public static String cleanString(String string) {
+        if (!isStringEmptyorNull(string)) {
+            return Jsoup.clean(string, Whitelist.basic());
+        }
+        return string;
+    }
 
     public static String toCamelCase(String s)
     {

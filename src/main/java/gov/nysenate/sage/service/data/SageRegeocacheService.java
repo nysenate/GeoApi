@@ -14,7 +14,7 @@ public interface SageRegeocacheService {
      * @param nys_offset
      * @return
      */
-    public Object updatesDupsInGeocacheWithNysGeo(int nys_offset);
+    public Object regeocacheSpecificMethodWithNysGeoWebService(int user_offset, String method);
 
     /**
      * Updates the geocache by iterating over the NYS Geo database with USPS validation
