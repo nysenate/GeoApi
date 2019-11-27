@@ -35,6 +35,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
@@ -105,8 +106,6 @@ public class RegeocacheService implements SageRegeocacheService{
         LocalDateTime end;
         final int limit = 2000;
         int offset = user_offset;
-        //Create count for showing the requests made to SAGE
-        int regeocacheQueries = 0;
 
         System.out.println("Handle Method data supplied offset: " + offset);
         try {
@@ -118,8 +117,25 @@ public class RegeocacheService implements SageRegeocacheService{
             }
             int total = totalList.get(0);
             logger.info("Total number of records currently cached with the method " + method + " : " + total);
+            //Hanldes parallel processing of http requests
+            Consumer<String> urlConsumer = url -> {
+
+                //Execute URL
+                try {
+                    HttpGet request = new HttpGet(url);
+                    HttpResponse response = httpClient.execute(request);
+                    UrlRequest.convertStreamToString(response.getEntity().getContent());
+                } catch (Exception e) {
+                    //Alert Admin to failures
+                    System.err.println("Failed to contact SAGE with the url: " + url);
+                }
+            };
+
             //Where the magic happens
             while (total > offset) {
+                //Contains a list of URLS to be executed
+                List<String> urls = new ArrayList<>();
+
                 //Get batch of 2000
                 List<StreetAddress> nysGeoDBAddresses = sqlRegeocacheDao.getMethodBatch(offset, limit, method);
 
@@ -142,19 +158,14 @@ public class RegeocacheService implements SageRegeocacheService{
                         regeocacheUrl = regeocacheUrl.replaceAll("`", "");
                         regeocacheUrl = regeocacheUrl.replaceAll("#", "");
                         regeocacheUrl = regeocacheUrl.replaceAll("\\\\", "");
-
-                        //Execute URL
-                        try {
-                            HttpGet request = new HttpGet(regeocacheUrl);
-                            HttpResponse response = httpClient.execute(request);
-                            UrlRequest.convertStreamToString(response.getEntity().getContent());
-                            regeocacheQueries++;
-                        } catch (Exception e) {
-                            //Alert Admin to failures
-                            logger.error("Failed to contact SAGE with the url: " + regeocacheUrl);
-                            continue;
-                        }
+                        urls.add(regeocacheUrl);
                     }
+                }
+
+                //Stream with multiple threads the urls that were just created
+                if (!urls.isEmpty()) {
+                    urls.parallelStream().forEach( urlConsumer );
+                    urls.clear();
                 }
             }
         }
@@ -164,9 +175,9 @@ public class RegeocacheService implements SageRegeocacheService{
         }
         end = LocalDateTime.now();
         //Let the admin know about the work that has been done.
-        logger.info("Queries to SAGE with the NYS GEO Webservice specified: " + regeocacheQueries);
-        logger.info("The script started at " + start + " and ended at " + end);
-        apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        String timerange = " The script started at " + start + " and ended at " + end;
+        logger.info(timerange);
+        apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc() + timerange);
         return apiResponse;
     }
 
