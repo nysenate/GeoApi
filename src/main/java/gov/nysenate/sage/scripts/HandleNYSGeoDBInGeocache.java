@@ -14,15 +14,19 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class HandleNYSGeoDBInGeocache {
 
@@ -99,8 +103,7 @@ public class HandleNYSGeoDBInGeocache {
                 "limit ?;";
 
         HttpClient httpClient = HttpClientBuilder.create().build();
-        //Create count for showing the requests made to SAGE
-        int regeocacheQueries = 0;
+
         //Get the total count to find the limit of the loops
         try {
             //Get total number of addresses that will be used to update our geocache
@@ -112,9 +115,11 @@ public class HandleNYSGeoDBInGeocache {
                 }
             });
             System.out.println("Total number of records currently cached with the method 'NYS Geo DB': " + total);
-
             //Where the magic happens
             while (total > offset) {
+                //Contains a list of URLS to be executed
+                List<String> urls = new ArrayList<>();
+
                 //Get batch of 2000
                 List<StreetAddress> nysGeoDBAddresses = nysGeoDBInGeocache.getTigerRun().query(NYS_GEO_DB_BATCH_SQL,
                         new ResultSetHandler<List<StreetAddress>>() {
@@ -142,6 +147,20 @@ public class HandleNYSGeoDBInGeocache {
                 System.out.println("At offset: " + offset);
                 offset = limit + offset;
 
+                //Hanldes parallel processing of http requests
+                Consumer<String> urlConsumer = url -> {
+
+                    //Execute URL
+                    try {
+                        HttpGet request = new HttpGet(url);
+                        HttpResponse response = httpClient.execute(request);
+                        UrlRequest.convertStreamToString(response.getEntity().getContent());
+                    } catch (Exception e) {
+                        //Alert Admin to failures
+                        System.err.println("Failed to contact SAGE with the url: " + url);
+                    }
+                };
+
                 if (!nysGeoDBAddresses.isEmpty()) {
                     //Query SAGE with the nysgeo webservice specified
                     for (StreetAddress nysGeoStreetAddress : nysGeoDBAddresses) {
@@ -158,29 +177,33 @@ public class HandleNYSGeoDBInGeocache {
                         regeocacheUrl = regeocacheUrl.replaceAll("#", "");
                         regeocacheUrl = regeocacheUrl.replaceAll("\\\\", "");
 
-                        //Execute URL
-                        try {
-                            HttpGet request = new HttpGet(regeocacheUrl);
-                            HttpResponse response = httpClient.execute(request);
-                            UrlRequest.convertStreamToString(response.getEntity().getContent());
-                            regeocacheQueries++;
-                        } catch (Exception e) {
-                            //Alert Admin to failures
-                            System.err.println("Failed to contact SAGE with the url: " + regeocacheUrl);
-                            continue;
-                        }
+                        urls.add(regeocacheUrl);
                     }
 
+                }
+
+                //Stream with multiple threads the urls that were just created
+                if (!urls.isEmpty()) {
+                    urls.parallelStream().forEach( urlConsumer );
+                    urls.clear();
                 }
             }
             end = LocalDateTime.now();
 
             //Let the admin know about the work that has been done.
-            System.out.println("Queries to SAGE with the NYS GEO Webservice specified: " + regeocacheQueries);
             System.out.println("The script started at " + start + " and ended at " + end);
+
+            try {
+                ((CloseableHttpClient) httpClient).close();
+            }
+            catch (IOException e) {
+                System.err.println("Failed to close http connection");
+            }
+            System.exit(0);
         }
         catch (Exception e) {
             System.err.println("Error refreshing the geocoder database:" + e);
+            System.exit(1);
         }
     }
 }
