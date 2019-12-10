@@ -4,7 +4,6 @@ public class ZipCode {
 
     private String zipcode;
 
-
     public ZipCode() {}
 
     public ZipCode(String zipcode) {
@@ -18,7 +17,6 @@ public class ZipCode {
     public void setZipcode(String zipcode) {
         this.zipcode = zipcode;
     }
-
 
     public String toString() { return zipcode; }
 }

@@ -43,6 +43,8 @@ public enum SqlTable {
     SENATOR ("senator"),
     SPATIAL_REF_SYS ("spatial_ref_sys"),
     STREETFILE ("streetfile"),
+    //This below SqlTable is used in createGeoJsonFromHardCodedSources service method ~Levidu
+    MANUAL_DATAENTRY_GEOPOINTS("manual_dataentry_geopoints"),
 
     /**
      * Geocoder Database table names

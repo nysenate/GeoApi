@@ -150,10 +150,10 @@ public class DataGenController {
     }
 
     /**
-     * Generate Zip Code CSV File Api [test case: scope public]
+     * Generate Zip Code CSV File Api
      * ---------------------------
      *
-     * Creates a zip code csv file for use with the Street File parsing
+     * Creates a zip code csv file can is found in zipcodes-to-go.com and zipcodes.com
      *
      * Usage:
      * (GET)    /admin/datagen/zipcodes
@@ -161,8 +161,8 @@ public class DataGenController {
      * @param request HttpServletRequest
      * @param response HttpServletResponse
      *
+     * ~Levidu
      */
-
     @RequestMapping(value = "/zipcodes", method = RequestMethod.GET)
     public void generateZipCodeFiles(HttpServletRequest request, HttpServletResponse response,
                                  @RequestParam(required = false, defaultValue = "defaultUser") String username,
@@ -189,8 +189,20 @@ public class DataGenController {
         setAdminResponse(apiResponse, response);
     }
 
-
-
+    /**
+     * Generate a Zip codes CSV File for the missing zip codes
+     * ---------------------------
+     *
+     * Creates a zip code csv file that is not present in the current database.
+     *
+     * Usage:
+     * (GET)    /admin/datagen/zipcodes/missing
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     * ~Levidu
+     */
     @RequestMapping(value = "zipcodes/missing", method = RequestMethod.GET)
     public void generateMissingZipCodeFiles(HttpServletRequest request, HttpServletResponse response,
                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
@@ -217,10 +229,91 @@ public class DataGenController {
         setAdminResponse(apiResponse, response);
     }
 
+    /**
+     * Generate geoJSON files by user specified sources.
+     * ---------------------------
+     *
+     * Creates a geoJSON file for every zip code that is specific in zip_source_tosearch.csv
+     * Format in zip_source_tosearch.csv [ZIPCODE,SOURCE]
+     * Source: nysgeo | geocache
+     * Output: [nysgeo geojson files] /data/geoapi_data/zips/geojson/nysgeo/
+     *        [geocache geojson files] /data/geoapi_data/zips/geojson/geocache/
+     *
+     * Usage:
+     * (GET)    /admin/datagen/zipcodes/creategeojsonbycsv
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     * ~Levidu
+     */
+    @RequestMapping(value = "zipcodes/geojsonbycsv", method = RequestMethod.GET)
+    public void generateGeoJsonFiles(HttpServletRequest request, HttpServletResponse response,
+                                            @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                            @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                            @RequestParam(required = false, defaultValue = "") String key) {
+        Object apiResponse;
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
+            try {
+                apiResponse = dataGenService.generateGeoJsonByCsv();
+            }
+            catch (Exception e) {
+                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+            }
+        }
+        else {
+            apiResponse = invalidAuthResponse();
+        }
+        setAdminResponse(apiResponse, response);
+    }
 
 
+    /**
+     * Generate geoJSON files for the zipcodes that are manually pinpointed using Google Earth (for Google Chrome).
+     * ---------------------------
+     *
+     * Creates a geoJSON file for every zip code that is in manual_dataentry_geopoints.csv
+     * Format in manual_dataentry_geopoints.csv [ZIPCODE,TYPE,LON,LAT,SOURCE]
+     * Source: Google Earth (for Google Chrome)
+     * Output: [geojson files]: /data/geoapi_data/zips/manual/[ZIPCODE DIRECTORY]/[geojson files]
+     *
+     *
+     * Usage:
+     * (GET)    /admin/datagen/zipcodes/geojsonbymanualcsv
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     *
+     * ~Levidu
+     */
+    @RequestMapping(value = "zipcodes/geojsonbymanualcsv", method = RequestMethod.GET)
+    public void generateGeoJsonFilesSuperManually(HttpServletRequest request, HttpServletResponse response,
+                                     @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                     @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                     @RequestParam(required = false, defaultValue = "") String key) {
+        Object apiResponse;
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
 
-
-
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
+            try {
+                apiResponse = dataGenService.generateGeoJsonByManualDataEntryCsv();
+            }
+            catch (Exception e) {
+                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+            }
+        }
+        else {
+            apiResponse = invalidAuthResponse();
+        }
+        setAdminResponse(apiResponse, response);
+    }
 
 }

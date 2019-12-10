@@ -42,4 +42,22 @@ public class ConstantUtil {
     public static String ZIPS_IN_FINAL_LIST_ZIPCODES = "final_zips.csv";
     public static String ZIPS_MISSING_FILE = "zipcodes_missing_from_db.csv";
 
+    public static String USER_SPECIFIED_ZIP_SOURCE = "zip_source_tosearch.csv" ;
+
+
+    public static String TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE = "AsGeoJSON_addresspoint_ST_ConcaveHull.tsv";
+    public static String TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE = "AsGeoJSON_geocache_ST_ConvexHull.tsv";
+
+
+    public static String GEO_POINTS_SUPER_MANUAL = "manual_dataentry_geopoints.csv";
+    public static String GEO_JSON_DIRECTORY_NYSGEO = "/data/geoapi_data/zips/geojson/nysgeo/";
+    public static String GEO_JSON_DIRECTORY_GEOCACHE = "/data/geoapi_data/zips/geojson/geocache/";
+
+
+    public static String GEO_JSON_DIRECTORY_MANUAL = "/data/geoapi_data/zips/geojson/manual/";
+
+
+
+
+
 }

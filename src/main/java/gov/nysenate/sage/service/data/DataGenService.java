@@ -12,6 +12,8 @@ import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.datagen.Geo;
+import gov.nysenate.sage.model.datagen.SuperManualZipCode;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -407,15 +409,14 @@ public class DataGenService implements SageDataGenService {
      * Connects to the following two services: createZipCodesToGoFile and createZipCodesFile,
      * creates and compares the two files that was created.
      * A file that results from the comparison called final_list_zipcodes.csv will be created.
-     *
+     * <p>
      * * IN CASE YOU'VE DELETED final_list_zipcodes.csv file:
-     *      * Run generateZipCsv(), a newly created Final_list_zipcodes.csv will have 58 missing types.
-     *      * Use the file missing.csv to manually enter the types, almost all the missing types
-     *      * are taken from the usps_zip_code_database.csv.
-     *      *
-     *      * Right now, I have entered the missing types.So, I would advise not to delete this file unless there
-     *      * is a major change.
-     *
+     * * Run generateZipCsv(), a newly created Final_list_zipcodes.csv will have 58 missing types.
+     * * Use the file missing.csv to manually enter the types, almost all the missing types
+     * * are taken from the usps_zip_code_database.csv.
+     * *
+     * * Right now, I have entered the missing types.So, I would advise not to delete this file unless there
+     * * is a major change.
      * ~Levidu
      */
     public Object generateZipCsv() throws Exception {
@@ -431,55 +432,49 @@ public class DataGenService implements SageDataGenService {
                 return true;
             }
             generateResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
-            HashMap<String,String> mapZips = new HashMap<String,String>();
+            HashMap<String, String> mapZips = new HashMap<String, String>();
             try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
                     + ConstantUtil.ZIPCODES_FILE))) {
                 stream.forEach(line -> {
                     String[] zipcodeType = line.split(",");
                     String zip = zipcodeType[0];
                     String type = zipcodeType[1].trim();
-                    mapZips.put(zip,type);
+                    mapZips.put(zip, type);
                 });
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 logger.error("Unable to read " + ConstantUtil.ZIPCODES_FILE);
             }
             try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
                     + ConstantUtil.ZIPCODESTOGO_FILE))) {
                 stream.forEach(line -> {
-                    if(!mapZips.containsKey(line)){
-                        mapZips.put(line,"");
+                    if (!mapZips.containsKey(line)) {
+                        mapZips.put(line, "");
                     }
                 });
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 logger.error("Unable to read " + ConstantUtil.ZIPCODESTOGO_FILE);
             }
             ArrayList<String> finalList = new ArrayList<>();
             try {
-                mapZips.entrySet().forEach(entry-> {
-                    finalList.add(entry.getKey()+","+entry.getValue());
+                mapZips.entrySet().forEach(entry -> {
+                    finalList.add(entry.getKey() + "," + entry.getValue());
                 });
                 FileWriter finalCSV = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
                 String collection = finalList.stream().collect(Collectors.joining("\n"));
                 finalCSV.write(collection);
                 finalCSV.close();
-            }
-            catch(IOException e) {
+            } catch (IOException e) {
                 logger.error("Unable to write " + ConstantUtil.LAST_ZIPCODE_FILE);
             }
-        }
-        else {
+        } else {
             generateResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
         }
         return generateResponse;
     }
 
-
     /**
      * Connects to zipcodestogo.com and retrieves all the zip codes
      * present in the first table and writes to a csv file
-     *
      * ~Levidu
      */
     private boolean siteZipCodesToGoCsv() {
@@ -492,7 +487,7 @@ public class DataGenService implements SageDataGenService {
             Document pageZipCodesToGo;
             pageZipCodesToGo = Jsoup.connect("https://www.zipcodestogo.com/New%20York/").get();
             ArrayList<String> arrayZipCodesToGo = new ArrayList<>();
-            for(Element row : pageZipCodesToGo.select("td[align=center]")) {
+            for (Element row : pageZipCodesToGo.select("td[align=center]")) {
                 String zip = row.select("a").first().text();
                 arrayZipCodesToGo.add(zip);
             }
@@ -501,8 +496,7 @@ public class DataGenService implements SageDataGenService {
             writerZipsCodesToGo.write(collection);
             writerZipsCodesToGo.close();
             return true;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             logger.error("Error creating zipcodestogo.csv file", e);
             return false;
         }
@@ -526,11 +520,11 @@ public class DataGenService implements SageDataGenService {
             Elements trs = pageZipCodes.select("table.statTable tr");
             trs.remove(0);
             ArrayList<String> arrayZipCodes = new ArrayList<>();
-            for(Element row : trs) {
+            for (Element row : trs) {
                 Elements tds = row.getElementsByTag("td");
                 Element td = tds.first();
                 Element tdType = tds.last();
-                if(td.text().contains("ZIP Code")) {
+                if (td.text().contains("ZIP Code")) {
                     String trimedzipCode = td.text();
                     String type = tdType.text();
                     trimedzipCode = trimedzipCode.substring(9);
@@ -543,8 +537,7 @@ public class DataGenService implements SageDataGenService {
             writerZipsCodes.write(collection);
             writerZipsCodes.close();
             return true;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             logger.error("Error creating zipcodes.csv file", e);
             return false;
         }
@@ -555,7 +548,6 @@ public class DataGenService implements SageDataGenService {
      * from the current database (districts.zip) and the newly created zip codes file final final_list_zipcodes.csv
      * A file that results from the intersection called zipcodes_missing_from_db.csv will be created.
      * This file will be used to create geoJSON and shapefiles for the missing zip codes in the database.
-     *
      * ~Levidu
      */
     public Object generateMissingZipCodeCSV() throws Exception {
@@ -564,7 +556,7 @@ public class DataGenService implements SageDataGenService {
         boolean copyFinalZipCodesFromFinalList;
 
         copyZipCodesFromDb = copyCurrentZipCodesFile();
-        copyFinalZipCodesFromFinalList= copyFinalZipCodes();
+        copyFinalZipCodesFromFinalList = copyFinalZipCodes();
         if (copyFinalZipCodesFromFinalList && copyZipCodesFromDb) {
             generateResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
             Set<String> newList = new HashSet<String>();
@@ -588,13 +580,11 @@ public class DataGenService implements SageDataGenService {
                 logger.info("Wrote " + count + " to zipcodes_missing_from_db.csv file");
                 writerMissingZips.close();
                 writerMissingZips.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 logger.error("Error creating zipcodes_missing_from_db.csv file", e);
                 return false;
             }
-        }
-        else {
+        } else {
             generateResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
         }
         return generateResponse;
@@ -602,13 +592,12 @@ public class DataGenService implements SageDataGenService {
 
     /**
      * Zip codes from geoapi.district.zip will be copy to a file called current_list_of_district_zipcodes.csv.
-     *
      * ~Levidu
      */
     private boolean copyCurrentZipCodesFile() {
         try {
             File zipCodesFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
-            if(zipCodesFile.exists()) {
+            if (zipCodesFile.exists()) {
                 List<ZipCode> zipCodesCodes = sqlDataGenDao.getZipCodes();
                 FileWriter fileWriter = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPS_IN_DISTRICTS_TABLE);
                 PrintWriter outputWriter = new PrintWriter(fileWriter);
@@ -622,8 +611,7 @@ public class DataGenService implements SageDataGenService {
                 outputWriter.close();
             }
             return true;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             logger.error("Error creating current_list_of_district_zipcodes.csv file", e);
             return false;
         }
@@ -631,18 +619,18 @@ public class DataGenService implements SageDataGenService {
 
     /**
      * Zip codes from final_list_zipcodes.csv will be copy to a file called final_zips.csv.
-     *
      * ~Levidu
      */
     private boolean copyFinalZipCodes() {
-        try{
+        try {
             File zipCodesFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
-            if(zipCodesFile.exists()) {
+            if (zipCodesFile.exists()) {
                 FileWriter fileWriter = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPS_IN_FINAL_LIST_ZIPCODES);
                 PrintWriter outputWriter = new PrintWriter(fileWriter);
                 AtomicInteger atomicInteger = new AtomicInteger(0);
                 Stream<String> zipCodeStream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
-                        + ConstantUtil.LAST_ZIPCODE_FILE)); {
+                        + ConstantUtil.LAST_ZIPCODE_FILE));
+                {
 //                    firstStream.forEach(f_list::add);
                     zipCodeStream.forEach(line -> {
                         String zip = line.split(",")[0];
@@ -655,96 +643,246 @@ public class DataGenService implements SageDataGenService {
                 fileWriter.close();
                 outputWriter.close();
                 return true;
-            }
-            else {
+            } else {
                 logger.error("Error: Make sure final_list_zipcodes.csv file exists");
                 return false;
             }
-        }
-        catch(IOException e) {
+        } catch (IOException e) {
             logger.error("Error creating current_list_of_district_zipcodes.csv file", e);
             return false;
         }
     }
 
-
-    private boolean createGeoJson() {
-
-        File missingZipsFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
-
-        if(missingZipsFile.exists()) {
-
-            HashMap<String,String> mapZips = new HashMap<String,String>();
-
-            try (Stream<String> streamToMap = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
-                    + ConstantUtil.ZIPCODES_FILE))) {
-                streamToMap.forEach(line -> {
-                    String[] zipcodeType = line.split(",");
-                    String zip = zipcodeType[0];
-                    String type = zipcodeType[1].trim();
-                    mapZips.put(zip,type);
-                });
-            }
-            catch (IOException e) {
-                logger.error("Unable to read " + ConstantUtil.ZIPCODES_FILE);
-                return false;
-            }
-
-            ArrayList<String> missingZipCodes = new ArrayList<>();
+    /**
+     * Creates geojson files for zip's manually collected geopoints. Geojson files will be in GEO_JSON_DIRECTORY_MANUAL directory
+     *  under the respective zipcode titled directory.
+     * Make sure the GEO_POINTS_SUPER_MANUAL exists and necessary changes can be made in this file.
+     * Create manual_dataentry_geopoints table before calling this method, simply execute the flyway-file: V20191127.1700_create_manualgeopoint_insert_csv.sql
+     * ~Levidu
+     */
+    private boolean createGeoJsonFromHardCodedSources() {
+        File superManualZips = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.GEO_POINTS_SUPER_MANUAL);
+//        File geoPointsSuperManualCSV  = new File (ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
+        if(superManualZips.exists()) {
+            ArrayList<String> superManualContent = new ArrayList<>();
             try {
-                Stream < String > streamToCheck = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY +
-                        ConstantUtil.ZIPS_MISSING_FILE));
-                streamToCheck.forEach(missingZipCodes::add);
-            }
-            catch (IOException e) {
-                logger.error("Unable to read " + ConstantUtil.ZIPS_IN_DISTRICTS_TABLE);
+                Stream<String> streamSuperManualZipFile = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY +
+                        ConstantUtil.GEO_POINTS_SUPER_MANUAL));
+                streamSuperManualZipFile.forEach(superManualContent::add);
+
+
+            } catch (IOException e) {
+                logger.error("Unable to read " + ConstantUtil.GEO_POINTS_SUPER_MANUAL);
                 return false;
             }
+            for(String smc : superManualContent) {
+                String[] geo = smc.split(",");
+                String zipcode = geo[0];
+                String type = geo[1];
+                String lon = geo[2];
+                String lat = geo[3];
+                String source = geo[4];
 
-            for(String zip : missingZipCodes) {
-
-                if(mapZips.containsKey(zip)) {
-
-                    String type =   mapZips.get(zip);
-
-                    if(type.equals("Unique") || type.equals("Standard")) {
-                        sqlDataGenDao.getZipCodes();
-                    }
-
-                }
-
-
+                logger.info("Added: " + zipcode +" "+ " "+type +" " +lon +" "+" "+ lat+" " +" "+ source);
+                SuperManualZipCode supermanualzipcode = new SuperManualZipCode(zipcode,type,lon,lat,source);
+                sqlDataGenDao.insertIntoManualDataentryGeopoints(supermanualzipcode);
             }
+            List<Geo> manualZipCodesAndGeo = sqlDataGenDao.getManualDataentryGeopoints();
+            logger.info("Number of rows detected: " + manualZipCodesAndGeo.size());
 
-            return true;
-
-
-
-
-
+            for(Geo g : manualZipCodesAndGeo) {
+                try {
+                    File file = new File(ConstantUtil.GEO_JSON_DIRECTORY_MANUAL + g.getZipcode() + "/geojson.txt");
+                    file.getParentFile().mkdirs();
+                    FileWriter geoJsonFile = new FileWriter(file);
+                    PrintWriter outputWriter = new PrintWriter(geoJsonFile);
+                    outputWriter.println(g.getGeo());
+                    logger.info("Geojson created for: " + g.getZipcode() + " in " + ConstantUtil.GEO_JSON_DIRECTORY_MANUAL + g.getZipcode() + " as a geojson.txt file");
+                    geoJsonFile.close();
+                    outputWriter.close();
+                }
+                catch (IOException e) {
+                    logger.error("Geojson for " + g.getZipcode() + " was not created");
+                }
+            }
+            /* Truncate the manual_dataentry_geopoints table to avoid duplicates */
         }
         else {
-
-            logger.error("Error zipcodes_missing_from_db.csv file is not present");
+            logger.error(ConstantUtil.GEO_POINTS_SUPER_MANUAL + "is not found.");
             return false;
-
         }
-
-
-
-
-
-
-
-
-
-
+        return true;
     }
 
+    /**
+     * Creates geojson files for zipcodes that are specified by the user in USER_SPECIFIED_ZIP_SOURCE.
+     * Two TSV files are created for each, geocache and nysgeo, that would have the computed concave algorithms(rubber band algorithm).
+     * This might take an extensive amount of time depending on your computer's performance.
+     * Next, for each zip in USER_SPECIFIED_ZIP_SOURCE, it would search for the relevant geojson in the specified source to search.
+     * ~Levidu
+     */
+    private boolean createGeoJsonFromUserSpecifiedSources() {
+        File finalZipsFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
+//        File zipMissingFromDb = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPS_MISSING_FILE);
+        File zipSourceFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.USER_SPECIFIED_ZIP_SOURCE);
+        File tsvAddressPointSamFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE);
+        File tsvGeoCacheFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
+        ArrayList<String> readSource = new ArrayList<>();
+        if (zipSourceFile.exists()) {
+            try {
+                Stream<String> zipAndSourceToCheck = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY +
+                        ConstantUtil.USER_SPECIFIED_ZIP_SOURCE));
+                zipAndSourceToCheck.forEach(readSource::add);
+            } catch (IOException e) {
+                logger.error("Unable to read " + ConstantUtil.USER_SPECIFIED_ZIP_SOURCE);
+                return false;
+            }
+        }
+        if(!tsvGeoCacheFile.exists()) {
+            List<Geo> geoCacheList = sqlDataGenDao.getGeoCacheGeoJson();
+            try {
+                FileWriter fileWriter = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
+                PrintWriter outputWriter = new PrintWriter(fileWriter);
+                int count = 0;
+                for (Geo g : geoCacheList) {
+                    outputWriter.println(g.toString());
+                    count++;
+                }
+                fileWriter.close();
+                outputWriter.close();
+                logger.info("Wrote " + count + " lines to " + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
+            } catch (IOException e) {
+                logger.error("Unable to read " + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
+                return false;
+            }
+        }
+        if (!tsvAddressPointSamFile.exists()) {
+            List<Geo> geoAddressPointList = sqlDataGenDao.getAddressPointGeoJson();
+            try {
 
+                FileWriter fileWriter = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE);
+                PrintWriter outputWriter = new PrintWriter(fileWriter);
+                int count = 0;
+                for (Geo g : geoAddressPointList) {
+                    outputWriter.println(g.toString());
+                    count++;
+                }
+                fileWriter.close();
+                outputWriter.close();
+                logger.info("Wrote " + count + " lines to " + ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE);
+            } catch (IOException e) {
+                logger.error("Unable to read " + ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE);
+                return false;
+            }
+        }
+        HashMap<String, String> concaveHullCollection = new HashMap<>();
+        try (Stream<String> streamToMap = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
+                + ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE))) {
+            streamToMap.forEach(line -> {
+                String[] zipCodeAndGeoJson = line.split("\t");
+                String zip = zipCodeAndGeoJson[0];
+                String boundaryGeojson = zipCodeAndGeoJson[1];
+                concaveHullCollection.put(zip, boundaryGeojson);
+            });
+        } catch (IOException e) {
+            logger.error("Unable to read " +  ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE );
+            return false;
+        }
+        HashMap<String, String> convexHullCollection = new HashMap<>();
+        try (Stream<String> streamToMap = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
+                + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE))) {
+            streamToMap.forEach(line -> {
+                String[] zipCodeAndGeoJson = line.split("\t");
+                String zip = zipCodeAndGeoJson[0];
+                String boundaryGeojson = zipCodeAndGeoJson[1];
+                convexHullCollection.put(zip, boundaryGeojson);
+            });
+        } catch (IOException e) {
+            logger.error("Unable to read " + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE );
+            return false;
+        }
+        //read csv file:zip_source_tosearch.csv to create geojson
+        //format: [ZIPCODE][nysgeo/geocache]
+        for(String line: readSource) {
+            String zip = line.split(",")[0].trim();
+            String source = line.split(",")[1].trim();
+            if(source.equals("nysgeo")) {
+                if(concaveHullCollection.containsKey(zip)) {
+                    String geojson = concaveHullCollection.get(zip);
+                    try {
+                        File file = new File(ConstantUtil.GEO_JSON_DIRECTORY_NYSGEO + zip + "/geojson.txt");
+                        file.getParentFile().mkdirs();
+                        FileWriter geoJsonFile = new FileWriter(file);
+                        PrintWriter outputWriter = new PrintWriter(geoJsonFile);
+                        outputWriter.println(geojson);
+                        geoJsonFile.close();
+                        outputWriter.close();
+                    } catch (IOException e) {
+                        logger.error("Geojson for zipcode " + zip + " was not created");
+                    }
+                }
+                else {
+                    logger.error("Zip code: " + zip + " is not found in NYSGEO");
+                }
+            }
+            else if(source.equals("geocache")) {
+                if(convexHullCollection.containsKey(zip)) {
+                    String geojson = convexHullCollection.get(zip);
+                    try {
+                        File file = new File(ConstantUtil.GEO_JSON_DIRECTORY_GEOCACHE + zip + "/geojson.txt");
+                        file.getParentFile().mkdirs();
+                        FileWriter geoJsonFile = new FileWriter(file);
+                        PrintWriter outputWriter = new PrintWriter(geoJsonFile);
+                        outputWriter.println(geojson);
+                        geoJsonFile.close();
+                        outputWriter.close();
+                    } catch (IOException e) {
+                        logger.error("Geojson for zipcode " + zip + " was not created");
+                    }
+                }
+                else {
+                    logger.error("Zip code: " + zip + " is not found in NYSGEO");
+                }
+            }
+            else {
+                logger.info("Could not find " + source + " to the zip code: " + zip);
+            }
+        }
+        return true;
+    }
 
+    /**
+     * Object response: createGeoJsonFromUserSpecifiedSources
+     * ~Levidu
+     */
+    public Object generateGeoJsonByCsv() throws Exception {
+        Object generateResponse;
+        boolean createGeoJsonFiles;
+        createGeoJsonFiles = createGeoJsonFromUserSpecifiedSources();
+        if(createGeoJsonFiles) {
+            generateResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        }
+        else {
+            generateResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        }
+        return generateResponse;
+    }
 
-
-
+    /**
+     * Object response: createGeoJsonFromHardCodedSources
+     * ~Levidu
+     */
+    public Object generateGeoJsonByManualDataEntryCsv() throws Exception {
+        Object generateResponse;
+        boolean createGeoJsonFiles;
+        createGeoJsonFiles = createGeoJsonFromHardCodedSources();
+        if(createGeoJsonFiles) {
+            generateResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        }
+        else {
+            generateResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        }
+        return generateResponse;
+    }
 
 }
