@@ -17,6 +17,7 @@ import gov.nysenate.sage.model.datagen.ManualZipCodePoint;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.scripts.streetfinder.County;
 import gov.nysenate.sage.scripts.streetfinder.TownCode;
 import gov.nysenate.sage.model.datagen.ZipCode;
@@ -676,9 +677,10 @@ public class DataGenService implements SageDataGenService {
                 String lon = geo[2];
                 String lat = geo[3];
                 String source = geo[4];
+                Point point = new Point(lat,lon);
 
                 logger.info("Added: " + zipcode +" "+ " "+type +" " +lon +" "+" "+ lat+" " +" "+ source);
-                ManualZipCodePoint manualzipcodepoint = new ManualZipCodePoint(zipcode,type,lon,lat,source);
+                ManualZipCodePoint manualzipcodepoint = new ManualZipCodePoint(zipcode,type,point,source);
                 sqlDataGenDao.insertIntoManualDataentryGeopoints(manualzipcodepoint);
             }
             List<RubberBandedBoundary> manualZipCodesAndGeo = sqlDataGenDao.getManualDataentryGeopoints();

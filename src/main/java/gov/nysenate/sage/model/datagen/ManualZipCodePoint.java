@@ -1,19 +1,21 @@
 package gov.nysenate.sage.model.datagen;
 
+import gov.nysenate.sage.model.geo.Point;
+
+
 public class ManualZipCodePoint {
     private String zipcode;
     private String type;
-    private String lon;
-    private String lat;
+    private Point point;
     private String source;
+
 
     public ManualZipCodePoint() {}
 
-    public ManualZipCodePoint(String zipcode, String type, String lon, String lat, String source) {
+    public ManualZipCodePoint(String zipcode, String type, Point point, String source) {
         this.zipcode = zipcode;
         this.type = type;
-        this.lon = lon;
-        this.lat = lat;
+        this.point = point;
         this.source = source;
     }
 
@@ -33,21 +35,18 @@ public class ManualZipCodePoint {
         this.type = type;
     }
 
-    public String getLon() {
-        return lon;
+    public double getLon() {
+        return point.getLon();
     }
 
-    public void setLon(String lon) {
-        this.lon = lon;
+    public void setPoint(Point point) {
+        this.point = point;
     }
 
-    public String getLat() {
-        return lat;
+    public double getLat() {
+        return point.getLat();
     }
 
-    public void setLat(String lat) {
-        this.lat = lat;
-    }
 
     public String getSource() {
         return source;
