@@ -197,6 +197,11 @@ public class Environment {
 
     @Value("${env.geocoder.public.schema:public}") private String geocoderPublicSchema;
 
+    @Value("${zipcodestogo.url:https://www.zipcodestogo.com/New%20York/}") private String zipcodestogoUrl;
+
+    @Value("${zipcodes.url:https://www.zip-codes.com/state/ny.asp}") private String zipcodesUrl;
+
+
     public Environment() {}
 
     @PostConstruct
@@ -954,5 +959,12 @@ public class Environment {
 
     public void setGeocoderPublicSchema(String geocoderPublicSchema) {
         this.geocoderPublicSchema = geocoderPublicSchema;
+    }
+
+    public String getZipCodeToGoUrl() {
+        return zipcodestogoUrl;
+    }
+    public String getZipCodesUrl() {
+        return zipcodesUrl;
     }
 }

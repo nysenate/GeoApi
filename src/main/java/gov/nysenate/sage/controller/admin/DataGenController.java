@@ -240,7 +240,7 @@ public class DataGenController {
      *        [geocache geojson files] /data/geoapi_data/zips/geojson/geocache/
      *
      * Usage:
-     * (GET)    /admin/datagen/zipcodes/creategeojsonbycsv
+     * (GET)    /admin/datagen/zipcodes/geojsonbycsv
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
@@ -279,7 +279,7 @@ public class DataGenController {
      *
      * Creates a geoJSON file for every zip code that is in manual_dataentry_geopoints.csv
      * Format in manual_dataentry_geopoints.csv [ZIPCODE,TYPE,LON,LAT,SOURCE]
-     * Source: Google Earth (for Google Chrome)
+     * Source: Any mapping service that would offer accurate latitude and longitude points such as Google Earth (for Google Chrome)
      * Output: [geojson files]: /data/geoapi_data/zips/manual/[ZIPCODE DIRECTORY]/[geojson files]
      *
      *

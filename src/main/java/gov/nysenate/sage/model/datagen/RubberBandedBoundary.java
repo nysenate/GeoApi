@@ -1,13 +1,13 @@
 package gov.nysenate.sage.model.datagen;
 
-public class Geo {
+public class RubberBandedBoundary {
 
     private String geo;
     private String zipcode;
 
-    public Geo() {}
+    public RubberBandedBoundary() {}
 
-    public Geo(String zipcode, String geo) {
+    public RubberBandedBoundary(String zipcode, String geo) {
         this.zipcode = zipcode;
         this.geo = geo;
     }

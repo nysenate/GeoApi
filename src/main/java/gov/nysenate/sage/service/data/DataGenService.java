@@ -12,8 +12,8 @@ import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.datagen.Geo;
-import gov.nysenate.sage.model.datagen.SuperManualZipCode;
+import gov.nysenate.sage.model.datagen.RubberBandedBoundary;
+import gov.nysenate.sage.model.datagen.ManualZipCodePoint;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -413,7 +413,7 @@ public class DataGenService implements SageDataGenService {
      * * IN CASE YOU'VE DELETED final_list_zipcodes.csv file:
      * * Run generateZipCsv(), a newly created Final_list_zipcodes.csv will have 58 missing types.
      * * Use the file missing.csv to manually enter the types, almost all the missing types
-     * * are taken from the usps_zip_code_database.csv.
+     * * are taken from the usps_zip_code_database.csv (https://www.unitedstateszipcodes.org/zip-code-database/)
      * *
      * * Right now, I have entered the missing types.So, I would advise not to delete this file unless there
      * * is a major change.
@@ -485,7 +485,7 @@ public class DataGenService implements SageDataGenService {
                 return true;
             }
             Document pageZipCodesToGo;
-            pageZipCodesToGo = Jsoup.connect("https://www.zipcodestogo.com/New%20York/").get();
+            pageZipCodesToGo = Jsoup.connect(env.getZipCodeToGoUrl()).get();
             ArrayList<String> arrayZipCodesToGo = new ArrayList<>();
             for (Element row : pageZipCodesToGo.select("td[align=center]")) {
                 String zip = row.select("a").first().text();
@@ -516,7 +516,7 @@ public class DataGenService implements SageDataGenService {
                 return true;
             }
             Document pageZipCodes;
-            pageZipCodes = Jsoup.connect("https://www.zip-codes.com/state/ny.asp").get();
+            pageZipCodes = Jsoup.connect(env.getZipCodesUrl()).get();
             Elements trs = pageZipCodes.select("table.statTable tr");
             trs.remove(0);
             ArrayList<String> arrayZipCodes = new ArrayList<>();
@@ -601,12 +601,10 @@ public class DataGenService implements SageDataGenService {
                 List<ZipCode> zipCodesCodes = sqlDataGenDao.getZipCodes();
                 FileWriter fileWriter = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPS_IN_DISTRICTS_TABLE);
                 PrintWriter outputWriter = new PrintWriter(fileWriter);
-                int count = 0;
                 for (ZipCode zipCode : zipCodesCodes) {
                     outputWriter.println(zipCode.toString());
-                    count++;
                 }
-                logger.info("Wrote " + count + " lines from district.zip to current_list_of_district_zipcodes.csv file");
+                logger.info("Success: Wrote lines from district.zip to current_list_of_district_zipcodes.csv file");
                 fileWriter.close();
                 outputWriter.close();
             }
@@ -631,7 +629,6 @@ public class DataGenService implements SageDataGenService {
                 Stream<String> zipCodeStream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
                         + ConstantUtil.LAST_ZIPCODE_FILE));
                 {
-//                    firstStream.forEach(f_list::add);
                     zipCodeStream.forEach(line -> {
                         String zip = line.split(",")[0];
                         outputWriter.println(zip);
@@ -662,15 +659,12 @@ public class DataGenService implements SageDataGenService {
      */
     private boolean createGeoJsonFromHardCodedSources() {
         File superManualZips = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.GEO_POINTS_SUPER_MANUAL);
-//        File geoPointsSuperManualCSV  = new File (ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
         if(superManualZips.exists()) {
             ArrayList<String> superManualContent = new ArrayList<>();
             try {
                 Stream<String> streamSuperManualZipFile = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY +
                         ConstantUtil.GEO_POINTS_SUPER_MANUAL));
                 streamSuperManualZipFile.forEach(superManualContent::add);
-
-
             } catch (IOException e) {
                 logger.error("Unable to read " + ConstantUtil.GEO_POINTS_SUPER_MANUAL);
                 return false;
@@ -684,13 +678,13 @@ public class DataGenService implements SageDataGenService {
                 String source = geo[4];
 
                 logger.info("Added: " + zipcode +" "+ " "+type +" " +lon +" "+" "+ lat+" " +" "+ source);
-                SuperManualZipCode supermanualzipcode = new SuperManualZipCode(zipcode,type,lon,lat,source);
-                sqlDataGenDao.insertIntoManualDataentryGeopoints(supermanualzipcode);
+                ManualZipCodePoint manualzipcodepoint = new ManualZipCodePoint(zipcode,type,lon,lat,source);
+                sqlDataGenDao.insertIntoManualDataentryGeopoints(manualzipcodepoint);
             }
-            List<Geo> manualZipCodesAndGeo = sqlDataGenDao.getManualDataentryGeopoints();
+            List<RubberBandedBoundary> manualZipCodesAndGeo = sqlDataGenDao.getManualDataentryGeopoints();
             logger.info("Number of rows detected: " + manualZipCodesAndGeo.size());
 
-            for(Geo g : manualZipCodesAndGeo) {
+            for(RubberBandedBoundary g : manualZipCodesAndGeo) {
                 try {
                     File file = new File(ConstantUtil.GEO_JSON_DIRECTORY_MANUAL + g.getZipcode() + "/geojson.txt");
                     file.getParentFile().mkdirs();
@@ -722,8 +716,6 @@ public class DataGenService implements SageDataGenService {
      * ~Levidu
      */
     private boolean createGeoJsonFromUserSpecifiedSources() {
-        File finalZipsFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
-//        File zipMissingFromDb = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPS_MISSING_FILE);
         File zipSourceFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.USER_SPECIFIED_ZIP_SOURCE);
         File tsvAddressPointSamFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE);
         File tsvGeoCacheFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
@@ -739,37 +731,33 @@ public class DataGenService implements SageDataGenService {
             }
         }
         if(!tsvGeoCacheFile.exists()) {
-            List<Geo> geoCacheList = sqlDataGenDao.getGeoCacheGeoJson();
+            List<RubberBandedBoundary> geoCacheList = sqlDataGenDao.getGeoCacheGeoJson();
             try {
                 FileWriter fileWriter = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
                 PrintWriter outputWriter = new PrintWriter(fileWriter);
-                int count = 0;
-                for (Geo g : geoCacheList) {
+                for (RubberBandedBoundary g : geoCacheList) {
                     outputWriter.println(g.toString());
-                    count++;
                 }
                 fileWriter.close();
                 outputWriter.close();
-                logger.info("Wrote " + count + " lines to " + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
+                logger.info("Sucess: Wrote lines to " + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
             } catch (IOException e) {
                 logger.error("Unable to read " + ConstantUtil.TSV_GEOCACHE_GROUP_BY_ZIPCODES_FILE);
                 return false;
             }
         }
         if (!tsvAddressPointSamFile.exists()) {
-            List<Geo> geoAddressPointList = sqlDataGenDao.getAddressPointGeoJson();
+            List<RubberBandedBoundary> geoAddressPointList = sqlDataGenDao.getAddressPointGeoJson();
             try {
 
                 FileWriter fileWriter = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE);
                 PrintWriter outputWriter = new PrintWriter(fileWriter);
-                int count = 0;
-                for (Geo g : geoAddressPointList) {
+                for (RubberBandedBoundary g : geoAddressPointList) {
                     outputWriter.println(g.toString());
-                    count++;
                 }
                 fileWriter.close();
                 outputWriter.close();
-                logger.info("Wrote " + count + " lines to " + ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE);
+                logger.info("Success: Wrote  lines to " + ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE);
             } catch (IOException e) {
                 logger.error("Unable to read " + ConstantUtil.TSV_NYSGEO_GROUP_BY_ZIPCODES_FILE);
                 return false;

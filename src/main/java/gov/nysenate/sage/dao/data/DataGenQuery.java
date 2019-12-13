@@ -15,8 +15,8 @@ public enum DataGenQuery implements BasicSqlQuery {
 
     SELECT_GEOCACHE_AS_GEO_JSON("select zip5, st_asgeojson(st_convexhull(st_collect(st_astext(${schema}.geocache.latlon)))) as geo from ${schema}. " + SqlTable.GEOCACHE + " group by zip5;"),
 
-    //st_concavehull algorithm would result in precise polygon boundaries. Convexhull is used to avoid an error with intersection. Use the below SQL when geocache is fixed!
-//    SELECT_GEOCACHE_AS_GEO_JSON("select zip5, st_asgeojson(st_concavehull(st_collect(st_astext(${schema}.geocache.latlon)),0.5)) as geo from ${schema}. " + SqlTable.GEOCACHE + " group by zip5;")
+    //st_concavehull algorithm would result in precise polygon boundaries. Convexhull is used to avoid an error with intersection.
+    SELECT_GEOCACHE_AS_GEO_JSON_CONCAVE("select zip5, st_asgeojson(st_concavehull(st_collect(st_astext(${schema}.geocache.latlon)),0.5)) as geo from ${schema}. " + SqlTable.GEOCACHE + " group by zip5;"),
 
     INSERT_MANUAL_DATAENTRY_GEOPOINT("INSERT INTO ${schema}." + SqlTable.MANUAL_DATAENTRY_GEOPOINTS + " (zipcode, type, lon, lat, source) " + "VALUES (?, ?, ?, ?, ?)"),
 

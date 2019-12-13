@@ -1,8 +1,8 @@
 package gov.nysenate.sage.dao.data;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.model.datagen.Geo;
-import gov.nysenate.sage.model.datagen.SuperManualZipCode;
+import gov.nysenate.sage.model.datagen.RubberBandedBoundary;
+import gov.nysenate.sage.model.datagen.ManualZipCodePoint;
 import gov.nysenate.sage.scripts.streetfinder.County;
 import gov.nysenate.sage.scripts.streetfinder.TownCode;
 import gov.nysenate.sage.model.datagen.ZipCode;
@@ -42,30 +42,30 @@ public class SqlDataGenDao implements DataGenDao {
                         new ZipCode(rs.getString("zcta5ce10")));
     }
 
-    public List<Geo> getAddressPointGeoJson() {
+    public List<RubberBandedBoundary> getAddressPointGeoJson() {
         return baseDao.tigerJbdcTemplate.query(
                 DataGenQuery.SELECT_ADDRESSPOINT_AS_GEO_JSON.getSql(
                         baseDao.getGeocoderPublicSchema()), (rs, rowNum) ->
-                        new Geo(rs.getString("zipcode"),rs.getString("geo")));
+                        new RubberBandedBoundary(rs.getString("zipcode"),rs.getString("geo")));
     }
 
-    public List<Geo> getGeoCacheGeoJson() {
+    public List<RubberBandedBoundary> getGeoCacheGeoJson() {
         return baseDao.tigerJbdcTemplate.query(
                 DataGenQuery.SELECT_ADDRESSPOINT_AS_GEO_JSON.getSql(
                         baseDao.getGeocoderPublicSchema()), (rs, rowNum) ->
-                        new Geo(rs.getString("zip5"),rs.getString("geo")));
+                        new RubberBandedBoundary(rs.getString("zip5"),rs.getString("geo")));
     }
 
-    public void insertIntoManualDataentryGeopoints(SuperManualZipCode superManualZipCode) {
+    public void insertIntoManualDataentryGeopoints(ManualZipCodePoint superManualZipCode) {
         baseDao.geoApiJbdcTemplate.update((DataGenQuery.INSERT_MANUAL_DATAENTRY_GEOPOINT.getSql(baseDao.getPublicSchema())),superManualZipCode.getZipcode(),
                 superManualZipCode.getType(),superManualZipCode.getLon(),superManualZipCode.getLat(),superManualZipCode.getSource());
     }
 
-    public List<Geo> getManualDataentryGeopoints() {
+    public List<RubberBandedBoundary> getManualDataentryGeopoints() {
         return baseDao.geoApiJbdcTemplate.query(
                 DataGenQuery.SELECT_MANUAL_DATAENTRY_GEOPOINT.getSql(
                         baseDao.getPublicSchema()), (rs, rowNum) ->
-                        new Geo(rs.getString("zipcode"),rs.getString("geo")));
+                        new RubberBandedBoundary(rs.getString("zipcode"),rs.getString("geo")));
     }
 
 
