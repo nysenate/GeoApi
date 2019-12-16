@@ -53,6 +53,7 @@ public class GeocodeServiceValidator
 
         String[] activeList = env.getGeocoderActive().split(",");
         for (String provider : activeList) {
+            provider = provider.trim();
             setGeocoderAsActive(geoProviders.get(provider));
         }
     }
