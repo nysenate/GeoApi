@@ -66,7 +66,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
         this.defaultProvider = districtShapefile;
         providers.put("shapefile", districtShapefile);
         providers.put("streetfile", streetFile);
-        defaultFallBack.add("streetifle");
+        defaultFallBack.add("streetfile");
         PROXIMITY_THRESHOLD = env.getBorderProximity();
         SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf(env.getDistrictStrategySingle());
         BATCH_DISTRICT_STRATEGY = DistrictStrategy.valueOf(env.getDistrictStrategyBatch());
