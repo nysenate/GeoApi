@@ -205,7 +205,7 @@ public class Environment {
     }
 
     public String getBaseUrl() {
-        return baseUrl;
+        return baseUrl.trim();
     }
 
     public void setBaseUrl(String baseUrl) {
@@ -229,7 +229,7 @@ public class Environment {
     }
 
     public String getUserIpFilter() {
-        return userIpFilter;
+        return userIpFilter.trim();
     }
 
     public void setUserIpFilter(String userIpFilter) {
@@ -237,7 +237,7 @@ public class Environment {
     }
 
     public String getUserDefaultKey() {
-        return userDefaultKey;
+        return userDefaultKey.trim();
     }
 
     public void setUserDefaultKey(String userDefaultKey) {
@@ -245,7 +245,7 @@ public class Environment {
     }
 
     public String getPublicApiFilter() {
-        return publicApiFilter;
+        return publicApiFilter.trim();
     }
 
     public void setPublicApiFilter(String publicApiFilter) {
@@ -253,7 +253,7 @@ public class Environment {
     }
 
     public String getUserPublicKey() {
-        return userPublicKey;
+        return userPublicKey.trim();
     }
 
     public void setUserPublicKey(String userPublicKey) {
@@ -285,7 +285,7 @@ public class Environment {
     }
 
     public String getUspsAisUrl() {
-        return uspsAisUrl;
+        return uspsAisUrl.trim();
     }
 
     public void setUspsAisUrl(String uspsAisUrl) {
@@ -293,7 +293,7 @@ public class Environment {
     }
 
     public String getUspsAisKey() {
-        return uspsAisKey;
+        return uspsAisKey.trim();
     }
 
     public void setUspsAisKey(String uspsAisKey) {
@@ -301,7 +301,7 @@ public class Environment {
     }
 
     public String getUspsAmsApiUrl() {
-        return uspsAmsApiUrl;
+        return uspsAmsApiUrl.trim();
     }
 
     public void setUspsAmsApiUrl(String uspsAmsApiUrl) {
@@ -309,7 +309,7 @@ public class Environment {
     }
 
     public String getUspsAmsUiUrl() {
-        return uspsAmsUiUrl;
+        return uspsAmsUiUrl.trim();
     }
 
     public void setUspsAmsUiUrl(String uspsAmsUiUrl) {
@@ -317,7 +317,7 @@ public class Environment {
     }
 
     public String getNysenateDomain() {
-        return nysenateDomain;
+        return nysenateDomain.trim();
     }
 
     public void setNysenateDomain(String nysenateDomain) {
@@ -325,7 +325,7 @@ public class Environment {
     }
 
     public String getGoogleGeocoderUrl() {
-        return googleGeocoderUrl;
+        return googleGeocoderUrl.trim();
     }
 
     public void setGoogleGeocoderUrl(String googleGeocoderUrl) {
@@ -333,7 +333,7 @@ public class Environment {
     }
 
     public String getGoogleGeocoderKey() {
-        return googleGeocoderKey;
+        return googleGeocoderKey.trim();
     }
 
     public void setGoogleGeocoderKey(String googleGeocoderKey) {
@@ -341,7 +341,7 @@ public class Environment {
     }
 
     public String getUspsDefault() {
-        return uspsDefault;
+        return uspsDefault.trim();
     }
 
     public void setUspsDefault(String uspsDefault) {
@@ -349,7 +349,7 @@ public class Environment {
     }
 
     public String getGeocoderActive() {
-        return geocoderActive;
+        return geocoderActive.trim();
     }
 
     public void setGeocoderActive(String geocoderActive) {
@@ -357,7 +357,7 @@ public class Environment {
     }
 
     public String getGeocoderRank() {
-        return geocoderRank;
+        return geocoderRank.trim();
     }
 
     public void setGeocoderRank(String geocoderRank) {
@@ -365,7 +365,7 @@ public class Environment {
     }
 
     public String getGeocoderCacheable() {
-        return geocoderCacheable;
+        return geocoderCacheable.trim();
     }
 
     public void setGeocoderCacheable(String geocoderCacheable) {
@@ -429,7 +429,7 @@ public class Environment {
     }
 
     public String getGeoServerUrl() {
-        return geoServerUrl;
+        return geoServerUrl.trim();
     }
 
     public void setGeoServerUrl(String geoServerUrl) {
@@ -437,7 +437,7 @@ public class Environment {
     }
 
     public String getGeoserverWorkspace() {
-        return geoserverWorkspace;
+        return geoserverWorkspace.trim();
     }
 
     public void setGeoserverWorkspace(String geoserverWorkspace) {
@@ -445,7 +445,7 @@ public class Environment {
     }
 
     public String getGeoapiDriver() {
-        return geoapiDriver;
+        return geoapiDriver.trim();
     }
 
     public void setGeoapiDriver(String geoapiDriver) {
@@ -453,7 +453,7 @@ public class Environment {
     }
 
     public String getGeoapiDbType() {
-        return geoapiDbType;
+        return geoapiDbType.trim();
     }
 
     public void setGeoapiDbType(String geoapiDbType) {
@@ -461,7 +461,7 @@ public class Environment {
     }
 
     public String getGeoapiDbHost() {
-        return geoapiDbHost;
+        return geoapiDbHost.trim();
     }
 
     public void setGeoapiDbHost(String geoapiDbHost) {
@@ -469,7 +469,7 @@ public class Environment {
     }
 
     public String getGeoapiDbName() {
-        return geoapiDbName;
+        return geoapiDbName.trim();
     }
 
     public void setGeoapiDbName(String geoapiDbName) {
@@ -477,7 +477,7 @@ public class Environment {
     }
 
     public String getGeoapiDbUser() {
-        return geoapiDbUser;
+        return geoapiDbUser.trim();
     }
 
     public void setGeoapiDbUser(String geoapiDbUser) {
@@ -485,7 +485,7 @@ public class Environment {
     }
 
     public String getGepapiDbPass() {
-        return gepapiDbPass;
+        return gepapiDbPass.trim();
     }
 
     public void setGepapiDbPass(String gepapiDbPass) {
@@ -493,7 +493,7 @@ public class Environment {
     }
 
     public String getTigerDriver() {
-        return tigerDriver;
+        return tigerDriver.trim();
     }
 
     public void setTigerDriver(String tigerDriver) {
@@ -501,7 +501,7 @@ public class Environment {
     }
 
     public String getTigerDbType() {
-        return tigerDbType;
+        return tigerDbType.trim();
     }
 
     public void setTigerDbType(String tigerDbType) {
@@ -509,7 +509,7 @@ public class Environment {
     }
 
     public String getTigerDbHost() {
-        return tigerDbHost;
+        return tigerDbHost.trim();
     }
 
     public void setTigerDbHost(String tigerDbHost) {
@@ -517,7 +517,7 @@ public class Environment {
     }
 
     public String getTigerDbName() {
-        return tigerDbName;
+        return tigerDbName.trim();
     }
 
     public void setTigerDbName(String tigerDbName) {
@@ -525,7 +525,7 @@ public class Environment {
     }
 
     public String getTigerDbUser() {
-        return tigerDbUser;
+        return tigerDbUser.trim();
     }
 
     public void setTigerDbUser(String tigerDbUser) {
@@ -533,7 +533,7 @@ public class Environment {
     }
 
     public String getTigerDbPass() {
-        return tigerDbPass;
+        return tigerDbPass.trim();
     }
 
     public void setTigerDbPass(String tigerDbPass) {
@@ -549,7 +549,7 @@ public class Environment {
     }
 
     public String getSmtpHost() {
-        return smtpHost;
+        return smtpHost.trim();
     }
 
     public void setSmtpHost(String smtpHost) {
@@ -565,7 +565,7 @@ public class Environment {
     }
 
     public String getSmtpUser() {
-        return smtpUser;
+        return smtpUser.trim();
     }
 
     public void setSmtpUser(String smtpUser) {
@@ -573,7 +573,7 @@ public class Environment {
     }
 
     public String getSmtpPass() {
-        return smtpPass;
+        return smtpPass.trim();
     }
 
     public void setSmtpPass(String smtpPass) {
@@ -589,7 +589,7 @@ public class Environment {
     }
 
     public String getSmtpAdmin() {
-        return smtpAdmin;
+        return smtpAdmin.trim();
     }
 
     public void setSmtpAdmin(String smtpAdmin) {
@@ -613,7 +613,7 @@ public class Environment {
     }
 
     public String getSmtpContext() {
-        return smtpContext;
+        return smtpContext.trim();
     }
 
     public void setSmtpContext(String smtpContext) {
@@ -629,7 +629,7 @@ public class Environment {
     }
 
     public String getJobUploadDir() {
-        return jobUploadDir;
+        return jobUploadDir.trim();
     }
 
     public void setJobUploadDir(String jobUploadDir) {
@@ -637,7 +637,7 @@ public class Environment {
     }
 
     public String getJobDownloadDir() {
-        return jobDownloadDir;
+        return jobDownloadDir.trim();
     }
 
     public void setJobDownloadDir(String jobDownloadDir) {
@@ -693,7 +693,7 @@ public class Environment {
     }
 
     public String getDistrictStrategySingle() {
-        return districtStrategySingle;
+        return districtStrategySingle.trim();
     }
 
     public void setDistrictStrategySingle(String districtStrategySingle) {
@@ -701,7 +701,7 @@ public class Environment {
     }
 
     public String getDistrictStrategyBluebird() {
-        return districtStrategyBluebird;
+        return districtStrategyBluebird.trim();
     }
 
     public void setDistrictStrategyBluebird(String districtStrategyBluebird) {
@@ -709,7 +709,7 @@ public class Environment {
     }
 
     public String getDistrictStrategyBatch() {
-        return districtStrategyBatch;
+        return districtStrategyBatch.trim();
     }
 
     public void setDistrictStrategyBatch(String districtStrategyBatch) {
@@ -733,7 +733,7 @@ public class Environment {
     }
 
     public String getGoogleMapsUrl() {
-        return googleMapsUrl;
+        return googleMapsUrl.trim();
     }
 
     public void setGoogleMapsUrl(String googleMapsUrl) {
@@ -741,7 +741,7 @@ public class Environment {
     }
 
     public String getGoogleMapsKey() {
-        return googleMapsKey;
+        return googleMapsKey.trim();
     }
 
     public void setGoogleMapsKey(String googleMapsKey) {
@@ -749,7 +749,7 @@ public class Environment {
     }
 
     public String getNysGeocoderUrl() {
-        return nysGeocoderUrl;
+        return nysGeocoderUrl.trim();
     }
 
     public void setNysGeocoderUrl(String nysGeocoderUrl) {
@@ -757,7 +757,7 @@ public class Environment {
     }
 
     public String getNysGeocdeExtension() {
-        return nysGeocdeExtension;
+        return nysGeocdeExtension.trim();
     }
 
     public void setNysGeocdeExtension(String nysGeocdeExtension) {
@@ -765,7 +765,7 @@ public class Environment {
     }
 
     public String getNysRevGeocodeExtension() {
-        return nysRevGeocodeExtension;
+        return nysRevGeocodeExtension.trim();
     }
 
     public void setNysRevGeocodeExtension(String nysRevGeocodeExtension) {
@@ -773,7 +773,7 @@ public class Environment {
     }
 
     public String getYahooUrl() {
-        return yahooUrl;
+        return yahooUrl.trim();
     }
 
     public void setYahooUrl(String yahooUrl) {
@@ -781,7 +781,7 @@ public class Environment {
     }
 
     public String getYahooConsumerKey() {
-        return yahooConsumerKey;
+        return yahooConsumerKey.trim();
     }
 
     public void setYahooConsumerKey(String yahooConsumerKey) {
@@ -789,7 +789,7 @@ public class Environment {
     }
 
     public String getYahooConsumerSecret() {
-        return yahooConsumerSecret;
+        return yahooConsumerSecret.trim();
     }
 
     public void setYahooConsumerSecret(String yahooConsumerSecret) {
@@ -805,7 +805,7 @@ public class Environment {
     }
 
     public String getYahooBossUrl() {
-        return yahooBossUrl;
+        return yahooBossUrl.trim();
     }
 
     public void setYahooBossUrl(String yahooBossUrl) {
@@ -813,7 +813,7 @@ public class Environment {
     }
 
     public String getYahooBossConsumerKey() {
-        return yahooBossConsumerKey;
+        return yahooBossConsumerKey.trim();
     }
 
     public void setYahooBossConsumerKey(String yahooBossConsumerKey) {
@@ -821,7 +821,7 @@ public class Environment {
     }
 
     public String getYahooBossConsumerSecret() {
-        return yahooBossConsumerSecret;
+        return yahooBossConsumerSecret.trim();
     }
 
     public void setYahooBossConsumerSecret(String yahooBossConsumerSecret) {
@@ -829,7 +829,7 @@ public class Environment {
     }
 
     public String getBingKey() {
-        return bingKey;
+        return bingKey.trim();
     }
 
     public void setBingKey(String bingKey) {
@@ -837,7 +837,7 @@ public class Environment {
     }
 
     public String getMapquestGeoUrl() {
-        return mapquestGeoUrl;
+        return mapquestGeoUrl.trim();
     }
 
     public void setMapquestGeoUrl(String mapquestGeoUrl) {
@@ -845,7 +845,7 @@ public class Environment {
     }
 
     public String getMapquestRevUrl() {
-        return mapquestRevUrl;
+        return mapquestRevUrl.trim();
     }
 
     public void setMapquestRevUrl(String mapquestRevUrl) {
@@ -853,7 +853,7 @@ public class Environment {
     }
 
     public String getMapquestKey() {
-        return mapquestKey;
+        return mapquestKey.trim();
     }
 
     public void setMapquestKey(String mapquestKey) {
@@ -861,7 +861,7 @@ public class Environment {
     }
 
     public String getOsmUrl() {
-        return osmUrl;
+        return osmUrl.trim();
     }
 
     public void setOsmUrl(String osmUrl) {
@@ -869,7 +869,7 @@ public class Environment {
     }
 
     public String getRubyGeocoderUrl() {
-        return rubyGeocoderUrl;
+        return rubyGeocoderUrl.trim();
     }
 
     public void setRubyGeocoderUrl(String rubyGeocoderUrl) {
@@ -877,7 +877,7 @@ public class Environment {
     }
 
     public String getRubyGeocoderBulkUrl() {
-        return rubyGeocoderBulkUrl;
+        return rubyGeocoderBulkUrl.trim();
     }
 
     public void setRubyGeocoderBulkUrl(String rubyGeocoderBulkUrl) {
@@ -885,7 +885,7 @@ public class Environment {
     }
 
     public String getJobProcessCron() {
-        return jobProcessCron;
+        return jobProcessCron.trim();
     }
 
     public void setJobProcessCron(String jobProcessCron) {
@@ -893,7 +893,7 @@ public class Environment {
     }
 
     public String getDistrictsSchema() {
-        return districtsSchema;
+        return districtsSchema.trim();
     }
 
     public void setDistrictsSchema(String districtsSchema) {
@@ -901,7 +901,7 @@ public class Environment {
     }
 
     public String getJobSchema() {
-        return jobSchema;
+        return jobSchema.trim();
     }
 
     public void setJobSchema(String jobSchema) {
@@ -909,7 +909,7 @@ public class Environment {
     }
 
     public String getLogSchema() {
-        return logSchema;
+        return logSchema.trim();
     }
 
     public void setLogSchema(String logSchema) {
@@ -917,7 +917,7 @@ public class Environment {
     }
 
     public String getPublicSchema() {
-        return publicSchema;
+        return publicSchema.trim();
     }
 
     public void setPublicSchema(String publicSchema) {
@@ -925,7 +925,7 @@ public class Environment {
     }
 
     public String getCacheSchema() {
-        return cacheSchema;
+        return cacheSchema.trim();
     }
 
     public void setCacheSchema(String cacheSchema) {
@@ -933,7 +933,7 @@ public class Environment {
     }
 
     public String getTigerSchema() {
-        return tigerSchema;
+        return tigerSchema.trim();
     }
 
     public void setTigerSchema(String tigerSchema) {
@@ -941,7 +941,7 @@ public class Environment {
     }
 
     public String getTigerDataSchema() {
-        return tigerDataSchema;
+        return tigerDataSchema.trim();
     }
 
     public void setTigerDataSchema(String tigerDataSchema) {
@@ -949,7 +949,7 @@ public class Environment {
     }
 
     public String getGeocoderPublicSchema() {
-        return geocoderPublicSchema;
+        return geocoderPublicSchema.trim();
     }
 
     public void setGeocoderPublicSchema(String geocoderPublicSchema) {
