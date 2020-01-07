@@ -41,7 +41,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 
 @Service
-public class RegeocacheService implements SageRegeocacheService{
+public class RegeocacheService implements SageRegeocacheService {
 
     private Logger logger = LoggerFactory.getLogger(RegeocacheService.class);
     private SqlRegeocacheDao sqlRegeocacheDao;
@@ -99,186 +99,186 @@ public class RegeocacheService implements SageRegeocacheService{
         return apiResponse;
     }
 
-//    public Object regeocacheSpecificMethodWithNysGeoWebService(int user_offset, String method) {
-//        Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-//        HttpClient httpClient = HttpClientBuilder.create().build();
-//        LocalDateTime start = LocalDateTime.now();
-//        LocalDateTime end;
-//        final int limit = 2000;
-//        int offset = user_offset;
-//
-//        System.out.println("Handle Method data supplied offset: " + offset);
-//        try {
-//            //Get total number of addresses that will be used to update our geocache
-//            List<Integer> totalList = sqlRegeocacheDao.getMethodTotalCount(method);
-//            if (totalList == null || totalList.isEmpty()) {
-//                logger.error("Failed to get a total count for the specified method " + method);
-//                return apiResponse;
-//            }
-//            int total = totalList.get(0);
-//            logger.info("Total number of records currently cached with the method " + method + " : " + total);
-//            //Hanldes parallel processing of http requests
-//            Consumer<String> urlConsumer = url -> {
-//
-//                //Execute URL
-//                try {
-//                    HttpGet request = new HttpGet(url);
-//                    HttpResponse response = httpClient.execute(request);
-//                    UrlRequest.convertStreamToString(response.getEntity().getContent());
-//                } catch (Exception e) {
-//                    //Alert Admin to failures
-//                    System.err.println("Failed to contact SAGE with the url: " + url);
-//                }
-//            };
-//
-//            //Where the magic happens
-//            while (total > offset) {
-//                //Contains a list of URLS to be executed
-//                List<String> urls = new ArrayList<>();
-//
-//                //Get batch of 2000
-//                List<StreetAddress> nysGeoDBAddresses = sqlRegeocacheDao.getMethodBatch(offset, limit, method);
-//
-//                //Let the admin know about progress made & increment offset
-//                logger.info("At offset: " + offset);
-//                offset = limit + offset;
-//
-//                if (!nysGeoDBAddresses.isEmpty()) {
-//                    //Query SAGE with the nysgeo webservice specified
-//                    for (StreetAddress nysGeoStreetAddress : nysGeoDBAddresses) {
-//
-//                        //Build URL
-//                        Address nysgeoAddress = nysGeoStreetAddress.toAddress();
-//                        String regeocacheUrl = env.getBaseUrl() +
-//                                "/api/v2/geo/geocode?addr1=%s&addr2=%s&city=%s&state=%s&zip5=%s&provider=nysgeo";
-//                        regeocacheUrl = String.format(regeocacheUrl, nysgeoAddress.getAddr1(), nysgeoAddress.getAddr2(),
-//                                nysgeoAddress.getCity(), nysgeoAddress.getState(), nysgeoAddress.getZip5());
-//                        regeocacheUrl = regeocacheUrl.replaceAll(" ", "%20");
-//                        regeocacheUrl = StringUtils.deleteWhitespace(regeocacheUrl);
-//                        regeocacheUrl = regeocacheUrl.replaceAll("`", "");
-//                        regeocacheUrl = regeocacheUrl.replaceAll("#", "");
-//                        regeocacheUrl = regeocacheUrl.replaceAll("\\\\", "");
-//                        urls.add(regeocacheUrl);
-//                    }
-//                }
-//
-//                //Stream with multiple threads the urls that were just created
-//                if (!urls.isEmpty()) {
-//                    urls.parallelStream().forEach( urlConsumer );
-//                    urls.clear();
-//                }
-//            }
-//        }
-//        catch (Exception e) {
-//            logger.error("Error refreshing the geocoder database:" + e);
-//            return apiResponse;
-//        }
-//        end = LocalDateTime.now();
-//        //Let the admin know about the work that has been done.
-//        String timerange = " The script started at " + start + " and ended at " + end;
-//        logger.info(timerange);
-//        apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc() + timerange);
-//        return apiResponse;
-//    }
-//
-//    public Object updateGeocacheWithNYSGeoData(int nys_offset) {
-//        Object apiResponse;
-//        HttpClient httpClient = HttpClientBuilder.create().build();
-//        int updatedRecordsCount = 0;
-//        try {
-//            //Get total number of addresses that will be used to update our geocache
-//            Integer total = sqlRegeocacheDao.getNYSTotalAddresses();
-//
-//            //start from offset and loop until the total number in batches of 2000
-//            //It is best to start from 0
-//            while (total > nys_offset) {
-//                //Get batch of 2000
-//                List<NYSGeoAddress> nysGeoAddresses = sqlRegeocacheDao.getBatchOfNYSGeoAddresses(nys_limit, nys_offset);
-//                logger.info("At nys_offset: " + nys_offset);
-//                nys_offset = nys_limit + nys_offset;
-//
-//                //Handle batch
-//                for (NYSGeoAddress nysGeoAddress : nysGeoAddresses) {
-//                    //Convert NYSGeoAddressto an Adress Object
-//                    Address nysAddress = nysGeoAddress.toAddress();
-//
-//                    //Extract NYSGeoAddress coordinates to form a geocode
-//                    Geocode nysGeocode = nysGeoAddress.toGeocode();
-//
-//                    //Convert NYSGeoAddress to a Street address like our cache
-//                    StreetAddress nysStreetAddress = nysGeoAddress.toStreetAddress();
-//
-//                    //Run new Address through USPS
-//                    String httpRequestString = env.getUspsAmsApiUrl()
-//                            + "validate?detail=true&addr1=%s&addr2=&city=%s&state=%s&zip5=%s&zip4=";
-//                    httpRequestString = formatUrlString(httpRequestString, nysAddress);
-//
-//                    try {
-//                        HttpGet httpRequest = new HttpGet(httpRequestString);
-//                        HttpResponse httpResponse = httpClient.execute(httpRequest);
-//
-//                        JSONObject uspsJson =
-//                                new JSONObject(UrlRequest.convertStreamToString(httpResponse.getEntity().getContent()));
-//                        if (uspsJson.getBoolean("validated")) {
-//                            JSONObject uspsAddressJson = uspsJson.getJSONObject("address");
-//                            nysStreetAddress = constructStreetAddressFromUSPSJson(uspsAddressJson);
-//                        }
-//                    } catch (Exception e) {
-//                        logger.error("Failed to make Http request because of exception" + e.getMessage());
-//                        logger.error("Failed address was: " + nysAddress.toString());
-//                        continue; //only put it in the database if USPS has data on it / corrected the address
-//                    }
-//
-//                    //Determine if address exits in our Geocache by getting
-//                    // the method of its results (GoogleDao, YahooDao, etc)
-//                    GeocodedStreetAddress geocachedStreetAddress =
-//                            sqlRegeocacheDao.getProviderOfAddressInCacheIfExists(nysStreetAddress);
-//
-//                    String geocachedStreetAddressProvider = "";
-//                    if (geocachedStreetAddress != null && geocachedStreetAddress.getStreetAddress().equals(nysStreetAddress)) {
-//                        geocachedStreetAddressProvider = geocachedStreetAddress.getGeocode().getMethod();
-//                        //update only if its not google. Address was matched so it should insert fine
-//                        if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointtype() == 1) {
-//                            try {
-//                                sqlRegeocacheDao.updateGeocache(nysStreetAddress, nysGeocode);
-//                                updatedRecordsCount++;
-//                            } catch (SQLException e) {
-//                                //should not happen beacause it was verified
-//                                logger.warn("Update Failed for " + nysStreetAddress.toString());
-//                            }
-//                        }
-//                    }
-//                    //If the geocacheStreetAddressProvider is empty, we don't have the address cached, so insert the address
-//                    else if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
-//                        //insert
-//                        try {
-//                            sqlRegeocacheDao.insetIntoGeocache(nysStreetAddress, nysGeocode);
-//                            updatedRecordsCount++;
-//                        } catch (SQLException e) {
-//                            logger.warn("Insert Failed for " + nysStreetAddress.toString());
-//                        }
-//                    }
-//                }
-//            }
-//
-//            logger.info("Updated " + updatedRecordsCount + " records");
-//
-//            try {
-//                ((CloseableHttpClient) httpClient).close();
-//            } catch (IOException e) {
-//                logger.error("Failed to close http connection \n" + e);
-//                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-//                return apiResponse;
-//            }
-//
-//        } catch (Exception ex) {
-//            logger.error("Error retrieving addresses from geocache \n" + ex);
-//            apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-//            return apiResponse;
-//        }
-//        apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
-//        return apiResponse;
-//    }
+    public Object regeocacheSpecificMethodWithNysGeoWebService(int user_offset, String method) {
+        Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime end;
+        final int limit = 2000;
+        int offset = user_offset;
+
+        logger.info("Handle Method data supplied offset: " + offset);
+        try {
+            //Get total number of addresses that will be used to update our geocache
+            List<Integer> totalList = sqlRegeocacheDao.getMethodTotalCount(method);
+            if (totalList == null || totalList.isEmpty()) {
+                logger.error("Failed to get a total count for the specified method " + method);
+                return apiResponse;
+            }
+            int total = totalList.get(0);
+            logger.info("Total number of records currently cached with the method " + method + " : " + total);
+            //Hanldes parallel processing of http requests
+            Consumer<String> urlConsumer = url -> {
+
+                //Execute URL
+                try {
+                    HttpGet request = new HttpGet(url);
+                    HttpResponse response = httpClient.execute(request);
+                    UrlRequest.convertStreamToString(response.getEntity().getContent());
+                } catch (Exception e) {
+                    //Alert Admin to failures
+                    logger.error("Failed to contact SAGE with the url: " + url);
+                }
+            };
+
+            //Where the magic happens
+            while (total > offset) {
+                //Contains a list of URLS to be executed
+                List<String> urls = new ArrayList<>();
+
+                //Get batch of 2000
+                List<StreetAddress> nysGeoDBAddresses = sqlRegeocacheDao.getMethodBatch(offset, limit, method);
+
+                //Let the admin know about progress made & increment offset
+                logger.info("At offset: " + offset);
+                offset = limit + offset;
+
+                if (!nysGeoDBAddresses.isEmpty()) {
+                    //Query SAGE with the nysgeo webservice specified
+                    for (StreetAddress nysGeoStreetAddress : nysGeoDBAddresses) {
+
+                        //Build URL
+                        Address nysgeoAddress = nysGeoStreetAddress.toAddress();
+                        String regeocacheUrl = env.getBaseUrl() +
+                                "/api/v2/geo/geocode?addr1=%s&addr2=%s&city=%s&state=%s&zip5=%s&provider=nysgeo&useFallback=false";
+                        regeocacheUrl = String.format(regeocacheUrl, nysgeoAddress.getAddr1(), nysgeoAddress.getAddr2(),
+                                nysgeoAddress.getCity(), nysgeoAddress.getState(), nysgeoAddress.getZip5());
+                        regeocacheUrl = regeocacheUrl.replaceAll(" ", "%20");
+                        regeocacheUrl = StringUtils.deleteWhitespace(regeocacheUrl);
+                        regeocacheUrl = regeocacheUrl.replaceAll("`", "");
+                        regeocacheUrl = regeocacheUrl.replaceAll("#", "");
+                        regeocacheUrl = regeocacheUrl.replaceAll("\\\\", "");
+                        urls.add(regeocacheUrl);
+                    }
+                }
+
+                //Stream with multiple threads the urls that were just created
+                if (!urls.isEmpty()) {
+                    urls.parallelStream().forEach( urlConsumer );
+                    urls.clear();
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error("Error refreshing the geocoder database:" + e);
+            return apiResponse;
+        }
+        end = LocalDateTime.now();
+        //Let the admin know about the work that has been done.
+        String timerange = " The script started at " + start + " and ended at " + end;
+        logger.info(timerange);
+        apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc() + timerange);
+        return apiResponse;
+    }
+
+    public Object updateGeocacheWithNYSGeoData(int nys_offset) {
+        Object apiResponse;
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        int updatedRecordsCount = 0;
+        try {
+            //Get total number of addresses that will be used to update our geocache
+            Integer total = sqlRegeocacheDao.getNYSTotalAddresses();
+
+            //start from offset and loop until the total number in batches of 2000
+            //It is best to start from 0
+            while (total > nys_offset) {
+                //Get batch of 2000
+                List<NYSGeoAddress> nysGeoAddresses = sqlRegeocacheDao.getBatchOfNYSGeoAddresses(nys_limit, nys_offset);
+                logger.info("At nys_offset: " + nys_offset);
+                nys_offset = nys_limit + nys_offset;
+
+                //Handle batch
+                for (NYSGeoAddress nysGeoAddress : nysGeoAddresses) {
+                    //Convert NYSGeoAddressto an Adress Object
+                    Address nysAddress = nysGeoAddress.toAddress();
+
+                    //Extract NYSGeoAddress coordinates to form a geocode
+                    Geocode nysGeocode = nysGeoAddress.toGeocode();
+
+                    //Convert NYSGeoAddress to a Street address like our cache
+                    StreetAddress nysStreetAddress = nysGeoAddress.toStreetAddress();
+
+                    //Run new Address through USPS
+                    String httpRequestString = env.getUspsAmsApiUrl()
+                            + "validate?detail=true&addr1=%s&addr2=&city=%s&state=%s&zip5=%s&zip4=";
+                    httpRequestString = formatUrlString(httpRequestString, nysAddress);
+
+                    try {
+                        HttpGet httpRequest = new HttpGet(httpRequestString);
+                        HttpResponse httpResponse = httpClient.execute(httpRequest);
+
+                        JSONObject uspsJson =
+                                new JSONObject(UrlRequest.convertStreamToString(httpResponse.getEntity().getContent()));
+                        if (uspsJson.getBoolean("validated")) {
+                            JSONObject uspsAddressJson = uspsJson.getJSONObject("address");
+                            nysStreetAddress = constructStreetAddressFromUSPSJson(uspsAddressJson);
+                        }
+                    } catch (Exception e) {
+                        logger.error("Failed to make Http request because of exception" + e.getMessage());
+                        logger.error("Failed address was: " + nysAddress.toString());
+                        continue; //only put it in the database if USPS has data on it / corrected the address
+                    }
+
+                    //Determine if address exits in our Geocache by getting
+                    // the method of its results (GoogleDao, YahooDao, etc)
+                    GeocodedStreetAddress geocachedStreetAddress =
+                            sqlRegeocacheDao.getProviderOfAddressInCacheIfExists(nysStreetAddress);
+
+                    String geocachedStreetAddressProvider = "";
+                    if (geocachedStreetAddress != null && geocachedStreetAddress.getStreetAddress().equals(nysStreetAddress)) {
+                        geocachedStreetAddressProvider = geocachedStreetAddress.getGeocode().getMethod();
+                        //update only if its not google. Address was matched so it should insert fine
+                        if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointtype() == 1) {
+                            try {
+                                sqlRegeocacheDao.updateGeocache(nysStreetAddress, nysGeocode);
+                                updatedRecordsCount++;
+                            } catch (SQLException e) {
+                                //should not happen beacause it was verified
+                                logger.warn("Update Failed for " + nysStreetAddress.toString());
+                            }
+                        }
+                    }
+                    //If the geocacheStreetAddressProvider is empty, we don't have the address cached, so insert the address
+                    else if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
+                        //insert
+                        try {
+                            sqlRegeocacheDao.insetIntoGeocache(nysStreetAddress, nysGeocode);
+                            updatedRecordsCount++;
+                        } catch (SQLException e) {
+                            logger.warn("Insert Failed for " + nysStreetAddress.toString());
+                        }
+                    }
+                }
+            }
+
+            logger.info("Updated " + updatedRecordsCount + " records");
+
+            try {
+                ((CloseableHttpClient) httpClient).close();
+            } catch (IOException e) {
+                logger.error("Failed to close http connection \n" + e);
+                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+                return apiResponse;
+            }
+
+        } catch (Exception ex) {
+            logger.error("Error retrieving addresses from geocache \n" + ex);
+            apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+            return apiResponse;
+        }
+        apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        return apiResponse;
+    }
 
     private String formatUrlString(String urlToFormat, Address addressToFormat) {
         urlToFormat = String.format(urlToFormat, addressToFormat.getAddr1(), addressToFormat.getAddr2(),

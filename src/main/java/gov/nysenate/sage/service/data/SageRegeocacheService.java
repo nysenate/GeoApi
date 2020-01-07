@@ -14,12 +14,12 @@ public interface SageRegeocacheService {
      * @param nys_offset
      * @return
      */
-//    public Object regeocacheSpecificMethodWithNysGeoWebService(int user_offset, String method);
+    public Object regeocacheSpecificMethodWithNysGeoWebService(int user_offset, String method);
 
     /**
      * Updates the geocache by iterating over the NYS Geo database with USPS validation
      * @param nys_offset
      * @return
      */
-//    public Object updateGeocacheWithNYSGeoData(int nys_offset);
+    public Object updateGeocacheWithNYSGeoData(int nys_offset);
 }

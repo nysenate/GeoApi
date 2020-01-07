@@ -1,8 +1,10 @@
 package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.data.RegeocacheService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -21,8 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import java.util.HashMap;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminResponse;
@@ -83,86 +83,88 @@ public class RegeocacheController {
         setApiResponse(apiResponse, request);
     }
 
-//    /**
-//     * NYS Geocache Refresh Api
-//     * ---------------------------
-//     *
-//     * Update the geocache with NYSGEO data
-//     *
-//     * Usage:
-//     * (GET)    /admin/regeocache/nysrefresh/{offset}
-//     *
-//     * @param request HttpServletRequest
-//     * @param response HttpServletResponse
-//     * @param username String
-//     * @param password String
-//     *
-//     */
-//    @RequestMapping(value = "/nysrefresh/{offset}", method = RequestMethod.GET)
-//    public void nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
-//                                   @PathVariable int offset,
-//                                   @RequestParam(required = false, defaultValue = "defaultUser") String username,
-//                                   @RequestParam(required = false, defaultValue = "defaultPass") String password,
-//                                   @RequestParam(required = false, defaultValue = "") String key) {
-//
-//        Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
-//        String ipAddr= ApiControllerUtil.getIpAddress(request);
-//        Subject subject = SecurityUtils.getSubject();
-//
-//        if (subject.hasRole("ADMIN") ||
-//                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-//                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-//            apiResponse = regeocacheService.updateGeocacheWithNYSGeoData(offset);
-//        }
-//        setApiResponse(apiResponse, request);
-//    }
+    /**
+     * NYS Geocache Refresh Api
+     * ---------------------------
+     *
+     * Update the geocache with NYSGEO data
+     *
+     * Usage:
+     * (GET)    /admin/regeocache/nysrefresh/{offset}
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param username String
+     * @param password String
+     *
+     */
+    @RequestMapping(value = "/nysrefresh/{offset}", method = RequestMethod.GET)
+    public void nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
+                                   @PathVariable int offset,
+                                   @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                   @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                   @RequestParam(required = false, defaultValue = "") String key) {
+
+        Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
+            apiResponse = regeocacheService.updateGeocacheWithNYSGeoData(offset);
+        }
+        setApiResponse(apiResponse, request);
+    }
 
 
-//    /**
-//     * Method Refresh Api
-//     * ---------------------------
-//     *
-//     * Refresh all entries in the geocache with a given 'method' with the nysgeo webservice
-//     *
-//     * Usage:
-//     * (GET)    /admin/regeocache/method/{offset}/{method}
-//     *
-//     * Method corresponds to a geocode provider that can be cached as configured in app.properties.
-//     * Valid methods are
-//     * nysgeodb, YahooDao, HttpGoogleDao, GoogleDao, MapQuestDao, Test, TigerGeocoderDao
-//     *
-//     * @param request HttpServletRequest
-//     * @param response HttpServletResponse
-//     * @param offset int
-//     * @param method String
-//     * @param username String
-//     * @param password String
-//     * @param key String
-//     *
-//     *
-//     */
-//    @RequestMapping(value = "/method/{offset}/{method}", method = RequestMethod.GET)
-//    public void handleNysDupsInGeocache(HttpServletRequest request, HttpServletResponse response,
-//                                   @PathVariable int offset,
-//                                        @PathVariable String method,
-//                                        @RequestParam(required = false, defaultValue = "defaultUser") String username,
-//                                   @RequestParam(required = false, defaultValue = "defaultPass") String password,
-//                                        @RequestParam(required = false, defaultValue = "") String key) {
-//
-//        Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
-//        String ipAddr= ApiControllerUtil.getIpAddress(request);
-//        Subject subject = SecurityUtils.getSubject();
-//
-//        if (method.equals("nysgeodb")) {
-//            method = "NYS Geo DB";
-//        }
-//
-//        if (subject.hasRole("ADMIN") ||
-//                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-//                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-//            apiResponse = regeocacheService.regeocacheSpecificMethodWithNysGeoWebService(offset, method);
-//        }
-//
-//        setAdminResponse(apiResponse, response);
-//    }
+    /**
+     * Method Refresh Api
+     * ---------------------------
+     *
+     * Refresh all entries in the geocache with a given 'method' with the nysgeo webservice
+     *
+     * Usage:
+     * (GET)    /admin/regeocache/method/{offset}/{method}
+     *
+     * Method corresponds to a geocode provider that can be cached as configured in app.properties.
+     * Valid methods are
+     * nysgeodb, YahooDao, HttpGoogleDao, GoogleDao, MapQuestDao, Test, TigerGeocoderDao
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param offset int
+     * @param method String
+     * @param username String
+     * @param password String
+     * @param key String
+     *
+     *
+     */
+    @RequestMapping(value = "/method/{offset}/{method}", method = RequestMethod.GET)
+    public void handleNysDupsInGeocache(HttpServletRequest request, HttpServletResponse response,
+                                   @PathVariable int offset,
+                                        @PathVariable String method,
+                                        @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                   @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                        @RequestParam(required = false, defaultValue = "") String key) {
+
+        Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
+        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (method.equals("nysgeodb")) {
+            method = "NYS Geo DB";
+        }
+
+        if ( subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
+            logger.info("Starting the regeocache process for all address with the method " + method);
+            apiResponse = regeocacheService.regeocacheSpecificMethodWithNysGeoWebService(offset, method);
+            logger.info("The regeocache process has completed for the method " + method);
+        }
+
+        setAdminResponse(apiResponse, response);
+    }
 }
