@@ -143,7 +143,7 @@
         <xstream.version>1.4.11.1</xstream.version>
         <spring.version>5.1.9.RELEASE</spring.version>
         <shiro.version>1.2.3</shiro.version>
-        <c3p0.version>0.9.5.2</c3p0.version>
+        <c3p0.version>0.9.5.5</c3p0.version>
         <commons-cli.version>1.2</commons-cli.version>
         <guava.version>18.0</guava.version>
         <guava.jackson.version>2.4.0</guava.jackson.version>
