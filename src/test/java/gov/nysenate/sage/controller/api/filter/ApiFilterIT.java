@@ -1,4 +1,4 @@
-package gov.nysenate.sage.filter;
+package gov.nysenate.sage.controller.api.filter;
 
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.client.response.base.GenericResponse;
-import gov.nysenate.sage.filter.ApiFilter;
+import gov.nysenate.sage.controller.api.filter.ApiFilter;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.FormatUtil;

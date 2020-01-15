@@ -1,4 +1,4 @@
-package gov.nysenate.sage.filter;
+package gov.nysenate.sage.controller.api.filter;
 
 import gov.nysenate.sage.dao.logger.exception.SqlExceptionLogger;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,15 +1,11 @@
-package gov.nysenate.sage.filter;
+package gov.nysenate.sage.controller.api.filter;
 
 import gov.nysenate.sage.BaseTests;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 

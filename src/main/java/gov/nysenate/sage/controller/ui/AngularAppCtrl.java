@@ -1,8 +1,6 @@
 package gov.nysenate.sage.controller.ui;
 
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.model.api.ApiRequest;
-import gov.nysenate.sage.service.security.ApiKeyLoginToken;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -13,8 +11,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
-
-import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
 
 /**
  * Simple entry point to the front-end. Returns the main angular-js driven web page which will handle

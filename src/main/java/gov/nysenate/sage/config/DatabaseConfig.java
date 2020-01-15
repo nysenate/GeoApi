@@ -113,6 +113,13 @@ public class DatabaseConfig
         pool.setMaxPoolSize(100);
         pool.setUnreturnedConnectionTimeout(30000);
 
+        // Test each connection every 60 sec after first check-in
+        pool.setTestConnectionOnCheckout(false);
+        pool.setTestConnectionOnCheckin(true);
+        pool.setIdleConnectionTestPeriod(60);
+        // Fast query to execute when testing connections
+        pool.setPreferredTestQuery("SELECT 1");
+
         return pool;
     }
 

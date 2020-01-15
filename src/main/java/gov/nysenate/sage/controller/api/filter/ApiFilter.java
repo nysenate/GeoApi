@@ -1,4 +1,4 @@
-package gov.nysenate.sage.filter;
+package gov.nysenate.sage.controller.api.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,12 +19,11 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +43,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
  * @author Ash Islam
  */
 @Component
-public class ApiFilter implements Filter, Observer
+public class ApiFilter implements Filter
 {
     private static Logger logger = LoggerFactory.getLogger(ApiFilter.class);
     Marker fatal = MarkerFactory.getMarker("FATAL");
@@ -91,14 +90,14 @@ public class ApiFilter implements Filter, Observer
         publicApiFilter = env.getPublicApiFilter();
         publicKey = env.getUserPublicKey();
         API_LOGGING_ENABLED = env.isApiLoggingEnabled();
+        jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        configure();
     }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
     {
-        jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        configure();
     }
 
     public void configure()
@@ -106,17 +105,17 @@ public class ApiFilter implements Filter, Observer
         logger.info(String.format("Configured default access on %s via key %s", ipFilter, defaultKey));
     }
 
-    public void update(Observable o, Object arg)
-    {
-        configure();
-    }
-
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException
     {
-        String key = request.getParameter("key");
-        String remoteIp = request.getRemoteAddr();
-        String uri = ((HttpServletRequest)request).getRequestURI();
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        HttpServletResponse response = (HttpServletResponse) servletResponse;
+
+        String key = servletRequest.getParameter("key");
+        String forwardedForIp = request.getHeader("x-forwarded-for");
+        String remoteIp = forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+
+        String uri = request.getRequestURI();
 
         /** Check that the url is formatted correctly */
         if (validateRequest(uri, remoteIp, request)){
