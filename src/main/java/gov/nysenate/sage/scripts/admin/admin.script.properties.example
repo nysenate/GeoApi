@@ -1,5 +1,0 @@
-#This is a config file for the admin scripts
-
-pathToGeoApi="/opt/sage_dev"
-baseUrl="http://localhost:8080"
-version="geoapi##3.0"

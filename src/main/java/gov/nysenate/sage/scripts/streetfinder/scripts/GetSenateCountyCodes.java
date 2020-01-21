@@ -11,8 +11,7 @@ import java.net.URL;
 public class GetSenateCountyCodes {
 
     public static void main(String[] args) {
-//        String urlString = args[0] + "/admin/datagen/countycodes?key=" + args[1];
-        String urlString = "http://localhost:8082/admin/datagen/countycodes?key=3SPEvAt9Cx4zXDGzhj2Ivz3KCqQFye7n";
+        String urlString = args[0] + "/admin/datagen/countycodes?key=" + args[1];
         urlString = urlString.replaceAll(" ", "%20");
         System.out.println(urlString);
         try {

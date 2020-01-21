@@ -1,0 +1,6 @@
+#This is a config file for the admin scripts
+
+pathToGeoApi="/opt/sage_dev/GeoApi/target/geoapi##3.0/"
+classes="WEB-INF/classes/"
+lib="WEB-INF/lib/*"
+logFile="classes/log4j2-cli.xml"
