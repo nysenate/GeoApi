@@ -10,7 +10,6 @@ import gov.nysenate.sage.dao.data.SqlDataGenDao;
 import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
 import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
-import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
@@ -56,7 +55,6 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public class DataGenService implements SageDataGenService {
 
     private Logger logger = LoggerFactory.getLogger(DataGenController.class);
-    private SqlDistrictShapefileDao sqlDistrictShapefileDao;
     private SqlAssemblyDao sqlAssemblyDao;
     private SqlCongressionalDao sqlCongressionalDao;
     private SqlSenateDao sqlSenateDao;
@@ -64,11 +62,10 @@ public class DataGenService implements SageDataGenService {
     private Environment env;
 
     @Autowired
-    public DataGenService(SqlSenateDao sqlSenateDao, SqlDistrictShapefileDao sqlDistrictShapefileDao,
+    public DataGenService(SqlSenateDao sqlSenateDao,
                           SqlAssemblyDao sqlAssemblyDao, SqlCongressionalDao sqlCongressionalDao,
                           Environment env, SqlDataGenDao sqlDataGenDao) {
         this.sqlSenateDao = sqlSenateDao;
-        this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
         this.sqlAssemblyDao = sqlAssemblyDao;
         this.sqlCongressionalDao = sqlCongressionalDao;
         this.sqlDataGenDao = sqlDataGenDao;
@@ -208,6 +205,10 @@ public class DataGenService implements SageDataGenService {
         }
     }
 
+    public void updateSenatorCache() {
+        sqlSenateDao.updateSenatorCache();
+    }
+
     /**
      * Retrieves Congressional member data from an external source and updates the
      * relevant data in the database.
@@ -306,7 +307,7 @@ public class DataGenService implements SageDataGenService {
             }
         }
         if (updated) {
-            sqlDistrictShapefileDao.cacheDistrictMaps();
+            updateSenatorCache();
         }
         return updated;
     }

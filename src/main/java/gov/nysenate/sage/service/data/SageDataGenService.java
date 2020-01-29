@@ -19,12 +19,9 @@ public interface SageDataGenService {
     public boolean ensureCountyCodeFile();
 
     /**
-     * Generates Senator Images at the specified path and height
-     * @param path
-     * @param height
-     * @return
+     * Manually Updates the senator cache used by the front end
      */
-    public Object generateSenatorImages(String path, int height);
+    public void updateSenatorCache();
 
     /**
      * Gnerates the District meta data for the Senate, Assembly, and Congressional Candidates

@@ -4,3 +4,5 @@ pathToGeoApi="/opt/sage_dev/GeoApi/target/geoapi##3.0/"
 classes="WEB-INF/classes/"
 lib="WEB-INF/lib/*"
 logFile="classes/log4j2-cli.xml"
+baseUrl="https://url.nysenate.gov/"
+adminKey="" #This key is obtained by the admin panel in sage itself

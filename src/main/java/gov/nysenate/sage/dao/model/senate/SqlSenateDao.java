@@ -125,20 +125,30 @@ public class SqlSenateDao implements SenateDao {
     }
 
     /** {@inheritDoc} */
+    public void updateSenatorCache() {
+        senatorMap = queryForSenatorCache();
+    }
+
+    private Map<Integer, Senator> queryForSenatorCache() {
+        Map<Integer, Senator> senatorMap = new HashMap<>();
+        try {
+            List<Map<Integer, Senator>> uncompiledSenatorMap =
+                    baseDao.geoApiJbdcTemplate.query(
+                            SenateQuery.GET_ALL_SENATORS.getSql(baseDao.getPublicSchema()), new SenatorMapHandler());
+
+            senatorMap = compileSenateMap(uncompiledSenatorMap);
+
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+        }
+        return senatorMap;
+    }
+
+    /** {@inheritDoc} */
     private Map<Integer, Senator> getSenatorMap() {
         if (senatorMap == null || cacheUpdated == null || refreshIntervalElapsed()) {
             senatorMap = new HashMap<>();
-
-            try {
-                List<Map<Integer, Senator>> uncompiledSenatorMap =
-                        baseDao.geoApiJbdcTemplate.query(
-                                SenateQuery.GET_ALL_SENATORS.getSql(baseDao.getPublicSchema()), new SenatorMapHandler());
-
-                senatorMap = compileSenateMap(uncompiledSenatorMap);
-
-            } catch (Exception ex) {
-                logger.error(ex.getMessage());
-            }
+            senatorMap = queryForSenatorCache();
         }
         return senatorMap;
     }
@@ -190,4 +200,6 @@ public class SqlSenateDao implements SenateDao {
             return senatorMap;
         }
     }
+
+
 }
