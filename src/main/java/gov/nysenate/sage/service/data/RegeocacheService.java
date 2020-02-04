@@ -41,7 +41,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 
 @Service
-public class RegeocacheService implements SageRegeocacheService{
+public class RegeocacheService implements SageRegeocacheService {
 
     private Logger logger = LoggerFactory.getLogger(RegeocacheService.class);
     private SqlRegeocacheDao sqlRegeocacheDao;
@@ -107,7 +107,7 @@ public class RegeocacheService implements SageRegeocacheService{
         final int limit = 2000;
         int offset = user_offset;
 
-        System.out.println("Handle Method data supplied offset: " + offset);
+        logger.info("Handle Method data supplied offset: " + offset);
         try {
             //Get total number of addresses that will be used to update our geocache
             List<Integer> totalList = sqlRegeocacheDao.getMethodTotalCount(method);
@@ -127,7 +127,7 @@ public class RegeocacheService implements SageRegeocacheService{
                     UrlRequest.convertStreamToString(response.getEntity().getContent());
                 } catch (Exception e) {
                     //Alert Admin to failures
-                    System.err.println("Failed to contact SAGE with the url: " + url);
+                    logger.error("Failed to contact SAGE with the url: " + url);
                 }
             };
 
@@ -150,7 +150,7 @@ public class RegeocacheService implements SageRegeocacheService{
                         //Build URL
                         Address nysgeoAddress = nysGeoStreetAddress.toAddress();
                         String regeocacheUrl = env.getBaseUrl() +
-                                "/api/v2/geo/geocode?addr1=%s&addr2=%s&city=%s&state=%s&zip5=%s&provider=nysgeo";
+                                "/api/v2/geo/geocode?addr1=%s&addr2=%s&city=%s&state=%s&zip5=%s&provider=nysgeo&useFallback=false";
                         regeocacheUrl = String.format(regeocacheUrl, nysgeoAddress.getAddr1(), nysgeoAddress.getAddr2(),
                                 nysgeoAddress.getCity(), nysgeoAddress.getState(), nysgeoAddress.getZip5());
                         regeocacheUrl = regeocacheUrl.replaceAll(" ", "%20");

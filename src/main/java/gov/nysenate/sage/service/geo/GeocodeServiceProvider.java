@@ -56,10 +56,11 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
 
         String[] activeList = env.getGeocoderActive().split(",");
         for (String provider : activeList) {
-            activeGeoProviders.put(provider, this.providers.get(provider.trim()));
+            activeGeoProviders.put(provider.trim(), this.providers.get(provider.trim()));
         }
 
-        LinkedList<String> geocoderRankList = new LinkedList<>(Arrays.asList(env.getGeocoderRank().split(",")));
+        LinkedList<String> geocoderRankList = new LinkedList<>(
+                Arrays.asList(env.getGeocoderRank().replaceAll(" ","").split(",")));
         if (!geocoderRankList.isEmpty()) {
             /** Set the first geocoder as the default. */
             this.defaultProvider = geocoderRankList.removeFirst();
@@ -68,7 +69,8 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
         }
 
         /** Designate which geocoders are allowed to cache. */
-        List<String> cacheableProviderList = Arrays.asList(env.getGeocoderCacheable().split(","));
+        List<String> cacheableProviderList =
+                Arrays.asList(env.getGeocoderCacheable().replaceAll(" ","").split(","));
         for (String provider : cacheableProviderList) {
             registerProviderAsCacheable(this.providers.get(provider.trim()));
         }

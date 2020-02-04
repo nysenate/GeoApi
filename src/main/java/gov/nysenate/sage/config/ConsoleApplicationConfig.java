@@ -6,11 +6,14 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({PropertyConfig.class, DatabaseConfig.class})
+@Import({PropertyConfig.class, DatabaseConfig.class, ApplicationConfig.class})
+
 @ComponentScan(
-        value= "gov.nysenate.sage",
-        // Exclude the WebApplicationConfig since it can only be constructed within a ServletContext
-        excludeFilters = {@ComponentScan.Filter(value = WebApplicationConfig.class, type = FilterType.ASSIGNABLE_TYPE)}
+        basePackages = "gov.nysenate.sage",
+        excludeFilters = {
+                @ComponentScan.Filter(value = WebApplicationConfig.class, type = FilterType.ASSIGNABLE_TYPE),
+//                @ComponentScan.Filter(...),
+        }
 )
 public class ConsoleApplicationConfig
 {

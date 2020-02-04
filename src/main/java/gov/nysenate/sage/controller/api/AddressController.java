@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
+import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressFromParams;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressesFromJsonBody;

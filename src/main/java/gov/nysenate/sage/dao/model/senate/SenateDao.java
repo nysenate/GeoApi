@@ -48,4 +48,9 @@ public interface SenateDao {
      * @param district
      */
     public void deleteSenator(int district);
+
+    /**
+     * Refresh Senator map cache
+     */
+    public void updateSenatorCache();
 }

@@ -6,10 +6,12 @@
 #can find and access the necessary java classes
 
 
-pathToGeoApi="/opt/sage_dev"
+pathToGeoApi="/opt/sage_dev/GeoApi/target/geoapi##3.0/"
+classes="WEB-INF/classes/"
+lib="WEB-INF/lib/*"
+logFile="classes/log4j2-cli.xml"
 baseUrl="http://localhost:8080"
 adminKey="" #This key is generated from the SAGE admin panel
-version="geoapi##2.5.3"
 tsv_dir="/data/geoapi_data/street_finder/tsv_streetfiles"
 
 town="./GetTownCodes.sh"

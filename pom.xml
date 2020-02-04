@@ -5,7 +5,7 @@
   <groupId>gov.nysenate</groupId>
   <artifactId>geoapi</artifactId>
   <name>GeoApi</name>
-  <version>2.5.3</version>
+  <version>3.0</version>
   <packaging>war</packaging>
 
     <repositories>
@@ -112,44 +112,44 @@
     </build>
 
     <properties>
-        <nysenate-java-client.version>2.2</nysenate-java-client.version>
-        <tomcat.version>9.0.22</tomcat.version>
-        <maven-core.version>3.5.0</maven-core.version>
+        <c3p0.version>0.9.5.5</c3p0.version>
+        <commons-cli.version>1.4</commons-cli.version>
         <commons-configuration>1.10</commons-configuration>
         <commons-dbutils.version>1.7</commons-dbutils.version>
         <commons-el.version>1.0</commons-el.version>
         <commons-fileupload.version>1.3.3</commons-fileupload.version>
         <commons-io.version>2.6</commons-io.version>
-        <commons-lang3.version>3.3.2</commons-lang3.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
+        <commons-text.version>1.8</commons-text.version>
+        <eh-cache.version>2.8.3</eh-cache.version>
         <fluent-hc.version>4.2.2</fluent-hc.version>
+        <guava.version>28.1-jre</guava.version>
         <hamcrest-core.version>1.3</hamcrest-core.version>
-        <httpclient.version>4.5.5</httpclient.version>
+        <httpclient.version>4.5.10</httpclient.version>
         <httpcore.version>4.4.9</httpcore.version>
-        <jackson.version>2.9.10</jackson.version>
+        <jackson.version>2.10.2</jackson.version>
         <jasypt.version>1.9.0</jasypt.version>
         <javamail.version>1.4.7</javamail.version>
-        <jbcrypt.version>0.3m</jbcrypt.version>
+        <jbcrypt.version>0.4</jbcrypt.version>
         <jdom.version>1.1</jdom.version>
         <jstl.version>1.2</jstl.version>
         <junit.version>4.12</junit.version>
-        <log4j.version>2.11.1</log4j.version>
-        <slf4j.version>1.7.25</slf4j.version>
+        <log4j.version>2.12.1</log4j.version>
         <mockito-core.version>1.9.5</mockito-core.version>
-        <postgresql.version>42.2.5</postgresql.version>
+        <maven-core.version>3.5.0</maven-core.version>
+        <nysenate-java-client.version>2.2</nysenate-java-client.version>
+        <openlocationcode.version>1.0.4</openlocationcode.version>
+        <postgresql.version>42.2.8</postgresql.version>
+        <slf4j.version>1.7.28</slf4j.version>
         <signpost-core.version>1.2.1.2</signpost-core.version>
         <super-csv.version>2.0.1</super-csv.version>
-        <woodstox-core>4.0.6</woodstox-core>
+        <spring.version>5.2.3.RELEASE</spring.version>
+        <shiro.version>1.4.1</shiro.version>
+        <tomcat.version>8.5.46</tomcat.version>
+        <woodstox-core>4.4.1</woodstox-core>
         <xmlrpc-client.version>3.1.3</xmlrpc-client.version>
         <xstream.version>1.4.11.1</xstream.version>
-        <spring.version>5.1.9.RELEASE</spring.version>
-        <shiro.version>1.2.3</shiro.version>
-        <c3p0.version>0.9.5.2</c3p0.version>
-        <commons-cli.version>1.2</commons-cli.version>
-        <guava.version>18.0</guava.version>
-        <guava.jackson.version>2.4.0</guava.jackson.version>
-        <eh-cache.version>2.8.3</eh-cache.version>
-        <openlocationcode.version>1.0.4</openlocationcode.version>
-        <commons-text.version>1.8</commons-text.version>
+
     </properties>
 
     <dependencies>
@@ -243,6 +243,17 @@
             <version>${tomcat.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-catalina</artifactId>
+            <version>${tomcat.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-websocket</artifactId>
+            <version>${tomcat.version}</version>
+        </dependency>
 
         <!-- Maven API Dependencies -->
         <dependency>
@@ -274,7 +285,6 @@
             <artifactId>commons-text</artifactId>
             <version>${commons-text.version}</version>
         </dependency>
-
         <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>
@@ -371,6 +381,11 @@
             <groupId>com.thoughtworks.xstream</groupId>
             <artifactId>xstream</artifactId>
             <version>${xstream.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

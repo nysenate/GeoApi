@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static gov.nysenate.sage.filter.ApiFilter.getApiRequest;
+import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
 
 @Controller

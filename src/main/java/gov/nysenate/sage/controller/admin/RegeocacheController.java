@@ -1,8 +1,10 @@
 package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.data.RegeocacheService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -21,8 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import java.util.HashMap;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminResponse;
@@ -157,11 +157,14 @@ public class RegeocacheController {
             method = "NYS Geo DB";
         }
 
-        if (subject.hasRole("ADMIN") ||
+        if ( subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
+            logger.info("Starting the regeocache process for all address with the method " + method);
             apiResponse = regeocacheService.regeocacheSpecificMethodWithNysGeoWebService(offset, method);
+            logger.info("The regeocache process has completed for the method " + method);
         }
+
         setAdminResponse(apiResponse, response);
     }
 }
