@@ -35,4 +35,6 @@ public class MapResponse extends BaseResponse
     public Object getMember() {
         return (map != null) ? map.getMember() : null;
     }
+
+    public String getLink() {return (map != null) ? map.getLink() : null;}
 }

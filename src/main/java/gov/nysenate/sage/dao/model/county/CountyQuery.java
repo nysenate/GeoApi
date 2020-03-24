@@ -5,13 +5,13 @@ import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum CountyQuery implements BasicSqlQuery { //${schema}." + SqlTable.PUBLIC_COUNTY
 
-    GET_ALL_COUNTIES("SELECT id, name, fips_code AS fipsCode FROM ${schema}." + SqlTable.PUBLIC_COUNTY),
+    GET_ALL_COUNTIES("SELECT id, name, fips_code AS fipsCode, link FROM ${schema}." + SqlTable.PUBLIC_COUNTY),
 
-    GET_COUNTY_BY_ID("SELECT id, name, fips_code AS fipsCode FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE id = :id"),
+    GET_COUNTY_BY_ID("SELECT id, name, fips_code AS fipsCode, link FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE id = :id"),
 
-    GET_COUNTY_BY_NAME("SELECT id, name, fips_code AS fipsCode FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE LOWER(name) = LOWER(:name)"),
+    GET_COUNTY_BY_NAME("SELECT id, name, fips_code AS fipsCode, link FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE LOWER(name) = LOWER(:name)"),
 
-    GET_COUNTY_BY_FIPS_CODE("SELECT id, name, fips_code AS fipsCode FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE fips_code = :fipsCode "),
+    GET_COUNTY_BY_FIPS_CODE("SELECT id, name, fips_code AS fipsCode, link FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE fips_code = :fipsCode "),
 
     ;
 

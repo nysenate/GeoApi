@@ -20,6 +20,7 @@ import java.io.IOException;
 public class EmbeddedMapController {
     private static Logger logger = LoggerFactory.getLogger(EmbeddedMapController.class);
     private static String MAPS_JSP = "/WEB-INF/views/maps.jsp";
+    private static String COUNTY_COVID_JSP = "/WEB-INF/views/countycovid.jsp";
 
     /**
      * Embedded Map Api
@@ -104,7 +105,12 @@ public class EmbeddedMapController {
 
         request.setAttribute("districtType", districtType);
 
-        request.getRequestDispatcher(MAPS_JSP).forward(request, response);
+        if (districtType.toLowerCase().equals("county")) {
+            request.getRequestDispatcher(COUNTY_COVID_JSP).forward(request, response);
+        }
+        else {
+            request.getRequestDispatcher(MAPS_JSP).forward(request, response);
+        }
 
     }
 

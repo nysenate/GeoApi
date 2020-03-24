@@ -55,4 +55,8 @@ public class DistrictMap extends DistrictMetadata
         }
         return o;
     }
+
+    public void setLink(String link) {
+        super.setLink(link);
+    }
 }

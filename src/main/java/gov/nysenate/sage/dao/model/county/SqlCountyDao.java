@@ -127,6 +127,7 @@ public class SqlCountyDao implements CountyDao
             county.setId(rs.getInt("id"));
             county.setName(rs.getString("name"));
             county.setFipsCode(rs.getInt("fipsCode"));
+            county.setLink(rs.getString("link"));
             return county;
         }
     }

@@ -43,6 +43,7 @@ public class DistrictShapefile implements DistrictService, MapService
     private SqlStreetFileDao sqlStreetFileDao;
     private CityZipDB cityZipDBDao;
     private SqlTigerGeocoderDao sqlTigerGeocoderDao;
+    private SqlCountyDao sqlCountyDao;
     private ParallelDistrictService parallelDistrictService;
 
     /** Specifies the maximum distance a neighbor district can be from a specific point to still be considered
@@ -54,13 +55,14 @@ public class DistrictShapefile implements DistrictService, MapService
 
     @Autowired
     public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, SqlStreetFileDao sqlStreetFileDao,
-                             CityZipDB cityZipDB, SqlTigerGeocoderDao sqlTigerGeocoderDao,
+                             CityZipDB cityZipDB, SqlTigerGeocoderDao sqlTigerGeocoderDao, SqlCountyDao sqlCountyDao,
                              Environment env, ParallelDistrictService parallelDistrictService)
     {
         this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
         this.sqlStreetFileDao = sqlStreetFileDao;
         this.cityZipDBDao = cityZipDB;
         this.sqlTigerGeocoderDao = sqlTigerGeocoderDao;
+        this.sqlCountyDao = sqlCountyDao;
         this.parallelDistrictService = parallelDistrictService;
         this.env = env;
         NEIGHBOR_PROXIMITY = env.getNeighborProximity();
@@ -169,6 +171,9 @@ public class DistrictShapefile implements DistrictService, MapService
             if (sqlDistrictShapefileDao.getDistrictMapLookup().get(districtType) != null) {
                 DistrictMap map = sqlDistrictShapefileDao.getDistrictMapLookup().get(districtType).get(code);
                 if (map != null) {
+                    if (districtType.equals(DistrictType.COUNTY)) { //This if block is for the COVID19 links
+                        map.setLink(sqlCountyDao.getCountyById(Integer.parseInt(code)).getLink());
+                    }
                     mapResult.setDistrictMap(map);
                     mapResult.setStatusCode(ResultStatus.SUCCESS);
                 }
@@ -195,6 +200,11 @@ public class DistrictShapefile implements DistrictService, MapService
         if (mapCollection != null) {
             mapResult.setDistrictMaps(mapCollection);
             mapResult.setStatusCode(ResultStatus.SUCCESS);
+            if (districtType.equals(DistrictType.COUNTY)) {
+                for (DistrictMap map : mapCollection) {
+                    map.setLink( sqlCountyDao.getCountyById( Integer.parseInt( map.getDistrictCode() )).getLink() );
+                }
+            }
         }
         else {
             mapResult.setStatusCode(ResultStatus.NO_MAP_RESULT);

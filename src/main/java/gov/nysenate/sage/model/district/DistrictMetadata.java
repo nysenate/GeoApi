@@ -14,6 +14,7 @@ public class DistrictMetadata
     protected String districtName;
     protected Senator senator;
     protected DistrictMember member;
+    protected String link;
 
     public DistrictMetadata() {}
 
@@ -75,5 +76,13 @@ public class DistrictMetadata
 
     public void setMember(DistrictMember member) {
         this.member = member;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
     }
 }

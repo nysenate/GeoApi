@@ -11,6 +11,7 @@ public class DistrictMapView
     protected String name;
     protected MapView map;
     protected Object member;
+    protected String link;
 
     public DistrictMapView(DistrictMap districtMap)
     {
@@ -33,6 +34,9 @@ public class DistrictMapView
             else if (districtType.equals(DistrictType.CONGRESSIONAL) || districtType.equals(DistrictType.ASSEMBLY)) {
                 this.member = new MemberView(districtMap.getMember());
             }
+            else if (districtType.equals(DistrictType.COUNTY)) {
+                this.link = districtMap.getLink();
+            }
         }
     }
 
@@ -54,5 +58,9 @@ public class DistrictMapView
 
     public Object getMember() {
         return member;
+    }
+
+    public String getLink() {
+        return link;
     }
 }

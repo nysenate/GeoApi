@@ -5,6 +5,7 @@ public class County
     private int id;
     private String name;
     private int fipsCode;
+    private String link;
 
     public County() {}
 
@@ -30,5 +31,13 @@ public class County
 
     public void setFipsCode(int fipsCode) {
         this.fipsCode = fipsCode;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
     }
 }

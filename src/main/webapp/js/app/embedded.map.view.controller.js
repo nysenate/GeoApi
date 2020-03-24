@@ -54,6 +54,64 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
         }
     });
 
+
+    //COUNTY SECTION
+    $scope.$on("embeddedCountyMap", function() {
+        console.log("Inside embeddedCountyMap");
+
+        var data = dataBus.data;
+        if (data.statusCode == 0) {
+            mapService.clearMarkers();
+            /** Show all the district map boundaries */
+            if (data != null && data.districts != null) {
+                mapService.clearPolygons();
+                $.each(data.districts, function(i, v){
+                    if (v.map != null) {
+                        mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
+                            (v.type.toLowerCase() == "county") ?
+                                function() {
+                                    dataBus.setBroadcast("showEmbedCounty", v);
+                                }
+                                : null, mapService.colors[0]);
+                    }
+                });
+                mapService.setCenter(42.440510, -76.495460); // Centers the map nicely over NY
+                mapService.setZoom(7);
+            }
+            /** Show the individual district map */
+            else if (data.map != null) {
+                console.log(data);
+                $scope.link = data.link;
+                $scope.district = data.district;
+                mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, mapService.colors[0]);
+                if (data.type.toLowerCase() == "county") {
+                    $scope.setOfficeMarkers(data.member.offices);
+                    $scope.showPrompt = false;
+                    $scope.showInfo = false;
+                }
+            }
+        }
+        mapService.toggleMap(true);
+        uiBlocker.unBlock();
+    });
+
+    $scope.$on("showEmbedCounty", function(){
+        console.log("Inside showEmbedCounty");
+        var data = dataBus.data;
+        if (data) {
+            console.log(data);
+            $scope.$apply(function(){
+                $scope.showPrompt = true;
+                $scope.showInfo = true;
+                $scope.link = data.link;
+                $scope.district = data.district;
+                $scope.distName = data.name;
+                mapService.clearMarkers();
+                // $scope.setOfficeMarkers(data.member.offices);
+            });
+        }
+    });
+
     $scope.setOfficeMarkers = function(offices) {
         /** Clicking an office marker will open info pane with details */
         $.each(offices, function(i, office){

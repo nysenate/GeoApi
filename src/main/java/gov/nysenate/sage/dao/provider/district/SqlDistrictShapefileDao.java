@@ -255,6 +255,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ") + " ORDER BY type, code";
 
         try {
+            String test = sqlQuery;
             baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictMapsCacheHandler());
             logger.info("Cached standard district maps");
             return true;
