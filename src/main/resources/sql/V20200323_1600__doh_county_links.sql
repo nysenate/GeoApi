@@ -268,7 +268,7 @@ WHERE id = 53;
 
 --Wayne
 UPDATE geoapi.public.county
-SET link = 'https://health.westchestergov.com/'
+SET link = 'https://web.co.wayne.ny.us/index.php/publichealth/'
 WHERE id = 54;
 
 --Westchester
