@@ -63,7 +63,7 @@
                     </script>
                 </div>
                 <div id="mapView" ng-controller="EmbeddedMapViewController">
-                    <div class="info-container" ng-show="showPrompt" style="width:280px;padding:3px 10px;position:absolute;left:40px;z-index:10000;">
+                    <div class="info-container" ng-show="showCountyPrompt" style="width:280px;padding:3px 10px;position:absolute;left:40px;z-index:10000;">
                         <table style="width:100%">
                             <tr>
                                 <td>
@@ -78,10 +78,10 @@
                         </table>
                         <div ng-show="showInfo" id="senator-view" style="padding-top:10px;border-top:1px solid #ddd">
                             <div>
-                                <p class="senator member-name">
+                                <p class="senator district ">
                                     <a target="_blank" ng-href="{{link}}">Department of Health</a>
                                 </p>
-                                <p class="senate district">{{distName}}</p>
+                                <p class="senate member-name">{{distName}}</p>
                             </div>
                         </div>
                     </div>

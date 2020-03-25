@@ -57,8 +57,6 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
 
     //COUNTY SECTION
     $scope.$on("embeddedCountyMap", function() {
-        console.log("Inside embeddedCountyMap");
-
         var data = dataBus.data;
         if (data.statusCode == 0) {
             mapService.clearMarkers();
@@ -80,13 +78,12 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
             }
             /** Show the individual district map */
             else if (data.map != null) {
-                console.log(data);
                 $scope.link = data.link;
                 $scope.district = data.district;
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, mapService.colors[0]);
                 if (data.type.toLowerCase() == "county") {
                     $scope.setOfficeMarkers(data.member.offices);
-                    $scope.showPrompt = false;
+                    $scope.showCountyPrompt = false;
                     $scope.showInfo = false;
                 }
             }
@@ -96,18 +93,15 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
     });
 
     $scope.$on("showEmbedCounty", function(){
-        console.log("Inside showEmbedCounty");
         var data = dataBus.data;
         if (data) {
-            console.log(data);
             $scope.$apply(function(){
-                $scope.showPrompt = true;
+                $scope.showCountyPrompt = true;
                 $scope.showInfo = true;
                 $scope.link = data.link;
                 $scope.district = data.district;
                 $scope.distName = data.name;
                 mapService.clearMarkers();
-                // $scope.setOfficeMarkers(data.member.offices);
             });
         }
     });

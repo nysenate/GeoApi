@@ -228,6 +228,12 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                         }
                     }
                     if (mapService.mouseEventName != null) {
+
+                        var currentUrl = window.location.href;
+                        if (currentUrl.includes("doh=true")) {
+                            name = name.split("-")[0].trim();
+                        }
+
                         mapService.tooltipEl.offset({top: mousemove[mapService.mouseEventName].clientY + 20, left: mousemove[mapService.mouseEventName].clientX});
                         mapService.tooltipEl.text(name);
                     }

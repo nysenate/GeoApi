@@ -10,7 +10,8 @@ sage.controller("EmbeddedMapController", function($scope, $http, $window, dataBu
             $http.get(this.getDistrictMapUrl())
                 .success(function(data) {
                     if (this.districtType === "county") {
-                        console.log("District type is county");
+                        // console.log($window);
+                        // console.log("District type is county");
                         dataBus.setBroadcast("embeddedCountyMap", data);
                     }
                     else {
@@ -22,7 +23,7 @@ sage.controller("EmbeddedMapController", function($scope, $http, $window, dataBu
     };
 
     $scope.getDistrictMapUrl = function () {
-        console.log(contextPath + baseApi + "/map/" + this.districtType + "?showMembers=true" + ((this.districtCode) ? ("&district=" + this.districtCode) : ""));
+        // console.log(contextPath + baseApi + "/map/" + this.districtType + "?showMembers=true" + ((this.districtCode) ? ("&district=" + this.districtCode) : ""));
         return contextPath + baseApi + "/map/" + this.districtType + "?showMembers=true" + ((this.districtCode) ? ("&district=" + this.districtCode) : "");
     };
 
