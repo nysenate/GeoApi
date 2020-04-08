@@ -264,6 +264,7 @@ public class SqlGeoCacheDao implements GeoCacheDao
             gc.setLon(rs.getDouble("lon"));
             gc.setMethod(rs.getString("method"));
             gc.setCached(true);
+            gc.encodeOpenLocationCode();
             try {
                 if (rs.getString("quality") != null) {
                     gc.setQuality(GeocodeQuality.valueOf(rs.getString("quality").toUpperCase()));

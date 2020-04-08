@@ -128,4 +128,8 @@ public class Geocode
     public void setCached(boolean cached) {
         isCached = cached;
     }
+
+    public void encodeOpenLocationCode() {
+        this.openLocCode = OpenLocationCode.encode(this.latlon.getLat(), this.latlon.getLon());
+    }
 }
