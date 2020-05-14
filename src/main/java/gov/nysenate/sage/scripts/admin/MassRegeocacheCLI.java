@@ -22,16 +22,6 @@ public class MassRegeocacheCLI extends BaseScript {
     RegeocacheService regeocacheService;
 
     public static void main(String[] args) throws Exception {
-//        String[] args = new String[9];
-//        args[0] = "0";
-//        args[1] = "2005";
-//        args[2] = "true";
-//        args[3] = "quality";
-//        args[4] = "house";
-//        args[5] = "provider";
-//        args[6] = "nysgeo";
-//        args[7] = "town";
-//        args[8] = "clifton_park";
         AnnotationConfigApplicationContext ctx = init();
         MassRegeocacheCLI massRegeocacheCLI = ctx.getBean(MassRegeocacheCLI.class);
         CommandLine cmd = getCommandLine(massRegeocacheCLI.getOptions(), args);
