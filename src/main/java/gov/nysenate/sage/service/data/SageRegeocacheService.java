@@ -1,5 +1,7 @@
 package gov.nysenate.sage.service.data;
 
+import java.util.ArrayList;
+
 public interface SageRegeocacheService {
 
     /**
@@ -9,17 +11,12 @@ public interface SageRegeocacheService {
     public Object updateZipsInGeocache();
 
     /**
-     * Sends the addresses from NYS GEO that are the same address label but from a different town back to NYS GEO
-     * for any updates
-     * @param nys_offset
+     * This method is called by the mass geocache bash script. It provides a powerful and robust way to regeocache
+     * a variety of different addresses.
+     * @param offset
+     * @param user_limit
+     * @param typeList
      * @return
      */
-    public Object regeocacheSpecificMethodWithNysGeoWebService(int user_offset, String method);
-
-    /**
-     * Updates the geocache by iterating over the NYS Geo database with USPS validation
-     * @param nys_offset
-     * @return
-     */
-    public Object updateGeocacheWithNYSGeoData(int nys_offset);
+    public Object massRegeoache(int offset, int user_limit, boolean useFallback, ArrayList<String> typeList);
 }

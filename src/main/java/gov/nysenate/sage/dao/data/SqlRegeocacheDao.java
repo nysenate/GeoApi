@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -28,6 +29,37 @@ public class SqlRegeocacheDao implements RegeocacheDao {
     @Autowired
     public SqlRegeocacheDao(BaseDao baseDao) {
         this.baseDao = baseDao;
+    }
+
+    public List<Integer> determineMassGeocodeRecordCount(ArrayList<String> typeList) {
+        String sql = RegeocacheQuery.MASS_GEOCACHE_COUNT.getSql(baseDao.getCacheSchema()) +
+                getMassGeocacheBodySql(typeList);
+
+        MapSqlParameterSource params = generateParamsForMassGeocache(typeList);
+        if (params != null) {
+            return baseDao.tigerNamedJdbcTemplate.query(sql, params, new CountRowMapper());
+        }
+        else {
+            return baseDao.tigerNamedJdbcTemplate.query(sql, new CountRowMapper());
+        }
+
+    }
+
+    public List<StreetAddress> getMassGeocodeBatch(int offset, int limit, ArrayList<String> typeList) {
+        String sql = RegeocacheQuery.MASS_GEOCACHE_SELECT.getSql(baseDao.getCacheSchema()) + getMassGeocacheBodySql(typeList)
+                + RegeocacheQuery.MASS_GEOCACHE_LIMIT_OFFSET.getSql();
+
+        MapSqlParameterSource params = generateParamsForMassGeocache(typeList);
+        params.addValue("limit", limit);
+        params.addValue("offset", offset);
+        if (params != null) {
+            return baseDao.tigerNamedJdbcTemplate.query(
+                    sql, params,
+                    new StreetAddressdRowMapper());
+        }
+        else {
+            return baseDao.tigerNamedJdbcTemplate.query(sql, new StreetAddressdRowMapper());
+        }
     }
 
     public Integer getNYSTotalAddresses() {
@@ -129,6 +161,76 @@ public class SqlRegeocacheDao implements RegeocacheDao {
         return baseDao.tigerNamedJdbcTemplate.query(
                 RegeocacheQuery.METHOD_BATCH_SQL.getSql(baseDao.getCacheSchema()), params,
                 new StreetAddressdRowMapper());
+    }
+
+    private String getMassGeocacheBodySql(ArrayList<String> typeList) {
+        String generatedSql = "";
+        for (int i = 0; i < typeList.size(); i = i+2) {
+            switch (typeList.get(i)) {
+                case "all":
+                    //This is a special case for the mass geocache script. This overrides anything else sent in.
+                    generatedSql = "";
+                    return generatedSql;
+                case "method":
+                    if (i == 0) {
+                        generatedSql = generatedSql + RegeocacheQuery.MASS_GEOCACHE_WHERE_METHOD.getSql();
+                    }
+                    else {
+                        generatedSql = generatedSql + RegeocacheQuery.MASS_GEOCACHE_AND_METHOD.getSql();
+                    }
+
+                    break;
+                case "town":
+                    if (i == 0) {
+                        generatedSql = generatedSql + RegeocacheQuery.MASS_GEOCACHE_WHERE_LOCATION.getSql();
+                    }
+                    else {
+                        generatedSql = generatedSql + RegeocacheQuery.MASS_GEOCACHE_AND_LOCATION.getSql();
+                    }
+                    break;
+                case "quality":
+                    if (i == 0) {
+                        generatedSql = generatedSql + RegeocacheQuery.MASS_GEOCACHE_WHERE_QUALITY.getSql();
+                    }
+                    else {
+                        generatedSql = generatedSql + RegeocacheQuery.MASS_GEOCACHE_AND_QUALITY.getSql();
+                    }
+                    break;
+                case "zipcode":
+                    if (i == 0) {
+                        generatedSql = generatedSql + RegeocacheQuery.MASS_GEOCACHE_WHERE_ZIP.getSql();
+                    }
+                    else {
+                        generatedSql = generatedSql + RegeocacheQuery.MASS_GEOCACHE_AND_ZIP.getSql();
+                    }
+                    break;
+            }
+        }
+        return generatedSql;
+    }
+
+    private MapSqlParameterSource generateParamsForMassGeocache(ArrayList<String> typeList) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        for (int i = 0; i < typeList.size(); i = i+2) {
+            switch (typeList.get(i)) {
+                case "all":
+                    //This is a special case for the mass geocache script. This overrides anything else sent in.
+                    return null;
+                case "method":
+                    params.addValue( "method", typeList.get(i+1));
+                    break;
+                case "town":
+                    params.addValue("location" , typeList.get(i+1));
+                    break;
+                case "quality":
+                    params.addValue( "quality", typeList.get(i+1));
+                    break;
+                case "zipcode":
+                    params.addValue( "zipcode", typeList.get(i+1));
+                    break;
+            }
+        }
+        return params;
     }
 
     public static class NysGeoAddressRowMapper implements RowMapper<NYSGeoAddress> {

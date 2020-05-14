@@ -469,4 +469,16 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
 
         return null;
     }
+
+    public String getDefaultProvider() {
+        return defaultProvider;
+    }
+
+    public Map<String, GeocodeService> getProviders() {
+        return providers;
+    }
+
+    public LinkedList<String> getDefaultFallback() {
+        return defaultFallback;
+    }
 }

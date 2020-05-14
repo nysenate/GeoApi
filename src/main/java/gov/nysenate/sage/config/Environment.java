@@ -14,6 +14,8 @@ public class Environment {
 
     @Value("${senator.cache.refresh.hours:12}") private int senatorCacheRefreshHours;
 
+    @Value("${data.dir}") private String dataDir;
+
     @Value("${user.ip.filter:(127.0.0.1)}") private String userIpFilter;
 
     @Value("${user.default.key}") private String userDefaultKey;
@@ -954,5 +956,13 @@ public class Environment {
 
     public void setGeocoderPublicSchema(String geocoderPublicSchema) {
         this.geocoderPublicSchema = geocoderPublicSchema;
+    }
+
+    public String getDataDir() {
+        return dataDir;
+    }
+
+    public void setDataDir(String dataDir) {
+        this.dataDir = dataDir;
     }
 }

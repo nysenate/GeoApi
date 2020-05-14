@@ -9,6 +9,9 @@ import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -26,10 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -46,10 +46,13 @@ public class RegeocacheService implements SageRegeocacheService {
     private Logger logger = LoggerFactory.getLogger(RegeocacheService.class);
     private SqlRegeocacheDao sqlRegeocacheDao;
     private Environment env;
+    private GeocodeServiceProvider geocodeServiceProvider;
     final int nys_limit = 2000;
 
     @Autowired
-    public RegeocacheService(SqlRegeocacheDao sqlRegeocacheDao, Environment env) {
+    public RegeocacheService(SqlRegeocacheDao sqlRegeocacheDao, GeocodeServiceProvider geocodeServiceProvider,
+                             Environment env) {
+        this.geocodeServiceProvider = geocodeServiceProvider;
         this.sqlRegeocacheDao = sqlRegeocacheDao;
         this.env = env;
     }
@@ -99,73 +102,83 @@ public class RegeocacheService implements SageRegeocacheService {
         return apiResponse;
     }
 
-    public Object regeocacheSpecificMethodWithNysGeoWebService(int user_offset, String method) {
+    /**
+     * Process for handling all sorts of mass regeocaching. It can handle methods, locations, zipcodes, qualities
+     * and any combination of those. Primarily accessed through the CLI
+     * @param offset
+     * @param user_limit
+     * @param useFallback
+     * @param typeList
+     * @return
+     */
+    public Object massRegeoache(int offset, int user_limit, boolean useFallback ,ArrayList<String> typeList) {
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        LocalDateTime start = LocalDateTime.now();
-        LocalDateTime end;
-        final int limit = 2000;
-        int offset = user_offset;
+        logger.info("Starting mass geocache at " + LocalDateTime.now() + " at offset " + offset);
+        int batch_limit = 2000; // this limit is for the batches of records pulled at a time
+        String provider = determineIfProviderSpecified(typeList);
+        //Create log file, if its empty at the end, then no errors
+        String errorLogFileName = "massRegeocache" + LocalDateTime.now() + ".txt";
+        createNewFile(env.getDataDir(), errorLogFileName);
 
-        logger.info("Handle Method data supplied offset: " + offset);
         try {
+            //create query for total in the specified type(s)
             //Get total number of addresses that will be used to update our geocache
-            List<Integer> totalList = sqlRegeocacheDao.getMethodTotalCount(method);
+            List<Integer> totalList = sqlRegeocacheDao.determineMassGeocodeRecordCount(typeList);
             if (totalList == null || totalList.isEmpty()) {
-                logger.error("Failed to get a total count for the specified method " + method);
+                logger.error("Failed to get a total count for the mass regeocache");
                 return apiResponse;
             }
             int total = totalList.get(0);
-            logger.info("Total number of records currently cached with the method " + method + " : " + total);
-            //Hanldes parallel processing of http requests
-            Consumer<String> urlConsumer = url -> {
+            logger.info("Found this number of records for the mass regeocache: " + total);
 
-                //Execute URL
-                try {
-                    HttpGet request = new HttpGet(url);
-                    HttpResponse response = httpClient.execute(request);
-                    UrlRequest.convertStreamToString(response.getEntity().getContent());
-                } catch (Exception e) {
-                    //Alert Admin to failures
-                    logger.error("Failed to contact SAGE with the url: " + url);
-                }
-            };
+            //Set various batch limits if specified
+            if (total > user_limit && user_limit != 0) {
+                total = user_limit;
+                logger.info("A limit was specified by the user. The total (used for looping thru records)" +
+                        " will be changed to the limit provided");
+            }
 
-            //Where the magic happens
+            if (batch_limit > user_limit && user_limit != 0) {
+                batch_limit = user_limit;
+                logger.info("A limit was specified by the user. The batch limit (used for getting a batch of records)" +
+                        " will be changed to the limit provided");
+            }
+
             while (total > offset) {
-                //Contains a list of URLS to be executed
-                List<String> urls = new ArrayList<>();
-
-                //Get batch of 2000
-                List<StreetAddress> nysGeoDBAddresses = sqlRegeocacheDao.getMethodBatch(offset, limit, method);
+                //Get batch of 2000 or less if specified
+                List<StreetAddress> massGeocacheAddresses = sqlRegeocacheDao.getMassGeocodeBatch(offset, batch_limit, typeList);
 
                 //Let the admin know about progress made & increment offset
                 logger.info("At offset: " + offset);
-                offset = limit + offset;
+                offset = batch_limit + offset;
 
-                if (!nysGeoDBAddresses.isEmpty()) {
-                    //Query SAGE with the nysgeo webservice specified
-                    for (StreetAddress nysGeoStreetAddress : nysGeoDBAddresses) {
+                if (!massGeocacheAddresses.isEmpty()) {
 
-                        //Build URL
-                        Address nysgeoAddress = nysGeoStreetAddress.toAddress();
-                        String regeocacheUrl = env.getBaseUrl() +
-                                "/api/v2/geo/geocode?addr1=%s&addr2=%s&city=%s&state=%s&zip5=%s&provider=nysgeo&useFallback=false";
-                        regeocacheUrl = String.format(regeocacheUrl, nysgeoAddress.getAddr1(), nysgeoAddress.getAddr2(),
-                                nysgeoAddress.getCity(), nysgeoAddress.getState(), nysgeoAddress.getZip5());
-                        regeocacheUrl = regeocacheUrl.replaceAll(" ", "%20");
-                        regeocacheUrl = StringUtils.deleteWhitespace(regeocacheUrl);
-                        regeocacheUrl = regeocacheUrl.replaceAll("`", "");
-                        regeocacheUrl = regeocacheUrl.replaceAll("#", "");
-                        regeocacheUrl = regeocacheUrl.replaceAll("\\\\", "");
-                        urls.add(regeocacheUrl);
+                    for (StreetAddress geocacheStreetAddress : massGeocacheAddresses) {
+                        Address geocacheAddress = geocacheStreetAddress.toAddress();
+
+                        if (provider.isEmpty()) {
+                            provider = geocodeServiceProvider.getDefaultProvider();
+                        }
+
+                        try {
+                            //Geocode the address
+                            GeocodeResult geocodeResult = geocodeServiceProvider.geocode(geocacheAddress,
+                                    provider, geocodeServiceProvider.getDefaultFallback(),
+                                    useFallback, false, false);
+
+                            //This means geocoding failed, write to file
+                            if (geocodeResult.getStatusCode() != SUCCESS) {
+                                //write to file method
+                                writeDataToFile(errorLogFileName, geocacheAddress);
+                            }
+                        }
+                        catch (Exception e) {
+                            logger.error("Geocoding failed for an address. The faulty address is in the file", e);
+                            //Write to file method
+                            writeDataToFile(errorLogFileName, geocacheAddress);
+                        }
                     }
-                }
-
-                //Stream with multiple threads the urls that were just created
-                if (!urls.isEmpty()) {
-                    urls.parallelStream().forEach( urlConsumer );
-                    urls.clear();
                 }
             }
         }
@@ -173,14 +186,85 @@ public class RegeocacheService implements SageRegeocacheService {
             logger.error("Error refreshing the geocoder database:" + e);
             return apiResponse;
         }
-        end = LocalDateTime.now();
+
         //Let the admin know about the work that has been done.
-        String timerange = " The script started at " + start + " and ended at " + end;
-        logger.info(timerange);
-        apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc() + timerange);
+        logger.info("The mass regeocache was completed at " + LocalDateTime.now() );
+        apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         return apiResponse;
     }
 
+    /**
+     * This creates a error log file on each run of the Mass geocache process
+     * @param directory
+     * @param filename
+     */
+    private void createNewFile(String directory, String filename) {
+        try {
+            File errorFile = new File(directory + filename);
+            boolean fileCreated = errorFile.createNewFile();
+            if (fileCreated) {
+                logger.info("File created: " + errorFile.getName());
+            } else {
+                logger.info("File already exists.");
+            }
+        } catch (IOException e) {
+            logger.info("An error occurred creating the log file." , e);
+        }
+    }
+
+    /**
+     * Writes data to the error log file created by the mass geocache process
+     * @param filename
+     * @param failedAddress
+     */
+    private void writeDataToFile(String filename, Address failedAddress ) {
+        try {
+            String textToAppend = failedAddress.toNormalizedString();
+
+            BufferedWriter writer = new BufferedWriter(
+                    new FileWriter(filename, true)  //Set true for append mode
+            );
+            writer.newLine();   //Add new line
+            writer.write(textToAppend);
+            writer.close();
+        }
+        catch (IOException e) {
+            logger.info("Failed to log address to file. " + failedAddress.toNormalizedString(), e);
+        }
+    }
+
+    //Formats a url for use with some form of geocaching
+    private String formatMassGeocacheUrl(String url, Address geocacheAddress) {
+        url = String.format(url, geocacheAddress.getAddr1(), geocacheAddress.getAddr2(),
+                geocacheAddress.getCity(), geocacheAddress.getState(), geocacheAddress.getZip5());
+        url = url.replaceAll(" ", "%20");
+        url = StringUtils.deleteWhitespace(url);
+        url = url.replaceAll("`", "");
+        url = url.replaceAll("#", "");
+        url = url.replaceAll("\\\\", "");
+        return url;
+    }
+
+    /*
+    If user specified a provider for the mass geocache, this method will return it or an empty string
+     */
+    private String determineIfProviderSpecified(ArrayList<String> typeList) {
+        int position = 0;
+        for (String data: typeList) {
+            if (data.equals("provider")) {
+                return typeList.get(position+1);
+            }
+            position++;
+
+        }
+        return "";
+    }
+
+    /**
+     * Cycles thru the NYS GEO database and updates our own geocache with that information
+     * @param nys_offset
+     * @return
+     */
     public Object updateGeocacheWithNYSGeoData(int nys_offset) {
         Object apiResponse;
         HttpClient httpClient = HttpClientBuilder.create().build();
@@ -211,7 +295,7 @@ public class RegeocacheService implements SageRegeocacheService {
                     //Run new Address through USPS
                     String httpRequestString = env.getUspsAmsApiUrl()
                             + "validate?detail=true&addr1=%s&addr2=&city=%s&state=%s&zip5=%s&zip4=";
-                    httpRequestString = formatUrlString(httpRequestString, nysAddress);
+                    httpRequestString = formatMassGeocacheUrl(httpRequestString, nysAddress);
 
                     try {
                         HttpGet httpRequest = new HttpGet(httpRequestString);
@@ -278,16 +362,6 @@ public class RegeocacheService implements SageRegeocacheService {
         }
         apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         return apiResponse;
-    }
-
-    private String formatUrlString(String urlToFormat, Address addressToFormat) {
-        urlToFormat = String.format(urlToFormat, addressToFormat.getAddr1(), addressToFormat.getAddr2(),
-                addressToFormat.getCity(), addressToFormat.getState(), addressToFormat.getZip5());
-        urlToFormat = urlToFormat.replaceAll(" ", "%20");
-        urlToFormat = StringUtils.deleteWhitespace(urlToFormat);
-        urlToFormat = urlToFormat.replaceAll("`", "");
-        urlToFormat = urlToFormat.replaceAll("#", "");
-        return urlToFormat;
     }
 
     private StreetAddress constructStreetAddressFromUSPSJson(JSONObject uspsJson) {

@@ -5,6 +5,28 @@ import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum RegeocacheQuery implements BasicSqlQuery {
 
+    MASS_GEOCACHE_COUNT(  "select count(*) from ${schema}." + SqlTable.GEOCACHE),
+
+    MASS_GEOCACHE_SELECT( "select * from ${schema}." + SqlTable.GEOCACHE),
+
+    MASS_GEOCACHE_WHERE_METHOD(" where method = :method "),
+
+    MASS_GEOCACHE_WHERE_ZIP(" where zip5 = :zipcode "),
+
+    MASS_GEOCACHE_WHERE_LOCATION(" where location ilike :location "),
+
+    MASS_GEOCACHE_WHERE_QUALITY(" where quality = :quality "),
+
+    MASS_GEOCACHE_AND_METHOD(" and method = :method "),
+
+    MASS_GEOCACHE_AND_ZIP(" and zip5 = :zipcode "),
+
+    MASS_GEOCACHE_AND_LOCATION(" and location ilike :location "),
+
+    MASS_GEOCACHE_AND_QUALITY(" and quality = :quality "),
+
+    MASS_GEOCACHE_LIMIT_OFFSET (" limit :limit offset :offset;"),
+
     NYS_BATCH_SQL("select d.addresslabel, d.citytownname, d.state, d.zipcode, d.latitude, d.longitude, d.pointtype\n" +
             "from ${schema}." + SqlTable.ADDRESS_POINTS_SAM + " d\n" +
             "order by objectid asc\n" +
@@ -55,8 +77,7 @@ public enum RegeocacheQuery implements BasicSqlQuery {
     METHOD_BATCH_SQL("select * \n" +
             "from ${schema}." + SqlTable.GEOCACHE + "\n" +
             "where method = :method \n" +
-            "limit :limit offset :offset;")
-
+            "limit :limit offset :offset;"),
 
     ;
 

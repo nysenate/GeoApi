@@ -7,9 +7,26 @@ import gov.nysenate.sage.model.geo.Geocode;
 import org.springframework.jdbc.support.xml.SqlXmlFeatureNotImplementedException;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public interface RegeocacheDao {
+
+    /**
+     * Generates the sql used for counting the records that would be used in a mass geocache batch
+     * @param typeList
+     * @return
+     */
+    public List<Integer> determineMassGeocodeRecordCount(ArrayList<String> typeList);
+
+    /**
+     * Generates the sql used for selecting a mass geocache batch
+     * @param offset
+     * @param limit
+     * @param typeList
+     * @return
+     */
+    public List<StreetAddress> getMassGeocodeBatch(int offset, int limit, ArrayList<String> typeList);
 
     /**
      * Retreives a total count of all rows contained from the NYS GEO DB
