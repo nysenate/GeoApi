@@ -170,13 +170,13 @@ public class RegeocacheService implements SageRegeocacheService {
                             //This means geocoding failed, write to file
                             if (geocodeResult.getStatusCode() != SUCCESS) {
                                 //write to file method
-                                writeDataToFile(errorLogFileName, geocacheAddress);
+                                writeDataToFile(env.getDataDir() + errorLogFileName, geocacheAddress);
                             }
                         }
                         catch (Exception e) {
                             logger.error("Geocoding failed for an address. The faulty address is in the file", e);
                             //Write to file method
-                            writeDataToFile(errorLogFileName, geocacheAddress);
+                            writeDataToFile(env.getDataDir() + errorLogFileName, geocacheAddress);
                         }
                     }
                 }
