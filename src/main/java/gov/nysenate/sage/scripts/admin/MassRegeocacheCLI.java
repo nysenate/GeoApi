@@ -39,16 +39,6 @@ public class MassRegeocacheCLI extends BaseScript {
     @Override
     protected void execute(CommandLine opts) throws Exception {
 
-        //offset, limit, type, useFallback, subtype, type2, subtype2, type3, subtype3
-        //types - all, method, town, quality, zipcode, provider
-
-        //subtypes for all is the provider (All sets the limit to 0)
-        //subtypes for method is the provider name to regeocache on
-        //subtypes for town is the town name & provider is optional
-        //subtypes for qualtiy is the qualty rating found in GeocodeQuality.java
-        //subtypes for zipcode is the zipcode itself & provider is optional
-        //subtypes for provider is the provider you would like to contact
-
         if (!opts.getArgList().isEmpty()) {
 
             ArrayList<String> typeList = new ArrayList<>();
