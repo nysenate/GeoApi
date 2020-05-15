@@ -72,6 +72,13 @@ public class MassRegeocacheCLI extends BaseScript {
                 typeList.add(subtype);
             }
 
+            if (typeList.size() == 2 && typeList.get(0).equals("provider")) {
+                logger.warn("You must specify another type argument and its subtype." +
+                        " all, method, town, quality, zipcode, provider");
+                throw new Exception("You must specify another type argument and its subtype." +
+                        " all, method, town, quality, zipcode, provider");
+            }
+
             Object response = regeocacheService.massRegeoache(offset, limit, useFallback ,typeList);
             logger.info(response.toString());
         }
