@@ -25,7 +25,8 @@ public class HttpNYSGeoDao {
     private final String DEFAULT_BASE_URL;
 
     private final String GEOCODE_EXTENSION;
-    private String GEOCODE_QUERY = "?street=%s&city=%s&state=%s&zip=%s";
+    private String GEOCODE_QUERY = "?SingleLine=%s";
+
 
     private final String REV_GEOCODE_EXTENSION;
     private String REV_GEOCODE_QUERY = "?location={\"x\" : %s, \"y\" : %s, \"spatialReference\" : {\"wkid\" : 4326}}&returnIntersection=false";
@@ -45,13 +46,11 @@ public class HttpNYSGeoDao {
     /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Address address)
     {
-        StreetAddress streetAddress = StreetAddressParser.parseAddress(address);
-        address = new Address(streetAddress);
         GeocodedAddress geocodedAddress = null;
 
         try {
-            String formattedQuery = String.format(GEOCODE_QUERY,address.getAddr1(), address.getCity(),
-                    address.getState(), address.getZip5());
+            String formattedQuery = String.format(GEOCODE_QUERY,address.getAddr1() + " " + address.getAddr2() + " "
+                    + address.getCity() + "," + address.getZip5());
             String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
             geocodedAddress = getGeocodedAddress(url, false);
         }
