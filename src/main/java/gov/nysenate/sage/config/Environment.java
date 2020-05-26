@@ -14,7 +14,7 @@ public class Environment {
 
     @Value("${senator.cache.refresh.hours:12}") private int senatorCacheRefreshHours;
 
-    @Value("${data.dir}") private String dataDir;
+    @Value("${mass.geocache.error.log}") private String massGeocacheError;
 
     @Value("${user.ip.filter:(127.0.0.1)}") private String userIpFilter;
 
@@ -958,11 +958,11 @@ public class Environment {
         this.geocoderPublicSchema = geocoderPublicSchema;
     }
 
-    public String getDataDir() {
-        return dataDir;
+    public String getMassGeocacheErrorLog() {
+        return massGeocacheError;
     }
 
-    public void setDataDir(String dataDir) {
-        this.dataDir = dataDir;
+    public void setMassGeocacheErrorLog(String massGeocacheError) {
+        this.massGeocacheError = massGeocacheError;
     }
 }

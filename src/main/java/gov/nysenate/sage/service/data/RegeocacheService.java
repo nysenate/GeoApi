@@ -10,13 +10,10 @@ import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.UrlRequest;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -30,12 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
@@ -117,8 +112,8 @@ public class RegeocacheService implements SageRegeocacheService {
         int batch_limit = 2000; // this limit is for the batches of records pulled at a time
         String provider = determineIfProviderSpecified(typeList);
         //Create log file, if its empty at the end, then no errors
-        String errorLogFileName = "massRegeocache" + LocalDateTime.now() + ".txt";
-        createNewFile(env.getDataDir(), errorLogFileName);
+        String errorLogFileName = LocalDateTime.now() + ".txt";
+        createNewFile(env.getMassGeocacheErrorLog(), errorLogFileName);
 
         try {
             //create query for total in the specified type(s)
@@ -170,13 +165,13 @@ public class RegeocacheService implements SageRegeocacheService {
                             //This means geocoding failed, write to file
                             if (geocodeResult.getStatusCode() != SUCCESS) {
                                 //write to file method
-                                writeDataToFile(env.getDataDir() + errorLogFileName, geocacheAddress);
+                                writeDataToFile(env.getMassGeocacheErrorLog() + errorLogFileName, geocacheAddress);
                             }
                         }
                         catch (Exception e) {
                             logger.error("Geocoding failed for an address. The faulty address is in the file", e);
                             //Write to file method
-                            writeDataToFile(env.getDataDir() + errorLogFileName, geocacheAddress);
+                            writeDataToFile(env.getMassGeocacheErrorLog() + errorLogFileName, geocacheAddress);
                         }
                     }
                 }
