@@ -356,7 +356,7 @@ public class DataGenService implements SageDataGenService {
         //Ensure Mixed Case
         StreetAddressParser.performInitCapsOnAddress(officeAddress);
         //Construct Url String
-        String urlString = env.getBaseUrl() + "/api/v2/geo/geocode?addr1=" + "/api/v2/geo/geocode?addr1=" +
+        String urlString = env.getBaseUrl() + "/api/v2/geo/geocode?addr1=" +
                 officeAddress.getAddr1() + "&addr2=" + officeAddress.getAddr2() + "&city=" + officeAddress.getCity() +
                 "&state=NY&zip5=" + officeAddress.getZip5();
         urlString = urlString.replaceAll(" ", "%20");
