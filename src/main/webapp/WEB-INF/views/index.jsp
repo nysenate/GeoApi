@@ -425,9 +425,9 @@
                     <div ng-show="senateAssigned">
                         <div class="info-container clickable connected senator" title="Show Senate District Map"
                              ng-click="showDistrict('senate');">
-                            <div class="senator-pic-holder">
+                            <div class="senator-pic-holder" ng-show="districts.senate.senator.imageUrl">
                                 <a target="_blank" ng-href="{{districts.senate.senator.url}}">
-                                    <img ng-src="{{districts.senate.senator.imageUrl}}" class="senator-pic">
+                                    <img ng-src="{{districts.senate.senator.imageUrl}}"  class="senator-pic">
                                 </a>
                             </div>
                             <div style='margin-top:10px'>
@@ -745,7 +745,7 @@
                         <div>
                             <div class="info-container" style="height:70px;">
                                 <div class="senator-pic-holder">
-                                    <img ng-src="{{member.imageUrl | senatorPic}}" class="senator-pic">
+                                    <img ng-src="{{member.imageUrl | senatorPic}}" ng-show="member.imageUrl" class="senator-pic">
                                 </div>
                                 <div style="margin-top:10px">
                                     <p class="senator member-name">
