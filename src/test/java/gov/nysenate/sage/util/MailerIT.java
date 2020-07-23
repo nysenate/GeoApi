@@ -22,7 +22,7 @@ public class MailerIT extends BaseTests {
     public void testSendMail()  throws Exception
     {
         System.out.print(new Timestamp(new Date().getTime()).toString());
-        mailer.sendMail("calabres@nysenate.gov", "IGNORE THIS (email testing)!", "...");
+        mailer.sendMail("sage@nysenate.gov", "SAGE Deployment: Mailer Integration Test", "This is a test message being generated during SAGE deployment.  It utilizes the SMTP parameters in app.properties to configure the SMTP server.");
     }
 
 }
