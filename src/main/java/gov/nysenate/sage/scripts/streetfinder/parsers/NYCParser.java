@@ -3,10 +3,13 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 import gov.nysenate.sage.model.address.StreetFinderAddress;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 /**
- * Parses NYC Street files. It does so by using column locations for 3 different data columsn within one line
+ * Parses NYC Street files. It does so by using column locations for 3 different data columns within one line
  * Output is a tsv file
  */
 public class NYCParser extends NTSParser {
@@ -15,13 +18,10 @@ public class NYCParser extends NTSParser {
     private String file;
     private String street1, street2, street3;
     private String streetSuffix1, streetSuffix2, streetSuffix3;
-    private StreetFinderAddress StreetFinderAddress1, StreetFinderAddress2, StreetFinderAddress3;
+    private StreetFinderAddress streetFinderAddress1, streetFinderAddress2, streetFinderAddress3;
     private String preDir1 = "", preDir2 = "", preDir3 = "";
     //location fields
     private int start1, start2, start3;
-    private int ED1 = 0, AD1, ZIP1, CD1, SD1, MC1, CO1, FROM1, TO1;
-    private int ED2, AD2, ZIP2, CD2, SD2, MC2, CO2, FROM2, TO2;
-    private int ED3, AD3, ZIP3, CD3, SD3, MC3, CO3, FROM3, TO3;
     private String town;
 
     /**
@@ -55,44 +55,14 @@ public class NYCParser extends NTSParser {
                     !currentLine.matches("\\s*STREET\\s+FINDER\\s*")) {
                 //if the line contains "FROM" then it is the top of a data segment so set all column field locations
                 if (currentLine.contains("FROM")) {
-                    //set all location fields for column 1 (first occurrence)
-                    ED1 = currentLine.indexOf("ED");
-                    AD1 = currentLine.indexOf("AD");
-                    ZIP1 = currentLine.indexOf("ZIP");
-                    CD1 = currentLine.indexOf("CD");
-                    SD1 = currentLine.indexOf("SD");
-                    MC1 = currentLine.indexOf("MC");
-                    CO1 = currentLine.indexOf("CO");
-                    FROM1 = currentLine.indexOf("FROM");
-                    TO1 = currentLine.indexOf("TO");
-                    //set all loction fields for column 2 (second occurrence)
-                    ED2 = currentLine.indexOf("ED", currentLine.indexOf("ED") + 1);
-                    AD2 = currentLine.indexOf("AD", currentLine.indexOf("AD") + 1);
-                    ZIP2 = currentLine.indexOf("ZIP", currentLine.indexOf("ZIP") + 1);
-                    CD2 = currentLine.indexOf("CD", currentLine.indexOf("CD") + 1);
-                    SD2 = currentLine.indexOf("SD", currentLine.indexOf("SD") + 1);
-                    MC2 = currentLine.indexOf("MC", currentLine.indexOf("MC") + 1);
-                    CO2 = currentLine.indexOf("CO", currentLine.indexOf("CO") + 1);
-                    FROM2 = currentLine.indexOf("FROM", currentLine.indexOf("FROM") + 1);
-                    TO2 = currentLine.indexOf("TO", currentLine.indexOf("TO") + 1);
-                    //set all loction fields for column 3 (third occurrence)
-                    ED3 = currentLine.lastIndexOf("ED");
-                    AD3 = currentLine.lastIndexOf("AD");
-                    ZIP3 = currentLine.lastIndexOf("ZIP");
-                    CD3 = currentLine.lastIndexOf("CD");
-                    SD3 = currentLine.lastIndexOf("SD");
-                    MC3 = currentLine.lastIndexOf("MC");
-                    CO3 = currentLine.lastIndexOf("CO");
-                    FROM3 = currentLine.lastIndexOf("FROM");
-                    TO3 = currentLine.lastIndexOf("TO");
-
+                    continue;
                     //if the line has "__________________________________________" then use that to set the column starting locations
                 } else if (currentLine.contains("__________________________________________")) {
                     start1 = currentLine.indexOf("__________________________________________");
                     start2 = currentLine.indexOf("__________________________________________", start1 + 1);
                     start3 = currentLine.lastIndexOf("__________________________________________");
                 } else {
-                    //otherwise it is a parseable line of data
+                    //otherwise it is a parse able line of data
                     parseColumn1(currentLine);
                     parseColumn2(currentLine);
                     parseColumn3(currentLine);
@@ -102,6 +72,44 @@ public class NYCParser extends NTSParser {
         //close all writers/readers
         scanner.close();
         super.closeWriters();
+    }
+
+    private void handleNineDataPoints(StreetFinderAddress streetFinderAddress, String[] data) {
+        //FROM TO ED AD ZIP CD SD MC CO
+        streetFinderAddress.setBldg_low(data[0].replaceAll("1/2",""));
+        streetFinderAddress.setBldg_high(data[1].replaceAll("1/2",""));
+        streetFinderAddress.setED(data[2]);
+        streetFinderAddress.setAsm(data[3]);
+        streetFinderAddress.setZip(data[4]);
+        streetFinderAddress.setCong(data[5]);
+        streetFinderAddress.setSen(data[6]);
+    }
+
+    private void handleEightDataPoints(StreetFinderAddress streetFinderAddress, String[] data) {
+        //FROM ED AD ZIP CD SD MC CO
+        streetFinderAddress.setBldg_low(data[0].replaceAll("1/2",""));
+        streetFinderAddress.setED(data[1]);
+        streetFinderAddress.setAsm(data[2]);
+        streetFinderAddress.setZip(data[3]);
+        streetFinderAddress.setCong(data[4]);
+        streetFinderAddress.setSen(data[5]);
+    }
+
+    private void handleSevenDataPoints(StreetFinderAddress streetFinderAddress, String[] data) {
+        //ED AD ZIP CD SD MC CO
+        streetFinderAddress.setED(data[0]);
+        streetFinderAddress.setAsm(data[1]);
+        streetFinderAddress.setZip(data[2]);
+        streetFinderAddress.setCong(data[3]);
+        streetFinderAddress.setSen(data[4]);
+    }
+
+    private String[] removeEmptyData(String[] input) {
+        List<String> list = new ArrayList<String>(Arrays.asList(input));
+        list.removeAll(Arrays.asList("", null," "));
+        String[] refinedData = new String[list.size()];
+        refinedData = list.toArray(refinedData);
+        return refinedData;
     }
 
     /**
@@ -116,16 +124,17 @@ public class NYCParser extends NTSParser {
         } else {
             //if it doesnt then substring can go all the way until start2 - 1
             if (start2 - 1 < 0) {
-                substring = line.substring(start1, start2);
+                substring = line.substring(0, start2);
             }
             else {
-                substring = line.substring(start1, start2 - 1);
+                substring = line.substring(0, start2 - 1);
             }
 
         }
 
         //split substring by whitespace
-        String string[] = substring.split("\\s+");
+        String[] string = substring.trim().split("\\s+");
+        string = removeEmptyData(string);
 
         int index = 0;
         //check for a blank column line
@@ -142,85 +151,33 @@ public class NYCParser extends NTSParser {
             if (string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("\\d+[-]?\\d*[A-Z]?")
                     || string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("1/2")) {
 
-                //street name, suffix and pre-Direction must have already occured and are stored in the corresponding storage fields
-                StreetFinderAddress1 = new StreetFinderAddress();
-                StreetFinderAddress1.setStreet(street1);
-                StreetFinderAddress1.setStreetSuffix(streetSuffix1);
-                StreetFinderAddress1.setPreDirection(preDir1);
+                //street name, suffix and pre-Direction must have already occurred and are stored in the corresponding storage fields
+                streetFinderAddress1 = new StreetFinderAddress();
+                streetFinderAddress1.setStreet(street1);
+                streetFinderAddress1.setStreetSuffix(streetSuffix1);
+                streetFinderAddress1.setPreDirection(preDir1);
+                boolean handledData = false;
                 //get all data in here
                 //first check for a from and for a to
-                if (checkForFrom(line, FROM1)) {
-                    //handle case when its 1/2
-                    //ex. 2033 1/2
-                    String temp = string[index];
-                    if(string[index + 1].equals("1/2")) {
-                        //skip over 1/2 for now because database is expecting all ints
-                        //temp += " " + 1/2;
-                        index++;
-                    }
-                    StreetFinderAddress1.setBldg_low(temp);
-                    index++;
-                }
 
-                //check for to
-                if (checkForTo(line, TO1)) {
-                    //handle case when its 1/2
-                    //ex. 2033 1/2
-                    String temp = string[index];
-                    if(string[index + 1].equals("1/2")) {
-                        //skip over 1/2 for now because database is expecting all ints
-                        //temp += " " + 1/2;
-                        index++;
-                    }
-                    StreetFinderAddress1.setBldg_high(temp);
-                    index++;
+                if (string.length == 9) {
+                    handleNineDataPoints(streetFinderAddress1, string);
+                    handledData = true;
                 }
-
-                //check for election code
-                if (checkForED(line, ED1)) {
-                    StreetFinderAddress1.setED(string[index]);
-                    index++;
+                if (string.length == 8) {
+                    handleEightDataPoints(streetFinderAddress1, string);
+                    handledData = true;
                 }
-
-                //check for assembly code
-                if (checkForAD(line, AD1)) {
-                    StreetFinderAddress1.setAsm(string[index]);
-                    index++;
-                }
-
-                //check for zip code
-                if (checkFor(line, ZIP1)) {
-                    StreetFinderAddress1.setZip(string[index]);
-                    index++;
-                }
-
-                //check for congressional code
-                if (checkFor(line, CD1)) {
-                    StreetFinderAddress1.setCong(string[index]);
-                    index++;
-                }
-
-                //check for senate code
-                if (checkFor(line, SD1)) {
-                    StreetFinderAddress1.setSen(string[index]);
-                    index++;
-                }
-
-                //check for MC1 but skip over because that data is unneccessary as of now
-                if (checkFor(line, MC1)) {
-                    //StreetFinderAddress1.setBldg_high(string[index]);
-                    index++;
-                }
-
-                //check for CO1 but skip over because that data is unneccessary as of now
-                if (checkFor(line, CO1)) {
-                    //StreetFinderAddress1.setBldg_high(string[index]);
-                    index++;
+                if (string.length == 7) {
+                    handleSevenDataPoints(streetFinderAddress1, string);
+                    handledData = true;
                 }
 
                 //set the town then write to file
-                StreetFinderAddress1.setTown(town);
-                super.writeToFile(StreetFinderAddress1);
+                if (handledData && street1 != null) {
+                    streetFinderAddress1.setTown(town);
+                    super.writeToFile(streetFinderAddress1);
+                }
 
 
             } else {
@@ -243,7 +200,7 @@ public class NYCParser extends NTSParser {
                     }
                     street1 = temp.trim();
                 } else {
-                    //keep streetSuffix blank if there isnt one
+                    //keep streetSuffix blank if there isn't one
                     streetSuffix1 = "";
                     //street name must be in string[0]
                     street1 = string[0];
@@ -274,7 +231,8 @@ public class NYCParser extends NTSParser {
                 }
             }
             //split by whitespace
-            String string[] = substring.trim().split("\\s+");
+            String[] string = substring.trim().split("\\s+");
+            string = removeEmptyData(string);
 
             int index = 0;
 
@@ -293,86 +251,35 @@ public class NYCParser extends NTSParser {
                 if (string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("\\d+[-]?\\d*[A-Z]?")
                         || string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("1/2")) {
 
-                    //street name, suffix and pre-Direction must have already occured and are stored in the corresponding storage fields
-                    StreetFinderAddress2 = new StreetFinderAddress();
-                    StreetFinderAddress2.setStreet(street2);
-                    StreetFinderAddress2.setStreetSuffix(streetSuffix2);
-                    StreetFinderAddress2.setPreDirection(preDir2);
+                    //street name, suffix and pre-Direction must have already occurred and are stored in the corresponding storage fields
+                    streetFinderAddress2 = new StreetFinderAddress();
+                    streetFinderAddress2.setStreet(street2);
+                    streetFinderAddress2.setStreetSuffix(streetSuffix2);
+                    streetFinderAddress2.setPreDirection(preDir2);
 
-                    //check for from
-                    if (checkForFrom(line, FROM2)) {
-                        //handle case when its 1/2
-                        //ex. 2033 1/2
-                        String temp = string[index];
-                        if(string[index + 1].equals("1/2")) {
-                            //skip over 1/2 for now because database is expecting all ints
-                            //temp += " " + 1/2;
-                            index++;
-                        }
-                        StreetFinderAddress2.setBldg_low(temp);
-                        index++;
+
+                    boolean handledData = false;
+                    //get all data in here
+                    //first check for a from and for a to
+
+                    if (string.length == 9) {
+                        handleNineDataPoints(streetFinderAddress2, string);
+                        handledData = true;
+                    }
+                    if (string.length == 8) {
+                        handleEightDataPoints(streetFinderAddress2, string);
+                        handledData = true;
+                    }
+                    if (string.length == 7) {
+                        handleSevenDataPoints(streetFinderAddress2, string);
+                        handledData = true;
                     }
 
-                    //check for to
-                    if (checkForTo(line, TO2)) {
-                        //handle case when its 1/2
-                        //ex. 2033 1/2
-                        String temp = string[index];
-                        if(string[index + 1].equals("1/2")) {
-                            //skip over 1/2 for now because database is expecting all ints
-                            //temp += " " + 1/2;
-                            index++;
-                        }
-                        StreetFinderAddress2.setBldg_high(temp);
-                        index++;
+                    if (handledData && street2 != null) {
+                        //set town and write to file
+                        streetFinderAddress2.setTown(town);
+                        super.writeToFile(streetFinderAddress2);
                     }
-
-                    //check for election code
-                    if (checkForED(line, ED2)) {
-                        StreetFinderAddress2.setED(string[index]);
-                        index++;
-                    }
-
-                    //check for assembly code
-                    if (checkForAD(line, AD2)) {
-                        StreetFinderAddress2.setAsm(string[index]);
-                        index++;
-                    }
-
-                    //check for zip code
-                    if (checkFor(line, ZIP2)) {
-                        StreetFinderAddress2.setZip(string[index]);
-                        index++;
-                    }
-
-                    //chek for congressional code
-                    //special CD check because CD2 for some reason needs to check 1 extra space over to find the data
-                    if (checkForCD2(line, CD2)) {
-                        StreetFinderAddress2.setCong(string[index]);
-                        index++;
-                    }
-
-                    //check for senate code
-                    if (checkFor(line, SD2)) {
-                        StreetFinderAddress2.setSen(string[index]);
-                        index++;
-                    }
-
-                    //check for MC2 but skip over because that data is unneccessary as of now
-                    if (checkFor(line, MC2)) {
-                        //StreetFinderAddress1.setBldg_high(string[index]);
-                        index++;
-                    }
-
-                    //check for CO2 but skip over because that data is unneccessary as of now
-                    if (checkFor(line, CO2)) {
-                        //StreetFinderAddress1.setBldg_high(string[index]);
-                        index++;
-                    }
-
-                    //set town and write to file
-                    StreetFinderAddress2.setTown(town);
-                    super.writeToFile(StreetFinderAddress2);
 
                 } else {
                     //must be a street address
@@ -394,7 +301,7 @@ public class NYCParser extends NTSParser {
                         }
                         street2 = temp.trim();
                     } else {
-                        //keep streetSuffix blank if there isnt one
+                        //keep streetSuffix blank if there isn't one
                         streetSuffix2 = "";
                         //street name must be in string[0]
                         street2 = string[0];
@@ -414,7 +321,8 @@ public class NYCParser extends NTSParser {
         if (line.length() > start3) {
             //create a substring of column 3 to the end of the line and split by whitespace
             substring = line.substring(start3, line.length());
-            String string[] = substring.trim().split("\\s+");
+            String[] string = substring.trim().split("\\s+");
+            string = removeEmptyData(string);
             int index = 0;
             //check for a blank column line
             if (string.length > 1) {
@@ -430,86 +338,33 @@ public class NYCParser extends NTSParser {
                 if (string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("\\d+[-]?\\d*[A-Z]?")
                         || string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("1/2")) {
 
-                    //street name, suffix and pre-Direction must have already occured and are stored in the corresponding storage fields
-                    StreetFinderAddress3 = new StreetFinderAddress();
-                    StreetFinderAddress3.setStreet(street3);
-                    StreetFinderAddress3.setStreetSuffix(streetSuffix3);
-                    StreetFinderAddress3.setPreDirection(preDir3);
+                    //street name, suffix and pre-Direction must have already occurred and are stored in the corresponding storage fields
+                    streetFinderAddress3 = new StreetFinderAddress();
+                    streetFinderAddress3.setStreet(street3);
+                    streetFinderAddress3.setStreetSuffix(streetSuffix3);
+                    streetFinderAddress3.setPreDirection(preDir3);
 
-                    //check for a from
-                    if (checkForFrom(line, FROM3)) {
-                        //handle case when its 1/2
-                        //ex. 2033 1/2
-                        String temp = string[index];
-                        if(string[index + 1].equals("1/2")) {
-                            //skip over 1/2 for now because database is expecting all ints
-                            //temp += " " + 1/2;
-                            index++;
-                        }
-                        StreetFinderAddress3.setBldg_low(temp);
-                        index++;
+                    boolean handledData = false;
+                    //get all data in here
+                    //first check for a from and for a to
+
+                    if (string.length == 9) {
+                        handleNineDataPoints(streetFinderAddress3, string);
+                        handledData = true;
+                    }
+                    if (string.length == 8) {
+                        handleEightDataPoints(streetFinderAddress3, string);
+                        handledData = true;
+                    }
+                    if (string.length == 7) {
+                        handleSevenDataPoints(streetFinderAddress3, string);
+                        handledData = true;
                     }
 
-                    //check for a to
-                    if (checkForTo(line, TO3)) {
-                        //handle case when its 1/2
-                        //ex. 2033 1/2
-                        String temp = string[index];
-                        if(string[index + 1].equals("1/2")) {
-                            //skip over 1/2 for now because database is expecting all ints
-                            //temp += " " + 1/2;
-                            index++;
-                        }
-                        StreetFinderAddress3.setBldg_high(temp);
-                        index++;
+                    if (handledData && street3 != null) {
+                        streetFinderAddress3.setTown(town);
+                        super.writeToFile(streetFinderAddress3);
                     }
-
-                    //check for an election code
-                    if (checkFor(line, ED3)) {
-                        StreetFinderAddress3.setED(string[index]);
-                        index++;
-                    }
-
-                    //check for an assembly code
-                    if (checkForAD(line, AD3)) {
-                        StreetFinderAddress3.setAsm(string[index]);
-                        index++;
-                    }
-
-                    //check for a zip code
-                    if (checkFor(line, ZIP3)) {
-                        StreetFinderAddress3.setZip(string[index]);
-                        index++;
-                    }
-
-                    //check for a congressional code
-                    if (checkFor(line, CD3)) {
-                        StreetFinderAddress3.setCong(string[index]);
-                        index++;
-                    }
-
-                    //check for a senate code
-                    if (checkFor(line, SD3)) {
-                        StreetFinderAddress3.setSen(string[index]);
-                        index++;
-                    }
-
-                    //check for MC3 but skip over because that data is unneccessary as of now
-                    if (checkFor(line, MC3)) {
-                        //StreetFinderAddress3.setBldg_high(string[index]);
-                        index++;
-                    }
-
-                    if (checkFor(line, CO3)) {
-                        //StreetFinderAddress3.setBldg_high(string[index]);
-                        index++;
-                    }
-
-                    //check for CO3 but skip over because that data is unneccessary as of now
-                    StreetFinderAddress3.setTown(town);
-                    super.writeToFile(StreetFinderAddress3);
-
-
                 } else {
                     //must be a street address
                     String temp = "";
@@ -530,7 +385,7 @@ public class NYCParser extends NTSParser {
                         }
                         street3 = temp.trim();
                     } else {
-                        //keep streetSuffix blank if there isnt one
+                        //keep streetSuffix blank if there isn't one
                         streetSuffix3 = "";
                         //street name must be in string[0]
                         street3 = string[0];
@@ -538,99 +393,6 @@ public class NYCParser extends NTSParser {
                 }
             }
         }
-    }
-
-    /**
-     * Checks for a from (low range) stating at the fromLocation for 6 spaces on the line
-     * @param line
-     * @param fromLocation - location of the from Column
-     * @return true if data is found. false otherwise
-     */
-    private boolean checkForFrom(String line, int fromLocation) {
-        for (int i = fromLocation; i < fromLocation + 6; i++) {
-            if (!Character.isWhitespace(line.charAt(i))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks for a to (high range) starting at toLocation - 2 for 6 spaces
-     * @param line
-     * @param toLocation
-     * @return true if data is found. false otherwise
-     */
-    private boolean checkForTo(String line, int toLocation) {
-        int backwards = (toLocation - 2 < 0) ? 0 : toLocation - 2;
-        for (int i = toLocation - backwards; i < toLocation + 4; i++) {
-            if (!Character.isWhitespace(line.charAt(i))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Generic check to find data at a column location starting at location - 1 and going for 3 spaces
-     * @param line
-     * @param location
-     * @return true if data is found. false otherwise
-     */
-    private boolean checkFor(String line, int location) {
-        int backwards = (location - 1 < 0) ? 0 : location - 1;
-        for (int i = location - backwards; i < location + 2; i++) {
-            if (!Character.isWhitespace(line.charAt(i))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks for data in the CD2 column. CD2 requires the check to go out an extra space to find all the data
-     * @param line
-     * @param CD2
-     * @return true if data is found. false otherwise
-     */
-    private boolean checkForCD2(String line, int CD2) {
-        int backwards = (CD2 - 1 < 0) ? 0 : CD2 - 1;
-        for (int i = CD2 - backwards; i < CD2 + 3; i++) {
-            if (!Character.isWhitespace(line.charAt(i))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks for data in the ED column
-     * @param line
-     * @param ED
-     * @return true if data is found. false otherwise
-     */
-    private boolean checkForED(String line, int ED) {
-        for (int i = ED; i < ED + 3; i++) {
-            if (!Character.isWhitespace(line.charAt(i))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks for data in the AD column
-     * @param line
-     * @param AD
-     * @return true if data is found. false otherwise
-     */
-    private boolean checkForAD(String line, int AD) {
-        for (int i = AD; i < AD + 2; i++) {
-            if (!Character.isWhitespace(line.charAt(i))) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

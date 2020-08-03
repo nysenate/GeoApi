@@ -570,7 +570,8 @@ public class NTSParser {
      * @return true if a direction, false otherwise
      */
     protected boolean checkForDirection(String string) {
-        if (string.equals("N") || string.equals("E") || string.equals("S") || string.equals("W")) {
+        string = string.toUpperCase();
+        if (string.equals("N") || string.equals("E")  || string.equals("S") || string.equals("W")) {
             return true;
         } else {
             return false;
