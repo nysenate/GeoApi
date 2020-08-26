@@ -109,7 +109,7 @@ public class NTSParser {
     protected void parseLine(String line, boolean specialCase) {
 
         //set up the streetFinderAddress for storage of current data
-        StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
+        StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
         //split the line by whitespace
         String[] splitLine = line.split("\\s+");
 
@@ -118,21 +118,25 @@ public class NTSParser {
 
         //check if this is a line w/o street name (meaning street name came before and is stored in StreetFinderAddressStorage)
         //you can tell this by a blank first character
-        if (line.charAt(0) == ' ') {
+
+        if (line.contains("E. MAIN ST")) {
+            extractDataFromLine(splitLine, zipIndex, index, line, specialCase, streetFinderAddress);
+        }
+        else if (line.charAt(0) == ' ') {
             //check that StreetFinderAddressStorage isn't blank. If it is then this is probably just a blank line so just return
             if (StreetFinderAddressStorage.getStreet().equals("")) {
                 return;
             }
             //for some reason splitLine[0] is whitespace and the zip is at splitLine[1]
             if (splitLine[1].length() == 5) {
-                StreetFinderAddress.setZip(splitLine[1]);
+                streetFinderAddress.setZip(splitLine[1]);
             }
             //set other fields using StreetFinderAddressStorage
-            StreetFinderAddress.setPreDirection(StreetFinderAddressStorage.getPreDirection().trim());
-            StreetFinderAddress.setStreet(StreetFinderAddressStorage.getStreet());
-            StreetFinderAddress.setStreetSuffix((StreetFinderAddressStorage.getStreetSuffix()));
+            streetFinderAddress.setPreDirection(StreetFinderAddressStorage.getPreDirection().trim());
+            streetFinderAddress.setStreet(StreetFinderAddressStorage.getStreet());
+            streetFinderAddress.setStreetSuffix((StreetFinderAddressStorage.getStreetSuffix()));
             //call parseAfterZip
-            parseAfterZip(splitLine, specialCase, 2, line, StreetFinderAddress);
+            parseAfterZip(splitLine, specialCase, 2, line, streetFinderAddress);
 
         } else if (line.charAt(0) == '*') {
             //check for unknown addresses at the start of the file
@@ -140,75 +144,97 @@ public class NTSParser {
             //dont include the UNKNOWN as the street name
             //zip must be after *UNKNOWN*
             if (splitLine[1].length() == 5) {
-                StreetFinderAddress.setZip(splitLine[1]);
+                streetFinderAddress.setZip(splitLine[1]);
             }
             //call parseAfterZip
-            parseAfterZip(splitLine, specialCase, 2, line, StreetFinderAddress);
+            parseAfterZip(splitLine, specialCase, 2, line, streetFinderAddress);
 
         } else {
-            //first find array index of zip
-            //skip first index because that must be street name
-            for (int i = 1; i < splitLine.length; i++) {
-                //zip must have 5 digits
-                //except for 1 special case in Schenectady
-                if (splitLine[i].matches("\\d{5}") || (splitLine[i].equals("1239") && file.contains("Schenectady"))) {
-                    zipIndex = i;
-                    break;
-                }
-            }
-
-            //now zip = splitLine[zipIndex]
-            //streetSuf = splitline[zipIndex -1]
-            //streetName = everything before zipIndex -1
-            StreetFinderAddress.setZip(splitLine[zipIndex]);
-
-            //save the index of the end of the street name
-            int endOfStreetName = zipIndex - 1;
-
-            //check if the endOfStreetName index is actually a postDirection
-            //first check for a conversion to formatting in directionMap
-            if (AddressDictionary.directionMap.containsKey(splitLine[endOfStreetName])) {
-                //if a format conversion is found then change it in splitLine
-                splitLine[endOfStreetName] = AddressDictionary.directionMap.get(splitLine[endOfStreetName]);
-            }
-
-            //now actually check for the postDirection
-            if (checkForDirection(splitLine[endOfStreetName])) {
-                StreetFinderAddress.setPostDirection(splitLine[endOfStreetName]);
-                //if a postDirection is found decrement endOfStreetName
-                endOfStreetName--;
-            }
-
-            //if SplitLine[endOfStreetName] is not numbers then it must be the street suffix
-            if (!splitLine[endOfStreetName].matches("\\d+")) {
-                StreetFinderAddress.setStreetSuffix(splitLine[endOfStreetName]);
-                //decrment end of StreetName
-                endOfStreetName--;
-            }
-
-            int temp = 0;
-
-            //check the beginning of splitLine for a pre-Direction
-            //Not converting the beginning because it would convert North Street to just N st which
-            //is not a pre-direction
-            if (checkForDirection(splitLine[temp])) {
-                StreetFinderAddress.setPreDirection(splitLine[temp].trim());
-                //increment temp if one is found
-                temp++;
-            }
-
-            String streetName = "";
-            //concatenate Street Name into one string
-            //Street Name is in indexes temp to endOfStreetName
-            for (int i = temp; i <= endOfStreetName; i++) {
-                streetName = streetName + splitLine[i] + " ";
-            }
-            StreetFinderAddress.setStreet(streetName.trim());
-            //increment index for parseAfterZip call
-            index = zipIndex + 1;
-            //call parseAfterZip
-            parseAfterZip(splitLine, specialCase, index, line, StreetFinderAddress);
+            extractDataFromLine(splitLine, zipIndex, index, line, specialCase, streetFinderAddress);
         }
+    }
+
+    private void extractDataFromLine(String[] splitLine, int zipIndex, int index, String line, boolean specialCase,
+                                     StreetFinderAddress streetFinderAddress) {
+        boolean case1239 = false;
+        //first find array index of zip
+        //skip first index because that must be street name
+        for (int i = 1; i < splitLine.length; i++) {
+            //zip must have 5 digits
+            //except for 1 special case in Schenectady
+            if (splitLine[i].matches("\\d{5}") || (splitLine[i].equals("1239") && file.contains("Schenectady"))) {
+                zipIndex = i;
+                case1239 = true;
+                break;
+            }
+        }
+
+        //now zip = splitLine[zipIndex]
+        //streetSuf = splitline[zipIndex -1]
+        //streetName = everything before zipIndex -1
+        if (case1239) {
+            streetFinderAddress.setZip("12309");
+            case1239 = false;
+        }
+        else {
+            streetFinderAddress.setZip(splitLine[zipIndex]);
+        }
+
+
+        //save the index of the end of the street name
+        int endOfStreetName = zipIndex - 1;
+
+        //check if the endOfStreetName index is actually a postDirection
+        //first check for a conversion to formatting in directionMap
+        if (AddressDictionary.directionMap.containsKey(splitLine[endOfStreetName])) {
+            //if a format conversion is found then change it in splitLine
+            splitLine[endOfStreetName] = AddressDictionary.directionMap.get(splitLine[endOfStreetName]);
+        }
+
+        //now actually check for the postDirection
+        if (checkForDirection(splitLine[endOfStreetName])) {
+            streetFinderAddress.setPostDirection(splitLine[endOfStreetName]);
+            //if a postDirection is found decrement endOfStreetName
+            endOfStreetName--;
+        }
+
+        //if SplitLine[endOfStreetName] is not numbers then it must be the street suffix
+        if (!splitLine[endOfStreetName].matches("\\d+")) {
+            streetFinderAddress.setStreetSuffix(splitLine[endOfStreetName]);
+            //decrment end of StreetName
+            endOfStreetName--;
+        }
+
+        int temp = 0;
+
+        //check the beginning of splitLine for a pre-Direction
+        //Not converting the beginning because it would convert North Street to just N st which
+        //is not a pre-direction
+        if (checkForDirection(splitLine[temp])) {
+
+            String potentialPreDirection = splitLine[temp].trim();
+
+            if(potentialPreDirection.equals("E.")) {
+                potentialPreDirection = "E";
+            }
+
+            streetFinderAddress.setPreDirection(potentialPreDirection);
+            //increment temp if one is found
+            temp++;
+        }
+
+        String streetName = "";
+        //concatenate Street Name into one string
+        //Street Name is in indexes temp to endOfStreetName
+        for (int i = temp; i <= endOfStreetName; i++) {
+            streetName = streetName + splitLine[i] + " ";
+        }
+        streetName = streetName.replace("E.","E");
+        streetFinderAddress.setStreet(streetName.trim());
+        //increment index for parseAfterZip call
+        index = zipIndex + 1;
+        //call parseAfterZip
+        parseAfterZip(splitLine, specialCase, index, line, streetFinderAddress);
     }
 
     /**
@@ -296,7 +322,8 @@ public class NTSParser {
             for (int i = index; i < townCodeIndex; i++) {
                 town = town + splitLine[i] + " ";
             }
-            StreetFinderAddress.setTown(town);
+            StreetFinderAddress.setTown(town.trim().toUpperCase()
+                    .replaceAll("CITY OF", "").replaceAll("TOWN OF", ""));
 
             //set the townCode
             StreetFinderAddress.setTownCode(splitLine[townCodeIndex]);
