@@ -47,7 +47,7 @@ public class SqlRegeocacheDao implements RegeocacheDao {
 
     public List<StreetAddress> getMassGeocodeBatch(int offset, int limit, ArrayList<String> typeList) {
         String sql = RegeocacheQuery.MASS_GEOCACHE_SELECT.getSql(baseDao.getCacheSchema()) + getMassGeocacheBodySql(typeList)
-                + RegeocacheQuery.MASS_GEOCACHE_LIMIT_OFFSET.getSql();
+        + RegeocacheQuery.MASS_GEOCACHE_ORDER_BY.getSql() + RegeocacheQuery.MASS_GEOCACHE_LIMIT_OFFSET.getSql() ;
 
         MapSqlParameterSource params = generateParamsForMassGeocache(typeList);
         params.addValue("limit", limit);

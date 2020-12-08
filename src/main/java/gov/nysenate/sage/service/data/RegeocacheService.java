@@ -100,15 +100,19 @@ public class RegeocacheService implements SageRegeocacheService {
     /**
      * Process for handling all sorts of mass regeocaching. It can handle methods, locations, zipcodes, qualities
      * and any combination of those. Primarily accessed through the CLI
-     * @param offset
+     * @param user_offset
      * @param user_limit
      * @param useFallback
      * @param typeList
      * @return
      */
-    public Object massRegeoache(int offset, int user_limit, boolean useFallback ,ArrayList<String> typeList) {
+    public Object massRegeoache(int user_offset, int user_limit, boolean useFallback ,ArrayList<String> typeList) {
+        //How many records have actually been processed
+        int recordsProcessed = 0;
+        int offset = user_offset;
+
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-        logger.info("Starting mass geocache at " + LocalDateTime.now() + " at offset " + offset);
+        logger.info("Starting mass geocache at " + LocalDateTime.now());
         int batch_limit = 2000; // this limit is for the batches of records pulled at a time
         String provider = determineIfProviderSpecified(typeList);
         //Create log file, if its empty at the end, then no errors
@@ -123,29 +127,28 @@ public class RegeocacheService implements SageRegeocacheService {
                 logger.error("Failed to get a total count for the mass regeocache");
                 return apiResponse;
             }
-            int total = totalList.get(0);
-            logger.info("Found this number of records for the mass regeocache: " + total);
-
-            //Set various batch limits if specified
-            if (total > user_limit && user_limit != 0) {
-                total = user_limit;
-                logger.info("A limit was specified by the user. The total (used for looping thru records)" +
-                        " will be changed to the limit provided");
+            int totalNumberOfRecords = totalList.get(0);
+            logger.info("Found this number of records for the mass regeocache: " + totalNumberOfRecords);
+            //No need to do anything for 0 records, return success
+            if (totalNumberOfRecords == 0) {
+                apiResponse = new ApiError(this.getClass(), SUCCESS);
             }
 
+            //Special less than 2000 case
             if (batch_limit > user_limit && user_limit != 0) {
                 batch_limit = user_limit;
                 logger.info("A limit was specified by the user. The batch limit (used for getting a batch of records)" +
                         " will be changed to the limit provided");
             }
 
-            while (total > offset) {
+            while (user_limit > recordsProcessed) {
                 //Get batch of 2000 or less if specified
                 List<StreetAddress> massGeocacheAddresses = sqlRegeocacheDao.getMassGeocodeBatch(offset, batch_limit, typeList);
 
                 //Let the admin know about progress made & increment offset
-                logger.info("At offset: " + offset);
-                offset = batch_limit + offset;
+                logger.info("At Geocode batch: " + recordsProcessed / batch_limit + ". Records Processed: " + recordsProcessed);
+                recordsProcessed = batch_limit + recordsProcessed;
+                offset = offset + batch_limit;
 
                 if (!massGeocacheAddresses.isEmpty()) {
 
@@ -183,7 +186,7 @@ public class RegeocacheService implements SageRegeocacheService {
         }
 
         //Let the admin know about the work that has been done.
-        logger.info("The mass regeocache was completed at " + LocalDateTime.now() );
+        logger.info("The mass regeocache was completed at " + LocalDateTime.now() + ". Processed " + recordsProcessed + " records");
         apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         return apiResponse;
     }

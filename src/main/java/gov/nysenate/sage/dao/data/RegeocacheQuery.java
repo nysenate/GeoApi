@@ -25,7 +25,9 @@ public enum RegeocacheQuery implements BasicSqlQuery {
 
     MASS_GEOCACHE_AND_QUALITY(" and quality = :quality "),
 
-    MASS_GEOCACHE_LIMIT_OFFSET (" limit :limit offset :offset;"),
+    MASS_GEOCACHE_LIMIT_OFFSET (" limit :limit offset :offset"),
+
+    MASS_GEOCACHE_ORDER_BY(" ORDER By id asc"),
 
     NYS_BATCH_SQL("select d.addresslabel, d.citytownname, d.state, d.zipcode, d.latitude, d.longitude, d.pointtype\n" +
             "from ${schema}." + SqlTable.ADDRESS_POINTS_SAM + " d\n" +

@@ -13,6 +13,7 @@ import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.lang3.text.WordUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -138,13 +139,12 @@ public class SqlGeoCacheDao implements GeoCacheDao
     }
 
     private final static String SQL_INSERT_CACHE_ENTRY =
-        "INSERT INTO cache.geocache (bldgnum, predir, street, streettype, postdir, location, state, zip5, " +
-                                    "latlon, method, quality, zip4) " +
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?), ?, ?, ?)";
+            "INSERT INTO cache.geocache (bldgnum, predir, street, streettype, postdir, location, state, zip5, latlon, method, quality, zip4) " +
+                    "VALUES (:bldgnum, :predir, :street, :streettype, :postdir, :location, :state, :zip5, ST_GeomFromText( :latlon ), :method, :quality, :zip4)";
 
-    private final static String SQL_UPDATE_CACHE_ENTRY = "update cache.geocache\n" +
-            "set latlon = ST_GeomFromText(?), method = ?, quality = ?, zip4 = ?, updated = now()\n" +
-            "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ? and zip5 = ? and location = ?;";
+    private final static String SQL_UPDATE_CACHE_ENTRY = "UPDATE cache.geocache " +
+            "SET latlon = ST_GeomFromText(:latlon), method = :method, quality = :quality, zip4 = :zip4, updated = now() " +
+            "WHERE bldgnum = :bldgnum AND street = :street AND streettype = :streettype AND predir = :predir AND postdir = :postdir AND zip5 = :zip5 AND location = :location";
 
     /**
      * Saves any GeocodedAddress objects stored in the buffer into the database. The address is parsed into
@@ -164,45 +164,56 @@ public class SqlGeoCacheDao implements GeoCacheDao
                     StreetAddress sa = StreetAddressParser.parseAddress(address);
                     if (isCacheableStreetAddress(sa)) {
                         try {
-                            baseDao.tigerJbdcTemplate.update(SQL_INSERT_CACHE_ENTRY, Integer.valueOf(sa.getBldgNum()),
-                                sa.getPreDir(), sa.getStreetName(), sa.getStreetType(), sa.getPostDir(), sa.getLocation(),
-                                sa.getState(), sa.getZip5(), "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
-                                gc.getMethod(), gc.getQuality().name(), sa.getZip4());
-                            if (logger.isTraceEnabled()) {
-                                logger.trace("Saved " + sa.toString() + " in cache.");
-                            }
-                        }
-                        catch(Exception ex) {
-                            // Duplicate row warnings are expected sometimes and can be suppressed.
-                            if (ex.getMessage().contains("duplicate key")) {
-                                try {
-                                    baseDao.tigerJbdcTemplate.update(SQL_UPDATE_CACHE_ENTRY,
-                                            "POINT(" + gc.getLon() + " " + gc.getLat() + ")",
-                                            gc.getMethod(),
-                                            gc.getQuality().name(),
-                                            sa.getZip4(),
+                            MapSqlParameterSource params = new MapSqlParameterSource();
+                            params.addValue("latlon","POINT(" + gc.getLon() + " " + gc.getLat() + ")");
+                            params.addValue("method",gc.getMethod());
+                            params.addValue("quality",gc.getQuality().name());
+                            params.addValue("zip4",sa.getZip4());
+                            params.addValue("bldgnum",sa.getBldgNum());
+                            params.addValue("street",sa.getStreetName());
+                            params.addValue("streettype",sa.getStreetType());
+                            params.addValue("predir",sa.getPreDir());
+                            params.addValue("postdir",sa.getPostDir());
+                            params.addValue("zip5",sa.getZip5());
+                            params.addValue("location",sa.getLocation());
 
-                                            sa.getBldgNum(),
-                                            sa.getStreetName(),
-                                            sa.getStreetType(),
-                                            sa.getPreDir(),
-                                            sa.getPostDir(),
-                                            sa.getZip5(),
-                                            sa.getLocation()
-                                            );
-                                    if (logger.isTraceEnabled()) {
-                                        logger.trace("Saved " + sa.toString() + " in cache.");
-                                    }
-                                }
-                                catch (Exception e) {
-                                    logger.info("SQL EXCEPTION WHILE UPDATE DUP");
-                                    logger.warn(e.getMessage());
-                                }
+                            Integer rowUpdated = baseDao.tigerNamedJdbcTemplate.update(SQL_UPDATE_CACHE_ENTRY, params);
+
+                            if (logger.isTraceEnabled() && rowUpdated == 1) {
+                                logger.trace("Number of rows updated = " + rowUpdated);
+                                logger.trace("Updated " + sa.toString() + " in cache.");
                             }
-                            else {
-                                logger.warn("NON UPDATE DUP SQL EXCEPTION");
-                                logger.warn(ex.getMessage());
+
+                            if (rowUpdated == 0) {
+                                MapSqlParameterSource insertParams = new MapSqlParameterSource();
+                                insertParams.addValue("bldgnum",Integer.valueOf(sa.getBldgNum()));
+                                insertParams.addValue("predir",sa.getPreDir());
+                                insertParams.addValue("street",sa.getStreetName());
+                                insertParams.addValue("streettype",sa.getStreetType());
+                                insertParams.addValue("postdir", sa.getPostDir());
+                                insertParams.addValue("location", sa.getLocation());
+                                insertParams.addValue("state", sa.getState());
+                                insertParams.addValue("zip5", sa.getZip5());
+                                insertParams.addValue("latlon","POINT(" + gc.getLon() + " " + gc.getLat() + ")");
+                                insertParams.addValue("method", gc.getMethod());
+                                insertParams.addValue("quality",gc.getQuality().name());
+                                insertParams.addValue("zip4",sa.getZip4());
+
+                                Integer rowsInserted = baseDao.tigerNamedJdbcTemplate.update(SQL_INSERT_CACHE_ENTRY, insertParams);
+
+                                if (logger.isTraceEnabled()) {
+                                    logger.trace("Number of rows inserted = " + rowsInserted);
+                                    logger.trace("Inserted " + sa.toString() + " in cache.");
+                                }
+
                             }
+                            else if (rowUpdated > 1) {
+                                throw new IllegalStateException("Too many updates (" + rowUpdated + ") occurred for " + sa.toString());
+                            }
+
+                        }
+                        catch(Exception e) {
+                            logger.error("SQL EXCEPTION", e);
                         }
                     }
                 }
@@ -210,6 +221,20 @@ public class SqlGeoCacheDao implements GeoCacheDao
             if (startSize > 1) {
                 logger.info(String.format("Cached %d geocodes in %d ms.", startSize, TimeUtil.getElapsedMs(startTime)));
             }
+        }
+    }
+
+    /**
+     * Useful for debugging. Change the sql for update and insert to return an id
+     */
+    public class UpdateIdHandler implements ResultSetExtractor<Integer> {
+
+        @Override
+        public Integer extractData(ResultSet rs) throws SQLException {
+            if (rs.next()) {
+                return (Integer) rs.getInt("id");
+            }
+            return null;
         }
     }
 

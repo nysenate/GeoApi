@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.geocache.GeoCache;
@@ -13,6 +14,7 @@ import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.GoogleGeocoder;
 import gov.nysenate.sage.provider.geocode.NYSGeocoder;
 import gov.nysenate.sage.provider.geocode.TigerGeocoder;
+import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,15 +42,18 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
 
 
     protected String defaultProvider;
+    protected AddressServiceProvider addressServiceProvider;
     protected Map<String,GeocodeService> providers = new HashMap<>();
     protected LinkedList<String> defaultFallback = new LinkedList<>();
 
 
     @Autowired
     public GeocodeServiceProvider(Environment env, GeoCache geocache, GoogleGeocoder googleGeocoder,
-                                  TigerGeocoder tigerGeocoder, NYSGeocoder nysGeocoder) {
+                                  TigerGeocoder tigerGeocoder, NYSGeocoder nysGeocoder,
+                                  AddressServiceProvider addressServiceProvider) {
         this.env = env;
         this.geocache = geocache;
+        this.addressServiceProvider = addressServiceProvider;
         /** Setup geocode service providers. */
         providers.put("google", googleGeocoder);
         providers.put("nysgeo", nysGeocoder);
@@ -156,6 +161,8 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
     public GeocodeResult geocode(Address address, String provider, LinkedList<String> fallbackProviders, boolean useFallback,
                           boolean useCache, boolean doNotCache)
     {
+        boolean uspsValidated = false;
+
         /** Clone the list of fall back providers */
         LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
                                                                   : new LinkedList<>(this.defaultFallback);
@@ -205,20 +212,31 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
             logger.warn("No valid geocode result.");
             geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_GEOCODE_RESULT);
         }
-        /** Output result if log level is high enough */
-        else if (logger.isInfoEnabled()) {
-            Geocode gc = geocodeResult.getGeocode();
-            Address addr = geocodeResult.getAddress();
-            if (gc != null && addr != null) {
-                String source = (geocodeResult.getSource() != null) ? geocodeResult.getSource().getSimpleName() : "Missing";
-                logger.info(String.format("Geocode Result - Source: '%s', Quality: '%s', Lat/Lon: '%s', Address: '%s'",
-                    source, gc.getQuality(), gc.getLatLon(), addr));
+        else {
+
+            AddressResult addressResult = addressServiceProvider.validate(address, null, false);
+            if (addressResult != null && addressResult.isValidated()) {
+                geocodeResult.getGeocodedAddress().setAddress(addressResult.getAddress());
+                uspsValidated = true;
+            }
+
+            //USPS address correction
+            /** Output result if log level is high enough */
+            if (logger.isInfoEnabled()) {
+                Geocode gc = geocodeResult.getGeocode();
+                Address addr = geocodeResult.getAddress();
+                if (gc != null && addr != null) {
+                    String source = (geocodeResult.getSource() != null) ? geocodeResult.getSource().getSimpleName() : "Missing";
+                    logger.info(String.format("Geocode Result - Source: '%s', Quality: '%s', Lat/Lon: '%s', Address: '%s'",
+                            source, gc.getQuality(), gc.getLatLon(), addr));
+                }
             }
         }
 
         /** Set the timestamp */
         geocodeResult.setResultTime(TimeUtil.currentTimestamp());
-        if (!cacheHit) {
+
+        if (!cacheHit && !uspsValidated) {
             geocodeResult.setGeocodedAddress(new GeocodedAddress(address, geocodeResult.getGeocode()));
         }
 

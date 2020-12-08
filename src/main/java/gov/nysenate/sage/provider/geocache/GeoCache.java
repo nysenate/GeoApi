@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

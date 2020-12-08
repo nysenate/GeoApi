@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.ArrayList;
+
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminResponse;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
@@ -54,17 +56,16 @@ public class RegeocacheController {
     /**
      * Regeocache Zips Api
      * ---------------------------
-     *
+     * <p>
      * Regeocache the zip codes in the geocache
-     *
+     * <p>
      * Usage:
      * (GET)    /admin/regeocache/zip
      *
-     * @param request HttpServletRequest
+     * @param request  HttpServletRequest
      * @param response HttpServletResponse
      * @param username String
      * @param password String
-     *
      */
     @RequestMapping(value = "/zip", method = RequestMethod.GET)
     public void geocacheZips(HttpServletRequest request, HttpServletResponse response,
@@ -72,12 +73,12 @@ public class RegeocacheController {
                              @RequestParam(required = false, defaultValue = "defaultPass") String password,
                              @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
+                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             apiResponse = regeocacheService.updateZipsInGeocache();
         }
         setApiResponse(apiResponse, request);
@@ -86,17 +87,16 @@ public class RegeocacheController {
     /**
      * NYS Geocache Refresh Api
      * ---------------------------
-     *
+     * <p>
      * Update the geocache with NYSGEO data
-     *
+     * <p>
      * Usage:
      * (GET)    /admin/regeocache/nysrefresh/{offset}
      *
-     * @param request HttpServletRequest
+     * @param request  HttpServletRequest
      * @param response HttpServletResponse
      * @param username String
      * @param password String
-     *
      */
     @RequestMapping(value = "/nysrefresh/{offset}", method = RequestMethod.GET)
     public void nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
@@ -106,14 +106,49 @@ public class RegeocacheController {
                                    @RequestParam(required = false, defaultValue = "") String key) {
 
         Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
+                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             apiResponse = regeocacheService.updateGeocacheWithNYSGeoData(offset);
         }
+        setApiResponse(apiResponse, request);
+    }
+
+
+    /**
+     * Mass Regeocache Testing
+     * ---------------------------
+     *
+     * Test Mass Geocache CLI script, Not intended for everyday use. For debugging only
+     *
+     * Usage:
+     * (GET)    /admin/regeocache/mass
+     */
+    @RequestMapping(value = "/mass", method = RequestMethod.GET)
+    public void nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
+                                   @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                   @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                   @RequestParam(required = false, defaultValue = "") String key) {
+
+        Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+
+            ArrayList<String> params = new ArrayList<>();
+            params.add("method");
+            params.add("YahooDao");
+            params.add("provider");
+            params.add("nysgeo");
+            apiResponse = regeocacheService.massRegeoache(1, 10, false, params);
+        }
+
         setApiResponse(apiResponse, request);
     }
 }
