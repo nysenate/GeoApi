@@ -131,7 +131,10 @@ public class RegeocacheService implements SageRegeocacheService {
             logger.info("Found this number of records for the mass regeocache: " + totalNumberOfRecords);
             //No need to do anything for 0 records, return success
             if (totalNumberOfRecords == 0) {
+                logger.info("No records to process. Exiting mass regeocache");
+                logger.info("It is possible that you have query you entered has a parameter misspelled.");
                 apiResponse = new ApiError(this.getClass(), SUCCESS);
+                return apiResponse;
             }
 
             //Special less than 2000 case

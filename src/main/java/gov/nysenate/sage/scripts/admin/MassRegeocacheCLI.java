@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
 
 @Component
 public class MassRegeocacheCLI extends BaseScript {
@@ -53,8 +54,8 @@ public class MassRegeocacheCLI extends BaseScript {
 
 
             for (int i = 0; i < optionsWithoutLimitAndOffset.length; i = i + 2) {
-                String type = optionsWithoutLimitAndOffset[i];
-                String subtype = optionsWithoutLimitAndOffset[i+1];
+                String type = optionsWithoutLimitAndOffset[i].toLowerCase();
+                String subtype = optionsWithoutLimitAndOffset[i+1].toLowerCase();
                 ArrayList<String> fixedDataForType1 = correctSubtypes(limit, type, subtype);
                 limit = Integer.parseInt( fixedDataForType1.get(0) );
                 subtype = fixedDataForType1.get(1);

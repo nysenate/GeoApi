@@ -9,7 +9,7 @@ public enum RegeocacheQuery implements BasicSqlQuery {
 
     MASS_GEOCACHE_SELECT( "select * from ${schema}." + SqlTable.GEOCACHE),
 
-    MASS_GEOCACHE_WHERE_METHOD(" where method = :method "),
+    MASS_GEOCACHE_WHERE_METHOD(" where method ilike :method "),
 
     MASS_GEOCACHE_WHERE_ZIP(" where zip5 = :zipcode "),
 
