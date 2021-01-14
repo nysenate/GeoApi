@@ -1,6 +1,10 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.district.Congressional;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -13,6 +17,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 
+import javax.el.ELManager;
 
 
 /**
@@ -30,30 +35,25 @@ public class CongressScraper
         try {
             // Each state's representatives are in a separate HTML table.
             // For each state, the reps are in the TBODY section.
-            // Use a non-greedy match from "state-new-york" to "</tbody>" to
-            // grab the New York section.
-            Pattern nystatePattern = Pattern.compile(" id=\"state-new-york\".*?</tbody>", Pattern.DOTALL);
-            // Each rep is a separate row, with the district, URL, and name.
-            Pattern memberPattern = Pattern.compile("<tr>\\s*<td>(\\d+)(st|nd|rd|th)\\s*</td>\\s*<td><a href=\"([^\"]*)\">([^<]*)</a>");
-
+            // We select the caption of the table which is the sibling of TBODY
+            // From there we get each row and parse what we need
             logger.info("Connecting to " + HOUSE_MEM_URL);
+            Document doc = Jsoup.connect(HOUSE_MEM_URL).get();
+            Element tableCaption = doc.select("caption#state-new-york").first(); //#housegov_reps_by_state-block_default-1394921112
+            Element tableBody = tableCaption.siblingElements().get(1);
+            Elements memberRows = tableBody.children();
 
-            String html = IOUtils.toString(new URL(HOUSE_MEM_URL),"UTF-8");
-            Matcher m = nystatePattern.matcher(html);
-            if (m.find()) {
-                String nyhtml = m.group();
-                m = memberPattern.matcher(nyhtml);
-                while (m.find()) {
-                    int district = Integer.parseInt(m.group(1));
-                    String url = m.group(3).trim();
-                    String name = m.group(4).trim();
-                    logger.info("Retrieved member [" + name + "], CD=" + district);
-                    Congressional c = new Congressional(district, name, url);
-                    ret.add(c);
-                }
-            }
-            else {
-                logger.warn("Unable to find New York section within the U.S. House member webpage");
+            for (Element member : memberRows) {
+                Elements memberInfo = member.children();
+                String districtNumber = memberInfo.get(0).text();
+                Integer distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
+                        .replace("rd","").replace("th","") );
+                String memberName = memberInfo.get(1).child(0).text();
+                String memberUrl = memberInfo.get(1).child(0).attr("href");
+
+                logger.info("Retrieved member [" + memberName + "], CD=" + distNum);
+                Congressional c = new Congressional(distNum, memberName, memberUrl);
+                ret.add(c);
             }
         }
         catch (IOException ioe) {

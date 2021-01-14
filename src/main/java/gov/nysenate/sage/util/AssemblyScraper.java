@@ -1,17 +1,16 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.district.Assembly;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.io.IOUtils;
 
 
 /**
@@ -29,23 +28,33 @@ public class AssemblyScraper
         List<Assembly> ret = new ArrayList<>();
 
         try {
-            // Each Assembly member uses two DIVs.  The first DIV contains
-            // the URL and full name of the member.  The second DIV contains
-            // the district.  The ordinal suffix ("st", "nd", "rd", "th") is
-            // stripped from district ordinal.
-            Pattern memberPattern = Pattern.compile("<div class=\"email1\">\\s*<a href=\"([^\"]*)\">([^<]*)</a></div>\\s*<div class=\"email2\">(\\d+)(st|nd|rd|th)</div>");
+            //<li
+            //<a href="/mem/{mem-url}">{mem-name}</a>
+            //<div class="email2"> {dist-number} District </div>
+            //<a href="mailto:{mem-email}">{mem-email}</a>
+            ///</li>
+
+            // Each Assembly member is in a list item. As can be seen above.
+            // The first Anchor contains the member url and the members name.
+            // The DIV contains district number of the member.
+            // The ordinal suffix ("st", "nd", "rd", "th") is stripped from district ordinal.
 
             logger.info("Connecting to " + ASSEMBLY_MEM_URL);
 
-            String html = IOUtils.toString(new URL(ASSEMBLY_MEM_URL),"ISO-8859-1");
-            Matcher m = memberPattern.matcher(html);
+            Document doc = Jsoup.connect(ASSEMBLY_MEM_URL).get();
+            Elements memberList = doc.select("#mem-email-list li"); //#mem-email-list
+            for (Element member : memberList) {
 
-            while (m.find()) {
-                String url = ASSEMBLY_BASE_URL + m.group(1);
-                String name = m.group(2).trim();
-                int district = Integer.parseInt(m.group(3));
-                logger.info("Retrieved member [" + name + "], AD=" + district);
-                Assembly a = new Assembly(district, name, url);
+                Elements memberInfo = member.children();
+                String memberName = memberInfo.get(0).text();
+                String memberUrl = memberInfo.get(0).attr("href");
+                String districtNumber = memberInfo.get(1).text().replaceAll("District","").trim();
+                Integer distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
+                        .replace("rd","").replace("th","") );
+//                String memberEmail = memberInfo.get(2).text().trim();
+
+                logger.info("Retrieved member [" + memberName + "], AD=" + distNum);
+                Assembly a = new Assembly(distNum, memberName, memberUrl);
                 ret.add(a);
             }
         }
@@ -53,5 +62,5 @@ public class AssemblyScraper
             logger.error("" + ioe);
         }
         return ret;
-    } // getAssemblies()
+    }
 }
