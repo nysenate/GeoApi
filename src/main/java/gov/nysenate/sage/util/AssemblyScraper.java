@@ -57,6 +57,8 @@ public class AssemblyScraper
                 Assembly a = new Assembly(distNum, memberName, memberUrl);
                 ret.add(a);
             }
+
+            return ret;
         }
         catch (IOException ioe) {
             logger.error("" + ioe);

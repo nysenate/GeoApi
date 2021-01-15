@@ -55,6 +55,8 @@ public class CongressScraper
                 Congressional c = new Congressional(distNum, memberName, memberUrl);
                 ret.add(c);
             }
+
+            return ret;
         }
         catch (IOException ioe) {
             logger.error("" + ioe);

@@ -227,7 +227,7 @@ public class DataGenService implements SageDataGenService {
             if (existingCongressional == null) {
                 updated = true;
                 sqlCongressionalDao.insertCongressional(congressional);
-            } else if (!isCongressionalDataUpdated(existingCongressional, congressional)) {
+            } else if (isCongressionalDataUpdated(existingCongressional, congressional)) {
                 updated = true;
                 sqlCongressionalDao.deleteCongressional(district);
                 sqlCongressionalDao.insertCongressional(congressional);
@@ -253,7 +253,7 @@ public class DataGenService implements SageDataGenService {
             if (existingAssembly == null) {
                 updated = true;
                 sqlAssemblyDao.insertAssembly(assembly);
-            } else if (!isAssemblyDataUpdated(existingAssembly, assembly)) {
+            } else if (isAssemblyDataUpdated(existingAssembly, assembly)) {
                 updated = true;
                 sqlAssemblyDao.deleteAssemblies(district);
                 sqlAssemblyDao.insertAssembly(assembly);
@@ -326,7 +326,7 @@ public class DataGenService implements SageDataGenService {
         return false;
     }
 
-    private boolean isAssemblyDataUpdated(Assembly a1, Assembly a2) {
+    private boolean isAssemblyDataUpdated(Assembly a1, Assembly a2) { //Existing is A1, New is A2
         if (a1 != null && a2 != null) {
             if (!(a1.getDistrict() == a2.getDistrict() &&
                     a1.getMemberName().equals(a2.getMemberName()) &&
