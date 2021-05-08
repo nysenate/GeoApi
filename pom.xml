@@ -139,7 +139,7 @@
         <signpost-core.version>1.2.1.2</signpost-core.version>
         <super-csv.version>2.0.1</super-csv.version>
         <spring.version>5.2.3.RELEASE</spring.version>
-        <shiro.version>1.5.0</shiro.version>
+        <shiro.version>1.6.0</shiro.version>
         <tomcat.version>8.5.46</tomcat.version>
         <woodstox-core>4.4.1</woodstox-core>
         <xmlrpc-client.version>3.1.3</xmlrpc-client.version>
