@@ -1,5 +1,5 @@
 #!/bin/bash
 #Copies the given file and moves it to the txt_streetfiles directory
 #This is intended for csv/txt source files
-cp /data/geoapi_data/street_finder/raw_streetfiles/$1 /data/geoapi_data/street_finder/txt_streetfiles
-echo copied $1
+cp $1 $2
+echo copied $1 to $2

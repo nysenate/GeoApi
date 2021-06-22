@@ -1,5 +1,6 @@
 #!/bin/bash
 #base pdf to txt conversion
 #converted txt file is in raw_streetfiles
+source config.properties
 echo "Converting $1 to .txt"
-pdftotext -layout /data/geoapi_data/street_finder/raw_streetfiles/$1
+pdftotext -layout $1

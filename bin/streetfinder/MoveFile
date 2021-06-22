@@ -1,6 +1,7 @@
 #!/bin/bash
 #moves given file to to txt_streetfiles from raw_streetfiles
 #this is used for the txt file generated after converting a pdf
-mv /data/geoapi_data/street_finder/raw_streetfiles/$1 /data/geoapi_data/street_finder/txt_streetfiles
+source config.properties
+mv $1 $2
 echo moved $1
 
