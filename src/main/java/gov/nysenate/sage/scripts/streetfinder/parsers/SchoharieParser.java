@@ -35,6 +35,7 @@ public class SchoharieParser extends NTSParser {
         super.readFile();
     }
 
+    //TODO ADD Zip code parsing once we get a streetfile with zipcodes included
     @Override
     protected void parseLine(String line) {
 
@@ -42,7 +43,6 @@ public class SchoharieParser extends NTSParser {
                 || !line.contains("Dist")) {
             //split the line by ,
             String[] splitLine = line.split(",", Integer.MAX_VALUE);
-//            System.out.println(splitLine.length);
 
             if (!splitLine[6].isEmpty() || !splitLine[1].isEmpty() || splitLine.length >= 11) {
 
@@ -84,15 +84,15 @@ public class SchoharieParser extends NTSParser {
             return;
         }
 
-        String[] splitData = data.split("-", Integer.MAX_VALUE);
+        String[] splitData = data.split("-");
 
         if (splitData.length == 3) {
-            streetFinderAddress.setBldg_low(splitData[0]);
-            streetFinderAddress.setBldg_high(splitData[1]);
+            streetFinderAddress.setBldg_low(splitData[0].trim());
+            streetFinderAddress.setBldg_high(splitData[1].trim());
 
-            if(splitData[2].equals("O")) {
+            if(splitData[2].trim().equals("O")) {
                 streetFinderAddress.setBldg_parity("ODDS");
-            } else if(splitData[2].equals("E")) {
+            } else if(splitData[2].trim().equals("E")) {
                 streetFinderAddress.setBldg_parity("EVENS");
             } else {
                 streetFinderAddress.setBldg_parity("ALL");
