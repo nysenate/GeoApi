@@ -208,7 +208,7 @@ public class WyomingParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getCongongressional(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        String cd = splitLine[14].substring(splitLine[12].length() - 2);
+        String cd = splitLine[12].substring(splitLine[12].length() - 2);
         StreetFinderAddress.setCong(cd);
     }
 
@@ -218,7 +218,7 @@ public class WyomingParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getSenate(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        String sd = splitLine[14].substring(splitLine[13].length() - 2);
+        String sd = splitLine[13].substring(splitLine[13].length() - 2);
         StreetFinderAddress.setSen(sd);
     }
 
