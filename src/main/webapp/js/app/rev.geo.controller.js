@@ -16,6 +16,7 @@ sage.controller("RevGeoController", function($scope, $http, mapService, menuServ
     $scope.lookup = function() {
         $http.get(this.getRevGeoUrl())
             .success(function(data, status, headers, config) {
+                mapService.clearAll();
                 dataBus.setBroadcastAndView("revgeo", data, "revgeo");
             });
     };
