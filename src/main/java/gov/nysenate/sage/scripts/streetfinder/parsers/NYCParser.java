@@ -76,8 +76,8 @@ public class NYCParser extends NTSParser {
 
     private void handleNineDataPoints(StreetFinderAddress streetFinderAddress, String[] data) {
         //FROM TO ED AD ZIP CD SD MC CO
-        streetFinderAddress.setBldg_low(data[0].replaceAll("1/2",""));
-        streetFinderAddress.setBldg_high(data[1].replaceAll("1/2",""));
+        streetFinderAddress.setBldg_low(data[0].replaceAll("1/2","").replaceAll("1/4",""));
+        streetFinderAddress.setBldg_high(data[1].replaceAll("1/2","").replaceAll("1/4",""));
         streetFinderAddress.setED(data[2]);
         streetFinderAddress.setAsm(data[3]);
         streetFinderAddress.setZip(data[4]);
@@ -87,7 +87,7 @@ public class NYCParser extends NTSParser {
 
     private void handleEightDataPoints(StreetFinderAddress streetFinderAddress, String[] data) {
         //FROM ED AD ZIP CD SD MC CO
-        streetFinderAddress.setBldg_low(data[0].replaceAll("1/2",""));
+        streetFinderAddress.setBldg_low(data[0].replaceAll("1/2","").replaceAll("1/4",""));
         streetFinderAddress.setED(data[1]);
         streetFinderAddress.setAsm(data[2]);
         streetFinderAddress.setZip(data[3]);
@@ -102,6 +102,14 @@ public class NYCParser extends NTSParser {
         streetFinderAddress.setZip(data[2]);
         streetFinderAddress.setCong(data[3]);
         streetFinderAddress.setSen(data[4]);
+    }
+
+    private void handleSixDataPoints(StreetFinderAddress streetFinderAddress, String[] data) {
+        //ED AD CD SD MC CO
+        streetFinderAddress.setED(data[0]);
+        streetFinderAddress.setAsm(data[1]);
+        streetFinderAddress.setCong(data[2]);
+        streetFinderAddress.setSen(data[3]);
     }
 
     private String[] removeEmptyData(String[] input) {
@@ -149,7 +157,7 @@ public class NYCParser extends NTSParser {
             // which means that this is not the street name
             //Also check for a special case in which the from has a 1/2. ex. "49 1/2"
             if (string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("\\d+[-]?\\d*[A-Z]?")
-                    || string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("1/2")) {
+                    || string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("1/2") || string[index + 1].matches("1/4")) {
 
                 //street name, suffix and pre-Direction must have already occurred and are stored in the corresponding storage fields
                 streetFinderAddress1 = new StreetFinderAddress();
@@ -170,6 +178,10 @@ public class NYCParser extends NTSParser {
                 }
                 if (string.length == 7) {
                     handleSevenDataPoints(streetFinderAddress1, string);
+                    handledData = true;
+                }
+                if (string.length == 6) {
+                    handleSixDataPoints(streetFinderAddress1, string);
                     handledData = true;
                 }
 
@@ -249,7 +261,7 @@ public class NYCParser extends NTSParser {
                 // which means that this is not the street name
                 //Also check for a special case in which the from has a 1/2. ex. "49 1/2"
                 if (string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("\\d+[-]?\\d*[A-Z]?")
-                        || string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("1/2")) {
+                        || string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("1/2") || string[index + 1].matches("1/4")) {
 
                     //street name, suffix and pre-Direction must have already occurred and are stored in the corresponding storage fields
                     streetFinderAddress2 = new StreetFinderAddress();
@@ -272,6 +284,10 @@ public class NYCParser extends NTSParser {
                     }
                     if (string.length == 7) {
                         handleSevenDataPoints(streetFinderAddress2, string);
+                        handledData = true;
+                    }
+                    if (string.length == 6) {
+                        handleSixDataPoints(streetFinderAddress2, string);
                         handledData = true;
                     }
 
@@ -336,7 +352,7 @@ public class NYCParser extends NTSParser {
                 // which means that this is not the street name
                 //Also check for a special case in which the from has a 1/2. ex. "49 1/2"
                 if (string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("\\d+[-]?\\d*[A-Z]?")
-                        || string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("1/2")) {
+                        || string[index].matches("\\d+[-]?\\d*[A-Z]?") && string[index + 1].matches("1/2") || string[index + 1].matches("1/4")) {
 
                     //street name, suffix and pre-Direction must have already occurred and are stored in the corresponding storage fields
                     streetFinderAddress3 = new StreetFinderAddress();
@@ -358,6 +374,10 @@ public class NYCParser extends NTSParser {
                     }
                     if (string.length == 7) {
                         handleSevenDataPoints(streetFinderAddress3, string);
+                        handledData = true;
+                    }
+                    if (string.length == 6) {
+                        handleSixDataPoints(streetFinderAddress3, string);
                         handledData = true;
                     }
 
@@ -412,4 +432,18 @@ public class NYCParser extends NTSParser {
             return "STATEN ISLAND";
         }
     }
+
+    public static void main(String[] args) {
+        String file = "/data/geoapi_data/street_finder/txt_streetfiles/Street_Finder_Manhattan_2018_02_21.txt";
+
+        try {
+            NYCParser parser = new NYCParser(file);
+            parser.parseFile();
+        }
+        catch (Exception e) {
+            System.out.println("Something went wrong " + e);
+        }
+    }
+
+
 }
