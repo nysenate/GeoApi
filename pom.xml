@@ -138,7 +138,7 @@
         <slf4j.version>1.7.28</slf4j.version>
         <signpost-core.version>1.2.1.2</signpost-core.version>
         <super-csv.version>2.0.1</super-csv.version>
-        <spring.version>5.2.3.RELEASE</spring.version>
+        <spring.version>5.2.4.RELEASE</spring.version>
         <shiro.version>1.5.0</shiro.version>
         <tomcat.version>8.5.46</tomcat.version>
         <woodstox-core>4.4.1</woodstox-core>
