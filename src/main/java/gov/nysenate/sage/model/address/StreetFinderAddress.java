@@ -414,7 +414,7 @@ public class StreetFinderAddress {
      * @param ed
      */
     public void setED(String ed) {
-        if(!ed.isEmpty() && isNumeric(ed)) {
+        if(!ed.isEmpty() && isNumeric(ed) && !ed.contains("-")) {
             this.ed = ed;
         }
     }
