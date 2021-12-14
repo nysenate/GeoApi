@@ -129,7 +129,7 @@
         <jdom.version>1.1</jdom.version>
         <jstl.version>1.2</jstl.version>
         <junit.version>4.12</junit.version>
-        <log4j.version>2.15.0</log4j.version>
+        <log4j.version>2.16.0</log4j.version>
         <mockito-core.version>1.9.5</mockito-core.version>
         <maven-core.version>3.5.0</maven-core.version>
         <nysenate-java-client.version>2.2</nysenate-java-client.version>
