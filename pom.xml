@@ -130,7 +130,7 @@
         <jstl.version>1.2</jstl.version>
         <junit.version>4.13.2</junit.version>
         <log4j.version>2.17.1</log4j.version>
-        <mockito-core.version>1.9.5</mockito-core.version>
+        <mockito-core.version>4.3.1</mockito-core.version>
         <maven-core.version>3.5.0</maven-core.version>
         <nysenate-java-client.version>2.2</nysenate-java-client.version>
         <openlocationcode.version>1.0.4</openlocationcode.version>
