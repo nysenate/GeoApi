@@ -134,7 +134,7 @@
         <maven-core.version>3.5.0</maven-core.version>
         <nysenate-java-client.version>2.2</nysenate-java-client.version>
         <openlocationcode.version>1.0.4</openlocationcode.version>
-        <postgresql.version>42.2.8</postgresql.version>
+        <postgresql.version>42.2.25</postgresql.version>
         <slf4j.version>1.7.28</slf4j.version>
         <signpost-core.version>1.2.1.2</signpost-core.version>
         <super-csv.version>2.0.1</super-csv.version>
