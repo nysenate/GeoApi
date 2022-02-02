@@ -120,9 +120,9 @@
         <fluent-hc.version>4.2.2</fluent-hc.version>
         <guava.version>28.1-jre</guava.version>
         <hamcrest-core.version>1.3</hamcrest-core.version>
-        <httpclient.version>4.5.10</httpclient.version>
+        <httpclient.version>4.5.13</httpclient.version>
         <httpcore.version>4.4.9</httpcore.version>
-        <jackson.version>2.10.2</jackson.version>
+        <jackson.version>2.12.1</jackson.version>
         <jasypt.version>1.9.0</jasypt.version>
         <javamail.version>1.4.7</javamail.version>
         <jbcrypt.version>0.4</jbcrypt.version>
@@ -134,7 +134,7 @@
         <maven-core.version>3.5.0</maven-core.version>
         <nysenate-java-client.version>2.2</nysenate-java-client.version>
         <openlocationcode.version>1.0.4</openlocationcode.version>
-        <postgresql.version>42.2.8</postgresql.version>
+        <postgresql.version>42.2.25</postgresql.version>
         <slf4j.version>1.7.28</slf4j.version>
         <signpost-core.version>1.2.1.2</signpost-core.version>
         <super-csv.version>2.0.1</super-csv.version>
@@ -143,7 +143,7 @@
         <tomcat.version>8.5.46</tomcat.version>
         <woodstox-core>4.4.1</woodstox-core>
         <xmlrpc-client.version>3.1.3</xmlrpc-client.version>
-        <xstream.version>1.4.11.1</xstream.version>
+        <xstream.version>1.4.19</xstream.version>
         <javax.xml.bind.version>2.3.1</javax.xml.bind.version>
         <javax.activation.version>1.1.1</javax.activation.version>
 
@@ -516,9 +516,8 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.13.1</version>
+            <version>1.14.2</version>
         </dependency>
-
 
     </dependencies>
 
