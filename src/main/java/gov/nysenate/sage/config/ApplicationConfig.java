@@ -6,19 +6,12 @@ import com.google.common.eventbus.SubscriberExceptionContext;
 import gov.nysenate.sage.factory.SageThreadFactory;
 import gov.nysenate.sage.model.notification.Notification;
 import gov.nysenate.sage.util.ExecutorUtil;
-import net.sf.ehcache.config.CacheConfiguration;
-import net.sf.ehcache.config.SizeOfPolicyConfiguration;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.aop.interceptor.SimpleAsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurer;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
-import org.springframework.cache.interceptor.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -32,66 +25,17 @@ import java.time.LocalDateTime;
 import static gov.nysenate.sage.model.notification.NotificationType.EVENT_BUS_EXCEPTION;
 
 @Configuration
-@EnableCaching
-public class ApplicationConfig implements CachingConfigurer, SchedulingConfigurer, AsyncConfigurer
+public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer
 {
     private static final Logger logger = LoggerFactory.getLogger(ApplicationConfig.class);
 
     /** --- Eh Cache Spring Configuration --- */
-
-    @Value("${cache.max.size:200}") private String cacheMaxHeapSize;
 
     @Value("${validate.threads:3}") private int validateThreads;
 
     @Value("${distassign.threads:3}") private int distassignThreads;
 
     @Value("${geocode.threads:3}") private int geocodeThreads;
-
-    @Bean(destroyMethod = "shutdown")
-    public net.sf.ehcache.CacheManager pooledCacheManger() {
-        // Set the upper limit when computing heap size for objects. Once it reaches the limit
-        // it stops computing further. Some objects can contain many references so we set the limit
-        // fairly high.
-        SizeOfPolicyConfiguration sizeOfConfig = new SizeOfPolicyConfiguration();
-        sizeOfConfig.setMaxDepth(100000);
-        sizeOfConfig.setMaxDepthExceededBehavior("continue");
-
-        // Configure the default cache to be used as a template for actual caches.
-        CacheConfiguration cacheConfiguration = new CacheConfiguration();
-        cacheConfiguration.setMemoryStoreEvictionPolicy("LRU");
-        cacheConfiguration.addSizeOfPolicy(sizeOfConfig);
-
-        // Configure the cache manager.
-        net.sf.ehcache.config.Configuration config = new net.sf.ehcache.config.Configuration();
-        config.setMaxBytesLocalHeap(cacheMaxHeapSize + "M");
-        config.addDefaultCache(cacheConfiguration);
-        config.setUpdateCheck(false);
-
-        return net.sf.ehcache.CacheManager.newInstance(config);
-    }
-
-    @Override
-    @Bean
-    public CacheManager cacheManager() {
-        return new EhCacheCacheManager(pooledCacheManger());
-    }
-
-    @Bean
-    @Override
-    public CacheResolver cacheResolver() {
-        return new SimpleCacheResolver(cacheManager());
-    }
-
-    @Override
-    @Bean
-    public KeyGenerator keyGenerator() {
-        return new SimpleKeyGenerator();
-    }
-
-    @Override
-    public CacheErrorHandler errorHandler() {
-        return new SimpleCacheErrorHandler();
-    }
 
     /** --- Guava Event Bus Configuration --- */
 
