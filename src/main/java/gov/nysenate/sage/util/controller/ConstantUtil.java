@@ -6,6 +6,7 @@ public class ConstantUtil {
 
     public static String ADMIN_USERNAME_ATTR = "adminUserName";
     public static String ADMIN_REQUEST_ATTR = "adminRequest";
+    public static String AUTHENTICATED = "authenticated";
 
     public static String ADMIN_LOGIN_PATH = "/admin/login";
     public static String ADMIN_LOGIN_JSP = "/WEB-INF/views/adminlogin.jsp";

@@ -1,5 +1,8 @@
 package gov.nysenate.sage.config;
 
+import gov.nysenate.sage.service.security.AdminLoginAuthRealm;
+import gov.nysenate.sage.service.security.ApiUserAuthRealm;
+import gov.nysenate.sage.service.security.JobLoginAuthRealm;
 import org.apache.shiro.cache.MemoryConstrainedCacheManager;
 import org.apache.shiro.config.Ini;
 import org.apache.shiro.realm.Realm;
@@ -15,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Configuration
@@ -31,7 +35,6 @@ public class SecurityConfig
     @Bean(name = "shiroFilter")
     public ShiroFilterFactoryBean shiroFilter() {
         ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
-        shiroFilter.setSecurityManager(securityManager());
         shiroFilter.setFilterChainDefinitionMap(shiroIniConfig().getSection("urls"));
         return shiroFilter;
     }
@@ -55,10 +58,9 @@ public class SecurityConfig
         return new DefaultAdvisorAutoProxyCreator();
     }
 
-    @Bean
+    @Bean(name = "AuthAttributeAdvisor")
     public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor() {
         AuthorizationAttributeSourceAdvisor advisor = new AuthorizationAttributeSourceAdvisor();
-        advisor.setSecurityManager(securityManager());
         return advisor;
     }
 
@@ -69,6 +71,7 @@ public class SecurityConfig
     public DefaultWebSecurityManager securityManager() {
         DefaultWebSecurityManager defaultWebSecurityManager = new DefaultWebSecurityManager();
         defaultWebSecurityManager.setCacheManager(new MemoryConstrainedCacheManager());
+        defaultWebSecurityManager.setSessionManager(new DefaultWebSecurityManager());
         return defaultWebSecurityManager;
     }
 

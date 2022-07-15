@@ -5,6 +5,7 @@ import gov.nysenate.sage.client.response.geo.BatchGeocodeResponse;
 import gov.nysenate.sage.client.response.geo.GeocodeResponse;
 import gov.nysenate.sage.client.response.geo.RevGeocodeResponse;
 import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.controller.api.filter.ApiFilter;
 import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeRequestLogger;
 import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeResultLogger;
 import gov.nysenate.sage.model.address.Address;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,17 +41,20 @@ import java.util.List;
 import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Handles Geo Api requests
  */
-@Controller
-@RequestMapping(value = ConstantUtil.REST_PATH + "geo")
+@RestController
+@RequestMapping(value = ConstantUtil.REST_PATH + "geo", produces = APPLICATION_JSON_VALUE)
 public class GeocodeController {
     private static Logger logger = LoggerFactory.getLogger(GeocodeController.class);
     private GeocodeServiceProvider geocodeServiceProvider;
     private RevGeocodeServiceProvider revGeocodeServiceProvider;
     private AddressServiceProvider addressProvider;
+
+    private ApiFilter apiFilter;
 
     /**
      * Usage loggers
@@ -63,13 +68,14 @@ public class GeocodeController {
     @Autowired
     public GeocodeController(Environment env, SqlGeocodeRequestLogger sqlGeocodeRequestLogger,
                              SqlGeocodeResultLogger sqlGeocodeResultLogger, GeocodeServiceProvider geocodeServiceProvider,
-                             RevGeocodeServiceProvider revGeocodeServiceProvider, AddressServiceProvider addressProvider) {
+                             RevGeocodeServiceProvider revGeocodeServiceProvider, AddressServiceProvider addressProvider, ApiFilter apiFilter) {
         this.env = env;
         this.sqlGeocodeRequestLogger = sqlGeocodeRequestLogger;
         this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         this.geocodeServiceProvider = geocodeServiceProvider;
         this.revGeocodeServiceProvider = revGeocodeServiceProvider;
         this.addressProvider = addressProvider;
+        this.apiFilter = apiFilter;
 
         logger.debug("Initialized " + this.getClass().getSimpleName());
         boolean API_LOGGING_ENABLED = env.isApiLoggingEnabled();
@@ -102,7 +108,7 @@ public class GeocodeController {
      * @param useFallback boolean
      */
     @RequestMapping(value = "/geocode", method = RequestMethod.GET)
-    public void geocode(HttpServletRequest request, HttpServletResponse response,
+    public Object geocode(HttpServletRequest request, HttpServletResponse response,
                         @RequestParam(required = false) String provider,
                         @RequestParam(required = false) String addr,
                         @RequestParam(required = false) String addr1,
@@ -114,11 +120,11 @@ public class GeocodeController {
                         @RequestParam(required = false, defaultValue = "true") boolean useFallback,
                         @RequestParam(required = false, defaultValue = "false") boolean doNotCache,
                         @RequestParam(required = false, defaultValue = "false") boolean bypassCache,
-                        @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate) {
+                        @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate) throws IOException {
 
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
         Boolean useCache = true;
 
         int requestId = -1;
@@ -138,7 +144,8 @@ public class GeocodeController {
         logGeoRequest(apiRequest, geocodeRequest, requestId);
 
         if (!checkProvider(provider, geocodeResponse, request)) {
-            return;
+//            return;
+            return new ApiError(PROVIDER_NOT_SUPPORTED);
         }
 
         Address uspsAddress = performAddressCorrection(geocodeRequest.getAddress());
@@ -162,7 +169,8 @@ public class GeocodeController {
         }
 
         logElaspedTime(startTime);
-        setApiResponse(geocodeResponse, request);
+//        setApiResponse(geocodeResponse, request);
+        return geocodeResponse;
     }
 
     /**
@@ -184,17 +192,17 @@ public class GeocodeController {
      * @param useFallback boolean
      */
     @RequestMapping(value = "/revgeocode", method = RequestMethod.GET)
-    public void revGeocode(HttpServletRequest request, HttpServletResponse response,
+    public Object revGeocode(HttpServletRequest request, HttpServletResponse response,
                            @RequestParam(required = false) String provider,
                            @RequestParam String lat,
                            @RequestParam String lon,
                            @RequestParam(required = false, defaultValue = "true") boolean useFallback,
                            @RequestParam(required = false, defaultValue = "false") boolean doNotCache,
                            @RequestParam(required = false, defaultValue = "false") boolean bypassCache,
-                           @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate) {
+                           @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate) throws IOException {
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
         Boolean useCache = true;
 
 
@@ -210,7 +218,8 @@ public class GeocodeController {
         logGeoRequest(apiRequest, geocodeRequest, requestId);
 
         if (!checkProvider(provider, geocodeResponse, request)) {
-            return;
+//            return;
+            return new ApiError(PROVIDER_NOT_SUPPORTED);
         }
 
         Point point = getPointFromParams(lat, lon);
@@ -230,7 +239,8 @@ public class GeocodeController {
         }
 
         logElaspedTime(startTime);
-        setApiResponse(geocodeResponse, request);
+//        setApiResponse(geocodeResponse, request);
+        return geocodeResponse;
     }
 
     /**
@@ -250,7 +260,7 @@ public class GeocodeController {
      * @param useFallback boolean
      */
     @RequestMapping(value = "/geocode/batch", method = RequestMethod.POST)
-    public void batchGeocode(HttpServletRequest request, HttpServletResponse response,
+    public Object batchGeocode(HttpServletRequest request, HttpServletResponse response,
                              @RequestParam(required = false) String provider,
                              @RequestParam(required = false, defaultValue = "true") boolean useFallback,
                              @RequestParam(required = false, defaultValue = "false") boolean doNotCache,
@@ -259,7 +269,7 @@ public class GeocodeController {
 
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
         boolean useCache = true;
 
         int requestId = -1;
@@ -273,7 +283,8 @@ public class GeocodeController {
         logGeoRequest(apiRequest, geocodeRequest, requestId);
 
         if (!checkProvider(provider, geocodeResponse, request)) {
-            return;
+//            return;
+            return new ApiError(PROVIDER_NOT_SUPPORTED);
         }
 
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
@@ -293,7 +304,8 @@ public class GeocodeController {
         }
 
         logElaspedTime(startTime);
-        setApiResponse(geocodeResponse, request);
+//        setApiResponse(geocodeResponse, request);
+        return geocodeResponse;
     }
 
     /**
@@ -313,7 +325,7 @@ public class GeocodeController {
      * @param useFallback boolean
      */
     @RequestMapping(value = "/revgeocode/batch", method = RequestMethod.POST)
-    public void batchRevGeocode(HttpServletRequest request, HttpServletResponse response,
+    public Object batchRevGeocode(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false) String provider,
                                 @RequestParam(required = false, defaultValue = "true") boolean useFallback,
                                 @RequestParam(required = false, defaultValue = "false") boolean doNotCache,
@@ -322,7 +334,7 @@ public class GeocodeController {
 
         Object geocodeResponse = new ApiError(this.getClass(), SERVICE_NOT_SUPPORTED);
         Timestamp startTime = getCurrentTimeStamp();
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
         boolean useCache = true;
 
         int requestId = -1;
@@ -336,7 +348,8 @@ public class GeocodeController {
         logGeoRequest(apiRequest, geocodeRequest, requestId);
 
         if (!checkProvider(provider, geocodeResponse, request)) {
-            return;
+//            return;
+            return new ApiError(PROVIDER_NOT_SUPPORTED);
         }
 
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
@@ -357,7 +370,8 @@ public class GeocodeController {
         }
 
         logElaspedTime(startTime);
-        setApiResponse(geocodeResponse, request);
+//        setApiResponse(geocodeResponse, request);
+        return geocodeResponse;
 
     }
 

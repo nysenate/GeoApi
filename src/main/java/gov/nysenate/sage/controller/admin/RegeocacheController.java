@@ -16,10 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,9 +26,10 @@ import java.util.ArrayList;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminResponse;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@Controller
-@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/regeocache")
+@RestController
+@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/regeocache", produces = APPLICATION_JSON_VALUE)
 public class RegeocacheController {
 
     private Logger logger = LoggerFactory.getLogger(RegeocacheController.class);
@@ -68,7 +66,7 @@ public class RegeocacheController {
      * @param password String
      */
     @RequestMapping(value = "/zip", method = RequestMethod.GET)
-    public void geocacheZips(HttpServletRequest request, HttpServletResponse response,
+    public Object geocacheZips(HttpServletRequest request, HttpServletResponse response,
                              @RequestParam(required = false, defaultValue = "defaultUser") String username,
                              @RequestParam(required = false, defaultValue = "defaultPass") String password,
                              @RequestParam(required = false, defaultValue = "") String key) {
@@ -81,7 +79,8 @@ public class RegeocacheController {
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             apiResponse = regeocacheService.updateZipsInGeocache();
         }
-        setApiResponse(apiResponse, request);
+//        setApiResponse(apiResponse, request);
+        return apiResponse;
     }
 
     /**
@@ -99,7 +98,7 @@ public class RegeocacheController {
      * @param password String
      */
     @RequestMapping(value = "/nysrefresh/{offset}", method = RequestMethod.GET)
-    public void nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
+    public Object nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
                                    @PathVariable int offset,
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                    @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -114,7 +113,8 @@ public class RegeocacheController {
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             apiResponse = regeocacheService.updateGeocacheWithNYSGeoData(offset);
         }
-        setApiResponse(apiResponse, request);
+//        setApiResponse(apiResponse, request);
+        return apiResponse;
     }
 
 
@@ -128,7 +128,7 @@ public class RegeocacheController {
      * (GET)    /admin/regeocache/mass
      */
     @RequestMapping(value = "/mass", method = RequestMethod.GET)
-    public void nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
+    public Object nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                    @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                    @RequestParam(required = false, defaultValue = "") String key) {
@@ -149,6 +149,7 @@ public class RegeocacheController {
             apiResponse = regeocacheService.massRegeoache(1, 10, false, params);
         }
 
-        setApiResponse(apiResponse, request);
+//        setApiResponse(apiResponse, request);
+        return apiResponse;
     }
 }

@@ -2,6 +2,7 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.address.*;
 import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.controller.api.filter.ApiFilter;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.provider.address.AddressService;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,6 +29,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressFromParams;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressesFromJsonBody;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Address API controller handles the various AddressService requests including
@@ -34,16 +37,19 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse
  *  - City State Lookup
  *  - ZipCode Lookup
  */
-@Controller
-@RequestMapping(value = ConstantUtil.REST_PATH + "address")
+@RestController
+@RequestMapping(value = ConstantUtil.REST_PATH + "address", produces = APPLICATION_JSON_VALUE)
 public final class AddressController
 {
     private Logger logger = LoggerFactory.getLogger(AddressController.class);
     private static AddressServiceProvider addressProvider;
 
+    private ApiFilter apiFilter;
+
     @Autowired
-    public AddressController(AddressServiceProvider addressProvider) {
+    public AddressController(AddressServiceProvider addressProvider, ApiFilter apiFilter) {
         this.addressProvider = addressProvider;
+        this.apiFilter = apiFilter;
     }
 
     /**
@@ -68,7 +74,7 @@ public final class AddressController
      * @param zip4 String
      */
     @RequestMapping(value = "/validate", method = RequestMethod.GET)
-    public void addressValidate(HttpServletRequest request, HttpServletResponse response,
+    public Object addressValidate(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false) String provider,
                                 @RequestParam(required = false) boolean punct,
                                 @RequestParam(required = false) String addr,
@@ -77,11 +83,11 @@ public final class AddressController
                                 @RequestParam(required = false) String city,
                                 @RequestParam(required = false) String state,
                                 @RequestParam(required = false) String zip5,
-                                @RequestParam(required = false) String zip4) {
+                                @RequestParam(required = false) String zip4) throws IOException {
         Object addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
 
         /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
         logAddressInput(apiRequest, request, punct);
 
         if (checkProvider(provider)) {
@@ -95,8 +101,8 @@ public final class AddressController
             }
 
         }
-        setApiResponse(addressResponse, request);
-
+//        setApiResponse(addressResponse, request);
+        return addressResponse;
     }
 
     /**
@@ -121,7 +127,7 @@ public final class AddressController
      * @param zip4 String
      */
     @RequestMapping(value = "/citystate", method = RequestMethod.GET)
-    public void addressCityState(HttpServletRequest request, HttpServletResponse response,
+    public Object addressCityState(HttpServletRequest request, HttpServletResponse response,
                                  @RequestParam(required = false) String provider,
                                  @RequestParam(required = false) boolean punct,
                                  @RequestParam(required = false) String addr,
@@ -130,11 +136,11 @@ public final class AddressController
                                  @RequestParam(required = false) String city,
                                  @RequestParam(required = false) String state,
                                  @RequestParam String zip5,
-                                 @RequestParam(required = false) String zip4) {
+                                 @RequestParam(required = false) String zip4) throws IOException {
         Object addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
 
         /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
         logAddressInput(apiRequest, request, punct);
 
         if (checkProvider(provider)) {
@@ -148,7 +154,8 @@ public final class AddressController
             }
 
         }
-        setApiResponse(addressResponse, request);
+//        setApiResponse(addressResponse, request);
+        return addressResponse;
     }
 
     /**
@@ -173,7 +180,7 @@ public final class AddressController
      * @param zip4 String
      */
     @RequestMapping(value = "/zipcode", method = RequestMethod.GET)
-    public void addressZipcode(HttpServletRequest request, HttpServletResponse response,
+    public Object addressZipcode(HttpServletRequest request, HttpServletResponse response,
                                @RequestParam(required = false) String provider,
                                @RequestParam(required = false) boolean punct,
                                @RequestParam(required = false) String addr,
@@ -182,11 +189,11 @@ public final class AddressController
                                @RequestParam(required = false) String city,
                                @RequestParam(required = false) String state,
                                @RequestParam(required = false) String zip5,
-                               @RequestParam(required = false) String zip4) {
+                               @RequestParam(required = false) String zip4) throws IOException {
         Object addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
 
         /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
         logAddressInput(apiRequest, request, punct);
 
         if (checkProvider(provider)) {
@@ -200,7 +207,8 @@ public final class AddressController
             }
 
         }
-        setApiResponse(addressResponse, request);
+//        setApiResponse(addressResponse, request);
+        return addressResponse;
     }
 
     /**
@@ -219,11 +227,11 @@ public final class AddressController
      * @throws IOException
      */
     @RequestMapping(value = "/validate/batch", method = RequestMethod.POST)
-    public void addressBatchValidate(HttpServletRequest request, HttpServletResponse response,
+    public Object addressBatchValidate(HttpServletRequest request, HttpServletResponse response,
                                      @RequestParam(required = false) String provider,
                                      @RequestParam(required = false) boolean punct) throws IOException {
         /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
         logAddressInput(apiRequest, request, punct);
 
         Object addressResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
@@ -246,7 +254,8 @@ public final class AddressController
             }
         }
 
-        setApiResponse(addressResponse, request);
+//        setApiResponse(addressResponse, request);
+        return addressResponse;
     }
 
     /**
@@ -264,11 +273,11 @@ public final class AddressController
      * @param punct boolean
      */
     @RequestMapping(value = "/citystate/batch", method = RequestMethod.POST)
-    public void addressBatchCityState(HttpServletRequest request, HttpServletResponse response,
+    public Object addressBatchCityState(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(required = false) String provider,
                                       @RequestParam(required = false) boolean punct) throws IOException {
         /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
         logAddressInput(apiRequest, request, punct);
 
         Object addressResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
@@ -290,8 +299,8 @@ public final class AddressController
             }
         }
 
-        setApiResponse(addressResponse, request);
-
+//        setApiResponse(addressResponse, request);
+        return addressResponse;
 
     }
 

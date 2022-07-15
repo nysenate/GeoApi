@@ -42,7 +42,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
  *
  * @author Ash Islam
  */
-@Component
+@Component("apiFilter")
 public class ApiFilter implements Filter
 {
     private static Logger logger = LoggerFactory.getLogger(ApiFilter.class);
@@ -264,6 +264,32 @@ public class ApiFilter implements Filter
     public static ApiRequest getApiRequest(ServletRequest request)
     {
         return (ApiRequest) request.getAttribute(API_REQUEST_KEY);
+    }
+
+    public ApiRequest getOrCreateApiRequest(ServletRequest servletRequest) throws IOException
+    {
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        ApiRequest apiRequest = getApiRequest(request);
+
+        if (apiRequest == null) {
+
+            String key = servletRequest.getParameter("key");
+            String forwardedForIp = request.getHeader("x-forwarded-for");
+            String remoteIp = forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+
+            String uri = request.getRequestURI();
+
+            /** Check that the url is formatted correctly */
+            if (validateRequest(uri, remoteIp, request)) {
+                /** The validate request method actually creates the request upon validation. We then access it here */
+                if (authenticateUser(key, remoteIp, uri, request)) {
+                    apiRequest = getApiRequest(request);
+                }
+            }
+
+
+        }
+        return apiRequest;
     }
 
     /**

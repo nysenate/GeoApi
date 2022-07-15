@@ -12,19 +12,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.invalidAuthResponse;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminResponse;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@Controller
-@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datadel")
+
+@RestController
+@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datadel", produces = APPLICATION_JSON_VALUE)
 public class DataDelController {
 
     private Logger logger = LoggerFactory.getLogger(DataGenController.class);
@@ -58,7 +57,7 @@ public class DataDelController {
      *
      */
     @RequestMapping(value = "/zips/{offset}", method = RequestMethod.GET)
-    public void cleanUpBadZipsInGeocache(HttpServletRequest request, HttpServletResponse response,
+    public Object cleanUpBadZipsInGeocache(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                       @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                          @RequestParam(required = false, defaultValue = "") String key,
@@ -76,7 +75,8 @@ public class DataDelController {
         else {
             apiResponse = invalidAuthResponse();
         }
-        setAdminResponse(apiResponse, response);
+//        setAdminResponse(apiResponse, response);
+        return apiResponse;
     }
 
     /**
@@ -95,7 +95,7 @@ public class DataDelController {
      *
      */
     @RequestMapping(value = "/states", method = RequestMethod.GET)
-    public void cleanUpBadStatesInGeocache(HttpServletRequest request, HttpServletResponse response,
+    public Object cleanUpBadStatesInGeocache(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                       @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                            @RequestParam(required = false, defaultValue = "") String key) {
@@ -111,7 +111,8 @@ public class DataDelController {
         else {
             apiResponse = invalidAuthResponse();
         }
-        setAdminResponse(apiResponse, response);
+//        setAdminResponse(apiResponse, response);
+        return apiResponse;
     }
 
 }

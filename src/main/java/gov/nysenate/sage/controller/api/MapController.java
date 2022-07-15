@@ -4,6 +4,7 @@ import gov.nysenate.sage.client.response.map.MapResponse;
 import gov.nysenate.sage.client.response.map.MetadataResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapResponse;
 import gov.nysenate.sage.client.response.map.MultipleMetadataResponse;
+import gov.nysenate.sage.controller.api.filter.ApiFilter;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
@@ -13,30 +14,33 @@ import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
+
 import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@Controller
-@RequestMapping(value = ConstantUtil.REST_PATH + "map")
+@RestController
+@RequestMapping(value = ConstantUtil.REST_PATH + "map", produces = APPLICATION_JSON_VALUE)
 public class MapController {
     private static Logger logger = LoggerFactory.getLogger(MapController.class);
     private DistrictShapefile districtShapefile;
     private DistrictMemberProvider districtMemberProvider;
 
+    private ApiFilter apiFilter;
+
     @Autowired
-    public MapController(DistrictShapefile districtShapefile, DistrictMemberProvider districtMemberProvider) {
+    public MapController(DistrictShapefile districtShapefile, DistrictMemberProvider districtMemberProvider, ApiFilter apiFilter) {
         this.districtShapefile = districtShapefile;
         this.districtMemberProvider = districtMemberProvider;
+        this.apiFilter = apiFilter;
     }
 
     /**
@@ -59,16 +63,17 @@ public class MapController {
      * @param meta boolean
      */
     @RequestMapping(value = "/{distType}", method = RequestMethod.GET)
-    public void mapSchool(HttpServletRequest request, HttpServletResponse response,
+    public Object mapSchool(HttpServletRequest request, HttpServletResponse response,
                           @PathVariable String distType,
                           @RequestParam(required = false) String district,
                           @RequestParam(required = false) boolean showMembers,
-                          @RequestParam(required = false) boolean meta) {
+                          @RequestParam(required = false) boolean meta) throws IOException {
         /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
 
         Object mapResponse = getDistrictMap(district, distType, showMembers, meta);
-        setApiResponse(mapResponse, request);
+//        setApiResponse(mapResponse, request);
+        return mapResponse;
     }
 
     private Object getDistrictMap(String districtCode, String distType,

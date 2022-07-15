@@ -7,14 +7,20 @@ import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.subject.WebSubject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -25,18 +31,23 @@ import java.util.List;
 
 import static gov.nysenate.sage.util.controller.JobControllerUtil.getJobUser;
 import static gov.nysenate.sage.util.controller.JobControllerUtil.setJobResponse;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * This controller provides an API for accessing the status of a batch job request.
  */
-@Controller
-@RequestMapping(value = "/job/status")
+@RestController
+@RequestMapping(value = "/job/status", produces = APPLICATION_JSON_VALUE)
 public class JobStatusController
 {
     private static Logger logger = LoggerFactory.getLogger(JobStatusController.class);
     private static SqlJobProcessDao sqlJobProcessDao;
     private static String TEMP_DIR = "/tmp";
     private static String LOCK_FILENAME = "batchJobProcess.lock";
+
+    @Autowired
+    @Qualifier("securityManager")
+    protected DefaultWebSecurityManager securityManager;
 
     @Autowired
     public JobStatusController(SqlJobProcessDao sqlJobProcessDao) {
@@ -58,16 +69,16 @@ public class JobStatusController
      *
      */
     @RequestMapping(value = "/process/{processId}", method = RequestMethod.GET)
-    public void jobProcess(HttpServletRequest request, HttpServletResponse response,
+    public Object jobProcess(HttpServletRequest request, HttpServletResponse response,
                                      @PathVariable int processId) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getJobProcessStatusById(processId, jobUser), running);
         }
-        setJobResponse(statusResponse, response);
+        return statusResponse;
     }
 
     /**
@@ -84,15 +95,15 @@ public class JobStatusController
      *
      */
     @RequestMapping(value = "/running", method = RequestMethod.GET)
-    public void jobRunning(HttpServletRequest request, HttpServletResponse response) {
+    public Object jobRunning(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getRunningJobProcesses(jobUser), running);
         }
-        setJobResponse(statusResponse, response);
+        return statusResponse;
     }
 
     /**
@@ -109,15 +120,15 @@ public class JobStatusController
      *
      */
     @RequestMapping(value = "/active", method = RequestMethod.GET)
-    public void jobActive(HttpServletRequest request, HttpServletResponse response) {
+    public Object jobActive(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getActiveJobProcesses(jobUser), running);
         }
-        setJobResponse(statusResponse, response);
+        return statusResponse;
     }
 
     /**
@@ -134,15 +145,15 @@ public class JobStatusController
      *
      */
     @RequestMapping(value = "/inactive", method = RequestMethod.GET)
-    public void jobInactive(HttpServletRequest request, HttpServletResponse response) {
+    public Object jobInactive(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getInactiveJobProcesses(jobUser), running);
         }
-        setJobResponse(statusResponse, response);
+        return statusResponse;
     }
 
     /**
@@ -159,15 +170,15 @@ public class JobStatusController
      *
      */
     @RequestMapping(value = "/completed", method = RequestMethod.GET)
-    public void jobCompleted(HttpServletRequest request, HttpServletResponse response) {
+    public Object jobCompleted(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getRecentlyCompletedJobProcesses(jobUser), running);
         }
-        setJobResponse(statusResponse, response);
+        return statusResponse;
     }
 
     /**
@@ -184,13 +195,13 @@ public class JobStatusController
      *
      */
     @RequestMapping(value = "/processor", method = RequestMethod.GET)
-    public void jobProcessor(HttpServletRequest request, HttpServletResponse response) {
+    public Object jobProcessor(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
             statusResponse = isProcessorRunning();
         }
-        setJobResponse(statusResponse, response);
+        return statusResponse;
     }
 
     /**
@@ -207,15 +218,15 @@ public class JobStatusController
      *
      */
     @RequestMapping(value = "/all", method = RequestMethod.GET)
-    public void jobAll(HttpServletRequest request, HttpServletResponse response) {
+    public Object jobAll(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
             statusResponse = new JobStatusResponse(getAllJobProcesses(jobUser), running);
         }
-        setJobResponse(statusResponse, response);
+        return statusResponse;
     }
 
     private JobProcessStatus getJobProcessStatusById(int processId, JobUser jobUser)
@@ -258,5 +269,9 @@ public class JobStatusController
         String tempDir = System.getProperty("java.io.tmpdir", "/tmp");
         File lockFile = new File(TEMP_DIR, LOCK_FILENAME);
         return lockFile.exists();
+    }
+
+    protected WebSubject createSubject(ServletRequest request, ServletResponse response) {
+        return new WebSubject.Builder(securityManager, request, response).buildWebSubject();
     }
 }

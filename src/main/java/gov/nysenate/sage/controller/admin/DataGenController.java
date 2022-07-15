@@ -14,19 +14,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@Controller
-@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datagen")
+@RestController
+@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datagen", produces = APPLICATION_JSON_VALUE)
 public class DataGenController {
 
     private Logger logger = LoggerFactory.getLogger(DataGenController.class);
@@ -58,7 +56,7 @@ public class DataGenController {
      * @param password String
      */
     @RequestMapping(value = "/genmetadata/{option}", method = RequestMethod.GET)
-    public void generateMetaData(HttpServletRequest request, HttpServletResponse response,
+    public Object generateMetaData(HttpServletRequest request, HttpServletResponse response,
                                  @PathVariable String option,
                                  @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                  @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -78,7 +76,8 @@ public class DataGenController {
         } else {
             apiResponse = invalidAuthResponse();
         }
-        setAdminResponse(apiResponse, response);
+//        setAdminResponse(apiResponse, response);
+        return apiResponse;
     }
 
 
@@ -96,7 +95,7 @@ public class DataGenController {
      * @param key
      */
     @RequestMapping(value = "/rebuild/sencache", method = RequestMethod.GET)
-    public void updateSenatorCache(HttpServletRequest request, HttpServletResponse response,
+    public Object updateSenatorCache(HttpServletRequest request, HttpServletResponse response,
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                    @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                    @RequestParam(required = false, defaultValue = "") String key) {
@@ -112,8 +111,8 @@ public class DataGenController {
             apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         }
 
-        setAdminResponse(apiResponse, response);
-
+//        setAdminResponse(apiResponse, response);
+        return apiResponse;
     }
 
     /**
@@ -129,7 +128,7 @@ public class DataGenController {
      * @param response HttpServletResponse
      */
     @RequestMapping(value = "/countycodes", method = RequestMethod.GET)
-    public void ensureCountyCodeFileExists(HttpServletRequest request, HttpServletResponse response,
+    public Object ensureCountyCodeFileExists(HttpServletRequest request, HttpServletResponse response,
                                            @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                            @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                            @RequestParam(required = false, defaultValue = "") String key) {
@@ -145,7 +144,8 @@ public class DataGenController {
             }
         }
 
-        setAdminResponse(apiResponse, response);
+//        setAdminResponse(apiResponse, response);
+        return apiResponse;
     }
 
     /**
@@ -161,7 +161,7 @@ public class DataGenController {
      * @param response HttpServletResponse
      */
     @RequestMapping(value = "/towncodes", method = RequestMethod.GET)
-    public void ensureTownCodeFileExists(HttpServletRequest request, HttpServletResponse response,
+    public Object ensureTownCodeFileExists(HttpServletRequest request, HttpServletResponse response,
                                          @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                          @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                          @RequestParam(required = false, defaultValue = "") String key) {
@@ -176,7 +176,8 @@ public class DataGenController {
                 apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
             }
         }
-        setAdminResponse(apiResponse, response);
+//        setAdminResponse(apiResponse, response);
+        return apiResponse;
     }
 
     /**
@@ -193,7 +194,7 @@ public class DataGenController {
      */
 
     @RequestMapping(value = "/zipcodes", method = RequestMethod.GET)
-    public void generateZipCodeFiles(HttpServletRequest request, HttpServletResponse response,
+    public Object generateZipCodeFiles(HttpServletRequest request, HttpServletResponse response,
                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                      @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                      @RequestParam(required = false, defaultValue = "") String key) {
@@ -213,6 +214,7 @@ public class DataGenController {
             apiResponse = invalidAuthResponse();
         }
 
-        setAdminResponse(apiResponse, response);
+//        setAdminResponse(apiResponse, response);
+        return apiResponse;
     }
 }

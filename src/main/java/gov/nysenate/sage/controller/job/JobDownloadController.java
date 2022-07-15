@@ -3,7 +3,10 @@ package gov.nysenate.sage.controller.job;
 import gov.nysenate.sage.config.Environment;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.subject.WebSubject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -24,6 +29,10 @@ public class JobDownloadController
 {
     private static Logger logger = LoggerFactory.getLogger(JobDownloadController.class);
     private static String DOWNLOAD_DIR;
+
+    @Autowired
+    @Qualifier("securityManager")
+    protected DefaultWebSecurityManager securityManager;
 
     @Autowired
     public JobDownloadController(Environment env) {
@@ -47,8 +56,8 @@ public class JobDownloadController
      */
     @RequestMapping(value = "/download/{fileName:.+}", method = RequestMethod.GET)
     public void jobDownload(HttpServletRequest request, HttpServletResponse response, @PathVariable String fileName) throws IOException {
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
             if (fileName != null) {
                 File file = new File(DOWNLOAD_DIR + fileName);
                 if (file.exists()) {
@@ -69,5 +78,9 @@ public class JobDownloadController
                 }
             }
         }
+    }
+
+    protected WebSubject createSubject(ServletRequest request, ServletResponse response) {
+        return new WebSubject.Builder(securityManager, request, response).buildWebSubject();
     }
 }

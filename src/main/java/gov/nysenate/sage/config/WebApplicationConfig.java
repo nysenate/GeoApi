@@ -82,11 +82,11 @@ public class WebApplicationConfig implements WebMvcConfigurer
         converters.add(new SourceHttpMessageConverter<Source>());
         converters.add(new AllEncompassingFormHttpMessageConverter());
         converters.add(new Jaxb2RootElementHttpMessageConverter());
-        //converters.add(jackson2Converter());
+//        converters.add(jackson2Converter());
     }
 
-    @Override
-    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-        configurer.favorPathExtension(false);
-    }
+//    @Override
+//    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+//        configurer.favorPathExtension(false);
+//    }
 }

@@ -4,6 +4,7 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.district.*;
 import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.controller.api.filter.ApiFilter;
 import gov.nysenate.sage.dao.logger.district.SqlDistrictRequestLogger;
 import gov.nysenate.sage.dao.logger.district.SqlDistrictResultLogger;
 import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeRequestLogger;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,16 +47,16 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
-import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Handles District Api requests
  */
-@Controller
-@RequestMapping(value = ConstantUtil.REST_PATH + "district")
+@RestController
+@RequestMapping(value = ConstantUtil.REST_PATH + "district", produces = APPLICATION_JSON_VALUE)
 public class DistrictController {
     private static Logger logger = LoggerFactory.getLogger(DistrictController.class);
 
@@ -77,6 +79,8 @@ public class DistrictController {
     private SqlDistrictRequestLogger sqlDistrictRequestLogger;
     private SqlDistrictResultLogger sqlDistrictResultLogger;
 
+    private ApiFilter apiFilter;
+
     private static String BLUEBIRD_DISTRICT_STRATEGY;
     private static Boolean SINGLE_LOGGING_ENABLED = false;
     private static Boolean BATCH_LOGGING_ENABLED = false;
@@ -86,7 +90,8 @@ public class DistrictController {
                               RevGeocodeServiceProvider revGeocodeProvider, MapServiceProvider mapProvider,
                               SqlGeocodeRequestLogger sqlGeocodeRequestLogger, SqlGeocodeResultLogger sqlGeocodeResultLogger,
                               SqlDistrictRequestLogger sqlDistrictRequestLogger, SqlDistrictResultLogger sqlDistrictResultLogger,
-                              DistrictMemberProvider districtMemberProvider, GeocodeServiceProvider geocodeProvider) {
+                              DistrictMemberProvider districtMemberProvider, GeocodeServiceProvider geocodeProvider,
+                              ApiFilter apiFilter) {
 
         this.addressProvider = addressProvider;
         this.districtProvider = districtProvider;
@@ -98,6 +103,7 @@ public class DistrictController {
         this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         this.sqlDistrictRequestLogger = sqlDistrictRequestLogger;
         this.sqlDistrictResultLogger = sqlDistrictResultLogger;
+        this.apiFilter = apiFilter;
 
         BLUEBIRD_DISTRICT_STRATEGY = env.getDistrictStrategyBluebird();
         boolean API_LOGGING_ENABLED = env.isApiLoggingEnabled();
@@ -136,7 +142,7 @@ public class DistrictController {
      * @param skipGeocode boolean
      */
     @RequestMapping(value = "/assign", method = RequestMethod.GET)
-    public void districtAssign(HttpServletRequest request, HttpServletResponse response,
+    public Object districtAssign(HttpServletRequest request, HttpServletResponse response,
                                @RequestParam(required = false) String provider,
                                @RequestParam(required = false) String geoProvider,
                                @RequestParam(required = false) boolean showMembers,
@@ -154,13 +160,13 @@ public class DistrictController {
                                @RequestParam(required = false) String city,
                                @RequestParam(required = false) String state,
                                @RequestParam(required = false) String zip5,
-                               @RequestParam(required = false) String zip4) {
+                               @RequestParam(required = false) String zip4) throws IOException {
         Object districtResponse = null;
         Timestamp startTime = getCurrentTimeStamp();
         int requestId = -1;
 
         /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
 
         DistrictRequest districtRequest = createFullDistrictRequest(apiRequest, getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4),
                 getPointFromParams(lat, lon), provider, geoProvider, uspsValidate, showMembers, usePunct, skipGeocode,
@@ -171,7 +177,8 @@ public class DistrictController {
         logDistrictRequest(apiRequest, districtRequest, requestId);
 
         if (!checkProviders(provider, geoProvider, request)) {
-            return;
+            return new ApiError(PROVIDER_NOT_SUPPORTED);
+//            return;
         }
 
         DistrictResult districtResult = handleDistrictRequest(districtRequest, requestId);
@@ -181,9 +188,10 @@ public class DistrictController {
             districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
         }
 
-        setApiResponse(districtResponse, request);
+//        setApiResponse(districtResponse, request);
 
         logElapsedTime(startTime, apiRequest);
+        return districtResponse;
     }
 
 
@@ -210,7 +218,7 @@ public class DistrictController {
      *
      */
     @RequestMapping(value = "/assign/batch", method = RequestMethod.POST)
-    public void districtBatchAssign(HttpServletRequest request, HttpServletResponse response,
+    public Object districtBatchAssign(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam(required = false) String provider,
                                     @RequestParam(required = false) String geoProvider,
                                     @RequestParam(required = false) boolean showMembers,
@@ -225,7 +233,7 @@ public class DistrictController {
         int requestId = -1;
 
         /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
 
 
         DistrictRequest districtRequest = createBatchAssignDistrictRequest(apiRequest,provider,geoProvider,
@@ -234,7 +242,8 @@ public class DistrictController {
         logDistrictRequest(apiRequest, districtRequest, requestId);
 
         if (!checkProviders(provider, geoProvider, request)) {
-            return;
+            return new ApiError(PROVIDER_NOT_SUPPORTED);
+//            return;
         }
 
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
@@ -255,9 +264,10 @@ public class DistrictController {
             districtResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
         }
 
-        setApiResponse(districtResponse, request);
+//        setApiResponse(districtResponse, request);
 
         logElapsedTime(startTime, apiRequest);
+        return districtResponse;
     }
 
     /**
@@ -276,14 +286,14 @@ public class DistrictController {
      * @param intersectType String
      */
     @RequestMapping(value = "/intersect", method = RequestMethod.GET)
-    public void districtIntersect(HttpServletRequest request, HttpServletResponse response,
+    public Object districtIntersect(HttpServletRequest request, HttpServletResponse response,
                                   @RequestParam String sourceType, @RequestParam String sourceId,
-                                  @RequestParam String intersectType) {
+                                  @RequestParam String intersectType) throws IOException {
         int requestId = -1;
         Timestamp startTime = getCurrentTimeStamp();
 
         /** Create the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
 
         if (sourceId == null || sourceId.equals("null") || sourceId.isEmpty() || sourceType.equals(intersectType)) {
             BaseResponse districtResponse = new BaseResponse();
@@ -291,7 +301,9 @@ public class DistrictController {
             ArrayList<String> message = new ArrayList<>();
             message.add("All districts overlay and same type overlay is not supported");
             districtResponse.setMessages(message);
-            setApiResponse(districtResponse, request);
+            logElapsedTime(startTime, apiRequest);
+//            setApiResponse(districtResponse, request);
+            return districtResponse;
         }
         else {
             DistrictRequest districtRequest = createFullIntersectRequest(apiRequest, DistrictType.resolveType(sourceType),
@@ -300,9 +312,11 @@ public class DistrictController {
 
             DistrictResult districtResult = handleIntersectRequest(districtRequest, requestId);
             MappedMultiDistrictResponse districtResponse = new MappedMultiDistrictResponse(districtResult);
-            setApiResponse(districtResponse, request);
+            logElapsedTime(startTime, apiRequest);
+//            setApiResponse(districtResponse, request);
+            return districtResponse;
         }
-        logElapsedTime(startTime, apiRequest);
+
     }
 
     /**
@@ -331,7 +345,7 @@ public class DistrictController {
      *
      */
     @RequestMapping(value = "/bluebird", method = RequestMethod.GET)
-    public void bluebirdAssign(HttpServletRequest request, HttpServletResponse response,
+    public Object bluebirdAssign(HttpServletRequest request, HttpServletResponse response,
                                @RequestParam(required = false) String provider,
                                @RequestParam(required = false) String geoProvider,
                                @RequestParam(required = false) boolean usePunct,
@@ -343,13 +357,13 @@ public class DistrictController {
                                @RequestParam(required = false) String city,
                                @RequestParam(required = false) String state,
                                @RequestParam(required = false) String zip5,
-                               @RequestParam(required = false) String zip4) {
+                               @RequestParam(required = false) String zip4) throws IOException {
         Object districtResponse = null;
         Timestamp startTime = getCurrentTimeStamp();
         int requestId = -1;
 
         /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
 
         DistrictRequest districtRequest = createBlueBirdDistrictRequest(apiRequest,provider, geoProvider, usePunct,
                 getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4), getPointFromParams(lat, lon));
@@ -359,16 +373,18 @@ public class DistrictController {
         logDistrictRequest(apiRequest, districtRequest, requestId);
 
         if (!checkProviders(provider, geoProvider, request)) {
-            return;
+            return new ApiError(PROVIDER_NOT_SUPPORTED);
+//            return;
         }
 
         DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, BLUEBIRD_DISTRICT_STRATEGY);
         DistrictResult districtResult = handleDistrictRequest(bluebirdRequest, requestId);
         districtResponse = new DistrictResponse(districtResult);
 
-        setApiResponse(districtResponse, request);
+//        setApiResponse(districtResponse, request);
 
         logElapsedTime(startTime, apiRequest);
+        return districtResponse;
     }
 
     /**
@@ -387,7 +403,7 @@ public class DistrictController {
      * @param geoProvider String
      */
     @RequestMapping(value = "/bluebird/batch", method = RequestMethod.POST)
-    public void bluebirdBatchAssign(HttpServletRequest request, HttpServletResponse response,
+    public Object bluebirdBatchAssign(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam(required = false) String provider,
                                     @RequestParam(required = false) String geoProvider,
                                     @RequestParam(required = false) boolean usePunct) throws IOException {
@@ -396,14 +412,15 @@ public class DistrictController {
         int requestId = -1;
 
         /** Get the ApiRequest */
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = apiFilter.getOrCreateApiRequest(request);
 
         DistrictRequest districtRequest = createBatchBlueBirdDistrictRequest(apiRequest, provider, geoProvider, usePunct);
 
         logDistrictRequest(apiRequest, districtRequest, requestId);
 
         if (!checkProviders(provider, geoProvider, request)) {
-            return;
+//            return;
+            return new ApiError(PROVIDER_NOT_SUPPORTED);
         }
 
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
@@ -424,9 +441,10 @@ public class DistrictController {
             districtResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
         }
 
-        setApiResponse(districtResponse, request);
+//        setApiResponse(districtResponse, request);
 
         logElapsedTime(startTime, apiRequest);
+        return districtResponse;
     }
 
     private DistrictRequest createBatchAssignDistrictRequest(ApiRequest apiRequest, String provider, String geoProvider,

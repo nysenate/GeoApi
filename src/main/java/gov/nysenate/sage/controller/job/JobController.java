@@ -21,7 +21,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.subject.WebSubject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,6 +37,8 @@ import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -52,6 +59,10 @@ public class JobController {
     private SqlJobProcessDao sqlJobProcessDao;
     private JobBatchProcessor jobBatchProcessor;
 
+    @Autowired
+    @Qualifier("securityManager")
+    protected DefaultWebSecurityManager securityManager;
+
 
     @Autowired
     public JobController(Environment env, JobUserAuth jobUserAuth, SqlJobProcessDao sqlJobProcessDao,
@@ -61,27 +72,6 @@ public class JobController {
         this.sqlJobProcessDao = sqlJobProcessDao;
         this.jobBatchProcessor = jobBatchProcessor;
     }
-
-    /**
-     * Job Logout Api
-     * ---------------------
-     *
-     * Logs a job user out of the batch job section of Sage
-     *
-     * Usage:
-     * (GET)    /job/logout
-     *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @throws IOException
-     * @throws ServletException
-     *
-     */
-    @RequestMapping(value = "/logout", method = RequestMethod.GET)
-    public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doLogout(request, response);
-    }
-
 
     /**
      * Job Login Api
@@ -108,6 +98,26 @@ public class JobController {
     }
 
     /**
+     * Job Logout Api
+     * ---------------------
+     *
+     * Logs a job user out of the batch job section of Sage
+     *
+     * Usage:
+     * (GET)    /job/logout
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @throws IOException
+     * @throws ServletException
+     *
+     */
+    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        doLogout(request, response);
+    }
+
+    /**
      * Job Upload Api
      * ---------------------
      *
@@ -126,7 +136,10 @@ public class JobController {
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     public void jobUpload(HttpServletRequest request, HttpServletResponse response,
                           @RequestParam String qqfile) throws Exception {
-        doUpload(request, response, qqfile);
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
+            doUpload(request, response, qqfile);
+        }
     }
 
     /**
@@ -146,7 +159,10 @@ public class JobController {
      */
     @RequestMapping(value = "/submit", method = RequestMethod.POST)
     public void jobSubmit(HttpServletRequest request, HttpServletResponse response) {
-        doSubmit(request, response);
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
+            doSubmit(request, response);
+        }
     }
 
     /**
@@ -167,7 +183,10 @@ public class JobController {
      */
     @RequestMapping(value = "/remove", method = RequestMethod.POST)
     public void jobRemove(HttpServletRequest request, HttpServletResponse response, @RequestParam String fileName) {
-        doRemove(request, response, fileName);
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
+            doRemove(request, response, fileName);
+        }
     }
 
     /**
@@ -188,7 +207,10 @@ public class JobController {
      */
     @RequestMapping(value = "/cancel", method = RequestMethod.POST)
     public void jobCancel(HttpServletRequest request, HttpServletResponse response, @RequestParam int id) {
-        doCancel(request, response, id);
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
+            doCancel(request, response, id);
+        }
     }
 
     /**
@@ -208,10 +230,13 @@ public class JobController {
      */
     @RequestMapping(value = "/cancel/running", method = RequestMethod.POST)
     public void jobCancelRunning(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        JobRequest jobRequest = getJobRequest(request);
-        String[] args = new String[1];
-        args[0] = "clean";
-        jobBatchProcessor.run(args);
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
+            JobRequest jobRequest = getJobRequest(request);
+            String[] args = new String[1];
+            args[0] = "clean";
+            jobBatchProcessor.run(args);
+        }
     }
 
     /**
@@ -231,10 +256,13 @@ public class JobController {
      */
     @RequestMapping(value = "/run", method = RequestMethod.POST)
     public void jobRun(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        JobRequest jobRequest = getJobRequest(request);
-        String[] args = new String[1];
-        args[0] = "process";
-        jobBatchProcessor.run(args);
+        WebSubject webSubject = createSubject(request, response);
+        if (webSubject.hasRole("JOB_USER")) {
+            JobRequest jobRequest = getJobRequest(request);
+            String[] args = new String[1];
+            args[0] = "process";
+            jobBatchProcessor.run(args);
+        }
     }
 
     /**
@@ -249,7 +277,11 @@ public class JobController {
 
         JobUser jobUser = jobUserAuth.getJobUser(email, password);
         if (jobUser != null) {
-            SecurityUtils.getSubject().login(new UsernamePasswordToken(email, jobUser.getPassword(), ipAddr));
+            WebSubject webSubject = createSubject(request, response);
+            webSubject.login(new UsernamePasswordToken(email, jobUser.getPassword() , ipAddr));
+            Session session = webSubject.getSession(true);
+            session.setAttribute( ADMIN_USERNAME_ATTR, email);
+            session.setAttribute( AUTHENTICATED, true);
             logger.debug("Granted job service access to " + email);
             setJobUser(request, jobUser);
             getJobRequest(request).clear();
@@ -455,7 +487,15 @@ public class JobController {
      * @throws IOException An exception containing a message about the root cause
      */
     public void doLogout(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        SecurityUtils.getSubject().logout();
+        WebSubject webSubject = createSubject(request, response);
+        Session shiroSession = webSubject.getSession();
+        shiroSession.setAttribute(ADMIN_USERNAME_ATTR, null);
+        shiroSession.setAttribute(AUTHENTICATED, false);
+        webSubject.logout();
         request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
+    }
+
+    protected WebSubject createSubject(ServletRequest request, ServletResponse response) {
+        return new WebSubject.Builder(securityManager, request, response).buildWebSubject();
     }
 }

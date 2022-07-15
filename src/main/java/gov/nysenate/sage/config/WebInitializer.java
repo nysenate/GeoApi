@@ -1,15 +1,16 @@
 package gov.nysenate.sage.config;
 
 import gov.nysenate.sage.util.controller.ConstantUtil;
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.apache.shiro.web.env.WebEnvironment;
+import org.apache.shiro.web.util.WebUtils;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
+import javax.servlet.*;
 import java.util.EnumSet;
 
 import static javax.servlet.DispatcherType.*;
@@ -40,9 +41,11 @@ public class WebInitializer implements WebApplicationInitializer
     public void onStartup(ServletContext servletContext) throws ServletException {
         /** Create the root Spring application context. */
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
+//        WebEnvironment env = WebUtils.getRequiredWebEnvironment(servletContext);
 
         /** Manage the lifecycle of the root application context. */
         servletContext.addListener(new ContextLoaderListener(rootContext));
+//        servletContext.addListener(new EnvironmentLoaderListener());
 
         /** The dispatcher servlet has it's own application context in which it can override
          * beans from the parent root context. */
@@ -65,10 +68,10 @@ public class WebInitializer implements WebApplicationInitializer
         servletContext.addFilter("shiroFilter", shiroFilter)
                 .addMappingForUrlPatterns(EnumSet.of(REQUEST, FORWARD, INCLUDE), false, "/*");
 
-        /** Api Key Authentication */
+        /** Registers the apiFilter which affects all REST API calls. */
         DelegatingFilterProxy apiAuthFilter = new DelegatingFilterProxy("apiFilter", dispatcherContext);
         servletContext.addFilter("apiFilter", apiAuthFilter)
-                .addMappingForUrlPatterns(EnumSet.of(REQUEST, FORWARD, INCLUDE), false, ConstantUtil.REST_PATH + "*");
+                .addMappingForUrlPatterns(EnumSet.of(REQUEST, FORWARD, INCLUDE), false, "/api/*");
     }
 }
 
