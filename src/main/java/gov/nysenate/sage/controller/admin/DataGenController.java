@@ -10,12 +10,17 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.subject.WebSubject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -31,6 +36,10 @@ public class DataGenController {
     private AdminUserAuth adminUserAuth;
     private DataGenService dataGenService;
     private ApiUserAuth apiUserAuth;
+
+    @Autowired
+    @Qualifier("securityManager")
+    protected DefaultWebSecurityManager securityManager;
 
     @Autowired
     public DataGenController(AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth,
@@ -63,7 +72,7 @@ public class DataGenController {
                                  @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse;
         String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
+        WebSubject subject = createSubject(request, response);
 
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
@@ -102,7 +111,7 @@ public class DataGenController {
 
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
         String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
+        WebSubject subject = createSubject(request, response);
 
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
@@ -134,7 +143,7 @@ public class DataGenController {
                                            @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
         String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
+        WebSubject subject = createSubject(request, response);
 
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
@@ -167,7 +176,7 @@ public class DataGenController {
                                          @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
         String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
+        WebSubject subject = createSubject(request, response);
 
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
@@ -200,7 +209,7 @@ public class DataGenController {
                                      @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse;
         String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
+        WebSubject subject = createSubject(request, response);
 
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
@@ -216,5 +225,9 @@ public class DataGenController {
 
 //        setAdminResponse(apiResponse, response);
         return apiResponse;
+    }
+
+    protected WebSubject createSubject(ServletRequest request, ServletResponse response) {
+        return new WebSubject.Builder(securityManager, request, response).buildWebSubject();
     }
 }
