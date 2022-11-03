@@ -214,8 +214,6 @@ public class DataGenService implements SageDataGenService {
      * relevant data in the database.
      */
     private boolean generateCongressionalData() {
-        boolean updated = false;
-
         logger.info("Indexing NY Congress by scraping its website...");
 
         /** Retrieve the congressional members and insert into the database */
@@ -225,15 +223,13 @@ public class DataGenService implements SageDataGenService {
             Congressional existingCongressional = sqlCongressionalDao.getCongressionalByDistrict(district);
 
             if (existingCongressional == null) {
-                updated = true;
                 sqlCongressionalDao.insertCongressional(congressional);
             } else if (isCongressionalDataUpdated(existingCongressional, congressional)) {
-                updated = true;
                 sqlCongressionalDao.deleteCongressional(district);
                 sqlCongressionalDao.insertCongressional(congressional);
             }
         }
-        return updated;
+        return true;
     }
 
     /**
@@ -242,7 +238,6 @@ public class DataGenService implements SageDataGenService {
      */
     private boolean generateAssemblyData() {
         logger.info("Indexing NY Assembly by scraping its website...");
-        boolean updated = false;
 
         /** Retrieve the assemblies and insert into the database */
         List<Assembly> assemblies = AssemblyScraper.getAssemblies();
@@ -251,15 +246,13 @@ public class DataGenService implements SageDataGenService {
             Assembly existingAssembly = sqlAssemblyDao.getAssemblyByDistrict(district);
 
             if (existingAssembly == null) {
-                updated = true;
                 sqlAssemblyDao.insertAssembly(assembly);
             } else if (isAssemblyDataUpdated(existingAssembly, assembly)) {
-                updated = true;
                 sqlAssemblyDao.deleteAssemblies(district);
                 sqlAssemblyDao.insertAssembly(assembly);
             }
         }
-        return updated;
+        return true;
     }
 
     /**

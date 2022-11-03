@@ -40,13 +40,14 @@ public class GenerateMetaDataCLI extends BaseScript {
         if (!opts.getArgList().isEmpty()) {
 
             for (String opt : opts.getArgs()) {
+                logger.info("Beginning Meta Data Generation for arg: " + opt);
                 dataGenService.generateMetaData(opt);
             }
 
         }
         else {
             logger.warn("You must specify arguments. " +
-                    "Acceptable arguments are: all, assembly, senate, congress, a, c, d");
+                    "Acceptable arguments are: all, assembly, senate, congress, a, s, c");
         }
 
         logger.info("Execution Complete...Exiting");

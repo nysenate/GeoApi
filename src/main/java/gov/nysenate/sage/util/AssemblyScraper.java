@@ -45,17 +45,23 @@ public class AssemblyScraper
             Elements memberList = doc.select("#mem-email-list li"); //#mem-email-list
             for (Element member : memberList) {
 
-                Elements memberInfo = member.children();
-                String memberName = memberInfo.get(0).text();
-                String memberUrl = memberInfo.get(0).attr("href");
-                String districtNumber = memberInfo.get(1).text().replaceAll("District","").trim();
-                Integer distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
-                        .replace("rd","").replace("th","") );
+                try {
+                    Elements memberInfo = member.children();
+                    String memberName = memberInfo.get(0).text();
+                    String memberUrl = memberInfo.get(0).attr("href");
+                    String districtNumber = memberInfo.get(1).text().replaceAll("District","").trim();
+                    Integer distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
+                            .replace("rd","").replace("th","") );
 //                String memberEmail = memberInfo.get(2).text().trim();
 
-                logger.info("Retrieved member [" + memberName + "], AD=" + distNum);
-                Assembly a = new Assembly(distNum, memberName, memberUrl);
-                ret.add(a);
+                    logger.info("Retrieved member [" + memberName + "], AD=" + distNum);
+                    Assembly a = new Assembly(distNum, memberName, memberUrl);
+                    ret.add(a);
+                }
+                catch (Exception e) {
+                    logger.warn(e.getMessage());
+                }
+
             }
 
             return ret;

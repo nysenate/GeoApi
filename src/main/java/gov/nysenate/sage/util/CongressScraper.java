@@ -48,8 +48,21 @@ public class CongressScraper
                 String districtNumber = memberInfo.get(0).text();
                 Integer distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
                         .replace("rd","").replace("th","") );
-                String memberName = memberInfo.get(1).child(0).text();
-                String memberUrl = memberInfo.get(1).child(0).attr("href");
+                String memberName = "";
+                try {
+                    memberName = memberInfo.get(1).child(0).text();
+                }
+                catch (IndexOutOfBoundsException e) {
+                    //This also likely means they do not have a url where the senator name usually is.
+                    memberName = memberInfo.get(1).text();
+                }
+                String memberUrl = "";
+                try {
+                    memberUrl = memberInfo.get(1).child(0).attr("href");
+                }
+                catch (IndexOutOfBoundsException e) {
+                    logger.warn("member " + memberName + " does not appear to have a URL");
+                }
 
                 logger.info("Retrieved member [" + memberName + "], CD=" + distNum);
                 Congressional c = new Congressional(distNum, memberName, memberUrl);
