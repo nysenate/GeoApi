@@ -10,8 +10,6 @@ public class Environment {
 
     @Value("${base.url:http://localhost:8080}") private String baseUrl;
 
-    @Value("${init.caches:true}") private boolean initCaches;
-
     @Value("${senator.cache.refresh.hours:12}") private int senatorCacheRefreshHours;
 
     @Value("${mass.geocache.error.log}") private String massGeocacheError;
@@ -212,14 +210,6 @@ public class Environment {
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
-    }
-
-    public boolean isInitCaches() {
-        return initCaches;
-    }
-
-    public void setInitCaches(boolean initCaches) {
-        this.initCaches = initCaches;
     }
 
     public int getSenatorCacheRefreshHours() {
