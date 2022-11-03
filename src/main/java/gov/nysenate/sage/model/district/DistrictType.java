@@ -8,10 +8,10 @@ import java.util.Map;
 public enum DistrictType
 {
     ASSEMBLY, CONGRESSIONAL, COUNTY, SENATE, SCHOOL, TOWN, ZIP,  // Available as shape files
-    ELECTION, WARD, CLEG, CITY, FIRE, VILLAGE;                   // Available only in street files
+    ELECTION, WARD, CLEG, CITY, FIRE, VILLAGE, CITY_COUNCIL;     // Available only in street files
 
     /** A Map container is used to associate type names with the enum type */
-    private static Map<String, DistrictType> resolveMap = new HashMap<>();
+    private static final Map<String, DistrictType> resolveMap = new HashMap<>();
     static {
         for (DistrictType dt : DistrictType.getAllTypes()){
             resolveMap.put(dt.name().toUpperCase(), dt);

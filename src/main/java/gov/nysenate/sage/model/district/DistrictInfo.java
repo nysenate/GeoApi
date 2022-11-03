@@ -255,20 +255,17 @@ public class DistrictInfo
     private boolean isValidDistCode(String code){
         if (code != null) {
             String c = FormatUtil.trimLeadingZeroes(code.trim());
-            if ( !c.isEmpty() && !c.equalsIgnoreCase("null") && !c.equals("0") && !c.equals("000")) {
-                return true;
-            }
+            return !c.isEmpty() && !c.equalsIgnoreCase("null") && !c.equals("0") && !c.equals("000");
         }
         return false;
     }
 
     public String toString()
     {
-        String out = "";
+        StringBuilder out = new StringBuilder();
         for (DistrictType t : assignedDistricts){
-            out += t + ": name = " + getDistName(t)
-                    +  " code = " + getDistCode(t) + " map = " + getDistMap(t) + "\n";
+            out.append(t).append(": name = ").append(getDistName(t)).append(" code = ").append(getDistCode(t)).append(" map = ").append(getDistMap(t)).append("\n");
         }
-        return out;
+        return out.toString();
     }
 }
