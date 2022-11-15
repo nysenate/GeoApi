@@ -25,7 +25,7 @@ public enum DistrictType
 
     public static List<DistrictType> getExtendedTypes()
     {
-        return Arrays.asList(ELECTION, WARD, CLEG, CITY, FIRE, VILLAGE);
+        return Arrays.asList(ELECTION, WARD, CLEG, CITY, FIRE, VILLAGE, CITY_COUNCIL);
     }
 
     public static List<DistrictType> getStateBasedTypes()
