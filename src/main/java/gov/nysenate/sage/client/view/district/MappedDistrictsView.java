@@ -17,6 +17,7 @@ public class MappedDistrictsView
     protected MappedDistrictView cleg;
     protected MappedDistrictView ward;
     protected MappedDistrictView village;
+    protected MappedDistrictView cityCouncil;
 
     public MappedDistrictsView(DistrictInfo dInfo)
     {
@@ -32,6 +33,7 @@ public class MappedDistrictsView
             this.cleg = new MappedDistrictView(CLEG, dInfo);
             this.ward = new MappedDistrictView(WARD, dInfo);
             this.village = new MappedDistrictView(VILLAGE, dInfo);
+            this.cityCouncil = new MappedDistrictView(CITY_COUNCIL, dInfo);
         }
     }
 
@@ -77,5 +79,9 @@ public class MappedDistrictsView
 
     public MappedDistrictView getVillage() {
         return (village != null && village.district != null) ? village : null;
+    }
+
+    public MappedDistrictView getCityCouncil() {
+        return (cityCouncil != null && cityCouncil.district != null) ? cityCouncil : null;
     }
 }

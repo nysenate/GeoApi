@@ -23,10 +23,10 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 @Repository
 public class SqlStreetFileDao implements StreetFileDao
 {
-    private Logger logger = LoggerFactory.getLogger(SqlStreetFileDao.class);
-    private BaseDao baseDao;
+    private final Logger logger = LoggerFactory.getLogger(SqlStreetFileDao.class);
+    private final BaseDao baseDao;
 
-    private static Map<DistrictType, String> distColMap = new HashMap<>();
+    private static final Map<DistrictType, String> distColMap = new HashMap<>();
     static {
         distColMap.put(SENATE, "senate_code");
         distColMap.put(ASSEMBLY, "assembly_code");
@@ -37,6 +37,7 @@ public class SqlStreetFileDao implements StreetFileDao
         distColMap.put(ELECTION, "election_code");
         distColMap.put(CLEG, "cleg_code");
         distColMap.put(CITY, "city_code");
+        distColMap.put(CITY_COUNCIL, "cc_code");
         distColMap.put(FIRE, "fire_code");
         distColMap.put(VILLAGE, "vill_code");
         distColMap.put(WARD, "ward_code");
@@ -50,8 +51,7 @@ public class SqlStreetFileDao implements StreetFileDao
 
     /** {@inheritDoc} */
     public Map<StreetAddressRange, DistrictInfo> getDistrictStreetRangeMap(
-            StreetAddress streetAddr, boolean useStreet, boolean fuzzy, boolean useHouse) throws SQLException
-    {
+            StreetAddress streetAddr, boolean useStreet, boolean fuzzy, boolean useHouse) {
         ArrayList<Object> params = new ArrayList<>();
         StringBuilder sqlBuilder = new StringBuilder(512);
         sqlBuilder.append("SELECT * FROM streetfile WHERE 1=1 \n");
@@ -113,8 +113,9 @@ public class SqlStreetFileDao implements StreetFileDao
             }
 
             if (whereBldg) {
-                sqlBuilder.append(" AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity= "
-                        + (streetAddr.getBldgNum() % 2 == 0 ? "'EVENS'" : "'ODDS'") + ")) \n");
+                sqlBuilder.append(" AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity= ")
+                        .append(streetAddr.getBldgNum() % 2 == 0 ? "'EVENS'" : "'ODDS'")
+                        .append(")) \n");
                 params.add(streetAddr.getBldgNum());
                 params.add(streetAddr.getBldgNum());
             }
@@ -312,8 +313,7 @@ public class SqlStreetFileDao implements StreetFileDao
         return getDistAddressByStreet(streetAddress, false);
     }
 
-    private DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress, boolean useFuzzy) throws SQLException
-    {
+    private DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress, boolean useFuzzy) {
         Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, true, useFuzzy, true);
 
         if (rangeMap == null ) {
@@ -324,7 +324,7 @@ public class SqlStreetFileDao implements StreetFileDao
         DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
 
         /** If the consolidated dist returned null, we can either recurse with fuzzy on or return null */
-        if (consolidatedDist == null ) {
+        if (consolidatedDist == null) {
             if (!useFuzzy) {
                 return getDistAddressByHouse(streetAddress, true);
             }
@@ -469,19 +469,9 @@ public class SqlStreetFileDao implements StreetFileDao
                 sar.setZip5(rs.getString("zip5"));
                 sar.setBldgParity(rs.getString("bldg_parity"));
 
-                dInfo.setDistCode(ELECTION, rs.getString(distColMap.get(ELECTION)));
-                dInfo.setDistCode(COUNTY, rs.getString(distColMap.get(COUNTY)));
-                dInfo.setDistCode(ASSEMBLY, rs.getString(distColMap.get(ASSEMBLY)));
-                dInfo.setDistCode(SENATE, rs.getString(distColMap.get(SENATE)));
-                dInfo.setDistCode(CONGRESSIONAL, rs.getString(distColMap.get(CONGRESSIONAL)));
-                dInfo.setDistCode(TOWN, rs.getString(distColMap.get(TOWN)));
-                dInfo.setDistCode(ZIP, rs.getString(distColMap.get(ZIP)));
-                dInfo.setDistCode(WARD, rs.getString(distColMap.get(WARD)));
-                dInfo.setDistCode(SCHOOL, rs.getString(distColMap.get(SCHOOL)));
-                dInfo.setDistCode(CLEG, rs.getString(distColMap.get(CLEG)));
-                dInfo.setDistCode(CITY, rs.getString(distColMap.get(CITY)));
-                dInfo.setDistCode(VILLAGE, rs.getString(distColMap.get(VILLAGE)));
-                dInfo.setDistCode(FIRE, rs.getString(distColMap.get(FIRE)));
+                for (var type : DistrictType.values()) {
+                    dInfo.setDistCode(type, rs.getString(distColMap.get(type)));
+                }
 
                 streetRangeMap.put(sar, dInfo);
             }

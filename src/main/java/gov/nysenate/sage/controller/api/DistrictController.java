@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -56,26 +57,26 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
 public class DistrictController {
-    private static Logger logger = LoggerFactory.getLogger(DistrictController.class);
+    private static final Logger logger = LoggerFactory.getLogger(DistrictController.class);
 
     /**
      * Service Providers
      */
-    private AddressServiceProvider addressProvider;
-    private DistrictServiceProvider districtProvider;
-    private GeocodeServiceProvider geocodeProvider;
-    private RevGeocodeServiceProvider revGeocodeProvider;
-    private MapServiceProvider mapProvider;
-    private DistrictMemberProvider districtMemberProvider;
+    private final AddressServiceProvider addressProvider;
+    private final DistrictServiceProvider districtProvider;
+    private final GeocodeServiceProvider geocodeProvider;
+    private final RevGeocodeServiceProvider revGeocodeProvider;
+    private final MapServiceProvider mapProvider;
+    private final DistrictMemberProvider districtMemberProvider;
 
 
     /**
      * Loggers
      */
-    private SqlGeocodeRequestLogger sqlGeocodeRequestLogger;
-    private SqlGeocodeResultLogger sqlGeocodeResultLogger;
-    private SqlDistrictRequestLogger sqlDistrictRequestLogger;
-    private SqlDistrictResultLogger sqlDistrictResultLogger;
+    private final SqlGeocodeRequestLogger sqlGeocodeRequestLogger;
+    private final SqlGeocodeResultLogger sqlGeocodeResultLogger;
+    private final SqlDistrictRequestLogger sqlDistrictRequestLogger;
+    private final SqlDistrictResultLogger sqlDistrictResultLogger;
 
     private static String BLUEBIRD_DISTRICT_STRATEGY;
     private static Boolean SINGLE_LOGGING_ENABLED = false;
@@ -108,9 +109,7 @@ public class DistrictController {
     /**
      * District Assignment Api
      * ---------------------------
-     *
      * Assign a postal address to its corresponding NY Districts
-     *
      * Usage:
      * (GET)    /api/v2/district/assign
      *
@@ -155,11 +154,11 @@ public class DistrictController {
                                @RequestParam(required = false) String state,
                                @RequestParam(required = false) String zip5,
                                @RequestParam(required = false) String zip4) {
-        Object districtResponse = null;
+        Object districtResponse;
         Timestamp startTime = getCurrentTimeStamp();
         int requestId = -1;
 
-        /** Get the ApiRequest */
+        /* Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
 
         DistrictRequest districtRequest = createFullDistrictRequest(apiRequest, getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4),
@@ -191,9 +190,7 @@ public class DistrictController {
     /**
      * District Assignment Api
      * ---------------------------
-     *
      * Assign a postal address to its corresponding NY Districts
-     *
      * Usage:
      * (POST)    /api/v2/district/assign/batch
      *
@@ -223,8 +220,6 @@ public class DistrictController {
         Object districtResponse = null;
         Timestamp startTime = getCurrentTimeStamp();
         int requestId = -1;
-
-        /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
 
 
@@ -237,7 +232,7 @@ public class DistrictController {
             return;
         }
 
-        String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
+        String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses;
         List<Point> points = new ArrayList<>();
         addresses = getAddressesFromJsonBody(batchJsonPayload);
@@ -263,9 +258,7 @@ public class DistrictController {
     /**
      * District Assignment Api
      * ---------------------------
-     *
      * Find the intersection between one type of NY District and another
-     *
      * Usage:
      * (GET)    /api/v2/district/intersect
      *
@@ -281,8 +274,6 @@ public class DistrictController {
                                   @RequestParam String intersectType) {
         int requestId = -1;
         Timestamp startTime = getCurrentTimeStamp();
-
-        /** Create the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
 
         if (sourceId == null || sourceId.equals("null") || sourceId.isEmpty() || sourceType.equals(intersectType)) {
@@ -308,9 +299,7 @@ public class DistrictController {
     /**
      * District Assignment Api
      * ---------------------------
-     *
      * Assign a postal address to its corresponding NY Districts
-     *
      * Usage:
      * (GET)    /api/v2/district/bluebird
      *
@@ -344,11 +333,9 @@ public class DistrictController {
                                @RequestParam(required = false) String state,
                                @RequestParam(required = false) String zip5,
                                @RequestParam(required = false) String zip4) {
-        Object districtResponse = null;
+        Object districtResponse;
         Timestamp startTime = getCurrentTimeStamp();
         int requestId = -1;
-
-        /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
 
         DistrictRequest districtRequest = createBlueBirdDistrictRequest(apiRequest,provider, geoProvider, usePunct,
@@ -374,9 +361,7 @@ public class DistrictController {
     /**
      * District Assignment Api
      * ---------------------------
-     *
      * Assign a postal address to its corresponding NY Districts
-     *
      * Usage:
      * (POST)    /api/v2/district/bluebird/batch
      *
@@ -391,11 +376,11 @@ public class DistrictController {
                                     @RequestParam(required = false) String provider,
                                     @RequestParam(required = false) String geoProvider,
                                     @RequestParam(required = false) boolean usePunct) throws IOException {
-        Object districtResponse = null;
+        Object districtResponse;
         Timestamp startTime = getCurrentTimeStamp();
         int requestId = -1;
 
-        /** Get the ApiRequest */
+        /* Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
 
         DistrictRequest districtRequest = createBatchBlueBirdDistrictRequest(apiRequest, provider, geoProvider, usePunct);
@@ -406,7 +391,7 @@ public class DistrictController {
             return;
         }
 
-        String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
+        String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
         List<Point> points = new ArrayList<>();
         if (addresses.isEmpty()) {
@@ -556,11 +541,11 @@ public class DistrictController {
         }
     }
 
+    /**
+     * If providers are specified then make sure they match the available providers. Send an
+     * api error and return if the provider is not supported.
+     */
     private boolean checkProviders(String provider, String geoProvider, HttpServletRequest request) {
-        /**
-         * If providers are specified then make sure they match the available providers. Send an
-         * api error and return if the provider is not supported.
-         */
         boolean validProviders = true;
         if (provider != null && !provider.isEmpty() &&
                 !districtProvider.getProviders().containsKey(provider.toLowerCase())) {
@@ -590,13 +575,10 @@ public class DistrictController {
     private DistrictResult handleDistrictRequest(DistrictRequest districtRequest, int requestId) {
         Address address = districtRequest.getAddress();
         Point point = districtRequest.getPoint();
-        DistrictResult districtResult;
         GeocodedAddress geocodedAddress;
         Address validatedAddress = null;
-        Boolean zipProvided = false;
-        Boolean isPoBox = false;
 
-        /** Parse the input address */
+        /* Parse the input address */
         StreetAddress streetAddress = null;
         try {
             streetAddress = StreetAddressParser.parseAddress(address);
@@ -604,12 +586,11 @@ public class DistrictController {
             logger.debug("Failed to parse input address" + address.toLogString());
         }
 
-        /** This info about the address helps to decide how to process it */
-        zipProvided = isZipProvided(streetAddress);
-        isPoBox = (streetAddress != null) ? streetAddress.isPoBoxAddress() : false;
+        /* This info about the address helps to decide how to process it */
+        boolean isPoBox = streetAddress != null && streetAddress.isPoBoxAddress();
 
         if (address != null && !address.isEmpty()) {
-            /** Perform usps address correction if requested */
+            /* Perform usps address correction if requested */
             if (districtRequest.isUspsValidate()) {
                 Address addressToValidate = null;
                 if (address.isEligibleForUSPS()) {
@@ -622,31 +603,32 @@ public class DistrictController {
                 }
             }
 
-            /** Create GeocodedAddress using either the validated address or original. */
+            /* Create GeocodedAddress using either the validated address or original. */
             Address addressToGeocode = (validatedAddress != null && !validatedAddress.isEmpty())
                     ? validatedAddress : address;
             geocodedAddress = new GeocodedAddress(addressToGeocode);
 
-            /** Geocode address unless opted out */
+            /* Geocode address unless opted out */
             if (!districtRequest.isSkipGeocode()) {
-                GeocodeRequest geocodeRequest = new GeocodeRequest(districtRequest.getApiRequest(), addressToGeocode, districtRequest.getGeoProvider(), true, true);
-                /** Disable cache if provider is specified. */
+                GeocodeRequest geocodeRequest = new GeocodeRequest(districtRequest.getApiRequest(),
+                        addressToGeocode, districtRequest.getGeoProvider(), true, true);
+                /* Disable cache if provider is specified. */
                 if (districtRequest.getGeoProvider() != null && !districtRequest.getGeoProvider().isEmpty()) {
                     geocodeRequest.setUseCache(false);
                 }
                 geocodedAddress = performGeocode(geocodeRequest, isPoBox);
             }
         }
-        /** Perform reverse geocoding for point input */
+        /* Perform reverse geocoding for point input */
         else if (point != null) {
             geocodedAddress = new GeocodedAddress(null, new Geocode(point, GeocodeQuality.POINT, "User Supplied"));
         } else {
-            districtResult = new DistrictResult(this.getClass());
+            var districtResult = new DistrictResult(this.getClass());
             districtResult.setStatusCode(MISSING_INPUT_PARAMS);
             return districtResult;
         }
 
-        /** Set geocoded address to district request for processing, keeping in mind the validated address */
+        /* Set geocoded address to district request for processing, keeping in mind the validated address */
         if (geocodedAddress != null) {
             if (validatedAddress != null && !validatedAddress.isEmpty() && geocodedAddress.isValidGeocode()
                     && (geocodedAddress.getGeocode().getQuality().compareTo(GeocodeQuality.HOUSE) >= 0)) {
@@ -658,19 +640,18 @@ public class DistrictController {
             }
         }
 
-        /** Obtain district result */
-        districtResult = performDistrictAssign(districtRequest, zipProvided, isPoBox);
+        /* Obtain district result */
+        DistrictResult districtResult = performDistrictAssign(districtRequest, isZipProvided(streetAddress));
         if (logger.isDebugEnabled()) {
             logger.debug("Obtained district result with assigned districts: " + FormatUtil.toJsonString(districtResult.getAssignedDistricts()));
         }
 
-        /** Adjust address if it's a PO BOX and was not USPS validated */
+        /* Adjust address if it's a PO BOX and was not USPS validated */
         if (isPoBox && !districtResult.isUspsValidated() && districtResult.getAddress() != null) {
             districtResult.getAddress().setAddr1("PO Box " + streetAddress.getPoBox());
         }
 
         setDistrictResultInfo(districtResult, districtRequest, requestId);
-
         return districtResult;
     }
 
@@ -681,7 +662,7 @@ public class DistrictController {
      * @return DistrictResult
      */
     private DistrictResult handleIntersectRequest(DistrictRequest districtRequest, int requestId) {
-        /** Get the map, boundary data and intersect statistics */
+        /* Get the map, boundary data and intersect statistics */
         DistrictResult districtResult = performIntersect(districtRequest);
         districtResult.setIntersectType(districtRequest.getIntersectType());
         setDistrictResultInfo(districtResult, districtRequest, requestId);
@@ -689,12 +670,12 @@ public class DistrictController {
     }
 
     private void setDistrictResultInfo(DistrictResult districtResult, DistrictRequest districtRequest, int requestId) {
-        /** Add map and boundary information to the district result */
+        /* Add map and boundary information to the district result */
         if (districtRequest.isShowMaps() && districtResult.isSuccess()) {
             mapProvider.assignMapsToDistrictInfo(districtResult.getDistrictInfo(), districtResult.getDistrictMatchLevel(), false);
         }
 
-        /** Ensure all members (senators,assemblyman, etc) are presented if requested */
+        /* Ensure all members (senators,assemblyman, etc) are presented if requested */
         if (districtRequest.isShowMembers() && districtResult.isSuccess()) {
             districtMemberProvider.assignDistrictMembers(districtResult);
         }
@@ -710,11 +691,10 @@ public class DistrictController {
      * @param streetAddress Parsed input Address
      * @return True if zip5 was provided, false otherwise
      */
-    private Boolean isZipProvided(StreetAddress streetAddress) {
-        Boolean zipProvided = false;
+    private boolean isZipProvided(StreetAddress streetAddress) {
+        boolean zipProvided = false;
         if (streetAddress != null) {
-            String zip5 = streetAddress.getZip5();
-            zipProvided = (!zip5.isEmpty() && zip5.length() == 5);
+            zipProvided = streetAddress.getZip5().length() == 5;
         }
         return zipProvided;
     }
@@ -728,26 +708,26 @@ public class DistrictController {
     private GeocodedAddress performGeocode(GeocodeRequest geoRequest, boolean isPoBox) {
         Address address = (geoRequest.getAddress() != null) ? geoRequest.getAddress().clone() : null;
         String geoProvider = geoRequest.getProvider();
-        GeocodeResult geocodeResult = null;
+        GeocodeResult geocodeResult;
 
-        /** Address-to-point geocoding */
+        /* Address-to-point geocoding */
         if (!geoRequest.isReverse()) {
-            /** Geocoding for Po Box works better when the address line is empty */
+            /* Geocoding for Po Box works better when the address line is empty */
             if (isPoBox && address != null && address.isParsed()) {
                 address.setAddr1("");
             }
-            /** Do not fallback to other geocoders if provider is specified */
+            /* Do not fallback to other geocoders if provider is specified */
             if (geoProvider != null && !geoProvider.isEmpty()) {
                 geoRequest.setUseFallback(false);
             }
             geocodeResult = geocodeProvider.geocode(geoRequest);
         }
-        /** Point-to-address geocoding */
+        /* Point-to-address geocoding */
         else {
             geocodeResult = revGeocodeProvider.reverseGeocode(geoRequest);
         }
 
-        /** Log geocode request/result to database */
+        /* Log geocode request/result to database */
         if (SINGLE_LOGGING_ENABLED) {
             int requestId = sqlGeocodeRequestLogger.logGeocodeRequest(geoRequest);
             sqlGeocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
@@ -764,7 +744,7 @@ public class DistrictController {
      * @return GeocodedAddress the address corrected geocodedAddress.
      */
     private Address performAddressCorrection(Address address, DistrictRequest districtRequest) {
-        boolean usePunct = (districtRequest != null) ? districtRequest.isUsePunct() : false;
+        boolean usePunct = districtRequest != null && districtRequest.isUsePunct();
         AddressResult addressResult = addressProvider.validate(address, null, usePunct);
         if (addressResult != null && addressResult.isValidated()) {
             if (logger.isTraceEnabled()) {
@@ -781,10 +761,9 @@ public class DistrictController {
      *
      * @param districtRequest DistrictRequest containing the various parameters
      * @param zipProvided     Set true if user input address included a zip5
-     * @param isPoBox         Set true if user input address had a Po Box
      * @return DistrictResult
      */
-    private DistrictResult performDistrictAssign(DistrictRequest districtRequest, Boolean zipProvided, Boolean isPoBox) {
+    private DistrictResult performDistrictAssign(DistrictRequest districtRequest, Boolean zipProvided) {
         DistrictResult districtResult = new DistrictResult(this.getClass());
         districtResult.setStatusCode(NO_DISTRICT_RESULT);
 
@@ -796,11 +775,11 @@ public class DistrictController {
                     if (logger.isTraceEnabled()) {
                         logger.trace(FormatUtil.toJsonString(geocodedAddress));
                     }
-                    /** House level matches and above can utilize default district assignment behaviour */
+                    /* House level matches and above can utilize default district assignment behaviour */
                     if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
                         districtResult = districtProvider.assignDistricts(geocodedAddress, districtRequest);
                     }
-                    /** All other level matches are routed to the overlap assignment method */
+                    /* All other level matches are routed to the overlap assignment method */
                     else {
                         districtResult = districtProvider.assignMultiMatchDistricts(geocodedAddress, zipProvided);
                     }
@@ -830,7 +809,7 @@ public class DistrictController {
         List<Point> points = batchDistrictRequest.getPoints();
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
 
-        Boolean usingAddresses = false, usingPoints = false;
+        boolean usingAddresses = false, usingPoints = false;
         if (addresses != null && !addresses.isEmpty()) {
             usingAddresses = true;
             for (Address address : addresses) {
@@ -847,7 +826,7 @@ public class DistrictController {
             return new ArrayList<>();
         }
 
-        /** Batch USPS validation */
+        /* Batch USPS validation */
         if (usingAddresses && batchDistrictRequest.isUspsValidate()) {
             List<AddressResult> addressResults = addressProvider.validate(addresses, null, batchDistrictRequest.isUsePunct());
             if (addressResults != null && addressResults.size() == addresses.size()) {
@@ -859,7 +838,7 @@ public class DistrictController {
             }
         }
 
-        /** Batch Geocoding */
+        /* Batch Geocoding */
         if (usingAddresses && !batchDistrictRequest.isSkipGeocode()) {
             BatchGeocodeRequest batchGeocodeRequest = new BatchGeocodeRequest(batchDistrictRequest);
             List<GeocodeResult> geocodeResults = geocodeProvider.geocode(batchGeocodeRequest);
@@ -878,18 +857,18 @@ public class DistrictController {
             }
         }
 
-        /** Set geocoded addresses to batch district request for processing */
+        /* Set geocoded addresses to batch district request for processing */
         batchDistrictRequest.setGeocodedAddresses(geocodedAddresses);
 
-        /** If using points only, set the district strategy to shapefile lookup only */
+        /* If using points only, set the district strategy to shapefile lookup only */
         if (usingPoints) {
             batchDistrictRequest.setDistrictStrategy(DistrictStrategy.shapeOnly);
         }
 
-        /** Batch District Assign */
+        /* Batch District Assign */
         List<DistrictResult> districtResults = districtProvider.assignDistricts(batchDistrictRequest);
 
-        /** Perform batch logging */
+        /* Perform batch logging */
         if (BATCH_LOGGING_ENABLED) {
             sqlDistrictResultLogger.logBatchDistrictResults(batchDistrictRequest, districtResults, true);
         }
