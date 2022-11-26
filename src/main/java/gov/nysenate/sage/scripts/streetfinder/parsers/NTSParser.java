@@ -4,6 +4,7 @@ import gov.nysenate.sage.model.address.StreetFinderAddress;
 import gov.nysenate.sage.util.AddressDictionary;
 import java.io.*;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 /**
  * Parses files in the base NTS format (see Albany, Broome Counties as example)
@@ -13,7 +14,7 @@ public class NTSParser {
 
     //These are used to save the variables when the line is a continuation of an above street
     private StreetFinderAddress StreetFinderAddressStorage = new StreetFinderAddress();
-    private String file;
+    protected final String file;
     private String overloadStreetSuf;
     //storage for column locations
     private int schIndex;
@@ -23,8 +24,8 @@ public class NTSParser {
     private int ccIndex;
     private int cityIndex;
     //tsv file writers
-    private FileWriter fileWriter;
-    private PrintWriter outputWriter;
+    private final FileWriter fileWriter;
+    private final PrintWriter outputWriter;
 
     /**
      * Constructor sets the file name and sets up tsv file
@@ -35,8 +36,8 @@ public class NTSParser {
         this.file = file;
         String output = file.replace(".txt", ".tsv");
         output = output.replace(".csv", ".tsv");            //in case its a csv file
-        fileWriter = new FileWriter(output);
-        outputWriter = new PrintWriter(fileWriter);
+        this.fileWriter = new FileWriter(output);
+        this.outputWriter = new PrintWriter(fileWriter);
         //add columns for the tsv file
         outputWriter.print("street\ttown\tstate\tzip5\tbldg_lo_num\tbldg_lo_chr\tbldg_hi_num\tbldg_hi_chr\tbldg_parity\tapt_lo_num\tapt_lo_chr\tapt_hi_num\tapt_hi_chr\tapt_parity\telection_code\tcounty_code\t" +
                 "assembly_code\tsenate_code\tcongressional_code\tboe_town_code\ttown_code\tward_code\tboe_school_code\tschool_code\tcleg_code\tcc_code\tfire_code\tcity_code\tvill_code\n");
@@ -53,15 +54,12 @@ public class NTSParser {
         String currentLine = scanner.nextLine();
         boolean inData = false;
 
-        //While there is more lines in the file
         while (scanner.hasNext()) {
-            //if inData then check for special case then call parseLine
             if (inData) {
-                //check if this is the end of data
-                if (currentLine.contains("TEAM SQL Version") || currentLine.contains("r_strstd") || currentLine.contains("Total No. of Street") || currentLine.contains("r_ppstreet")) {
+                // Check if this is the end of data
+                var pattern = Pattern.compile("TEAM SQL Version|r_strstd|Total No. of Street|r_ppstreet");
+                if (pattern.matcher(currentLine).find()) {
                     inData = false;
-                    //check for a blank line that will be less than 25 in length or less than 5 indices in the split array (not actual data)
-                    //skip over these
                 } else if (currentLine.length() < 25 || currentLine.trim().split("\\s+").length < 5) {
                     currentLine = scanner.nextLine();
                 } else {
@@ -76,25 +74,20 @@ public class NTSParser {
                         parseLine(currentLine, true);
                         //then skip over the line with just the suffix
                         nextLine = scanner.nextLine();
-                        currentLine = nextLine;
                     } else {
-                        //normal data line
                         parseLine(currentLine, false);
-                        //get next line for parsing
-                        currentLine = nextLine;
                     }
+                    currentLine = nextLine;
                 }
             } else {
-                //look for "Housing Range" to signal that data is starting
+                // Signals that the data is starting
                 if (currentLine.contains("House Range")) {
                     inData = true;
-                    this.getIndexes(currentLine);
+                    setIndices(currentLine);
                 }
-                //gets the next line
                 currentLine = scanner.nextLine();
             }
         }
-        //close all writers/readers
         scanner.close();
         this.closeWriters();
     }
@@ -257,11 +250,11 @@ public class NTSParser {
             //otherwise skip over the "-"
             index++;
         }
-        StreetFinderAddress.setBldg_low(low);
+        StreetFinderAddress.setBuildingLow(low);
         index++;
 
         //get the high range
-        StreetFinderAddress.setBldg_high(splitLine[index]);
+        StreetFinderAddress.setBuildingHigh(splitLine[index]);
         index++;
 
         //get the range type by calling setBldgParity which could change the index
@@ -596,13 +589,8 @@ public class NTSParser {
      * @param string
      * @return true if a direction, false otherwise
      */
-    protected boolean checkForDirection(String string) {
-        string = string.toUpperCase();
-        if (string.equals("N") || string.equals("E")  || string.equals("S") || string.equals("W")) {
-            return true;
-        } else {
-            return false;
-        }
+    protected static boolean checkForDirection(String string) {
+        return string.toUpperCase().matches("[NESW]");
     }
 
     /**
@@ -630,42 +618,14 @@ public class NTSParser {
      * The indexes stay - 1 if they do not exist
      * @param currentLine - must be a column header line with column titles
      */
-    protected void getIndexes(String currentLine) {
-
-        //sch
+    protected void setIndices(String currentLine) {
         schIndex = currentLine.indexOf("Schl");
-
-        //vill
         villIndex = currentLine.indexOf("Vill");
-
-        //cle
-        cleIndex = currentLine.indexOf("Cleg");
-        if (cleIndex < 0) {
-            cleIndex = currentLine.indexOf("CLE");
-            if (cleIndex < 0) {
-                cleIndex = currentLine.indexOf("CLEG");
-                if (cleIndex < 0) {
-                    cleIndex = currentLine.indexOf(("Leg"));
-                    if (cleIndex < 0) {
-                        cleIndex = currentLine.indexOf("LEG");
-                    }
-                }
-            }
-        }
-
-        //fire
-        fireIndex = currentLine.indexOf("Fire");
-        if (fireIndex < 0) {
-            fireIndex = currentLine.indexOf("FD");
-            if (fireIndex < 0) {
-                fireIndex = currentLine.indexOf("FIRE");
-            }
-        }
-
-        //cc
+        var matcher = Pattern.compile("Cleg|CLE|CLEG|Leg|LEG").matcher(currentLine);
+        cleIndex = matcher.find() ? matcher.start() : -1;
+        matcher = Pattern.compile("Fire|FD|FIRE").matcher(currentLine);
+        fireIndex = matcher.find() ? matcher.start() : -1;
         ccIndex = currentLine.indexOf("CC");
-
-        //city
         cityIndex = currentLine.indexOf("City");
 
     }
@@ -678,20 +638,17 @@ public class NTSParser {
      * @param index - updated index
      * @return
      */
-    protected int setBldgParity(String[] splitLine, int index, StreetFinderAddress StreetFinderAddress) {
-
-        //for range type it could be "Evens Inclusive" "Odds Inclusive" or just "Inclusive"
-        if (splitLine[index].equals("Odds")) {
-            StreetFinderAddress.setBldg_parity("ODDS");
-            index++; //skip over "Inclusive"
-        } else if (splitLine[index].equals("Evens")) {
-            StreetFinderAddress.setBldg_parity("EVENS");
-            index++; //skip over "Inclusive"
-        } else {
-            //just Inclusive means both even and odd
-            StreetFinderAddress.setBldg_parity("ALL");
+    protected int setBldgParity(String[] splitLine, int index, StreetFinderAddress streetFinderAddress) {
+        // Could be "Evens Inclusive" "Odds Inclusive" or just "Inclusive"
+        if (splitLine[index].matches("Odds|Evens")) {
+            streetFinderAddress.setBldg_parity(splitLine[index].toUpperCase());
+            //skip over "Inclusive"
+            return index + 1;
         }
-        return index;
+        else {
+            streetFinderAddress.setBldg_parity("ALL");
+            return index;
+        }
     }
 
     /**

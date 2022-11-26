@@ -1,7 +1,7 @@
 package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.util.AddressDictionary;
-import gov.nysenate.sage.util.StreetAddressParser;
+import org.apache.logging.log4j.util.Strings;
 
 import java.util.regex.Pattern;
 
@@ -17,10 +17,10 @@ public class StreetFinderAddress {
     private String street;
     private String streetSuffix;
     private String zip;
-    private String bldg_low;
-    private String bldg_low_char;
-    private String bldg_high;
-    private String bldg_high_char;
+    private String buildingLow;
+    private String buildingLowChar;
+    private String buildingHigh;
+    private String buildingHighChar;
     private String bldg_parity;
     private String town;
     private String townCode;
@@ -56,10 +56,10 @@ public class StreetFinderAddress {
         street = "\\N";
         streetSuffix = "";
         zip = "\\N";
-        bldg_low = "\\N";
-        bldg_low_char = "\\N";
-        bldg_high = "\\N";
-        bldg_high_char = "\\N";
+        buildingLow = "\\N";
+        buildingLowChar = "\\N";
+        buildingHigh = "\\N";
+        buildingHighChar = "\\N";
         bldg_parity = "\\N";
         town = "\\N";
         townCode = "\\N";
@@ -89,8 +89,8 @@ public class StreetFinderAddress {
      * @return Object in String form
      */
     public String toStreetFileForm() {
-        return preDirection + street + " " + streetSuffix + "\t" + town + "\t" + "NY" + "\t" + zip + "\t" + bldg_low + "\t" + bldg_low_char + "\t" + bldg_high +
-                "\t" + bldg_high_char + "\t" + bldg_parity + "\t" + secondaryBldg_low + "\t" + secondaryBldg_low_char + "\t" + secondaryBldg_high + "\t" + secondaryBldg_high_char + "\t" + secondaryBldg_parity + "\t" +
+        return preDirection + street + " " + streetSuffix + "\t" + town + "\t" + "NY" + "\t" + zip + "\t" + buildingLow + "\t" + buildingLowChar + "\t" + buildingHigh +
+                "\t" + buildingHighChar + "\t" + bldg_parity + "\t" + secondaryBldg_low + "\t" + secondaryBldg_low_char + "\t" + secondaryBldg_high + "\t" + secondaryBldg_high_char + "\t" + secondaryBldg_parity + "\t" +
                 ed + "\t" + "\\N" + "\t" + asm + "\t" + sen + "\t" + cong + "\t" + boeTownCode + "\t" + townCode + "\t" +
                 ward + "\t" + boeSchool + "\t" + sch + "\t" + cle + "\t" + cc + "\t" + fire + "\t" + cityCode + "\t" + vill +"\n";
     }
@@ -114,8 +114,7 @@ public class StreetFinderAddress {
      * @param preDirection
      */
     public void setPreDirection(String preDirection) {
-        //Check for a blank argument
-        if(preDirection.trim().length() > 0 ) {
+        if (!preDirection.isBlank()) {
             //Add a space onto the end because it is added to the StreetName when put in the file
             this.preDirection = preDirection + " ";
         }
@@ -144,21 +143,21 @@ public class StreetFinderAddress {
      * @param street
      */
     public void setStreet(String street) {
-        if(street != null && !street.isEmpty()) {
-            String tempStreet = "";
-            String[] string = street.split("\\s+");
-            //Check for matches in AddressDictionary highWayMap
-            for(int i = 0; i < string.length; i++) {
-                tempStreet = tempStreet + string[i];
-                //if tempStreet is found as a key then set tempStreet to the keys value
-                if(AddressDictionary.highWayMap.containsKey(tempStreet)) {
-                    tempStreet = AddressDictionary.highWayMap.get(tempStreet).toUpperCase();
-                }
-                tempStreet += " ";
-            }
-            //trim off extra whitespace
-            this.street = tempStreet.trim();
+        if (Strings.isEmpty(street)) {
+            return;
         }
+        String tempStreet = "";
+        String[] string = street.split("\\s+");
+        //Check for matches in AddressDictionary highWayMap
+        for (String s : string) {
+            tempStreet += s;
+            //if tempStreet is found as a key then set tempStreet to the keys value
+            if (AddressDictionary.highWayMap.containsKey(tempStreet)) {
+                tempStreet = AddressDictionary.highWayMap.get(tempStreet).toUpperCase();
+            }
+            tempStreet += " ";
+        }
+        this.street = tempStreet.trim();
     }
 
     /**
@@ -175,19 +174,16 @@ public class StreetFinderAddress {
      * @param streetSuffix
      */
     public void setStreetSuffix(String streetSuffix) {
-        if(streetSuffix != null) {
+        if (streetSuffix != null) {
             //Trim off possible . from suffix ex. "Ext."
             String string = streetSuffix.replace(".", "");
             //First check the streetTypeMap
-            if(AddressDictionary.streetTypeMap.containsKey(string.toUpperCase())) {
+            //If not found in either hashMap then just set to the regular string
+            if (AddressDictionary.streetTypeMap.containsKey(string.toUpperCase())) {
                 this.streetSuffix = AddressDictionary.streetTypeMap.get(string.toUpperCase()).toUpperCase();
                 //Then check highWayMap
-            } else if(AddressDictionary.highWayMap.containsKey(string.toUpperCase())) {
-                this.streetSuffix = AddressDictionary.highWayMap.get(string.toUpperCase()).toUpperCase();
-            } else {
-                //If not found in either hashMap then just set to the regular string
-                this.streetSuffix = string.toUpperCase();
-            }
+            } else
+                this.streetSuffix = AddressDictionary.highWayMap.getOrDefault(string.toUpperCase(), string).toUpperCase();
         }
     }
 
@@ -220,7 +216,7 @@ public class StreetFinderAddress {
      * low character if any characters are found.
      * @param bldg_low - Can either be all ints or a combination of characters and ints
      */
-    public void setBldg_low(String bldg_low) {
+    public void setBuildingLow(String bldg_low) {
         if(bldg_low != null && !bldg_low.isEmpty()) {
             //set to a char array to cycle through to look for characters
             char[] temp = bldg_low.toCharArray();
@@ -229,10 +225,14 @@ public class StreetFinderAddress {
             this.setDigitsAndCharacters(temp);
             //Check to make sure that there were digits
             if(!digits.isEmpty())
-                this.bldg_low = digits;
+                this.buildingLow = digits;
             //set the building low character. A check for empty is within that method
-            this.setBldg_low_char(characters);
+            this.setBuildingLowChar(characters);
         }
+    }
+
+    public static String cleanBuilding(String bldg) {
+        return bldg.replaceAll("1/2","").replaceAll("1/4","");
     }
 
     /**
@@ -240,7 +240,7 @@ public class StreetFinderAddress {
      * high character if any characters are found.
      * @param bldg_high - Can either be all ints or a combination of characters and ints
      */
-    public void setBldg_high(String bldg_high) {
+    public void setBuildingHigh(String bldg_high) {
         if(bldg_high != null && !bldg_high.isEmpty()) {
             //set to a char array to cycle through to look for characters
             char[] temp = bldg_high.toCharArray();
@@ -249,9 +249,9 @@ public class StreetFinderAddress {
             this.setDigitsAndCharacters(temp);
             //Check to make sure that there were digits
             if(!digits.isEmpty())
-                this.bldg_high = digits;
+                this.buildingHigh = digits;
             //set the building low character. A check for empty is within that method
-            this.setBldg_high_char(characters);
+            this.setBuildingHighChar(characters);
         }
     }
 
@@ -271,7 +271,6 @@ public class StreetFinderAddress {
      */
     public void setTown(String town) {
         if(!town.isEmpty()) {
-            //trim any possible extra whitespace
             this.town = town.trim();
         }
     }
@@ -472,20 +471,20 @@ public class StreetFinderAddress {
 
     /**
      * Sets the bldg_low_char
-     * @param bldg_low_char
+     * @param buildingLowChar
      */
-    public void setBldg_low_char(String bldg_low_char) {
-        if(!bldg_low_char.isEmpty())
-            this.bldg_low_char = bldg_low_char;
+    public void setBuildingLowChar(String buildingLowChar) {
+        if(!buildingLowChar.isEmpty())
+            this.buildingLowChar = buildingLowChar;
     }
 
     /**
      * Sets the bldg_high_char
-     * @param bldg_high_char
+     * @param buildingHighChar
      */
-    public void setBldg_high_char(String bldg_high_char) {
-        if(!bldg_high_char.isEmpty())
-            this.bldg_high_char = bldg_high_char;
+    public void setBuildingHighChar(String buildingHighChar) {
+        if(!buildingHighChar.isEmpty())
+            this.buildingHighChar = buildingHighChar;
     }
 
     /**
@@ -537,13 +536,13 @@ public class StreetFinderAddress {
      * @param temp
      */
     private void setDigitsAndCharacters(char[] temp) {
-        for(int i = 0; i < temp.length; i++) {
+        for (char c : temp) {
             //if its a digit then added to digits String
-            if(Character.isDigit(temp[i])) {
-                digits += temp[i];
+            if (Character.isDigit(c)) {
+                digits += c;
                 //if its a character then add to character String
-            } else if(Character.isLetter(temp[i])) {
-                characters += temp[i];
+            } else if (Character.isLetter(c)) {
+                characters += c;
             }
         }
     }
@@ -553,19 +552,6 @@ public class StreetFinderAddress {
             return false;
         }
         return pattern.matcher(strNum).matches();
-    }
-
-
-    public String getPostDirection() {
-        return postDirection;
-    }
-
-    public String getZip() {
-        return zip;
-    }
-
-    public String getBldg_low() {
-        return bldg_low;
     }
 
     public String getTown() {
