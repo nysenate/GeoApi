@@ -1,28 +1,18 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.model.district.DistrictType;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Scanner;
 
 /**
  * Parses Schohaire County.txt file
  * Looks for street name, town, low, high, range type, sch, townCode, vill
  */
 public class SchoharieParser extends NTSParser {
-    private String file;
-
-    /**
-     * Calls the super constructor to setup tsv file
-     *
-     * @param file
-     * @throws IOException
-     */
     public SchoharieParser(String file) throws IOException {
         super(file);
-        this.file = file;
     }
 
     /**
@@ -63,9 +53,9 @@ public class SchoharieParser extends NTSParser {
                 getVillage(splitLine[11], streetFinderAddress);    //splitLine[11] Village
                 //splitLine[12] fire    USELESS Not used in the 2018 file
 
-                if (!streetFinderAddress.getSenateDistrict().equals("\\N")
-                        && !streetFinderAddress.getSenateDistrict().isEmpty()
-                        && !streetFinderAddress.getBldg_parity().equals("\\N")) {
+
+                if (streetFinderAddress.hasSenateDistrict() &&
+                        streetFinderAddress.hasBuildingParity()) {
                     super.writeToFile(streetFinderAddress);
                 }
             }
@@ -87,8 +77,8 @@ public class SchoharieParser extends NTSParser {
         String[] splitData = data.split("-");
 
         if (splitData.length == 3) {
-            streetFinderAddress.setBldg_low(splitData[0].trim());
-            streetFinderAddress.setBldg_high(splitData[1].trim());
+            streetFinderAddress.setBuilding(true, false, splitData[0].trim());
+            streetFinderAddress.setBuilding(false, false, splitData[1].trim());
 
             if(splitData[2].trim().equals("O")) {
                 streetFinderAddress.setBldg_parity("ODDS");
@@ -114,19 +104,19 @@ public class SchoharieParser extends NTSParser {
 
     private void getCong(String data, StreetFinderAddress streetFinderAddress) {
         if (!data.equalsIgnoreCase("Cong")) {
-            streetFinderAddress.setCong(data);
+            streetFinderAddress.put(DistrictType.CONGRESSIONAL, data);
         }
     }
 
     private void getSen(String data, StreetFinderAddress streetFinderAddress) {
         if (!data.equalsIgnoreCase("Sen")) {
-            streetFinderAddress.setSen(data);
+            streetFinderAddress.put(DistrictType.SENATE, data);
         }
     }
 
     private void getAsm(String data, StreetFinderAddress streetFinderAddress) {
         if (!data.equalsIgnoreCase("Asm")) {
-            streetFinderAddress.setAsm(data);
+            streetFinderAddress.put(DistrictType.ASSEMBLY, data);
         }
     }
 
@@ -138,7 +128,7 @@ public class SchoharieParser extends NTSParser {
 
     private void getVillage(String data, StreetFinderAddress streetFinderAddress) {
         if (!data.equalsIgnoreCase("Village")) {
-            streetFinderAddress.setVill(data);
+            streetFinderAddress.put(DistrictType.VILLAGE, data);
         }
     }
 }

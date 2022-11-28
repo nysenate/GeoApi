@@ -1,6 +1,8 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.model.district.DistrictType;
+
 import java.io.IOException;
 
 /**
@@ -30,51 +32,51 @@ public class SuffolkParser extends NTSParser{
         super.readFile();
     }
 
-    @Override
     /**
      * Parses the line by calling each helper method necessary for each line
      * @param line
      */
+    @Override
     protected void parseLine(String line) {
-        StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
+        var streetFinderAddress = new StreetFinderAddress();
 
         //split the line by tabs
         String[] splitLine = line.split("\t");
 
-        getZip(splitLine, StreetFinderAddress);               //splitLine[0]
+        getZip(splitLine, streetFinderAddress);               //splitLine[0]
         //skip zip +4                                   //splitLine[1]
-        getPreDirection(splitLine, StreetFinderAddress);      //splitLine[2]
+        getPreDirection(splitLine, streetFinderAddress);      //splitLine[2]
         //getting suffix first because the suffix might be in with the street name
         //by checking the suffix category first you can see if that has to be looked for or not
-        getStreetSuffix(splitLine, StreetFinderAddress);      //splitLine[4]
-        getStreetName(splitLine, StreetFinderAddress);        //splitLine[3]
+        getStreetSuffix(splitLine, streetFinderAddress);      //splitLine[4]
+        getStreetName(splitLine, streetFinderAddress);        //splitLine[3]
         //check for special case where street is given as "DO NOT USE MAIL BOX
         //if it is the special case then just skip
-        if (StreetFinderAddress.getStreet().contains("DO NOT USE MAIL"))
+        if (streetFinderAddress.getStreet().contains("DO NOT USE MAIL"))
             return;
-        getPostDirection(splitLine, StreetFinderAddress);     //splitLine[5]
-        getLow(splitLine, StreetFinderAddress);               //splitLine[6]
-        getHigh(splitLine, StreetFinderAddress);              //splitLine[7]
-        getRangeType(splitLine, StreetFinderAddress);         //splitLine[8]
+        getPostDirection(splitLine, streetFinderAddress);     //splitLine[5]
+        getLow(splitLine, streetFinderAddress);               //splitLine[6]
+        getHigh(splitLine, streetFinderAddress);              //splitLine[7]
+        getRangeType(splitLine, streetFinderAddress);         //splitLine[8]
         //skip over secondary name                      //splitLine[9]
-        getSecondaryLow(splitLine, StreetFinderAddress);      //splitLine[10]
-        getSecondaryHigh(splitLine, StreetFinderAddress);     //splitLine[11]
-        getSecondaryRangeType(splitLine, StreetFinderAddress);//splitLine[12]
-        getTown(splitLine, StreetFinderAddress);              //splitLine[13]
-        getED(splitLine, StreetFinderAddress);              //splitLine[14]
-        getCong(splitLine, StreetFinderAddress);              //splitLine[15]
-        getSen(splitLine, StreetFinderAddress);               //splitLine[16]
-        getAsm(splitLine, StreetFinderAddress);               //splitLine[17]
-        getCleg(splitLine, StreetFinderAddress);              //splitLine[18]
+        getSecondaryLow(splitLine, streetFinderAddress);      //splitLine[10]
+        getSecondaryHigh(splitLine, streetFinderAddress);     //splitLine[11]
+        getSecondaryRangeType(splitLine, streetFinderAddress);//splitLine[12]
+        getTown(splitLine, streetFinderAddress);              //splitLine[13]
+        getED(splitLine, streetFinderAddress);              //splitLine[14]
+        getCong(splitLine, streetFinderAddress);              //splitLine[15]
+        getSen(splitLine, streetFinderAddress);               //splitLine[16]
+        getAsm(splitLine, streetFinderAddress);               //splitLine[17]
+        getCleg(splitLine, streetFinderAddress);              //splitLine[18]
         //Next categories don't always exist so checking the size of the line
         if (splitLine.length > 19) {
-            getDist(splitLine, StreetFinderAddress);          //splitLine[19]
+            getDist(splitLine, streetFinderAddress);          //splitLine[19]
             if (splitLine.length > 20)
-                getFire(splitLine, StreetFinderAddress);          //splitLine[20]
+                getFire(splitLine, streetFinderAddress);          //splitLine[20]
             if (splitLine.length > 21)
-                getVill(splitLine, StreetFinderAddress);      //splitLine[21]
+                getVill(splitLine, streetFinderAddress);      //splitLine[21]
         }
-        super.writeToFile(StreetFinderAddress);
+        super.writeToFile(streetFinderAddress);
     }
 
     /**
@@ -98,11 +100,11 @@ public class SuffolkParser extends NTSParser{
     /**
      * Gets the street Name and checks for a street suffix if StreetSuffix is empty
      * @param splitLine
-     * @param StreetFinderAddress
+     * @param streetFinderAddress
      */
-    private void getStreetName(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
+    private void getStreetName(String[] splitLine, StreetFinderAddress streetFinderAddress) {
         //if street Suffix doesn't already exist in streetFinderAddress
-        if(StreetFinderAddress.getStreetSuffix().equals("")) {
+        if(streetFinderAddress.getStreetSuffix().equals("")) {
             //check if the suffix is in the street name
             //assume that it would be the last thing in the street name
             //split by a single space
@@ -112,16 +114,16 @@ public class SuffolkParser extends NTSParser{
                 StringBuilder stringBuilder = new StringBuilder();
                 //add everything except the last index to stringBuilder (Street Name)
                 for(int i = 0; i < string.length -1; i++) {
-                    stringBuilder.append(string[i] + " ");
+                    stringBuilder.append(string[i]).append(" ");
                 }
-                StreetFinderAddress.setStreet(stringBuilder.toString().trim());
-                StreetFinderAddress.setStreetSuffix(string[string.length -1]);
+                streetFinderAddress.setStreet(stringBuilder.toString().trim());
+                streetFinderAddress.setStreetSuffix(string[string.length -1]);
             } else {
                 //no suffix
-                StreetFinderAddress.setStreet(string[0]);
+                streetFinderAddress.setStreet(string[0]);
             }
         } else {
-            StreetFinderAddress.setStreet(splitLine[3]);
+            streetFinderAddress.setStreet(splitLine[3]);
         }
     }
 
@@ -149,7 +151,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getLow(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBldg_low(splitLine[6]);
+        StreetFinderAddress.setBuilding(true, false, splitLine[6]);
     }
 
     /**
@@ -158,7 +160,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getHigh(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBldg_high(splitLine[7]);
+        StreetFinderAddress.setBuilding(false, false, splitLine[7]);
     }
 
     /**
@@ -182,7 +184,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getSecondaryLow(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setSecondaryBldg_low(splitLine[10]);
+        StreetFinderAddress.setBuilding(true, true, splitLine[10]);
     }
 
     /**
@@ -191,7 +193,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getSecondaryHigh(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setSecondaryBldg_high(splitLine[11]);
+        StreetFinderAddress.setBuilding(false, true, splitLine[11]);
     }
 
     /**
@@ -233,7 +235,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getCong(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setCong(splitLine[15]);
+        StreetFinderAddress.put(DistrictType.CONGRESSIONAL, splitLine[15]);
     }
 
     /**
@@ -242,7 +244,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getSen(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setSen(splitLine[16]);
+        StreetFinderAddress.put(DistrictType.SENATE, splitLine[16]);
     }
 
     /**
@@ -251,7 +253,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getAsm(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setAsm(splitLine[17]);
+        StreetFinderAddress.put(DistrictType.ASSEMBLY, splitLine[17]);
     }
 
     /**
@@ -260,7 +262,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getCleg(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setCle(splitLine[18]);
+        StreetFinderAddress.put(DistrictType.CLEG, splitLine[18]);
     }
 
     /**
@@ -278,7 +280,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getFire(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setFire(splitLine[20]);
+        StreetFinderAddress.put(DistrictType.FIRE, splitLine[20]);
     }
 
     /**
@@ -287,6 +289,6 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getVill(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setVill(splitLine[21]);
+        StreetFinderAddress.put(DistrictType.VILLAGE, splitLine[21]);
     }
 }

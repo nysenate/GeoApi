@@ -1,6 +1,8 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.model.district.DistrictType;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -145,7 +147,7 @@ public class WestchesterParser extends NTSParser {
      * @param StreetFinderAddress
      */
     private void getLow(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBldg_low(splitLine[6]);
+        StreetFinderAddress.setBuilding(true, false, splitLine[6]);
     }
 
     /**
@@ -154,7 +156,7 @@ public class WestchesterParser extends NTSParser {
      * @param StreetFinderAddress
      */
     private void getHigh(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBldg_high(splitLine[7]);
+        StreetFinderAddress.setBuilding(false, false, splitLine[7]);
     }
 
     /**
@@ -188,7 +190,7 @@ public class WestchesterParser extends NTSParser {
      */
     private void getCong(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
         String[] string = splitLine[10].split("-");
-        StreetFinderAddress.setCong(string[1]);
+        StreetFinderAddress.put(DistrictType.CONGRESSIONAL, string[1]);
     }
 
     /**
@@ -198,7 +200,7 @@ public class WestchesterParser extends NTSParser {
      */
     private void getSen(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
         String[] string = splitLine[11].split("-");
-        StreetFinderAddress.setSen(string[1]);
+        StreetFinderAddress.put(DistrictType.SENATE, string[1]);
     }
 
     /**
@@ -208,7 +210,7 @@ public class WestchesterParser extends NTSParser {
      */
     private void getAsm(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
         String[] string = splitLine[12].split("-");
-        StreetFinderAddress.setAsm(string[1]);
+        StreetFinderAddress.put(DistrictType.ASSEMBLY, string[1]);
     }
 
     /**
@@ -218,7 +220,7 @@ public class WestchesterParser extends NTSParser {
      */
     private void getCle(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
         String[] string = splitLine[13].split("-");
-        StreetFinderAddress.setCle(string[1]);
+        StreetFinderAddress.put(DistrictType.CLEG, string[1]);
     }
 
 }

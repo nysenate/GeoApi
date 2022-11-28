@@ -1,6 +1,8 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.model.district.DistrictType;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -177,8 +179,8 @@ public class MontgomeryParser extends NTSParser {
             }
         }
         //trim any extra whitespaces
-        StreetFinderAddress.setBldg_low(low.toString().trim());
-        StreetFinderAddress.setBldg_high(high.toString().trim());
+        StreetFinderAddress.setBuilding(true, false, low.toString().trim());
+        StreetFinderAddress.setBuilding(false, false, high.toString().trim());
     }
 
     /**
@@ -242,7 +244,7 @@ public class MontgomeryParser extends NTSParser {
             StreetFinderAddress.setTown(TownWardDistrict[0].trim());
             //make into array of string to skip over word "District"
             String[] district = TownWardDistrict[1].trim().split(" ");
-            StreetFinderAddress.setWard(district[1]);
+            StreetFinderAddress.put(DistrictType.WARD, district[1]);
 
         } else {
             //otherwise it must have all 3
@@ -250,11 +252,12 @@ public class MontgomeryParser extends NTSParser {
 
             //Make into array of Stirngs to skip over word "Ward
             String[] ward = TownWardDistrict[1].trim().split(" ");
-            StreetFinderAddress.setWard(ward[1]);
+            StreetFinderAddress.put(DistrictType.WARD, ward[1]);
 
             //make into array of stirng to skip over word "District"
             String[] district = TownWardDistrict[2].trim().split(" ");
-            StreetFinderAddress.setWard(district[1]);
+            // TODO: I think this is supposed to set the district?
+            StreetFinderAddress.put(DistrictType.WARD, district[1]);
         }
     }
 }

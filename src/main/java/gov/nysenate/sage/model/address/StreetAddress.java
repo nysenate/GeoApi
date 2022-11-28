@@ -45,26 +45,15 @@ public class StreetAddress
     public Address toAddress()
     {
         String addr1 = "";
-        if (getBldgNum() != 0) addr1 += Integer.toString(getBldgNum()) + " ";
+        if (getBldgNum() != 0) addr1 += getBldgNum() + " ";
         if (!getPreDir().isEmpty()) addr1 += getPreDir() + " ";
         if (!getStreet().isEmpty()) addr1 += getStreet() + " ";
         if (!getPostDir().isEmpty()) addr1 += getPostDir() + " ";
         if (isPoBoxAddress()) addr1 += "PO Box: " + getPoBox();
 
-        String addr2 = "";
-        if (!getInternal().isEmpty()){
-            addr2 = getInternal();
-        }
-        else if (!getBldgChar().isEmpty()){
-            addr2 = getBldgChar();
-        }
-
-        String city = getLocation();
-        String state = getState();
-        String zip5 = getZip5();
-        String zip4 = getZip4();
-
-        return new Address(addr1.trim(), addr2.trim(), city.trim(), state.trim(), zip5.trim(), zip4.trim());
+        String addr2 = getInternal().isEmpty() ? getBldgChar() : getInternal();
+        return new Address(addr1.trim(), addr2.trim(), getLocation().trim(), getState().trim(),
+                getZip5().trim(), getZip4().trim());
     }
 
     public boolean equals(StreetAddress streetAddress) { //(str1 == null ? str2 == null : str1.equals(str2))

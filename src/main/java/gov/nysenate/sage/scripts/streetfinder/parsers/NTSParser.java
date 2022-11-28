@@ -1,28 +1,40 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.AddressDictionary;
+import gov.nysenate.services.model.District;
+
 import java.io.*;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+
+import static gov.nysenate.sage.model.district.DistrictType.*;
+import static gov.nysenate.sage.model.district.DistrictType.CITY;
 
 /**
  * Parses files in the base NTS format (see Albany, Broome Counties as example)
  * Output is a tsv file
  */
 public class NTSParser {
+    private static final Map<DistrictType, Pattern> names = new EnumMap<>(DistrictType.class);
+    static {
+        names.put(SCHOOL, Pattern.compile("Schl"));
+        names.put(VILLAGE, Pattern.compile("Vill"));
+        names.put(CLEG, Pattern.compile("Cleg|CLE|CLEG|Leg|LEG"));
+        names.put(FIRE, Pattern.compile("Fire|FD|FIRE"));
+        names.put(CITY_COUNCIL, Pattern.compile("CC"));
+        names.put(CITY, Pattern.compile("City"));
+    }
 
+    private Map<DistrictType, Integer> indices;
     //These are used to save the variables when the line is a continuation of an above street
-    private StreetFinderAddress StreetFinderAddressStorage = new StreetFinderAddress();
+    private StreetFinderAddress streetFinderAddressStorage = new StreetFinderAddress();
     protected final String file;
     private String overloadStreetSuf;
-    //storage for column locations
-    private int schIndex;
-    private int villIndex;
-    private int cleIndex;
-    private int fireIndex;
-    private int ccIndex;
-    private int cityIndex;
     //tsv file writers
     private final FileWriter fileWriter;
     private final PrintWriter outputWriter;
@@ -107,17 +119,15 @@ public class NTSParser {
         String[] splitLine = line.split("\\s+");
 
         int zipIndex = 0;
-        int index = 0;
-
         //check if this is a line w/o street name (meaning street name came before and is stored in StreetFinderAddressStorage)
         //you can tell this by a blank first character
 
         if (line.contains("E. MAIN ST")) {
-            extractDataFromLine(splitLine, zipIndex, index, line, specialCase, streetFinderAddress);
+            extractDataFromLine(splitLine, zipIndex, line, specialCase, streetFinderAddress);
         }
         else if (line.charAt(0) == ' ') {
             //check that StreetFinderAddressStorage isn't blank. If it is then this is probably just a blank line so just return
-            if (StreetFinderAddressStorage.getStreet().equals("")) {
+            if (streetFinderAddressStorage.getStreet().equals("")) {
                 return;
             }
             //for some reason splitLine[0] is whitespace and the zip is at splitLine[1]
@@ -125,9 +135,9 @@ public class NTSParser {
                 streetFinderAddress.setZip(splitLine[1]);
             }
             //set other fields using StreetFinderAddressStorage
-            streetFinderAddress.setPreDirection(StreetFinderAddressStorage.getPreDirection().trim());
-            streetFinderAddress.setStreet(StreetFinderAddressStorage.getStreet());
-            streetFinderAddress.setStreetSuffix((StreetFinderAddressStorage.getStreetSuffix()));
+            streetFinderAddress.setPreDirection(streetFinderAddressStorage.getPreDirection().trim());
+            streetFinderAddress.setStreet(streetFinderAddressStorage.getStreet());
+            streetFinderAddress.setStreetSuffix((streetFinderAddressStorage.getStreetSuffix()));
             //call parseAfterZip
             parseAfterZip(splitLine, specialCase, 2, line, streetFinderAddress);
 
@@ -143,11 +153,11 @@ public class NTSParser {
             parseAfterZip(splitLine, specialCase, 2, line, streetFinderAddress);
 
         } else {
-            extractDataFromLine(splitLine, zipIndex, index, line, specialCase, streetFinderAddress);
+            extractDataFromLine(splitLine, zipIndex, line, specialCase, streetFinderAddress);
         }
     }
 
-    private void extractDataFromLine(String[] splitLine, int zipIndex, int index, String line, boolean specialCase,
+    private void extractDataFromLine(String[] splitLine, int zipIndex, String line, boolean specialCase,
                                      StreetFinderAddress streetFinderAddress) {
         boolean case1239 = false;
         //first find array index of zip
@@ -225,7 +235,7 @@ public class NTSParser {
         streetName = streetName.replace("E.","E");
         streetFinderAddress.setStreet(streetName.trim());
         //increment index for parseAfterZip call
-        index = zipIndex + 1;
+        int index = zipIndex + 1;
         //call parseAfterZip
         parseAfterZip(splitLine, specialCase, index, line, streetFinderAddress);
     }
@@ -237,135 +247,88 @@ public class NTSParser {
      * @param specialCase
      * @param index
      */
-    public void parseAfterZip(String[] splitLine, boolean specialCase, int index, String line, StreetFinderAddress StreetFinderAddress) {
-
-        //get the low range from splitLine
+    public void parseAfterZip(String[] splitLine, boolean specialCase, int index, String line, StreetFinderAddress streetFinderAddress) {
         String low = splitLine[index];
-
         //low could possibly be something like "1-" or just "1" and the "-" is its own index
         if (low.contains("-")) {
             //trim off "-"
-            low = low.substring(0, low.length() - 1);
+            low = low.replaceFirst("-", "");
         } else {
-            //otherwise skip over the "-"
             index++;
         }
-        StreetFinderAddress.setBuildingLow(low);
+        streetFinderAddress.setBuilding(true, false, low);
         index++;
 
-        //get the high range
-        StreetFinderAddress.setBuildingHigh(splitLine[index]);
-        index++;
+        streetFinderAddress.setBuilding(false, false, splitLine[index++]);
+        index = setBldgParity(splitLine[index], index, streetFinderAddress) + 1;
 
-        //get the range type by calling setBldgParity which could change the index
-        //And increase index to next value
-        index = setBldgParity(splitLine, index, StreetFinderAddress);
-        index++;
+        if (index >= splitLine.length) {
+            return;
+        }
 
-        //check that there is still more data in the line
+        //now get townName which could possibly be multiple words (indexes)
+        //find townCodeIndex same way as zipCodeIndex to use to tell when the town name ends
+        int townCodeIndex = 0;
+        for (int i = index; i < splitLine.length; i++) {
+            if (splitLine[i].length() > 3) {
+                continue;
+            }
+            if (splitLine[i].matches("[A-Z0-9]+") && !splitLine[i].matches("LEE|AVA|ANN") &&
+                    splitLine[i + 1].matches("\\d+")) {
+                townCodeIndex = i;
+                break;
+            }
+        }
+
+        //now get the town Name going from splitLine[index to townCodeIndex - 1]
+        String town = "";
+        for (int i = index; i < townCodeIndex; i++) {
+            town += splitLine[i] + " ";
+        }
+        streetFinderAddress.setTown(town.trim().toUpperCase()
+                .replaceAll("CITY OF", "").replaceAll("TOWN OF", ""));
+
+        //set the townCode
+        streetFinderAddress.setTownCode(splitLine[townCodeIndex]);
+        //move to the index after townCode
+        index = townCodeIndex + 1;
+
+        //check for Ward, Dist / ED, Cong, Sen, and Asm if not at the end of splitLine
+        //These will all go in that order if they exist
         if (index < splitLine.length) {
-
-            //now get townName which could possibly be multiple words (indexes)
-            //find townCodeIndex same way as zipCodeIndex to use to tell when the town name ends
-            int townCodeIndex = 0;
-            for (int i = index; i < splitLine.length; i++) {
-                //townCode could be 3 digits or 3 uppercase letters
-                if (splitLine[i].length() == 3) {
-                    //Also check for 3 special cases where the town ends in a 3 letter word
-                    if (splitLine[i].matches("\\d+") || splitLine[i].matches("^[A-Z]{3}") && !splitLine[i].equals("LEE")
-                            && !splitLine[i].equals("AVA") && !splitLine[i].equals("ANN")) {
-                        //check that splitLine[i + 1] is 3 digits
-                        //splitLine[i+1] is the ward code for all NTS files
-                        //prevents any confusion between townName and townCode that is letters
-                        if(splitLine[i +1].matches("\\d+")) {
-                            //set townCodeIndex
-                            townCodeIndex = i;
-                            break;
-                        }
-                    }
-                    //town code could also just be two letters
-                } else if (splitLine[i].length() == 2) {
-                    if (splitLine[i].matches("^[A-Z]{2}")) {
-                        //check that splitLine[i + 1] is 3 digits
-                        //splitLine[i+1] is the ward code for all NTS files
-                        //prevents any confusion between townName and townCode that is letters
-                        if(splitLine[i +1].matches("\\d+")) {
-                            //set townCodeIndex
-                            townCodeIndex = i;
-                            break;
-                        }
-                    }
-                    //A few files have townCodes of just 1 letter
-                } else if(splitLine[i].length() == 1) {
-                    if (splitLine[i].matches("^[A-Z]{1}")) {
-                        //check that splitLine[i + 1] is 3 digits
-                        //splitLine[i+1] is the ward code for all NTS files
-                        //prevents any confusion between townName and townCode that is letters
-                        if(splitLine[i +1].matches("\\d+")) {
-                            //set townCodeIndex
-                            townCodeIndex = i;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            //now get the town Name going from splitLine[index to townCodeIndex - 1]
-            String town = "";
-            for (int i = index; i < townCodeIndex; i++) {
-                town = town + splitLine[i] + " ";
-            }
-            StreetFinderAddress.setTown(town.trim().toUpperCase()
-                    .replaceAll("CITY OF", "").replaceAll("TOWN OF", ""));
-
-            //set the townCode
-            StreetFinderAddress.setTownCode(splitLine[townCodeIndex]);
-            //move to the index after townCode
-            index = townCodeIndex + 1;
-
-            //check for Ward, Dist / ED, Cong, Sen, and Asm if not at the end of splitLine
-            //These will all go in that order if they exist
+            streetFinderAddress.put(WARD, splitLine[index++]);
             if (index < splitLine.length) {
-                StreetFinderAddress.setWard(splitLine[index]);
-                index++;
+                streetFinderAddress.setED(splitLine[index++]);
 
                 if (index < splitLine.length) {
-                    StreetFinderAddress.setED(splitLine[index]);
-                    index++;
+                    streetFinderAddress.put(CONGRESSIONAL, splitLine[index++]);
+                }
 
-                    if (index < splitLine.length) {
-                        StreetFinderAddress.setCong(splitLine[index]);
-                        index++;
-                    }
+                if (index < splitLine.length) {
+                    streetFinderAddress.put(SENATE, splitLine[index++]);
+                }
 
-                    if (index < splitLine.length) {
-                        StreetFinderAddress.setSen(splitLine[index]);
-                        index++;
-                    }
-
-                    if (index < splitLine.length) {
-                        StreetFinderAddress.setAsm(splitLine[index]);
-                        index++;
-                    }
+                if (index < splitLine.length) {
+                    streetFinderAddress.put(ASSEMBLY, splitLine[index++]);
                 }
             }
-
-            //if the index is at the end then there is no more data and parsing is finished for the line
-            //otherwise call parseAfterAsm to finish parsing
-            if (index <= splitLine.length - 1) {
-                parseAfterAsm(line, StreetFinderAddress);
-            }
-
-            //for the special case the street suf is really part of the street name
-            //and overloadStreetSuf contains the real street Suffix
-            if (specialCase) {
-                StreetFinderAddress.setStreet(StreetFinderAddress.getStreet() + StreetFinderAddress.getStreetSuffix());
-                StreetFinderAddress.setStreetSuffix(overloadStreetSuf);
-            }
-
-            this.writeToFile(StreetFinderAddress);
-            StreetFinderAddressStorage = StreetFinderAddress;
         }
+
+        //if the index is at the end then there is no more data and parsing is finished for the line
+        //otherwise call parseAfterAsm to finish parsing
+        if (index <= splitLine.length - 1) {
+            parseAfterAsm(line, streetFinderAddress);
+        }
+
+        //for the special case the street suf is really part of the street name
+        //and overloadStreetSuf contains the real street Suffix
+        if (specialCase) {
+            streetFinderAddress.setStreet(streetFinderAddress.getStreet() + streetFinderAddress.getStreetSuffix());
+            streetFinderAddress.setStreetSuffix(overloadStreetSuf);
+        }
+
+        this.writeToFile(streetFinderAddress);
+        streetFinderAddressStorage = streetFinderAddress;
     }
 
     /**
@@ -373,214 +336,35 @@ public class NTSParser {
      * This does so by calling helper methods that use the Index fields as
      * the location to search for the info
      * @param line
-     * @param StreetFinderAddress - StreetFinderAddress to add info too
+     * @param streetFinderAddress - StreetFinderAddress to add info too
      */
-    protected void parseAfterAsm(String line, StreetFinderAddress StreetFinderAddress) {
-        getSch(line, StreetFinderAddress);
-        getVill(line, StreetFinderAddress);
-        getCle(line, StreetFinderAddress);
-        getFire(line, StreetFinderAddress);
-        getCC(line, StreetFinderAddress);
-        getCityCode(line, StreetFinderAddress);
+    protected void parseAfterAsm(String line, StreetFinderAddress streetFinderAddress) {
+        getPostAsmDistrict(SCHOOL, 1, 4, line).ifPresent(streetFinderAddress::setSch);
+        getPostAsmDistrict(VILLAGE, 3, 4, line).ifPresent(vill -> streetFinderAddress.put(VILLAGE, vill));
+        // TODO: checking the entire file here is insane
+        getPostAsmDistrict(CLEG, 2, file.contains("Greene") ? 6 : 4, line).ifPresent(cleg -> streetFinderAddress.put(CLEG, cleg));
+        getPostAsmDistrict(FIRE, line).ifPresent(fire -> streetFinderAddress.put(FIRE, fire));
+        getPostAsmDistrict(CITY_COUNCIL, line).ifPresent(cc -> streetFinderAddress.put(CITY_COUNCIL, cc));
+        getPostAsmDistrict(CITY, line).ifPresent(cityCode -> streetFinderAddress.put(CITY, cityCode));
     }
 
-    /**
-     * Checks the line for a sch code. Uses the SchIndex as the location
-     * to search for if the file has a sch column (schIndex > 0)
-     * If found then it is added to the StreetFinderAddress
-     * @param line
-     * @param StreetFinderAddress
-     */
-    private void getSch(String line, StreetFinderAddress StreetFinderAddress) {
-
-        if (schIndex > 0) {
-            //check that the schIndex is not past the end of the line for this line
-            if (schIndex >= line.length()) {
-                return;
-            }
-            StringBuilder sch = new StringBuilder();
-            //check from schIndex - 1 to schIndex + 3
-            for (int i = -1; i < 4; i++) {
-                //if its not whitespace then add to StringBuilder
-                if (!Character.isWhitespace(line.charAt(schIndex + i))) {
-                    sch.append(line.charAt(i + schIndex));
-                }
-                //check that the next index is not past the end of the line
-                if (i + schIndex + 1 >= line.length()) {
-                    //if it is then save the sch and return
-                    StreetFinderAddress.setSch(sch.toString());
-                    return;
-                }
-            }
-            StreetFinderAddress.setSch(sch.toString());
-        }
+    private Optional<String> getPostAsmDistrict(DistrictType type, String line) {
+        return getPostAsmDistrict(type, 2, 4, line);
     }
 
-    /**
-     * Checks the line for a vill code. Uses the villIndex as the location
-     * to search for if the file has a vill column (villIndex > 0)
-     * If found then it is added to the StreetFinderAddress
-     * @param line
-     * @param StreetFinderAddress
-     */
-    private void getVill(String line, StreetFinderAddress StreetFinderAddress) {
-
-        if (villIndex > 0) {
-            //check that the villIndex is not past the end of the line for this line
-            if (villIndex >= line.length()) {
-                return;
-            }
-            StringBuilder temp = new StringBuilder();
-            //check from villIndex - 3 to villIndex + 3
-            for (int i = -3; i < 4; i++) {
-                //if its not whitespace then add to StringBuilder
-                if (!Character.isWhitespace(line.charAt(villIndex + i))) {
-                    temp.append(line.charAt(i + villIndex));
-                }
-                //check that the next index is not past the end of the line
-                if (i + villIndex + 1 >= line.length()) {
-                    //if it is then save the vill and return
-                    StreetFinderAddress.setVill(temp.toString());
-                    return;
-                }
-            }
-            StreetFinderAddress.setVill(temp.toString());
+    private Optional<String> getPostAsmDistrict(DistrictType type, int bottomAdj, int topAdj, String line) {
+        // TODO: a match at 0 should be fine?
+        int index = indices.getOrDefault(type, -1);
+        if (index <= 0) {
+            return Optional.empty();
         }
-    }
-
-    /**
-     * Checks the line for a cle code. Uses the cleIndex as the location
-     * to search for if the file has a cle column (cleIndex > 0)
-     * If found then it is added to the StreetFinderAddress
-     * @param line
-     * @param StreetFinderAddress
-     */
-    private void getCle(String line, StreetFinderAddress StreetFinderAddress) {
-
-        if (cleIndex > 0) {
-            int max;
-            //check for Greene county
-            if (file.contains("Greene")) {
-                //Greene has a special case cleg that requires a larger search area
-                max = 6;
-            } else {
-                max = 4;
+        var district = new StringBuilder();
+        for (int i = index - bottomAdj; i < index + topAdj && i < line.length(); i++) {
+            if (!Character.isWhitespace(line.charAt(i))) {
+                district.append(line.charAt(i));
             }
-            //check that the cleIndex is not past the end of the line for this line
-            if (cleIndex >= line.length()) {
-                return;
-            }
-            StringBuilder temp = new StringBuilder();
-            //check from cleIndex - 2 to cleIndex + (max -1)
-            for (int i = -2; i < max; i++) {
-                //if its not whitespace then add to StringBuilder
-                if (!Character.isWhitespace(line.charAt(cleIndex + i))) {
-                    temp.append(line.charAt(i + cleIndex));
-                }
-                //check that the next index is not past the end of the line
-                if (i + cleIndex + 1 >= line.length()) {
-                    //if it is then save the cle and return
-                    StreetFinderAddress.setCle(temp.toString());
-                    return;
-                }
-            }
-            StreetFinderAddress.setCle(temp.toString());
         }
-    }
-
-    /**
-     * Checks the line for a fire code. Uses the fireIndex as the location
-     * to search for if the file has a fire column (FireIndex > 0)
-     * If found then it is added to the StreetFinderAddress
-     * @param line
-     * @param StreetFinderAddress
-     */
-    private void getFire(String line, StreetFinderAddress StreetFinderAddress) {
-
-        if (fireIndex > 0) {
-            //check that the fireIndex is not past the end of the line for this line
-            if (fireIndex >= line.length()) {
-                return;
-            }
-            StringBuilder temp = new StringBuilder();
-            //check from fireIndex - 2 to fireIndex + 3
-            for (int i = -2; i < 4; i++) {
-                //if its not whitespace then add to StringBuilder
-                if (!Character.isWhitespace(line.charAt(fireIndex + i))) {
-                    temp.append(line.charAt(i + fireIndex));
-                }
-                //check that the next index is not past the end of the line
-                if (i + fireIndex + 1 >= line.length()) {
-                    //if it is then save the fire and return
-                    StreetFinderAddress.setFire(temp.toString());
-                    return;
-                }
-            }
-            StreetFinderAddress.setFire(temp.toString());
-        }
-    }
-
-    /**
-     * Checks the line for a cc code. Uses the ccIndex as the location
-     * to search for if the file has a cc column (ccIndex > 0)
-     * If found then it is added to the StreetFinderAddress
-     * @param line
-     * @param StreetFinderAddress
-     */
-    private void getCC(String line, StreetFinderAddress StreetFinderAddress) {
-
-        if (ccIndex > 0) {
-            //check that the ccIndex is not past the end of the line for this line
-            if (ccIndex >= line.length()) {
-                return;
-            }
-            StringBuilder temp = new StringBuilder();
-            //check from ccIndex - 2 to ccIndex + 3
-            for (int i = -2; i < 4; i++) {
-                if (!Character.isWhitespace(line.charAt(ccIndex + i))) {
-                    temp.append(line.charAt(i + ccIndex));
-                }
-                //check that the next index is not past the end of the line
-                if (i + ccIndex + 1 >= line.length()) {
-                    //if it is then save the cc and return
-                    StreetFinderAddress.setCC(temp.toString());
-                    return;
-                }
-            }
-            StreetFinderAddress.setCC(temp.toString());
-        }
-    }
-
-    /**
-     * Checks the line for a city code. Uses the cityIndex as the location
-     * to search for if the file has a city column (cityIndex > 0)
-     * If found then it is added to the StreetFinderAddress
-     * @param line
-     * @param StreetFinderAddress
-     */
-    private void getCityCode(String line, StreetFinderAddress StreetFinderAddress) {
-
-        if (cityIndex > 0) {
-            //check that the cityIndex is not past the end of the line for this line
-            if (cityIndex >= line.length()) {
-                return;
-            }
-            StringBuilder temp = new StringBuilder();
-            //check from cityIndex - 2 to cityIndex + 3
-            //the data can be a few spaces away from the column head
-            for (int i = -2; i < 4; i++) {
-                if (!Character.isWhitespace(line.charAt(cityIndex + i))) {
-                    temp.append(line.charAt(i + cityIndex));
-                }
-                //check that the next index is not past the end of the line
-                if (i + cityIndex + 1 >= line.length()) {
-                    //if it is then save the city and return
-                    StreetFinderAddress.setCityCode(temp.toString());
-                    return;
-                }
-            }
-            StreetFinderAddress.setCityCode(temp.toString());
-        }
+        return Optional.of(district.toString());
     }
 
     /**
@@ -619,30 +403,27 @@ public class NTSParser {
      * @param currentLine - must be a column header line with column titles
      */
     protected void setIndices(String currentLine) {
-        schIndex = currentLine.indexOf("Schl");
-        villIndex = currentLine.indexOf("Vill");
-        var matcher = Pattern.compile("Cleg|CLE|CLEG|Leg|LEG").matcher(currentLine);
-        cleIndex = matcher.find() ? matcher.start() : -1;
-        matcher = Pattern.compile("Fire|FD|FIRE").matcher(currentLine);
-        fireIndex = matcher.find() ? matcher.start() : -1;
-        ccIndex = currentLine.indexOf("CC");
-        cityIndex = currentLine.indexOf("City");
-
+        indices = new EnumMap<>(DistrictType.class);
+        for (var entry : names.entrySet()) {
+            var matcher = entry.getValue().matcher(currentLine);
+            if (matcher.find()) {
+                indices.put(entry.getKey(), matcher.start());
+            }
+        }
     }
 
     /**
-     * Gets the range type ans stores in streetFinderAddress. The index must the index where the range type occurs in splitLine
+     * Gets the range type and stores in streetFinderAddress. The index must the index where the range type occurs in splitLine
      * Could change the index for certain cases to skip over the word "Inclusive" So the
      * updated index is returned
-     * @param splitLine
+     * @param parity - indicated parity of addresses
      * @param index - updated index
      * @return
      */
-    protected int setBldgParity(String[] splitLine, int index, StreetFinderAddress streetFinderAddress) {
+    protected int setBldgParity(String parity, int index, StreetFinderAddress streetFinderAddress) {
         // Could be "Evens Inclusive" "Odds Inclusive" or just "Inclusive"
-        if (splitLine[index].matches("Odds|Evens")) {
-            streetFinderAddress.setBldg_parity(splitLine[index].toUpperCase());
-            //skip over "Inclusive"
+        if (parity.matches("Odds|Evens")) {
+            streetFinderAddress.setBldg_parity(parity.toUpperCase());
             return index + 1;
         }
         else {
@@ -658,17 +439,16 @@ public class NTSParser {
      * @throws IOException
      */
     protected void readFile() throws IOException {
-        Scanner scanner = new Scanner
-                (new File(file));
+        Scanner scanner = new Scanner(new File(file));
         String currentLine = scanner.nextLine();
         //While there is more lines in the file
-        while(scanner.hasNext()) {
+        while (scanner.hasNext()) {
             currentLine = scanner.nextLine();
             parseLine(currentLine);
         }
         //close all writers/readers
         scanner.close();
-        this.closeWriters();
+        closeWriters();
     }
 
     /**
@@ -677,6 +457,6 @@ public class NTSParser {
      * @param line
      */
     protected void parseLine(String line) {
-        this.parseLine(line, false);
+        parseLine(line, false);
     }
 }

@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -108,7 +109,7 @@ public class WyomingParser extends NTSParser{
     }
 
     private void getWard(String ward, StreetFinderAddress streetFinderAddress) {
-        streetFinderAddress.setWard(ward);
+        streetFinderAddress.put(DistrictType.WARD, ward);
     }
 
     private void getED(String electionDistrict, StreetFinderAddress streetFinderAddress) {
@@ -166,7 +167,7 @@ public class WyomingParser extends NTSParser{
      * @param splitLine
      */
     private void getLowRange(String[] splitLine, StreetFinderAddress streetFinderAddress) {
-        streetFinderAddress.setBldg_low(splitLine[6]);
+        streetFinderAddress.setBuilding(true, false, splitLine[6]);
     }
 
     /**
@@ -175,7 +176,7 @@ public class WyomingParser extends NTSParser{
      * @param splitLine
      */
     private void getHighRange(String[] splitLine, StreetFinderAddress streetFinderAddress) {
-        streetFinderAddress.setBldg_high(splitLine[7]);
+        streetFinderAddress.setBuilding(false, false, splitLine[7]);
     }
 
     /**
@@ -209,7 +210,7 @@ public class WyomingParser extends NTSParser{
      */
     private void getCongongressional(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
         String cd = splitLine[12].substring(splitLine[12].length() - 2);
-        StreetFinderAddress.setCong(cd);
+        StreetFinderAddress.put(DistrictType.CONGRESSIONAL, cd);
     }
 
     /**
@@ -219,7 +220,7 @@ public class WyomingParser extends NTSParser{
      */
     private void getSenate(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
         String sd = splitLine[13].substring(splitLine[13].length() - 2);
-        StreetFinderAddress.setSen(sd);
+        StreetFinderAddress.put(DistrictType.SENATE, sd);
     }
 
     /**
@@ -229,6 +230,6 @@ public class WyomingParser extends NTSParser{
      */
     private void getAssembly(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
         String ad = splitLine[14].substring(splitLine[14].length() - 3);
-        StreetFinderAddress.setAsm(ad);
+        StreetFinderAddress.put(DistrictType.ASSEMBLY, ad);
     }
 }

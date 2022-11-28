@@ -1,8 +1,12 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.model.district.DistrictType;
+
 import java.io.*;
+import java.util.Arrays;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 /**
  * Parses files similar to Saratoga County. Uses very similar logic to NTSParser but is separated for
@@ -10,9 +14,8 @@ import java.util.Scanner;
  * Data segment
  */
 public class SaratogaParser extends NTSParser {
-
+    private final Pattern containsPattern = Pattern.compile("Ward ,|Segments {4}|r_strtdd|Ward Ward");
     private String overloadStreetSuf;
-    private String file;
 
     /**
      * Calls super method to set up tsv file
@@ -21,7 +24,6 @@ public class SaratogaParser extends NTSParser {
      */
     public SaratogaParser(String file) throws IOException {
         super(file);
-        this.file = file;
     }
 
     /**
@@ -46,8 +48,7 @@ public class SaratogaParser extends NTSParser {
                 if (currentLine.contains("TEAM SQL Version")) {
                     inData = false;
                 // check to see if this is a line to just skip over based on some keywords/phrases
-                } else if (currentLine.contains("Ward ,") || currentLine.contains("Segments    ")  || currentLine.contains("r_strtdd")
-                        || currentLine.contains("Ward Ward")) {
+                } else if (containsPattern.matcher(currentLine).find()) {;
                     currentLine = scanner.nextLine();
                 //Must be actual data otherwise
                 } else {
@@ -55,25 +56,20 @@ public class SaratogaParser extends NTSParser {
                     //the line is just the street suffix for the previous line
                     String nextLine = scanner.nextLine();
                     //with leading spaces a line with just the suffix should be less than about 16
-                    if(nextLine.length() < 16 && nextLine.length() > 1) {
+                    if (nextLine.length() < 16 && nextLine.length() > 1) {
                         //save the street Suffix
                         overloadStreetSuf = nextLine.trim();
                         parseLine(currentLine, true, town);
                         //then skip over the line with just the suffix
                         nextLine = scanner.nextLine();
-                        currentLine = nextLine;
                     } else {
-                        String[] size = currentLine.split("\\s+");
-                        //Some random lines in the file that are just a couple numbers ex. "         11"
-                        //skip those using the size of the line split by whitespace
-                        if(size.length < 3) {
-                            currentLine = nextLine;
-                        } else {
+                        int size = currentLine.split("\\s+").length;
+                        // Some random lines in the file that are just a couple numbers ex. "         11"
+                        if (size >= 3) {
                             parseLine(currentLine, false, town);
-                            //get next line for parsing
-                            currentLine = nextLine;
                         }
                     }
+                    currentLine = nextLine;
                 }
             } else {
                 //look for "Housing Range" to signal that data is starting
@@ -83,28 +79,24 @@ public class SaratogaParser extends NTSParser {
                     String[] getTown = currentLine.split("\\s+");
                     town = "";
                     //go through and check for town name with spaces ex. "Clifton Park"
-                    for(int i = 0; i < getTown.length; i++) {
+                    for (int i = 0; i < getTown.length; i++) {
                         //if we find Street and then Name then it is past the town Name
-                        if(getTown[i].equals("Street") && getTown[i+1].equals("Name")) {
+                        if (getTown[i].equals("Street") && getTown[i + 1].equals("Name")) {
                             break;
                         } else {
                             //otherwise add this to the town name
-                            town = town + getTown[i] + " ";
+                            town += getTown[i] + " ";
                         }
                     }
-                    //trim off extra whitespace on town
                     town = town.trim();
                     inData = true;
-                    //get the index locations
-                    super.getIndexes(currentLine);
+                    setIndices(currentLine);
                 }
-                //gets the next line
                 currentLine = scanner.nextLine();
             }
         }
-        //close writers/readers
         scanner.close();
-        super.closeWriters();
+        closeWriters();
     }
 
     /**
@@ -114,42 +106,21 @@ public class SaratogaParser extends NTSParser {
      * @param town
      */
     public void parseLine(String line, boolean specialCase, String town) {
-
-        //create new StreetFinderAddress object
-        StreetFinderAddress StreetFinderAddress = new StreetFinderAddress();
-        //set the town
-        StreetFinderAddress.setTown(town);
-
-        //split the line into an array by whitespace
+        StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
+        streetFinderAddress.setTown(town);
         String[] splitLine = line.split("\\s+");
-        int zipIndex = 0;
-        int index = 0;
-        //first find array index of zip
-        //skip first index because that must be street name
-        for (int i = 1; i < splitLine.length; i++) {
-            //zip must have 5 digits
-            if (splitLine[i].length() == 5) {
-                if (splitLine[i].matches("\\d+")) {
-                    zipIndex = i;
-                    break;
-                }
+        int zipIndex = 1;
+        // Skip first index because that must be street name
+        for (; zipIndex < splitLine.length; zipIndex++) {
+            if (splitLine[zipIndex].matches("\\d{5}")) {
+                break;
             }
         }
-
-        //now zip = splitLine[zipIndex]
-        //streetSuf = splitline[zipIndex -1]
-        //streetName = everything before zipIndex -1
-        StreetFinderAddress.setZip(splitLine[zipIndex]);
-        StreetFinderAddress.setStreetSuffix(splitLine[zipIndex -1]);
-        String streetName = "";
-        //concatenate into one string
-        for (int i = 0; i < zipIndex - 1; i++) {
-            streetName = streetName + splitLine[i] + " ";
-        }
-        StreetFinderAddress.setStreet(streetName.trim());
-        //increment index for parseAfterZip call
-        index = zipIndex + 1;
-        parseAfterZip(splitLine, specialCase, index, line, StreetFinderAddress);
+        streetFinderAddress.setZip(splitLine[zipIndex]);
+        streetFinderAddress.setStreetSuffix(splitLine[zipIndex - 1]);
+        String streetName = String.join(" ", Arrays.copyOfRange(splitLine, 0, zipIndex));
+        streetFinderAddress.setStreet(streetName.trim());
+        parseAfterZip(splitLine, specialCase, zipIndex + 1, line, streetFinderAddress);
     }
 
     /**
@@ -160,63 +131,41 @@ public class SaratogaParser extends NTSParser {
      * @param specialCase
      * @param index
      * @param line
-     * @param StreetFinderAddress
+     * @param streetFinderAddress
      */
     @Override
-     public void parseAfterZip(String[] splitLine, boolean specialCase, int index, String line, StreetFinderAddress StreetFinderAddress) {
-
+     public void parseAfterZip(String[] splitLine, boolean specialCase, int index, String line, StreetFinderAddress streetFinderAddress) {
         String low = splitLine[index];
         //low could possibly be something like "1-" or just "1" and the "-" is its own index
-        if(low.contains("-")) {
-            //trim off "-"
-            low = low.substring(0,low.length()-1);
+        if (low.contains("-")) {
+            low = low.replaceFirst("-", "");
         } else {
-            //otherwise skip over the "-"
             index++;
         }
 
-        StreetFinderAddress.setBldg_low(low);
-        index ++;
-
-        StreetFinderAddress.setBldg_high(splitLine[index]);
+        streetFinderAddress.setBuilding(true, false, low);
         index++;
-
+        streetFinderAddress.setBuilding(false, false, splitLine[index++]);
         //get the range type by calling setBldgParity which could change the index
-        index = super.setBldgParity(splitLine, index, StreetFinderAddress);
-        //increment to townCode location
-        index++;
+        index = setBldgParity(splitLine[index], index, streetFinderAddress) + 1;
 
-        StreetFinderAddress.setTownCode(splitLine[index]);
-        index++;
-
+        streetFinderAddress.setTownCode(splitLine[index++]);
 //        StreetFinderAddress.setWard(splitLine[index]);
         index++;
-
-        StreetFinderAddress.setED(splitLine[index]);
-        index++;
-
-        StreetFinderAddress.setCong(splitLine[index]);
-        index++;
-
-        StreetFinderAddress.setSen(splitLine[index]);
-        index++;
-
-        StreetFinderAddress.setAsm(splitLine[index]);
-        index++;
-
+        streetFinderAddress.setED(splitLine[index++]);
+        streetFinderAddress.put(DistrictType.CONGRESSIONAL, splitLine[index++]);
+        streetFinderAddress.put(DistrictType.SENATE, splitLine[index++]);
+        streetFinderAddress.put(DistrictType.ASSEMBLY, splitLine[index++]);
         //cant assume that there is any more data
         //if the index is at the end then there is no more data and parsing is finished for the line
-        if(index <= splitLine.length -1) {
-            super.parseAfterAsm(line, StreetFinderAddress);
+        if (index <= splitLine.length - 1) {
+            parseAfterAsm(line, streetFinderAddress);
         }
 
-        //for the special case the street suf is really part of the street name
-        //and the real suffix is overloadStreetSuf
-        if(specialCase) {
-            StreetFinderAddress.setStreet(StreetFinderAddress.getStreet() + StreetFinderAddress.getStreetSuffix());
-            StreetFinderAddress.setStreetSuffix(overloadStreetSuf);
+        if (specialCase) {
+            streetFinderAddress.setStreet(streetFinderAddress.getStreet() + streetFinderAddress.getStreetSuffix());
+            streetFinderAddress.setStreetSuffix(overloadStreetSuf);
         }
-
-        super.writeToFile(StreetFinderAddress);
+        writeToFile(streetFinderAddress);
     }
 }

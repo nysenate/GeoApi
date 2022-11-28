@@ -1,6 +1,8 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.model.district.DistrictType;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -106,7 +108,7 @@ public class EssexParser extends NTSParser {
      * @param StreetFinderAddress
      */
     private void getLow(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBldg_low(splitLine[3]);
+        StreetFinderAddress.setBuilding(true, false, splitLine[3]);
     }
 
     /**
@@ -115,7 +117,7 @@ public class EssexParser extends NTSParser {
      * @param StreetFinderAddress
      */
     private void getHigh(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBldg_high(splitLine[4]);
+        StreetFinderAddress.setBuilding(false, false, splitLine[4]);
     }
 
     /**
@@ -139,7 +141,7 @@ public class EssexParser extends NTSParser {
      * @param StreetFinderAddress
      */
    private void getAsm(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setAsm(splitLine[7]);
+       StreetFinderAddress.put(DistrictType.ASSEMBLY, splitLine[7]);
    }
 
     /**
@@ -148,7 +150,7 @@ public class EssexParser extends NTSParser {
      * @param StreetFinderAddress
      */
    private void getCong(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-       StreetFinderAddress.setCong(splitLine[8]);
+       StreetFinderAddress.put(DistrictType.CONGRESSIONAL, splitLine[8]);
    }
 
     /**
@@ -157,7 +159,7 @@ public class EssexParser extends NTSParser {
      * @param StreetFinderAddress
      */
    private void getSen(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setSen(splitLine[9]);
+       StreetFinderAddress.put(DistrictType.SENATE, splitLine[9]);
    }
 
     /**

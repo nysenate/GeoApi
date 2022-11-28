@@ -1,18 +1,20 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.model.district.DistrictType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
 // TODO: what are MC and CO?
+// TODO: really NYC columns
 public enum Column {
-    FROM((streetFinderAddress, s) -> streetFinderAddress.setBuildingLow(StreetFinderAddress.cleanBuilding(s))),
-    TO((streetFinderAddress, s) -> streetFinderAddress.setBuildingHigh(StreetFinderAddress.cleanBuilding(s))),
-    ED(StreetFinderAddress::setED), AD(StreetFinderAddress::setAsm),
-    ZIP(StreetFinderAddress::setStreet), CD(StreetFinderAddress::setCong), SD(StreetFinderAddress::setSen),
-    MC(), CO();
+    FROM((streetFinderAddress, s) -> streetFinderAddress.setBuilding(true, false, StreetFinderAddress.cleanBuilding(s))),
+    TO((streetFinderAddress, s) -> streetFinderAddress.setBuilding(false, false, StreetFinderAddress.cleanBuilding(s))),
+    ED(StreetFinderAddress::setED), AD((streetFinderAddress, s) -> streetFinderAddress.put(DistrictType.ASSEMBLY, s)),
+    ZIP(StreetFinderAddress::setStreet), CD((streetFinderAddress, s) -> streetFinderAddress.put(DistrictType.CONGRESSIONAL, s)),
+    SD((streetFinderAddress, s) -> streetFinderAddress.put(DistrictType.SENATE, s)), MC(), CO();
 
     private final BiConsumer<StreetFinderAddress, String> sfaMethod;
 
@@ -26,10 +28,10 @@ public enum Column {
     }
 
     public static boolean handleDataPoints(StreetFinderAddress sfa, String[] points) {
-        ArrayList<Column> columns = new ArrayList<>();
         if (points.length < 6 || points.length > 9) {
             return false;
         }
+        ArrayList<Column> columns = new ArrayList<>();
         if (points.length == 6) {
             columns.addAll(List.of(ED, AD));
         }
