@@ -80,9 +80,8 @@ public class ErieParser extends NTSParser {
     private void getStreetAndSuffix(String splitLine, StreetFinderAddress streetFinderAddress) {
         LinkedList<String> splitList = new LinkedList<>(List.of(splitLine.split("\\s+")));
         if (checkForDirection(splitList.getFirst())) {
-            streetFinderAddress.setPreDirection(splitList.getFirst());
-            splitList.removeFirst();
-        }
+            streetFinderAddress.setPreDirection(splitList.removeFirst());
+                    }
 
         streetFinderAddress.setStreet(String.join(" ", splitList).trim());
         streetFinderAddress.setStreetSuffix(splitList.getLast());

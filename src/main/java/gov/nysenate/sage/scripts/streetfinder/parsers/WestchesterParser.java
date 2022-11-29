@@ -40,187 +40,51 @@ public class WestchesterParser extends NTSParser {
      */
     protected void parseLine(String line) {
         StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
-
-        //split the line by ,
         String[] splitLine = line.split(",");
-
-        getTown(splitLine, streetFinderAddress);              //splitLine[0]
-        handlePrecinct(splitLine, streetFinderAddress);                //precinct splitLine[1]
-        getPreDirection(splitLine, streetFinderAddress);      //splitLine[2]
-        getStreet(splitLine, streetFinderAddress);            //splitLine[3]
-        getStreetSuffix(splitLine, streetFinderAddress);      //splitLine[4]
-        getPostDirection(splitLine, streetFinderAddress);     //splitLine[5]
-        getLow(splitLine, streetFinderAddress);               //splitLine[6]
-        getHigh(splitLine, streetFinderAddress);              //splitLine[7]
-        getRangeType(splitLine, streetFinderAddress);         //splitLine[8]
-        getZip(splitLine, streetFinderAddress);               //splitLine[9]
-        getCong(splitLine, streetFinderAddress);                 //splitLine[10]
-        getSen(splitLine, streetFinderAddress);               //splitLine[11]
-        getAsm(splitLine, streetFinderAddress);               //splitLine[12]
-        getCle(splitLine, streetFinderAddress);          //splitLine[13]
+        streetFinderAddress.setTown(splitLine[0]);
+        handlePrecinct(splitLine[1], streetFinderAddress);
+        streetFinderAddress.setPreDirection(splitLine[2]);
+        streetFinderAddress.setStreet(splitLine[3]);
+        streetFinderAddress.setStreetSuffix(splitLine[4]);
+        streetFinderAddress.setPostDirection(splitLine[5]);
+        streetFinderAddress.setBuilding(true, false, splitLine[6]);
+        streetFinderAddress.setBuilding(false, false, splitLine[7]);
+        streetFinderAddress.setBldg_parity(getParity(splitLine[8]));
+        streetFinderAddress.setZip(splitLine[9]);
+        streetFinderAddress.put(DistrictType.CONGRESSIONAL, split(splitLine[10]));
+        streetFinderAddress.put(DistrictType.SENATE, split(splitLine[11]));
+        streetFinderAddress.put(DistrictType.ASSEMBLY, split(splitLine[12]));
+        streetFinderAddress.put(DistrictType.CLEG, split(splitLine[13]));
         //ignore CNL-DT
-        super.writeToFile(streetFinderAddress);
+        writeToFile(streetFinderAddress);
     }
 
-    private void handlePrecinct(String[] splitLine, StreetFinderAddress streetFinderAddress) {
-        //always 6 digits
-        //leading zero if only 5 digits
-        //first 2 digits are town code
-        //second 2 digits are the ward
-        //third 2 digits are the ED
-
-        String precinct = splitLine[1];
+    private void handlePrecinct(String precinct, StreetFinderAddress streetFinderAddress) {
+        // Add a leading zero if only 5 digits
         if (precinct.length() == 5) {
             precinct = "0" + precinct;
         }
-        getTownCode(precinct.substring(0,2), streetFinderAddress);
-        getWard(precinct.substring(2,4), streetFinderAddress);
-        getED(precinct.substring(precinct.length() - 2), streetFinderAddress);
+        streetFinderAddress.setTownCode(precinct.substring(0, 2));
+        // TODO: I think this should set the ward
+        streetFinderAddress.setED(precinct.substring(2, 4));
+        streetFinderAddress.setED(precinct.substring(precinct.length() - 2));
 
-    }
-
-    private void getTownCode(String townCode, StreetFinderAddress streetFinderAddress) {
-        streetFinderAddress.setTownCode(townCode);
-    }
-
-    private void getWard(String ward, StreetFinderAddress streetFinderAddress) {
-        streetFinderAddress.setED(ward);
     }
 
     /**
-     * Pulls ED out of precinct. It is the last 3 characters of the precinct
-     *      * @param splitLine
-     *      * @param StreetFinderAddress
+     * Gets the parity and converts to standard formatting
      */
-    private void getED(String ed, StreetFinderAddress streetFinderAddress) {
-        streetFinderAddress.setED(ed);
-    }
-
-    /**
-     * Gets the town
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getTown(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setTown(splitLine[0]);
-    }
-
-    /**
-     * Gets the Pre-Direction
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getPreDirection(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setPreDirection(splitLine[2]);
-    }
-
-    /**
-     * Gets the Street name
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getStreet(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setStreet(splitLine[3]);
-    }
-
-    /**
-     * Gets the street Suffix
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getStreetSuffix(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setStreetSuffix(splitLine[4]);
-    }
-
-    /**
-     * Gets the post-Direction
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getPostDirection(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setPostDirection(splitLine[5]);
-    }
-
-    /**
-     * Gets the low Range
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getLow(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBuilding(true, false, splitLine[6]);
-    }
-
-    /**
-     * gets the High Range
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getHigh(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBuilding(false, false, splitLine[7]);
-    }
-
-    /**
-     * Gets the Range type and converts to standard formatting
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getRangeType(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        if(splitLine[8].equals("O")) {
-            StreetFinderAddress.setBldg_parity("ODDS");
-        } else if(splitLine[8].equals("E")) {
-            StreetFinderAddress.setBldg_parity("EVENS");
-        } else {
-            StreetFinderAddress.setBldg_parity("ALL");
+    private String getParity(String parity) {
+        if (parity.equals("O")) {
+            return "ODDS";
+        } else if (parity.equals("E")) {
+            return "EVENS";
         }
+        return "ALL";
     }
 
-    /**
-     * Gets the zip
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getZip(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setZip(splitLine[9]);
+    private static String split(String input) {
+        var split = input.split("-");
+        return split.length > 1 ? split[1] : input;
     }
-
-    /**
-     * Gets the Cong. Also gets rid of the "CD-"
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getCong(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        String[] string = splitLine[10].split("-");
-        StreetFinderAddress.put(DistrictType.CONGRESSIONAL, string[1]);
-    }
-
-    /**
-     * Gets the sen. Also gets rid of the "SD-"
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getSen(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        String[] string = splitLine[11].split("-");
-        StreetFinderAddress.put(DistrictType.SENATE, string[1]);
-    }
-
-    /**
-     * Gets the asm. Also gets rid of the "AD-"
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getAsm(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        String[] string = splitLine[12].split("-");
-        StreetFinderAddress.put(DistrictType.ASSEMBLY, string[1]);
-    }
-
-    /**
-     * Gets the cleg. Also gets rid of the "LD-"
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getCle(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        String[] string = splitLine[13].split("-");
-        StreetFinderAddress.put(DistrictType.CLEG, string[1]);
-    }
-
 }

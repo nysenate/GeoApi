@@ -4,6 +4,9 @@ import gov.nysenate.sage.model.address.StreetFinderAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Parses Suffolk County txt file and outputs a tsv file
@@ -11,9 +14,6 @@ import java.io.IOException;
 public class SuffolkParser extends NTSParser{
     //-22 categories seperated by tabs (21 tabs not counting 1st category)
     //- zip, zip+4, pre, street name, street mode, post, low, high, odd/even, secondary name, secondary low, secondary high, secondary odd/even, town, ed, cong, sen, asm, cleg, dist, fire, vill
-
-    private String file;
-
     /**
      * Calls the super constructor to set up tsv output file
      * @param file
@@ -21,7 +21,6 @@ public class SuffolkParser extends NTSParser{
      */
     public SuffolkParser(String file) throws IOException {
         super(file);
-        this.file = file;
     }
 
     /**
@@ -39,256 +38,62 @@ public class SuffolkParser extends NTSParser{
     @Override
     protected void parseLine(String line) {
         var streetFinderAddress = new StreetFinderAddress();
-
-        //split the line by tabs
         String[] splitLine = line.split("\t");
 
-        getZip(splitLine, streetFinderAddress);               //splitLine[0]
-        //skip zip +4                                   //splitLine[1]
-        getPreDirection(splitLine, streetFinderAddress);      //splitLine[2]
-        //getting suffix first because the suffix might be in with the street name
-        //by checking the suffix category first you can see if that has to be looked for or not
-        getStreetSuffix(splitLine, streetFinderAddress);      //splitLine[4]
-        getStreetName(splitLine, streetFinderAddress);        //splitLine[3]
-        //check for special case where street is given as "DO NOT USE MAIL BOX
-        //if it is the special case then just skip
+        streetFinderAddress.setZip(splitLine[0]);
+        // skip zip +4, splitLine[1]
+        streetFinderAddress.setPreDirection(splitLine[2]);
+        // Getting suffix first because the suffix might be in with the street name
+        streetFinderAddress.setStreetSuffix(splitLine[4]);
+        getStreetName(splitLine[3], streetFinderAddress);
         if (streetFinderAddress.getStreet().contains("DO NOT USE MAIL"))
             return;
-        getPostDirection(splitLine, streetFinderAddress);     //splitLine[5]
-        getLow(splitLine, streetFinderAddress);               //splitLine[6]
-        getHigh(splitLine, streetFinderAddress);              //splitLine[7]
-        getRangeType(splitLine, streetFinderAddress);         //splitLine[8]
-        //skip over secondary name                      //splitLine[9]
-        getSecondaryLow(splitLine, streetFinderAddress);      //splitLine[10]
-        getSecondaryHigh(splitLine, streetFinderAddress);     //splitLine[11]
-        getSecondaryRangeType(splitLine, streetFinderAddress);//splitLine[12]
-        getTown(splitLine, streetFinderAddress);              //splitLine[13]
-        getED(splitLine, streetFinderAddress);              //splitLine[14]
-        getCong(splitLine, streetFinderAddress);              //splitLine[15]
-        getSen(splitLine, streetFinderAddress);               //splitLine[16]
-        getAsm(splitLine, streetFinderAddress);               //splitLine[17]
-        getCleg(splitLine, streetFinderAddress);              //splitLine[18]
+        streetFinderAddress.setPostDirection(splitLine[5]);
+        streetFinderAddress.setBuilding(true, false, splitLine[6]);
+        streetFinderAddress.setBuilding(false, false, splitLine[7]);
+        getParity(splitLine[8]).ifPresent(streetFinderAddress::setBldg_parity);
+        // skip over secondary name, splitLine[9]
+        streetFinderAddress.setBuilding(true, true, splitLine[10]);
+        streetFinderAddress.setBuilding(false, true, splitLine[11]);
+        getParity(splitLine[12]).ifPresent(streetFinderAddress::setSecondaryBldg_parity);
+        streetFinderAddress.setTown(splitLine[13]);
+        streetFinderAddress.setED(splitLine[14]);
+        streetFinderAddress.put(DistrictType.CONGRESSIONAL, splitLine[15]);
+        streetFinderAddress.put(DistrictType.SENATE, splitLine[16]);
+        streetFinderAddress.put(DistrictType.ASSEMBLY, splitLine[17]);
+        streetFinderAddress.put(DistrictType.CLEG, splitLine[18]);
         //Next categories don't always exist so checking the size of the line
         if (splitLine.length > 19) {
-            getDist(splitLine, streetFinderAddress);          //splitLine[19]
+            streetFinderAddress.setDist(splitLine[19]);
             if (splitLine.length > 20)
-                getFire(splitLine, streetFinderAddress);          //splitLine[20]
+                streetFinderAddress.put(DistrictType.FIRE, splitLine[20]);
             if (splitLine.length > 21)
-                getVill(splitLine, streetFinderAddress);      //splitLine[21]
+                streetFinderAddress.put(DistrictType.VILLAGE, splitLine[21]);
         }
-        super.writeToFile(streetFinderAddress);
-    }
-
-    /**
-     * Gets the zip code. Adds in leading 0 if it was trimed off to make it 5 digits
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getZip(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setZip(splitLine[0]);
-    }
-
-    /**
-     * Gets the pre-direction
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getPreDirection(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setPreDirection(splitLine[2]);
+        writeToFile(streetFinderAddress);
     }
 
     /**
      * Gets the street Name and checks for a street suffix if StreetSuffix is empty
-     * @param splitLine
-     * @param streetFinderAddress
      */
-    private void getStreetName(String[] splitLine, StreetFinderAddress streetFinderAddress) {
-        //if street Suffix doesn't already exist in streetFinderAddress
-        if(streetFinderAddress.getStreetSuffix().equals("")) {
-            //check if the suffix is in the street name
-            //assume that it would be the last thing in the street name
-            //split by a single space
-            String[] string = splitLine[3].split(" ");
-            //if string.length > 1 then there must be a street suffix in there
-            if(string.length > 1) {
-                StringBuilder stringBuilder = new StringBuilder();
-                //add everything except the last index to stringBuilder (Street Name)
-                for(int i = 0; i < string.length -1; i++) {
-                    stringBuilder.append(string[i]).append(" ");
-                }
-                streetFinderAddress.setStreet(stringBuilder.toString().trim());
-                streetFinderAddress.setStreetSuffix(string[string.length -1]);
-            } else {
-                //no suffix
-                streetFinderAddress.setStreet(string[0]);
-            }
-        } else {
-            streetFinderAddress.setStreet(splitLine[3]);
+    private void getStreetName(String streetData, StreetFinderAddress streetFinderAddress) {
+        LinkedList<String> splitList = new LinkedList<>(List.of(streetData.split(" ")));
+        if (streetFinderAddress.getStreetSuffix().isEmpty() && splitList.size() > 1) {
+            streetFinderAddress.setStreetSuffix(splitList.removeLast());
         }
+        streetFinderAddress.setStreet(String.join(" ", splitList).trim());
     }
 
-    /**
-     * Gets the street suffix
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getStreetSuffix(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setStreetSuffix(splitLine[4]);
-    }
-
-    /**
-     * Gets the post-Direction
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getPostDirection(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setPostDirection(splitLine[5]);
-    }
-
-    /**
-     * Gets the low range
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getLow(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBuilding(true, false, splitLine[6]);
-    }
-
-    /**
-     * Gets the high range
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getHigh(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBuilding(false, false, splitLine[7]);
-    }
-
-    /**
-     * Gets the range type and converts it to the correct format
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getRangeType(String[] splitLine, StreetFinderAddress StreetFinderAddress)  {
-        if(splitLine[8].equals("E")) {
-            StreetFinderAddress.setBldg_parity("EVENS");
-        } else if(splitLine[8].equals("O")) {
-            StreetFinderAddress.setBldg_parity("ODDS");
-        } else if(splitLine[8].equals("B")) {
-            StreetFinderAddress.setBldg_parity("ALL");
+    private Optional<String> getParity(String parity) {
+        if ("E".equals(parity)) {
+            return Optional.of("EVENS");
         }
-    }
-
-    /**
-     * Gets the secondary low range
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getSecondaryLow(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBuilding(true, true, splitLine[10]);
-    }
-
-    /**
-     * Gets the secondary high range
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getSecondaryHigh(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setBuilding(false, true, splitLine[11]);
-    }
-
-    /**
-     * Getst the secondary range type and converts to the correct form
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getSecondaryRangeType(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        if(splitLine[12].equals("E")) {
-            StreetFinderAddress.setSecondaryBldg_parity("EVENS");
-        } else if(splitLine[12].equals("O")) {
-            StreetFinderAddress.setSecondaryBldg_parity("ODDS");
-        } else if(splitLine[12].equals("B")) {
-            StreetFinderAddress.setSecondaryBldg_parity("ALL");
+        if ("O".equals(parity)) {
+            return Optional.of("ODDS");
         }
-    }
-
-    /**
-     * Gets the town name
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getTown(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setTown(splitLine[13]);
-    }
-
-    /**
-     * Gets the ward code
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getED(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setED(splitLine[14]);
-    }
-
-    /**
-     * Gets the cong code
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getCong(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.put(DistrictType.CONGRESSIONAL, splitLine[15]);
-    }
-
-    /**
-     * gets the sen code
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getSen(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.put(DistrictType.SENATE, splitLine[16]);
-    }
-
-    /**
-     * Gets the asm code
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getAsm(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.put(DistrictType.ASSEMBLY, splitLine[17]);
-    }
-
-    /**
-     * Gets the cleg code
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getCleg(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.put(DistrictType.CLEG, splitLine[18]);
-    }
-
-    /**
-     * Gets the dist code
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getDist(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setDist(splitLine[19]);
-    }
-
-    /**
-     * Gets the fire code
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getFire(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.put(DistrictType.FIRE, splitLine[20]);
-    }
-
-    /**
-     * Gets the vill code
-     * @param splitLine
-     * @param StreetFinderAddress
-     */
-    private void getVill(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.put(DistrictType.VILLAGE, splitLine[21]);
+        if ("B".equals(parity)) {
+            return Optional.of("ALL");
+        }
+        return Optional.empty();
     }
 }

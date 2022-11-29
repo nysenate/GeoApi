@@ -104,6 +104,7 @@ public class StreetFinderAddress {
         return streetFinderAddress;
     }
 
+    // TODO: is almost always not secondary
     public void setBuilding(boolean isLow, boolean isSecondary, String data) {
         StreetFinderBuilding building = isSecondary ? secondaryBuilding : primaryBuilding;
         if (isLow) {
@@ -220,7 +221,7 @@ public class StreetFinderAddress {
      * Sets the building Parity. It is assumed to be in the form of "ODDS", "EVENS", or "ALL"
      * @param bldg_parity
      */
-    // TODO: seems like a lot of usages could be combined
+    // TODO: seems like a lot of usages could be combined. Also, change name
     public void setBldg_parity(String bldg_parity) {
         primaryBuilding.setParity(bldg_parity);
     }
