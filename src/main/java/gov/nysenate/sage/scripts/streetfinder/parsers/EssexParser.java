@@ -41,9 +41,9 @@ public class EssexParser extends NTSParser {
         streetFinderAddress.setTown(splitLine[0]);
         getStreetAndSuffix(splitLine[1], streetFinderAddress);
         streetFinderAddress.setED(splitLine[2]);
-        streetFinderAddress.setBuilding(true, false, splitLine[3]);
-        streetFinderAddress.setBuilding(false, false, splitLine[4]);
-        streetFinderAddress.setBldg_parity(getRangeType(splitLine[5], splitLine[6]));
+        streetFinderAddress.setBuilding(true, splitLine[3]);
+        streetFinderAddress.setBuilding(false, splitLine[4]);
+        streetFinderAddress.setBldgParity(getRangeType(splitLine[5], splitLine[6]));
         streetFinderAddress.put(DistrictType.ASSEMBLY, splitLine[7]);
         streetFinderAddress.put(DistrictType.CONGRESSIONAL, splitLine[8]);
         streetFinderAddress.put(DistrictType.SENATE, splitLine[9]);

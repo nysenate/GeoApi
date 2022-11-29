@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.address;
 
+import gov.nysenate.sage.scripts.streetfinder.parsers.StreetParity;
 import gov.nysenate.sage.util.Pair;
 
 import java.util.List;
@@ -8,7 +9,7 @@ public class StreetFinderBuilding {
     private static final String DEFAULT = "\\N";
     private Pair<String> low = new Pair<>(DEFAULT, DEFAULT);
     private Pair<String> high = new Pair<>(DEFAULT, DEFAULT);
-    private String parity = DEFAULT;
+    private StreetParity parity = null;
 
     public void setHigh(String highData) {
         this.high = getPair(highData);
@@ -19,17 +20,17 @@ public class StreetFinderBuilding {
     }
 
     public boolean hasParity() {
-        return DEFAULT.equals(parity);
+        return parity != null;
     }
 
     public void setParity(String parity) {
         if (!parity.isEmpty()) {
-            this.parity = parity;
+            this.parity = StreetParity.getParity(parity);
         }
     }
 
     public List<String> getData() {
-        return List.of(low.getOne(), low.getTwo(), high.getOne(), high.getTwo(), parity);
+        return List.of(low.getOne(), low.getTwo(), high.getOne(), high.getTwo(), parity == null ? DEFAULT : parity.name());
     }
 
     private static Pair<String> getPair(String data) {

@@ -37,9 +37,9 @@ public class NassauParser extends NTSParser {
         getSuffix(splitLine[2], streetFinderAddress);
         streetFinderAddress.setTown(splitLine[3]);
         streetFinderAddress.setZip(splitLine[4]);
-        streetFinderAddress.setBuilding(true, false, splitLine[5]);
-        streetFinderAddress.setBuilding(false, false, splitLine[6]);
-        streetFinderAddress.setBldg_parity(getRangeType(splitLine[7]));
+        streetFinderAddress.setBuilding(true, splitLine[5]);
+        streetFinderAddress.setBuilding(false, splitLine[6]);
+        streetFinderAddress.setBldgParity(splitLine[7]);
         // TODO: No use of the 8th part?
         streetFinderAddress.put(DistrictType.CONGRESSIONAL, trim(splitLine[9]));
         streetFinderAddress.put(DistrictType.SENATE, trim(splitLine[10]));
@@ -47,16 +47,6 @@ public class NassauParser extends NTSParser {
         streetFinderAddress.put(DistrictType.CLEG, trim(splitLine[12]));
         // Ignore TD
         writeToFile(streetFinderAddress);
-    }
-
-    private void handlePrecinct(String precinct, StreetFinderAddress streetFinderAddress) {
-        if (precinct.length() == 5) {
-            precinct = "0" + precinct;
-        }
-        streetFinderAddress.setTownCode(precinct.substring(0, 2));
-        streetFinderAddress.put(DistrictType.WARD, precinct.substring(2, 4));
-        streetFinderAddress.setED(precinct.substring(precinct.length() - 2));
-
     }
 
     private static void getSuffix(String data, StreetFinderAddress streetFinderAddress) {
@@ -72,16 +62,6 @@ public class NassauParser extends NTSParser {
             }
         }
         streetFinderAddress.setStreetSuffix(splitString[suffixIndex]);
-    }
-
-    // TODO: is repeated elsewhere
-    private static String getRangeType(String range) {
-        if (range.equals("O")) {
-            return "ODDS";
-        } else if (range.equals("E")) {
-            return "EVENS";
-        }
-        return "ALL";
     }
 
     /**

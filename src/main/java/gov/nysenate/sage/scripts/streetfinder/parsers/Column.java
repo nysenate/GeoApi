@@ -10,8 +10,8 @@ import java.util.function.BiConsumer;
 // TODO: what are MC and CO?
 // TODO: really NYC columns
 public enum Column {
-    FROM((streetFinderAddress, s) -> streetFinderAddress.setBuilding(true, false, StreetFinderAddress.cleanBuilding(s))),
-    TO((streetFinderAddress, s) -> streetFinderAddress.setBuilding(false, false, StreetFinderAddress.cleanBuilding(s))),
+    FROM((streetFinderAddress, s) -> streetFinderAddress.setBuilding(true, StreetFinderAddress.cleanBuilding(s))),
+    TO((streetFinderAddress, s) -> streetFinderAddress.setBuilding(false, StreetFinderAddress.cleanBuilding(s))),
     ED(StreetFinderAddress::setED), AD((streetFinderAddress, s) -> streetFinderAddress.put(DistrictType.ASSEMBLY, s)),
     ZIP(StreetFinderAddress::setStreet), CD((streetFinderAddress, s) -> streetFinderAddress.put(DistrictType.CONGRESSIONAL, s)),
     SD((streetFinderAddress, s) -> streetFinderAddress.put(DistrictType.SENATE, s)), MC(), CO();

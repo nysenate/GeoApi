@@ -3,13 +3,9 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 import gov.nysenate.sage.model.address.StreetFinderAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.AddressDictionary;
-import gov.nysenate.services.model.District;
 
 import java.io.*;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
@@ -204,7 +200,7 @@ public class NTSParser {
         //if SplitLine[endOfStreetName] is not numbers then it must be the street suffix
         if (!splitLine[endOfStreetName].matches("\\d+")) {
             streetFinderAddress.setStreetSuffix(splitLine[endOfStreetName]);
-            //decrment end of StreetName
+            //decrement end of StreetName
             endOfStreetName--;
         }
 
@@ -256,14 +252,19 @@ public class NTSParser {
         } else {
             index++;
         }
-        streetFinderAddress.setBuilding(true, false, low);
+        streetFinderAddress.setBuilding(true, low);
         index++;
 
-        streetFinderAddress.setBuilding(false, false, splitLine[index++]);
-        index = setBldgParity(splitLine[index], index, streetFinderAddress) + 1;
+        streetFinderAddress.setBuilding(false, splitLine[index++]);
+        streetFinderAddress.setBldgParity(splitLine[index++]);
 
         if (index >= splitLine.length) {
             return;
+        }
+
+        // An unnecessary part of the parity
+        if (splitLine[index].trim().equalsIgnoreCase("Inclusive")) {
+            index++;
         }
 
         //now get townName which could possibly be multiple words (indexes)
@@ -281,16 +282,10 @@ public class NTSParser {
         }
 
         //now get the town Name going from splitLine[index to townCodeIndex - 1]
-        String town = "";
-        for (int i = index; i < townCodeIndex; i++) {
-            town += splitLine[i] + " ";
-        }
+        String town = String.join(" ", List.of(splitLine).subList(index, townCodeIndex));
         streetFinderAddress.setTown(town.trim().toUpperCase()
                 .replaceAll("CITY OF", "").replaceAll("TOWN OF", ""));
-
-        //set the townCode
         streetFinderAddress.setTownCode(splitLine[townCodeIndex]);
-        //move to the index after townCode
         index = townCodeIndex + 1;
 
         //check for Ward, Dist / ED, Cong, Sen, and Asm if not at the end of splitLine
@@ -400,7 +395,8 @@ public class NTSParser {
      * Gets the indexes for sch, vill, cleg, fire, cc, and city if they exist.
      * Checks for multiple spelling/capitalization
      * The indexes stay - 1 if they do not exist
-     * @param currentLine - must be a column header line with column titles
+     * @param currentLine
+     *  ine - must be a column header line with column titles
      */
     protected void setIndices(String currentLine) {
         indices = new EnumMap<>(DistrictType.class);
@@ -412,24 +408,14 @@ public class NTSParser {
         }
     }
 
-    /**
-     * Gets the range type and stores in streetFinderAddress. The index must the index where the range type occurs in splitLine
-     * Could change the index for certain cases to skip over the word "Inclusive" So the
-     * updated index is returned
-     * @param parity - indicated parity of addresses
-     * @param index - updated index
-     * @return
-     */
-    protected int setBldgParity(String parity, int index, StreetFinderAddress streetFinderAddress) {
-        // Could be "Evens Inclusive" "Odds Inclusive" or just "Inclusive"
-        if (parity.matches("Odds|Evens")) {
-            streetFinderAddress.setBldg_parity(parity.toUpperCase());
-            return index + 1;
+    protected static void handlePrecinct(String precinct, StreetFinderAddress streetFinderAddress) {
+        // Add a leading zero if only 5 digits
+        if (precinct.length() == 5) {
+            precinct = "0" + precinct;
         }
-        else {
-            streetFinderAddress.setBldg_parity("ALL");
-            return index;
-        }
+        streetFinderAddress.setTownCode(precinct.substring(0, 2));
+        streetFinderAddress.put(DistrictType.WARD, precinct.substring(2, 4));
+        streetFinderAddress.setED(precinct.substring(precinct.length() - 2));
     }
 
     /**

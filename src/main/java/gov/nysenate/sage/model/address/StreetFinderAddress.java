@@ -21,9 +21,9 @@ public class StreetFinderAddress {
         defaultTypes.remove(COUNTY);
         defaultTypes.remove(ELECTION);
     }
-    //Fields
     private final StreetFinderBuilding primaryBuilding = new StreetFinderBuilding();
-    private final StreetFinderBuilding secondaryBuilding = new StreetFinderBuilding();
+    // Really a range for apartment buildings. Only used in Suffolk.
+    protected final StreetFinderBuilding secondaryBuilding = new StreetFinderBuilding();
     private String preDirection;
     private String postDirection;
     private String street;
@@ -31,13 +31,10 @@ public class StreetFinderAddress {
     private String townCode;
     // TODO: might be the county?
     private String dist;
-    // village, fire, cle, sch, town, cc, cong, sen, asm, ward, zip, city
     private final Map<DistrictType, String> districtTypeMap = new EnumMap<>(DistrictType.class);
     private String ed;
     private String boeTownCode;
     private String boeSchool;
-    //used as helper storage
-    private String digits, characters;
     private static final Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 
     /**
@@ -104,14 +101,12 @@ public class StreetFinderAddress {
         return streetFinderAddress;
     }
 
-    // TODO: is almost always not secondary
-    public void setBuilding(boolean isLow, boolean isSecondary, String data) {
-        StreetFinderBuilding building = isSecondary ? secondaryBuilding : primaryBuilding;
+    public void setBuilding(boolean isLow, String data) {
         if (isLow) {
-            building.setLow(data);
+            primaryBuilding.setLow(data);
         }
         else {
-            building.setHigh(data);
+            primaryBuilding.setHigh(data);
         }
     }
 
@@ -219,11 +214,10 @@ public class StreetFinderAddress {
 
     /**
      * Sets the building Parity. It is assumed to be in the form of "ODDS", "EVENS", or "ALL"
-     * @param bldg_parity
+     * @param parity
      */
-    // TODO: seems like a lot of usages could be combined. Also, change name
-    public void setBldg_parity(String bldg_parity) {
-        primaryBuilding.setParity(bldg_parity);
+    public void setBldgParity(String parity) {
+        primaryBuilding.setParity(parity);
     }
 
     /**
@@ -281,14 +275,6 @@ public class StreetFinderAddress {
         if(!ed.isEmpty() && isNumeric(ed) && !ed.contains("-")) {
             this.ed = ed;
         }
-    }
-
-    /**
-     * Sets the apt_bldg_parity. Assumes the format or "ODDS", "EVENS", or "ALL"
-     * @param secondaryBldg_parity
-     */
-    public void setSecondaryBldg_parity(String secondaryBldg_parity) {
-        secondaryBuilding.setParity(secondaryBldg_parity);
     }
 
     /**

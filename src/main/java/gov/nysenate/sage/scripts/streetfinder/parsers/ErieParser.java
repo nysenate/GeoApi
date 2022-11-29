@@ -13,7 +13,6 @@ import java.util.List;
  * Looks for street, low, high, range type, townCode, District, zip
  */
 public class ErieParser extends NTSParser {
-
     /**
      * Calls the super constructor which sets up the tsv file
      * @param file
@@ -42,9 +41,9 @@ public class ErieParser extends NTSParser {
         StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
         String[] splitLine = line.split(",");
         getStreetAndSuffix(splitLine[0], streetFinderAddress);
-        streetFinderAddress.setBuilding(true, false, splitLine[1]);
-        streetFinderAddress.setBuilding(false, false, splitLine[2]);
-        streetFinderAddress.setBldg_parity(getRangeType(splitLine[3]));
+        streetFinderAddress.setBuilding(true, splitLine[1]);
+        streetFinderAddress.setBuilding(false, splitLine[2]);
+        streetFinderAddress.setBldgParity(splitLine[3]);
         streetFinderAddress.setZip(splitLine[4]);
         streetFinderAddress.setTown(splitLine[5]);
         handlePrecinct(splitLine[9], streetFinderAddress);
@@ -60,17 +59,6 @@ public class ErieParser extends NTSParser {
         return split.length > 1 ? split[1] : input;
     }
 
-    private void handlePrecinct(String precinct, StreetFinderAddress streetFinderAddress) {
-        // Add a leading zero if only 5 digits
-        if (precinct.length() == 5) {
-            precinct = "0" + precinct;
-        }
-        streetFinderAddress.setTownCode(precinct.substring(0, 2));
-        streetFinderAddress.put(DistrictType.WARD, precinct.substring(2, 4));
-        streetFinderAddress.setED(precinct.substring(precinct.length() - 2));
-
-    }
-
     /**
      * Gets the Street name and Street Suffix from a string containing both
      * Also checks for  pre-Direction
@@ -81,20 +69,9 @@ public class ErieParser extends NTSParser {
         LinkedList<String> splitList = new LinkedList<>(List.of(splitLine.split("\\s+")));
         if (checkForDirection(splitList.getFirst())) {
             streetFinderAddress.setPreDirection(splitList.removeFirst());
-                    }
+        }
 
         streetFinderAddress.setStreet(String.join(" ", splitList).trim());
         streetFinderAddress.setStreetSuffix(splitList.getLast());
-    }
-
-    /**
-     * Gets the Range Type and converts to standard formatting
-     * @param splitLine
-     */
-    private String getRangeType(String splitLine) {
-        if (splitLine.matches("Even|Odd")) {
-            return splitLine.toUpperCase() + "S";
-        }
-        return "ALL";
     }
 }

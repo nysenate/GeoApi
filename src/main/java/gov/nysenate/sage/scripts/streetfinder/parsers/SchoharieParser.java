@@ -5,7 +5,6 @@ import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.regex.Pattern;
 
 /**
  * Parses Schohaire County.txt file
@@ -77,16 +76,9 @@ public class SchoharieParser extends NTSParser {
         String[] splitData = data.split("-");
 
         if (splitData.length == 3) {
-            streetFinderAddress.setBuilding(true, false, splitData[0].trim());
-            streetFinderAddress.setBuilding(false, false, splitData[1].trim());
-
-            if (splitData[2].trim().equals("O")) {
-                streetFinderAddress.setBldg_parity("ODDS");
-            } else if(splitData[2].trim().equals("E")) {
-                streetFinderAddress.setBldg_parity("EVENS");
-            } else {
-                streetFinderAddress.setBldg_parity("ALL");
-            }
+            streetFinderAddress.setBuilding(true, splitData[0].trim());
+            streetFinderAddress.setBuilding(false, splitData[1].trim());
+            streetFinderAddress.setBldgParity(splitData[2]);
         }
     }
 

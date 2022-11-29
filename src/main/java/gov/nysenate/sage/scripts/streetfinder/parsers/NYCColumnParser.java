@@ -2,7 +2,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
 
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,13 +45,12 @@ public class NYCColumnParser {
         }
 
         else {
-            int start = 0;
-            if (NTSParser.checkForDirection(split[0])) {
-                preDir = split[0];
-                start++;
+            LinkedList<String> streetParts = new LinkedList<>(List.of(split));
+            if (NTSParser.checkForDirection(streetParts.getFirst())) {
+                preDir = streetParts.removeFirst();
             }
-            streetSuffix = split[split.length - 1];
-            street = String.join(" ", List.of(Arrays.copyOfRange(split, start, split.length)));
+            streetSuffix = streetParts.removeLast();
+            street = String.join(" ", streetParts);
         }
         return Optional.empty();
     }

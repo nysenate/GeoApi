@@ -143,11 +143,14 @@ public class SaratogaParser extends NTSParser {
             index++;
         }
 
-        streetFinderAddress.setBuilding(true, false, low);
+        streetFinderAddress.setBuilding(true, low);
         index++;
-        streetFinderAddress.setBuilding(false, false, splitLine[index++]);
-        //get the range type by calling setBldgParity which could change the index
-        index = setBldgParity(splitLine[index], index, streetFinderAddress) + 1;
+        streetFinderAddress.setBuilding(false, splitLine[index++]);
+        streetFinderAddress.setBldgParity(splitLine[index++]);
+        // An unnecessary part of the parity
+        if (splitLine[index].trim().equalsIgnoreCase("Inclusive")) {
+            index++;
+        }
 
         streetFinderAddress.setTownCode(splitLine[index++]);
 //        StreetFinderAddress.setWard(splitLine[index]);

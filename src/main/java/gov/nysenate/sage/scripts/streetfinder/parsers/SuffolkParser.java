@@ -1,12 +1,12 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.model.address.SuffolkStreetAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Parses Suffolk County txt file and outputs a tsv file
@@ -37,7 +37,7 @@ public class SuffolkParser extends NTSParser{
      */
     @Override
     protected void parseLine(String line) {
-        var streetFinderAddress = new StreetFinderAddress();
+        var streetFinderAddress = new SuffolkStreetAddress();
         String[] splitLine = line.split("\t");
 
         streetFinderAddress.setZip(splitLine[0]);
@@ -49,13 +49,13 @@ public class SuffolkParser extends NTSParser{
         if (streetFinderAddress.getStreet().contains("DO NOT USE MAIL"))
             return;
         streetFinderAddress.setPostDirection(splitLine[5]);
-        streetFinderAddress.setBuilding(true, false, splitLine[6]);
-        streetFinderAddress.setBuilding(false, false, splitLine[7]);
-        getParity(splitLine[8]).ifPresent(streetFinderAddress::setBldg_parity);
+        streetFinderAddress.setBuilding(true, splitLine[6]);
+        streetFinderAddress.setBuilding(false, splitLine[7]);
+        streetFinderAddress.setBldgParity(splitLine[8]);
         // skip over secondary name, splitLine[9]
-        streetFinderAddress.setBuilding(true, true, splitLine[10]);
-        streetFinderAddress.setBuilding(false, true, splitLine[11]);
-        getParity(splitLine[12]).ifPresent(streetFinderAddress::setSecondaryBldg_parity);
+        streetFinderAddress.setSecondaryBuilding(true, splitLine[10]);
+        streetFinderAddress.setSecondaryBuilding(false, splitLine[11]);
+        streetFinderAddress.setSecondaryBuildingParity(splitLine[12]);
         streetFinderAddress.setTown(splitLine[13]);
         streetFinderAddress.setED(splitLine[14]);
         streetFinderAddress.put(DistrictType.CONGRESSIONAL, splitLine[15]);
@@ -82,18 +82,5 @@ public class SuffolkParser extends NTSParser{
             streetFinderAddress.setStreetSuffix(splitList.removeLast());
         }
         streetFinderAddress.setStreet(String.join(" ", splitList).trim());
-    }
-
-    private Optional<String> getParity(String parity) {
-        if ("E".equals(parity)) {
-            return Optional.of("EVENS");
-        }
-        if ("O".equals(parity)) {
-            return Optional.of("ODDS");
-        }
-        if ("B".equals(parity)) {
-            return Optional.of("ALL");
-        }
-        return Optional.empty();
     }
 }

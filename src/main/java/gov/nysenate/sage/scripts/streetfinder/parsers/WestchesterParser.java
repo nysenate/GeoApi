@@ -12,8 +12,6 @@ import java.io.IOException;
  */
 public class WestchesterParser extends NTSParser {
 
-    private String file;
-
     /**
      * Calls the super constructor which sets up the tsv file
      * @param file
@@ -21,7 +19,6 @@ public class WestchesterParser extends NTSParser {
      */
     public WestchesterParser(String file) throws IOException {
         super(file);
-        this.file = file;
     }
 
     /**
@@ -29,7 +26,6 @@ public class WestchesterParser extends NTSParser {
      * @throws FileNotFoundException
      */
     public void parseFile() throws IOException {
-
         super.readFile();
     }
 
@@ -47,9 +43,9 @@ public class WestchesterParser extends NTSParser {
         streetFinderAddress.setStreet(splitLine[3]);
         streetFinderAddress.setStreetSuffix(splitLine[4]);
         streetFinderAddress.setPostDirection(splitLine[5]);
-        streetFinderAddress.setBuilding(true, false, splitLine[6]);
-        streetFinderAddress.setBuilding(false, false, splitLine[7]);
-        streetFinderAddress.setBldg_parity(getParity(splitLine[8]));
+        streetFinderAddress.setBuilding(true, splitLine[6]);
+        streetFinderAddress.setBuilding(false, splitLine[7]);
+        streetFinderAddress.setBldgParity(splitLine[8]);
         streetFinderAddress.setZip(splitLine[9]);
         streetFinderAddress.put(DistrictType.CONGRESSIONAL, split(splitLine[10]));
         streetFinderAddress.put(DistrictType.SENATE, split(splitLine[11]));
@@ -57,30 +53,6 @@ public class WestchesterParser extends NTSParser {
         streetFinderAddress.put(DistrictType.CLEG, split(splitLine[13]));
         //ignore CNL-DT
         writeToFile(streetFinderAddress);
-    }
-
-    private void handlePrecinct(String precinct, StreetFinderAddress streetFinderAddress) {
-        // Add a leading zero if only 5 digits
-        if (precinct.length() == 5) {
-            precinct = "0" + precinct;
-        }
-        streetFinderAddress.setTownCode(precinct.substring(0, 2));
-        // TODO: I think this should set the ward
-        streetFinderAddress.setED(precinct.substring(2, 4));
-        streetFinderAddress.setED(precinct.substring(precinct.length() - 2));
-
-    }
-
-    /**
-     * Gets the parity and converts to standard formatting
-     */
-    private String getParity(String parity) {
-        if (parity.equals("O")) {
-            return "ODDS";
-        } else if (parity.equals("E")) {
-            return "EVENS";
-        }
-        return "ALL";
     }
 
     private static String split(String input) {

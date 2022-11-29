@@ -75,7 +75,7 @@ public class MontgomeryParser extends NTSParser {
         getZip(line, streetFinderAddress);
         getStreetAndSuffix(line, streetFinderAddress);
         getHouseRange(line, streetFinderAddress);
-        streetFinderAddress.setBldg_parity(getParity(line));
+        streetFinderAddress.setBldgParity(getParity(line));
         getTownWardDist(line, streetFinderAddress);
         super.writeToFile(streetFinderAddress);
     }
@@ -143,8 +143,8 @@ public class MontgomeryParser extends NTSParser {
                 }
             }
         }
-        streetFinderAddress.setBuilding(true, false, low.toString().trim());
-        streetFinderAddress.setBuilding(false, false, high.toString().trim());
+        streetFinderAddress.setBuilding(true, low.toString().trim());
+        streetFinderAddress.setBuilding(false, high.toString().trim());
     }
 
     private String getParity(String line) {
