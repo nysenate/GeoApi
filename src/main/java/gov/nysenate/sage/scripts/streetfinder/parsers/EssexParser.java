@@ -4,8 +4,10 @@ import gov.nysenate.sage.model.address.StreetFinderAddress;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 import static gov.nysenate.sage.model.address.StreetFileField.*;
 
@@ -13,7 +15,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  * Parses Essex County 2018 csv file and converts to tsv file
  * Looks for town, street, ed, low, high, range type, asm, cong, sen, zip
  */
-public class EssexParser extends NTSParser {
+public class EssexParser extends BaseParser {
     /**
      * Calls the super constructor which sets up the tsv file
      * @param file
@@ -24,39 +26,34 @@ public class EssexParser extends NTSParser {
     }
 
     /**
-     * Parse the file by calling parseLine for each line of data
-     * @throws FileNotFoundException
-     */
-    public void parseFile() throws IOException {
-        super.readFile();
-    }
-
-    /**
      * Parses the line by calling all helper methods and saves data to a StreetFinderAddress
      * @param line
      */
     @Override
     protected void parseLine(String line) {
-        StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
-        String[] splitLine = line.split(",");
-        streetFinderAddress.setTown(splitLine[0]);
-        getStreetAndSuffix(splitLine[1], streetFinderAddress);
-        streetFinderAddress.setED(splitLine[2]);
-        streetFinderAddress.setBuilding(true, splitLine[3]);
-        streetFinderAddress.setBuilding(false, splitLine[4]);
-        streetFinderAddress.setBldgParity(getRangeType(splitLine[5], splitLine[6]));
-        streetFinderAddress.put(ASSEMBLY, splitLine[7]);
-        streetFinderAddress.put(CONGRESSIONAL, splitLine[8]);
-        streetFinderAddress.put(SENATE, splitLine[9]);
-        getZip(splitLine, streetFinderAddress);
-        super.writeToFile(streetFinderAddress);
+        ArrayList<String> split = new ArrayList<>(List.of(line.split(",")));
+        // Two parts must be combined into something usable.
+        split.set(5, getRangeType(split.get(5), split.remove(6)));
+
+        List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>();
+        functions.add(function(TOWN));
+        functions.add(EssexParser::getStreetAndSuffix);
+        functions.add(StreetFinderAddress::setED);
+        functions.addAll(buildingFunctions);
+        functions.add(function(ASSEMBLY));
+        functions.add(function(CONGRESSIONAL));
+        functions.add(function(SENATE));
+        // TODO: might not exist
+        functions.add(EssexParser::getZip);
+
+        parseLineFun(functions, String.join(",", split));
     }
 
     /**
      * Gets the street name and street suffix
      * checks for pre-direction
      */
-    private void getStreetAndSuffix(String streetData, StreetFinderAddress streetFinderAddress) {
+    private static void getStreetAndSuffix(StreetFinderAddress streetFinderAddress, String streetData) {
         LinkedList<String> splitList = new LinkedList<>(List.of(streetData.split(" ")));
         if (checkForDirection(splitList.getFirst())) {
             streetFinderAddress.setPreDirection(splitList.removeFirst());
@@ -79,13 +76,12 @@ public class EssexParser extends NTSParser {
 
     /**
      * Gets the zip code
-     * @param splitLine
+     * @param zip
      * @param streetFinderAddress
      */
-    private void getZip(String[] splitLine, StreetFinderAddress streetFinderAddress) {
-        if (splitLine.length > 10 && !splitLine[10].equals("M")) {
-            //Special case that only occurs a couple of times
-            streetFinderAddress.setZip(splitLine[10]);
+    private static void getZip(StreetFinderAddress streetFinderAddress, String zip) {
+        if (!zip.equals("M")) {
+            streetFinderAddress.put(ZIP, zip);
         }
     }
 }

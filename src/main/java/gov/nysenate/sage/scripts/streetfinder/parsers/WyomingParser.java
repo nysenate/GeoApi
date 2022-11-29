@@ -5,6 +5,9 @@ import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
 
 import static gov.nysenate.sage.model.address.StreetFileField.*;
 
@@ -13,7 +16,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  * Looks for townCode, pre-Direction, Street, street suffix, post-direction, city, low,high, range type, and zip
  * Parses using the location of each column in the line
  */
-public class WyomingParser extends NTSParser{
+public class WyomingParser extends BaseParser {
     /**
      * Calls the super constructor which sets up the tsv file
      * @param file
@@ -21,16 +24,6 @@ public class WyomingParser extends NTSParser{
      */
     public WyomingParser(String file) throws IOException {
         super(file);
-    }
-
-
-    /**
-     * Parses the file for the needed information. Finds where the actual data is and then
-     * parseLine is called to parse the line
-     * @throws FileNotFoundException
-     */
-    public void parseFile() throws IOException {
-        super.readFile();
     }
 
     /**
@@ -41,24 +34,20 @@ public class WyomingParser extends NTSParser{
         if (line.contains("ODD_EVEN")) {
             return;
         }
-        var streetFinderAddress = new StreetFinderAddress();
-        String[] splitLine = line.split(",");
         // TODO: The 0 and 1 indices might be the town and district, respectively
-        streetFinderAddress.setPreDirection(splitLine[2]);
-        streetFinderAddress.setStreet(splitLine[3]);
-        streetFinderAddress.setStreetSuffix(splitLine[4]);
-        streetFinderAddress.setPostDirection(splitLine[5]);
-        streetFinderAddress.setBuilding(true, splitLine[6]);
-        streetFinderAddress.setBuilding(false, splitLine[7]);
-        streetFinderAddress.setBldgParity(splitLine[8]);
-        // TODO: might be city?
-        streetFinderAddress.setTown(splitLine[9]);
-        streetFinderAddress.setZip(splitLine[10]);
-        handlePrecinct(splitLine[8], streetFinderAddress);
-        streetFinderAddress.put(CONGRESSIONAL, split(splitLine[12]));
-        streetFinderAddress.put(SENATE, split(splitLine[13]));
-        streetFinderAddress.put(ASSEMBLY, splitLine[14]);
-        writeToFile(streetFinderAddress);
+        List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>(skip(2));
+        functions.add(StreetFinderAddress::setPreDirection);
+        functions.add(StreetFinderAddress::setStreet);
+        functions.add(StreetFinderAddress::setStreetSuffix);
+        functions.add(StreetFinderAddress::setPostDirection);
+        functions.addAll(buildingFunctions);
+        functions.add(function(TOWN));
+        functions.add(function(ZIP));
+        functions.add(handlePrecinct);
+        functions.add(function(CONGRESSIONAL));
+        functions.add(function(SENATE));
+        functions.add(function(ASSEMBLY));
+        parseLineFun(functions, line);
     }
 
     private static String split(String input) {

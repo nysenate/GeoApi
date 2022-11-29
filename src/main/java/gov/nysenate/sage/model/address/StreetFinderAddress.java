@@ -14,7 +14,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  */
 public class StreetFinderAddress {
     private static final Set<StreetFileField> mustNotBeEmpty = EnumSet.of(ELECTION_CODE, WARD,
-            CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, VILLAGE, FIRE, CITY_COUNCIL, TOWN_CODE, BOE_TOWN_CODE);
+            CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, VILLAGE, FIRE, CITY_COUNCIL, TOWN_CODE, BOE_TOWN_CODE, COUNTY_CODE);
     private static final Set<StreetFileField> mustBeNumeric = EnumSet.of(ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, CITY_COUNCIL);
     private final StreetFinderBuilding primaryBuilding = new StreetFinderBuilding();
     // Really a range for apartment buildings. Only used in Suffolk.
@@ -23,7 +23,6 @@ public class StreetFinderAddress {
     private String postDirection = "";
     private String streetSuffix = "";
     // TODO: might be the county?
-    private String dist = "\\N";
     private final Map<StreetFileField, String> fieldMap = new EnumMap<>(StreetFileField.class);
     private static final Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 
@@ -41,6 +40,8 @@ public class StreetFinderAddress {
      */
     public String toStreetFileForm() {
         put(STREET, preDirection + get(STREET) + " " + streetSuffix);
+        // TODO: in the original code, this is always empty
+        fieldMap.remove(COUNTY_CODE);
         List<String> fieldList = new ArrayList<>();
         boolean beforeBuildings = true;
         for (var fieldType : StreetFileField.values()) {
@@ -69,18 +70,11 @@ public class StreetFinderAddress {
         return fieldMap.getOrDefault(type, "\\N");
     }
 
-    public static StreetFinderAddress normalize(StreetFinderAddress streetFinderAddress) {
-        String prefix = streetFinderAddress.getPreDirection().trim().toUpperCase();
-        String street = streetFinderAddress.get(STREET).trim().toUpperCase();
-        String suffix = streetFinderAddress.getStreetSuffix().trim().toUpperCase();
-        String location = streetFinderAddress.get(TOWN).trim().toUpperCase();
-
-        streetFinderAddress.setPreDirection(prefix);
-        streetFinderAddress.setStreet(street);
-        streetFinderAddress.setStreetSuffix(suffix);
-        streetFinderAddress.setTown(location);
-
-        return streetFinderAddress;
+    public void normalize() {
+        setPreDirection(getPreDirection().trim().toUpperCase());
+        setStreet(get(STREET).trim().toUpperCase());
+        setStreetSuffix(getStreetSuffix().trim().toUpperCase());
+        put(TOWN, get(TOWN).trim().toUpperCase());
     }
 
     public void setBuilding(boolean isLow, String data) {
@@ -182,14 +176,6 @@ public class StreetFinderAddress {
         return primaryBuilding.hasParity();
     }
 
-    /**
-     * Sets the 5-digit zipcode
-     * @param zip
-     */
-    public void setZip(String zip) {
-        put(ZIP, zip);
-    }
-
     public static String cleanBuilding(String bldg) {
         return bldg.replaceAll("1/2","").replaceAll("1/4","");
     }
@@ -203,14 +189,6 @@ public class StreetFinderAddress {
     }
 
     /**
-     * Sets the town name
-     * @param town
-     */
-    public void setTown(String town) {
-        put(TOWN, town.trim());
-    }
-
-    /**
      * Sets the townCode. Checks if the code is numbers or if the code is characters.
      * If it is numbers then it is passes to setBoeTownCode
      * @param townCode - Can either be ints or a combination of characters and numbers
@@ -219,16 +197,6 @@ public class StreetFinderAddress {
         townCode = townCode.trim();
         StreetFileField type = townCode.matches("\\d+") ? BOE_TOWN_CODE : TOWN_CODE;
         put(type, townCode);
-    }
-
-    /**
-     * Sets the district
-     * @param dist
-     */
-    public void setDist(String dist) {
-        if (!dist.isEmpty()) {
-            this.dist = dist;
-        }
     }
 
 
@@ -250,7 +218,7 @@ public class StreetFinderAddress {
      * @param ed
      */
     public void setED(String ed) {
-        if(!ed.contains("-")) {
+        if (!ed.contains("-")) {
             put(ELECTION_CODE, ed);
         }
     }

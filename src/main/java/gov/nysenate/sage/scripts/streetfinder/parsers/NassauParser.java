@@ -3,6 +3,9 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 import gov.nysenate.sage.model.address.StreetFinderAddress;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
 
 import static gov.nysenate.sage.model.address.StreetFileField.*;
 
@@ -19,38 +22,28 @@ public class NassauParser extends NTSParser {
         super(file);
     }
 
-    @Override
-    public void parseFile() throws IOException {
-        readFile();
-    }
-
     /**
      * Parses the line by calling each helper method to extract all data
      * @param line
      */
     @Override
     protected void parseLine(String line) {
-        StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
-        String[] splitLine = line.split(",");
-
-        handlePrecinct(splitLine[0], streetFinderAddress);
-        streetFinderAddress.setStreet(splitLine[1]);
-        getSuffix(splitLine[2], streetFinderAddress);
-        streetFinderAddress.setTown(splitLine[3]);
-        streetFinderAddress.setZip(splitLine[4]);
-        streetFinderAddress.setBuilding(true, splitLine[5]);
-        streetFinderAddress.setBuilding(false, splitLine[6]);
-        streetFinderAddress.setBldgParity(splitLine[7]);
-        // TODO: No use of the 8th part?
-        streetFinderAddress.put(CONGRESSIONAL, trim(splitLine[9]));
-        streetFinderAddress.put(SENATE, trim(splitLine[10]));
-        streetFinderAddress.put(ASSEMBLY, trim(splitLine[11]));
-        streetFinderAddress.put(CLEG, trim(splitLine[12]));
-        // Ignore TD
-        writeToFile(streetFinderAddress);
+        List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>();
+        functions.add(handlePrecinct);
+        functions.add(StreetFinderAddress::setStreet);
+        functions.add(NassauParser::getSuffix);
+        functions.add(function(TOWN));
+        functions.add(function(ZIP));
+        functions.addAll(buildingFunctions);
+        functions.addAll(skip(1));
+        functions.add(function(CONGRESSIONAL, true));
+        functions.add(function(SENATE, true));
+        functions.add(function(ASSEMBLY, true));
+        functions.add(function(CLEG, true));
+        parseLineFun(functions, line);
     }
 
-    private static void getSuffix(String data, StreetFinderAddress streetFinderAddress) {
+    private static void getSuffix(StreetFinderAddress streetFinderAddress, String data) {
         String streetSuffix = data.replace(streetFinderAddress.getStreet(), " ").trim();
         String[] splitString = streetSuffix.split("\\s+");
         int suffixIndex = 0;
@@ -63,16 +56,5 @@ public class NassauParser extends NTSParser {
             }
         }
         streetFinderAddress.setStreetSuffix(splitString[suffixIndex]);
-    }
-
-    /**
-     * Trims off the first part of a string
-     * ex. TW-01 trims off the TW-
-     * and returns 01
-     * @param string
-     * @return
-     */
-    private static String trim(String string) {
-        return string.split("-")[1];
     }
 }

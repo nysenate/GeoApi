@@ -10,14 +10,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
-import static gov.nysenate.sage.model.address.StreetFileField.WARD;
+import static gov.nysenate.sage.model.address.StreetFileField.*;
 
 /**
  * Parses Montgomery County 2018 txt file
  * Looks for zip, street, low, high, range type, town, ward, district
  * Polling information is unnecessary and skipped
  */
-public class MontgomeryParser extends NTSParser {
+public class MontgomeryParser extends BaseParser {
     // Indices keep location of the column of info for each block of data
     private int zipIndex;
     private int streetNameIndex;
@@ -65,7 +65,7 @@ public class MontgomeryParser extends NTSParser {
             currentLine = scanner.nextLine();
         }
         scanner.close();
-        super.closeWriters();
+        closeWriters();
     }
 
     /**
@@ -74,26 +74,19 @@ public class MontgomeryParser extends NTSParser {
      */
     protected void parseLine(String line) {
         StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
-        getZip(line, streetFinderAddress);
+        streetFinderAddress.put(ZIP, substringHelper(line, zipIndex, zipIndex + 5));
         getStreetAndSuffix(line, streetFinderAddress);
         getHouseRange(line, streetFinderAddress);
         streetFinderAddress.setBldgParity(getParity(line));
         getTownWardDist(line, streetFinderAddress);
-        super.writeToFile(streetFinderAddress);
+        writeToFile(streetFinderAddress);
     }
 
-    /**
-     * Gets the zip code by looking at the location of zipIndex
-     * @param line
-     * @param streetFinderAddress
-     */
-    private void getZip(String line, StreetFinderAddress streetFinderAddress) {
-        //get zip by going char by char and adding all chars to a string
-        StringBuilder zip =  new StringBuilder();
-        for (int i = zipIndex; i < zipIndex + 5; i++) {
-            zip.append(line.charAt(i));
+    private static String substringHelper(String str, int start, int end) {
+        if (start >= str.length()) {
+            return "";
         }
-        streetFinderAddress.setZip(zip.toString());
+        return str.substring(start, end);
     }
 
     /**
@@ -103,12 +96,8 @@ public class MontgomeryParser extends NTSParser {
      * @param streetFinderAddress
      */
     private void getStreetAndSuffix(String line, StreetFinderAddress streetFinderAddress) {
-        //get Street name and street suffix char by char
-        StringBuilder temp = new StringBuilder();
-        for (int i = streetNameIndex; i < houseRangeIndex; i++) {
-            temp.append(line.charAt(i));
-        }
-        LinkedList<String> streetSplit = new LinkedList<>(List.of(temp.toString().trim().split("\\s+")));
+        line = substringHelper(line, streetNameIndex, houseRangeIndex).trim();
+        LinkedList<String> streetSplit = new LinkedList<>(List.of(line.split("\\s+")));
 
         // special case for "E."
         String preDir = streetSplit.getFirst().replace(".", "");
@@ -131,50 +120,13 @@ public class MontgomeryParser extends NTSParser {
      * @param streetFinderAddress
      */
     private void getHouseRange(String line, StreetFinderAddress streetFinderAddress) {
-        StringBuilder low = new StringBuilder();
-        StringBuilder high = new StringBuilder();
-        boolean lowDone = false;
-        for (int i = houseRangeIndex; i < houseRangeIndex + 12; i++) {
-            if (lowDone) {
-                high.append(line.charAt(i));
-            } else {
-                if (line.charAt(i) == '-') {
-                    lowDone = true;
-                } else {
-                    low.append(line.charAt(i));
-                }
-            }
-        }
-        streetFinderAddress.setBuilding(true, low.toString().trim());
-        streetFinderAddress.setBuilding(false, high.toString().trim());
+        String[] buildingData = substringHelper(line, houseRangeIndex, houseRangeIndex + 12).split("-");
+        streetFinderAddress.setBuilding(true, buildingData[0].trim());
+        streetFinderAddress.setBuilding(false, buildingData[1].trim());
     }
 
     private String getParity(String line) {
-        //get range type
-        //first thing to occur after range (find first character and append until first space
-        StringBuilder temp = new StringBuilder();
-        boolean found = false;
-        //go char by char searching for a non whitespace
-        for (int i = houseRangeIndex + 12; i < houseRangeIndex + 22; i++) {
-            if (!found) {
-                //check for non whitespace
-                if (!Character.isWhitespace(line.charAt(i))) {
-                    temp.append(line.charAt(i));
-                    found = true;
-                }
-            } else {
-                if (Character.isWhitespace(line.charAt(i))) {
-                    break;
-                } else {
-                    temp.append(line.charAt(i));
-                }
-            }
-        }
-
-        if (temp.toString().equals("EVEN")) {
-            temp.append("S");
-        }
-        return temp.toString();
+        return substringHelper(line, houseRangeIndex + 12, houseRangeIndex + 22).trim().split(" ")[0];
     }
 
     /**
@@ -185,21 +137,17 @@ public class MontgomeryParser extends NTSParser {
      * @param streetFinderAddress
      */
     private void getTownWardDist(String line, StreetFinderAddress streetFinderAddress) {
-        StringBuilder temp = new StringBuilder();
-        for (int i = townWardDistrictIndex; i < line.length(); i++) {
-            temp.append(line.charAt(i));
-        }
-        String[] townWardDistrict = temp.toString().trim().split("/");
+        String[] townWardDistrict = substringHelper(line, townWardDistrictIndex, line.length()).trim().split("/");
 
         if (townWardDistrict.length == 2) {
-            streetFinderAddress.setTown(townWardDistrict[0].trim());
+            streetFinderAddress.put(TOWN, townWardDistrict[0].trim());
             // Skip over word "District"
             String[] district = townWardDistrict[1].trim().split(" ");
             // TODO: I think this is supposed to set the district?
             streetFinderAddress.put(WARD, district[1]);
 
         } else {
-            streetFinderAddress.setTown(townWardDistrict[0].trim());
+            streetFinderAddress.put(TOWN, townWardDistrict[0].trim());
 
             // Skip over word "Ward"
             String[] ward = townWardDistrict[1].trim().split(" ");

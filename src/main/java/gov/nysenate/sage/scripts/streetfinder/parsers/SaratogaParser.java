@@ -108,7 +108,7 @@ public class SaratogaParser extends NTSParser {
      */
     public void parseLine(String line, boolean specialCase, String town) {
         StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
-        streetFinderAddress.setTown(town);
+        streetFinderAddress.put(TOWN, town.trim());
         String[] splitLine = line.split("\\s+");
         int zipIndex = 1;
         // Skip first index because that must be street name
@@ -117,7 +117,7 @@ public class SaratogaParser extends NTSParser {
                 break;
             }
         }
-        streetFinderAddress.setZip(splitLine[zipIndex]);
+        streetFinderAddress.put(ZIP, splitLine[zipIndex]);
         streetFinderAddress.setStreetSuffix(splitLine[zipIndex - 1]);
         String streetName = String.join(" ", Arrays.copyOfRange(splitLine, 0, zipIndex));
         streetFinderAddress.setStreet(streetName.trim());

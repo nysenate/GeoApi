@@ -14,7 +14,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  * Parses files in the base NTS format (see Albany, Broome Counties as example)
  * Output is a tsv file
  */
-public class NTSParser {
+public class NTSParser extends BaseParser {
     private static final Map<StreetFileField, Pattern> names = new EnumMap<>(StreetFileField.class);
     static {
         names.put(SCHOOL, Pattern.compile("Schl"));
@@ -28,11 +28,7 @@ public class NTSParser {
     private Map<StreetFileField, Integer> indices;
     //These are used to save the variables when the line is a continuation of an above street
     private StreetFinderAddress streetFinderAddressStorage = new StreetFinderAddress();
-    protected final String file;
     private String overloadStreetSuf;
-    //tsv file writers
-    private final FileWriter fileWriter;
-    private final PrintWriter outputWriter;
 
     /**
      * Constructor sets the file name and sets up tsv file
@@ -40,14 +36,7 @@ public class NTSParser {
      * @throws IOException
      */
     public NTSParser(String file) throws IOException {
-        this.file = file;
-        String output = file.replace(".txt", ".tsv");
-        output = output.replace(".csv", ".tsv");            //in case its a csv file
-        this.fileWriter = new FileWriter(output);
-        this.outputWriter = new PrintWriter(fileWriter);
-        //add columns for the tsv file
-        outputWriter.print("street\ttown\tstate\tzip5\tbldg_lo_num\tbldg_lo_chr\tbldg_hi_num\tbldg_hi_chr\tbldg_parity\tapt_lo_num\tapt_lo_chr\tapt_hi_num\tapt_hi_chr\tapt_parity\telection_code\tcounty_code\t" +
-                "assembly_code\tsenate_code\tcongressional_code\tboe_town_code\ttown_code\tward_code\tboe_school_code\tschool_code\tcleg_code\tcc_code\tfire_code\tcity_code\tvill_code\n");
+        super(file);
     }
 
     /**
@@ -127,7 +116,7 @@ public class NTSParser {
             }
             //for some reason splitLine[0] is whitespace and the zip is at splitLine[1]
             if (splitLine[1].length() == 5) {
-                streetFinderAddress.setZip(splitLine[1]);
+                streetFinderAddress.put(ZIP, splitLine[1]);
             }
             //set other fields using StreetFinderAddressStorage
             streetFinderAddress.setPreDirection(streetFinderAddressStorage.getPreDirection().trim());
@@ -142,7 +131,7 @@ public class NTSParser {
             //dont include the UNKNOWN as the street name
             //zip must be after *UNKNOWN*
             if (splitLine[1].length() == 5) {
-                streetFinderAddress.setZip(splitLine[1]);
+                streetFinderAddress.put(ZIP, splitLine[1]);
             }
             //call parseAfterZip
             parseAfterZip(splitLine, specialCase, 2, line, streetFinderAddress);
@@ -171,11 +160,11 @@ public class NTSParser {
         //streetSuf = splitline[zipIndex -1]
         //streetName = everything before zipIndex -1
         if (case1239) {
-            streetFinderAddress.setZip("12309");
+            streetFinderAddress.put(ZIP, "12309");
             case1239 = false;
         }
         else {
-            streetFinderAddress.setZip(splitLine[zipIndex]);
+            streetFinderAddress.put(ZIP, splitLine[zipIndex]);
         }
 
 
@@ -221,14 +210,14 @@ public class NTSParser {
             temp++;
         }
 
-        String streetName = "";
+        StringBuilder streetName = new StringBuilder();
         //concatenate Street Name into one string
         //Street Name is in indexes temp to endOfStreetName
         for (int i = temp; i <= endOfStreetName; i++) {
-            streetName = streetName + splitLine[i] + " ";
+            streetName.append(splitLine[i]).append(" ");
         }
-        streetName = streetName.replace("E.","E");
-        streetFinderAddress.setStreet(streetName.trim());
+        streetName = new StringBuilder(streetName.toString().replace("E.", "E"));
+        streetFinderAddress.setStreet(streetName.toString().trim());
         //increment index for parseAfterZip call
         int index = zipIndex + 1;
         //call parseAfterZip
@@ -280,10 +269,9 @@ public class NTSParser {
             }
         }
 
-        //now get the town Name going from splitLine[index to townCodeIndex - 1]
         String town = String.join(" ", List.of(splitLine).subList(index, townCodeIndex));
-        streetFinderAddress.setTown(town.trim().toUpperCase()
-                .replaceAll("CITY OF", "").replaceAll("TOWN OF", ""));
+        streetFinderAddress.put(TOWN,
+                town.trim().toUpperCase().replaceAll("CITY OF", "").replaceAll("TOWN OF", ""));
         streetFinderAddress.setTownCode(splitLine[townCodeIndex]);
         index = townCodeIndex + 1;
 
@@ -363,35 +351,6 @@ public class NTSParser {
     }
 
     /**
-     * Utility method that checks if the given string is equal to a direction
-     * Only checks if equal to "N", "E", "S", and "W"
-     * @param string
-     * @return true if a direction, false otherwise
-     */
-    protected static boolean checkForDirection(String string) {
-        return string.toUpperCase().matches("[NESW]");
-    }
-
-    /**
-     * Writes the StreetFinderAddress to the file in StreetFileForm by using the PrintWriter
-     * @param streetFinderAddress
-     */
-    protected void writeToFile(StreetFinderAddress streetFinderAddress) {
-        streetFinderAddress = StreetFinderAddress.normalize(streetFinderAddress);
-        outputWriter.print(streetFinderAddress.toStreetFileForm());
-        outputWriter.flush();
-    }
-
-    /**
-     * Closes the PrintWriter and FileWriter
-     * @throws IOException
-     */
-    protected void closeWriters() throws IOException {
-        outputWriter.close();
-        fileWriter.close();
-    }
-
-    /**
      * Gets the indexes for sch, vill, cleg, fire, cc, and city if they exist.
      * Checks for multiple spelling/capitalization
      * The indexes stay - 1 if they do not exist
@@ -406,35 +365,6 @@ public class NTSParser {
                 indices.put(entry.getKey(), matcher.start());
             }
         }
-    }
-
-    protected static void handlePrecinct(String precinct, StreetFinderAddress streetFinderAddress) {
-        // Add a leading zero if only 5 digits
-        if (precinct.length() == 5) {
-            precinct = "0" + precinct;
-        }
-        streetFinderAddress.setTownCode(precinct.substring(0, 2));
-        streetFinderAddress.put(WARD, precinct.substring(2, 4));
-        streetFinderAddress.setED(precinct.substring(precinct.length() - 2));
-    }
-
-    /**
-     * Utility method that scans through a file and calls the child classes version of
-     * parseLine(String). This method is only intended for classes that extend this class and should not be used within
-     * the NTSParser class
-     * @throws IOException
-     */
-    protected void readFile() throws IOException {
-        Scanner scanner = new Scanner(new File(file));
-        String currentLine = scanner.nextLine();
-        //While there is more lines in the file
-        while (scanner.hasNext()) {
-            currentLine = scanner.nextLine();
-            parseLine(currentLine);
-        }
-        //close all writers/readers
-        scanner.close();
-        closeWriters();
     }
 
     /**

@@ -5,8 +5,10 @@ import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 import static gov.nysenate.sage.model.address.StreetFileField.*;
 
@@ -14,7 +16,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  * Parses Erie County 2018 csv and puts parsed data into a tsv file
  * Looks for street, low, high, range type, townCode, District, zip
  */
-public class ErieParser extends NTSParser {
+public class ErieParser extends BaseParser {
     /**
      * Calls the super constructor which sets up the tsv file
      * @param file
@@ -24,15 +26,6 @@ public class ErieParser extends NTSParser {
         super(file);
     }
 
-
-    /**
-     * Parses the file by calling parseLine for each line of data
-     * @throws FileNotFoundException
-     */
-    public void parseFile() throws IOException {
-       super.readFile();
-    }
-
     /**
      * Parses the line by calling each method to find all the data given in the file
      * and add the data to the StreetFinderAddress
@@ -40,26 +33,21 @@ public class ErieParser extends NTSParser {
      */
     @Override
     protected void parseLine(String line) {
-        StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
-        String[] splitLine = line.split(",");
-        getStreetAndSuffix(splitLine[0], streetFinderAddress);
-        streetFinderAddress.setBuilding(true, splitLine[1]);
-        streetFinderAddress.setBuilding(false, splitLine[2]);
-        streetFinderAddress.setBldgParity(splitLine[3]);
-        streetFinderAddress.setZip(splitLine[4]);
-        streetFinderAddress.setTown(splitLine[5]);
-        handlePrecinct(splitLine[9], streetFinderAddress);
-        streetFinderAddress.put(SENATE, split(splitLine[10]));
-        streetFinderAddress.put(ASSEMBLY, split(splitLine[11]));
-        streetFinderAddress.setDist(split(splitLine[12]));
-        streetFinderAddress.put(CONGRESSIONAL, split(splitLine[13]));
-        writeToFile(streetFinderAddress);
+        List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>();
+        functions.add(ErieParser::getStreetAndSuffix);
+        functions.addAll(buildingFunctions);
+        functions.add(function(ZIP));
+        functions.add(function(TOWN));
+        functions.addAll(skip(3));
+        functions.add(handlePrecinct);
+        functions.add(function(SENATE, true));
+        functions.add(function(ASSEMBLY, true));
+        functions.add(function(COUNTY_CODE, true));
+        functions.add(function(CONGRESSIONAL, true));
+        parseLineFun(functions, line);
     }
 
-    private static String split(String input) {
-        var split = input.split("-");
-        return split.length > 1 ? split[1] : input;
-    }
+
 
     /**
      * Gets the Street name and Street Suffix from a string containing both
@@ -67,7 +55,7 @@ public class ErieParser extends NTSParser {
      * @param splitLine
      * @param streetFinderAddress
      */
-    private void getStreetAndSuffix(String splitLine, StreetFinderAddress streetFinderAddress) {
+    private static void getStreetAndSuffix(StreetFinderAddress streetFinderAddress, String splitLine) {
         LinkedList<String> splitList = new LinkedList<>(List.of(splitLine.split("\\s+")));
         if (checkForDirection(splitList.getFirst())) {
             streetFinderAddress.setPreDirection(splitList.removeFirst());

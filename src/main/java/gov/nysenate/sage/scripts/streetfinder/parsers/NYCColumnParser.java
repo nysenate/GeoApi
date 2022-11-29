@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import static gov.nysenate.sage.model.address.StreetFileField.TOWN;
+
 /**
  * Parses a single column of a NYC streetfile, line by line.
  * Some state is needed to keep track of the current street.
@@ -39,7 +41,7 @@ public class NYCColumnParser {
             streetFinderAddress.setPreDirection(preDir);
 
             if (NYCColumn.handleDataPoints(streetFinderAddress, split) && street != null) {
-                streetFinderAddress.setTown(town);
+                streetFinderAddress.put(TOWN, town.trim());
                 return Optional.of(streetFinderAddress);
             }
         }

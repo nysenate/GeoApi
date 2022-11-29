@@ -11,22 +11,12 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  * Parses Schohaire County.txt file
  * Looks for street name, town, low, high, range type, sch, townCode, vill
  */
-public class SchoharieParser extends NTSParser {
+public class SchoharieParser extends BaseParser {
     public SchoharieParser(String file) throws IOException {
         super(file);
     }
 
-    /**
-     * Parses the file for the needed information. Finds where the actual data is and then
-     * parseLine is called to parse the line
-     *
-     * @throws FileNotFoundException
-     */
-    public void parseFile() throws IOException {
-        super.readFile();
-    }
-
-    //TODO ADD Zip code parsing once we get a streetfile with zipcodes included
+    // TODO ADD Zip code parsing once we get a streetfile with zipcodes included
     @Override
     protected void parseLine(String line) {
         if (line.contains("House Range") && line.contains("This conflicts")
@@ -85,7 +75,7 @@ public class SchoharieParser extends NTSParser {
 
     private void getTown(String data, StreetFinderAddress streetFinderAddress) {
         if (!data.equalsIgnoreCase("Town")) {
-            streetFinderAddress.setTown(data);
+            streetFinderAddress.put(TOWN, data.trim());
         }
     }
 
