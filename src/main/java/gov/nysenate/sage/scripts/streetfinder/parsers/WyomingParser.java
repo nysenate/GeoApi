@@ -6,6 +6,8 @@ import gov.nysenate.sage.model.district.DistrictType;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import static gov.nysenate.sage.model.address.StreetFileField.*;
+
 /**
  * Parses Wyoming County 2018 .txt
  * Looks for townCode, pre-Direction, Street, street suffix, post-direction, city, low,high, range type, and zip
@@ -53,9 +55,9 @@ public class WyomingParser extends NTSParser{
         streetFinderAddress.setTown(splitLine[9]);
         streetFinderAddress.setZip(splitLine[10]);
         handlePrecinct(splitLine[8], streetFinderAddress);
-        streetFinderAddress.put(DistrictType.CONGRESSIONAL, split(splitLine[12]));
-        streetFinderAddress.put(DistrictType.SENATE, split(splitLine[13]));
-        streetFinderAddress.put(DistrictType.ASSEMBLY, splitLine[14]);
+        streetFinderAddress.put(CONGRESSIONAL, split(splitLine[12]));
+        streetFinderAddress.put(SENATE, split(splitLine[13]));
+        streetFinderAddress.put(ASSEMBLY, splitLine[14]);
         writeToFile(streetFinderAddress);
     }
 

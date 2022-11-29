@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
+import static gov.nysenate.sage.model.address.StreetFileField.WARD;
+
 /**
  * Parses Montgomery County 2018 txt file
  * Looks for zip, street, low, high, range type, town, ward, district
@@ -194,19 +196,19 @@ public class MontgomeryParser extends NTSParser {
             // Skip over word "District"
             String[] district = townWardDistrict[1].trim().split(" ");
             // TODO: I think this is supposed to set the district?
-            streetFinderAddress.put(DistrictType.WARD, district[1]);
+            streetFinderAddress.put(WARD, district[1]);
 
         } else {
             streetFinderAddress.setTown(townWardDistrict[0].trim());
 
             // Skip over word "Ward"
             String[] ward = townWardDistrict[1].trim().split(" ");
-            streetFinderAddress.put(DistrictType.WARD, ward[1]);
+            streetFinderAddress.put(WARD, ward[1]);
 
             // Skip over word "District"
             String[] district = townWardDistrict[2].trim().split(" ");
             // TODO: this as well?
-            streetFinderAddress.put(DistrictType.WARD, district[1]);
+            streetFinderAddress.put(WARD, district[1]);
         }
     }
 }

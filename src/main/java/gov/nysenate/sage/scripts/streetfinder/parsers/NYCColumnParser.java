@@ -38,7 +38,7 @@ public class NYCColumnParser {
             streetFinderAddress.setStreetSuffix(streetSuffix);
             streetFinderAddress.setPreDirection(preDir);
 
-            if (Column.handleDataPoints(streetFinderAddress, split) && street != null) {
+            if (NYCColumn.handleDataPoints(streetFinderAddress, split) && street != null) {
                 streetFinderAddress.setTown(town);
                 return Optional.of(streetFinderAddress);
             }

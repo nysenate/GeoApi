@@ -1,10 +1,11 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import static gov.nysenate.sage.model.address.StreetFileField.*;
 
 /**
  * Parses Westchester County 2018 file
@@ -47,10 +48,10 @@ public class WestchesterParser extends NTSParser {
         streetFinderAddress.setBuilding(false, splitLine[7]);
         streetFinderAddress.setBldgParity(splitLine[8]);
         streetFinderAddress.setZip(splitLine[9]);
-        streetFinderAddress.put(DistrictType.CONGRESSIONAL, split(splitLine[10]));
-        streetFinderAddress.put(DistrictType.SENATE, split(splitLine[11]));
-        streetFinderAddress.put(DistrictType.ASSEMBLY, split(splitLine[12]));
-        streetFinderAddress.put(DistrictType.CLEG, split(splitLine[13]));
+        streetFinderAddress.put(CONGRESSIONAL, split(splitLine[10]));
+        streetFinderAddress.put(SENATE, split(splitLine[11]));
+        streetFinderAddress.put(ASSEMBLY, split(splitLine[12]));
+        streetFinderAddress.put(CLEG, split(splitLine[13]));
         //ignore CNL-DT
         writeToFile(streetFinderAddress);
     }

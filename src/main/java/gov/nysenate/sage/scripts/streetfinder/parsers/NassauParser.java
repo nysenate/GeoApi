@@ -1,9 +1,10 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.IOException;
+
+import static gov.nysenate.sage.model.address.StreetFileField.*;
 
 /**
  * Parses Nassau County csv file and outputs a tsv file
@@ -41,10 +42,10 @@ public class NassauParser extends NTSParser {
         streetFinderAddress.setBuilding(false, splitLine[6]);
         streetFinderAddress.setBldgParity(splitLine[7]);
         // TODO: No use of the 8th part?
-        streetFinderAddress.put(DistrictType.CONGRESSIONAL, trim(splitLine[9]));
-        streetFinderAddress.put(DistrictType.SENATE, trim(splitLine[10]));
-        streetFinderAddress.put(DistrictType.ASSEMBLY, trim(splitLine[11]));
-        streetFinderAddress.put(DistrictType.CLEG, trim(splitLine[12]));
+        streetFinderAddress.put(CONGRESSIONAL, trim(splitLine[9]));
+        streetFinderAddress.put(SENATE, trim(splitLine[10]));
+        streetFinderAddress.put(ASSEMBLY, trim(splitLine[11]));
+        streetFinderAddress.put(CLEG, trim(splitLine[12]));
         // Ignore TD
         writeToFile(streetFinderAddress);
     }

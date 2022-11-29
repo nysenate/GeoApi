@@ -1,10 +1,11 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import static gov.nysenate.sage.model.address.StreetFileField.*;
 
 /**
  * Parses Schohaire County.txt file
@@ -96,19 +97,19 @@ public class SchoharieParser extends NTSParser {
 
     private void getCong(String data, StreetFinderAddress streetFinderAddress) {
         if (!data.equalsIgnoreCase("Cong")) {
-            streetFinderAddress.put(DistrictType.CONGRESSIONAL, data);
+            streetFinderAddress.put(CONGRESSIONAL, data);
         }
     }
 
     private void getSen(String data, StreetFinderAddress streetFinderAddress) {
         if (!data.equalsIgnoreCase("Sen")) {
-            streetFinderAddress.put(DistrictType.SENATE, data);
+            streetFinderAddress.put(SENATE, data);
         }
     }
 
     private void getAsm(String data, StreetFinderAddress streetFinderAddress) {
         if (!data.equalsIgnoreCase("Asm")) {
-            streetFinderAddress.put(DistrictType.ASSEMBLY, data);
+            streetFinderAddress.put(ASSEMBLY, data);
         }
     }
 
@@ -120,7 +121,7 @@ public class SchoharieParser extends NTSParser {
 
     private void getVillage(String data, StreetFinderAddress streetFinderAddress) {
         if (!data.equalsIgnoreCase("Village")) {
-            streetFinderAddress.put(DistrictType.VILLAGE, data);
+            streetFinderAddress.put(VILLAGE, data);
         }
     }
 }

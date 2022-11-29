@@ -1,22 +1,21 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.model.address.StreetFileField;
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.AddressDictionary;
 
 import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static gov.nysenate.sage.model.district.DistrictType.*;
-import static gov.nysenate.sage.model.district.DistrictType.CITY;
+import static gov.nysenate.sage.model.address.StreetFileField.*;
 
 /**
  * Parses files in the base NTS format (see Albany, Broome Counties as example)
  * Output is a tsv file
  */
 public class NTSParser {
-    private static final Map<DistrictType, Pattern> names = new EnumMap<>(DistrictType.class);
+    private static final Map<StreetFileField, Pattern> names = new EnumMap<>(StreetFileField.class);
     static {
         names.put(SCHOOL, Pattern.compile("Schl"));
         names.put(VILLAGE, Pattern.compile("Vill"));
@@ -26,7 +25,7 @@ public class NTSParser {
         names.put(CITY, Pattern.compile("City"));
     }
 
-    private Map<DistrictType, Integer> indices;
+    private Map<StreetFileField, Integer> indices;
     //These are used to save the variables when the line is a continuation of an above street
     private StreetFinderAddress streetFinderAddressStorage = new StreetFinderAddress();
     protected final String file;
@@ -333,6 +332,7 @@ public class NTSParser {
      * @param line
      * @param streetFinderAddress - StreetFinderAddress to add info too
      */
+    // TODO: simplify
     protected void parseAfterAsm(String line, StreetFinderAddress streetFinderAddress) {
         getPostAsmDistrict(SCHOOL, 1, 4, line).ifPresent(streetFinderAddress::setSch);
         getPostAsmDistrict(VILLAGE, 3, 4, line).ifPresent(vill -> streetFinderAddress.put(VILLAGE, vill));
@@ -343,11 +343,11 @@ public class NTSParser {
         getPostAsmDistrict(CITY, line).ifPresent(cityCode -> streetFinderAddress.put(CITY, cityCode));
     }
 
-    private Optional<String> getPostAsmDistrict(DistrictType type, String line) {
+    private Optional<String> getPostAsmDistrict(StreetFileField type, String line) {
         return getPostAsmDistrict(type, 2, 4, line);
     }
 
-    private Optional<String> getPostAsmDistrict(DistrictType type, int bottomAdj, int topAdj, String line) {
+    private Optional<String> getPostAsmDistrict(StreetFileField type, int bottomAdj, int topAdj, String line) {
         // TODO: a match at 0 should be fine?
         int index = indices.getOrDefault(type, -1);
         if (index <= 0) {
@@ -399,7 +399,7 @@ public class NTSParser {
      *  ine - must be a column header line with column titles
      */
     protected void setIndices(String currentLine) {
-        indices = new EnumMap<>(DistrictType.class);
+        indices = new EnumMap<>(StreetFileField.class);
         for (var entry : names.entrySet()) {
             var matcher = entry.getValue().matcher(currentLine);
             if (matcher.find()) {
@@ -414,7 +414,7 @@ public class NTSParser {
             precinct = "0" + precinct;
         }
         streetFinderAddress.setTownCode(precinct.substring(0, 2));
-        streetFinderAddress.put(DistrictType.WARD, precinct.substring(2, 4));
+        streetFinderAddress.put(WARD, precinct.substring(2, 4));
         streetFinderAddress.setED(precinct.substring(precinct.length() - 2));
     }
 

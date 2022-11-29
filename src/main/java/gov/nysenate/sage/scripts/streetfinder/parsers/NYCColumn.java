@@ -1,29 +1,30 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import gov.nysenate.sage.model.district.DistrictType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
+import static gov.nysenate.sage.model.address.StreetFileField.*;
+
 // TODO: what are MC and CO?
 // TODO: really NYC columns
-public enum Column {
+enum NYCColumn {
     FROM((streetFinderAddress, s) -> streetFinderAddress.setBuilding(true, StreetFinderAddress.cleanBuilding(s))),
     TO((streetFinderAddress, s) -> streetFinderAddress.setBuilding(false, StreetFinderAddress.cleanBuilding(s))),
-    ED(StreetFinderAddress::setED), AD((streetFinderAddress, s) -> streetFinderAddress.put(DistrictType.ASSEMBLY, s)),
-    ZIP(StreetFinderAddress::setStreet), CD((streetFinderAddress, s) -> streetFinderAddress.put(DistrictType.CONGRESSIONAL, s)),
-    SD((streetFinderAddress, s) -> streetFinderAddress.put(DistrictType.SENATE, s)), MC(), CO();
+    ED(StreetFinderAddress::setED), AD((streetFinderAddress, s) -> streetFinderAddress.put(ASSEMBLY, s)),
+    ZIP(StreetFinderAddress::setStreet), CD((streetFinderAddress, s) -> streetFinderAddress.put(CONGRESSIONAL, s)),
+    SD((streetFinderAddress, s) -> streetFinderAddress.put(SENATE, s)), MC(), CO();
 
     private final BiConsumer<StreetFinderAddress, String> sfaMethod;
 
-    Column(BiConsumer<StreetFinderAddress, String> sfaMethod) {
+    NYCColumn(BiConsumer<StreetFinderAddress, String> sfaMethod) {
         this.sfaMethod = sfaMethod;
     }
 
     // We don't do anything with the data in some columns.
-    Column() {
+    NYCColumn() {
         this.sfaMethod = (streetFinderAddress, s) -> {};
     }
 
@@ -31,7 +32,7 @@ public enum Column {
         if (points.length < 6 || points.length > 9) {
             return false;
         }
-        ArrayList<Column> columns = new ArrayList<>();
+        ArrayList<NYCColumn> columns = new ArrayList<>();
         if (points.length == 6) {
             columns.addAll(List.of(ED, AD));
         }

@@ -1,40 +1,30 @@
 package gov.nysenate.sage.model.address;
 
-import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.AddressDictionary;
 import org.apache.logging.log4j.util.Strings;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static gov.nysenate.sage.model.district.DistrictType.*;
+import static gov.nysenate.sage.model.address.StreetFileField.*;
 
 /**
  * Represents a Street Address for the StreetFinder database/parsers
  * It also contains helping methods/formatting help for the StreetFinder Parsers
  */
 public class StreetFinderAddress {
-    private static final Set<DistrictType> mustNotBeEmpty = EnumSet.of(TOWN, WARD, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, VILLAGE, FIRE, CITY_COUNCIL);
-    private static final Set<DistrictType> mustBeNumeric = EnumSet.of(CONGRESSIONAL, SENATE, ASSEMBLY, CITY_COUNCIL);
-    private static final Set<DistrictType> defaultTypes = EnumSet.allOf(DistrictType.class);
-    static {
-        defaultTypes.remove(COUNTY);
-        defaultTypes.remove(ELECTION);
-    }
+    private static final Set<StreetFileField> mustNotBeEmpty = EnumSet.of(ELECTION_CODE, WARD,
+            CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, VILLAGE, FIRE, CITY_COUNCIL, TOWN_CODE, BOE_TOWN_CODE);
+    private static final Set<StreetFileField> mustBeNumeric = EnumSet.of(ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, CITY_COUNCIL);
     private final StreetFinderBuilding primaryBuilding = new StreetFinderBuilding();
     // Really a range for apartment buildings. Only used in Suffolk.
     protected final StreetFinderBuilding secondaryBuilding = new StreetFinderBuilding();
-    private String preDirection;
-    private String postDirection;
-    private String street;
-    private String streetSuffix;
-    private String townCode;
+    private String preDirection = "";
+    private String postDirection = "";
+    private String streetSuffix = "";
     // TODO: might be the county?
-    private String dist;
-    private final Map<DistrictType, String> districtTypeMap = new EnumMap<>(DistrictType.class);
-    private String ed;
-    private String boeTownCode;
-    private String boeSchool;
+    private String dist = "\\N";
+    private final Map<StreetFileField, String> fieldMap = new EnumMap<>(StreetFileField.class);
     private static final Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 
     /**
@@ -42,14 +32,7 @@ public class StreetFinderAddress {
      * to \N which the default for blank in the geoapi database
      */
     public StreetFinderAddress() {
-        preDirection = "";
-        street = "\\N";
-        streetSuffix = "";
-        townCode = "\\N";
-        dist = "\\N";
-        ed = "\\N";
-        boeTownCode = "\\N";
-        boeSchool = "\\N";
+        put(STATE, "NY");
     }
 
     /**
@@ -57,39 +40,38 @@ public class StreetFinderAddress {
      * @return Object in String form
      */
     public String toStreetFileForm() {
-        List<String> start = List.of(preDirection + street + " " + streetSuffix, get(TOWN), "NY", get(ZIP));
-        List<String> higherDistricts = List.of(get(ASSEMBLY), get(SENATE), get(CONGRESSIONAL));
-        List<String> middleData = List.of(boeTownCode, townCode, get(WARD), boeSchool);
-        List<String> lowerDistricts = List.of(get(SCHOOL), get(CLEG), get(CITY_COUNCIL), get(FIRE), get(CITY), get(VILLAGE));
-        List<String> data = new ArrayList<>(start);
-        data.addAll(primaryBuilding.getData());
-        data.addAll(secondaryBuilding.getData());
-        data.add(ed);
-        data.add("\\N");
-        data.addAll(higherDistricts);
-        data.addAll(middleData);
-        data.addAll(lowerDistricts);
-        return String.join("\t", data) + "\n";
+        put(STREET, preDirection + get(STREET) + " " + streetSuffix);
+        List<String> fieldList = new ArrayList<>();
+        boolean beforeBuildings = true;
+        for (var fieldType : StreetFileField.values()) {
+            if (beforeBuildings && fieldType.isAfterBuildings()) {
+                fieldList.addAll(primaryBuilding.getData());
+                fieldList.addAll(secondaryBuilding.getData());
+                beforeBuildings = false;
+            }
+            fieldList.add(get(fieldType));
+        }
+        return String.join("\t", fieldList) + "\n";
     }
 
-    public void put(DistrictType type, String value) {
+    public void put(StreetFileField type, String value) {
         if ((!mustNotBeEmpty.contains(type) || !value.isEmpty()) &&
                 (!mustBeNumeric.contains(type) || isNumeric(value))) {
-            districtTypeMap.put(type, value);
+            fieldMap.put(type, value);
         }
     }
 
     public boolean hasSenateDistrict() {
-        return districtTypeMap.containsKey(SENATE);
+        return fieldMap.containsKey(SENATE);
     }
 
-    private String get(DistrictType type) {
-        return districtTypeMap.getOrDefault(type, "\\N");
+    private String get(StreetFileField type) {
+        return fieldMap.getOrDefault(type, "\\N");
     }
 
     public static StreetFinderAddress normalize(StreetFinderAddress streetFinderAddress) {
         String prefix = streetFinderAddress.getPreDirection().trim().toUpperCase();
-        String street = streetFinderAddress.getStreet().trim().toUpperCase();
+        String street = streetFinderAddress.get(STREET).trim().toUpperCase();
         String suffix = streetFinderAddress.getStreetSuffix().trim().toUpperCase();
         String location = streetFinderAddress.get(TOWN).trim().toUpperCase();
 
@@ -149,7 +131,7 @@ public class StreetFinderAddress {
         }
         String tempStreet = "";
         String[] string = street.split("\\s+");
-        //Check for matches in AddressDictionary highWayMap
+        // Check for matches in AddressDictionary highWayMap
         for (String s : string) {
             tempStreet += s;
             //if tempStreet is found as a key then set tempStreet to the keys value
@@ -158,7 +140,7 @@ public class StreetFinderAddress {
             }
             tempStreet += " ";
         }
-        this.street = tempStreet.trim();
+        put(STREET, tempStreet.trim());
     }
 
     /**
@@ -166,7 +148,7 @@ public class StreetFinderAddress {
      * @return
      */
     public String getStreet() {
-        return street;
+        return get(STREET);
     }
 
     /**
@@ -234,13 +216,9 @@ public class StreetFinderAddress {
      * @param townCode - Can either be ints or a combination of characters and numbers
      */
     public void setTownCode(String townCode) {
-        if(!townCode.isEmpty()) {
-            if (townCode.matches("\\d+")) {
-                this.setBoeTownCode(townCode.trim());
-            } else {
-                this.townCode = townCode.trim();
-            }
-        }
+        townCode = townCode.trim();
+        StreetFileField type = townCode.matches("\\d+") ? BOE_TOWN_CODE : TOWN_CODE;
+        put(type, townCode);
     }
 
     /**
@@ -263,7 +241,7 @@ public class StreetFinderAddress {
         if (sch.matches("\\d+")) {
             put(SCHOOL, sch);
         } else if(sch.matches("\\S+")) {
-            this.boeSchool = sch;
+            put(BOE_SCHOOL, sch);
         }
     }
 
@@ -272,20 +250,12 @@ public class StreetFinderAddress {
      * @param ed
      */
     public void setED(String ed) {
-        if(!ed.isEmpty() && isNumeric(ed) && !ed.contains("-")) {
-            this.ed = ed;
+        if(!ed.contains("-")) {
+            put(ELECTION_CODE, ed);
         }
     }
 
-    /**
-     * Sets the boeTownCode. Is only called by setTownCode if the code is digits
-     * @param boeTownCode
-     */
-    private void setBoeTownCode(String boeTownCode) {
-        this.boeTownCode = boeTownCode;
-    }
-
-    public static boolean isNumeric(String strNum) {
+    private static boolean isNumeric(String strNum) {
         if (strNum == null) {
             return false;
         }

@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import static gov.nysenate.sage.model.address.StreetFileField.*;
+
 /**
  * Parses Erie County 2018 csv and puts parsed data into a tsv file
  * Looks for street, low, high, range type, townCode, District, zip
@@ -47,10 +49,10 @@ public class ErieParser extends NTSParser {
         streetFinderAddress.setZip(splitLine[4]);
         streetFinderAddress.setTown(splitLine[5]);
         handlePrecinct(splitLine[9], streetFinderAddress);
-        streetFinderAddress.put(DistrictType.SENATE, split(splitLine[10]));
-        streetFinderAddress.put(DistrictType.ASSEMBLY, split(splitLine[11]));
+        streetFinderAddress.put(SENATE, split(splitLine[10]));
+        streetFinderAddress.put(ASSEMBLY, split(splitLine[11]));
         streetFinderAddress.setDist(split(splitLine[12]));
-        streetFinderAddress.put(DistrictType.CONGRESSIONAL, split(splitLine[13]));
+        streetFinderAddress.put(CONGRESSIONAL, split(splitLine[13]));
         writeToFile(streetFinderAddress);
     }
 

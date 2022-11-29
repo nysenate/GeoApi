@@ -1,12 +1,13 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.*;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+
+import static gov.nysenate.sage.model.address.StreetFileField.*;
 
 /**
  * Parses files similar to Saratoga County. Uses very similar logic to NTSParser but is separated for
@@ -156,9 +157,9 @@ public class SaratogaParser extends NTSParser {
 //        StreetFinderAddress.setWard(splitLine[index]);
         index++;
         streetFinderAddress.setED(splitLine[index++]);
-        streetFinderAddress.put(DistrictType.CONGRESSIONAL, splitLine[index++]);
-        streetFinderAddress.put(DistrictType.SENATE, splitLine[index++]);
-        streetFinderAddress.put(DistrictType.ASSEMBLY, splitLine[index++]);
+        streetFinderAddress.put(CONGRESSIONAL, splitLine[index++]);
+        streetFinderAddress.put(SENATE, splitLine[index++]);
+        streetFinderAddress.put(ASSEMBLY, splitLine[index++]);
         //cant assume that there is any more data
         //if the index is at the end then there is no more data and parsing is finished for the line
         if (index <= splitLine.length - 1) {

@@ -1,12 +1,13 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
-import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+
+import static gov.nysenate.sage.model.address.StreetFileField.*;
 
 /**
  * Parses Essex County 2018 csv file and converts to tsv file
@@ -44,9 +45,9 @@ public class EssexParser extends NTSParser {
         streetFinderAddress.setBuilding(true, splitLine[3]);
         streetFinderAddress.setBuilding(false, splitLine[4]);
         streetFinderAddress.setBldgParity(getRangeType(splitLine[5], splitLine[6]));
-        streetFinderAddress.put(DistrictType.ASSEMBLY, splitLine[7]);
-        streetFinderAddress.put(DistrictType.CONGRESSIONAL, splitLine[8]);
-        streetFinderAddress.put(DistrictType.SENATE, splitLine[9]);
+        streetFinderAddress.put(ASSEMBLY, splitLine[7]);
+        streetFinderAddress.put(CONGRESSIONAL, splitLine[8]);
+        streetFinderAddress.put(SENATE, splitLine[9]);
         getZip(splitLine, streetFinderAddress);
         super.writeToFile(streetFinderAddress);
     }

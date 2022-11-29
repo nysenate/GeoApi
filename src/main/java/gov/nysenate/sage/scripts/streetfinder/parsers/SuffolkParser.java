@@ -2,16 +2,17 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
 import gov.nysenate.sage.model.address.SuffolkStreetAddress;
-import gov.nysenate.sage.model.district.DistrictType;
 
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import static gov.nysenate.sage.model.address.StreetFileField.*;
+
 /**
  * Parses Suffolk County txt file and outputs a tsv file
  */
-public class SuffolkParser extends NTSParser{
+public class SuffolkParser extends NTSParser {
     //-22 categories seperated by tabs (21 tabs not counting 1st category)
     //- zip, zip+4, pre, street name, street mode, post, low, high, odd/even, secondary name, secondary low, secondary high, secondary odd/even, town, ed, cong, sen, asm, cleg, dist, fire, vill
     /**
@@ -46,6 +47,7 @@ public class SuffolkParser extends NTSParser{
         // Getting suffix first because the suffix might be in with the street name
         streetFinderAddress.setStreetSuffix(splitLine[4]);
         getStreetName(splitLine[3], streetFinderAddress);
+        // TODO: what is this?
         if (streetFinderAddress.getStreet().contains("DO NOT USE MAIL"))
             return;
         streetFinderAddress.setPostDirection(splitLine[5]);
@@ -58,17 +60,18 @@ public class SuffolkParser extends NTSParser{
         streetFinderAddress.setSecondaryBuildingParity(splitLine[12]);
         streetFinderAddress.setTown(splitLine[13]);
         streetFinderAddress.setED(splitLine[14]);
-        streetFinderAddress.put(DistrictType.CONGRESSIONAL, splitLine[15]);
-        streetFinderAddress.put(DistrictType.SENATE, splitLine[16]);
-        streetFinderAddress.put(DistrictType.ASSEMBLY, splitLine[17]);
-        streetFinderAddress.put(DistrictType.CLEG, splitLine[18]);
+        streetFinderAddress.put(CONGRESSIONAL, splitLine[15]);
+        streetFinderAddress.put(SENATE, splitLine[16]);
+        streetFinderAddress.put(ASSEMBLY, splitLine[17]);
+        streetFinderAddress.put(CLEG, splitLine[18]);
         //Next categories don't always exist so checking the size of the line
+        // TODO: alwyays check length + maximum length + warning?
         if (splitLine.length > 19) {
             streetFinderAddress.setDist(splitLine[19]);
             if (splitLine.length > 20)
-                streetFinderAddress.put(DistrictType.FIRE, splitLine[20]);
+                streetFinderAddress.put(FIRE, splitLine[20]);
             if (splitLine.length > 21)
-                streetFinderAddress.put(DistrictType.VILLAGE, splitLine[21]);
+                streetFinderAddress.put(VILLAGE, splitLine[21]);
         }
         writeToFile(streetFinderAddress);
     }
