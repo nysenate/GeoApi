@@ -3,4 +3,4 @@
 # -fixed 4 is a special trick that gets the files into a better txt format than normal
 source source config.properties
 echo "Converting $1 to .txt"
-pdftotext -fixed 4 "${raw_dir}"/$1
+pdftotext -fixed 6 "${raw_dir}"
