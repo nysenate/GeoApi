@@ -1,9 +1,14 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.model.address.SchoharieStreetFinderAddress;
 import gov.nysenate.sage.model.address.StreetFinderAddress;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.regex.Pattern;
 
 import static gov.nysenate.sage.model.address.StreetFileField.*;
 
@@ -11,9 +16,30 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  * Parses Schohaire County.txt file
  * Looks for street name, town, low, high, range type, sch, townCode, vill
  */
-public class SchoharieParser extends BaseParser {
+public class SchoharieParser extends BaseParser<SchoharieStreetFinderAddress> {
     public SchoharieParser(String file) throws IOException {
         super(file);
+    }
+
+    @Override
+    protected SchoharieStreetFinderAddress getNewAddress() {
+        return new SchoharieStreetFinderAddress();
+    }
+
+    @Override
+    protected List<BiConsumer<SchoharieStreetFinderAddress, String>> getFunctions() {
+        List<BiConsumer<SchoharieStreetFinderAddress, String>> functions = new ArrayList<>();
+        functions.add(function(STREET));
+        functions.addAll(buildingFunctions);
+        functions.add(function(TOWN));
+        // Possibly the ward
+        functions.addAll(skip(1));
+        functions.addAll(functions(ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, SCHOOL));
+        // Possibly the cleg and city, respectively
+        functions.addAll(skip(2));
+        functions.add(function(VILLAGE));
+        // Possibly fire after this
+        return functions;
     }
 
     // TODO ADD Zip code parsing once we get a streetfile with zipcodes included
@@ -23,95 +49,21 @@ public class SchoharieParser extends BaseParser {
                 && line.contains("Ricks Test") && line.contains("Dist")) {
             return;
         }
-        String[] splitLine = line.split(",", Integer.MAX_VALUE);
-
-        if (!splitLine[6].isEmpty() || !splitLine[1].isEmpty() || splitLine.length >= 11) {
-
-
-            StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
-
-            getStreet(splitLine[0] , streetFinderAddress);   //splitLine[0] StreetName
-            getRanges(splitLine[1], streetFinderAddress);   //splitLine[1] House Range
-            getTown(splitLine[2], streetFinderAddress);     //splitLine[2] Town
-            // splitLine[3] Ward     USELESS Not used in the 2018 file
-            getED(splitLine[4], streetFinderAddress);      //splitLine[4] ED
-            getCong(splitLine[5], streetFinderAddress);     //splitLine[5] Cong
-            getSen(splitLine[6], streetFinderAddress);      //splitLine[6] Sen
-            getAsm(splitLine[7], streetFinderAddress);       //splitLine[7] Asm
-            getSchool(splitLine[8],streetFinderAddress);    //splitLine[8] School
-            //splitLine[9] Cleg     USELESS Not used in the 2018 file
-            //splitLine[10] City    USELESS Not used in the 2018 file
-            getVillage(splitLine[11], streetFinderAddress);    //splitLine[11] Village
-            //splitLine[12] fire    USELESS Not used in the 2018 file
-
-
-            if (streetFinderAddress.hasSenateDistrict() &&
-                    streetFinderAddress.hasBuildingParity()) {
-                super.writeToFile(streetFinderAddress);
-            }
-        }
-    }
-
-    private void getStreet(String data, StreetFinderAddress streetFinderAddress) {
-        if (!data.equalsIgnoreCase("street name")) {
-            streetFinderAddress.setStreet(data);
-        }
-    }
-
-    private void getRanges(String data, StreetFinderAddress streetFinderAddress) {
-
-        if (data.isEmpty() || data.contains("House Range")) {
+        String[] lineSplit = line.split(",", 3);
+        String buildingData = lineSplit[1];
+        if (buildingData.isEmpty() || buildingData.contains("House Range")) {
             return;
         }
-
-        String[] splitData = data.split("-");
-
-        if (splitData.length == 3) {
-            streetFinderAddress.setBuilding(true, splitData[0].trim());
-            streetFinderAddress.setBuilding(false, splitData[1].trim());
-            streetFinderAddress.setBldgParity(splitData[2]);
-        }
+        // Puts building data into the proper CSV format.
+        line = String.join("," , List.of(lineSplit[0],
+                buildingData.replaceAll("-", ","), lineSplit[2]));
+        super.parseLine(line);
     }
 
-    private void getTown(String data, StreetFinderAddress streetFinderAddress) {
-        if (!data.equalsIgnoreCase("Town")) {
-            streetFinderAddress.put(TOWN, data.trim());
-        }
-    }
-
-    private void getED(String data, StreetFinderAddress streetFinderAddress) {
-        if (!data.equalsIgnoreCase("Dist")) {
-            streetFinderAddress.setED(data);
-        }
-    }
-
-    private void getCong(String data, StreetFinderAddress streetFinderAddress) {
-        if (!data.equalsIgnoreCase("Cong")) {
-            streetFinderAddress.put(CONGRESSIONAL, data);
-        }
-    }
-
-    private void getSen(String data, StreetFinderAddress streetFinderAddress) {
-        if (!data.equalsIgnoreCase("Sen")) {
-            streetFinderAddress.put(SENATE, data);
-        }
-    }
-
-    private void getAsm(String data, StreetFinderAddress streetFinderAddress) {
-        if (!data.equalsIgnoreCase("Asm")) {
-            streetFinderAddress.put(ASSEMBLY, data);
-        }
-    }
-
-    private void getSchool(String data, StreetFinderAddress streetFinderAddress) {
-        if (!data.equalsIgnoreCase("School")) {
-            streetFinderAddress.setSch(data);
-        }
-    }
-
-    private void getVillage(String data, StreetFinderAddress streetFinderAddress) {
-        if (!data.equalsIgnoreCase("Village")) {
-            streetFinderAddress.put(VILLAGE, data);
+    @Override
+    protected void writeToFile(SchoharieStreetFinderAddress streetFinderAddress) {
+        if (streetFinderAddress.hasSenateDistrict()) {
+            super.writeToFile(streetFinderAddress);
         }
     }
 }

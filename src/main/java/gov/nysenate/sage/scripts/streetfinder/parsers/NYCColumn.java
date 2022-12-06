@@ -13,7 +13,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
 enum NYCColumn {
     FROM((streetFinderAddress, s) -> streetFinderAddress.setBuilding(true, StreetFinderAddress.cleanBuilding(s))),
     TO((streetFinderAddress, s) -> streetFinderAddress.setBuilding(false, StreetFinderAddress.cleanBuilding(s))),
-    ED(StreetFinderAddress::setED), AD((streetFinderAddress, s) -> streetFinderAddress.put(ASSEMBLY, s)),
+    ED((sfa, s) -> sfa.put(ELECTION_CODE, s)), AD((streetFinderAddress, s) -> streetFinderAddress.put(ASSEMBLY, s)),
     ZIP(StreetFinderAddress::setStreet), CD((streetFinderAddress, s) -> streetFinderAddress.put(CONGRESSIONAL, s)),
     SD((streetFinderAddress, s) -> streetFinderAddress.put(SENATE, s)), MC(), CO();
 

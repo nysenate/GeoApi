@@ -7,20 +7,23 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.BiConsumer;
 
+import static gov.nysenate.sage.model.address.StreetFileField.ELECTION_CODE;
 import static gov.nysenate.sage.model.address.StreetFileField.WARD;
 
-public abstract class BaseParser {
-    private static final BiConsumer<StreetFinderAddress, String> skip = (streetFinderAddress, s) -> {};
-    protected static final List<BiConsumer<StreetFinderAddress, String>> buildingFunctions = List.of(
-            (sfa, s) -> sfa.setBuilding(true, s), (sfa, s) -> sfa.setBuilding(false, s),
-            StreetFinderAddress::setBldgParity
-    );
-    protected static final BiConsumer<StreetFinderAddress, String> handlePrecinct = BaseParser::handlePrecinct;
+public abstract class BaseParser<T extends StreetFinderAddress> {
+    private final BiConsumer<T, String> skip = (streetFinderAddress, s) -> {};
+    protected final List<BiConsumer<T, String>> buildingFunctions =
+            List.of((sfa, s) -> sfa.setBuilding(true, s),
+                    (sfa, s) -> sfa.setBuilding(false, s),
+                    StreetFinderAddress::setBldgParity);
+    protected final BiConsumer<T, String> handlePrecinct = BaseParser::handlePrecinct;
 
     private final FileWriter fileWriter;
     private final PrintWriter outputWriter;
@@ -28,8 +31,7 @@ public abstract class BaseParser {
 
     public BaseParser(String file) throws IOException {
         this.file = file;
-        String output = file.replace(".txt", ".tsv");
-        output = output.replace(".csv", ".tsv");            //in case its a csv file
+        String output = file.replaceAll("[.](txt|csv)", ".tsv");
         this.fileWriter = new FileWriter(output);
         this.outputWriter = new PrintWriter(fileWriter);
         //add columns for the tsv file
@@ -38,29 +40,34 @@ public abstract class BaseParser {
     }
 
     public void parseFile() throws IOException {
-        readFile();
-    }
-
-    /**
-     * Utility method that scans through a file and calls the child classes version of
-     * parseLine(String). This method is only intended for classes that extend this class and should not be used within
-     * the NTSParser class
-     * @throws IOException
-     */
-    protected void readFile() throws IOException {
         Scanner scanner = new Scanner(new File(file));
-        String currentLine = scanner.nextLine();
-        //While there is more lines in the file
+        scanner.nextLine();
         while (scanner.hasNext()) {
-            currentLine = scanner.nextLine();
-            parseLine(currentLine);
+            parseLine(scanner.nextLine());
         }
-        //close all writers/readers
         scanner.close();
         closeWriters();
     }
 
-    protected abstract void parseLine(String line);
+    protected abstract T getNewAddress();
+    protected abstract List<BiConsumer<T, String>> getFunctions();
+
+    protected void parseLine(String line) {
+        parseLine(line, 0);
+    }
+
+    protected void parseLine(String line, int minLength) {
+        var sfa = getNewAddress();
+        var functions = getFunctions();
+        String[] split = line.split(",");
+        if (minLength > split.length) {
+            System.err.println("Error parsing line " + line);
+        }
+        for (int i = 0; i < Math.min(functions.size(), split.length); i++) {
+            functions.get(i).accept(sfa, split[i]);
+        }
+        writeToFile(sfa);
+    }
 
     /**
      * Utility method that checks if the given string is equal to a direction
@@ -68,17 +75,9 @@ public abstract class BaseParser {
      * @param string
      * @return true if a direction, false otherwise
      */
+    // TODO: should allow more directions
     protected static boolean checkForDirection(String string) {
-        return string.toUpperCase().matches("[NESW]");
-    }
-
-    protected void parseLineFun(List<BiConsumer<StreetFinderAddress, String>> functions, String line) {
-        var sfa = new StreetFinderAddress();
-        String[] split = line.split(",");
-        for (int i = 0; i < functions.size(); i++) {
-            functions.get(i).accept(sfa, split[i]);
-        }
-        writeToFile(sfa);
+        return string.toUpperCase().matches( "[NESW]{1,2}");
     }
 
     protected void closeWriters() throws IOException {
@@ -90,21 +89,29 @@ public abstract class BaseParser {
      * Writes the StreetFinderAddress to the file in StreetFileForm by using the PrintWriter
      * @param streetFinderAddress
      */
-    protected void writeToFile(StreetFinderAddress streetFinderAddress) {
+    protected void writeToFile(T streetFinderAddress) {
         streetFinderAddress.normalize();
         outputWriter.print(streetFinderAddress.toStreetFileForm());
         outputWriter.flush();
     }
 
-    protected BiConsumer<StreetFinderAddress, String> function(StreetFileField field) {
-        return function(field, false);
+    protected BiConsumer<T, String> function(StreetFileField field) {
+        return functions(field).get(0);
     }
 
-    protected BiConsumer<StreetFinderAddress, String> function(StreetFileField field, boolean dashSplit) {
-        return (streetFinderAddress, s) -> streetFinderAddress.put(field, dashSplit ? split(s) : s);
+    protected List<BiConsumer<T, String>> functions(StreetFileField... fields) {
+        return functions(false, fields);
     }
 
-    protected List<BiConsumer<StreetFinderAddress, String>> skip(int num) {
+    protected List<BiConsumer<T, String>> functions(boolean dashSplit, StreetFileField... fields) {
+        var functions = new ArrayList<BiConsumer<T, String>>(fields.length);
+        for (var field : fields) {
+            functions.add((streetFinderAddress, s) -> streetFinderAddress.put(field, dashSplit ? split(s) : s));
+        }
+        return functions;
+    }
+
+    protected List<BiConsumer<T, String>> skip(int num) {
         return Collections.nCopies(num, skip);
     }
 
@@ -119,6 +126,6 @@ public abstract class BaseParser {
         }
         streetFinderAddress.setTownCode(precinct.substring(0, 2));
         streetFinderAddress.put(WARD, precinct.substring(2, 4));
-        streetFinderAddress.setED(precinct.substring(precinct.length() - 2));
+        streetFinderAddress.put(ELECTION_CODE, precinct.substring(precinct.length() - 2));
     }
 }

@@ -16,7 +16,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  * Parses Erie County 2018 csv and puts parsed data into a tsv file
  * Looks for street, low, high, range type, townCode, District, zip
  */
-public class ErieParser extends BaseParser {
+public class ErieParser extends BaseParser<StreetFinderAddress> {
     /**
      * Calls the super constructor which sets up the tsv file
      * @param file
@@ -26,28 +26,22 @@ public class ErieParser extends BaseParser {
         super(file);
     }
 
-    /**
-     * Parses the line by calling each method to find all the data given in the file
-     * and add the data to the StreetFinderAddress
-     * @param line
-     */
     @Override
-    protected void parseLine(String line) {
+    protected StreetFinderAddress getNewAddress() {
+        return new StreetFinderAddress();
+    }
+
+    @Override
+    protected List<BiConsumer<StreetFinderAddress, String>> getFunctions() {
         List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>();
         functions.add(ErieParser::getStreetAndSuffix);
         functions.addAll(buildingFunctions);
-        functions.add(function(ZIP));
-        functions.add(function(TOWN));
+        functions.addAll(functions(ZIP, TOWN));
         functions.addAll(skip(3));
         functions.add(handlePrecinct);
-        functions.add(function(SENATE, true));
-        functions.add(function(ASSEMBLY, true));
-        functions.add(function(COUNTY_CODE, true));
-        functions.add(function(CONGRESSIONAL, true));
-        parseLineFun(functions, line);
+        functions.addAll(functions(true, SENATE, ASSEMBLY, COUNTY_CODE, CONGRESSIONAL));
+        return functions;
     }
-
-
 
     /**
      * Gets the Street name and Street Suffix from a string containing both
@@ -60,7 +54,6 @@ public class ErieParser extends BaseParser {
         if (checkForDirection(splitList.getFirst())) {
             streetFinderAddress.setPreDirection(splitList.removeFirst());
         }
-
         streetFinderAddress.setStreet(String.join(" ", splitList).trim());
         streetFinderAddress.setStreetSuffix(splitList.getLast());
     }

@@ -15,7 +15,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  * Parses Essex County 2018 csv file and converts to tsv file
  * Looks for town, street, ed, low, high, range type, asm, cong, sen, zip
  */
-public class EssexParser extends BaseParser {
+public class EssexParser extends BaseParser<StreetFinderAddress> {
     /**
      * Calls the super constructor which sets up the tsv file
      * @param file
@@ -23,6 +23,24 @@ public class EssexParser extends BaseParser {
      */
     public EssexParser(String file) throws IOException {
         super(file);
+    }
+
+    @Override
+    protected StreetFinderAddress getNewAddress() {
+        return new StreetFinderAddress();
+    }
+
+    @Override
+    protected List<BiConsumer<StreetFinderAddress, String>> getFunctions() {
+        List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>();
+        functions.add(function(TOWN));
+        functions.add(EssexParser::getStreetAndSuffix);
+        functions.add(function(ELECTION_CODE));
+        functions.addAll(buildingFunctions);
+        functions.addAll(functions(ASSEMBLY, CONGRESSIONAL, SENATE));
+        // TODO: might not exist
+        functions.add(EssexParser::getZip);
+        return functions;
     }
 
     /**
@@ -34,19 +52,7 @@ public class EssexParser extends BaseParser {
         ArrayList<String> split = new ArrayList<>(List.of(line.split(",")));
         // Two parts must be combined into something usable.
         split.set(5, getRangeType(split.get(5), split.remove(6)));
-
-        List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>();
-        functions.add(function(TOWN));
-        functions.add(EssexParser::getStreetAndSuffix);
-        functions.add(StreetFinderAddress::setED);
-        functions.addAll(buildingFunctions);
-        functions.add(function(ASSEMBLY));
-        functions.add(function(CONGRESSIONAL));
-        functions.add(function(SENATE));
-        // TODO: might not exist
-        functions.add(EssexParser::getZip);
-
-        parseLineFun(functions, String.join(",", split));
+        super.parseLine(String.join(",", split));
     }
 
     /**

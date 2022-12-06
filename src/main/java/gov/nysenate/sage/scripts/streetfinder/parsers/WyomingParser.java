@@ -16,7 +16,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  * Looks for townCode, pre-Direction, Street, street suffix, post-direction, city, low,high, range type, and zip
  * Parses using the location of each column in the line
  */
-public class WyomingParser extends BaseParser {
+public class WyomingParser extends BaseParser<StreetFinderAddress> {
     /**
      * Calls the super constructor which sets up the tsv file
      * @param file
@@ -24,6 +24,26 @@ public class WyomingParser extends BaseParser {
      */
     public WyomingParser(String file) throws IOException {
         super(file);
+    }
+
+    @Override
+    protected StreetFinderAddress getNewAddress() {
+        return new StreetFinderAddress();
+    }
+
+    @Override
+    protected List<BiConsumer<StreetFinderAddress, String>> getFunctions() {
+        // TODO: The 0 and 1 indices might be the town and district, respectively
+        List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>(skip(2));
+        functions.add(StreetFinderAddress::setPreDirection);
+        functions.add(StreetFinderAddress::setStreet);
+        functions.add(StreetFinderAddress::setStreetSuffix);
+        functions.add(StreetFinderAddress::setPostDirection);
+        functions.addAll(buildingFunctions);
+        functions.addAll(functions(TOWN, ZIP));
+        functions.add(handlePrecinct);
+        functions.addAll(functions(true, CONGRESSIONAL, SENATE, ASSEMBLY));
+        return functions;
     }
 
     /**
@@ -34,24 +54,6 @@ public class WyomingParser extends BaseParser {
         if (line.contains("ODD_EVEN")) {
             return;
         }
-        // TODO: The 0 and 1 indices might be the town and district, respectively
-        List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>(skip(2));
-        functions.add(StreetFinderAddress::setPreDirection);
-        functions.add(StreetFinderAddress::setStreet);
-        functions.add(StreetFinderAddress::setStreetSuffix);
-        functions.add(StreetFinderAddress::setPostDirection);
-        functions.addAll(buildingFunctions);
-        functions.add(function(TOWN));
-        functions.add(function(ZIP));
-        functions.add(handlePrecinct);
-        functions.add(function(CONGRESSIONAL));
-        functions.add(function(SENATE));
-        functions.add(function(ASSEMBLY));
-        parseLineFun(functions, line);
-    }
-
-    private static String split(String input) {
-        var split = input.split("-");
-        return split.length > 1 ? split[1] : input;
+        super.parseLine(line);
     }
 }

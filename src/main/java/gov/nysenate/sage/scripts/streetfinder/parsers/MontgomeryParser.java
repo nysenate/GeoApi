@@ -9,15 +9,18 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.BiConsumer;
 
 import static gov.nysenate.sage.model.address.StreetFileField.*;
+import static gov.nysenate.sage.scripts.streetfinder.parsers.NTSParser.substringHelper;
 
 /**
  * Parses Montgomery County 2018 txt file
  * Looks for zip, street, low, high, range type, town, ward, district
  * Polling information is unnecessary and skipped
  */
-public class MontgomeryParser extends BaseParser {
+// TODO: still needs a rework
+public class MontgomeryParser extends BaseParser<StreetFinderAddress> {
     // Indices keep location of the column of info for each block of data
     private int zipIndex;
     private int streetNameIndex;
@@ -68,6 +71,16 @@ public class MontgomeryParser extends BaseParser {
         closeWriters();
     }
 
+    @Override
+    protected StreetFinderAddress getNewAddress() {
+        return new StreetFinderAddress();
+    }
+
+    @Override
+    protected List<BiConsumer<StreetFinderAddress, String>> getFunctions() {
+        return null;
+    }
+
     /**
      * Calls all helper methods to parse the line and add data to StreetFinderAddress
      * @param line
@@ -80,13 +93,6 @@ public class MontgomeryParser extends BaseParser {
         streetFinderAddress.setBldgParity(getParity(line));
         getTownWardDist(line, streetFinderAddress);
         writeToFile(streetFinderAddress);
-    }
-
-    private static String substringHelper(String str, int start, int end) {
-        if (start >= str.length()) {
-            return "";
-        }
-        return str.substring(start, end);
     }
 
     /**
@@ -139,16 +145,14 @@ public class MontgomeryParser extends BaseParser {
     private void getTownWardDist(String line, StreetFinderAddress streetFinderAddress) {
         String[] townWardDistrict = substringHelper(line, townWardDistrictIndex, line.length()).trim().split("/");
 
+        streetFinderAddress.put(TOWN, townWardDistrict[0].trim());
         if (townWardDistrict.length == 2) {
-            streetFinderAddress.put(TOWN, townWardDistrict[0].trim());
             // Skip over word "District"
             String[] district = townWardDistrict[1].trim().split(" ");
             // TODO: I think this is supposed to set the district?
             streetFinderAddress.put(WARD, district[1]);
 
         } else {
-            streetFinderAddress.put(TOWN, townWardDistrict[0].trim());
-
             // Skip over word "Ward"
             String[] ward = townWardDistrict[1].trim().split(" ");
             streetFinderAddress.put(WARD, ward[1]);

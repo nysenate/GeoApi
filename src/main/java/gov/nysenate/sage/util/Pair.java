@@ -8,11 +8,11 @@ public class Pair<T> {
         this.two = two;
     }
 
-    public T getOne() {
+    public T first() {
         return one;
     }
 
-    public T getTwo() {
+    public T second() {
         return two;
     }
 }

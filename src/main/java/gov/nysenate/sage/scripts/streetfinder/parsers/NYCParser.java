@@ -66,10 +66,6 @@ public class NYCParser extends NTSParser {
         closeWriters();
     }
 
-    private static String substringHelper(String str, int beginIndex, int endIndex) {
-        return str.substring(Math.min(beginIndex, str.length()), Math.min(endIndex, str.length()));
-    }
-
     /**
      * Gets the town by using the file name. All data in the file has the same town
      * @return

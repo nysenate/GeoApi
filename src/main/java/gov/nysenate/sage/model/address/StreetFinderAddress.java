@@ -23,7 +23,7 @@ public class StreetFinderAddress {
     private String postDirection = "";
     private String streetSuffix = "";
     // TODO: might be the county?
-    private final Map<StreetFileField, String> fieldMap = new EnumMap<>(StreetFileField.class);
+    protected final Map<StreetFileField, String> fieldMap = new EnumMap<>(StreetFileField.class);
     private static final Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 
     /**
@@ -56,17 +56,16 @@ public class StreetFinderAddress {
     }
 
     public void put(StreetFileField type, String value) {
+        if (type == ELECTION_CODE && value.contains("-")) {
+            return;
+        }
         if ((!mustNotBeEmpty.contains(type) || !value.isEmpty()) &&
                 (!mustBeNumeric.contains(type) || isNumeric(value))) {
             fieldMap.put(type, value);
         }
     }
 
-    public boolean hasSenateDistrict() {
-        return fieldMap.containsKey(SENATE);
-    }
-
-    private String get(StreetFileField type) {
+    protected String get(StreetFileField type) {
         return fieldMap.getOrDefault(type, "\\N");
     }
 
@@ -90,6 +89,7 @@ public class StreetFinderAddress {
      * Sets the pre-Direction. Should be in the standard form of N, E, S, W
      * @param preDirection
      */
+    // TODO: make this a Field as well
     public void setPreDirection(String preDirection) {
         if (!preDirection.isBlank()) {
             //Add a space onto the end because it is added to the StreetName when put in the file
@@ -172,10 +172,6 @@ public class StreetFinderAddress {
         return streetSuffix;
     }
 
-    public boolean hasBuildingParity() {
-        return primaryBuilding.hasParity();
-    }
-
     public static String cleanBuilding(String bldg) {
         return bldg.replaceAll("1/2","").replaceAll("1/4","");
     }
@@ -197,30 +193,6 @@ public class StreetFinderAddress {
         townCode = townCode.trim();
         StreetFileField type = townCode.matches("\\d+") ? BOE_TOWN_CODE : TOWN_CODE;
         put(type, townCode);
-    }
-
-
-    /**
-     * Sets the School_Code. Checks for a School_code of number or a school_code of all characters
-     * If it is all character then it is a Boe_School_Code
-     * @param sch - Can either be ints or characters
-     */
-    public void setSch(String sch) {
-        if (sch.matches("\\d+")) {
-            put(SCHOOL, sch);
-        } else if(sch.matches("\\S+")) {
-            put(BOE_SCHOOL, sch);
-        }
-    }
-
-    /**
-     * Sets the election district
-     * @param ed
-     */
-    public void setED(String ed) {
-        if (!ed.contains("-")) {
-            put(ELECTION_CODE, ed);
-        }
     }
 
     private static boolean isNumeric(String strNum) {

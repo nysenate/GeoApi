@@ -30,7 +30,7 @@ public class StreetFinderBuilding {
     }
 
     public List<String> getData() {
-        return List.of(low.getOne(), low.getTwo(), high.getOne(), high.getTwo(), parity == null ? DEFAULT : parity.name());
+        return List.of(low.first(), low.second(), high.first(), high.second(), parity == null ? DEFAULT : parity.name());
     }
 
     private static Pair<String> getPair(String data) {

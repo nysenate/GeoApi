@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.address;
 
+// TODO: rename
 public class SuffolkStreetAddress extends StreetFinderAddress {
     public SuffolkStreetAddress() {
         super();

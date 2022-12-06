@@ -12,7 +12,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
 /**
  * Parses Nassau County csv file and outputs a tsv file
  */
-public class NassauParser extends NTSParser {
+public class NassauParser extends BaseParser<StreetFinderAddress> {
     /**
      * Calls the super constructor which sets up the tsv output file
      * @param file
@@ -22,25 +22,22 @@ public class NassauParser extends NTSParser {
         super(file);
     }
 
-    /**
-     * Parses the line by calling each helper method to extract all data
-     * @param line
-     */
     @Override
-    protected void parseLine(String line) {
+    protected StreetFinderAddress getNewAddress() {
+        return new StreetFinderAddress();
+    }
+
+    @Override
+    protected List<BiConsumer<StreetFinderAddress, String>> getFunctions() {
         List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>();
         functions.add(handlePrecinct);
         functions.add(StreetFinderAddress::setStreet);
         functions.add(NassauParser::getSuffix);
-        functions.add(function(TOWN));
-        functions.add(function(ZIP));
+        functions.addAll(functions(TOWN, ZIP));
         functions.addAll(buildingFunctions);
         functions.addAll(skip(1));
-        functions.add(function(CONGRESSIONAL, true));
-        functions.add(function(SENATE, true));
-        functions.add(function(ASSEMBLY, true));
-        functions.add(function(CLEG, true));
-        parseLineFun(functions, line);
+        functions.addAll(functions(true, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG));
+        return functions;
     }
 
     private static void getSuffix(StreetFinderAddress streetFinderAddress, String data) {

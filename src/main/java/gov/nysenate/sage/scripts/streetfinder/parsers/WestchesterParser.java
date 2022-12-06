@@ -14,7 +14,7 @@ import static gov.nysenate.sage.model.address.StreetFileField.*;
  * Parses Westchester County 2018 file
  * Looks for town, pre-Direction, street, street suffix, post-direction, low, high, range type, zip, skips CNG, sen, asm, dist
  */
-public class WestchesterParser extends BaseParser {
+public class WestchesterParser extends BaseParser<StreetFinderAddress> {
 
     /**
      * Calls the super constructor which sets up the tsv file
@@ -26,11 +26,12 @@ public class WestchesterParser extends BaseParser {
     }
 
     @Override
-    /**
-     * Parses the line by calling each helper method to extract all data
-     * @param line
-     */
-    protected void parseLine(String line) {
+    protected StreetFinderAddress getNewAddress() {
+        return new StreetFinderAddress();
+    }
+
+    @Override
+    protected List<BiConsumer<StreetFinderAddress, String>> getFunctions() {
         List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>();
         functions.add(function(TOWN));
         functions.add(handlePrecinct);
@@ -40,10 +41,7 @@ public class WestchesterParser extends BaseParser {
         functions.add(StreetFinderAddress::setPostDirection);
         functions.addAll(buildingFunctions);
         functions.add(function(ZIP));
-        functions.add(function(CONGRESSIONAL, true));
-        functions.add(function(SENATE, true));
-        functions.add(function(ASSEMBLY, true));
-        functions.add(function(CLEG, true));
-        parseLineFun(functions, line);
+        functions.addAll(functions(true, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG));
+        return functions;
     }
 }
