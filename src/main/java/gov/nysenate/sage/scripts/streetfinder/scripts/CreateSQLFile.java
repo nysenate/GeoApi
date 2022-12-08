@@ -18,7 +18,7 @@ public class CreateSQLFile {
      * @param
      * @throws IOException
      */
-    public static void main(String args[]) throws IOException {
+    public static void main(String[] args) throws IOException {
 
         BufferedWriter fileWriter;
         PrintWriter outputWriter;
@@ -27,7 +27,7 @@ public class CreateSQLFile {
         if(args.length > 0) {
             //create sql file with the current date in the title
             LocalDate date = LocalDate.now();
-            File sqlFile = new File("/data/geoapi_data/street_finder/" + date.toString()+ "_streetfile.sql");
+            File sqlFile = new File("/data/geoapi_data/street_finder/" + date + "_streetfile.sql");
             //check if the sql file already exists
             if(!sqlFile.exists()) {
                 //file does not exist so add all necessary statements
@@ -55,9 +55,9 @@ public class CreateSQLFile {
 
             Scanner scanner = new Scanner(new File(args[0]));
             //get all data from the tsv file and append to sql file
-            while(scanner.hasNext()) {
+            while (scanner.hasNext()) {
                 String line = scanner.nextLine();
-                if(line.contains("bldg_lo_num") && line.contains("senate_code") || line.isEmpty()) {
+                if (line.contains("bldg_lo_num") && line.contains("senate_code") || line.isEmpty()) {
                     //skip over these lines because it is just a header and not data
                 } else {
                     outputWriter.write(line + "\n");

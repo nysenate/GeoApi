@@ -3,6 +3,7 @@ package gov.nysenate.sage.scripts.streetfinder.scripts;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class InsertSenateCountyCode {
@@ -14,23 +15,18 @@ public class InsertSenateCountyCode {
         }
 
         Map<String, String> countyCodeMap = new HashMap<>();
-
-        ArrayList<String> updateFileLines = new ArrayList<>();
-
+        List<String> updateFileLines = new ArrayList<>();
         String countyCode;
 
-//        String testTsv = "/data/geoapi_data/street_finder/tsv_streetfiles/Street_Finder_Bronx_2018_02_21.tsv";
 
         try {
             File file = new File("/data/geoapi_data/street_finder/senate_counties.txt");
             FileReader fileReader = new FileReader(file);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
-            int count = 0;
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 if (line.contains("\t")) {
-                    count++;
                     String[] sections = line.split("\t");
                     countyCodeMap.put(sections[0].trim(), sections[1].trim());
                 }
@@ -43,7 +39,6 @@ public class InsertSenateCountyCode {
 
 
         try {
-//            File file = new File(testTsv);
             File file = new File(args[0]);
             FileReader fileReader = new FileReader(file);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -56,23 +51,14 @@ public class InsertSenateCountyCode {
                 county = "St. Lawrence";
             }
             else if (splitFileName[0].equals("Street")) {
-                switch (splitFileName[2]) {
-                    case "Bronx":
-                        county = "Bronx";
-                        break;
-                    case "Brooklyn":
-                        county = "Kings";
-                        break;
-                    case "Manhattan":
-                        county = "New York";
-                        break;
-                    case "Queens":
-                        county = "Queens";
-                        break;
-                    case "Staten":
-                        county = "Richmond";
-                        break;
-                }
+                county = switch (splitFileName[2]) {
+                    case "Bronx" -> "Bronx";
+                    case "Brooklyn" -> "Kings";
+                    case "Manhattan" -> "New York";
+                    case "Queens" -> "Queens";
+                    case "Staten" -> "Richmond";
+                    default -> county;
+                };
 
             }
             else {
@@ -93,11 +79,7 @@ public class InsertSenateCountyCode {
                     sections[15] = countyCode;
 
                     if (!sections[15].equals("\\N")) {
-                        updatedLine = "";
-                        for (int i = 0; i < sections.length; i++) {
-                            updatedLine = updatedLine + sections[i] + "\t";
-                        }
-                        updatedLine = updatedLine.trim();
+                        updatedLine = String.join("\t", List.of(sections)).trim();
                     }
 
 
@@ -110,7 +92,6 @@ public class InsertSenateCountyCode {
                 }
             }
 
-//            FileWriter fileWriter = new FileWriter(testTsv);
             FileWriter fileWriter = new FileWriter(args[0]);
             PrintWriter outputWriter = new PrintWriter(fileWriter);
 

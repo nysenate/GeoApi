@@ -37,7 +37,7 @@ public abstract class BaseParser<T extends StreetFileAddress> {
     /**
      * The file is assumed to be a text file, either txt or csv.
      */
-    public BaseParser(String filename) throws IOException {
+    public BaseParser(String filename) throws IOException{
         this.filename = filename;
         String output = filename.replaceAll("[.](txt|csv)", ".tsv");
         this.fileWriter = new FileWriter(output);
@@ -116,8 +116,8 @@ public abstract class BaseParser<T extends StreetFileAddress> {
     }
 
     protected void closeWriters() throws IOException {
-        outputWriter.close();
         fileWriter.close();
+        outputWriter.close();
     }
 
     /**
