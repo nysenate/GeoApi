@@ -1,11 +1,10 @@
-package gov.nysenate.sage.model.address;
+package gov.nysenate.sage.scripts.streetfinder.model;
 
-import java.util.EnumMap;
 import java.util.Map;
 
-import static gov.nysenate.sage.model.address.StreetFileField.*;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
-public class SchoharieStreetFinderAddress extends StreetFinderAddress {
+public class SchoharieStreetFileAddress extends StreetFileAddress {
     private static final Map<StreetFileField, String> illegalValues = Map.of(
             TOWN, "Town", ELECTION_CODE, "Dist", CONGRESSIONAL, "Cong", STREET, "street name",
             SENATE, "Sen", ASSEMBLY, "Asm", BOE_SCHOOL, "School", VILLAGE, "Village");

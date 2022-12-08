@@ -1,37 +1,45 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.model.address.StreetFileField;
-import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileField;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.BiConsumer;
 
-import static gov.nysenate.sage.model.address.StreetFileField.ELECTION_CODE;
-import static gov.nysenate.sage.model.address.StreetFileField.WARD;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.ELECTION_CODE;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.WARD;
 
-public abstract class BaseParser<T extends StreetFinderAddress> {
-    private final BiConsumer<T, String> skip = (streetFinderAddress, s) -> {};
+/**
+ * Base class for all parsers, with some common code for parsing data.
+ * @param <T> Usually just the normal StreetFinderAddress, but some extra functionality may be needed.
+ */
+public abstract class BaseParser<T extends StreetFileAddress> {
+    // We don't use some parts of the data
+    protected final BiConsumer<T, String> skip = (streetFinderAddress, s) -> {};
+    // Building data has a common form.
     protected final List<BiConsumer<T, String>> buildingFunctions =
             List.of((sfa, s) -> sfa.setBuilding(true, s),
                     (sfa, s) -> sfa.setBuilding(false, s),
-                    StreetFinderAddress::setBldgParity);
+                    StreetFileAddress::setBldgParity);
     protected final BiConsumer<T, String> handlePrecinct = BaseParser::handlePrecinct;
 
     private final FileWriter fileWriter;
     private final PrintWriter outputWriter;
-    protected final String file;
+    protected final String filename;
 
-    public BaseParser(String file) throws IOException {
-        this.file = file;
-        String output = file.replaceAll("[.](txt|csv)", ".tsv");
+    /**
+     * The file is assumed to be a text file, either txt or csv.
+     */
+    public BaseParser(String filename) throws IOException {
+        this.filename = filename;
+        String output = filename.replaceAll("[.](txt|csv)", ".tsv");
         this.fileWriter = new FileWriter(output);
         this.outputWriter = new PrintWriter(fileWriter);
         //add columns for the tsv file
@@ -40,7 +48,7 @@ public abstract class BaseParser<T extends StreetFinderAddress> {
     }
 
     public void parseFile() throws IOException {
-        Scanner scanner = new Scanner(new File(file));
+        Scanner scanner = new Scanner(new File(filename));
         scanner.nextLine();
         while (scanner.hasNext()) {
             parseLine(scanner.nextLine());
@@ -49,17 +57,44 @@ public abstract class BaseParser<T extends StreetFinderAddress> {
         closeWriters();
     }
 
+    /**
+     * Necessary to ensure the address is the proper type.
+     * @return a newly instantiated object of a class that is, or extends, StreetFileAddress.
+     */
     protected abstract T getNewAddress();
+
+    /**
+     * Each function takes in data, and properly assigns it to the new street address.
+     * @return a class-specific list of functions.
+     */
     protected abstract List<BiConsumer<T, String>> getFunctions();
+
+    protected void parseLine(List<String> dataList, int minLength) {
+        parseLine(String.join(",", dataList), minLength);
+    }
+
+    protected void parseLine(String line, int minLength) {
+        parseLine(line, minLength, ",");
+    }
+
+    protected void parseLine(List<String> dataList) {
+        parseLine(String.join(",", dataList));
+    }
 
     protected void parseLine(String line) {
         parseLine(line, 0);
     }
 
-    protected void parseLine(String line, int minLength) {
+    /**
+     * Parses out data from a single streetfile line, and prints it to the file.
+     * @param line raw data.
+     * @param minLength some lines need checks to make sure they have the necessary data.
+     * @param delim to split the line on (could be tab, whitespace, or comma seperated).
+     */
+    protected void parseLine(String line, int minLength, String delim) {
         var sfa = getNewAddress();
         var functions = getFunctions();
-        String[] split = line.split(",");
+        String[] split = line.split(delim);
         if (minLength > split.length) {
             System.err.println("Error parsing line " + line);
         }
@@ -103,6 +138,12 @@ public abstract class BaseParser<T extends StreetFinderAddress> {
         return functions(false, fields);
     }
 
+    /**
+     * Useful helper method to generate functions from a list of fields.
+     * @param dashSplit if these values need to be split.
+     * @param fields to be put into the address. Order matters here.
+     * @return the functions to use while parsing.
+     */
     protected List<BiConsumer<T, String>> functions(boolean dashSplit, StreetFileField... fields) {
         var functions = new ArrayList<BiConsumer<T, String>>(fields.length);
         for (var field : fields) {
@@ -115,17 +156,25 @@ public abstract class BaseParser<T extends StreetFinderAddress> {
         return Collections.nCopies(num, skip);
     }
 
+    /**
+     * Some data values are preceded by a label (e.g. SE-2) that needs to be skipped.
+     * @param input the raw value.
+     * @return properly formatted value.
+     */
     private static String split(String input) {
         var split = input.split("-");
         return split.length > 1 ? split[1] : input;
     }
 
-    private static void handlePrecinct(StreetFinderAddress streetFinderAddress, String precinct) {
+    /**
+     * In some files, multiple fields are in the same number.
+     */
+    private static void handlePrecinct(StreetFileAddress streetFileAddress, String precinct) {
         if (precinct.length() == 5) {
             precinct = "0" + precinct;
         }
-        streetFinderAddress.setTownCode(precinct.substring(0, 2));
-        streetFinderAddress.put(WARD, precinct.substring(2, 4));
-        streetFinderAddress.put(ELECTION_CODE, precinct.substring(precinct.length() - 2));
+        streetFileAddress.setTownCode(precinct.substring(0, 2));
+        streetFileAddress.put(WARD, precinct.substring(2, 4));
+        streetFileAddress.put(ELECTION_CODE, precinct.substring(precinct.length() - 2));
     }
 }

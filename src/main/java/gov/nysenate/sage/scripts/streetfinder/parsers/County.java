@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+// TODO: there are two classes with this name
 public enum County {
     // TODO: Staten needs fixing
     BRONX, BROOKLYN, MANHATTAN, QUEENS, STATEN_ISLAND, ALLEGANY, COLUMBIA, SARATOGA, ERIE, ESSEX,

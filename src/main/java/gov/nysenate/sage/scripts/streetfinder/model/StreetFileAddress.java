@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.address;
+package gov.nysenate.sage.scripts.streetfinder.model;
 
 import gov.nysenate.sage.util.AddressDictionary;
 import org.apache.logging.log4j.util.Strings;
@@ -6,13 +6,13 @@ import org.apache.logging.log4j.util.Strings;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static gov.nysenate.sage.model.address.StreetFileField.*;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
 /**
  * Represents a Street Address for the StreetFinder database/parsers
  * It also contains helping methods/formatting help for the StreetFinder Parsers
  */
-public class StreetFinderAddress {
+public class StreetFileAddress {
     private static final Set<StreetFileField> mustNotBeEmpty = EnumSet.of(ELECTION_CODE, WARD,
             CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, VILLAGE, FIRE, CITY_COUNCIL, TOWN_CODE, BOE_TOWN_CODE, COUNTY_CODE);
     private static final Set<StreetFileField> mustBeNumeric = EnumSet.of(ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, CITY_COUNCIL);
@@ -22,7 +22,6 @@ public class StreetFinderAddress {
     private String preDirection = "";
     private String postDirection = "";
     private String streetSuffix = "";
-    // TODO: might be the county?
     protected final Map<StreetFileField, String> fieldMap = new EnumMap<>(StreetFileField.class);
     private static final Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 
@@ -30,7 +29,7 @@ public class StreetFinderAddress {
      * Default Constructor that sets all fields (except for pre-Direction, post-Direction, and Street Suffix because those are appended to the Street Name)
      * to \N which the default for blank in the geoapi database
      */
-    public StreetFinderAddress() {
+    public StreetFileAddress() {
         put(STATE, "NY");
     }
 
@@ -39,6 +38,8 @@ public class StreetFinderAddress {
      * @return Object in String form
      */
     public String toStreetFileForm() {
+        // TODO: a "pre-direction" used to be seperated from the street.
+        //  Only reason I can think of why is to normalize it with AddressDictionary.directionMap()
         put(STREET, preDirection + get(STREET) + " " + streetSuffix);
         // TODO: in the original code, this is always empty
         fieldMap.remove(COUNTY_CODE);
@@ -70,6 +71,11 @@ public class StreetFinderAddress {
     }
 
     public void normalize() {
+        // TODO: first part may be pre-direction. May have periods
+
+        if (preDirection.isBlank()) {
+
+        }
         setPreDirection(getPreDirection().trim().toUpperCase());
         setStreet(get(STREET).trim().toUpperCase());
         setStreetSuffix(getStreetSuffix().trim().toUpperCase());
@@ -89,7 +95,6 @@ public class StreetFinderAddress {
      * Sets the pre-Direction. Should be in the standard form of N, E, S, W
      * @param preDirection
      */
-    // TODO: make this a Field as well
     public void setPreDirection(String preDirection) {
         if (!preDirection.isBlank()) {
             //Add a space onto the end because it is added to the StreetName when put in the file

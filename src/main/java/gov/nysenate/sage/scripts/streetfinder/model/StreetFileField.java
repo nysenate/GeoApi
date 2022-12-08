@@ -1,4 +1,4 @@
-package gov.nysenate.sage.model.address;
+package gov.nysenate.sage.scripts.streetfinder.model;
 
 public enum StreetFileField {
     STREET(false), TOWN(false), STATE(false), ZIP(false),

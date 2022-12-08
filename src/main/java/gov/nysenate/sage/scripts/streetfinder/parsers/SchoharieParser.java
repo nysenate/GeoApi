@@ -1,39 +1,35 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.model.address.SchoharieStreetFinderAddress;
-import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.SchoharieStreetFileAddress;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.regex.Pattern;
 
-import static gov.nysenate.sage.model.address.StreetFileField.*;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
 /**
  * Parses Schohaire County.txt file
- * Looks for street name, town, low, high, range type, sch, townCode, vill
  */
-public class SchoharieParser extends BaseParser<SchoharieStreetFinderAddress> {
+public class SchoharieParser extends BaseParser<SchoharieStreetFileAddress> {
     public SchoharieParser(String file) throws IOException {
         super(file);
     }
 
     @Override
-    protected SchoharieStreetFinderAddress getNewAddress() {
-        return new SchoharieStreetFinderAddress();
+    protected SchoharieStreetFileAddress getNewAddress() {
+        return new SchoharieStreetFileAddress();
     }
 
     @Override
-    protected List<BiConsumer<SchoharieStreetFinderAddress, String>> getFunctions() {
-        List<BiConsumer<SchoharieStreetFinderAddress, String>> functions = new ArrayList<>();
+    protected List<BiConsumer<SchoharieStreetFileAddress, String>> getFunctions() {
+        List<BiConsumer<SchoharieStreetFileAddress, String>> functions = new ArrayList<>();
         functions.add(function(STREET));
         functions.addAll(buildingFunctions);
         functions.add(function(TOWN));
         // Possibly the ward
-        functions.addAll(skip(1));
+        functions.add(skip);
         functions.addAll(functions(ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, SCHOOL));
         // Possibly the cleg and city, respectively
         functions.addAll(skip(2));
@@ -61,7 +57,7 @@ public class SchoharieParser extends BaseParser<SchoharieStreetFinderAddress> {
     }
 
     @Override
-    protected void writeToFile(SchoharieStreetFinderAddress streetFinderAddress) {
+    protected void writeToFile(SchoharieStreetFileAddress streetFinderAddress) {
         if (streetFinderAddress.hasSenateDistrict()) {
             super.writeToFile(streetFinderAddress);
         }

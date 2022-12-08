@@ -1,7 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.model.address.StreetFinderAddress;
-import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,7 +10,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.function.BiConsumer;
 
-import static gov.nysenate.sage.model.address.StreetFileField.*;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 import static gov.nysenate.sage.scripts.streetfinder.parsers.NTSParser.substringHelper;
 
 /**
@@ -20,7 +19,7 @@ import static gov.nysenate.sage.scripts.streetfinder.parsers.NTSParser.substring
  * Polling information is unnecessary and skipped
  */
 // TODO: still needs a rework
-public class MontgomeryParser extends BaseParser<StreetFinderAddress> {
+public class MontgomeryParser extends BasicParser {
     // Indices keep location of the column of info for each block of data
     private int zipIndex;
     private int streetNameIndex;
@@ -42,7 +41,7 @@ public class MontgomeryParser extends BaseParser<StreetFinderAddress> {
      * @throws FileNotFoundException
      */
     public void parseFile() throws IOException {
-        Scanner scanner = new Scanner(new File(file));
+        Scanner scanner = new Scanner(new File(filename));
         String currentLine = scanner.nextLine();
         boolean inData = false;
 
@@ -72,12 +71,7 @@ public class MontgomeryParser extends BaseParser<StreetFinderAddress> {
     }
 
     @Override
-    protected StreetFinderAddress getNewAddress() {
-        return new StreetFinderAddress();
-    }
-
-    @Override
-    protected List<BiConsumer<StreetFinderAddress, String>> getFunctions() {
+    protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
         return null;
     }
 
@@ -86,49 +80,42 @@ public class MontgomeryParser extends BaseParser<StreetFinderAddress> {
      * @param line
      */
     protected void parseLine(String line) {
-        StreetFinderAddress streetFinderAddress = new StreetFinderAddress();
-        streetFinderAddress.put(ZIP, substringHelper(line, zipIndex, zipIndex + 5));
-        getStreetAndSuffix(line, streetFinderAddress);
-        getHouseRange(line, streetFinderAddress);
-        streetFinderAddress.setBldgParity(getParity(line));
-        getTownWardDist(line, streetFinderAddress);
-        writeToFile(streetFinderAddress);
+        StreetFileAddress streetFileAddress = new StreetFileAddress();
+        streetFileAddress.put(ZIP, substringHelper(line, zipIndex, zipIndex + 5));
+        getStreetAndSuffix(line, streetFileAddress);
+        getHouseRange(line, streetFileAddress);
+        streetFileAddress.setBldgParity(getParity(line));
+        getTownWardDist(line, streetFileAddress);
+        writeToFile(streetFileAddress);
     }
 
     /**
      * Gets the street name and suffix by looking in the locations of StreetNameIndex to HouseRangeIndex
      * Also checks for post or pre directions
      * @param line
-     * @param streetFinderAddress
+     * @param streetFileAddress
      */
-    private void getStreetAndSuffix(String line, StreetFinderAddress streetFinderAddress) {
+    private void getStreetAndSuffix(String line, StreetFileAddress streetFileAddress) {
         line = substringHelper(line, streetNameIndex, houseRangeIndex).trim();
         LinkedList<String> streetSplit = new LinkedList<>(List.of(line.split("\\s+")));
 
-        // special case for "E."
-        String preDir = streetSplit.getFirst().replace(".", "");
-        if (checkForDirection(preDir)) {
-            streetFinderAddress.setPreDirection(preDir);
-            streetSplit.removeFirst();
-        }
-
         if (checkForDirection(streetSplit.getLast())) {
-            streetFinderAddress.setPostDirection(streetSplit.removeLast());
+            streetFileAddress.setPostDirection(streetSplit.removeLast());
         }
 
-        streetFinderAddress.setStreetSuffix(streetSplit.removeLast());
-        streetFinderAddress.setStreet(String.join("", streetSplit));
+        streetFileAddress.setStreetSuffix(streetSplit.removeLast());
+        streetFileAddress.setStreet(String.join("", streetSplit));
     }
 
     /**
      * Gets the low and high ranges by looking at HouseRangeIndex location
      * @param line
-     * @param streetFinderAddress
+     * @param streetFileAddress
      */
-    private void getHouseRange(String line, StreetFinderAddress streetFinderAddress) {
+    private void getHouseRange(String line, StreetFileAddress streetFileAddress) {
         String[] buildingData = substringHelper(line, houseRangeIndex, houseRangeIndex + 12).split("-");
-        streetFinderAddress.setBuilding(true, buildingData[0].trim());
-        streetFinderAddress.setBuilding(false, buildingData[1].trim());
+        streetFileAddress.setBuilding(true, buildingData[0].trim());
+        streetFileAddress.setBuilding(false, buildingData[1].trim());
     }
 
     private String getParity(String line) {
@@ -140,27 +127,27 @@ public class MontgomeryParser extends BaseParser<StreetFinderAddress> {
      * Or just the town and district if that is all that is there.
      * These are in the format "town/ward/district"
      * @param line
-     * @param streetFinderAddress
+     * @param streetFileAddress
      */
-    private void getTownWardDist(String line, StreetFinderAddress streetFinderAddress) {
+    private void getTownWardDist(String line, StreetFileAddress streetFileAddress) {
         String[] townWardDistrict = substringHelper(line, townWardDistrictIndex, line.length()).trim().split("/");
 
-        streetFinderAddress.put(TOWN, townWardDistrict[0].trim());
+        streetFileAddress.put(TOWN, townWardDistrict[0].trim());
         if (townWardDistrict.length == 2) {
             // Skip over word "District"
             String[] district = townWardDistrict[1].trim().split(" ");
             // TODO: I think this is supposed to set the district?
-            streetFinderAddress.put(WARD, district[1]);
+            streetFileAddress.put(WARD, district[1]);
 
         } else {
             // Skip over word "Ward"
             String[] ward = townWardDistrict[1].trim().split(" ");
-            streetFinderAddress.put(WARD, ward[1]);
+            streetFileAddress.put(WARD, ward[1]);
 
             // Skip over word "District"
             String[] district = townWardDistrict[2].trim().split(" ");
             // TODO: this as well?
-            streetFinderAddress.put(WARD, district[1]);
+            streetFileAddress.put(WARD, district[1]);
         }
     }
 }

@@ -1,8 +1,7 @@
-package gov.nysenate.sage.model.address;
+package gov.nysenate.sage.scripts.streetfinder.model;
 
-// TODO: rename
-public class SuffolkStreetAddress extends StreetFinderAddress {
-    public SuffolkStreetAddress() {
+public class SuffolkStreetFileAddress extends StreetFileAddress {
+    public SuffolkStreetFileAddress() {
         super();
     }
 

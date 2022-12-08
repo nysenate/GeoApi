@@ -1,6 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -9,32 +9,26 @@ import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static gov.nysenate.sage.model.address.StreetFileField.*;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
 /**
- * Parses files similar to Saratoga County. Uses very similar logic to NTSParser but is separated for
- * simplicity of NTSParser. The largest difference is in the spacing and the town name being at the top of each
- * Data segment
+ * Parses files similar to Saratoga County.
+ * Main difference is spacing, and the town name being at the top of each data segment.
  */
 // TODO: may have towncode instead of town, or it may not have town at all
 public class SaratogaParser extends NTSParser {
     private final Pattern invalidLine = Pattern.compile("Ward ,|Segments {4}|r_strtdd|Ward Ward");
     private String town;
 
-    /**
-     * Calls super method to set up tsv file
-     * @param file
-     * @throws IOException
-     */
     public SaratogaParser(String file) throws IOException {
         super(file);
     }
 
     @Override
-    protected List<BiConsumer<StreetFinderAddress, String>> getFunctions() {
-        List<BiConsumer<StreetFinderAddress, String>> funcList = new ArrayList<>();
-        funcList.add(StreetFinderAddress::setStreet);
-        funcList.add(StreetFinderAddress::setStreetSuffix);
+    protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
+        List<BiConsumer<StreetFileAddress, String>> funcList = new ArrayList<>();
+        funcList.add(StreetFileAddress::setStreet);
+        funcList.add(StreetFileAddress::setStreetSuffix);
         funcList.addAll(functions(ZIP, TOWN));
         funcList.addAll(buildingFunctions);
         funcList.addAll(functions(BOE_TOWN_CODE, WARD, ELECTION_CODE, CONGRESSIONAL, SENATE,

@@ -1,40 +1,28 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.model.address.StreetFinderAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-import static gov.nysenate.sage.model.address.StreetFileField.*;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
 /**
  * Parses Essex County 2018 csv file and converts to tsv file
- * Looks for town, street, ed, low, high, range type, asm, cong, sen, zip
  */
-public class EssexParser extends BaseParser<StreetFinderAddress> {
-    /**
-     * Calls the super constructor which sets up the tsv file
-     * @param file
-     * @throws IOException
-     */
+public class EssexParser extends BasicParser {
     public EssexParser(String file) throws IOException {
         super(file);
     }
 
     @Override
-    protected StreetFinderAddress getNewAddress() {
-        return new StreetFinderAddress();
-    }
-
-    @Override
-    protected List<BiConsumer<StreetFinderAddress, String>> getFunctions() {
-        List<BiConsumer<StreetFinderAddress, String>> functions = new ArrayList<>();
+    protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
+        List<BiConsumer<StreetFileAddress, String>> functions = new ArrayList<>();
         functions.add(function(TOWN));
-        functions.add(EssexParser::getStreetAndSuffix);
+        functions.add(EssexParser::setStreetAndSuffix);
         functions.add(function(ELECTION_CODE));
         functions.addAll(buildingFunctions);
         functions.addAll(functions(ASSEMBLY, CONGRESSIONAL, SENATE));
@@ -43,9 +31,9 @@ public class EssexParser extends BaseParser<StreetFinderAddress> {
         return functions;
     }
 
+
     /**
-     * Parses the line by calling all helper methods and saves data to a StreetFinderAddress
-     * @param line
+     * This type has a strange way of showing parity.
      */
     @Override
     protected void parseLine(String line) {
@@ -59,13 +47,10 @@ public class EssexParser extends BaseParser<StreetFinderAddress> {
      * Gets the street name and street suffix
      * checks for pre-direction
      */
-    private static void getStreetAndSuffix(StreetFinderAddress streetFinderAddress, String streetData) {
+    private static void setStreetAndSuffix(StreetFileAddress streetFileAddress, String streetData) {
         LinkedList<String> splitList = new LinkedList<>(List.of(streetData.split(" ")));
-        if (checkForDirection(splitList.getFirst())) {
-            streetFinderAddress.setPreDirection(splitList.removeFirst());
-        }
-        streetFinderAddress.setStreet(String.join(" ", splitList).trim());
-        streetFinderAddress.setStreetSuffix(splitList.getLast());
+        streetFileAddress.setStreetSuffix(splitList.removeLast());
+        streetFileAddress.setStreet(String.join(" ", splitList).trim());
     }
 
     /**
@@ -83,11 +68,11 @@ public class EssexParser extends BaseParser<StreetFinderAddress> {
     /**
      * Gets the zip code
      * @param zip
-     * @param streetFinderAddress
+     * @param streetFileAddress
      */
-    private static void getZip(StreetFinderAddress streetFinderAddress, String zip) {
+    private static void getZip(StreetFileAddress streetFileAddress, String zip) {
         if (!zip.equals("M")) {
-            streetFinderAddress.put(ZIP, zip);
+            streetFileAddress.put(ZIP, zip);
         }
     }
 }

@@ -1,4 +1,4 @@
-package gov.nysenate.sage.scripts.streetfinder.parsers;
+package gov.nysenate.sage.scripts.streetfinder.model;
 
 public enum StreetParity {
     ODDS, EVENS, ALL;

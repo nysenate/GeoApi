@@ -1,14 +1,11 @@
-package gov.nysenate.sage.scripts.streetfinder.parsers;
+package gov.nysenate.sage.scripts.streetfinder.model;
 
-import gov.nysenate.sage.model.address.StreetFileField;
-import gov.nysenate.sage.model.address.StreetFinderAddress;
 import gov.nysenate.sage.util.Pair;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static gov.nysenate.sage.model.address.StreetFileField.*;
-import static gov.nysenate.sage.model.address.StreetFileField.CITY;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
 public class DistrictIndices {
     // BOE_SCHOOL, "Schl"
