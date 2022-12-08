@@ -13,17 +13,13 @@ import java.util.regex.Pattern;
  */
 public class CountyParserMatcher {
     private static final Map<String, CheckedNewParser<?>> parserTypeMap = Map.of(
-            "Erie", ErieParser::new,
-            "Essex", EssexParser::new,
-            "Montgomery", MontgomeryParser::new,
-            "Nassau", NassauParser::new,
+            "Erie", ErieParser::new, "Essex", EssexParser::new,
+            "Montgomery", MontgomeryParser::new, "Nassau", NassauParser::new,
             "Bronx|Brooklyn|Manhattan|Queens|Staten", NYCParser::new,
             "Allegany|Columbia|Saratoga", SaratogaParser::new,
-            "Schoharie", SchoharieParser::new,
-            "Suffolk", SuffolkParser::new,
-            "Westchester", WestchesterParser::new,
-            "Wyoming", WyomingParser::new
-            );
+            "Schoharie", SchoharieParser::new, "Suffolk", SuffolkParser::new,
+            "Westchester", WestchesterParser::new, "Wyoming", WyomingParser::new
+    );
 
     public static void main(String[] args) throws IOException {
         if (args.length == 0) {
