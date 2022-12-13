@@ -19,8 +19,11 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
  */
 public class NYCParser extends BasicParser {
     private static final String skippableLine = "^$|_{10,}|FROM TO ED AD ZIP CD SD MC CO",
-            streetName = "\\d{1,2} (AVENUE|PRECINCT).*|^\\D.+",
-            data = "(?<buildingRange>(\\d{1,4}([A-Z]|-\\d{2})? ){2})?\\d{3} \\d{2}(?<zip> \\d{5})?( \\d{2}){4}";
+            streetNameRegex = "(\\d{1,4} |9/11 )?\\D.+",
+    // There is no zipcode for things like islands, nature areas, metro stops, and bridges.
+            data = "(?<buildingRange>(\\d{1,5}([A-Z]|-\\d{2,3}[A-Z]?)? ){2})?\\d{3} \\d{2}(?<zip> \\d{5})?( \\d{2}){4}";
+    private static final Pattern townPattern = Pattern.compile("(?i)Bronx|Brooklyn|Manhattan|Queens");
+
     private final String town;
 
     public NYCParser(String filename) throws IOException {
@@ -35,8 +38,10 @@ public class NYCParser extends BasicParser {
         var scanner = new Scanner(new File(filename));
         String currStreet = "";
         while (scanner.hasNext()) {
-            String originalLine = scanner.nextLine().trim();
-            String line = originalLine.replaceAll("\\s+", " ");
+            String line = scanner.nextLine().trim().replaceAll("\\s+", " ");
+            if (line.matches(skippableLine)) {
+                continue;
+            }
             Matcher dataMatcher = Pattern.compile(data).matcher(line);
             if (dataMatcher.matches()) {
                 LinkedList<String> dataList = new LinkedList<>(List.of(line.split(" ")));
@@ -49,16 +54,15 @@ public class NYCParser extends BasicParser {
                 }
                 dataList.add(4, "ALL");
                 if (dataMatcher.group("zip") == null) {
-                    System.out.println("Warning: this line has no zipcode: " + originalLine);
                     dataList.add(7, "");
                 }
                 parseLine(dataList);
             }
-            else if (line.matches(streetName)) {
+            else if (line.matches(streetNameRegex)) {
                 currStreet = line;
             }
-            else if (!line.matches(skippableLine)) {
-                System.err.println("Could not parse line: " + originalLine);
+            else {
+                putBadLine(currStreet, line);
             }
         }
         scanner.close();
@@ -81,16 +85,7 @@ public class NYCParser extends BasicParser {
      * @return the town of the current file.
      */
     private String getTown() {
-        if (filename.contains("Bronx")) {
-            return "BRONX";
-        } else if(filename.contains("Brooklyn")) {
-            return "BROOKLYN";
-        } else if(filename.contains("Manhattan")) {
-            return "MANHATTAN";
-        } else if(filename.contains("Queens")) {
-            return "QUEENS";
-        } else {
-            return "STATEN ISLAND";
-        }
+        Matcher townMatcher = townPattern.matcher(filename);
+        return townMatcher.find() ? townMatcher.group().toUpperCase() : "STATEN ISLAND";
     }
 }

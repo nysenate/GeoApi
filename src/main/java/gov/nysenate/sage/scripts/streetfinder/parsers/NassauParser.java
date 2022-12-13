@@ -31,8 +31,8 @@ public class NassauParser extends BasicParser {
     }
 
     private static void setSuffix(StreetFileAddress streetFileAddress, String data) {
-        String streetSuffix = data.replace(streetFileAddress.getStreet(), " ").trim();
-        String[] splitString = streetSuffix.split("\\s+");
+        String[] splitString = data.replace(streetFileAddress.getStreet(), " ")
+                .trim().split("\\s+");
         int suffixIndex = 0;
         if (splitString.length > 1) {
             if (checkForDirection(splitString[1])) {

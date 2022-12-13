@@ -4,7 +4,8 @@ import gov.nysenate.sage.scripts.streetfinder.model.DistrictIndices;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 import gov.nysenate.sage.util.AddressDictionary;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -81,6 +82,7 @@ public class NTSParser extends BasicParser {
         funcList.add(StreetFileAddress::setPostDirection);
         funcList.add(function(ZIP));
         funcList.addAll(buildingFunctions);
+        // TODO: the last 4 lines here vary depending on which county we're in.
         funcList.addAll(functions(TOWN, BOE_TOWN_CODE, WARD, ELECTION_CODE, CONGRESSIONAL, SENATE,
                 ASSEMBLY, SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY));
         return funcList;

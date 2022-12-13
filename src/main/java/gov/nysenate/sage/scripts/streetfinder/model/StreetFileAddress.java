@@ -38,9 +38,7 @@ public class StreetFileAddress {
      * @return Object in String form
      */
     public String toStreetFileForm() {
-        // TODO: a "pre-direction" used to be seperated from the street.
-        //  Only reason I can think of why is to normalize it with AddressDictionary.directionMap()
-        put(STREET, preDirection + get(STREET) + " " + streetSuffix);
+        put(STREET, (preDirection + get(STREET) + " " + streetSuffix).trim());
         // TODO: in the original code, this is always empty
         fieldMap.remove(COUNTY_CODE);
         List<String> fieldList = new ArrayList<>();
@@ -70,15 +68,11 @@ public class StreetFileAddress {
         return fieldMap.getOrDefault(type, "\\N");
     }
 
+    // TODO: The street may have a pre or post direction. Perhaps should be normalized with AddressDictionary.directionMap()?
     public void normalize() {
-        // TODO: first part may be pre-direction. May have periods
-
-        if (preDirection.isBlank()) {
-
-        }
-        setPreDirection(getPreDirection().trim().toUpperCase());
+        setPreDirection(preDirection.trim().toUpperCase());
         setStreet(get(STREET).trim().toUpperCase());
-        setStreetSuffix(getStreetSuffix().trim().toUpperCase());
+        setStreetSuffix(streetSuffix.trim().toUpperCase());
         put(TOWN, get(TOWN).trim().toUpperCase());
     }
 
@@ -100,14 +94,6 @@ public class StreetFileAddress {
             //Add a space onto the end because it is added to the StreetName when put in the file
             this.preDirection = preDirection + " ";
         }
-    }
-
-    /**
-     * Accessor method
-     * @return
-     */
-    public String getPreDirection() {
-        return preDirection;
     }
 
     /**

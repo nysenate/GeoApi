@@ -1,16 +1,13 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileField;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileField;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.ELECTION_CODE;
@@ -21,6 +18,8 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.WARD;
  * @param <T> Usually just the normal StreetFinderAddress, but some extra functionality may be needed.
  */
 public abstract class BaseParser<T extends StreetFileAddress> {
+    private final SortedMap<String, List<String>> badLines = new TreeMap<>();
+
     // We don't use some parts of the data
     protected final BiConsumer<T, String> skip = (streetFinderAddress, s) -> {};
     // Building data has a common form.
@@ -42,7 +41,7 @@ public abstract class BaseParser<T extends StreetFileAddress> {
         String output = filename.replaceAll("[.](txt|csv)", ".tsv");
         this.fileWriter = new FileWriter(output);
         this.outputWriter = new PrintWriter(fileWriter);
-        //add columns for the tsv file
+        // add columns for the tsv file
         outputWriter.print("street\ttown\tstate\tzip5\tbldg_lo_num\tbldg_lo_chr\tbldg_hi_num\tbldg_hi_chr\tbldg_parity\tapt_lo_num\tapt_lo_chr\tapt_hi_num\tapt_hi_chr\tapt_parity\telection_code\tcounty_code\t" +
                 "assembly_code\tsenate_code\tcongressional_code\tboe_town_code\ttown_code\tward_code\tboe_school_code\tschool_code\tcleg_code\tcc_code\tfire_code\tcity_code\tvill_code\n");
     }
@@ -118,6 +117,15 @@ public abstract class BaseParser<T extends StreetFileAddress> {
     protected void closeWriters() throws IOException {
         fileWriter.close();
         outputWriter.close();
+        if (!badLines.isEmpty()) {
+            System.err.println("\nThe following data could not be parsed from " + filename);
+            for (String street : badLines.keySet()) {
+                System.err.println(street);
+                for (String line : badLines.get(street)) {
+                    System.err.println("\t" + line);
+                }
+            }
+        }
     }
 
     /**
@@ -154,6 +162,12 @@ public abstract class BaseParser<T extends StreetFileAddress> {
 
     protected List<BiConsumer<T, String>> skip(int num) {
         return Collections.nCopies(num, skip);
+    }
+
+    protected void putBadLine(String street, String line) {
+        List<String> currList = badLines.getOrDefault(street, new ArrayList<>());
+        currList.add(line);
+        badLines.put(street, currList);
     }
 
     /**
