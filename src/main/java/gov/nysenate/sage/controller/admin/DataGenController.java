@@ -215,4 +215,9 @@ public class DataGenController {
 
         setAdminResponse(apiResponse, response);
     }
+
+    @RequestMapping(value = "/process/sam-statewide-addresses")
+    public void processSamStatewideAddresses(HttpServletRequest request, HttpServletResponse response) {
+
+    }
 }

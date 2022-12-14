@@ -210,7 +210,7 @@ public final class AddressController
      * Batch address validation with USPS
      *
      * Usage:
-     * (GET)    /api/v2/address/batch/validate
+     * (GET)    /api/v2/address/validate/batch
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
