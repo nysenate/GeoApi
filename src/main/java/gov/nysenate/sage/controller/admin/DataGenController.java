@@ -1,8 +1,11 @@
 package gov.nysenate.sage.controller.admin;
 
+import com.google.common.eventbus.EventBus;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
+import gov.nysenate.sage.scripts.streetfinder.scripts.nysaddresspoints.NYSAddressPointProcessor;
+import gov.nysenate.sage.scripts.streetfinder.scripts.nysaddresspoints.NysAddressPointProcessEvent;
 import gov.nysenate.sage.service.data.DataGenService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -33,13 +37,15 @@ public class DataGenController {
     private AdminUserAuth adminUserAuth;
     private DataGenService dataGenService;
     private ApiUserAuth apiUserAuth;
+    private EventBus eventBus;
 
     @Autowired
     public DataGenController(AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth,
-                             DataGenService dataGenService) {
+                             DataGenService dataGenService, EventBus eventBus) {
         this.adminUserAuth = adminUserAuth;
         this.apiUserAuth = apiUserAuth;
         this.dataGenService = dataGenService;
+        this.eventBus = eventBus;
     }
 
     /**
@@ -216,8 +222,44 @@ public class DataGenController {
         setAdminResponse(apiResponse, response);
     }
 
-    @RequestMapping(value = "/process/sam-statewide-addresses")
-    public void processSamStatewideAddresses(HttpServletRequest request, HttpServletResponse response) {
+    /**
+     * Processes a SAM NYS Address file into tsv streetfiles.
+     * ---------------------------
+     * Usage:
+     * (GET)    /admin/datagen/process/sam-nys-statewide-addresses
+     *
+     * @param request
+     * @param response
+     * @param username
+     * @param password
+     * @param batchSize
+     * @param saveNycToSeparateFile
+     */
+    @RequestMapping(value = "/process/sam-nys-statewide-addresses")
+    public void processSamStatewideAddresses(HttpServletRequest request, HttpServletResponse response,
+                                             @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                             @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                             @RequestParam(required = false, defaultValue = "") String key,
+                                             @RequestParam(required = false, defaultValue = "1000") int batchSize,
+                                             @RequestParam(required = false, defaultValue = "false") boolean saveNycToSeparateFile) {
+        Object apiResponse;
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+            try {
+                NysAddressPointProcessEvent event = new NysAddressPointProcessEvent(batchSize, saveNycToSeparateFile);
+                eventBus.post(event);
+                apiResponse = "Processing sucessfully started";
+            } catch (Exception e) {
+                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+            }
+        } else {
+            apiResponse = invalidAuthResponse();
+        }
+        setAdminResponse(apiResponse, response);;
 
     }
 }
