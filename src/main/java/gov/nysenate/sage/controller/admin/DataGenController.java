@@ -245,12 +245,13 @@ public class DataGenController {
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-        try {
-            nysAddressPointProcessor.processNysSamAddressPoints(batchSize, saveNycToSeparateFile);
-            apiResponse = "Processing sucessfully started";
-        } catch (Exception e) {
-            apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-        }
+            try {
+                nysAddressPointProcessor.processNysSamAddressPoints(batchSize, saveNycToSeparateFile);
+                apiResponse = "Processing sucessfully started";
+            } catch (Exception e) {
+                logger.error("Error trying to process the sam-nys-statewide-address file", e);
+                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+            }
         } else {
             apiResponse = invalidAuthResponse();
         }
