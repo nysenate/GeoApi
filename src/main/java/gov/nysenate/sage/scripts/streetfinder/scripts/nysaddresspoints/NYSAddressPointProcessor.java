@@ -1,10 +1,9 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.nysaddresspoints;
 
-import com.google.common.collect.Lists;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
-import com.univocity.parsers.tsv.TsvParser;
+import com.univocity.parsers.common.ParsingContext;
+import com.univocity.parsers.common.ResultIterator;
 import com.univocity.parsers.tsv.TsvParserSettings;
+import com.univocity.parsers.tsv.TsvRoutines;
 import gov.nysenate.sage.dao.provider.district.DistrictShapeFileDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.DistrictInfo;
@@ -14,10 +13,7 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.util.StreetAddressParser;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -32,8 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-
 @Service
 public class NYSAddressPointProcessor {
 
@@ -41,39 +35,32 @@ public class NYSAddressPointProcessor {
 
     private static List<DistrictType> LOOKUP_DISTRICT_TYPES = Arrays.asList(DistrictType.COUNTY, DistrictType.SCHOOL,
             DistrictType.TOWN, DistrictType.ELECTION);
-    private static final String DIR = "/data/geoapi_data/street_files/NYS_SAM_address_points/";
 
-    @Autowired
     private AddressServiceProvider addressServiceProvider;
-    @Autowired
     private DistrictShapeFileDao districtShapeFileDao;
-    @Autowired
-    private EventBus eventBus;
+    private String directory;
 
-    @PostConstruct
-    private void init() {
-        eventBus.register(this);
+    @Autowired
+    public NYSAddressPointProcessor(AddressServiceProvider addressServiceProvider,
+                                    DistrictShapeFileDao districtShapeFileDao,
+                                    @Value("${streetfile.nysaddresspoint.dir}") String directory) {
+        this.addressServiceProvider = addressServiceProvider;
+        this.districtShapeFileDao = districtShapeFileDao;
+        this.directory = directory.endsWith("/") ? directory : directory + "/";
     }
 
-    @Subscribe
-    public synchronized void processNysSamAddressPoints(NysAddressPointProcessEvent event) throws IOException {
-        int batchSize = event.getBatchSize();
-        boolean saveNycToSeparateFile = event.isSaveNycToSeparateFile();
+    /**
+     * Processes a tsv of NYS Address Point data into a tsv containing streetfile columns.
+     */
+    public synchronized void processNysSamAddressPoints(int batchSize, boolean saveNycToSeparateFile) throws IOException {
         // Init file names
         LocalDateTime dt = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss_");
         String prefix = dt.format(formatter);
-        final String inputFile = DIR + "NYS_SAM_Address_Points.tsv";
-        final String outputFile = DIR + prefix + "NYS_SAM_Address_Points_streetfile.tsv";
-        final String nycOutputFile = DIR + prefix + "NYS_SAM_Address_Points_nyc_streetfile.tsv";
-        final String errorFile = DIR + prefix + "errors.txt";
-
-        // Load the statewide address point(input) file.
-        List<NYSAddressPoint> addressPoints = parseNYSAddressPointsTsv(inputFile);
-        // Group into batches for batch validation.
-        List<List<NYSAddressPoint>> addressPointBatches = Lists.partition(addressPoints, batchSize);
-        int numOfBatches = addressPointBatches.size();
-        int currBatch = 1;
+        final String inputFile = directory + "NYS_SAM_Address_Points.tsv";
+        final String outputFile = directory + prefix + "NYS_SAM_Address_Points_streetfile.tsv";
+        final String nycOutputFile = directory + prefix + "NYS_SAM_Address_Points_nyc_streetfile.tsv";
+        final String errorFile = directory + prefix + "errors.txt";
 
         // Write headers in output files.
         AddressPointFileWriter.writeStreetfileHeaders(outputFile);
@@ -81,36 +68,29 @@ public class NYSAddressPointProcessor {
             AddressPointFileWriter.writeStreetfileHeaders(nycOutputFile);
         }
 
-        // Process each batch
-        for (List<NYSAddressPoint> batch : addressPointBatches) {
-            logger.info("Processing batch num " + currBatch + " of " + numOfBatches);
+        // Read from the input file in batches.
+        TsvParserSettings parserSettings = new TsvParserSettings();
+        parserSettings.setHeaderExtractionEnabled(true);
+        TsvRoutines tsvRoutines = new TsvRoutines(parserSettings);
 
-            List<AddressPointValidationResult> validationResults = validateBatch(batch);
+        Reader reader = new FileReader(inputFile);
+        ResultIterator<NYSAddressPoint, ParsingContext> iterator = tsvRoutines.iterate(NYSAddressPoint.class, reader).iterator();
+
+        int batchNum = 1;
+        List<NYSAddressPoint> addressPointsBatch;
+        do {
+            addressPointsBatch = new ArrayList<>(batchSize);
+            while (addressPointsBatch.size() < batchSize && iterator.hasNext()) {
+                NYSAddressPoint point = iterator.next();
+                addressPointsBatch.add(point);
+            }
+            // Process each batch
+            List<AddressPointValidationResult> validationResults = validateBatch(addressPointsBatch);
             processValidatedAddresses(validationResults, batchSize, saveNycToSeparateFile, outputFile, nycOutputFile);
             processUnvalidatedAddresses(validationResults, errorFile);
-            currBatch++;
-        }
-    }
-
-    /**
-     * Parses a tsv file of NYS address points into a list of NYSAddressPoint instances. Warning: NYSAddressPoint fields
-     * and the parsing process is coupled to the tsv file columns and ordering.
-     */
-    private List<NYSAddressPoint> parseNYSAddressPointsTsv(String file) throws IOException {
-        List<String[]> parsedRows = null;
-        try (Reader inputReader = new InputStreamReader(new FileInputStream(file), "UTF-8")) {
-            TsvParser parser = new TsvParser(new TsvParserSettings());
-            parsedRows = parser.parseAll(inputReader);
-        } catch (IOException e) {
-            logger.error("Error trying to read the SAM NYS Address Point tsv file: " + file, e);
-            throw e;
-        }
-        parsedRows.remove(0); // remove the header row
-        List<NYSAddressPoint> nysAddressPoints = new ArrayList<>();
-        for (String[] row : parsedRows) {
-            nysAddressPoints.add(new NYSAddressPoint(row));
-        }
-        return nysAddressPoints;
+            logger.info("Done processing batch number {}", batchNum);
+            batchNum++;
+        } while (addressPointsBatch.size() == batchSize);
     }
 
     private List<AddressPointValidationResult> validateBatch(List<NYSAddressPoint> batch) {
