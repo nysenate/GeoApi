@@ -40,7 +40,7 @@ public class AddressPointFileWriter {
         appendTsvColumn(sb, "\\N"); // apt_lo_char
         appendTsvColumn(sb, "\\N"); // apt_hi_num
         appendTsvColumn(sb, "\\N"); // apt_hi_char
-        appendTsvColumn(sb, "\\N"); // apt_parity
+        appendTsvColumn(sb, "ALL"); // apt_parity
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.ELECTION)); // election code
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.COUNTY)); // county_code
         appendTsvColumn(sb, ap.addressPoint().assemblyDistrict); // assembly_code
