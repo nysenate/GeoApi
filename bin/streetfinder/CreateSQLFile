@@ -4,7 +4,7 @@
 #Uses the pathtoGeoApi variable in the config file
 source config.properties
 for file in $tsv_dir/*; do
-	java -Dlog4j.configurationFile="${logFile}" -classpath "${pathToGeoApi}/${classes}:${pathToGeoApi}/${lib}" gov.nysenate.sage.scripts.streetfinder.scripts.CreateSQLFile "$file"
-	echo $file added
+	java -Dlog4j.configurationFile="${logFile}" -classpath "${classPath}" gov.nysenate.sage.scripts.streetfinder.scripts.CreateSQLFile "$file"
+	echo "$file" added
 done
 echo SQL file created

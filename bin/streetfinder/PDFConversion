@@ -1,6 +1,0 @@
-#!/bin/bash
-#base pdf to txt conversion
-#converted txt file is in raw_streetfiles
-source config.properties
-echo "Converting $1 to .txt"
-pdftotext -layout $1

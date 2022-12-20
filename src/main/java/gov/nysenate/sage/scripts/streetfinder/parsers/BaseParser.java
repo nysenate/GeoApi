@@ -4,9 +4,7 @@ import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileField;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.*;
 import java.util.function.BiConsumer;
 
@@ -28,22 +26,14 @@ public abstract class BaseParser<T extends StreetFileAddress> {
                     (sfa, s) -> sfa.setBuilding(false, s),
                     StreetFileAddress::setBldgParity);
     protected final BiConsumer<T, String> handlePrecinct = BaseParser::handlePrecinct;
-
-    private final FileWriter fileWriter;
-    private final PrintWriter outputWriter;
     protected final String filename;
+    private final List<T> addresses = new ArrayList<>();
 
     /**
      * The file is assumed to be a text file, either txt or csv.
      */
-    public BaseParser(String filename) throws IOException{
+    public BaseParser(String filename) {
         this.filename = filename;
-        String output = filename.replaceAll("[.](txt|csv)", ".tsv");
-        this.fileWriter = new FileWriter(output);
-        this.outputWriter = new PrintWriter(fileWriter);
-        // add columns for the tsv file
-        outputWriter.print("street\ttown\tstate\tzip5\tbldg_lo_num\tbldg_lo_chr\tbldg_hi_num\tbldg_hi_chr\tbldg_parity\tapt_lo_num\tapt_lo_chr\tapt_hi_num\tapt_hi_chr\tapt_parity\telection_code\tcounty_code\t" +
-                "assembly_code\tsenate_code\tcongressional_code\tboe_town_code\ttown_code\tward_code\tboe_school_code\tschool_code\tcleg_code\tcc_code\tfire_code\tcity_code\tvill_code\n");
     }
 
     public void parseFile() throws IOException {
@@ -54,6 +44,10 @@ public abstract class BaseParser<T extends StreetFileAddress> {
         }
         scanner.close();
         closeWriters();
+    }
+
+    public List<T> getAddresses() {
+        return addresses;
     }
 
     /**
@@ -114,16 +108,15 @@ public abstract class BaseParser<T extends StreetFileAddress> {
         return string.toUpperCase().matches( "[NESW]{1,2}");
     }
 
-    protected void closeWriters() throws IOException {
-        fileWriter.close();
-        outputWriter.close();
-        if (!badLines.isEmpty()) {
-            System.err.println("\nThe following data could not be parsed from " + filename);
-            for (String street : badLines.keySet()) {
-                System.err.println(street);
-                for (String line : badLines.get(street)) {
-                    System.err.println("\t" + line);
-                }
+    protected void closeWriters() {
+        if (badLines.isEmpty()) {
+            return;
+        }
+        System.err.println("\nThe following data could not be parsed from " + filename);
+        for (String street : badLines.keySet()) {
+            System.err.println(street);
+            for (String line : badLines.get(street)) {
+                System.err.println("\t" + line);
             }
         }
     }
@@ -134,8 +127,7 @@ public abstract class BaseParser<T extends StreetFileAddress> {
      */
     protected void writeToFile(T streetFinderAddress) {
         streetFinderAddress.normalize();
-        outputWriter.print(streetFinderAddress.toStreetFileForm());
-        outputWriter.flush();
+        addresses.add(streetFinderAddress);
     }
 
     protected BiConsumer<T, String> function(StreetFileField field) {

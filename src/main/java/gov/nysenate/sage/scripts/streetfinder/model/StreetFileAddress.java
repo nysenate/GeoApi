@@ -14,7 +14,7 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
  */
 public class StreetFileAddress {
     private static final Set<StreetFileField> mustNotBeEmpty = EnumSet.of(ELECTION_CODE, WARD,
-            CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, VILLAGE, FIRE, CITY_COUNCIL, TOWN_CODE, BOE_TOWN_CODE, COUNTY_CODE);
+            CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, VILLAGE, FIRE, CITY_COUNCIL, SENATE_TOWN_ABBREV, BOE_TOWN_CODE, COUNTY_ID);
     private static final Set<StreetFileField> mustBeNumeric = EnumSet.of(ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, CITY_COUNCIL);
     private final StreetFinderBuilding primaryBuilding = new StreetFinderBuilding();
     // Really a range for apartment buildings. Only used in Suffolk.
@@ -40,7 +40,7 @@ public class StreetFileAddress {
     public String toStreetFileForm() {
         put(STREET, (preDirection + get(STREET) + " " + streetSuffix).trim());
         // TODO: in the original code, this is always empty
-        fieldMap.remove(COUNTY_CODE);
+        fieldMap.remove(COUNTY_ID);
         List<String> fieldList = new ArrayList<>();
         boolean beforeBuildings = true;
         for (var fieldType : StreetFileField.values()) {
@@ -51,7 +51,7 @@ public class StreetFileAddress {
             }
             fieldList.add(get(fieldType));
         }
-        return String.join("\t", fieldList) + "\n";
+        return String.join("\t", fieldList);
     }
 
     public void put(StreetFileField type, String value) {
@@ -64,7 +64,7 @@ public class StreetFileAddress {
         }
     }
 
-    protected String get(StreetFileField type) {
+    public String get(StreetFileField type) {
         return fieldMap.getOrDefault(type, "\\N");
     }
 
@@ -182,7 +182,7 @@ public class StreetFileAddress {
      */
     public void setTownCode(String townCode) {
         townCode = townCode.trim();
-        StreetFileField type = townCode.matches("\\d+") ? BOE_TOWN_CODE : TOWN_CODE;
+        StreetFileField type = townCode.matches("\\d+") ? BOE_TOWN_CODE : SENATE_TOWN_ABBREV;
         put(type, townCode);
     }
 

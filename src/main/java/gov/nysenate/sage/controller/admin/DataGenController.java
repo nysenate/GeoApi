@@ -2,7 +2,7 @@ package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
-import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
+import gov.nysenate.sage.scripts.streetfinder.NamePair;
 import gov.nysenate.sage.service.data.DataGenService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -10,29 +10,27 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import static gov.nysenate.sage.model.result.ResultStatus.*;
-import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
+import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
+import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
+import static gov.nysenate.sage.util.controller.ApiControllerUtil.invalidAuthResponse;
+import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminResponse;
 
 @Controller
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datagen")
 public class DataGenController {
 
-    private Logger logger = LoggerFactory.getLogger(DataGenController.class);
-    private AdminUserAuth adminUserAuth;
-    private DataGenService dataGenService;
-    private ApiUserAuth apiUserAuth;
+    private final AdminUserAuth adminUserAuth;
+    private final DataGenService dataGenService;
+    private final ApiUserAuth apiUserAuth;
 
     @Autowired
     public DataGenController(AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth,
@@ -113,26 +111,17 @@ public class DataGenController {
         }
 
         setAdminResponse(apiResponse, response);
-
     }
 
     /**
-     * Generate County Code File Api
-     * -----------------------------
-     * <p>
-     * Creates a county code file for use with the Street File parsing
-     * <p>
-     * Usage:
-     * (GET)    /admin/datagen/countycodes
-     *
-     * @param request  HttpServletRequest
-     * @param response HttpServletResponse
+     * Sends a response of all the relevant NamePairs.
      */
-    @RequestMapping(value = "/countycodes", method = RequestMethod.GET)
-    public void ensureCountyCodeFileExists(HttpServletRequest request, HttpServletResponse response,
-                                           @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                           @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                                           @RequestParam(required = false, defaultValue = "") String key) {
+    @GetMapping(value = "/{type:(?:county|town)}codes")
+    public void ensureCodeFilesExist(HttpServletRequest request, HttpServletResponse response,
+                                     @PathVariable String type,
+                                     @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                     @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                     @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
         String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
@@ -140,41 +129,9 @@ public class DataGenController {
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            if (dataGenService.ensureCountyCodeFile()) {
-                apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
-            }
-        }
-
-        setAdminResponse(apiResponse, response);
-    }
-
-    /**
-     * Generate Town Code File Api
-     * ---------------------------
-     * <p>
-     * Creates a town code file for use with the Street File parsing
-     * <p>
-     * Usage:
-     * (GET)    /admin/datagen/towncodes
-     *
-     * @param request  HttpServletRequest
-     * @param response HttpServletResponse
-     */
-    @RequestMapping(value = "/towncodes", method = RequestMethod.GET)
-    public void ensureTownCodeFileExists(HttpServletRequest request, HttpServletResponse response,
-                                         @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                         @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                                         @RequestParam(required = false, defaultValue = "") String key) {
-        Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            if (dataGenService.ensureTownCodeFile()) {
-                apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
-            }
+            List<String> results = dataGenService.getCodes(type.equals("town"))
+                    .stream().map(NamePair::toString).collect(Collectors.toList());
+            apiResponse = new GenericResponse(true, String.join("|", results));
         }
         setAdminResponse(apiResponse, response);
     }

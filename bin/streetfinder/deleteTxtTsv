@@ -1,12 +1,12 @@
 #!/bin/bash
-#This script deletes all files in txt_streetfiles
-#and in tsv_streetfiles
-#It does not touch any other file (sql file, source files)
+# This script deletes all files in txt_streetfiles
+# and in tsv_streetfiles
+# It does not touch any other file (sql file, source files)
 source config.properties
-for file in $txt_dir/*; do
+for file in "$txt_dir"/*; do
 	rm "$file";
 done
-for file in $tsv_dir/*; do
+for file in "$tsv_dir"/*; do
 	rm "$file";
 done
 echo "Files removed"

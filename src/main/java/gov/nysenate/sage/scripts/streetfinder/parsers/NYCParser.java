@@ -84,6 +84,7 @@ public class NYCParser extends BasicParser {
     /**
      * @return the town of the current file.
      */
+    // TODO: I think we already have this now?
     private String getTown() {
         Matcher townMatcher = townPattern.matcher(filename);
         return townMatcher.find() ? townMatcher.group().toUpperCase() : "STATEN ISLAND";

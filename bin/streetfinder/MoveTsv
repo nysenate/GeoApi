@@ -1,5 +1,0 @@
-#!/bin/bash
-#moves the given tsv file from txt_streetfiles to tsv_streetfiles
-source config.properties
-mv $1 $2
-echo $1 moved to $2

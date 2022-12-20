@@ -14,8 +14,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.scripts.streetfinder.County;
-import gov.nysenate.sage.scripts.streetfinder.TownCode;
+import gov.nysenate.sage.scripts.streetfinder.NamePair;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.sage.util.ImageUtil;
@@ -27,6 +26,9 @@ import gov.nysenate.services.model.Office;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.io.IOUtils;
 import org.apache.xmlrpc.XmlRpcException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,15 +41,12 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
@@ -72,66 +71,8 @@ public class DataGenService implements SageDataGenService {
         this.env = env;
     }
 
-    public boolean ensureTownCodeFile() {
-        try {
-            File towns = new File(ConstantUtil.STREETFINDER_DIRECTORY + ConstantUtil.TOWN_FILE);
-            if (towns.exists()) {
-                logger.info("Town code file already exists");
-                return true;
-            }
-
-            towns.createNewFile();
-            List<TownCode> townCodes = sqlDataGenDao.getTownCodes();
-
-            FileWriter fileWriter = new FileWriter(ConstantUtil.STREETFINDER_DIRECTORY + ConstantUtil.TOWN_FILE);
-            PrintWriter outputWriter = new PrintWriter(fileWriter);
-
-            int count = 0;
-            for (TownCode townCode : townCodes) {
-                count++;
-                outputWriter.println(townCode.toString());
-            }
-
-            logger.info("Wrote " + count + " town codes to file");
-            fileWriter.close();
-            outputWriter.close();
-            return true;
-
-        } catch (IOException ex) {
-            logger.error("Error creating town code file", ex);
-            return false;
-        }
-    }
-
-    public boolean ensureCountyCodeFile() {
-        try {
-            File senateCounties = new File(ConstantUtil.STREETFINDER_DIRECTORY + ConstantUtil.COUNTY_FILE);
-            if (senateCounties.exists()) {
-                logger.info("Senate county code file already exists");
-                return true;
-            }
-
-            senateCounties.createNewFile();
-            List<County> counties = sqlDataGenDao.getCountyCodes();
-
-            FileWriter fileWriter = new FileWriter(ConstantUtil.STREETFINDER_DIRECTORY + ConstantUtil.COUNTY_FILE);
-            PrintWriter outputWriter = new PrintWriter(fileWriter);
-
-            int count = 0;
-            for (County county : counties) {
-                count++;
-                outputWriter.println(county.toString());
-            }
-
-            logger.info("Wrote " + count + " Senate county codes to file");
-            fileWriter.close();
-            outputWriter.close();
-            return true;
-
-        }  catch (IOException ex) {
-            logger.error("Error creating town code file", ex);
-            return false;
-        }
+    public List<NamePair> getCodes(boolean townCodes) {
+        return townCodes ? sqlDataGenDao.getTownCodes() : sqlDataGenDao.getCountyCodes();
     }
 
     public Object generateSenatorImages(String path, int height) {

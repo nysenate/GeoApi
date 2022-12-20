@@ -44,7 +44,7 @@ public class SuffolkParser extends BaseParser<SuffolkStreetFileAddress> {
         // secondary name
         functions.add(skip);
         functions.addAll(secondaryBuildingFunctions);
-        functions.addAll(functions(TOWN, ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, COUNTY_CODE, FIRE, VILLAGE));
+        functions.addAll(functions(TOWN, ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, COUNTY_ID, FIRE, VILLAGE));
         return functions;
     }
 

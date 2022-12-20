@@ -2,5 +2,5 @@
 #parses given file by calling CountyParserMatcher java class. This generates a tsv file in txt_streetfiles that will need to be moved
 #Uses the pathtoGeoApi variable in the config file
 source config.properties
-java -Dlog4j.configurationFile="${logFile}" -classpath "${pathToGeoApi}/${classes}:${pathToGeoApi}/${lib}" gov.nysenate.sage.scripts.streetfinder.scripts.CountyParserMatcher $1
-echo $1 parsed and tsv file created
+java -Dlog4j.configurationFile="${logFile}" -classpath "${classPath}" gov.nysenate.sage.scripts.streetfinder.scripts.CountyParserMatcher "${baseUrl}" "${adminKey}" "${txt_dir}" "${tsv_dir}"
+echo TSV files created

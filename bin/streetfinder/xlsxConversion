@@ -1,9 +1,0 @@
-#!/bin/bash
-#converts a .xlsx file to a .csv file using built in libreoffice converter
-#needs the sleep because the conversion can take a few seconds to generate the file
-#and without the sleep the next script in the pipeline will start before the file is ready
-#Note that you cannot have the .xlsx (or even a converted .csv) file open when this runs or it will not work
-source config.properties
-libreoffice --headless --convert-to csv $1 --outdir $2
-sleep 5
-echo moved $1 to $2

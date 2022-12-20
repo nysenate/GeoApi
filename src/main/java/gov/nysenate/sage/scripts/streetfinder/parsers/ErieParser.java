@@ -26,7 +26,7 @@ public class ErieParser extends BasicParser {
         functions.addAll(functions(ZIP, TOWN));
         functions.addAll(skip(3));
         functions.add(handlePrecinct);
-        functions.addAll(functions(true, SENATE, ASSEMBLY, COUNTY_CODE, CONGRESSIONAL));
+        functions.addAll(functions(true, SENATE, ASSEMBLY, COUNTY_ID, CONGRESSIONAL));
         return functions;
     }
 

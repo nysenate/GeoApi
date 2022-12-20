@@ -1,7 +1,0 @@
-#!/bin/bash
-#moves given file to to txt_streetfiles from raw_streetfiles
-#this is used for the txt file generated after converting a pdf
-source config.properties
-mv $1 $2
-echo moved $1
-

@@ -2,8 +2,6 @@ package gov.nysenate.sage.scripts;
 
 
 import gov.nysenate.sage.config.ConsoleApplicationConfig;
-import gov.nysenate.sage.service.data.DataGenService;
-import gov.nysenate.sage.service.data.SageDataGenService;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
