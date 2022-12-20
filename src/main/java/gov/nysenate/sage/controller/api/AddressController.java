@@ -9,8 +9,8 @@ import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,10 +23,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
-import static gov.nysenate.sage.model.result.ResultStatus.*;
-import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressFromParams;
-import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressesFromJsonBody;
-import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
+import static gov.nysenate.sage.model.result.ResultStatus.INVALID_BATCH_ADDRESSES;
+import static gov.nysenate.sage.model.result.ResultStatus.PROVIDER_NOT_SUPPORTED;
+import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 /**
  * Address API controller handles the various AddressService requests including
@@ -210,7 +209,7 @@ public final class AddressController
      * Batch address validation with USPS
      *
      * Usage:
-     * (GET)    /api/v2/address/batch/validate
+     * (GET)    /api/v2/address/validate/batch
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse

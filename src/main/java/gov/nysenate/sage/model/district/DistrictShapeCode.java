@@ -27,7 +27,7 @@ public enum DistrictShapeCode
     private static HashMap<DistrictType, String> sridColumn = new HashMap<>();
 
     static {
-        nameColumn.put(DistrictType.SENATE, "NAMELSAD");
+        nameColumn.put(DistrictType.SENATE, "NAME");
         nameColumn.put(DistrictType.CONGRESSIONAL, "NAME");
         nameColumn.put(DistrictType.ASSEMBLY, "NAME");
         nameColumn.put(DistrictType.COUNTY, "NAMELSAD");
@@ -35,7 +35,7 @@ public enum DistrictShapeCode
         nameColumn.put(DistrictType.TOWN, "NAME");
         nameColumn.put(DistrictType.ZIP, "ZCTA5CE10");
 
-        codeColumn.put(DistrictType.SENATE, "SD_CODE");
+        codeColumn.put(DistrictType.SENATE, "DISTRICT");
         codeColumn.put(DistrictType.CONGRESSIONAL, "DISTRICT");
         codeColumn.put(DistrictType.ASSEMBLY, "DISTRICT");
         codeColumn.put(DistrictType.COUNTY, "COUNTYFP");
@@ -43,7 +43,7 @@ public enum DistrictShapeCode
         codeColumn.put(DistrictType.TOWN, "ABBREV");
         codeColumn.put(DistrictType.ZIP, "ZCTA5CE10");
 
-        sridColumn.put(DistrictType.SENATE, "4269");
+        sridColumn.put(DistrictType.SENATE, "4326");
         sridColumn.put(DistrictType.CONGRESSIONAL, "4326");
         sridColumn.put(DistrictType.ASSEMBLY, "4326");
         sridColumn.put(DistrictType.COUNTY, "4326");

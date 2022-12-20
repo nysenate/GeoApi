@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.admin;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.scripts.streetfinder.NamePair;
+import gov.nysenate.sage.scripts.streetfinder.scripts.nysaddresspoints.NYSAddressPointProcessor;
 import gov.nysenate.sage.service.data.DataGenService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -10,6 +11,8 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -27,17 +30,19 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminRespon
 @Controller
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datagen")
 public class DataGenController {
-
+    private final Logger logger = LoggerFactory.getLogger(DataGenController.class);
     private final AdminUserAuth adminUserAuth;
     private final DataGenService dataGenService;
     private final ApiUserAuth apiUserAuth;
+    private final NYSAddressPointProcessor nysAddressPointProcessor;
 
     @Autowired
     public DataGenController(AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth,
-                             DataGenService dataGenService) {
+                             DataGenService dataGenService, NYSAddressPointProcessor nysAddressPointProcessor) {
         this.adminUserAuth = adminUserAuth;
         this.apiUserAuth = apiUserAuth;
         this.dataGenService = dataGenService;
+        this.nysAddressPointProcessor = nysAddressPointProcessor;
     }
 
     /**
@@ -170,6 +175,46 @@ public class DataGenController {
             apiResponse = invalidAuthResponse();
         }
 
+        setAdminResponse(apiResponse, response);
+    }
+
+    /**
+     * Processes a SAM NYS Address file into tsv streetfiles.
+     * ---------------------------
+     * Usage:
+     * (GET)    /admin/datagen/process/sam-nys-statewide-addresses
+     *
+     * @param request
+     * @param response
+     * @param username
+     * @param password
+     * @param batchSize
+     * @param saveNycToSeparateFile
+     */
+    @RequestMapping(value = "/process/sam-nys-statewide-addresses")
+    public void processSamStatewideAddresses(HttpServletRequest request, HttpServletResponse response,
+                                             @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                             @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                             @RequestParam(required = false, defaultValue = "") String key,
+                                             @RequestParam(required = false, defaultValue = "1000") int batchSize,
+                                             @RequestParam(required = false, defaultValue = "false") boolean saveNycToSeparateFile) {
+        Object apiResponse;
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+            try {
+                nysAddressPointProcessor.processNysSamAddressPoints(batchSize, saveNycToSeparateFile);
+                apiResponse = "Processing sucessfully started";
+            } catch (Exception e) {
+                logger.error("Error trying to process the sam-nys-statewide-address file", e);
+                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+            }
+        } else {
+            apiResponse = invalidAuthResponse();
+        }
         setAdminResponse(apiResponse, response);
     }
 }
