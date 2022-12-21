@@ -5,6 +5,8 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.AddressResult;
 
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AddressPointValidationResult {
 
@@ -27,6 +29,13 @@ public class AddressPointValidationResult {
             return lookedUpDistrictCodes.get(districtType);
         }
         return "\\N";
+    }
+
+    public String fullStreetName() {
+        return Stream.of(streetAddress.getPreDir(), streetAddress.getStreetName(),
+                streetAddress.getStreetType(), streetAddress.getPostDir())
+                .filter(s -> s != null && !s.isEmpty())
+                .collect(Collectors.joining(" "));
     }
 
     public NYSAddressPoint addressPoint() {

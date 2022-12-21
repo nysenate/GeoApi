@@ -27,7 +27,7 @@ public class AddressPointFileWriter {
 
     static String toStreetfileRow(AddressPointValidationResult ap) {
         StringBuilder sb = new StringBuilder();
-        appendTsvColumn(sb, ap.streetAddress().getStreetName());
+        appendTsvColumn(sb, ap.fullStreetName());
         appendTsvColumn(sb, ap.streetAddress().getLocation());
         appendTsvColumn(sb, ap.streetAddress().getState());
         appendTsvColumn(sb, ap.streetAddress().getZip5());
