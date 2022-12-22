@@ -35,7 +35,7 @@ public class AddressPointFileWriter {
         appendTsvColumn(sb, ap.streetAddress().getBldgChar());
         appendTsvColumn(sb, String.valueOf(ap.streetAddress().getBldgNum()));
         appendTsvColumn(sb, ap.streetAddress().getBldgChar());
-        appendTsvColumn(sb, ap.streetAddress().getBldgParity());
+        appendTsvColumn(sb, "ALL");
         appendTsvColumn(sb, "\\N"); // apt_lo_num
         appendTsvColumn(sb, "\\N"); // apt_lo_char
         appendTsvColumn(sb, "\\N"); // apt_hi_num
