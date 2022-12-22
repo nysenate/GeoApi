@@ -27,6 +27,7 @@ public abstract class BaseParser<T extends StreetFileAddress> {
                     StreetFileAddress::setBldgParity);
     protected final BiConsumer<T, String> handlePrecinct = BaseParser::handlePrecinct;
     protected final String filename;
+    private final List<BiConsumer<T, String>> functions = getFunctions();
     private final List<T> addresses = new ArrayList<>();
 
     /**
@@ -38,7 +39,6 @@ public abstract class BaseParser<T extends StreetFileAddress> {
 
     public void parseFile() throws IOException {
         Scanner scanner = new Scanner(new File(filename));
-        scanner.nextLine();
         while (scanner.hasNext()) {
             parseLine(scanner.nextLine());
         }
@@ -86,10 +86,10 @@ public abstract class BaseParser<T extends StreetFileAddress> {
      */
     protected void parseLine(String line, int minLength, String delim) {
         var sfa = getNewAddress();
-        var functions = getFunctions();
         String[] split = line.split(delim);
         if (minLength > split.length) {
             System.err.println("Error parsing line " + line);
+            return;
         }
         for (int i = 0; i < Math.min(functions.size(), split.length); i++) {
             functions.get(i).accept(sfa, split[i]);

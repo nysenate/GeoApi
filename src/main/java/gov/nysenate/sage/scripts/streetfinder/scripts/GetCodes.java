@@ -34,7 +34,7 @@ public class GetCodes {
             if (pair.isBlank()) {
                 continue;
             }
-            String[] values = pair.split(",");
+            String[] values = pair.replaceAll("\"", "").split(",");
             map.put(values[0], values[1]);
         }
         return map;

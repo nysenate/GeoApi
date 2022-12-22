@@ -25,4 +25,5 @@ for county in "${xlsxCounties[@]}"; do
 done
 
 ./ParseFiles
-./CreateSQLFile
+java -Dlog4j.configurationFile="${logFile}" -classpath "${classPath}" gov.nysenate.sage.scripts.streetfinder.scripts.CreateSQLFile "${tsv_dir}"
+echo SQL file created

@@ -2,9 +2,8 @@ package gov.nysenate.sage.scripts.streetfinder.scripts;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.stream.Stream;
+import java.util.List;
 
 /**
  * Creates an SQL file (if it doesn't already exist) and adds the info from
@@ -27,7 +26,12 @@ public class CreateSQLFile {
             SET search_path = public, master, pg_catalog;
             DELETE from public.streetfile;
             """;
-
+    private static final List<String> fieldNames = List.of("street", "town", "state", "zip5",
+            "bldg_lo_num", "bldg_lo_chr", "bldg_hi_num", "bldg_hi_chr", "bldg_parity",
+            "apt_lo_num", "apt_lo_chr", "apt_hi_num", "apt_hi_chr", "apt_parity",
+            "election_code", "county_code", "assembly_code", "senate_code", "congressional_code",
+            "boe_town_code", "town_code", "ward_code", "boe_school_code", "school_code",
+            "cleg_code", "cc_code", "fire_code", "city_code", "vill_code");
 
     /**
      * Creates a SQL with a proper heading, plus all the data to be added.
@@ -37,20 +41,14 @@ public class CreateSQLFile {
             return;
         }
         File sqlFile = new File("/data/geoapi_data/street_finder/" + LocalDate.now() + "_streetfile.sql");
-        try (var fileWriter = new BufferedWriter(new FileWriter(sqlFile, true));
-             var outputWriter = new PrintWriter(fileWriter);
-             Stream<String> lines = Files.lines(Path.of(args[0])).skip(1)) {
-            if (!sqlFile.exists()) {
-                outputWriter.println(sqlHeading);
-                outputWriter.println("COPY public.streetfile " +
-                        "(street, town, state, zip5, bldg_lo_num, bldg_lo_chr, " +
-                        "bldg_hi_num, bldg_hi_chr, bldg_parity, apt_lo_num, apt_lo_chr, " +
-                        "apt_hi_num, apt_hi_chr, apt_parity, election_code, county_code, " +
-                        "assembly_code, senate_code, congressional_code, boe_town_code, " +
-                        "town_code, ward_code, boe_school_code, school_code, cleg_code, " +
-                        "cc_code, fire_code, city_code, vill_code) FROM stdin;\n");
+        sqlFile.delete();
+        try (var outputWriter = new PrintWriter(new BufferedWriter(new FileWriter(sqlFile, true)))) {
+            outputWriter.println(sqlHeading);
+            outputWriter.println("COPY public.streetfile (" + String.join(", ", fieldNames) + ") FROM stdin;\n");
+            for (File dataFile : new File(args[0]).listFiles()) {
+                Files.lines(dataFile.toPath()).forEach(outputWriter::println);
+                outputWriter.flush();
             }
-            lines.forEach(outputWriter::println);
         }
     }
 }

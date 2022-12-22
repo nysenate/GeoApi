@@ -171,6 +171,7 @@ public class StreetFileAddress {
      * Sets the building Parity. It is assumed to be in the form of "ODDS", "EVENS", or "ALL"
      * @param parity
      */
+    // TODO: should really be an enum, like in database
     public void setBldgParity(String parity) {
         primaryBuilding.setParity(parity);
     }

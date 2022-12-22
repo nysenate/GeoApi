@@ -20,12 +20,12 @@ public enum CountyStreetfileName {
     Saratoga(SaratogaParser::new), Schenectady, Schoharie(SchoharieParser::new), Schuyler, Seneca,
     St_Lawrence("ST. LAWRENCE", NTSParser::new), Staten_Island("RICHMOND", NYCParser::new), Steuben,
     Suffolk(SuffolkParser::new), Sullivan, Tioga, Tompkins, Ulster, Warren, Washington, Wayne,
-    Westchester(WestchesterParser::new), Wyoming(WyomingParser::new), Yates;
+    Westchester(WestchesterParser::new), Wyoming(WyomingParser::new), Yates, VoterFile(VoterFileParser::new);
 
     private final String nameInCountyData;
     private final CheckedNewParser<?> parserConstructor;
-    private final static List<String> enumNames = Arrays.stream(values())
-            .map(Enum::name).collect(Collectors.toList());
+    private final static List<String> enumNames = Arrays.stream(values()).map(Enum::name)
+            .collect(Collectors.toList());
     private static final Pattern countyPattern = Pattern.compile(".*(" + String.join("|", enumNames) + ").*");
 
     CountyStreetfileName() {

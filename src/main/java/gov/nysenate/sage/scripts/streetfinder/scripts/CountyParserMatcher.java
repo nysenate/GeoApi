@@ -43,24 +43,31 @@ public class CountyParserMatcher {
                 if (!matcher.matches()) {
                     throw new IOException("The filename " + file.getName() + " doesn't match any counties.");
                 }
-                String csvFilename = file.getName().replaceAll("\\.(txt|csv)", ".tsv");
-                var fileWriter = new FileWriter(new File(args[3], csvFilename));
+                String tsvFilename = file.getName().replaceAll("\\.(txt|csv)", ".tsv");
+                var fileWriter = new FileWriter(new File(args[3], tsvFilename));
+                CountyStreetfileName nameEnum = CountyStreetfileName.valueOf(matcher.group(1));
+                BaseParser<?> parser = nameEnum.getParser(file.getPath());
+                String countyId = countyMap.get(nameEnum.getNameInCountyData());
+                parser.parseFile();
+
                 var outputWriter = new PrintWriter(fileWriter);
                 // add columns for the TSV file
                 outputWriter.println(String.join("\t", fieldLabels));
-                CountyStreetfileName name = CountyStreetfileName.valueOf(matcher.group(1));
-                BaseParser<?> parser = name.getParser(file.getPath());
-                String countyId = countyMap.get(name.getNameInCountyData());
-                parser.parseFile();
+                int count = 0;
                 for (var address : parser.getAddresses()) {
-                    address.put(StreetFileField.COUNTY_ID, countyId);
+                    // County codes have already been inserted into the voter file.
+                    if (nameEnum != CountyStreetfileName.VoterFile) {
+                        address.put(StreetFileField.COUNTY_ID, countyId);
+                    }
                     String town = address.get(StreetFileField.TOWN);
                     if (townAbbrevMap.containsKey(town)) {
                         address.put(StreetFileField.SENATE_TOWN_ABBREV, townAbbrevMap.get(town));
                     }
                     outputWriter.println(address.toStreetFileForm());
+                    if (count++%10000 == 0) {
+                        outputWriter.flush();
+                    }
                 }
-                outputWriter.flush();
                 outputWriter.close();
             }
             else {
