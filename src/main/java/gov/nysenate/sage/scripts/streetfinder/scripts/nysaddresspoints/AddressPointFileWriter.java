@@ -43,9 +43,9 @@ public class AddressPointFileWriter {
         appendTsvColumn(sb, "ALL"); // apt_parity
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.ELECTION)); // election code
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.COUNTY)); // county_code
-        appendTsvColumn(sb, ap.addressPoint().assemblyDistrict); // assembly_code
-        appendTsvColumn(sb, ap.addressPoint().senateDistrict); // senate code
-        appendTsvColumn(sb, ap.addressPoint().congressionalDistrict); // congressional code
+        appendTsvColumn(sb, ap.addressPoint().assemblyDistrict == null ? "\\N" : ap.addressPoint().assemblyDistrict); // assembly_code
+        appendTsvColumn(sb, ap.addressPoint().senateDistrict == null ? "\\N" : ap.addressPoint().senateDistrict); // senate code
+        appendTsvColumn(sb, ap.addressPoint().congressionalDistrict == null ? "\\N" : ap.addressPoint().congressionalDistrict); // congressional code
         appendTsvColumn(sb, "\\N"); // boe town code
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.TOWN)); // town code
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.WARD)); // ward code
