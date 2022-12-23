@@ -833,6 +833,7 @@ public class DistrictController {
                 for (int i = 0; i < addressResults.size(); i++) {
                     if (addressResults.get(i).isValidated()) {
                         geocodedAddresses.get(i).setAddress(addressResults.get(i).getAddress());
+                        geocodedAddresses.get(i).getAddress().setUspsValidated(addressResults.get(i).isValidated());
                     }
                 }
             }

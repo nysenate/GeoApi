@@ -249,10 +249,10 @@ public class ProdReadinessTest {
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
 
-        HttpURLConnection providerTigerValidate = prodReadinessTest.createHttpRequest(
+        HttpURLConnection providerNYSGeoValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=tiger");
-        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerTigerValidate);
+                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=nysgeo");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerNYSGeoValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
 
@@ -285,14 +285,14 @@ public class ProdReadinessTest {
          */
         HttpURLConnection standardBluebirdValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/district/bluebird?addr=280 Madison Ave NY");
+                "/api/v2/district/bluebird?addr=280 Madison Ave New York NY");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(standardBluebirdValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
 
         HttpURLConnection splitBluebirdValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/district/bluebird?addr1=280 Madison Ave&state=NY");
+                "/api/v2/district/bluebird?addr1=280 Madison Ave New York&state=NY");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(splitBluebirdValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
@@ -331,7 +331,7 @@ public class ProdReadinessTest {
 
         HttpURLConnection geoProviderTigerDistAssignValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY&geoProvider=tiger");
+                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY&geoProvider=nysgeo");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(geoProviderTigerDistAssignValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
@@ -405,11 +405,11 @@ public class ProdReadinessTest {
         providerGoogleGeocodeBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
-        CloseableHttpResponse providerTigerBatchValidate = prodReadinessTest.createHttpPostRequest(
+        CloseableHttpResponse providerNYSGeoBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
-                "/api/v2/geo/geocode/batch?provider=tiger", addressJson);
-        jsonResponse = prodReadinessTest.getResponseFromInputStream(providerTigerBatchValidate.getEntity().getContent());
-        providerTigerBatchValidate.close();
+                "/api/v2/geo/geocode/batch?provider=nysgeo", addressJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(providerNYSGeoBatchValidate.getEntity().getContent());
+        providerNYSGeoBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
         /**
@@ -425,11 +425,13 @@ public class ProdReadinessTest {
         /**
          * Dist Assign Batch Validation
          */
+        logger.info("ADDRESS JSON" + addressJson);
         CloseableHttpResponse standardDistAssignBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
                 "/api/v2/district/assign/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(standardDistAssignBatchValidate.getEntity().getContent());
         standardDistAssignBatchValidate.close();
+        logger.info("JSON RESPONSE" + jsonResponse);
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
         CloseableHttpResponse pointDistAssignBatchValidate = prodReadinessTest.createHttpPostRequest(
@@ -446,6 +448,7 @@ public class ProdReadinessTest {
                 baseUrl,
                 "/api/v2/district/bluebird/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(standardBluebirdBatchValidate.getEntity().getContent());
+        logger.info(jsonResponse + "");
         standardBluebirdBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
