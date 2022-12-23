@@ -4,9 +4,11 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
@@ -16,6 +18,11 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
  */
 public class DistrictServiceValidator
 {
+
+    // We should only attempt to assign districts to a geocode if it is accurate enough.
+    // i.e. We can't accurately assign a district to a ZIP, CITY, or STATE quality geocode.
+    private static final List<GeocodeQuality> DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES =
+            Arrays.asList(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
     /**
      * Perform basic null checks on the input parameters.
      * @return true if all required objects are set, false otherwise and sets status in districtResult
@@ -33,6 +40,9 @@ public class DistrictServiceValidator
             }
             else if (!geoAddress.isValidGeocode() && requireGeocode) {
                 districtResult.setStatusCode(MISSING_GEOCODE);
+            }
+            else if (!DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES.contains(geoAddress.getGeocode().getQuality())) {
+                districtResult.setStatusCode(INSUFFICIENT_GEOCODE);
             }
             else if (geoAddress.isValidAddress()) {
                 String state = geoAddress.getAddress().getState();
