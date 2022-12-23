@@ -843,6 +843,7 @@ public class DistrictController {
                     Address toGeocode = validationResult.get(i).isValidated()
                             ? validationResult.get(i).getAddress()
                             : batchRequest.getAddresses().get(i);
+                    toGeocode.setUspsValidated(validationResult.get(i).isValidated());
                     geocodedAddresses.add(new GeocodedAddress(toGeocode));
                 }
             }
