@@ -24,6 +24,8 @@ public class Address implements Serializable, Cloneable
     protected String state = "";
     protected String zip5 = "";
     protected String zip4 = "";
+    //ID is only used for batch districting requests
+    protected Integer id = null;
 
     /** Verification info */
     protected boolean uspsValidated = false;
@@ -43,6 +45,15 @@ public class Address implements Serializable, Cloneable
         this.setPostal(postal);
     }
 
+    public Address(String addr1, String city, String state, String postal, Integer id)
+    {
+        this.setAddr1(addr1);
+        this.setCity(city);
+        this.setState(state);
+        this.setPostal(postal);
+        this.setId(id);
+    }
+
     public Address(String addr1, String addr2, String city, String state, String zip5, String zip4)
     {
         this.setAddr1(addr1);
@@ -51,6 +62,17 @@ public class Address implements Serializable, Cloneable
         this.setState(state);
         this.setZip5(zip5);
         this.setZip4(zip4);
+    }
+
+    public Address(String addr1, String addr2, String city, String state, String zip5, String zip4, Integer id)
+    {
+        this.setAddr1(addr1);
+        this.setAddr2(addr2);
+        this.setCity(city);
+        this.setState(state);
+        this.setZip5(zip5);
+        this.setZip4(zip4);
+        this.setId(id);
     }
 
     public Address(StreetAddress streetAddress) {
@@ -192,6 +214,14 @@ public class Address implements Serializable, Cloneable
             this.setZip5((zipParts.size() > 0) ? zipParts.get(0).trim() : "");
             this.setZip4((zipParts.size() > 1) ? zipParts.get(1).trim() : "");
         }
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     /** Indicates if address has been marked USPS validated. */

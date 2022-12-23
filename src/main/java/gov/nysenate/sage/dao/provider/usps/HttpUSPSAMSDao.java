@@ -116,6 +116,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao
                 addressNode.put("state", address.getState());
                 addressNode.put("zip5", address.getZip5());
                 addressNode.put("zip4", address.getZip4());
+                addressNode.put("id", address.getId());
                 requestRoot.add(addressNode);
             }
             String jsonPayload = requestRoot.toString();
@@ -174,8 +175,9 @@ public class HttpUSPSAMSDao implements USPSAMSDao
                 String state = addressNode.get("state").asText();
                 String zip5 = addressNode.get("zip5").asText();
                 String zip4 = addressNode.get("zip4").asText();
+                Integer id = (addressNode.has("id")) ? addressNode.get("id").asInt() : null;
 
-                Address validatedAddress = new Address(addr1, addr2, city, state, zip5, zip4);
+                Address validatedAddress = new Address(addr1, addr2, city, state, zip5, zip4, id);
                 validatedAddress.setUspsValidated(true);
 
                 addressResult.setAddress(validatedAddress);

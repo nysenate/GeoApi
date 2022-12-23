@@ -51,6 +51,7 @@ public class USPSAMS implements AddressService
             List<AddressResult> results = httpUSPSAMSDao.getValidatedAddressResults(addresses);
             if (results != null && results.size() == addresses.size()) {
                 for (AddressResult result : results) {
+                    result.getAddress().setUspsValidated( result.isValidated() );
                     result.setSource(this.getClass());
                 }
                 return results;

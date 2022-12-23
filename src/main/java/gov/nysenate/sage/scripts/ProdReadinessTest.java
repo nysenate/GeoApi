@@ -45,12 +45,12 @@ public class ProdReadinessTest {
     }
 
     private void initializeTestAddresses() {
-        testAddresses.add(new Address("100 Nyroy Dr", "Troy", "NY", "12180"));
-        testAddresses.add(new Address("44 Fairlawn Ave","Albany","NY","12203"));
-        testAddresses.add(new Address("903 London Square Drive","Clifton Park","NY","12065"));
-        testAddresses.add(new Address("535 Highland Ave","Rochester","NY","14620"));
-        testAddresses.add(new Address("46-08 74th Street","Flushing","NY","11373"));
-        testAddresses.add(new Address("200 State Street","Albany","NY","12210"));
+        testAddresses.add(new Address("100 Nyroy Dr", "Troy", "NY", "12180", 001));
+        testAddresses.add(new Address("44 Fairlawn Ave","Albany","NY","12203",002));
+        testAddresses.add(new Address("903 London Square Drive","Clifton Park","NY","12065",003));
+        testAddresses.add(new Address("535 Highland Ave","Rochester","NY","14620", 004));
+        testAddresses.add(new Address("46-08 74th Street","Flushing","NY","11373", 005));
+        testAddresses.add(new Address("200 State Street","Albany","NY","12210", 006));
     }
 
     private void initializeTestPoints() { //These correspond directly to the addresses in the testAddresses array
@@ -251,7 +251,7 @@ public class ProdReadinessTest {
 
         HttpURLConnection providerTigerValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=tiger");
+                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=nysgeo");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerTigerValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
@@ -331,7 +331,7 @@ public class ProdReadinessTest {
 
         HttpURLConnection geoProviderTigerDistAssignValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY&geoProvider=tiger");
+                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY&geoProvider=nysgeo");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(geoProviderTigerDistAssignValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
@@ -363,6 +363,7 @@ public class ProdReadinessTest {
                 baseUrl,
                 "/api/v2/address/validate/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(addressBatchValidate.getEntity().getContent());
+        logger.info("ADDRESS VALIDATION BATCH: " + jsonResponse);
         addressBatchValidate.close();
         prodReadinessTest.addressBatchValidateResponseCheck(jsonResponse);
 
@@ -407,7 +408,7 @@ public class ProdReadinessTest {
 
         CloseableHttpResponse providerTigerBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
-                "/api/v2/geo/geocode/batch?provider=tiger", addressJson);
+                "/api/v2/geo/geocode/batch?provider=nysgeo", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(providerTigerBatchValidate.getEntity().getContent());
         providerTigerBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
@@ -429,6 +430,7 @@ public class ProdReadinessTest {
                 baseUrl,
                 "/api/v2/district/assign/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(standardDistAssignBatchValidate.getEntity().getContent());
+        logger.info("DISTRICT ASSIGN BATCH: " + jsonResponse);
         standardDistAssignBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
@@ -446,6 +448,7 @@ public class ProdReadinessTest {
                 baseUrl,
                 "/api/v2/district/bluebird/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(standardBluebirdBatchValidate.getEntity().getContent());
+        logger.info("BLUBIRD BATCH: " + jsonResponse);
         standardBluebirdBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 

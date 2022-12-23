@@ -512,6 +512,9 @@ public class DistrictController {
         if (reorderdAddress.getState().isEmpty() && !reorderdAddress.isAddressBlank()) {
             reorderdAddress.setState("NY");
         }
+        if (address.getId() != null) {
+            reorderdAddress.setId(address.getId());
+        }
         return reorderdAddress;
     }
 
@@ -844,6 +847,7 @@ public class DistrictController {
                             ? validationResult.get(i).getAddress()
                             : batchRequest.getAddresses().get(i);
                     toGeocode.setUspsValidated(validationResult.get(i).isValidated());
+                    toGeocode.setId(validationResult.get(i).getAddress().getId());
                     geocodedAddresses.add(new GeocodedAddress(toGeocode));
                 }
             }

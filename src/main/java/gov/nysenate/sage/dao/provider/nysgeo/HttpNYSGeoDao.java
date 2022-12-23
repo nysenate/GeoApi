@@ -53,6 +53,7 @@ public class HttpNYSGeoDao {
                     + address.getCity() + "," + address.getZip5());
             String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
             geocodedAddress = getGeocodedAddress(url, false);
+            geocodedAddress.setAddress(address);
         }
         catch (NullPointerException ex) {
             logger.error("Null pointer while performing google geocode!", ex);
