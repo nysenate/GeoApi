@@ -80,8 +80,11 @@ public class GeoCache implements GeocodeCacheService
             geocodedStreetAddress = new GeocodedStreetAddress(sa);
         }
 
+        GeocodedAddress reformedGeocodedAddress = geocodedStreetAddress.toGeocodedAddress();
+        reformedGeocodedAddress.getAddress().setId(address.getId());
+
         /* Validate and return */
-        if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedStreetAddress.toGeocodedAddress(), geocodeResult, false)) {
+        if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), reformedGeocodedAddress, geocodeResult, false)) {
             logger.info("Failed to find cache hit for " + address.toString());
         }
         return geocodeResult;

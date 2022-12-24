@@ -58,6 +58,7 @@ public class USPSAMS implements AddressService
                 }
                 return results;
             }
+            //TODO Determine if this else block should stay. It could be unreachable with current code flow changes
             else {
                 List<AddressResult> errorResults = new ArrayList<>();
                 for (int i = 0; i < addresses.size(); i++) {
