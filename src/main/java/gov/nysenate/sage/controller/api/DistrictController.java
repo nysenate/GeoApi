@@ -843,12 +843,7 @@ public class DistrictController {
             List<AddressResult> validationResult = addressProvider.validate(batchRequest.getAddresses(), null, batchRequest.isUsePunct());
             if (validationResult != null && validationResult.size() == addresses.size()) {
                 for (int i = 0; i < validationResult.size(); i++) {
-                    Address toGeocode = validationResult.get(i).isValidated()
-                            ? validationResult.get(i).getAddress()
-                            : batchRequest.getAddresses().get(i);
-                    toGeocode.setUspsValidated(validationResult.get(i).isValidated());
-                    toGeocode.setId(validationResult.get(i).getAddress().getId());
-                    geocodedAddresses.add(new GeocodedAddress(toGeocode));
+                    geocodedAddresses.add(new GeocodedAddress(validationResult.get(i).getAddress()));
                 }
             }
         }
