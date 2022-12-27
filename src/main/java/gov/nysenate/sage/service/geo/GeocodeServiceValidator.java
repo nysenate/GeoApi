@@ -164,10 +164,10 @@ public class GeocodeServiceValidator
             failedRequests.put(geocodeService, ++failedCount);
 
             /** If the failure count reaches the threshold, freeze the geocoder if not already. */
-            if (failedCount >= FAILURE_THRESHOLD && !frozenGeocoders.containsKey(geocodeService)) {
-                frozenGeocoders.put(geocodeService, TimeUtil.currentTimestamp());
-                logger.info("Temporarily blocking " + geocodeService.getSimpleName() + " for " + RETRY_INTERVAL_SECS + " secs due to consecutive failures.");
-            }
+//            if (failedCount >= FAILURE_THRESHOLD && !frozenGeocoders.containsKey(geocodeService)) {
+//                frozenGeocoders.put(geocodeService, TimeUtil.currentTimestamp());
+//                logger.info("Temporarily blocking " + geocodeService.getSimpleName() + " for " + RETRY_INTERVAL_SECS + " secs due to consecutive failures.");
+//            }
         }
     }
 
