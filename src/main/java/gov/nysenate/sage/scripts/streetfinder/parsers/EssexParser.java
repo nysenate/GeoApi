@@ -2,7 +2,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +14,7 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
  * Parses Essex County 2018 csv file and converts to tsv file
  */
 public class EssexParser extends BasicParser {
-    public EssexParser(String file) throws IOException {
+    public EssexParser(File file) {
         super(file);
     }
 
@@ -50,7 +50,7 @@ public class EssexParser extends BasicParser {
     private static void setStreetAndSuffix(StreetFileAddress streetFileAddress, String streetData) {
         LinkedList<String> splitList = new LinkedList<>(List.of(streetData.split(" ")));
         streetFileAddress.setStreetSuffix(splitList.removeLast());
-        streetFileAddress.setStreet(String.join(" ", splitList).trim());
+        streetFileAddress.put(STREET, String.join(" ", splitList));
     }
 
     /**

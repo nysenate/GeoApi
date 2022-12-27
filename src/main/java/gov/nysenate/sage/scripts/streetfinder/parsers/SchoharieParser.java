@@ -2,7 +2,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.SchoharieStreetFileAddress;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -13,7 +13,7 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
  * Parses Schohaire County.txt file
  */
 public class SchoharieParser extends BaseParser<SchoharieStreetFileAddress> {
-    public SchoharieParser(String file) throws IOException {
+    public SchoharieParser(File file) {
         super(file);
     }
 

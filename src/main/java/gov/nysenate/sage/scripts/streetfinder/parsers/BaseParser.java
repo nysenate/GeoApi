@@ -26,19 +26,19 @@ public abstract class BaseParser<T extends StreetFileAddress> {
                     (sfa, s) -> sfa.setBuilding(false, s),
                     StreetFileAddress::setBldgParity);
     protected final BiConsumer<T, String> handlePrecinct = BaseParser::handlePrecinct;
-    protected final String filename;
+    protected final File file;
     private final List<BiConsumer<T, String>> functions = getFunctions();
     private final List<T> addresses = new ArrayList<>();
 
     /**
      * The file is assumed to be a text file, either txt or csv.
      */
-    public BaseParser(String filename) {
-        this.filename = filename;
+    public BaseParser(File file) {
+        this.file = file;
     }
 
     public void parseFile() throws IOException {
-        Scanner scanner = new Scanner(new File(filename));
+        Scanner scanner = new Scanner(file);
         while (scanner.hasNext()) {
             parseLine(scanner.nextLine());
         }
@@ -112,7 +112,7 @@ public abstract class BaseParser<T extends StreetFileAddress> {
         if (badLines.isEmpty()) {
             return;
         }
-        System.err.println("\nThe following data could not be parsed from " + filename);
+        System.err.println("\nThe following data could not be parsed from " + file.getName());
         for (String street : badLines.keySet()) {
             System.err.println(street);
             for (String line : badLines.get(street)) {
@@ -154,6 +154,10 @@ public abstract class BaseParser<T extends StreetFileAddress> {
 
     protected List<BiConsumer<T, String>> skip(int num) {
         return Collections.nCopies(num, skip);
+    }
+
+    protected List<BiConsumer<T, String>> streetParts(int num) {
+        return Collections.nCopies(num, StreetFileAddress::addToStreet);
     }
 
     protected void putBadLine(String street, String line) {

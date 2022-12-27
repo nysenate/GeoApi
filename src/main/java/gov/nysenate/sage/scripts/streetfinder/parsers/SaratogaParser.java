@@ -2,7 +2,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 
-import java.io.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -20,14 +20,14 @@ public class SaratogaParser extends NTSParser {
     private final Pattern invalidLine = Pattern.compile("Ward ,|Segments {4}|r_strtdd|Ward Ward");
     private String town;
 
-    public SaratogaParser(String file) throws IOException {
+    public SaratogaParser(File file) {
         super(file);
     }
 
     @Override
     protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
         List<BiConsumer<StreetFileAddress, String>> funcList = new ArrayList<>();
-        funcList.add(StreetFileAddress::setStreet);
+        funcList.add(function(STREET));
         funcList.add(StreetFileAddress::setStreetSuffix);
         funcList.addAll(functions(ZIP, TOWN));
         funcList.addAll(buildingFunctions);

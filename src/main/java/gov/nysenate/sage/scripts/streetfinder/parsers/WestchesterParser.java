@@ -2,7 +2,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -18,9 +18,8 @@ public class WestchesterParser extends BasicParser {
     /**
      * Calls the super constructor which sets up the tsv file
      * @param file
-     * @throws IOException
      */
-    public WestchesterParser(String file) throws IOException {
+    public WestchesterParser(File file) {
         super(file);
     }
 
@@ -29,10 +28,7 @@ public class WestchesterParser extends BasicParser {
         List<BiConsumer<StreetFileAddress, String>> functions = new ArrayList<>();
         functions.add(function(TOWN));
         functions.add(handlePrecinct);
-        functions.add(StreetFileAddress::setPreDirection);
-        functions.add(StreetFileAddress::setStreet);
-        functions.add(StreetFileAddress::setStreetSuffix);
-        functions.add(StreetFileAddress::setPostDirection);
+        functions.addAll(streetParts(4));
         functions.addAll(buildingFunctions);
         functions.add(function(ZIP));
         functions.addAll(functions(true, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG));

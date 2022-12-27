@@ -29,9 +29,8 @@ public class MontgomeryParser extends BasicParser {
     /**
      * Calls the super constructor which sets up the tsv file
      * @param file
-     * @throws IOException
      */
-    public MontgomeryParser(String file) throws IOException {
+    public MontgomeryParser(File file) {
         super(file);
     }
 
@@ -41,7 +40,7 @@ public class MontgomeryParser extends BasicParser {
      * @throws FileNotFoundException
      */
     public void parseFile() throws IOException {
-        Scanner scanner = new Scanner(new File(filename));
+        Scanner scanner = new Scanner(file);
         String currentLine = scanner.nextLine();
         boolean inData = false;
 
@@ -98,13 +97,7 @@ public class MontgomeryParser extends BasicParser {
     private void getStreetAndSuffix(String line, StreetFileAddress streetFileAddress) {
         line = substringHelper(line, streetNameIndex, houseRangeIndex).trim();
         LinkedList<String> streetSplit = new LinkedList<>(List.of(line.split("\\s+")));
-
-        if (checkForDirection(streetSplit.getLast())) {
-            streetFileAddress.setPostDirection(streetSplit.removeLast());
-        }
-
-        streetFileAddress.setStreetSuffix(streetSplit.removeLast());
-        streetFileAddress.setStreet(String.join("", streetSplit));
+        streetFileAddress.put(STREET, String.join(" ", streetSplit));
     }
 
     /**

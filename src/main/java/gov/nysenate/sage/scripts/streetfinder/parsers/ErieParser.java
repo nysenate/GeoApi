@@ -2,7 +2,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +14,7 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
  * Parses Erie County 2018 csv and puts parsed data into a tsv file
  */
 public class ErieParser extends BasicParser {
-    public ErieParser(String file) throws IOException {
+    public ErieParser(File file) {
         super(file);
     }
 
@@ -39,6 +39,6 @@ public class ErieParser extends BasicParser {
     private static void setStreetAndSuffix(StreetFileAddress streetFileAddress, String splitLine) {
         LinkedList<String> splitList = new LinkedList<>(List.of(splitLine.split("\\s+")));
         streetFileAddress.setStreetSuffix(splitList.removeLast());
-        streetFileAddress.setStreet(String.join(" ", splitList).trim());
+        streetFileAddress.put(STREET, String.join(" ", splitList));
     }
 }

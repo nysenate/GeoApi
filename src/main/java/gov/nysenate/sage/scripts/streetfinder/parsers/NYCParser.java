@@ -26,8 +26,8 @@ public class NYCParser extends BasicParser {
 
     private final String town;
 
-    public NYCParser(String filename) throws IOException {
-        super(filename);
+    public NYCParser(File file) {
+        super(file);
         this.town = getTown();
     }
 
@@ -35,7 +35,7 @@ public class NYCParser extends BasicParser {
      * In these files, the street names are followed by a list of data points for that street.
      */
     public void parseFile() throws IOException {
-        var scanner = new Scanner(new File(filename));
+        var scanner = new Scanner(file);
         String currStreet = "";
         while (scanner.hasNext()) {
             String line = scanner.nextLine().trim().replaceAll("\\s+", " ");
@@ -54,7 +54,7 @@ public class NYCParser extends BasicParser {
                 }
                 dataList.add(4, "ALL");
                 if (dataMatcher.group("zip") == null) {
-                    dataList.add(7, "");
+                    continue;
                 }
                 parseLine(dataList);
             }
@@ -86,7 +86,7 @@ public class NYCParser extends BasicParser {
      */
     // TODO: I think we already have this now?
     private String getTown() {
-        Matcher townMatcher = townPattern.matcher(filename);
+        Matcher townMatcher = townPattern.matcher(file.getName());
         return townMatcher.find() ? townMatcher.group().toUpperCase() : "STATEN ISLAND";
     }
 }

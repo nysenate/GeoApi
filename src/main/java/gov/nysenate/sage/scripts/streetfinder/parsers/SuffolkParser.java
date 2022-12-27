@@ -1,11 +1,9 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 import gov.nysenate.sage.scripts.streetfinder.model.SuffolkStreetFileAddress;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -21,7 +19,7 @@ public class SuffolkParser extends BaseParser<SuffolkStreetFileAddress> {
             SuffolkStreetFileAddress::setSecondaryBuildingParity
     );
 
-    public SuffolkParser(String file) throws IOException {
+    public SuffolkParser(File file) {
         super(file);
     }
 
@@ -36,10 +34,8 @@ public class SuffolkParser extends BaseParser<SuffolkStreetFileAddress> {
         functions.add(function(ZIP));
         // skipping zip +4
         functions.add(skip);
-        functions.add(StreetFileAddress::setPreDirection);
-        functions.add(StreetFileAddress::setStreetSuffix);
-        functions.add(SuffolkParser::getStreetName);
-        functions.add(StreetFileAddress::setPostDirection);
+        // TODO: careful that the suffix isn't part of the name
+        functions.addAll(streetParts(4));
         functions.addAll(buildingFunctions);
         // secondary name
         functions.add(skip);
@@ -60,16 +56,5 @@ public class SuffolkParser extends BaseParser<SuffolkStreetFileAddress> {
         splitLine[3] = splitLine[4];
         splitLine[4] = temp3;
         super.parseLine(List.of(splitLine), 19);
-    }
-
-    /**
-     * Gets the street Name and checks for a street suffix if StreetSuffix is empty
-     */
-    private static void getStreetName(StreetFileAddress streetFileAddress, String streetData) {
-        LinkedList<String> splitList = new LinkedList<>(List.of(streetData.split(" ")));
-        if (streetFileAddress.getStreetSuffix().isEmpty() && splitList.size() > 1) {
-            streetFileAddress.setStreetSuffix(splitList.removeLast());
-        }
-        streetFileAddress.setStreet(String.join(" ", splitList).trim());
     }
 }

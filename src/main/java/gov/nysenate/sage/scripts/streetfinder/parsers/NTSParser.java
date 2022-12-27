@@ -7,7 +7,6 @@ import gov.nysenate.sage.util.AddressDictionary;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
@@ -29,10 +28,12 @@ public class NTSParser extends BasicParser {
     private StreetFileAddress streetFileAddressStorage = new StreetFileAddress();
     private String overloadStreetSuf = "";
     private final boolean isGreene;
+    private final boolean isSchenectady;
 
-    public NTSParser(String file) throws IOException {
+    public NTSParser(File file) {
         super(file);
-        this.isGreene = file.contains("Greene");
+        this.isGreene = file.getName().contains("Greene");
+        this.isSchenectady = file.getName().contains("Schenectady");
     }
 
     /**
@@ -40,8 +41,8 @@ public class NTSParser extends BasicParser {
      * @throws IOException
      */
     public void parseFile() throws IOException {
-        Scanner scanner = new Scanner(new File(filename));
-        Stream<String> lines =  Files.lines(Path.of(filename));
+        Scanner scanner = new Scanner(file);
+        Stream<String> lines =  Files.lines(file.toPath());
         while (lines.findAny().isPresent()) {
             lines = lines.dropWhile(line -> !line.contains("House Range"));
             parseStartOfPage(lines.findFirst().get());
@@ -76,10 +77,7 @@ public class NTSParser extends BasicParser {
 
     @Override
     protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
-        List<BiConsumer<StreetFileAddress, String>> funcList = new ArrayList<>();
-        funcList.add(StreetFileAddress::setStreet);
-        funcList.add(StreetFileAddress::setStreetSuffix);
-        funcList.add(StreetFileAddress::setPostDirection);
+        List<BiConsumer<StreetFileAddress, String>> funcList = new ArrayList<>(streetParts(3));
         funcList.add(function(ZIP));
         funcList.addAll(buildingFunctions);
         // TODO: the last 4 lines here vary depending on which county we're in.
@@ -99,7 +97,7 @@ public class NTSParser extends BasicParser {
                 break;
             }
             // Special case with wrong zipcode. TODO: check if still needed.
-            if (splitLine[i].equals("1239") && filename.contains("Schenectady")) {
+            if (splitLine[i].equals("1239") && isSchenectady) {
                 zipIndex = i;
                 splitLine[i] = "12309";
                 break;
