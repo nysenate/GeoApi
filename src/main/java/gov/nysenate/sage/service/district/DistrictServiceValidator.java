@@ -4,9 +4,11 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
@@ -16,6 +18,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
  */
 public class DistrictServiceValidator
 {
+
     /**
      * Perform basic null checks on the input parameters.
      * @return true if all required objects are set, false otherwise and sets status in districtResult

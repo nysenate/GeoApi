@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.util.*;
 
+import static gov.nysenate.sage.model.result.ResultStatus.INSUFFICIENT_GEOCODE;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
 
@@ -52,6 +53,11 @@ public class DistrictShapefile implements DistrictService, MapService
 
     /** Specifies the maximum number of nearby neighbors that will be returned by default. */
     private static Integer MAX_NEIGHBORS = 2;
+
+    /** We should only attempt to assign districts to a geocode if it is accurate enough.
+     * i.e. We can't accurately assign a district to a ZIP, CITY, or STATE quality geocode. */
+    private static final List<GeocodeQuality> DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES =
+            Arrays.asList(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
 
     @Autowired
     public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, SqlStreetFileDao sqlStreetFileDao,
@@ -80,6 +86,10 @@ public class DistrictShapefile implements DistrictService, MapService
 
         /** Validate input */
         if (!validateInput(geocodedAddress, districtResult, true, false)) {
+            return districtResult;
+        }
+        else if (!DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES.contains(geocodedAddress.getGeocode().getQuality())) {
+            districtResult.setStatusCode(INSUFFICIENT_GEOCODE);
             return districtResult;
         }
         try {

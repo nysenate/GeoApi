@@ -70,6 +70,11 @@ public class HttpGoogleDao implements GoogleDao
             }
             String url = getBaseUrl() + formattedQuery;
             geocodedAddress = getGeocodedAddress(url);
+            if (geocodedAddress == null) {
+                geocodedAddress = new GeocodedAddress(address, null);
+            } else {
+                geocodedAddress.setAddress(address);
+            }
         }
         catch (UnsupportedEncodingException ex) {
             logger.error("UTF-8 encoding not supported!?", ex);
