@@ -57,7 +57,7 @@ public class DistrictShapefile implements DistrictService, MapService
     /** We should only attempt to assign districts to a geocode if it is accurate enough.
      * i.e. We can't accurately assign a district to a ZIP, CITY, or STATE quality geocode. */
     private static final List<GeocodeQuality> DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES =
-            Arrays.asList(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
+            Arrays.asList(GeocodeQuality.ZIP, GeocodeQuality.STREET, GeocodeQuality.HOUSE, GeocodeQuality.POINT);
 
     @Autowired
     public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, SqlStreetFileDao sqlStreetFileDao,
