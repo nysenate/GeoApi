@@ -16,15 +16,12 @@ public class CreateSQLFile {
             SET statement_timeout = 0;
             SET lock_timeout = 0;
             SET idle_in_transaction_session_timeout = 0;
-            SET idle_in_transaction_session_timeout = 0;
             SET client_encoding = 'UTF8';
             SET standard_conforming_strings = on;
             SET check_function_bodies = false;
             SET client_min_messages = warning;
             SET row_security = off;
             SET search_path = public, master, pg_catalog;
-            SET search_path = public, master, pg_catalog;
-            DELETE from public.streetfile;
             """;
     private static final List<String> fieldNames = List.of("street", "town", "state", "zip5",
             "bldg_lo_num", "bldg_lo_chr", "bldg_hi_num", "bldg_hi_chr", "bldg_parity",
@@ -41,13 +38,21 @@ public class CreateSQLFile {
             return;
         }
         File sqlFile = new File("/data/geoapi_data/street_finder/" + LocalDate.now() + "_streetfile.sql");
+        File voterSqlFile = new File("/data/geoapi_data/street_finder/" + LocalDate.now() + "_voter_streetfile.sql");
         sqlFile.delete();
-        try (var outputWriter = new PrintWriter(new BufferedWriter(new FileWriter(sqlFile, true)))) {
+        voterSqlFile.delete();
+        try (var outputWriter = new PrintWriter(new BufferedWriter(new FileWriter(sqlFile, true)));
+             var voterOutputWriter = new PrintWriter(new BufferedWriter(new FileWriter(voterSqlFile, true)))) {
             outputWriter.println(sqlHeading);
-            outputWriter.println("COPY public.streetfile (" + String.join(", ", fieldNames) + ") FROM stdin;\n");
+            outputWriter.println("DELETE from public.nyc_streetfile;");
+            outputWriter.println("COPY public.nyc_streetfile (" + String.join(", ", fieldNames) + ") FROM stdin;");
+            voterOutputWriter.println(sqlHeading);
+            voterOutputWriter.println("DELETE from public.voter_streetfile;");
+            voterOutputWriter.println("COPY public.voter_streetfile (" + String.join(", ", fieldNames) + ") FROM stdin;");
             for (File dataFile : new File(args[0]).listFiles()) {
-                Files.lines(dataFile.toPath()).forEach(outputWriter::println);
-                outputWriter.flush();
+                var currWriter = dataFile.getName().toLowerCase().contains("voter") ? voterOutputWriter : outputWriter;
+                Files.lines(dataFile.toPath()).skip(1).forEach(currWriter::println);
+                currWriter.flush();
             }
         }
     }

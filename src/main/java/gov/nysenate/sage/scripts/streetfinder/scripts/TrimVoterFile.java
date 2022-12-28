@@ -3,15 +3,14 @@ package gov.nysenate.sage.scripts.streetfinder.scripts;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 public class TrimVoterFile {
     // There are often multiple voters at the same address, and these duplicates should be removed.
-    private static final Set<String> voterData = new HashSet<>(10000000);
-    private static int inactiveOrPurged = 0, noHouseNum = 0, duplicates = 0, fracAddresses = 0;
+    private static final Set<String> voterData = new HashSet<>(10000000),
+        altAddressData = new HashSet<>(40000);
+    private static int inactiveOrPurged = 0, duplicates = 0;
+    private static final Map<String, Integer> statusCountMap = new HashMap<>();
 
     /**
      * Converts the full voter file into a trimmed version,
@@ -45,11 +44,22 @@ public class TrimVoterFile {
             }
             outputWriter.flush();
             outputWriter.close();
-            System.out.println(inactiveOrPurged + " inactive or purged lines");
-            System.out.println(noHouseNum + " alternate addresses were skipped");
+
+            outputWriter = getPrintWriter("/home/jacob/Documents/AltTrimmedVoterFile2022.txt");
+            for (String line : altAddressData) {
+                outputWriter.write(line);
+                outputWriter.write('\n');
+            }
+            outputWriter.flush();
+            outputWriter.close();
+
+            System.out.println("Status data: ");
+            for (var entry : statusCountMap.entrySet()) {
+                System.out.println(entry.getKey() + " -> " + entry.getValue());
+            }
+            System.out.println(altAddressData.size() + " alternate addresses were parsed");
             System.out.println(duplicates + " duplicate valid addresses were found");
             System.out.println(voterData.size() + " final entries");
-            System.out.println(fracAddresses + " fractional addresses");
         }
     }
 
@@ -62,25 +72,28 @@ public class TrimVoterFile {
         if (fields.length != 47) {
             System.err.println("This line had " + fields.length + " fields instead of 47: " + line);
         }
+        statusCountMap.merge(fields[41], 1, Integer::sum);
         if (fields[41].matches("[IP]")) {
             inactiveOrPurged++;
             return;
         }
-        if (fields[4].isBlank()) {
-            noHouseNum++;
+        if (!fields[13].matches("\\d{5}")) {
+            System.out.println("Bad zipcode in line: " + line);
             return;
-        }
-        if (!fields[5].isBlank()) {
-            fracAddresses++;
         }
 
         // RADDNUMBER - RZIP4
         String[] relevantDataPart1 = Arrays.copyOfRange(fields, 4, 15);
         // COUNTYCODE - AD
         String[] relevantDataPart2 = Arrays.copyOfRange(fields, 23, 31);
-        String tsvLine = String.join("\t", relevantDataPart1) + "\t" +
-                String.join("\t", relevantDataPart2);
-        if (!voterData.add(tsvLine.trim())) {
+        String tsvLine = (String.join("\t", relevantDataPart1) + "\t" +
+                String.join("\t", relevantDataPart2)).trim();
+        if (fields[4].isBlank()) {
+            if (!altAddressData.add(tsvLine)) {
+                duplicates++;
+            }
+        }
+        else if (!voterData.add(tsvLine.trim())) {
             duplicates++;
         }
     }

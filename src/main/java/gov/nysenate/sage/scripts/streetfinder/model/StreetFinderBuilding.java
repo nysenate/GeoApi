@@ -4,8 +4,10 @@ import gov.nysenate.sage.util.Pair;
 
 import java.util.List;
 
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress.DEFAULT;
+
 public class StreetFinderBuilding {
-    private static final String DEFAULT = "\\N";
+
     private Pair<String> low = new Pair<>(DEFAULT, DEFAULT);
     private Pair<String> high = new Pair<>(DEFAULT, DEFAULT);
     private StreetParity parity = null;
@@ -24,6 +26,12 @@ public class StreetFinderBuilding {
         }
     }
 
+    public String getLowString() {
+        String first = low.first().equals(DEFAULT) ? "" : low.first();
+        String second = low.second().equals(DEFAULT) ? "" : low.second();
+        return first + second;
+    }
+
     public List<String> getData() {
         return List.of(low.first(), low.second(), high.first(), high.second(), parity == null ? DEFAULT : parity.name());
     }
@@ -40,6 +48,12 @@ public class StreetFinderBuilding {
             } else if (Character.isLetter(c)) {
                 characters.append(c);
             }
+        }
+        if (digits.isEmpty()) {
+            digits = new StringBuilder(DEFAULT);
+        }
+        if (characters.isEmpty()) {
+            characters = new StringBuilder(DEFAULT);
         }
         return new Pair<>(digits.toString(), characters.toString());
     }

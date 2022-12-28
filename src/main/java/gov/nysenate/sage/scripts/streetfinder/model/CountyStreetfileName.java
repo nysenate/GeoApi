@@ -3,6 +3,7 @@ package gov.nysenate.sage.scripts.streetfinder.model;
 import gov.nysenate.sage.scripts.streetfinder.CheckedNewParser;
 import gov.nysenate.sage.scripts.streetfinder.parsers.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -47,8 +48,8 @@ public enum CountyStreetfileName {
         return countyPattern;
     }
 
-    public BaseParser<?> getParser(String filename) throws IOException {
-        return parserConstructor.apply(filename);
+    public BaseParser<?> getParser(File file) throws IOException {
+        return parserConstructor.apply(file);
     }
 
     public String getNameInCountyData() {
