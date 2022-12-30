@@ -36,11 +36,6 @@ public class AddressPointFileWriter {
         appendTsvColumn(sb, String.valueOf(ap.streetAddress().getBldgNum()));
         appendTsvColumn(sb, ap.streetAddress().getBldgChar());
         appendTsvColumn(sb, "ALL");
-        appendTsvColumn(sb, "\\N"); // apt_lo_num
-        appendTsvColumn(sb, "\\N"); // apt_lo_char
-        appendTsvColumn(sb, "\\N"); // apt_hi_num
-        appendTsvColumn(sb, "\\N"); // apt_hi_char
-        appendTsvColumn(sb, "ALL"); // apt_parity
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.ELECTION)); // election code
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.COUNTY)); // county_code
         appendTsvColumn(sb, ap.addressPoint().assemblyDistrict == null ? "\\N" : ap.addressPoint().assemblyDistrict); // assembly_code
@@ -73,11 +68,6 @@ public class AddressPointFileWriter {
         appendTsvColumn(sb, "bldg_hi_num");
         appendTsvColumn(sb, "bldg_hi_chr");
         appendTsvColumn(sb, "bldg_parity");
-        appendTsvColumn(sb, "apt_lo_num"); // apt_lo_num
-        appendTsvColumn(sb, "apt_lo_chr"); // apt_lo_char
-        appendTsvColumn(sb, "apt_hi_num"); // apt_hi_num
-        appendTsvColumn(sb, "apt_hi_chr"); // apt_hi_char
-        appendTsvColumn(sb, "apt_parity"); // apt_parity
         appendTsvColumn(sb, "election_code"); // election code
         appendTsvColumn(sb, "county_code"); // county_code
         appendTsvColumn(sb, "assembly_code"); // assembly_code
