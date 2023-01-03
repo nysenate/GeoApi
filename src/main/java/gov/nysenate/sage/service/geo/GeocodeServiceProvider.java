@@ -241,7 +241,7 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
         }
 
         /** Cache result */
-        if (CACHE_ENABLED && !cacheHit && !doNotCache) {
+        if (CACHE_ENABLED && !cacheHit && !doNotCache && geocodeResult.getGeocodedAddress().isValidGeocode()) {
             geocache.saveToCacheAndFlush(geocodeResult);
         }
         return geocodeResult;
