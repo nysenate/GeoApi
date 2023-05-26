@@ -18,7 +18,6 @@ import static gov.nysenate.sage.scripts.streetfinder.parsers.NTSParser.substring
  * Looks for zip, street, low, high, range type, town, ward, district
  * Polling information is unnecessary and skipped
  */
-// TODO: still needs a rework
 public class MontgomeryParser extends BasicParser {
     // Indices keep location of the column of info for each block of data
     private int zipIndex;
@@ -39,12 +38,12 @@ public class MontgomeryParser extends BasicParser {
      * parseLine is called to parse the line
      * @throws FileNotFoundException
      */
-    public void parseFile() throws IOException {
+    public List<StreetFileAddress> parseFile() throws IOException {
         Scanner scanner = new Scanner(file);
         String currentLine = scanner.nextLine();
         boolean inData = false;
 
-        while (scanner.hasNext()) {
+        while (scanner.hasNextLine()) {
             if (inData && !currentLine.isBlank() && !currentLine.contains("**TOWN NOT FOUND")) {
                 //"r_ppstreet" marks the end of data
                 if (currentLine.contains("r_ppstreet")) {
@@ -66,7 +65,8 @@ public class MontgomeryParser extends BasicParser {
             currentLine = scanner.nextLine();
         }
         scanner.close();
-        closeWriters();
+        endProcessing();
+        return null;
     }
 
     @Override
@@ -76,7 +76,7 @@ public class MontgomeryParser extends BasicParser {
 
     /**
      * Calls all helper methods to parse the line and add data to StreetFinderAddress
-     * @param line
+     * TODO: should parse on whitespace, not indices
      */
     protected void parseLine(String line) {
         StreetFileAddress streetFileAddress = new StreetFileAddress();
@@ -85,7 +85,7 @@ public class MontgomeryParser extends BasicParser {
         getHouseRange(line, streetFileAddress);
         streetFileAddress.setBldgParity(getParity(line));
         getTownWardDist(line, streetFileAddress);
-        writeToFile(streetFileAddress);
+        finalize(streetFileAddress);
     }
 
     /**

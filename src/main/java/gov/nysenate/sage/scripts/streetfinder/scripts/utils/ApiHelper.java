@@ -1,4 +1,4 @@
-package gov.nysenate.sage.scripts.streetfinder.scripts;
+package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,7 +14,9 @@ import java.util.Map;
  * Contains some common code for accessing the SAGE API from outside SAGE.
  */
 public class ApiHelper {
-    private final static String apiStart = "/api/v2/", datagen = "/admin/datagen/", validate = apiStart + "address/validate";
+    private final static String apiStart = "/api/v2/",
+            datagen = "/admin/datagen/",
+            validate = apiStart + "address/validate";
     private final String sageUrl, adminKey;
 
     public ApiHelper(String sageUrl, String adminKey) {

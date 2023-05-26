@@ -25,7 +25,6 @@ public class CreateSQLFile {
             """;
     private static final List<String> fieldNames = List.of("street", "town", "state", "zip5",
             "bldg_lo_num", "bldg_lo_chr", "bldg_hi_num", "bldg_hi_chr", "bldg_parity",
-            "apt_lo_num", "apt_lo_chr", "apt_hi_num", "apt_hi_chr", "apt_parity",
             "election_code", "county_code", "assembly_code", "senate_code", "congressional_code",
             "boe_town_code", "town_code", "ward_code", "boe_school_code", "school_code",
             "cleg_code", "cc_code", "fire_code", "city_code", "vill_code");
@@ -51,7 +50,7 @@ public class CreateSQLFile {
             voterOutputWriter.println("COPY public.voter_streetfile (" + String.join(", ", fieldNames) + ") FROM stdin;");
             for (File dataFile : new File(args[0]).listFiles()) {
                 var currWriter = dataFile.getName().toLowerCase().contains("voter") ? voterOutputWriter : outputWriter;
-                Files.lines(dataFile.toPath()).skip(1).forEach(currWriter::println);
+                Files.lines(dataFile.toPath()).skip(1).forEach(line -> currWriter.println(line.toUpperCase()));
                 currWriter.flush();
             }
         }

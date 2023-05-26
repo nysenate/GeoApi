@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
+import java.util.ArrayList;
 import java.util.TreeMap;
 
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileField.*;
@@ -19,6 +20,8 @@ public class VoterFileLineMap extends TreeMap<VoterFileField, String> {
             return;
         }
         String[] parts = line.split("\\s*\",\"\\s*", -1);
+        parts[0] = parts[0].replaceFirst("\"", "");
+        parts[parts.length - 1] = parts[0].replaceFirst("\"", "");
         if (parts.length != VoterFileField.values().length) {
             this.type = WRONG_FIELD_LENGTH;
             return;
@@ -46,6 +49,26 @@ public class VoterFileLineMap extends TreeMap<VoterFileField, String> {
     @Override
     public String toString() {
         return String.join("\t", values()).toUpperCase();
+    }
+
+    public String getAddress() {
+        var addressList = new ArrayList<String>();
+        for (VoterFileField field : streetFileFields) {
+            if (field.getType() == VoterFileFieldType.ADDRESS) {
+                addressList.add(get(field));
+            }
+        }
+        return String.join("\t", addressList);
+    }
+
+    public String getDistricts() {
+        var districtList = new ArrayList<String>();
+        for (VoterFileField field : streetFileFields) {
+            if (field.getType() == VoterFileFieldType.DISTRICT) {
+                districtList.add(get(field));
+            }
+        }
+        return String.join("\t", districtList);
     }
 
     public VoterFileLineType getType() {

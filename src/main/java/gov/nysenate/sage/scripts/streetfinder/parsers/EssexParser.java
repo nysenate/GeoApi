@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -26,8 +27,10 @@ public class EssexParser extends BasicParser {
         functions.add(function(ELECTION_CODE));
         functions.addAll(buildingFunctions);
         functions.addAll(functions(ASSEMBLY, CONGRESSIONAL, SENATE));
-        // TODO: might not exist
-        functions.add(EssexParser::getZip);
+        functions.add((sfa, str) -> {
+            if (!str.equals("M")) {
+                sfa.put(ZIP, str);
+            }});
         return functions;
     }
 
@@ -37,10 +40,20 @@ public class EssexParser extends BasicParser {
      */
     @Override
     protected void parseLine(String line) {
-        ArrayList<String> split = new ArrayList<>(List.of(line.split(",")));
+        List<String> split = new ArrayList<>(List.of(line.split(",")));
         // Two parts must be combined into something usable.
-        split.set(5, getRangeType(split.get(5), split.remove(6)));
-        super.parseLine(String.join(",", split));
+        String firstPart = split.get(5);
+        String secondPart = split.remove(6);
+        StreetParity parity;
+        if (firstPart.equals("-1") && secondPart.equals("0")) {
+            parity = StreetParity.ODDS;
+        } else if (firstPart.equals("0") && secondPart.equals("-1")) {
+            parity = StreetParity.EVENS;
+        } else {
+            parity = StreetParity.ALL;
+        }
+        split.set(5, parity.name());
+        super.parseLine(split);
     }
 
     /**
@@ -51,28 +64,5 @@ public class EssexParser extends BasicParser {
         LinkedList<String> splitList = new LinkedList<>(List.of(streetData.split(" ")));
         streetFileAddress.setStreetSuffix(splitList.removeLast());
         streetFileAddress.put(STREET, String.join(" ", splitList));
-    }
-
-    /**
-     * Gets the range type and converts it to correct format
-     */
-    private static String getRangeType(String firstPart, String secondPart) {
-        if (firstPart.equals("-1") && secondPart.equals("0")) {
-            return "ODDS";
-        } else if (firstPart.equals("0") && secondPart.equals("-1")) {
-            return "EVENS";
-        }
-        return "ALL";
-    }
-
-    /**
-     * Gets the zip code
-     * @param zip
-     * @param streetFileAddress
-     */
-    private static void getZip(StreetFileAddress streetFileAddress, String zip) {
-        if (!zip.equals("M")) {
-            streetFileAddress.put(ZIP, zip);
-        }
     }
 }

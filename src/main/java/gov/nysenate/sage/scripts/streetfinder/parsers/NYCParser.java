@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,10 +35,10 @@ public class NYCParser extends BasicParser {
     /**
      * In these files, the street names are followed by a list of data points for that street.
      */
-    public void parseFile() throws IOException {
+    public List<StreetFileAddress> parseFile() throws IOException {
         var scanner = new Scanner(file);
         String currStreet = "";
-        while (scanner.hasNext()) {
+        while (scanner.hasNextLine()) {
             String line = scanner.nextLine().trim().replaceAll("\\s+", " ");
             if (line.matches(skippableLine)) {
                 continue;
@@ -52,7 +53,7 @@ public class NYCParser extends BasicParser {
                     dataList.add(2, "");
                     dataList.add(3, "");
                 }
-                dataList.add(4, "ALL");
+                dataList.add(4, StreetParity.ALL.name());
                 if (dataMatcher.group("zip") == null) {
                     continue;
                 }
@@ -66,7 +67,8 @@ public class NYCParser extends BasicParser {
             }
         }
         scanner.close();
-        closeWriters();
+        endProcessing();
+        return addresses;
     }
 
     @Override
@@ -81,10 +83,6 @@ public class NYCParser extends BasicParser {
         return functions;
     }
 
-    /**
-     * @return the town of the current file.
-     */
-    // TODO: I think we already have this now?
     private String getTown() {
         Matcher townMatcher = townPattern.matcher(file.getName());
         return townMatcher.find() ? townMatcher.group().toUpperCase() : "STATEN ISLAND";

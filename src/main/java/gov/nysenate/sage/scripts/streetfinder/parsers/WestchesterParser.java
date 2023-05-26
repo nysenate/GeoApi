@@ -15,10 +15,6 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
  */
 public class WestchesterParser extends BasicParser {
 
-    /**
-     * Calls the super constructor which sets up the tsv file
-     * @param file
-     */
     public WestchesterParser(File file) {
         super(file);
     }

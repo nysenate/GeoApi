@@ -5,6 +5,7 @@ import gov.nysenate.sage.scripts.streetfinder.model.StreetFileField;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.BiConsumer;
 
@@ -16,9 +17,10 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.WARD;
  * @param <T> Usually just the normal StreetFinderAddress, but some extra functionality may be needed.
  */
 public abstract class BaseParser<T extends StreetFileAddress> {
-    private final SortedMap<String, List<String>> badLines = new TreeMap<>();
+    protected final List<T> addresses = new ArrayList<>();
+    private final SortedMap<String, List<String>> badlyFormattedLines = new TreeMap<>();
 
-    // We don't use some parts of the data
+    // We don't use some parts of the data.
     protected final BiConsumer<T, String> skip = (streetFinderAddress, s) -> {};
     // Building data has a common form.
     protected final List<BiConsumer<T, String>> buildingFunctions =
@@ -28,25 +30,14 @@ public abstract class BaseParser<T extends StreetFileAddress> {
     protected final BiConsumer<T, String> handlePrecinct = BaseParser::handlePrecinct;
     protected final File file;
     private final List<BiConsumer<T, String>> functions = getFunctions();
-    private final List<T> addresses = new ArrayList<>();
 
-    /**
-     * The file is assumed to be a text file, either txt or csv.
-     */
     public BaseParser(File file) {
         this.file = file;
     }
 
-    public void parseFile() throws IOException {
-        Scanner scanner = new Scanner(file);
-        while (scanner.hasNext()) {
-            parseLine(scanner.nextLine());
-        }
-        scanner.close();
-        closeWriters();
-    }
-
-    public List<T> getAddresses() {
+    public List<T> parseFile() throws IOException {
+        Files.lines(file.toPath()).forEach(this::parseLine);
+        endProcessing();
         return addresses;
     }
 
@@ -57,18 +48,10 @@ public abstract class BaseParser<T extends StreetFileAddress> {
     protected abstract T getNewAddress();
 
     /**
-     * Each function takes in data, and properly assigns it to the new street address.
+     * Each function takes in a String, and properly assigns it to the new street address.
      * @return a class-specific list of functions.
      */
     protected abstract List<BiConsumer<T, String>> getFunctions();
-
-    protected void parseLine(List<String> dataList, int minLength) {
-        parseLine(String.join(",", dataList), minLength);
-    }
-
-    protected void parseLine(String line, int minLength) {
-        parseLine(line, minLength, ",");
-    }
 
     protected void parseLine(List<String> dataList) {
         parseLine(String.join(",", dataList));
@@ -78,6 +61,14 @@ public abstract class BaseParser<T extends StreetFileAddress> {
         parseLine(line, 0);
     }
 
+    protected void parseLine(List<String> dataList, int minLength) {
+        parseLine(String.join(",", dataList), minLength);
+    }
+
+    protected void parseLine(String line, int minLength) {
+        parseLine(line, minLength, ",");
+    }
+
     /**
      * Parses out data from a single streetfile line, and prints it to the file.
      * @param line raw data.
@@ -85,49 +76,41 @@ public abstract class BaseParser<T extends StreetFileAddress> {
      * @param delim to split the line on (could be tab, whitespace, or comma seperated).
      */
     protected void parseLine(String line, int minLength, String delim) {
-        var sfa = getNewAddress();
+        T addr = getNewAddress();
         String[] split = line.split(delim);
         if (minLength > split.length) {
-            System.err.println("Error parsing line " + line);
+            putBadLine("", line);
             return;
         }
         for (int i = 0; i < Math.min(functions.size(), split.length); i++) {
-            functions.get(i).accept(sfa, split[i]);
+            functions.get(i).accept(addr, split[i]);
         }
-        writeToFile(sfa);
+        finalize(addr);
+    }
+
+    protected void finalize(T sfa) {
+        addresses.add(sfa);
     }
 
     /**
-     * Utility method that checks if the given string is equal to a direction
-     * Only checks if equal to "N", "E", "S", and "W"
-     * @param string
+     * Only checks if equal to letter abbreviations.
      * @return true if a direction, false otherwise
      */
-    // TODO: should allow more directions
-    protected static boolean checkForDirection(String string) {
-        return string.toUpperCase().matches( "[NESW]{1,2}");
+    protected static boolean isNotDirection(String part) {
+        return !part.toUpperCase().matches("[NESW]{1,2}");
     }
 
-    protected void closeWriters() {
-        if (badLines.isEmpty()) {
+    protected void endProcessing() {
+        if (badlyFormattedLines.isEmpty()) {
             return;
         }
         System.err.println("\nThe following data could not be parsed from " + file.getName());
-        for (String street : badLines.keySet()) {
+        for (String street : badlyFormattedLines.keySet()) {
             System.err.println(street);
-            for (String line : badLines.get(street)) {
+            for (String line : badlyFormattedLines.get(street)) {
                 System.err.println("\t" + line);
             }
         }
-    }
-
-    /**
-     * Writes the StreetFinderAddress to the file in StreetFileForm by using the PrintWriter
-     * @param streetFinderAddress
-     */
-    protected void writeToFile(T streetFinderAddress) {
-        streetFinderAddress.normalize();
-        addresses.add(streetFinderAddress);
     }
 
     protected BiConsumer<T, String> function(StreetFileField field) {
@@ -161,9 +144,10 @@ public abstract class BaseParser<T extends StreetFileAddress> {
     }
 
     protected void putBadLine(String street, String line) {
-        List<String> currList = badLines.getOrDefault(street, new ArrayList<>());
+        List<String> currList = badlyFormattedLines.getOrDefault(street, new ArrayList<>());
         currList.add(line);
-        badLines.put(street, currList);
+        // TODO: needed?
+        badlyFormattedLines.put(street, currList);
     }
 
     /**

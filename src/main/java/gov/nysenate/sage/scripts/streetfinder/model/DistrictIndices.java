@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.model;
 
+import gov.nysenate.sage.scripts.streetfinder.parsers.NTSParser;
 import gov.nysenate.sage.util.Pair;
 
 import java.util.*;
@@ -7,8 +8,11 @@ import java.util.regex.Pattern;
 
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
+/**
+ * Stores data about which indices to look for data at.
+ */
 public class DistrictIndices {
-    // BOE_SCHOOL, "Schl"
+    // Matches StreetFileFields to their shortened Strings.
     private static final LinkedHashMap<StreetFileField, String> fieldToPattern = new LinkedHashMap<>();
     static {
         fieldToPattern.put(SCHOOL, "Schl");
@@ -19,25 +23,17 @@ public class DistrictIndices {
         fieldToPattern.put(CITY, "City");
     }
     private static final Pair<Integer> defaultRange = new Pair<>(2, 4);
-    private final Map<StreetFileField, Pair<Integer>> fieldToAdjMap = new HashMap<>();
+    // Data for each field will be at [index - first, index + second].
+    private static final Map<StreetFileField, Pair<Integer>> fieldToAdjMap =
+            Map.of(SCHOOL, new Pair<>(1, 4), VILLAGE, new Pair<>(3, 4));
     private final Map<StreetFileField, Pair<Integer>> fieldToRangeMap = new HashMap<>();
 
     public DistrictIndices(boolean isGreene, String data) {
-        fieldToAdjMap.put(CLEG, isGreene ? new Pair<>(2, 6) : defaultRange);
-        Pair<Integer> schoolRange = new Pair<>(1, 4);
-        fieldToAdjMap.put(SCHOOL, schoolRange);
-        // TODO: seems like this is a version of SCHOOL with letters,
-        //  except many in the database have numbers, and BOE_TOWN_CODE is digits
-//        fieldToAdjMap.put(BOE_SCHOOL, schoolRange);
-        fieldToAdjMap.put(VILLAGE, new Pair<>(3, 4));
-        fieldToAdjMap.put(FIRE, defaultRange);
-        fieldToAdjMap.put(CITY_COUNCIL, defaultRange);
-        fieldToAdjMap.put(CITY, defaultRange);
-
-        for (StreetFileField field : fieldToAdjMap.keySet()) {
+        for (StreetFileField field : fieldToPattern.keySet()) {
             var matcher = Pattern.compile(fieldToPattern.get(field)).matcher(data);
             if (matcher.find()) {
-                Pair<Integer> adjustments = fieldToAdjMap.get(field);
+                Pair<Integer> adjustments = isGreene && field == CLEG ?
+                        new Pair<>(2, 6) : fieldToAdjMap.getOrDefault(field, defaultRange);
                 Pair<Integer> valueRange = new Pair<>(matcher.start() - adjustments.first(),
                         matcher.start() + adjustments.second());
                 fieldToRangeMap.put(field, valueRange);
@@ -45,16 +41,15 @@ public class DistrictIndices {
         }
     }
 
+    /**
+     * Parses out data through stored ranges.
+     */
     public List<String> getPostAsmData(String line) {
         List<String> values = new ArrayList<>();
         for (var field : fieldToPattern.keySet()) {
-            Pair<Integer> range = fieldToRangeMap.get(field);
-            values.add(substringHelper(line, range.first(), range.second()));
+            Pair<Integer> range = fieldToRangeMap.getOrDefault(field, defaultRange);
+            values.add(NTSParser.substringHelper(line, range.first(), range.second()));
         }
         return values;
-    }
-
-    private static String substringHelper(String str, int start, int end) {
-        return str.substring(Math.min(start, str.length()), Math.min(end, str.length()));
     }
 }

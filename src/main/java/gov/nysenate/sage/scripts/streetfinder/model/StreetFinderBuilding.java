@@ -3,13 +3,14 @@ package gov.nysenate.sage.scripts.streetfinder.model;
 import gov.nysenate.sage.util.Pair;
 
 import java.util.List;
+import java.util.Objects;
 
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress.DEFAULT;
 
 public class StreetFinderBuilding {
-
-    private Pair<String> low = new Pair<>(DEFAULT, DEFAULT);
-    private Pair<String> high = new Pair<>(DEFAULT, DEFAULT);
+    private static final Pair<String> defaultPair = new Pair<>("0", "");
+    private Pair<String> low = defaultPair;
+    private Pair<String> high = defaultPair;
     private StreetParity parity = null;
 
     public void setHigh(String highData) {
@@ -27,18 +28,34 @@ public class StreetFinderBuilding {
     }
 
     public String getLowString() {
-        String first = low.first().equals(DEFAULT) ? "" : low.first();
-        String second = low.second().equals(DEFAULT) ? "" : low.second();
-        return first + second;
+        return low.first() + low.second();
     }
 
     public List<String> getData() {
         return List.of(low.first(), low.second(), high.first(), high.second(), parity == null ? DEFAULT : parity.name());
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StreetFinderBuilding that = (StreetFinderBuilding) o;
+        return low.equals(that.low) && high.equals(that.high) && parity == that.parity;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(low, high, parity);
+    }
+
+    @Override
+    public String toString() {
+        return low.first() + low.second() + "-" + high.first() + high.second() + ", " + parity;
+    }
+
     private static Pair<String> getPair(String data) {
-        if (data == null || data.isEmpty()) {
-            return new Pair<>(DEFAULT, DEFAULT);
+        if (data == null) {
+            return defaultPair;
         }
         StringBuilder digits = new StringBuilder();
         StringBuilder characters = new StringBuilder();
@@ -49,12 +66,6 @@ public class StreetFinderBuilding {
                 characters.append(c);
             }
         }
-        if (digits.isEmpty()) {
-            digits = new StringBuilder(DEFAULT);
-        }
-        if (characters.isEmpty()) {
-            characters = new StringBuilder(DEFAULT);
-        }
-        return new Pair<>(digits.toString(), characters.toString());
+        return new Pair<>(digits.isEmpty() ? "0" : digits.toString(), characters.toString());
     }
 }

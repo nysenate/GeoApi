@@ -15,11 +15,8 @@ public class StreetFileAddress {
     protected static final String DEFAULT = "\\N";
     private static final Set<StreetFileField> mustNotBeEmpty = EnumSet.of(ELECTION_CODE, WARD,
             CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, VILLAGE, FIRE, CITY_COUNCIL, SENATE_TOWN_ABBREV, BOE_TOWN_CODE, COUNTY_ID);
-    private static final Set<StreetFileField> mustBeNumeric = EnumSet.of(ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, CITY_COUNCIL);
+    private static final Set<StreetFileField> mustBeNumeric = EnumSet.of(ZIP, ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, CITY_COUNCIL);
     private final StreetFinderBuilding primaryBuilding = new StreetFinderBuilding();
-    // Really a range for apartment buildings. Only used in Suffolk.
-    protected final StreetFinderBuilding secondaryBuilding = new StreetFinderBuilding();
-    // TODO: may not be used
     private String streetSuffix = "";
     protected final Map<StreetFileField, String> fieldMap = new EnumMap<>(StreetFileField.class);
     private static final Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
@@ -37,17 +34,14 @@ public class StreetFileAddress {
      * @return Object in String form
      */
     public String toStreetFileForm() {
-        // This will be set by CountyParserMatcher
-        fieldMap.remove(COUNTY_ID);
         List<String> fieldList = new ArrayList<>();
-        boolean beforeBuildings = true;
         for (var fieldType : StreetFileField.values()) {
-            if (beforeBuildings && fieldType.isAfterBuildings()) {
+            if (fieldType == BUILDING) {
                 fieldList.addAll(primaryBuilding.getData());
-                fieldList.addAll(secondaryBuilding.getData());
-                beforeBuildings = false;
             }
-            fieldList.add(get(fieldType));
+            else {
+                fieldList.add(get(fieldType));
+            }
         }
         return String.join("\t", fieldList);
     }
@@ -63,15 +57,11 @@ public class StreetFileAddress {
         put(STREET, (get(STREET) + " " + toAdd).trim().replaceAll("\\s+", " "));
     }
 
-    public String getZip() {
-        return get(ZIP);
-    }
-
     public void put(StreetFileField type, String value) {
         if (type == ELECTION_CODE && value.contains("-")) {
             return;
         }
-        value = value.replaceAll("\\s+", " ");
+        value = value.replaceAll("\\s+", " ").trim();
         if ((!mustNotBeEmpty.contains(type) || !value.isEmpty()) &&
                 (!mustBeNumeric.contains(type) || isNumeric(value))) {
             fieldMap.put(type, value);
@@ -80,11 +70,6 @@ public class StreetFileAddress {
 
     public String get(StreetFileField type) {
         return fieldMap.getOrDefault(type, "\\N");
-    }
-
-    public void normalize() {
-        setStreetSuffix(streetSuffix.trim().toUpperCase());
-        put(TOWN, get(TOWN).trim().toUpperCase());
     }
 
     public void setBuilding(boolean isLow, String data) {
@@ -97,44 +82,17 @@ public class StreetFileAddress {
     }
 
     /**
-     * Accessor Method
-     * @return
-     */
-    public String getStreet() {
-        return get(STREET);
-    }
-
-    /**
-     * Sets the Street Suffix. This is appended to the end of the Street Name when converted to file form
-     * Also checks for conversions to USPS standard format
-     * @param streetSuffix
+     * Sets the Street Suffix. There's data in {@link AddressDictionary} that we could use to
+     * correct this to USPS format, but for now we just correct the address elsewhere.
      */
     public void setStreetSuffix(String streetSuffix) {
-        if (streetSuffix != null) {
-            //Trim off possible . from suffix ex. "Ext."
-            String string = streetSuffix.replace(".", "");
-            //First check the streetTypeMap
-            //If not found in either hashMap then just set to the regular string
-            if (AddressDictionary.streetTypeMap.containsKey(string.toUpperCase())) {
-                this.streetSuffix = AddressDictionary.streetTypeMap.get(string.toUpperCase()).toUpperCase();
-                //Then check highWayMap
-            } else
-                this.streetSuffix = AddressDictionary.highWayMap.getOrDefault(string.toUpperCase(), string).toUpperCase();
-        }
+        this.streetSuffix = streetSuffix.trim().toUpperCase();
     }
 
-    /**
-     * Accessor method
-     * @return
-     */
     public String getStreetSuffix() {
         return streetSuffix;
     }
 
-    /**
-     * Sets the building Parity. It is assumed to be in the form of "ODDS", "EVENS", or "ALL"
-     * @param parity
-     */
     public void setBldgParity(String parity) {
         primaryBuilding.setParity(parity);
     }
@@ -148,6 +106,21 @@ public class StreetFileAddress {
         townCode = townCode.trim();
         StreetFileField type = townCode.matches("\\d+") ? BOE_TOWN_CODE : SENATE_TOWN_ABBREV;
         put(type, townCode);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StreetFileAddress that = (StreetFileAddress) o;
+        return primaryBuilding.equals(that.primaryBuilding) &&
+                get(STREET).equals(that.get(STREET)) &&
+                get(ZIP).equals(that.get(ZIP));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(primaryBuilding, get(STREET), get(ZIP));
     }
 
     private static boolean isNumeric(String strNum) {

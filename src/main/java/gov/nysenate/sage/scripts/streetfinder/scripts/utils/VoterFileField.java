@@ -10,11 +10,12 @@ import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileFiel
  * List of all fields in the voter file. In practice, we will not use most of them.
  */
 public enum VoterFileField {
-    LASTNAME, FIRSTNAME, MIDDLENAME, NAMESUFFIX,
+    LASTNAME(NAME), FIRSTNAME(NAME), MIDDLENAME(NAME), NAMESUFFIX(NAME),
     RADDNUMBER(ADDRESS, true), RHALFCODE(ADDRESS),
     RPREDIRECTION(ADDRESS, true), RSTREETNAME(ADDRESS, true), RPOSTDIRECTION(ADDRESS, true),
     RAPARTMENTTYPE(ADDRESS), RAPARTMENT(ADDRESS),
     RADDRNONSTD(ADDRESS),
+    // TODO: analyze city
     RCITY(ADDRESS), RZIP5(ADDRESS, true), RZIP4(ADDRESS),
     MAILADD1, MAILADD2, MAILADD3, MAILADD4, DOB, GENDER, ENROLLMENT, OTHERPARTY,
     COUNTYCODE(DISTRICT), ED(DISTRICT), LD(DISTRICT), TOWNCITY(DISTRICT, false), WARD(DISTRICT),
@@ -26,6 +27,9 @@ public enum VoterFileField {
     // These fields will be put into a created streetfile.
     public static final List<VoterFileField> streetFileFields = Arrays.stream(values())
             .filter(field -> field.isStreetfileData).collect(Collectors.toList());
+    public static final List<VoterFileField> defaultDisplayFields = Arrays.stream(values())
+            .filter(field -> field == SBOEID || field.type == ADDRESS)
+            .collect(Collectors.toList());
 
     private final VoterFileFieldType type;
     private final boolean isStreetfileData;

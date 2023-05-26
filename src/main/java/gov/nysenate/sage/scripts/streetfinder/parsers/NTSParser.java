@@ -24,7 +24,7 @@ public class NTSParser extends BasicParser {
     private static final Predicate<String> isNotEndOfPage = line -> !endOfPagePattern.matcher(line).find();
     private static final Predicate<String> isValidLine = line -> line.length() >= 25 && line.trim().split("\\s+").length >= 5;
     protected DistrictIndices indices;
-    //These are used to save the variables when the line is a continuation of an above street
+    // These are used to save the variables when the line is a continuation of an above street.
     private StreetFileAddress streetFileAddressStorage = new StreetFileAddress();
     private String overloadStreetSuf = "";
     private final boolean isGreene;
@@ -40,9 +40,8 @@ public class NTSParser extends BasicParser {
      * Some extraneous data must be removed, and some data stored from the start of the page.
      * @throws IOException
      */
-    public void parseFile() throws IOException {
-        Scanner scanner = new Scanner(file);
-        Stream<String> lines =  Files.lines(file.toPath());
+    public List<StreetFileAddress> parseFile() throws IOException {
+        Stream<String> lines = Files.lines(file.toPath());
         while (lines.findAny().isPresent()) {
             lines = lines.dropWhile(line -> !line.contains("House Range"));
             parseStartOfPage(lines.findFirst().get());
@@ -50,8 +49,8 @@ public class NTSParser extends BasicParser {
             parsePage(lines.takeWhile(isNotEndOfPage).filter(isValidLine).collect(Collectors.toList()));
             lines = lines.dropWhile(isNotEndOfPage).skip(1);
         }
-        scanner.close();
-        closeWriters();
+        endProcessing();
+        return addresses;
     }
 
     protected void parseStartOfPage(String startingLine) {
@@ -71,7 +70,7 @@ public class NTSParser extends BasicParser {
                 overloadStreetSuf = nextLine.get();
                 i++;
             }
-            parseLine(String.join(",", cleanLine(currLine)), 3);
+            parseLine(cleanLine(currLine), 3);
         }
     }
 
@@ -86,6 +85,9 @@ public class NTSParser extends BasicParser {
         return funcList;
     }
 
+    /**
+     * Makes some data corrections to lines.
+     */
     protected List<String> cleanLine(String line) {
         var streetFinderAddress = new StreetFileAddress();
         String[] splitLine = line.split("\\s+");
@@ -105,7 +107,7 @@ public class NTSParser extends BasicParser {
         }
         String[] beforeZip = Arrays.copyOfRange(splitLine, 0, zipIndex);
         if (line.charAt(0) == ' ' && !line.contains("E. MAIN ST")) {
-            beforeZip = new String[]{streetFileAddressStorage.getStreet(), streetFileAddressStorage.getStreetSuffix()};
+            beforeZip = new String[]{streetFileAddressStorage.get(STREET), streetFileAddressStorage.getStreetSuffix()};
         }
         else if (line.charAt(0) == '*' && !line.contains("E. MAIN ST")) {
             beforeZip = new String[]{};
@@ -118,6 +120,10 @@ public class NTSParser extends BasicParser {
         return cleanedData;
     }
 
+    /**
+     * Helper method to clean data before the zipcode.
+     * @return cleaned data section.
+     */
     private List<String> cleanBeforeZip(String[] beforeZip) {
         // Simply return empty data.
         if (beforeZip.length == 0) {
@@ -145,7 +151,6 @@ public class NTSParser extends BasicParser {
         String[] streetNameAr = Arrays.copyOfRange(beforeZip,  0, currIndex + 1);
         cleanedList.push(String.join(" ", List.of(streetNameAr)).trim());
         // cleanedList now is [streetName, suffix, postDir]
-        // TODO: should be used in SaratogaParser too
         if (!overloadStreetSuf.isEmpty()) {
             cleanedList.set(1, cleanedList.get(1) + cleanedList.get(2));
             cleanedList.set(2, overloadStreetSuf);
@@ -153,6 +158,10 @@ public class NTSParser extends BasicParser {
         return cleanedList;
     }
 
+    /**
+     * Helper method to clean data after the zipcode.
+     * @return cleaned data section.
+     */
     protected static List<String> cleanAfterZip(String[] splitLine) {
         LinkedList<String> cleanedList = new LinkedList<>(List.of(splitLine));
         // low could possibly be something like "1-" or just "1" and the "-" is its own index
@@ -184,7 +193,7 @@ public class NTSParser extends BasicParser {
         return cleanedList.subList(0, 4);
     }
 
-    protected static String substringHelper(String str, int start, int end) {
+    public static String substringHelper(String str, int start, int end) {
         return str.substring(Math.min(start, str.length()), Math.min(end, str.length()));
     }
 }

@@ -10,7 +10,7 @@ import java.util.function.BiConsumer;
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
 /**
- * Parses Schohaire County.txt file
+ * Parses Schoharie County.txt file. Note that this file has no zipcodes.
  */
 public class SchoharieParser extends BaseParser<SchoharieStreetFileAddress> {
     public SchoharieParser(File file) {
@@ -38,7 +38,6 @@ public class SchoharieParser extends BaseParser<SchoharieStreetFileAddress> {
         return functions;
     }
 
-    // TODO ADD Zip code parsing once we get a streetfile with zipcodes included
     @Override
     protected void parseLine(String line) {
         if (line.contains("House Range") && line.contains("This conflicts")
@@ -57,9 +56,9 @@ public class SchoharieParser extends BaseParser<SchoharieStreetFileAddress> {
     }
 
     @Override
-    protected void writeToFile(SchoharieStreetFileAddress streetFinderAddress) {
-        if (streetFinderAddress.hasSenateDistrict()) {
-            super.writeToFile(streetFinderAddress);
+    protected void finalize(SchoharieStreetFileAddress sfa) {
+        if (sfa.hasSenateDistrict()) {
+            super.finalize(sfa);
         }
     }
 }

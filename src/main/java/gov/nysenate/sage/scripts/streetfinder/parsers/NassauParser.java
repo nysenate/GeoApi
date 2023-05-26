@@ -25,10 +25,10 @@ public class NassauParser extends BasicParser {
     protected void parseLine(String line) {
         String[] commaSplit = line.split(",", 4);
         LinkedList<String> streetList = new LinkedList<>(List.of(commaSplit[2].split("\\s+")));
-        if (!checkForDirection(streetList.getFirst())) {
+        if (isNotDirection(streetList.getFirst())) {
             streetList.push("");
         }
-        if (!checkForDirection(streetList.getLast())) {
+        if (isNotDirection(streetList.getLast())) {
             streetList.add("");
         }
         if (streetList.size() != 3) {
@@ -37,7 +37,7 @@ public class NassauParser extends BasicParser {
         else {
             streetList.add(1, commaSplit[1]);
             String finalStreet = String.join(",", streetList);
-            super.parseLine(String.join(",", List.of(commaSplit[0], finalStreet, commaSplit[3])));
+            super.parseLine(List.of(commaSplit[0], finalStreet, commaSplit[3]));
         }
     }
 

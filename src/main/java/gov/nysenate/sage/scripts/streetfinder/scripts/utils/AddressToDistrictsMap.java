@@ -2,14 +2,12 @@ package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
 import com.google.common.collect.ArrayListMultimap;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileField.STATUS;
-import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileField.streetFileFields;
-import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileLineType.*;
+import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileLineType.NON_STANDARD_ADDRESS;
+import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileLineType.VALID;
 
 /**
  * Stores lines from a voter file as a map from address data -> district data.
@@ -21,7 +19,7 @@ public class AddressToDistrictsMap {
     private final Map<String, Integer> statusCountMap = new HashMap<>();
     // Using Strings is more compact.
     private final Map<String, String> dataMap;
-    private final ArrayListMultimap<String, String> multipleDistrictMatch = ArrayListMultimap.create();
+    public final ArrayListMultimap<String, String> multipleDistrictMatch = ArrayListMultimap.create();
 
     public AddressToDistrictsMap(int initialSize) {
         this.dataMap = new HashMap<>(initialSize);
@@ -30,28 +28,19 @@ public class AddressToDistrictsMap {
     /**
      * Stores a line of data into the maps.
      */
-    public void putData(String line) {
-        var fieldMap = new VoterFileLineMap(line);
+    public void putData(VoterFileLineMap fieldMap) {
         statusCountMap.merge(fieldMap.get(STATUS), 1, Integer::sum);
-        // Inactive and purged voters do not have updated address information.
-        if (fieldMap.getType() != WRONG_FIELD_LENGTH && fieldMap.get(STATUS).matches("[IP]")) {
-            return;
-        }
         if (fieldMap.getType() != VALID) {
             invalidLines.put(fieldMap.getType(), fieldMap);
             return;
         }
-        // Data is good to be inserted.
-        var addressList = new ArrayList<String>();
-        var districtList = new ArrayList<String>();
-        for (VoterFileField field : streetFileFields) {
-            switch (field.getType()) {
-                case ADDRESS -> addressList.add(fieldMap.get(field));
-                case DISTRICT -> districtList.add(fieldMap.get(field));
-            }
+        // Inactive and purged voters do not have updated address information.
+        if (fieldMap.get(STATUS).matches("[IP]")) {
+            return;
         }
-        var address = String.join("\t", addressList);
-        var currDistricts = String.join("\t", districtList);
+        // Data is good to be inserted.
+        var address = fieldMap.getAddress();
+        var currDistricts = fieldMap.getDistricts();
 
         // If there's already been a conflict at this address, it shouldn't be added to the normal data.
         if (multipleDistrictMatch.containsKey(address)) {
@@ -78,6 +67,27 @@ public class AddressToDistrictsMap {
         return dataMap.entrySet();
     }
 
+    public void printBadLines() {
+        for (var type : invalidLines.keySet()) {
+            if (type == NON_STANDARD_ADDRESS) {
+                continue;
+            }
+            System.out.println(type + ":");
+            var lines = invalidLines.get(type);
+            List<VoterFileField> displayFields = new ArrayList<>(VoterFileField.defaultDisplayFields);
+            for (var field : VoterFileField.defaultDisplayFields) {
+                if (lines.stream().allMatch(line -> line.get(field).isEmpty())) {
+                    displayFields.remove(field);
+                }
+            }
+            System.out.println("\"" + displayFields.stream().map(Enum::name).collect(Collectors.joining("\",\"")) + "\"");
+            for (var line : lines) {
+                System.out.println("\t\"" + displayFields.stream().map(line::get).collect(Collectors.joining("\",\"")) + "\"");
+            }
+            System.out.println();
+        }
+    }
+
     public void printSummary() {
         System.out.println("\nStatus data: ");
         for (var entry : statusCountMap.entrySet()) {
@@ -86,6 +96,6 @@ public class AddressToDistrictsMap {
         System.out.println();
         System.out.println(dataMap.size() + " standard entries");
         System.out.println(invalidLines.get(NON_STANDARD_ADDRESS).size() + " alternate addresses");
-        System.out.println(duplicates + " duplicate addresses");
+        System.out.println(duplicates + " duplicate addresses\n");
     }
 }
