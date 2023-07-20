@@ -2,7 +2,6 @@ package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileFieldType.*;
 
@@ -24,14 +23,12 @@ public enum VoterFileField {
     COUNTYVRNUMBER, REGDATE, VRSOURCE, IDREQUIRED, IDMET,
     STATUS, REASONCODE, INACT_DATE, PURGE_DATE, SBOEID, VoterHistory;
 
-    // These fields will be put into a created streetfile.
-    public static final List<VoterFileField> streetFileFields = Arrays.stream(values())
-            .filter(field -> field.isStreetfileData).collect(Collectors.toList());
-    public static final List<VoterFileField> defaultDisplayFields = Arrays.stream(values())
-            .filter(field -> field == SBOEID || field.type == ADDRESS)
-            .collect(Collectors.toList());
+    public static final List<VoterFileField> standardAddressFields = List.of(RADDNUMBER, RHALFCODE,
+            RPREDIRECTION, RSTREETNAME, RPOSTDIRECTION, RAPARTMENTTYPE, RAPARTMENT);
+    public static final int numAddressFields = (int) Arrays.stream(values()).filter(field -> field.type == ADDRESS).count();
 
     private final VoterFileFieldType type;
+    // These fields will be put into a created streetfile.
     private final boolean isStreetfileData;
 
     VoterFileField() {
@@ -50,5 +47,9 @@ public enum VoterFileField {
 
     public VoterFileFieldType getType() {
         return type;
+    }
+
+    public boolean isStreetfileData() {
+        return isStreetfileData;
     }
 }

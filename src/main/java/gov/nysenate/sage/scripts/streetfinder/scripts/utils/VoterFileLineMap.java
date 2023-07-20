@@ -1,7 +1,8 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
-import java.util.ArrayList;
-import java.util.TreeMap;
+import java.util.EnumMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileField.*;
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileLineType.*;
@@ -9,19 +10,20 @@ import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileLine
 /**
  * Handles a single line of voter file data.
  */
-public class VoterFileLineMap extends TreeMap<VoterFileField, String> {
+public class VoterFileLineMap extends EnumMap<VoterFileField, String> {
+    private static final Pattern BOEIDpattern = Pattern.compile("NY(\\d{18})");
     private final VoterFileLineType type;
+    private long id = -1;
 
     public VoterFileLineMap(String line) {
-        line = line.replaceAll(" {2,}", " ");
+        super(VoterFileField.class);
+        line = line.replaceAll(" {2,}", " ").replaceAll("^\"|\"$", "");
         // We'll be making a TSV, so the initial file can't have tabs.
         if (line.indexOf('\t') != -1) {
             this.type = HAS_TABS;
             return;
         }
         String[] parts = line.split("\\s*\",\"\\s*", -1);
-        parts[0] = parts[0].replaceFirst("\"", "");
-        parts[parts.length - 1] = parts[0].replaceFirst("\"", "");
         if (parts.length != VoterFileField.values().length) {
             this.type = WRONG_FIELD_LENGTH;
             return;
@@ -29,20 +31,22 @@ public class VoterFileLineMap extends TreeMap<VoterFileField, String> {
         for (VoterFileField field : VoterFileField.values()) {
             put(field, parts[field.ordinal()]);
         }
+        Matcher matcher = BOEIDpattern.matcher(get(SBOEID));
+        if (!matcher.matches()) {
+            this.type = BAD_ID;
+            return;
+        }
+        this.id = Long.parseLong(matcher.group(1));
         if (get(RZIP5).isEmpty()) {
             this.type = MISSING_ZIP_5;
             return;
         }
-        var streetParts = subMap(RADDNUMBER, RAPARTMENT);
-        boolean hasStandardAddress = !streetParts.values().stream().allMatch(String::isEmpty);
-        if (!get(RADDRNONSTD).isEmpty()) {
-            this.type = hasStandardAddress ? TWO_ADDRESS_FORMATS : NON_STANDARD_ADDRESS;
-        }
-        else if (!hasStandardAddress) {
-            this.type = NO_ADDRESS;
+        boolean emptyStandardAddress = standardAddressFields.stream().map(this::get).allMatch(String::isEmpty);
+        if (emptyStandardAddress) {
+            this.type = get(RADDRNONSTD).isEmpty() ? NO_ADDRESS : NON_STANDARD_ADDRESS;
         }
         else {
-            this.type = VALID;
+            this.type = get(RADDRNONSTD).isEmpty() ? VALID : TWO_ADDRESS_FORMATS;
         }
     }
 
@@ -51,27 +55,11 @@ public class VoterFileLineMap extends TreeMap<VoterFileField, String> {
         return String.join("\t", values()).toUpperCase();
     }
 
-    public String getAddress() {
-        var addressList = new ArrayList<String>();
-        for (VoterFileField field : streetFileFields) {
-            if (field.getType() == VoterFileFieldType.ADDRESS) {
-                addressList.add(get(field));
-            }
-        }
-        return String.join("\t", addressList);
-    }
-
-    public String getDistricts() {
-        var districtList = new ArrayList<String>();
-        for (VoterFileField field : streetFileFields) {
-            if (field.getType() == VoterFileFieldType.DISTRICT) {
-                districtList.add(get(field));
-            }
-        }
-        return String.join("\t", districtList);
-    }
-
     public VoterFileLineType getType() {
         return type;
+    }
+
+    public long getId() {
+        return id;
     }
 }
