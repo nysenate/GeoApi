@@ -124,6 +124,7 @@
         <commons-text.version>1.9</commons-text.version>
         <eh-cache.version>2.10.9.2</eh-cache.version>
         <fluent-hc.version>4.5.13</fluent-hc.version>
+        <fast-util.version>8.5.12</fast-util.version>
         <guava.version>31.1-jre</guava.version>
         <hamcrest-core.version>2.2</hamcrest-core.version>
         <httpclient.version>4.5.13</httpclient.version>
@@ -308,6 +309,11 @@
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>
             <version>${commons-configuration}</version>
+        </dependency>
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>${fast-util.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

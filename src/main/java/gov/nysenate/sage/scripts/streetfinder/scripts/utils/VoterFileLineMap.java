@@ -13,17 +13,17 @@ import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileLine
 public class VoterFileLineMap extends EnumMap<VoterFileField, String> {
     private static final Pattern BOEIDpattern = Pattern.compile("NY(\\d{18})");
     private final VoterFileLineType type;
-    private long id = -1;
+    private long id;
 
     public VoterFileLineMap(String line) {
         super(VoterFileField.class);
-        line = line.replaceAll(" {2,}", " ").replaceAll("^\"|\"$", "");
+        line = line.replaceAll(" {2,}", " ");
         // We'll be making a TSV, so the initial file can't have tabs.
         if (line.indexOf('\t') != -1) {
             this.type = HAS_TABS;
             return;
         }
-        String[] parts = line.split("\\s*\",\"\\s*", -1);
+        String[] parts = line.split("\\s*\",\"\\s*", 0);
         if (parts.length != VoterFileField.values().length) {
             this.type = WRONG_FIELD_LENGTH;
             return;
@@ -52,7 +52,7 @@ public class VoterFileLineMap extends EnumMap<VoterFileField, String> {
 
     @Override
     public String toString() {
-        return String.join("\t", values()).toUpperCase();
+        return String.join(",", values()).toUpperCase();
     }
 
     public VoterFileLineType getType() {

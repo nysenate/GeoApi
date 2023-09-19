@@ -1,6 +1,5 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileFieldType.*;
@@ -14,7 +13,7 @@ public enum VoterFileField {
     RPREDIRECTION(ADDRESS, true), RSTREETNAME(ADDRESS, true), RPOSTDIRECTION(ADDRESS, true),
     RAPARTMENTTYPE(ADDRESS), RAPARTMENT(ADDRESS),
     RADDRNONSTD(ADDRESS),
-    // TODO: analyze city
+    // TODO: analyze RCITY
     RCITY(ADDRESS), RZIP5(ADDRESS, true), RZIP4(ADDRESS),
     MAILADD1, MAILADD2, MAILADD3, MAILADD4, DOB, GENDER, ENROLLMENT, OTHERPARTY,
     COUNTYCODE(DISTRICT), ED(DISTRICT), LD(DISTRICT), TOWNCITY(DISTRICT, false), WARD(DISTRICT),
@@ -25,7 +24,6 @@ public enum VoterFileField {
 
     public static final List<VoterFileField> standardAddressFields = List.of(RADDNUMBER, RHALFCODE,
             RPREDIRECTION, RSTREETNAME, RPOSTDIRECTION, RAPARTMENTTYPE, RAPARTMENT);
-    public static final int numAddressFields = (int) Arrays.stream(values()).filter(field -> field.type == ADDRESS).count();
 
     private final VoterFileFieldType type;
     // These fields will be put into a created streetfile.

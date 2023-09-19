@@ -2,36 +2,32 @@ package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import gov.nysenate.sage.util.Tuple;
+import it.unimi.dsi.fastutil.longs.LongList;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileField.COUNTYCODE;
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileField.STATUS;
-import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileLineType.NON_STANDARD_ADDRESS;
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileLineType.VALID;
 
 /**
  * Stores lines from a voter file as a map from address data -> district data.
  * Also stores information about addresses matched to different districts, and some summary information.
  */
-public class AddressToDistrictsMap {
+public class VoterFileData {
     // One address should have one set of districts, but may have many people.
-    private final Map<VoterAddress, Tuple<VoterDistrictMap, List<Long>>> dataMap;
-    // Contains all problematic data where the same address maps to multiple district sets.
-    // Could theoretically contain all voter data, but this would waste a lot of memory.
-    private final MultiTable<VoterAddress, VoterDistrictMap, Long> districtConflictMap = new MultiTable<>();
+    // Sometimes, there are conflicts of multiple districts for the same address.
+    private final LongMultiTable<VoterAddress, VoterDistrictMap> districtConflictMap;
     private final Multimap<VoterFileLineType, VoterFileLineMap> invalidLines = ArrayListMultimap.create();
+    // Counts every unique value of certain fields, to print at the end.
     private final Map<VoterFileField, Map<String, Integer>> summaryMaps = new HashMap<>();
-    private int duplicates = 0;
 
-    public AddressToDistrictsMap(int initialSize, VoterFileField... statusFields) {
-        this.dataMap = new HashMap<>(initialSize);
+    public VoterFileData(int initialSize, VoterFileField... statusFields) {
+        this.districtConflictMap = new LongMultiTable<>(initialSize, 1);
         for (VoterFileField field : statusFields) {
             summaryMaps.put(field, new HashMap<>());
         }
@@ -41,9 +37,6 @@ public class AddressToDistrictsMap {
      * Stores a line of data into the maps.
      */
     public void putData(VoterFileLineMap fieldMap) {
-        for (VoterFileField field : summaryMaps.keySet()) {
-            summaryMaps.get(field).merge(fieldMap.get(field), 1, Integer::sum);
-        }
         if (fieldMap.getType() != VALID) {
             invalidLines.put(fieldMap.getType(), fieldMap);
             return;
@@ -52,58 +45,41 @@ public class AddressToDistrictsMap {
         if (fieldMap.get(STATUS).matches("[IP]")) {
             return;
         }
-
-        // Data is good to be inserted.
-        var addr = new VoterAddress(fieldMap);
-        var districts = VoterDistrictMap.getDistrictMap(fieldMap);
-        var mappedTuple = dataMap.get(addr);
-        if (districtConflictMap.containsRow(addr)) {
-            districtConflictMap.put(addr, districts, fieldMap.getId());
+        for (VoterFileField field : summaryMaps.keySet()) {
+            summaryMaps.get(field).merge(fieldMap.get(field), 1, Integer::sum);
         }
-        else if (mappedTuple == null) {
-            dataMap.put(addr, new Tuple<>(districts, new ArrayList<>(List.of(fieldMap.getId()))));
-        }
-        else {
-            // No conflict, add the ID.
-            if (mappedTuple.first().equals(districts)) {
-                mappedTuple.second().add(fieldMap.getId());
-                duplicates++;
-            }
-            else {
-                var currTuple = dataMap.remove(addr);
-                districtConflictMap.put(addr, currTuple.first(), currTuple.second());
-                districtConflictMap.put(addr, districts, fieldMap.getId());
-            }
-        }
+        districtConflictMap.put(new VoterAddress(fieldMap), VoterDistrictMap.getDistrictMap(fieldMap), fieldMap.getId());
     }
 
     public void writeData(String dir) throws IOException {
         BufferedWriter streetfileWriter = getWriter(dir, "AddressVoterFile.txt");
-        for (VoterAddress addr : dataMap.keySet()) {
-            streetfileWriter.write(addr.toString());
-            streetfileWriter.write('\t');
-            streetfileWriter.write(dataMap.get(addr).toString());
-            streetfileWriter.newLine();
-        }
-        streetfileWriter.flush();
-        streetfileWriter.close();
-
         BufferedWriter multipleDistrictsWriter = getWriter(dir, "MultipleDistrictsList.txt");
+
         for (VoterAddress addr : districtConflictMap.rows()) {
-            multipleDistrictsWriter.write(addr.toString().replaceAll("\t", " ")
-                    .replaceAll(" {2,}", " "));
-            multipleDistrictsWriter.newLine();
-            for (String line : consolidateDistricts(districtConflictMap.getRow(addr))) {
-                multipleDistrictsWriter.write(line);
+            var currRow = districtConflictMap.getRow(addr);
+            if (currRow.size() == 1) {
+                streetfileWriter.write(addr.stringValues());
+                streetfileWriter.write('\t');
+                streetfileWriter.write(currRow.keySet().iterator().next().stringValues());
+                streetfileWriter.newLine();
+            }
+            // If one address maps to multiple districts, the data has problems, and should be separated.
+            else {
+                multipleDistrictsWriter.write(addr.stringValues().replaceAll("\t", " ")
+                        .replaceAll(" {2,}", " "));
+                multipleDistrictsWriter.newLine();
+                for (String line : consolidateDistricts(currRow)) {
+                    multipleDistrictsWriter.write(line);
+                    multipleDistrictsWriter.newLine();
+                }
                 multipleDistrictsWriter.newLine();
             }
-            multipleDistrictsWriter.newLine();
         }
+
+        streetfileWriter.flush();
+        streetfileWriter.close();
         multipleDistrictsWriter.flush();
         multipleDistrictsWriter.close();
-
-        // TODO: finish
-        Writer nonStandardAddressWriter = getWriter(dir, "AltAddresses.txt");
         writeBadData(dir);
     }
 
@@ -114,7 +90,7 @@ public class AddressToDistrictsMap {
      * @param input the mismatch data at a single address.
      * @return readable TSV data on mismatches.
      */
-    private static List<String> consolidateDistricts(Map<VoterDistrictMap, List<Long>> input) {
+    private static List<String> consolidateDistricts(Map<VoterDistrictMap, LongList> input) {
         SortedSet<VoterFileField> hasMismatch = new TreeSet<>();
         for (VoterFileField field : VoterDistrictMap.districtFields) {
             if (input.keySet().stream().map(map -> map.get(field)).distinct().count() != 1) {
@@ -131,9 +107,9 @@ public class AddressToDistrictsMap {
             // Each item will end up as an Excel cell.
             List<String> currCells = new ArrayList<>();
             for (VoterFileField field : hasMismatch) {
-                currCells.add(districtAndIds.getKey().get(field));
+                currCells.add(districtAndIds.getKey().getString(field));
             }
-            String ids = districtAndIds.getValue().stream().map(AddressToDistrictsMap::getId)
+            String ids = districtAndIds.getValue().longStream().mapToObj(VoterFileData::getId)
                     .collect(Collectors.joining(","));
             currCells.add(ids);
             lines.add(String.join("\t", currCells));
@@ -169,13 +145,13 @@ public class AddressToDistrictsMap {
         System.out.println("\nStatus data: ");
         for (var fieldStatusEntry : summaryMaps.entrySet()) {
             System.out.println(fieldStatusEntry.getKey());
-            for (var dataEntry : fieldStatusEntry.getValue().entrySet()) {
+            var sortedEntries = fieldStatusEntry.getValue().entrySet()
+                    .stream().sorted((o1, o2) -> Integer.compare(o2.getValue(), o1.getValue()))
+                    .collect(Collectors.toList());
+            for (var dataEntry : sortedEntries) {
                 System.out.println("\t" + dataEntry.getKey() + " -> " + dataEntry.getValue());
             }
         }
         System.out.println();
-        System.out.println(dataMap.size() + " standard entries");
-        System.out.println(invalidLines.get(NON_STANDARD_ADDRESS).size() + " alternate addresses");
-        System.out.println(duplicates + " duplicate entries.");
     }
 }

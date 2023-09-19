@@ -49,8 +49,7 @@ public class VoterAddress {
         return Arrays.hashCode(internalArray);
     }
 
-    @Override
-    public String toString() {
+    public String stringValues() {
         return String.join("\t", internalArray);
     }
 }
