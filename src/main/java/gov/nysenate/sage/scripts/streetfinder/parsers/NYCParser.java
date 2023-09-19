@@ -1,15 +1,14 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +34,7 @@ public class NYCParser extends BasicParser {
     /**
      * In these files, the street names are followed by a list of data points for that street.
      */
+    @Override
     public List<StreetFileAddress> parseFile() throws IOException {
         var scanner = new Scanner(file);
         String currStreet = "";
@@ -57,7 +57,7 @@ public class NYCParser extends BasicParser {
                 if (dataMatcher.group("zip") == null) {
                     continue;
                 }
-                parseLine(dataList);
+                parseData(dataList);
             }
             else if (line.matches(streetNameRegex)) {
                 currStreet = line;
@@ -72,15 +72,11 @@ public class NYCParser extends BasicParser {
     }
 
     @Override
-    protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
-        List<BiConsumer<StreetFileAddress, String>> functions = new ArrayList<>();
-        functions.addAll(functions(TOWN, STREET));
-        functions.addAll(buildingFunctions);
-        functions.addAll(functions(ELECTION_CODE, ASSEMBLY, ZIP, CONGRESSIONAL, SENATE));
-        // The data in this spot is the municipal court.
-        functions.add(skip);
-        functions.add(function(CITY_COUNCIL));
-        return functions;
+    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
+        return new StreetFileFunctionList<>().addFunctions(false, TOWN, STREET)
+                .addFunctions(buildingFunctions)
+                .addFunctions(false, ELECTION_CODE, ASSEMBLY, ZIP, CONGRESSIONAL, SENATE)
+                .skip(1).addFunctions(false, CITY_COUNCIL);
     }
 
     private String getTown() {

@@ -1,9 +1,9 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 import gov.nysenate.sage.scripts.streetfinder.model.SuffolkStreetFileAddress;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -29,19 +29,14 @@ public class SuffolkParser extends BaseParser<SuffolkStreetFileAddress> {
     }
 
     @Override
-    protected List<BiConsumer<SuffolkStreetFileAddress, String>> getFunctions() {
-        List<BiConsumer<SuffolkStreetFileAddress, String>> functions = new ArrayList<>();
-        functions.add(function(ZIP));
-        // skipping zip +4
-        functions.add(skip);
-        // TODO: careful that the suffix isn't part of the name
-        functions.addAll(streetParts(4));
-        functions.addAll(buildingFunctions);
-        // secondary name
-        functions.add(skip);
-        functions.addAll(secondaryBuildingFunctions);
-        functions.addAll(functions(TOWN, ELECTION_CODE, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, COUNTY_ID, FIRE, VILLAGE));
-        return functions;
+    protected StreetFileFunctionList<SuffolkStreetFileAddress> getFunctions() {
+        return new StreetFileFunctionList<SuffolkStreetFileAddress>()
+                .addFunctions(false, ZIP).skip(1)
+                // TODO: careful that the suffix isn't part of the name
+                .addStreetParts(4).addFunctions(buildingFunctions)
+                .skip(1).addFunctions(secondaryBuildingFunctions)
+                .addFunctions(false, TOWN, ELECTION_CODE, CONGRESSIONAL,
+                        SENATE, ASSEMBLY, CLEG, COUNTY_ID, FIRE, VILLAGE);
     }
 
     @Override
@@ -55,6 +50,10 @@ public class SuffolkParser extends BaseParser<SuffolkStreetFileAddress> {
         }
         splitLine[3] = splitLine[4];
         splitLine[4] = temp3;
-        super.parseLine(List.of(splitLine), 19);
+        if (19 > splitLine.length) {
+            putBadLine("", line);
+            return;
+        }
+        parseData(splitLine);
     }
 }

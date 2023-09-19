@@ -1,42 +1,44 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileField;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.ELECTION_CODE;
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.WARD;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
 /**
  * Base class for all parsers, with some common code for parsing data.
+ * Converts a text file (usually CSV) to a SQL TSV ready to import.
  * @param <T> Usually just the normal StreetFinderAddress, but some extra functionality may be needed.
  */
 public abstract class BaseParser<T extends StreetFileAddress> {
-    protected final List<T> addresses = new ArrayList<>();
-    private final SortedMap<String, List<String>> badlyFormattedLines = new TreeMap<>();
-
-    // We don't use some parts of the data.
-    protected final BiConsumer<T, String> skip = (streetFinderAddress, s) -> {};
+    private static final String[] dummyArray = {};
+    // The two variables below can't be static, due to use of generics.
     // Building data has a common form.
     protected final List<BiConsumer<T, String>> buildingFunctions =
             List.of((sfa, s) -> sfa.setBuilding(true, s),
                     (sfa, s) -> sfa.setBuilding(false, s),
                     StreetFileAddress::setBldgParity);
-    protected final BiConsumer<T, String> handlePrecinct = BaseParser::handlePrecinct;
+
     protected final File file;
-    private final List<BiConsumer<T, String>> functions = getFunctions();
+    protected final List<T> addresses = new ArrayList<>();
+    private final SortedMap<String, List<String>> badlyFormattedLines = new TreeMap<>();
+    private final StreetFileFunctionList<T> functions = getFunctions();
 
     public BaseParser(File file) {
         this.file = file;
     }
 
     public List<T> parseFile() throws IOException {
-        Files.lines(file.toPath()).forEach(this::parseLine);
+        try (Stream<String> lines = Files.lines(file.toPath())) {
+            lines.forEach(this::parseLine);
+        }
         endProcessing();
         return addresses;
     }
@@ -51,41 +53,29 @@ public abstract class BaseParser<T extends StreetFileAddress> {
      * Each function takes in a String, and properly assigns it to the new street address.
      * @return a class-specific list of functions.
      */
-    protected abstract List<BiConsumer<T, String>> getFunctions();
-
-    protected void parseLine(List<String> dataList) {
-        parseLine(String.join(",", dataList));
-    }
+    protected abstract StreetFileFunctionList<T> getFunctions();
 
     protected void parseLine(String line) {
-        parseLine(line, 0);
-    }
-
-    protected void parseLine(List<String> dataList, int minLength) {
-        parseLine(String.join(",", dataList), minLength);
-    }
-
-    protected void parseLine(String line, int minLength) {
-        parseLine(line, minLength, ",");
+        parseLine(line, ",");
     }
 
     /**
      * Parses out data from a single streetfile line, and prints it to the file.
      * @param line raw data.
-     * @param minLength some lines need checks to make sure they have the necessary data.
-     * @param delim to split the line on (could be tab, whitespace, or comma seperated).
+     * @param delim to split the line on (tab, whitespace, or comma seperated).
      */
-    protected void parseLine(String line, int minLength, String delim) {
+    protected void parseLine(String line, String delim) {
+        parseData(line.split(delim));
+    }
+
+    protected void parseData(String... lineParts) {
         T addr = getNewAddress();
-        String[] split = line.split(delim);
-        if (minLength > split.length) {
-            putBadLine("", line);
-            return;
-        }
-        for (int i = 0; i < Math.min(functions.size(), split.length); i++) {
-            functions.get(i).accept(addr, split[i]);
-        }
+        functions.addDataToAddress(addr, lineParts);
         finalize(addr);
+    }
+
+    protected void parseData(List<String> lineParts) {
+        parseData(lineParts.toArray(dummyArray));
     }
 
     protected void finalize(T sfa) {
@@ -113,57 +103,27 @@ public abstract class BaseParser<T extends StreetFileAddress> {
         }
     }
 
-    protected BiConsumer<T, String> function(StreetFileField field) {
-        return functions(field).get(0);
-    }
-
-    protected List<BiConsumer<T, String>> functions(StreetFileField... fields) {
-        return functions(false, fields);
-    }
-
-    /**
-     * Useful helper method to generate functions from a list of fields.
-     * @param dashSplit if these values need to be split.
-     * @param fields to be put into the address. Order matters here.
-     * @return the functions to use while parsing.
-     */
-    protected List<BiConsumer<T, String>> functions(boolean dashSplit, StreetFileField... fields) {
-        var functions = new ArrayList<BiConsumer<T, String>>(fields.length);
-        for (var field : fields) {
-            functions.add((streetFinderAddress, s) -> streetFinderAddress.put(field, dashSplit ? split(s) : s));
-        }
-        return functions;
-    }
-
-    protected List<BiConsumer<T, String>> skip(int num) {
-        return Collections.nCopies(num, skip);
-    }
-
-    protected List<BiConsumer<T, String>> streetParts(int num) {
-        return Collections.nCopies(num, StreetFileAddress::addToStreet);
-    }
-
     protected void putBadLine(String street, String line) {
-        List<String> currList = badlyFormattedLines.getOrDefault(street, new ArrayList<>());
-        currList.add(line);
-        // TODO: needed?
-        badlyFormattedLines.put(street, currList);
+        if (!badlyFormattedLines.containsKey(street)) {
+            badlyFormattedLines.put(street, new ArrayList<>());
+        }
+        badlyFormattedLines.get(street).add(line);
     }
 
     /**
-     * Some data values are preceded by a label (e.g. SE-2) that needs to be skipped.
-     * @param input the raw value.
-     * @return properly formatted value.
+     * Sets the street name and street suffix from a single String.
+     * Also checks for pre-direction.
      */
-    private static String split(String input) {
-        var split = input.split("-");
-        return split.length > 1 ? split[1] : input;
+    protected static void setStreetAndSuffix(StreetFileAddress streetFileAddress, String streetNameAndSuffix) {
+        LinkedList<String> splitList = new LinkedList<>(List.of(streetNameAndSuffix.split("\\s+")));
+        streetFileAddress.setStreetSuffix(splitList.removeLast());
+        streetFileAddress.put(STREET, String.join(" ", splitList));
     }
 
     /**
      * In some files, multiple fields are in the same number.
      */
-    private static void handlePrecinct(StreetFileAddress streetFileAddress, String precinct) {
+    protected static void handlePrecinct(StreetFileAddress streetFileAddress, String precinct) {
         if (precinct.length() == 5) {
             precinct = "0" + precinct;
         }

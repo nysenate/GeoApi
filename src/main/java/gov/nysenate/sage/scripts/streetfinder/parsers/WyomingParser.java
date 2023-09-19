@@ -1,11 +1,9 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.BiConsumer;
 
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
@@ -18,15 +16,12 @@ public class WyomingParser extends BasicParser {
     }
 
     @Override
-    protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
+    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
         // TODO: The 0 and 1 indices might be the town and district, respectively
-        List<BiConsumer<StreetFileAddress, String>> functions = new ArrayList<>(skip(2));
-        functions.addAll(streetParts(4));
-        functions.addAll(buildingFunctions);
-        functions.addAll(functions(TOWN, ZIP));
-        functions.add(handlePrecinct);
-        functions.addAll(functions(true, CONGRESSIONAL, SENATE, ASSEMBLY));
-        return functions;
+        return new StreetFileFunctionList<>().skip(2).addStreetParts(4)
+                .addFunctions(buildingFunctions).addFunctions(false, TOWN, ZIP)
+                .addFunction(BaseParser::handlePrecinct)
+                .addFunctions(true, CONGRESSIONAL, SENATE, ASSEMBLY);
     }
 
     protected void parseLine(String line) {

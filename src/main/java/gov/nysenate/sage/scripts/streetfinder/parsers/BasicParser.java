@@ -5,7 +5,7 @@ import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
 import java.io.File;
 
 /**
- * Most classes just use StreetFinderAddress, so this is for simplification.
+ * This is for simplification, as most classes just use StreetFinderAddress.
  */
 public abstract class BasicParser extends BaseParser<StreetFileAddress> {
     public BasicParser(File file) {

@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,7 +9,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.function.BiConsumer;
 
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 import static gov.nysenate.sage.scripts.streetfinder.parsers.NTSParser.substringHelper;
@@ -70,7 +70,7 @@ public class MontgomeryParser extends BasicParser {
     }
 
     @Override
-    protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
+    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
         return null;
     }
 

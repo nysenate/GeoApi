@@ -1,11 +1,11 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,15 +25,13 @@ public class SaratogaParser extends NTSParser {
     }
 
     @Override
-    protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
-        List<BiConsumer<StreetFileAddress, String>> funcList = new ArrayList<>();
-        funcList.add(function(STREET));
-        funcList.add(StreetFileAddress::setStreetSuffix);
-        funcList.addAll(functions(ZIP, TOWN));
-        funcList.addAll(buildingFunctions);
-        funcList.addAll(functions(BOE_TOWN_CODE, WARD, ELECTION_CODE, CONGRESSIONAL, SENATE,
-                ASSEMBLY, SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY));
-        return funcList;
+    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
+        return new StreetFileFunctionList<>().addFunctions(false, STREET)
+                .addFunction(StreetFileAddress::setStreetSuffix)
+                .addFunctions(false, ZIP, TOWN)
+                .addFunctions(buildingFunctions)
+                .addFunctions(false, BOE_TOWN_CODE, WARD, ELECTION_CODE, CONGRESSIONAL, SENATE,
+                        ASSEMBLY, SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY);
     }
 
     @Override
@@ -55,9 +53,9 @@ public class SaratogaParser extends NTSParser {
         if (!dataMatcher.matches()) {
             System.err.println("Error parsing line: " + line);
         }
-        cleanedData.add(dataMatcher.group("street"));
-        cleanedData.add(dataMatcher.group("suffix"));
-        cleanedData.add(dataMatcher.group("zip"));
+        for (String groupStr : new String[]{"street", "suffix", "zip"}) {
+            cleanedData.add(dataMatcher.group(groupStr));
+        }
         cleanedData.add(town);
         cleanedData.addAll(cleanAfterZip(dataMatcher.group("afterZip").split(" ")));
         return cleanedData;

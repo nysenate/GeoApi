@@ -1,12 +1,10 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.BiConsumer;
 
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
@@ -17,16 +15,15 @@ public class VoterFileParser extends BasicParser {
 
     @Override
     protected void parseLine(String line) {
-        super.parseLine(line, 0, "\t");
+        super.parseLine(line, "\t");
     }
 
     @Override
-    protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
-        List<BiConsumer<StreetFileAddress, String>> functions = new ArrayList<>();
-        functions.add(VoterFileParser::singleAddressBuildingFunction);
-        functions.addAll(streetParts(3));
-        functions.addAll(functions(ZIP, COUNTY_ID, ELECTION_CODE, CLEG, WARD, CONGRESSIONAL, SENATE, ASSEMBLY));
-        return functions;
+    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
+        return new StreetFileFunctionList<>()
+                .addFunction(VoterFileParser::singleAddressBuildingFunction)
+                .addStreetParts(3)
+                .addFunctions(false, ZIP, COUNTY_ID, ELECTION_CODE, CLEG, WARD, CONGRESSIONAL, SENATE, ASSEMBLY);
     }
 
     private static void singleAddressBuildingFunction(StreetFileAddress address, String houseNum) {

@@ -2,13 +2,13 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.DistrictIndices;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 import gov.nysenate.sage.util.AddressDictionary;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
 /**
- * Parses files in the base NTS format (see Albany and Broome Counties as an example)
+ * Parses files in the base NTS format.
  */
 public class NTSParser extends BasicParser {
     private static final Pattern endOfPagePattern = Pattern.compile("TEAM SQL Version|r_strstd|Total No. of Street|r_ppstreet");
@@ -38,17 +38,20 @@ public class NTSParser extends BasicParser {
 
     /**
      * Some extraneous data must be removed, and some data stored from the start of the page.
-     * @throws IOException
      */
     public List<StreetFileAddress> parseFile() throws IOException {
         Stream<String> lines = Files.lines(file.toPath());
         while (lines.findAny().isPresent()) {
             lines = lines.dropWhile(line -> !line.contains("House Range"));
+            if (lines.findFirst().isEmpty()) {
+                break;
+            }
             parseStartOfPage(lines.findFirst().get());
             lines = lines.skip(1);
             parsePage(lines.takeWhile(isNotEndOfPage).filter(isValidLine).collect(Collectors.toList()));
             lines = lines.dropWhile(isNotEndOfPage).skip(1);
         }
+        lines.close();
         endProcessing();
         return addresses;
     }
@@ -70,19 +73,22 @@ public class NTSParser extends BasicParser {
                 overloadStreetSuf = nextLine.get();
                 i++;
             }
-            parseLine(cleanLine(currLine), 3);
+            List<String> cleanLine = cleanLine(currLine);
+            if (3 > cleanLine.size()) {
+                putBadLine("", currLine);
+                return;
+            }
+            parseData(cleanLine);
         }
     }
 
     @Override
-    protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
-        List<BiConsumer<StreetFileAddress, String>> funcList = new ArrayList<>(streetParts(3));
-        funcList.add(function(ZIP));
-        funcList.addAll(buildingFunctions);
-        // TODO: the last 4 lines here vary depending on which county we're in.
-        funcList.addAll(functions(TOWN, BOE_TOWN_CODE, WARD, ELECTION_CODE, CONGRESSIONAL, SENATE,
-                ASSEMBLY, SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY));
-        return funcList;
+    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
+        return new StreetFileFunctionList<>().addFunctions(false, ZIP)
+                .addFunctions(buildingFunctions)
+                // TODO: the last 4 lines here vary depending on which county we're in.
+                .addFunctions(false, TOWN, BOE_TOWN_CODE, WARD, ELECTION_CODE, CONGRESSIONAL,
+                        SENATE, ASSEMBLY, SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY);
     }
 
     /**

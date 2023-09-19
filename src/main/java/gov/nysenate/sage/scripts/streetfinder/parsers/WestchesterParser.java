@@ -1,11 +1,9 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.BiConsumer;
 
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
@@ -20,14 +18,10 @@ public class WestchesterParser extends BasicParser {
     }
 
     @Override
-    protected List<BiConsumer<StreetFileAddress, String>> getFunctions() {
-        List<BiConsumer<StreetFileAddress, String>> functions = new ArrayList<>();
-        functions.add(function(TOWN));
-        functions.add(handlePrecinct);
-        functions.addAll(streetParts(4));
-        functions.addAll(buildingFunctions);
-        functions.add(function(ZIP));
-        functions.addAll(functions(true, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG));
-        return functions;
+    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
+        return new StreetFileFunctionList<>().addFunctions(false, TOWN)
+                .addFunction(BaseParser::handlePrecinct).addStreetParts(4)
+                .addFunctions(buildingFunctions).addFunctions(false, ZIP)
+                .addFunctions(true, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG);
     }
 }
