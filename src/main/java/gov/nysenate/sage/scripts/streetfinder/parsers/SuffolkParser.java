@@ -1,7 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
-import gov.nysenate.sage.scripts.streetfinder.model.SuffolkStreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.SuffolkStreetFileAddressRange;
 
 import java.io.File;
 import java.util.List;
@@ -12,11 +12,11 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 /**
  * Parses Suffolk County txt file and outputs a tsv file
  */
-public class SuffolkParser extends BaseParser<SuffolkStreetFileAddress> {
-    private static final List<BiConsumer<SuffolkStreetFileAddress, String>> secondaryBuildingFunctions = List.of(
-            (ssfa, s) -> ssfa.setSecondaryBuilding(true, s),
-            (ssfa, s) -> ssfa.setSecondaryBuilding(false, s),
-            SuffolkStreetFileAddress::setSecondaryBuildingParity
+public class SuffolkParser extends BaseParser<SuffolkStreetFileAddressRange> {
+    private static final List<BiConsumer<SuffolkStreetFileAddressRange, String>> secondaryBuildingFunctions = List.of(
+            (range, s) -> range.setSecondaryBuilding(true, s),
+            (range, s) -> range.setSecondaryBuilding(false, s),
+            SuffolkStreetFileAddressRange::setSecondaryBuildingParity
     );
 
     public SuffolkParser(File file) {
@@ -24,13 +24,13 @@ public class SuffolkParser extends BaseParser<SuffolkStreetFileAddress> {
     }
 
     @Override
-    protected SuffolkStreetFileAddress getNewAddress() {
-        return new SuffolkStreetFileAddress();
+    protected SuffolkStreetFileAddressRange getNewAddress() {
+        return new SuffolkStreetFileAddressRange();
     }
 
     @Override
-    protected StreetFileFunctionList<SuffolkStreetFileAddress> getFunctions() {
-        return new StreetFileFunctionList<SuffolkStreetFileAddress>()
+    protected StreetFileFunctionList<SuffolkStreetFileAddressRange> getFunctions() {
+        return new StreetFileFunctionList<SuffolkStreetFileAddressRange>()
                 .addFunctions(false, ZIP).skip(1)
                 // TODO: careful that the suffix isn't part of the name
                 .addStreetParts(4).addFunctions(buildingFunctions)
@@ -51,7 +51,7 @@ public class SuffolkParser extends BaseParser<SuffolkStreetFileAddress> {
         splitLine[3] = splitLine[4];
         splitLine[4] = temp3;
         if (19 > splitLine.length) {
-            putBadLine("", line);
+            badLines.put("", line);
             return;
         }
         parseData(splitLine);

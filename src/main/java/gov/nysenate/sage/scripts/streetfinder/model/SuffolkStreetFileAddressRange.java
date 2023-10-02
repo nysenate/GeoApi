@@ -1,9 +1,9 @@
 package gov.nysenate.sage.scripts.streetfinder.model;
 
-public class SuffolkStreetFileAddress extends StreetFileAddress {
+public class SuffolkStreetFileAddressRange extends StreetFileAddressRange {
     // Really a range for apartment buildings.
-    protected final StreetFinderBuilding secondaryBuilding = new StreetFinderBuilding();
-    public SuffolkStreetFileAddress() {
+    protected final BuildingRange secondaryBuilding = new BuildingRange();
+    public SuffolkStreetFileAddressRange() {
         super();
     }
 

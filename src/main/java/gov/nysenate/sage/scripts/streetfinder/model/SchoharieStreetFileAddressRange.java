@@ -4,7 +4,7 @@ import java.util.Map;
 
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
-public class SchoharieStreetFileAddress extends StreetFileAddress {
+public class SchoharieStreetFileAddressRange extends StreetFileAddressRange {
     private static final Map<StreetFileField, String> illegalValues = Map.of(
             TOWN, "Town", ELECTION_CODE, "Dist", CONGRESSIONAL, "Cong", STREET, "street name",
             SENATE, "Sen", ASSEMBLY, "Asm", BOE_SCHOOL, "School", VILLAGE, "Village");

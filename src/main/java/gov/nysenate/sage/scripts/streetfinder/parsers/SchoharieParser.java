@@ -1,6 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.SchoharieStreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.SchoharieStreetFileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 
 import java.io.File;
@@ -11,19 +11,19 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 /**
  * Parses Schoharie County.txt file. Note that this file has no zipcodes.
  */
-public class SchoharieParser extends BaseParser<SchoharieStreetFileAddress> {
+public class SchoharieParser extends BaseParser<SchoharieStreetFileAddressRange> {
     public SchoharieParser(File file) {
         super(file);
     }
 
     @Override
-    protected SchoharieStreetFileAddress getNewAddress() {
-        return new SchoharieStreetFileAddress();
+    protected SchoharieStreetFileAddressRange getNewAddress() {
+        return new SchoharieStreetFileAddressRange();
     }
 
     @Override
-    protected StreetFileFunctionList<SchoharieStreetFileAddress> getFunctions() {
-        return new StreetFileFunctionList<SchoharieStreetFileAddress>()
+    protected StreetFileFunctionList<SchoharieStreetFileAddressRange> getFunctions() {
+        return new StreetFileFunctionList<SchoharieStreetFileAddressRange>()
                 .addFunctions(false, STREET).addFunctions(buildingFunctions)
                 .addFunctions(false, TOWN, WARD, ELECTION_CODE, CONGRESSIONAL,
                         SENATE, ASSEMBLY, SCHOOL, CLEG, CITY, VILLAGE, FIRE);
@@ -47,9 +47,9 @@ public class SchoharieParser extends BaseParser<SchoharieStreetFileAddress> {
     }
 
     @Override
-    protected void finalize(SchoharieStreetFileAddress sfa) {
-        if (sfa.hasSenateDistrict()) {
-            super.finalize(sfa);
+    protected void finalize(SchoharieStreetFileAddressRange range) {
+        if (range.hasSenateDistrict()) {
+            super.finalize(range);
         }
     }
 }

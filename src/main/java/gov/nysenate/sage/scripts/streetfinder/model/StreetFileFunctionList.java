@@ -7,7 +7,7 @@ import java.util.function.BiConsumer;
 /**
  * Class to store functions that add data to StreetFileAddresses.
  */
-public class StreetFileFunctionList<T extends StreetFileAddress> {
+public class StreetFileFunctionList<T extends StreetFileAddressRange> {
     private final List<BiConsumer<T, String>> functions = new ArrayList<>();
 
     /**
@@ -27,7 +27,7 @@ public class StreetFileFunctionList<T extends StreetFileAddress> {
      */
     public StreetFileFunctionList<T> addStreetParts(int num) {
         for (int i = 0; i < num; i++) {
-            functions.add(StreetFileAddress::addToStreet);
+            functions.add(StreetFileAddressRange::addToStreet);
         }
         return this;
     }

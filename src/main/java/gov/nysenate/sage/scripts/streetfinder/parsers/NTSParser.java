@@ -1,7 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.DistrictIndices;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 import gov.nysenate.sage.util.AddressDictionary;
 
@@ -25,7 +25,7 @@ public class NTSParser extends BasicParser {
     private static final Predicate<String> isValidLine = line -> line.length() >= 25 && line.trim().split("\\s+").length >= 5;
     protected DistrictIndices indices;
     // These are used to save the variables when the line is a continuation of an above street.
-    private StreetFileAddress streetFileAddressStorage = new StreetFileAddress();
+    private StreetFileAddressRange range = new StreetFileAddressRange();
     private String overloadStreetSuf = "";
     private final boolean isGreene;
     private final boolean isSchenectady;
@@ -39,7 +39,7 @@ public class NTSParser extends BasicParser {
     /**
      * Some extraneous data must be removed, and some data stored from the start of the page.
      */
-    public List<StreetFileAddress> parseFile() throws IOException {
+    public void parseFile() throws IOException {
         Stream<String> lines = Files.lines(file.toPath());
         while (lines.findAny().isPresent()) {
             lines = lines.dropWhile(line -> !line.contains("House Range"));
@@ -52,8 +52,6 @@ public class NTSParser extends BasicParser {
             lines = lines.dropWhile(isNotEndOfPage).skip(1);
         }
         lines.close();
-        endProcessing();
-        return addresses;
     }
 
     protected void parseStartOfPage(String startingLine) {
@@ -75,7 +73,7 @@ public class NTSParser extends BasicParser {
             }
             List<String> cleanLine = cleanLine(currLine);
             if (3 > cleanLine.size()) {
-                putBadLine("", currLine);
+                badLines.put("", currLine);
                 return;
             }
             parseData(cleanLine);
@@ -83,7 +81,7 @@ public class NTSParser extends BasicParser {
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
+    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
         return new StreetFileFunctionList<>().addFunctions(false, ZIP)
                 .addFunctions(buildingFunctions)
                 // TODO: the last 4 lines here vary depending on which county we're in.
@@ -95,7 +93,7 @@ public class NTSParser extends BasicParser {
      * Makes some data corrections to lines.
      */
     protected List<String> cleanLine(String line) {
-        var streetFinderAddress = new StreetFileAddress();
+        var streetFinderAddress = new StreetFileAddressRange();
         String[] splitLine = line.split("\\s+");
 
         int zipIndex = 0;
@@ -112,17 +110,19 @@ public class NTSParser extends BasicParser {
             }
         }
         String[] beforeZip = Arrays.copyOfRange(splitLine, 0, zipIndex);
-        if (line.charAt(0) == ' ' && !line.contains("E. MAIN ST")) {
-            beforeZip = new String[]{streetFileAddressStorage.get(STREET), streetFileAddressStorage.getStreetSuffix()};
-        }
-        else if (line.charAt(0) == '*' && !line.contains("E. MAIN ST")) {
-            beforeZip = new String[]{};
+        if (!line.contains("E. MAIN ST")) {
+            if (line.charAt(0) == ' ') {
+                beforeZip = new String[] {range.get(STREET)};
+            }
+            else if (line.charAt(0) == '*') {
+                beforeZip = new String[] {};
+            }
         }
         List<String> cleanedData = new ArrayList<>(cleanBeforeZip(beforeZip));
         cleanedData.add(splitLine[zipIndex]);
         cleanedData.addAll(cleanAfterZip(Arrays.copyOfRange(splitLine, zipIndex + 1, splitLine.length)));
         cleanedData.addAll(indices.getPostAsmData(line));
-        streetFileAddressStorage = streetFinderAddress;
+        range = streetFinderAddress;
         return cleanedData;
     }
 

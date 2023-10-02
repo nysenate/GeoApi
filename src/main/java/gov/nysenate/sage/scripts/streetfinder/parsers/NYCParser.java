@@ -1,12 +1,12 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -35,7 +35,7 @@ public class NYCParser extends BasicParser {
      * In these files, the street names are followed by a list of data points for that street.
      */
     @Override
-    public List<StreetFileAddress> parseFile() throws IOException {
+    public void parseFile() throws IOException {
         var scanner = new Scanner(file);
         String currStreet = "";
         while (scanner.hasNextLine()) {
@@ -45,42 +45,42 @@ public class NYCParser extends BasicParser {
             }
             Matcher dataMatcher = Pattern.compile(data).matcher(line);
             if (dataMatcher.matches()) {
-                LinkedList<String> dataList = new LinkedList<>(List.of(line.split(" ")));
-                dataList.add(0, town);
-                dataList.add(1, currStreet);
-                // Adds in building data
-                if (dataMatcher.group("buildingRange") == null) {
-                    dataList.add(2, "");
-                    dataList.add(3, "");
-                }
-                dataList.add(4, StreetParity.ALL.name());
                 if (dataMatcher.group("zip") == null) {
                     continue;
                 }
+                List<String> dataList = new ArrayList<>(List.of(town, currStreet));
+                String range = dataMatcher.group("buildingRange");
+                // Adds empty building range
+                if (range == null) {
+                    dataList.add("");
+                    dataList.add("");
+                }
+                Collections.addAll(dataList, line.split(" "));
+                // This is for the parity, which must be set after correction.
+                dataList.add(4, "");
                 parseData(dataList);
             }
             else if (line.matches(streetNameRegex)) {
                 currStreet = line;
             }
             else {
-                putBadLine(currStreet, line);
+                badLines.put(currStreet, line);
             }
         }
         scanner.close();
-        endProcessing();
-        return addresses;
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
+    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
         return new StreetFileFunctionList<>().addFunctions(false, TOWN, STREET)
                 .addFunctions(buildingFunctions)
                 .addFunctions(false, ELECTION_CODE, ASSEMBLY, ZIP, CONGRESSIONAL, SENATE)
+                // TODO: might be municipal court?
                 .skip(1).addFunctions(false, CITY_COUNCIL);
     }
 
     private String getTown() {
         Matcher townMatcher = townPattern.matcher(file.getName());
-        return townMatcher.find() ? townMatcher.group().toUpperCase() : "STATEN ISLAND";
+        return townMatcher.find() ? townMatcher.group() : "Staten Island";
     }
 }

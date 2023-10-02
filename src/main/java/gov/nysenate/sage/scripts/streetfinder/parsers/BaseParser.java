@@ -1,46 +1,55 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.SortedStringMultiMap;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.ELECTION_CODE;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.WARD;
 
 /**
  * Base class for all parsers, with some common code for parsing data.
  * Converts a text file (usually CSV) to a SQL TSV ready to import.
  * @param <T> Usually just the normal StreetFinderAddress, but some extra functionality may be needed.
  */
-public abstract class BaseParser<T extends StreetFileAddress> {
+public abstract class BaseParser<T extends StreetFileAddressRange> {
     private static final String[] dummyArray = {};
     // The two variables below can't be static, due to use of generics.
     // Building data has a common form.
     protected final List<BiConsumer<T, String>> buildingFunctions =
-            List.of((sfa, s) -> sfa.setBuilding(true, s),
-                    (sfa, s) -> sfa.setBuilding(false, s),
-                    StreetFileAddress::setBldgParity);
+            List.of((range, s) -> range.setBuilding(true, s),
+                    (range, s) -> range.setBuilding(false, s),
+                    StreetFileAddressRange::setBldgParity);
 
     protected final File file;
     protected final List<T> addresses = new ArrayList<>();
-    private final SortedMap<String, List<String>> badlyFormattedLines = new TreeMap<>();
+    protected final SortedStringMultiMap badLines = new SortedStringMultiMap();
     private final StreetFileFunctionList<T> functions = getFunctions();
 
     public BaseParser(File file) {
         this.file = file;
     }
 
-    public List<T> parseFile() throws IOException {
+    public void parseFile() throws IOException {
         try (Stream<String> lines = Files.lines(file.toPath())) {
             lines.forEach(this::parseLine);
         }
-        endProcessing();
+    }
+
+    public List<T> getParsedAddresses() {
         return addresses;
+    }
+
+    public SortedStringMultiMap getBadLines() {
+        return badLines;
     }
 
     /**
@@ -78,8 +87,8 @@ public abstract class BaseParser<T extends StreetFileAddress> {
         parseData(lineParts.toArray(dummyArray));
     }
 
-    protected void finalize(T sfa) {
-        addresses.add(sfa);
+    protected void finalize(T range) {
+        addresses.add(range);
     }
 
     /**
@@ -87,48 +96,18 @@ public abstract class BaseParser<T extends StreetFileAddress> {
      * @return true if a direction, false otherwise
      */
     protected static boolean isNotDirection(String part) {
-        return !part.toUpperCase().matches("[NESW]{1,2}");
-    }
-
-    protected void endProcessing() {
-        if (badlyFormattedLines.isEmpty()) {
-            return;
-        }
-        System.err.println("\nThe following data could not be parsed from " + file.getName());
-        for (String street : badlyFormattedLines.keySet()) {
-            System.err.println(street);
-            for (String line : badlyFormattedLines.get(street)) {
-                System.err.println("\t" + line);
-            }
-        }
-    }
-
-    protected void putBadLine(String street, String line) {
-        if (!badlyFormattedLines.containsKey(street)) {
-            badlyFormattedLines.put(street, new ArrayList<>());
-        }
-        badlyFormattedLines.get(street).add(line);
-    }
-
-    /**
-     * Sets the street name and street suffix from a single String.
-     * Also checks for pre-direction.
-     */
-    protected static void setStreetAndSuffix(StreetFileAddress streetFileAddress, String streetNameAndSuffix) {
-        LinkedList<String> splitList = new LinkedList<>(List.of(streetNameAndSuffix.split("\\s+")));
-        streetFileAddress.setStreetSuffix(splitList.removeLast());
-        streetFileAddress.put(STREET, String.join(" ", splitList));
+        return !part.matches("(?i)[NESW]{1,2}");
     }
 
     /**
      * In some files, multiple fields are in the same number.
      */
-    protected static void handlePrecinct(StreetFileAddress streetFileAddress, String precinct) {
+    protected static void handlePrecinct(StreetFileAddressRange range, String precinct) {
         if (precinct.length() == 5) {
             precinct = "0" + precinct;
         }
-        streetFileAddress.setTownCode(precinct.substring(0, 2));
-        streetFileAddress.put(WARD, precinct.substring(2, 4));
-        streetFileAddress.put(ELECTION_CODE, precinct.substring(precinct.length() - 2));
+        range.setTownCode(precinct.substring(0, 2));
+        range.put(WARD, precinct.substring(2, 4));
+        range.put(ELECTION_CODE, precinct.substring(precinct.length() - 2));
     }
 }

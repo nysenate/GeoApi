@@ -1,6 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 
 import java.io.File;
@@ -25,9 +25,8 @@ public class SaratogaParser extends NTSParser {
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
-        return new StreetFileFunctionList<>().addFunctions(false, STREET)
-                .addFunction(StreetFileAddress::setStreetSuffix)
+    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
+        return new StreetFileFunctionList<>().addStreetParts(2)
                 .addFunctions(false, ZIP, TOWN)
                 .addFunctions(buildingFunctions)
                 .addFunctions(false, BOE_TOWN_CODE, WARD, ELECTION_CODE, CONGRESSIONAL, SENATE,
@@ -53,7 +52,7 @@ public class SaratogaParser extends NTSParser {
         if (!dataMatcher.matches()) {
             System.err.println("Error parsing line: " + line);
         }
-        for (String groupStr : new String[]{"street", "suffix", "zip"}) {
+        for (String groupStr : new String[] {"street", "suffix", "zip"}) {
             cleanedData.add(dataMatcher.group(groupStr));
         }
         cleanedData.add(town);

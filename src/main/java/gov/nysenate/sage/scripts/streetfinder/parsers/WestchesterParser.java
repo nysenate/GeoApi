@@ -1,6 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 
 import java.io.File;
@@ -18,7 +18,7 @@ public class WestchesterParser extends BasicParser {
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
+    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
         return new StreetFileFunctionList<>().addFunctions(false, TOWN)
                 .addFunction(BaseParser::handlePrecinct).addStreetParts(4)
                 .addFunctions(buildingFunctions).addFunctions(false, ZIP)

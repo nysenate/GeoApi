@@ -1,31 +1,23 @@
 package gov.nysenate.sage.scripts.streetfinder.model;
 
-import gov.nysenate.sage.util.AddressDictionary;
-
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 
 /**
- * Represents a Street Address for the StreetFinder database/parsers
- * It also contains helping methods/formatting help for the StreetFinder Parsers
+ * Represents a street address, as parsed from a streetfile.
  */
-public class StreetFileAddress {
+public class StreetFileAddressRange {
     protected static final String DEFAULT = "\\N";
     private static final Pattern digitPattern = Pattern.compile("-?\\d+(\\.\\d+)?");
-    private final StreetFinderBuilding primaryBuilding = new StreetFinderBuilding();
-    private String streetSuffix = "";
+    private final BuildingRange primaryBuilding = new BuildingRange();
     protected final Map<StreetFileField, String> fieldMap = new EnumMap<>(StreetFileField.class);
 
-    /**
-     * Default Constructor that sets all fields (except for pre-Direction, post-Direction, and Street Suffix because those are appended to the Street Name)
-     * to \N which the default for blank in the geoapi database
-     */
-    public StreetFileAddress() {
+    public StreetFileAddressRange() {
         put(STATE, "NY");
     }
 
@@ -34,7 +26,7 @@ public class StreetFileAddress {
      * @return Object in String form
      */
     public String toStreetFileForm() {
-        List<String> fieldList = new ArrayList<>();
+        var fieldList = new ArrayList<>();
         for (var fieldType : StreetFileField.values()) {
             if (fieldType == BUILDING) {
                 fieldList.addAll(primaryBuilding.getData());
@@ -43,20 +35,21 @@ public class StreetFileAddress {
                 fieldList.add(get(fieldType));
             }
         }
-        return String.join("\t", fieldList);
-    }
-
-    public String getLowString() {
-        return primaryBuilding.getLowString();
+        return fieldList.stream().map(field -> field == null ? DEFAULT : field.toString())
+                .collect(Collectors.joining("\t"));
     }
 
     public void addToStreet(String toAdd) {
-        if (get(STREET).equals(DEFAULT)) {
+        if (!fieldMap.containsKey(STREET)) {
             put(STREET, "");
         }
         put(STREET, (get(STREET) + " " + toAdd).trim().replaceAll("\\s+", " "));
     }
 
+    public String get(StreetFileField type) {
+        return fieldMap.get(type);
+    }
+    
     public void put(StreetFileField type, String value) {
         if (type == ELECTION_CODE && value.contains("-")) {
             return;
@@ -68,8 +61,8 @@ public class StreetFileAddress {
         }
     }
 
-    public String get(StreetFileField type) {
-        return fieldMap.getOrDefault(type, "\\N");
+    public BuildingRange getBuildingRange() {
+        return primaryBuilding;
     }
 
     public void setBuilding(boolean isLow, String data) {
@@ -80,19 +73,6 @@ public class StreetFileAddress {
             primaryBuilding.setHigh(data);
         }
     }
-
-    /**
-     * Sets the Street Suffix. There's data in {@link AddressDictionary} that we could use to
-     * correct this to USPS format, but for now we just correct the address elsewhere.
-     */
-    public void setStreetSuffix(String streetSuffix) {
-        this.streetSuffix = streetSuffix.trim().toUpperCase();
-    }
-
-    public String getStreetSuffix() {
-        return streetSuffix;
-    }
-
     public void setBldgParity(String parity) {
         primaryBuilding.setParity(parity);
     }

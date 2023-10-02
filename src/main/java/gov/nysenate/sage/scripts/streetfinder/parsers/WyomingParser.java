@@ -1,6 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddress;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 
 import java.io.File;
@@ -16,7 +16,7 @@ public class WyomingParser extends BasicParser {
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddress> getFunctions() {
+    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
         // TODO: The 0 and 1 indices might be the town and district, respectively
         return new StreetFileFunctionList<>().skip(2).addStreetParts(4)
                 .addFunctions(buildingFunctions).addFunctions(false, TOWN, ZIP)
