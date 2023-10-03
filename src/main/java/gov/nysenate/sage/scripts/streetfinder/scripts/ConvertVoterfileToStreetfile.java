@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileField.*;
 
-public class GetVoterAddressData {
+public class ConvertVoterfileToStreetfile {
     /**
      * Converts the full voter file into a streetfile, and prints some status data.
      * @param args the working directory, then the name of the voter file.

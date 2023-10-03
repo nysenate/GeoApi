@@ -11,7 +11,7 @@ import java.util.List;
  * .sql file ready to be imported to a database
  * args[0] = filename.tsv
  */
-public class CreateSQLFile {
+public class ConvertTsvToSql {
     private static final String sqlHeading = """
             SET statement_timeout = 0;
             SET lock_timeout = 0;
@@ -23,6 +23,7 @@ public class CreateSQLFile {
             SET row_security = off;
             SET search_path = public, master, pg_catalog;
             """;
+    // TODO: is repeated elsewhere
     private static final List<String> fieldNames = List.of("street", "town", "state", "zip5",
             "bldg_lo_num", "bldg_lo_chr", "bldg_hi_num", "bldg_hi_chr", "bldg_parity",
             "election_code", "county_code", "assembly_code", "senate_code", "congressional_code",
@@ -36,6 +37,7 @@ public class CreateSQLFile {
         if (args.length == 0) {
             return;
         }
+        // TODO: generalize to make multiple files for multiple databases
         File sqlFile = new File("/data/geoapi_data/street_finder/" + LocalDate.now() + "_streetfile.sql");
         File voterSqlFile = new File("/data/geoapi_data/street_finder/" + LocalDate.now() + "_voter_streetfile.sql");
         sqlFile.delete();

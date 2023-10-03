@@ -21,6 +21,10 @@ public class StreetFileAddressRange {
         put(STATE, "NY");
     }
 
+    public StreetFileAddressRange(StreetFileAddressRange toCopy) {
+        this.fieldMap.putAll(toCopy.fieldMap);
+    }
+
     /**
      * Converts the StreetFinderAddress Object into a String in the format needed for the SQL file
      * @return Object in String form
@@ -66,13 +70,9 @@ public class StreetFileAddressRange {
     }
 
     public void setBuilding(boolean isLow, String data) {
-        if (isLow) {
-            primaryBuilding.setLow(data);
-        }
-        else {
-            primaryBuilding.setHigh(data);
-        }
+        primaryBuilding.setData(isLow, data);
     }
+
     public void setBldgParity(String parity) {
         primaryBuilding.setParity(parity);
     }

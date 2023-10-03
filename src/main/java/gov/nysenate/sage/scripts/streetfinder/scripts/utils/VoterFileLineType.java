@@ -13,13 +13,20 @@ import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileFiel
  * Allows for thorough sorting of lines for QA purposes and error reporting.
  */
 public enum VoterFileLineType {
-    VALID, HAS_TABS(VoterFileField.values()), WRONG_FIELD_LENGTH(VoterFileField.values()),
+    // TODO: has_tabs should have full line printed
+    VALID, HAS_TABS, WRONG_FIELD_LENGTH(VoterFileField.values()),
     BAD_ID, MISSING_ZIP_5, NO_ADDRESS,
     NON_STANDARD_ADDRESS(RADDRNONSTD),
     TWO_ADDRESS_FORMATS(displayAddressFields());
 
     private final SortedSet<VoterFileField> displayFields;
 
+    VoterFileLineType(VoterFileField singleField) {
+        this.displayFields = new TreeSet<>();
+        displayFields.add(singleField);
+    }
+
+    // By default, the county ID and BOE ID are added.
     VoterFileLineType(VoterFileField... displayFields) {
         this.displayFields = new TreeSet<>(List.of(displayFields));
         this.displayFields.add(COUNTYCODE);

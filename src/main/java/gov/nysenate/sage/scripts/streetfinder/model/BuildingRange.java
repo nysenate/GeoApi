@@ -21,23 +21,27 @@ public class BuildingRange {
     public String getBuilding(boolean isLow) {
         return isLow ? lowBuilding : highBuilding;
     }
-    
-    public void setHigh(String highData) {
-        this.highBuilding = highData;
+
+    public void setData(boolean isLow, String data) {
+        if (isLow) {
+            this.lowBuilding = data;
+        }
+        else {
+            this.highBuilding = data;
+        }
     }
 
-    public void setLow(String lowData) {
-        this.lowBuilding = lowData;
+    /**
+     * Recalculates the parity based on current low and high building numbers.
+     */
+    public void setParityFromRange() {
+        this.parity = StreetParity.getParityFromRange(
+                getBuildingTuple(lowBuilding).first(),
+                getBuildingTuple(highBuilding).first());
     }
 
     public void setParity(String parity) {
         this.parity = StreetParity.getParityFromWord(parity);
-    }
-
-    public void setParity() {
-        this.parity = StreetParity.getParityFromRange(
-                getBuildingTuple(lowBuilding).first(),
-                getBuildingTuple(highBuilding).first());
     }
 
     public List<Object> getData() {
@@ -47,7 +51,11 @@ public class BuildingRange {
                 highTuple.first(), highTuple.second(), parity.name()});
     }
 
-    private Tuple<Integer, String> getBuildingTuple(String data) {
+    /**
+     * Separates out data into its numeric and alphabetic parts.
+     * @param data either lowBuilding or highBuilding.
+     */
+    private static Tuple<Integer, String> getBuildingTuple(String data) {
         String digits = data.replaceFirst("(?i)[A-Z]+", "");
         String characters = data.replaceFirst("\\d+", "");
         if (!digits.matches("\\d*") || !characters.matches("(?i)[A-Z]*")) {

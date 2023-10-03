@@ -2,8 +2,11 @@ package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Range;
+import gov.nysenate.sage.util.Tuple;
 import org.apache.commons.io.IOUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -11,57 +14,55 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Contains some common code for accessing the SAGE API from outside SAGE.
+ * Contains some common code for accessing the APIs outside SAGE.
  */
 public class ApiHelper {
-    private final static String apiStart = "/api/v2/",
-            datagen = "/admin/datagen/",
-            validate = apiStart + "address/validate";
-    private final String sageUrl, adminKey;
+    private static final int DEFAULT_INT = Short.MIN_VALUE;
+    private final static String datagen = "/admin/datagen/",
+            validate = "/api/validate";
+    public final static Tuple<Addr1WithZip, Range<Integer>> invalid = new Tuple<>(null, null);
+    private final String sageUrl, adminKey, amsUrl;
 
-    public ApiHelper(String sageUrl, String adminKey) {
+    public ApiHelper(String sageUrl, String adminKey, String amsUrl) {
         this.sageUrl = sageUrl;
         this.adminKey = adminKey;
+        this.amsUrl = amsUrl;
     }
 
     /**
      * Gets the codes from the given SAGE instance.
-     * @param isTown true if we're getting town codes, otherwise false.
+     * @param isTown true if we're getting town codes, otherwise we're getting county codes.
      */
     public Map<String, String> getCodes(boolean isTown) throws Exception {
         final String endPoint = isTown ? "towncodes" : "countycodes";
         final String printType = isTown ? "town" : "county";
         String urlString = sageUrl + datagen + "%s?key=%s".formatted(endPoint, adminKey);
         JsonNode jsonResponse = getResponse(urlString);
-        if (!Boolean.parseBoolean(jsonResponse.get("success").toString())) {
+        if (!jsonResponse.get("success").asBoolean()) {
             throw new Exception("SAGE failed to create " + printType + " code service");
         }
-        return mapFromResponse(jsonResponse.get("message").toString());
+        return mapFromResponse(jsonResponse.get("message").asText());
     }
 
     /**
-     * The fields are all needed to get accurate matches.
-     * @return the street, in standard USPS format.
+     * @return a validated and standardized address, or null if there was a problem accessing the API.
      */
-    public String getCorrectedStreet(String num, String street, String zip5) throws Exception {
-        String urlString = sageUrl + validate +
-                "?addr1=%s&state=New York&zip5=%s".formatted(num + " " + street, zip5);
-        JsonNode jsonResponse = getResponse(urlString);
-        if (!Boolean.parseBoolean(jsonResponse.get("validated").toString())) {
+    public AddressValidationResult getValidatedAddress(Addr1WithZip addr1WithZip) {
+        String urlString = amsUrl + validate + "?addr1=%s&state=New York&zip5=%s&initCaps=true&detail=true"
+                        .formatted(addr1WithZip.addr1(), addr1WithZip.zip());
+        try {
+            return new AddressValidationResult(getResponse(urlString));
+        } catch (IOException ex) {
+            System.err.println("Problem parsing " + addr1WithZip.addr1());
             return null;
         }
-        String correctedAddr = jsonResponse.get("address").get("addr1").toString();
-        if (!num.isBlank()) {
-            correctedAddr = correctedAddr.replaceFirst(num, "");
-        }
-        return correctedAddr;
     }
 
-    private static JsonNode getResponse(String urlString) throws Exception {
+    private static JsonNode getResponse(String urlString) throws IOException {
         urlString = urlString.replaceAll(" ", "%20");
         try (InputStream is = new URL(urlString).openStream()) {
-            String sageResponse = IOUtils.toString(is, StandardCharsets.UTF_8);
-            return new ObjectMapper().readTree(sageResponse);
+            String response = IOUtils.toString(is, StandardCharsets.UTF_8);
+            return new ObjectMapper().readTree(response);
         }
     }
 
@@ -69,6 +70,7 @@ public class ApiHelper {
      * The codes are stored in a specific, standard format.
      * See getCodes in {@link gov.nysenate.sage.controller.admin.DataGenController}.
      */
+    // TODO: cleanup
     private static Map<String, String> mapFromResponse(String response) {
         var map = new HashMap<String, String>();
         String[] pairs = response.split("\\|");

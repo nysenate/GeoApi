@@ -83,8 +83,6 @@ public class VoterFileData {
         writeBadData(dir);
     }
 
-
-    // TODO: more consolidation, on types?
     /**
      * Converts data on district mismatches to String form.
      * @param input the mismatch data at a single address.
@@ -101,7 +99,7 @@ public class VoterFileData {
         hasMismatch.add(COUNTYCODE);
         
         var lines = new ArrayList<String>();
-        // Adds the label
+        // Adds the label. Ids need special treatment: each entry will have a list of them.
         lines.add(hasMismatch.stream().map(Enum::name).collect(Collectors.joining("\t")) + "\t" + "SBOEIDs");
         for (var districtAndIds : input.entrySet()) {
             // Each item will end up as an Excel cell.
@@ -127,14 +125,15 @@ public class VoterFileData {
     }
 
     private void writeBadData(String dir) throws IOException {
-        BufferedWriter invalidLineWriter = getWriter(dir, "InvalidLines.txt");
+        BufferedWriter invalidLineWriter = getWriter(dir, "InvalidLines.tsv");
         for (VoterFileLineType type : invalidLines.keySet()) {
             invalidLineWriter.write(type.name() + ":");
             invalidLineWriter.write("\t" + type.getCsv(Enum::name));
             for (VoterFileLineMap line : invalidLines.get(type)) {
-                invalidLineWriter.write("\t" + type.getCsv(line::get));
                 invalidLineWriter.newLine();
+                invalidLineWriter.write("\t" + type.getCsv(line::get));
             }
+            invalidLineWriter.newLine();
             invalidLineWriter.newLine();
         }
         invalidLineWriter.flush();
