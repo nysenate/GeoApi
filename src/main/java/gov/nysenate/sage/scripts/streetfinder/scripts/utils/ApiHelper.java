@@ -17,7 +17,6 @@ import java.util.Map;
  * Contains some common code for accessing the APIs outside SAGE.
  */
 public class ApiHelper {
-    private static final int DEFAULT_INT = Short.MIN_VALUE;
     private final static String datagen = "/admin/datagen/",
             validate = "/api/validate";
     public final static Tuple<Addr1WithZip, Range<Integer>> invalid = new Tuple<>(null, null);
@@ -53,7 +52,6 @@ public class ApiHelper {
         try {
             return new AddressValidationResult(getResponse(urlString));
         } catch (IOException ex) {
-            System.err.println("Problem parsing " + addr1WithZip.addr1());
             return null;
         }
     }

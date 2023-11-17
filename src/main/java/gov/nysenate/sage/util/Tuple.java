@@ -31,4 +31,9 @@ public class Tuple<T, R> {
     public int hashCode() {
         return Objects.hash(first, second);
     }
+
+    @Override
+    public String toString() {
+        return "(%s, %s)".formatted(Objects.toString(first), Objects.toString(second));
+    }
 }
