@@ -4,6 +4,7 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.district.*;
 import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.dao.data.PostOfficeDao;
 import gov.nysenate.sage.dao.logger.district.SqlDistrictRequestLogger;
 import gov.nysenate.sage.dao.logger.district.SqlDistrictResultLogger;
 import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeRequestLogger;
@@ -32,20 +33,22 @@ import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
@@ -70,7 +73,7 @@ public class DistrictController {
     private final RevGeocodeServiceProvider revGeocodeProvider;
     private final MapServiceProvider mapProvider;
     private final DistrictMemberProvider districtMemberProvider;
-
+    private final PostOfficeDao postOfficeDao;
 
     /**
      * Loggers
@@ -89,7 +92,8 @@ public class DistrictController {
                               RevGeocodeServiceProvider revGeocodeProvider, MapServiceProvider mapProvider,
                               SqlGeocodeRequestLogger sqlGeocodeRequestLogger, SqlGeocodeResultLogger sqlGeocodeResultLogger,
                               SqlDistrictRequestLogger sqlDistrictRequestLogger, SqlDistrictResultLogger sqlDistrictResultLogger,
-                              DistrictMemberProvider districtMemberProvider, GeocodeServiceProvider geocodeProvider) {
+                              DistrictMemberProvider districtMemberProvider, GeocodeServiceProvider geocodeProvider,
+                              PostOfficeDao postOfficeDao) {
 
         this.addressProvider = addressProvider;
         this.districtProvider = districtProvider;
@@ -97,6 +101,7 @@ public class DistrictController {
         this.revGeocodeProvider = revGeocodeProvider;
         this.mapProvider = mapProvider;
         this.districtMemberProvider = districtMemberProvider;
+        this.postOfficeDao = postOfficeDao;
         this.sqlGeocodeRequestLogger = sqlGeocodeRequestLogger;
         this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         this.sqlDistrictRequestLogger = sqlDistrictRequestLogger;
@@ -162,8 +167,8 @@ public class DistrictController {
 
         /* Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
-
-        DistrictRequest districtRequest = createFullDistrictRequest(apiRequest, getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4),
+        Address address = poBoxCorrection(getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4));
+        DistrictRequest districtRequest = createFullDistrictRequest(apiRequest, address,
                 getPointFromParams(lat, lon), provider, geoProvider, uspsValidate, showMembers, usePunct, skipGeocode,
                 showMaps, districtStrategy);
 
@@ -242,6 +247,7 @@ public class DistrictController {
             points = getPointsFromJsonBody(batchJsonPayload);
         }
         if (!addresses.isEmpty() || !points.isEmpty()) {
+            addresses.replaceAll(this::poBoxCorrection);
             BatchDistrictRequest batchDistrictRequest = new BatchDistrictRequest(districtRequest);
             batchDistrictRequest.setAddresses(addresses);
             batchDistrictRequest.setPoints(points);
@@ -339,9 +345,9 @@ public class DistrictController {
         Timestamp startTime = getCurrentTimeStamp();
         int requestId = -1;
         ApiRequest apiRequest = getApiRequest(request);
-
+        Address address = poBoxCorrection(getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4));
         DistrictRequest districtRequest = createBlueBirdDistrictRequest(apiRequest, provider, geoProvider, usePunct,
-                getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4), getPointFromParams(lat, lon));
+                address, getPointFromParams(lat, lon));
 
         districtRequest.setAddress(reorderAddress(districtRequest.getAddress()));
 
@@ -401,6 +407,7 @@ public class DistrictController {
         }
         if (!addresses.isEmpty() || !points.isEmpty()) {
             DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, BLUEBIRD_DISTRICT_STRATEGY);
+            addresses.replaceAll(this::poBoxCorrection);
             BatchDistrictRequest batchBluebirdRequest = new BatchDistrictRequest(bluebirdRequest);
             batchBluebirdRequest.setAddresses(addresses);
             batchBluebirdRequest.setPoints(points);
@@ -508,14 +515,14 @@ public class DistrictController {
         if (address == null) {
             return null;
         }
-        Address reorderdAddress = StreetAddressParser.parseAddress(address).toAddress();
-        if (reorderdAddress.getState().isEmpty() && !reorderdAddress.isAddressBlank()) {
-            reorderdAddress.setState("NY");
+        Address reorderedAddress = StreetAddressParser.parseAddress(address).toAddress();
+        if (reorderedAddress.getState().isEmpty() && !reorderedAddress.isAddressBlank()) {
+            reorderedAddress.setState("NY");
         }
         if (address.getId() != null) {
-            reorderdAddress.setId(address.getId());
+            reorderedAddress.setId(address.getId());
         }
-        return reorderdAddress;
+        return reorderedAddress;
     }
 
     private Timestamp getCurrentTimeStamp() {
@@ -842,8 +849,8 @@ public class DistrictController {
         if (usingAddresses && batchRequest.isUspsValidate()) {
             List<AddressResult> validationResult = addressProvider.validate(batchRequest.getAddresses(), null, batchRequest.isUsePunct());
             if (validationResult != null && validationResult.size() == addresses.size()) {
-                for (int i = 0; i < validationResult.size(); i++) {
-                    geocodedAddresses.add(new GeocodedAddress(validationResult.get(i).getAddress()));
+                for (AddressResult addressResult : validationResult) {
+                    geocodedAddresses.add(new GeocodedAddress(addressResult.getAddress()));
                 }
             }
         }
@@ -895,4 +902,14 @@ public class DistrictController {
         return districtResult;
     }
 
+    private Address poBoxCorrection(Address address) {
+        if (address.getZip5().matches("\\d+") && address.isPOBox()) {
+            String result = postOfficeDao.getPostOfficeAddress(Integer.parseInt(address.getZip5()));
+            if (result != null) {
+                address = new Address(result);
+                address.setState("NY");
+            }
+        }
+        return address;
+    }
 }

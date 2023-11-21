@@ -17,6 +17,7 @@ import java.util.Arrays;
  */
 public class Address implements Serializable, Cloneable
 {
+    private static final String poBoxPattern = "(?i)PO\\s+Box\\s+\\d+";
     /** Basic address components */
     protected String addr1 = "";
     protected String addr2 = "";
@@ -241,6 +242,10 @@ public class Address implements Serializable, Cloneable
 
     public boolean isAddressBlank() {
         return (addr1.isEmpty() && addr2.isEmpty() && city.isEmpty() && state.isEmpty() && zip5.isEmpty() && zip4.isEmpty());
+    }
+
+    public boolean isPOBox() {
+        return addr1.matches(poBoxPattern);
     }
 
     @Override

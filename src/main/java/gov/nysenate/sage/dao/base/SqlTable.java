@@ -37,6 +37,7 @@ public enum SqlTable {
     API_USER ("apiuser"),
     PUBLIC_ASSEMBLY("assembly"),
     CITY_ZIP ("cityzip"),
+    POST_OFFICE("post_office"),
     PUBLIC_CONGRESSIONAL ("congressional"),
     PUBLIC_COUNTY ("county"),
     PUBLIC_SENATE("senate"),
