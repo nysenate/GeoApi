@@ -6,12 +6,12 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Senator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -63,7 +63,7 @@ public class SqlSenateDao implements SenateDao {
             params.addValue("name", senatorName);
             params.addValue("data", json);
 
-            int numRows = baseDao.geoApiNamedJbdcTemaplate.update(
+            int numRows = baseDao.geoApiNamedJbdcTemplate.update(
                     SenateQuery.INSERT_SENATOR.getSql(baseDao.getPublicSchema()), params);
             if (numRows > 0) {
                 logger.info("Added data for Senator " + senatorName);
@@ -83,7 +83,7 @@ public class SqlSenateDao implements SenateDao {
             params.addValue("district", senateCode);
             params.addValue("url", url);
 
-            int numRows = baseDao.geoApiNamedJbdcTemaplate.update(
+            int numRows = baseDao.geoApiNamedJbdcTemplate.update(
                     SenateQuery.INSERT_SENATE.getSql(baseDao.getPublicSchema()), params);
             if (numRows > 0) {
                 logger.info("Added data for senate district " + senateCode);
@@ -117,7 +117,7 @@ public class SqlSenateDao implements SenateDao {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("district", district);
 
-            baseDao.geoApiNamedJbdcTemaplate.update(
+            baseDao.geoApiNamedJbdcTemplate.update(
                     SenateQuery.DELETE_SENATOR_BY_DISTRICT.getSql(baseDao.getPublicSchema()), params);
         } catch (Exception ex) {
             logger.error("Failed to delete senator in district " + district);

@@ -1,8 +1,8 @@
 package gov.nysenate.sage.dao.logger.deployment;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -34,7 +34,7 @@ public class SqlDeploymentLogger implements DeploymentLogger
             params.addValue("refId",deploymentId);
             params.addValue("deployTime",deployTime);
 
-            List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(
                     DeploymentQuery.INSERT_DEPLOYMENT.getSql(baseDao.getLogSchema()), params, new DeploymentIdHandler());
             if (idList == null || idList.size() <= 0) {
                 return 0;

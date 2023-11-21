@@ -1,8 +1,8 @@
 package gov.nysenate.sage.dao.provider.cityzip;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -43,7 +43,7 @@ public class SqlCityZipDBDao implements CityZipDBDao
             MapSqlParameterSource params =  new MapSqlParameterSource();
             params.addValue("city", city);
 
-            return baseDao.geoApiNamedJbdcTemaplate.query(sql, params, new zip5Handler());
+            return baseDao.geoApiNamedJbdcTemplate.query(sql, params, new zip5Handler());
         }
         catch (Exception ex) {
             logger.error("Failed to get zip5 list by city!", ex);

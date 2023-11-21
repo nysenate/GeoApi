@@ -3,8 +3,8 @@ package gov.nysenate.sage.dao.logger.point;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
 import gov.nysenate.sage.model.geo.Point;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -37,7 +37,7 @@ public class SqlPointLogger implements PointLogger
                 MapSqlParameterSource params = new MapSqlParameterSource();
                 params.addValue("latlon", "POINT (" + point.getLon() + " " + point.getLat() + ")");
 
-                List<Integer> idList =  baseDao.geoApiNamedJbdcTemaplate.query(PointQuery.INSERT_POINT.getSql(baseDao.getLogSchema()),
+                List<Integer> idList =  baseDao.geoApiNamedJbdcTemplate.query(PointQuery.INSERT_POINT.getSql(baseDao.getLogSchema()),
                         params, new PointIdHandler());
                 if (idList == null || idList.size() <= 0) {
                     return 0;
@@ -59,7 +59,7 @@ public class SqlPointLogger implements PointLogger
                 MapSqlParameterSource params = new MapSqlParameterSource();
                 params.addValue("latlon", "POINT (" + point.getLon() + " " + point.getLat() + ")");
 
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(PointQuery.GET_POINT_ID.getSql(baseDao.getLogSchema()),
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(PointQuery.GET_POINT_ID.getSql(baseDao.getLogSchema()),
                         params, new PointIdHandler());
 
                 if (idList.size() == 0) {

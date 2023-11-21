@@ -2,9 +2,9 @@ package gov.nysenate.sage.dao.model.admin;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.admin.AdminUser;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -54,7 +54,7 @@ public class SqlAdminUserDao implements AdminUserDao
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("username", username);
-            List<AdminUser> adminUserList = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<AdminUser> adminUserList = baseDao.geoApiNamedJbdcTemplate.query(
                     AdminUserQuery.GET_ADMIN.getSql(baseDao.getPublicSchema()), params, new AdminUserHandler() );
             if (adminUserList != null && adminUserList.size() != 0 && adminUserList.get(0) != null) {
                 adminUser = adminUserList.get(0);
@@ -81,7 +81,7 @@ public class SqlAdminUserDao implements AdminUserDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("username", username);
             params.addValue("password", password);
-            baseDao.geoApiNamedJbdcTemaplate.update(AdminUserQuery.INSERT_ADMIN.getSql(baseDao.getPublicSchema()), params);
+            baseDao.geoApiNamedJbdcTemplate.update(AdminUserQuery.INSERT_ADMIN.getSql(baseDao.getPublicSchema()), params);
         }
         catch (Exception e) {
             logger.error("Failed to insert admin user!", e);

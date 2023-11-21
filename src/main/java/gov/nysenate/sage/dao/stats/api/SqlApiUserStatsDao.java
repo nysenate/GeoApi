@@ -3,12 +3,12 @@ package gov.nysenate.sage.dao.stats.api;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.api.SqlApiUserDao;
 import gov.nysenate.sage.model.stats.ApiUserStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,14 +37,14 @@ public class SqlApiUserStatsDao implements ApiUserStatsDao {
             params.addValue("to", to);
 
 
-            List<Map<Integer, ApiUserStats>> apiUserStatsMapList = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<Map<Integer, ApiUserStats>> apiUserStatsMapList = baseDao.geoApiNamedJbdcTemplate.query(
                     ApiUserStatsQuery.GET_REQUEST_COUNTS.getSql(baseDao.getLogSchema()), params ,new RequestCountHandler(sqlApiUserDao));
 
             Map<Integer, ApiUserStats> apiUserStatsMap = collapseListIntoMap(apiUserStatsMapList);
 
 
 
-            baseDao.geoApiNamedJbdcTemaplate.query(
+            baseDao.geoApiNamedJbdcTemplate.query(
                     ApiUserStatsQuery.GET_METHOD_COUNTS.getSql(baseDao.getLogSchema()),
                     params ,new MethodRequestCountHandler(apiUserStatsMap));
 
