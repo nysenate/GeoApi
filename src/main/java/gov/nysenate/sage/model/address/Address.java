@@ -17,7 +17,7 @@ import java.util.Arrays;
  */
 public class Address implements Serializable, Cloneable
 {
-    private static final String poBoxPattern = "(?i)PO\\s+Box\\s+\\d+";
+    private static final String poBoxPattern = "(?i)P\\.?O\\.?\\s+Box\\s+\\d+";
     /** Basic address components */
     protected String addr1 = "";
     protected String addr2 = "";
