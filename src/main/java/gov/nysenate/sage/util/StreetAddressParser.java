@@ -5,8 +5,8 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.StreetAddress;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -20,22 +20,19 @@ import java.util.regex.Pattern;
  * Parsing addresses is a core requirement for performing street file look-ups as well as
  * performing geocode caching as they both operate on StreetAddress objects.
  */
-public abstract class StreetAddressParser
-{
+public final class StreetAddressParser {
     public static Logger logger = LoggerFactory.getLogger(StreetAddressParser.class);
     public static final String SEP = "[ ,]+";
 
-    public static Set<String> streetTypeSet = AddressDictionary.streetTypeMap.keySet();
-    public static Set<String> highWaySet = AddressDictionary.highWayMap.keySet();
-    public static Set<String> unitSet = AddressDictionary.unitMap.keySet();
-    public static Set<String> dirSet = AddressDictionary.directionMap.keySet();
+    public static final Set<String> streetTypeSet = AddressDictionary.streetTypeMap.keySet();
+    public static final Set<String> highWaySet = AddressDictionary.highWayMap.keySet();
+    public static final Set<String> unitSet = AddressDictionary.unitMap.keySet();
+    public static final Set<String> dirSet = AddressDictionary.directionMap.keySet();
 
-    public static String unitRegex;
-    public static Pattern poBoxPattern = Pattern.compile("(?i)(?:PO|PO-|P\\.O|P\\.O\\.)\\s?(?:BOX)[#-:\\\\+]?\\s?(\\d+)");
+    public static final String unitRegex = "(" + StringUtils.join(unitSet, "|") + ")";
+    public static final Pattern poBoxPattern = Pattern.compile("(?i)P[.]?O[.]?-?\\s*BOX[#-:\\\\+]?\\s*(\\d+)");
 
-    static {
-        unitRegex = "(" + StringUtils.join(unitSet, "|") + ")";
-    }
+    private StreetAddressParser() {}
 
     /**
      * Parses address and normalizes.
@@ -520,9 +517,7 @@ public abstract class StreetAddressParser
     */
     private static void normalize(List<String> list)
     {
-        for (int i = 0; i < list.size(); i++) {
-            list.set(i, normalize(list.get(i)));
-        }
+        list.replaceAll(StreetAddressParser::normalize);
     }
 
     public static AddressView performInitCapsOnAddressView(AddressView addressView) {

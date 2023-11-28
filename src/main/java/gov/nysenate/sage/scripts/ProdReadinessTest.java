@@ -8,14 +8,13 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import static org.junit.Assert.*;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +23,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import static org.junit.Assert.assertEquals;
+
 public class ProdReadinessTest {
 
     private static Logger logger = LoggerFactory.getLogger(ProdReadinessTest.class);
@@ -31,6 +32,8 @@ public class ProdReadinessTest {
 
     Properties prop =  new Properties();
     private ArrayList<Address> testAddresses = new ArrayList<>();
+
+    private ArrayList<Address> badTestAddresses = new ArrayList<>();
     private ArrayList<Point> testPoints = new ArrayList<>();
     private ArrayList<Integer> testZips = new ArrayList<>();
 
@@ -45,13 +48,20 @@ public class ProdReadinessTest {
     }
 
     private void initializeTestAddresses() {
-        testAddresses.add(new Address("100 Nyroy Dr", "Troy", "NY", "12180"));
-        testAddresses.add(new Address("44 Fairlawn Ave","Albany","NY","12203"));
-        testAddresses.add(new Address("903 London Square Drive","Clifton Park","NY","12065"));
-        testAddresses.add(new Address("535 Highland Ave","Rochester","NY","14620"));
-        testAddresses.add(new Address("46-08 74th Street","Flushing","NY","11373"));
-        testAddresses.add(new Address("200 State Street","Albany","NY","12210"));
+
+        badTestAddresses.add(new Address("","Albany","NY","12205",6));
+        badTestAddresses.add(new Address("25 Smithtown Circle","Smithtown", "NY","11787",13));
+        badTestAddresses.add(new Address("25 Smithtown","Smithtown", "NY","11787",14));
+
+        testAddresses.add(new Address("100 Nyroy Dr", "Troy", "NY", "12180", 1));
+        testAddresses.add(new Address("44 Fairlawn Ave","Albany","NY","12203",2));
+        testAddresses.add(new Address("903 London Square Drive","Clifton Park","NY","12065",3));
+        testAddresses.add(new Address("535 Highland Ave","Rochester","NY","14620", 4));
+        testAddresses.add(new Address("46-08 74th Street","Flushing","NY","11373", 5));
+        testAddresses.add(new Address("200 State Street","Albany","NY","12210", 6));
     }
+
+
 
     private void initializeTestPoints() { //These correspond directly to the addresses in the testAddresses array
         testPoints.add(new Point(42.7410467,-73.6691371));
@@ -120,6 +130,10 @@ public class ProdReadinessTest {
         return convertObjToJson(this.testAddresses);
     }
 
+    private String turnBadAddressesIntoJson() {
+        return convertObjToJson(this.badTestAddresses);
+    }
+
     private String turnPointsIntoJson() {
         return convertObjToJson(this.testPoints);
     }
@@ -151,6 +165,12 @@ public class ProdReadinessTest {
                 assertEquals("\"SUCCESS\"", result.get("status").toString() ));
     }
 
+    private void badAddressBatchValidateResponseCheck(JsonNode jsonResponse) {
+        JsonNode results = jsonResponse.get("results");
+        results.forEach( (JsonNode result) ->
+                assertEquals("\"NO_ADDRESS_VALIDATE_RESULT\"", result.get("status").toString() ));
+    }
+
     public static void main(String[] args) throws Exception {
         ProdReadinessTest prodReadinessTest = new ProdReadinessTest();
 
@@ -177,6 +197,7 @@ public class ProdReadinessTest {
         String baseUrl = prodReadinessTest.getBaseUrl();
         JsonNode jsonResponse;
         String addressJson = prodReadinessTest.turnAddressesIntoJson();
+        String badAddressJson = prodReadinessTest.turnBadAddressesIntoJson();
         String pointJson = prodReadinessTest.turnPointsIntoJson();
 
         /**
@@ -249,10 +270,10 @@ public class ProdReadinessTest {
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
 
-        HttpURLConnection providerTigerValidate = prodReadinessTest.createHttpRequest(
+        HttpURLConnection providerNYSGeoValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=tiger");
-        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerTigerValidate);
+                "/api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210&provider=nysgeo");
+        jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerNYSGeoValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
 
@@ -285,14 +306,14 @@ public class ProdReadinessTest {
          */
         HttpURLConnection standardBluebirdValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/district/bluebird?addr=280 Madison Ave NY");
+                "/api/v2/district/bluebird?addr=280 Madison Ave New York NY");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(standardBluebirdValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
 
         HttpURLConnection splitBluebirdValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/district/bluebird?addr1=280 Madison Ave&state=NY");
+                "/api/v2/district/bluebird?addr1=280 Madison Ave New York&state=NY");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(splitBluebirdValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
@@ -331,7 +352,7 @@ public class ProdReadinessTest {
 
         HttpURLConnection geoProviderTigerDistAssignValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY&geoProvider=tiger");
+                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY&geoProvider=nysgeo");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(geoProviderTigerDistAssignValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
@@ -363,8 +384,17 @@ public class ProdReadinessTest {
                 baseUrl,
                 "/api/v2/address/validate/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(addressBatchValidate.getEntity().getContent());
+        logger.info("ADDRESS VALIDATION BATCH: " + jsonResponse);
         addressBatchValidate.close();
         prodReadinessTest.addressBatchValidateResponseCheck(jsonResponse);
+
+        CloseableHttpResponse badAddressBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/address/validate/batch", badAddressJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(badAddressBatchValidate.getEntity().getContent());
+        logger.info("BAD ADDRESS VALIDATION BATCH: " + jsonResponse);
+        badAddressBatchValidate.close();
+        prodReadinessTest.badAddressBatchValidateResponseCheck(jsonResponse);
 
         CloseableHttpResponse providerAisAddressBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
@@ -405,11 +435,11 @@ public class ProdReadinessTest {
         providerGoogleGeocodeBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
-        CloseableHttpResponse providerTigerBatchValidate = prodReadinessTest.createHttpPostRequest(
+        CloseableHttpResponse providerNYSGeoBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
-                "/api/v2/geo/geocode/batch?provider=tiger", addressJson);
-        jsonResponse = prodReadinessTest.getResponseFromInputStream(providerTigerBatchValidate.getEntity().getContent());
-        providerTigerBatchValidate.close();
+                "/api/v2/geo/geocode/batch?provider=nysgeo", addressJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(providerNYSGeoBatchValidate.getEntity().getContent());
+        providerNYSGeoBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
         /**
@@ -425,11 +455,14 @@ public class ProdReadinessTest {
         /**
          * Dist Assign Batch Validation
          */
+        logger.info("ADDRESS JSON" + addressJson);
         CloseableHttpResponse standardDistAssignBatchValidate = prodReadinessTest.createHttpPostRequest(
                 baseUrl,
                 "/api/v2/district/assign/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(standardDistAssignBatchValidate.getEntity().getContent());
+        logger.info("DISTRICT ASSIGN BATCH: " + jsonResponse);
         standardDistAssignBatchValidate.close();
+        logger.info("JSON RESPONSE" + jsonResponse);
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
         CloseableHttpResponse pointDistAssignBatchValidate = prodReadinessTest.createHttpPostRequest(
@@ -446,7 +479,16 @@ public class ProdReadinessTest {
                 baseUrl,
                 "/api/v2/district/bluebird/batch", addressJson);
         jsonResponse = prodReadinessTest.getResponseFromInputStream(standardBluebirdBatchValidate.getEntity().getContent());
+        logger.info("BLUEBIRD BATCH: " + jsonResponse);
         standardBluebirdBatchValidate.close();
+        prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
+
+        CloseableHttpResponse shapeFallBackBluebirdBatchValidate = prodReadinessTest.createHttpPostRequest(
+                baseUrl,
+                "/api/v2/district/bluebird/batch?provider=streetfile&uspsValidate=true&districtStrategy=shapeFallBack", addressJson);
+        jsonResponse = prodReadinessTest.getResponseFromInputStream(shapeFallBackBluebirdBatchValidate.getEntity().getContent());
+        logger.info("BLUBIRD BATCH 2: " + jsonResponse);
+        shapeFallBackBluebirdBatchValidate.close();
         prodReadinessTest.batchSuccessResponseCheck(jsonResponse);
 
         CloseableHttpResponse pointBluebirdBatchValidate = prodReadinessTest.createHttpPostRequest(

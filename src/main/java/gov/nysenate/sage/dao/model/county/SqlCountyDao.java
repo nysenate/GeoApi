@@ -2,12 +2,12 @@ package gov.nysenate.sage.dao.model.county;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.district.County;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,7 +35,7 @@ public class SqlCountyDao implements CountyDao
     public List<County> getCounties()
     {
         try {
-            return baseDao.geoApiNamedJbdcTemaplate.query(
+            return baseDao.geoApiNamedJbdcTemplate.query(
                     CountyQuery.GET_ALL_COUNTIES.getSql(baseDao.getPublicSchema()), new CountyHandler());
         }
         catch (Exception ex){
@@ -66,7 +66,7 @@ public class SqlCountyDao implements CountyDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("id", id);
 
-            List<County> countyList= baseDao.geoApiNamedJbdcTemaplate.query(
+            List<County> countyList= baseDao.geoApiNamedJbdcTemplate.query(
                     CountyQuery.GET_COUNTY_BY_ID.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
 
             if (countyList != null && countyList.get(0) != null) {
@@ -87,7 +87,7 @@ public class SqlCountyDao implements CountyDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("name", name);
 
-            List<County> countyList= baseDao.geoApiNamedJbdcTemaplate.query(
+            List<County> countyList= baseDao.geoApiNamedJbdcTemplate.query(
                     CountyQuery.GET_COUNTY_BY_NAME.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
 
             if (countyList != null && countyList.get(0) != null) {
@@ -107,7 +107,7 @@ public class SqlCountyDao implements CountyDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("fipsCode", fipsCode);
 
-            List<County> countyList= baseDao.geoApiNamedJbdcTemaplate.query(
+            List<County> countyList= baseDao.geoApiNamedJbdcTemplate.query(
                     CountyQuery.GET_COUNTY_BY_FIPS_CODE.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
 
             if (countyList != null && countyList.get(0) != null) {

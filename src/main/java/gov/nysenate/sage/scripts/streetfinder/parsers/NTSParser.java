@@ -2,6 +2,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
 import gov.nysenate.sage.util.AddressDictionary;
+
 import java.io.*;
 import java.util.Scanner;
 
@@ -38,7 +39,7 @@ public class NTSParser {
         fileWriter = new FileWriter(output);
         outputWriter = new PrintWriter(fileWriter);
         //add columns for the tsv file
-        outputWriter.print("street\ttown\tstate\tzip5\tbldg_lo_num\tbldg_lo_chr\tbldg_hi_num\tbldg_hi_chr\tbldg_parity\tapt_lo_num\tapt_lo_chr\tapt_hi_num\tapt_hi_chr\tapt_parity\telection_code\tcounty_code\t" +
+        outputWriter.print("street\ttown\tstate\tzip5\tbldg_lo_num\tbldg_lo_chr\tbldg_hi_num\tbldg_hi_chr\tbldg_parity\telection_code\tcounty_code\t" +
                 "assembly_code\tsenate_code\tcongressional_code\tboe_town_code\ttown_code\tward_code\tboe_school_code\tschool_code\tcleg_code\tcc_code\tfire_code\tcity_code\tvill_code\n");
     }
 
@@ -214,7 +215,7 @@ public class NTSParser {
 
             String potentialPreDirection = splitLine[temp].trim();
 
-            if(potentialPreDirection.equals("E.")) {
+            if (potentialPreDirection.equals("E.")) {
                 potentialPreDirection = "E";
             }
 
@@ -284,7 +285,7 @@ public class NTSParser {
                         //check that splitLine[i + 1] is 3 digits
                         //splitLine[i+1] is the ward code for all NTS files
                         //prevents any confusion between townName and townCode that is letters
-                        if(splitLine[i +1].matches("\\d+")) {
+                        if (splitLine[i +1].matches("\\d+")) {
                             //set townCodeIndex
                             townCodeIndex = i;
                             break;
@@ -296,19 +297,19 @@ public class NTSParser {
                         //check that splitLine[i + 1] is 3 digits
                         //splitLine[i+1] is the ward code for all NTS files
                         //prevents any confusion between townName and townCode that is letters
-                        if(splitLine[i +1].matches("\\d+")) {
+                        if (splitLine[i +1].matches("\\d+")) {
                             //set townCodeIndex
                             townCodeIndex = i;
                             break;
                         }
                     }
                     //A few files have townCodes of just 1 letter
-                } else if(splitLine[i].length() == 1) {
+                } else if (splitLine[i].length() == 1) {
                     if (splitLine[i].matches("^[A-Z]{1}")) {
                         //check that splitLine[i + 1] is 3 digits
                         //splitLine[i+1] is the ward code for all NTS files
                         //prevents any confusion between townName and townCode that is letters
-                        if(splitLine[i +1].matches("\\d+")) {
+                        if (splitLine[i +1].matches("\\d+")) {
                             //set townCodeIndex
                             townCodeIndex = i;
                             break;
@@ -705,7 +706,7 @@ public class NTSParser {
                 (new File(file));
         String currentLine = scanner.nextLine();
         //While there is more lines in the file
-        while(scanner.hasNext()) {
+        while (scanner.hasNext()) {
             currentLine = scanner.nextLine();
             parseLine(currentLine);
         }

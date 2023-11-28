@@ -11,8 +11,8 @@ import gov.nysenate.sage.service.address.ParallelAddressService;
 import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.service.geo.ParallelRevGeocodeService;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -28,7 +28,7 @@ public class BaseDao
 {
     private static Logger logger = LoggerFactory.getLogger(BaseDao.class);
     public JdbcTemplate geoApiJbdcTemplate;
-    public NamedParameterJdbcTemplate geoApiNamedJbdcTemaplate;
+    public NamedParameterJdbcTemplate geoApiNamedJbdcTemplate;
     public JdbcTemplate tigerJbdcTemplate;
     public NamedParameterJdbcTemplate tigerNamedJdbcTemplate;
 
@@ -46,7 +46,7 @@ public class BaseDao
     {
         this.databaseConfig = databaseConfig;
         this.geoApiJbdcTemplate = this.databaseConfig.geoApiJdbcTemplate();
-        this.geoApiNamedJbdcTemaplate = this.databaseConfig.geoApiNamedJdbcTemplate();
+        this.geoApiNamedJbdcTemplate = this.databaseConfig.geoApiNamedJdbcTemplate();
         this.tigerJbdcTemplate = this.databaseConfig.tigerJdbcTemplate();
         this.tigerNamedJdbcTemplate = this.databaseConfig.tigerNamedJdbcTemplate();
         this.parallelAddressService = parallelAddressService;

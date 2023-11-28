@@ -9,12 +9,12 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -79,7 +79,7 @@ public class SqlDistrictResultLogger implements DistrictResultLogger
                 params.addValue("matchLevel",dr.getDistrictMatchLevel().name());
                 params.addValue("resulttime",dr.getResultTime());
 
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(
                         DistrictResultQuery.INSERT_RESULT.getSql(baseDao.getLogSchema()),
                         params, new DistrictRequestIdHandler());
 

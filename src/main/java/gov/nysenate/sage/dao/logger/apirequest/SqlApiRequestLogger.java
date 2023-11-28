@@ -3,8 +3,8 @@ package gov.nysenate.sage.dao.logger.apirequest;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -42,7 +42,7 @@ public class SqlApiRequestLogger implements ApiRequestLogger
                 params.addValue("requestTypeName",apiRequest.getRequest());
                 params.addValue("serviceName", apiRequest.getService());
 
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(
                         ApiRequestQuery.INSERT_API_REQUEST.getSql(baseDao.getLogSchema()), params, new ApiRequestIdHandler());
                 int id = idList.get(0);
                 logger.debug("Saved apiRequest " + id + " to log");
@@ -61,7 +61,7 @@ public class SqlApiRequestLogger implements ApiRequestLogger
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("apiRequestId", apiRequestId);
 
-            List<ApiRequest> apiRequestList =  baseDao.geoApiNamedJbdcTemaplate.query(
+            List<ApiRequest> apiRequestList =  baseDao.geoApiNamedJbdcTemplate.query(
                     ApiRequestQuery.GET_API_REQUEST.getSql(baseDao.getLogSchema()), params,
                     new ListApiRequestResultHandler());
             if (!apiRequestList.isEmpty()) {
@@ -98,7 +98,7 @@ public class SqlApiRequestLogger implements ApiRequestLogger
                 sql = sql + " limit " + limit + " offset " + offset;
             }
 
-            return baseDao.geoApiNamedJbdcTemaplate.query(sql, params, new ListApiRequestResultHandler());
+            return baseDao.geoApiNamedJbdcTemplate.query(sql, params, new ListApiRequestResultHandler());
 
         }
         catch (Exception ex) {

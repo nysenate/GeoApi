@@ -2,8 +2,8 @@ package gov.nysenate.sage.dao.stats.geocode;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.stats.GeocodeStats;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -36,12 +36,12 @@ public class SqlGeocodeStatsDao implements GeocodeStatsDao
             params.addValue("from", from);
             params.addValue("to", to);
 
-            List<GeocodeStats> gsList = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<GeocodeStats> gsList = baseDao.geoApiNamedJbdcTemplate.query(
                     GeocodeStatsQuery.GET_TOTAL_COUNT.getSql(baseDao.getLogSchema()), params, new TotalCountsHandler());
             if (gsList != null && gsList.get(0) != null) {
                 GeocodeStats gs =  gsList.get(0);
                 List<GeocodeStats> geocodeStats =
-                        baseDao.geoApiNamedJbdcTemaplate.query(
+                        baseDao.geoApiNamedJbdcTemplate.query(
                                 GeocodeStatsQuery.GET_GEOCODER_USAGE.getSql(baseDao.getLogSchema()),
                                 params ,new GeocoderUsageHandler(gs));
                 return geocodeStats.get(0);

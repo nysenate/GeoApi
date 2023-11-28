@@ -5,12 +5,12 @@ import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.job.JobProcess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -53,7 +53,7 @@ public class SqlDistrictRequestLogger implements DistrictRequestLogger
                 params.addValue("districtStrategy",strategy);
                 params.addValue("requestTime",dr.getRequestTime());
 
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(
                         DistrictRequestQuery.INSERT_REQUEST.getSql(baseDao.getLogSchema()),
                         params, new DistrictRequestIdHandler());
                 dr.setId(idList.get(0));

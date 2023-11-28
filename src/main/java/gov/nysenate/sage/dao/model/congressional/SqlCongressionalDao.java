@@ -1,14 +1,13 @@
 package gov.nysenate.sage.dao.model.congressional;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.model.assembly.AssemblyQuery;
 import gov.nysenate.sage.model.district.Congressional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,7 +28,7 @@ public class SqlCongressionalDao implements CongressionalDao
     public List<Congressional> getCongressionals()
     {
         try {
-            return baseDao.geoApiNamedJbdcTemaplate.query(
+            return baseDao.geoApiNamedJbdcTemplate.query(
                     CongressionalQuery.GET_ALL_CONGRESSIONAL_MEMBERS
                             .getSql(baseDao.getPublicSchema()), new CongressionalHandler());
         }
@@ -46,7 +45,7 @@ public class SqlCongressionalDao implements CongressionalDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("district", district);
 
-            List<Congressional> congressionalList = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<Congressional> congressionalList = baseDao.geoApiNamedJbdcTemplate.query(
                     CongressionalQuery.GET_CONGRESSIONAL_MEMBER_BY_DISTRICT.getSql(baseDao.getPublicSchema()),
                     params, new CongressionalHandler());
 
@@ -71,7 +70,7 @@ public class SqlCongressionalDao implements CongressionalDao
             params.addValue("memberName", congressional.getMemberName());
             params.addValue("memberUrl",congressional.getMemberUrl());
 
-            int numRows = baseDao.geoApiNamedJbdcTemaplate.update(
+            int numRows = baseDao.geoApiNamedJbdcTemplate.update(
                     CongressionalQuery.INSERT_CONGRESSIONAL_MEMBER.getSql(baseDao.getPublicSchema()), params);
             if (numRows > 0) { logger.info("Added Congressional member " + congressional.getMemberName()); }
         }
@@ -98,7 +97,7 @@ public class SqlCongressionalDao implements CongressionalDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("district", district);
 
-            baseDao.geoApiNamedJbdcTemaplate.update(
+            baseDao.geoApiNamedJbdcTemplate.update(
                     CongressionalQuery.DELETE_CONGRESSIONAL_DISTRICT.getSql(baseDao.getPublicSchema()), params);
         }
         catch (Exception ex) {

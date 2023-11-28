@@ -16,6 +16,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
  */
 public class DistrictServiceValidator
 {
+
     /**
      * Perform basic null checks on the input parameters.
      * @return true if all required objects are set, false otherwise and sets status in districtResult

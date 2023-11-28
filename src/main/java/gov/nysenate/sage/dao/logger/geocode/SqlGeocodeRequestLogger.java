@@ -1,17 +1,17 @@
 package gov.nysenate.sage.dao.logger.geocode;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.logger.point.SqlPointLogger;
 import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
+import gov.nysenate.sage.dao.logger.point.SqlPointLogger;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
 import gov.nysenate.sage.model.job.JobProcess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -53,7 +53,7 @@ public class SqlGeocodeRequestLogger
                 params.addValue("useCache",geoRequest.isUseCache());
                 params.addValue("requestTime",geoRequest.getRequestTime());
 
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(GeocodeRequestQuery.INSERT_REQUEST.getSql(baseDao.getLogSchema()), params, new GeocodeRequestIdHandler());
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(GeocodeRequestQuery.INSERT_REQUEST.getSql(baseDao.getLogSchema()), params, new GeocodeRequestIdHandler());
                 geoRequest.setId(idList.get(0));
                 return idList.get(0);
             }

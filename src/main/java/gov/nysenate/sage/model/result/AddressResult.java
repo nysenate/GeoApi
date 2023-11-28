@@ -36,6 +36,9 @@ public class AddressResult extends BaseResult
         this.setStatusCode(status);
         this.setSource(sourceClass);
         this.setValidated(validated);
+        if (this.address != null) {
+            this.address.setUspsValidated(validated);
+        }
     }
 
     public Address getAddress()

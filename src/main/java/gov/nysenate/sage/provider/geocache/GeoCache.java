@@ -10,10 +10,10 @@ import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.StreetAddressParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -80,8 +80,11 @@ public class GeoCache implements GeocodeCacheService
             geocodedStreetAddress = new GeocodedStreetAddress(sa);
         }
 
+        GeocodedAddress reformedGeocodedAddress = geocodedStreetAddress.toGeocodedAddress();
+        reformedGeocodedAddress.getAddress().setId(address.getId());
+
         /* Validate and return */
-        if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedStreetAddress.toGeocodedAddress(), geocodeResult, false)) {
+        if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), reformedGeocodedAddress, geocodeResult, false)) {
             logger.info("Failed to find cache hit for " + address.toString());
         }
         return geocodeResult;

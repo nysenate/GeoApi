@@ -2,12 +2,12 @@ package gov.nysenate.sage.dao.model.job;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.job.JobUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,7 +31,7 @@ public class SqlJobUserDao implements JobUserDao
     public List<JobUser> getJobUsers()
     {
         try {
-            return baseDao.geoApiNamedJbdcTemaplate.query(
+            return baseDao.geoApiNamedJbdcTemplate.query(
                     JobUserQuery.GET_ALL_JOB_USERS.getSql(baseDao.getJobSchema()), new JobUserHandler());
         }
         catch (Exception sqlEx) {
@@ -52,7 +52,7 @@ public class SqlJobUserDao implements JobUserDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("id", id);
 
-            List<JobUser> jobUserList = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<JobUser> jobUserList = baseDao.geoApiNamedJbdcTemplate.query(
                     JobUserQuery.GET_JOB_USER_BY_ID.getSql(baseDao.getJobSchema()),
                     params, new JobUserHandler());
 
@@ -74,7 +74,7 @@ public class SqlJobUserDao implements JobUserDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("email", email);
 
-            List<JobUser> jobUserList = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<JobUser> jobUserList = baseDao.geoApiNamedJbdcTemplate.query(
                     JobUserQuery.GET_JOB_USER_BY_EMAIL.getSql(baseDao.getJobSchema()),
                     params, new JobUserHandler());
 
@@ -101,7 +101,7 @@ public class SqlJobUserDao implements JobUserDao
             params.addValue("active",jobUser.isActive());
             params.addValue("admin",jobUser.isAdmin());
 
-            return baseDao.geoApiNamedJbdcTemaplate.update(JobUserQuery.INSERT_JOB_USER.getSql(baseDao.getJobSchema()),
+            return baseDao.geoApiNamedJbdcTemplate.update(JobUserQuery.INSERT_JOB_USER.getSql(baseDao.getJobSchema()),
                     params);
         }
         catch (Exception sqlEx) {
@@ -118,7 +118,7 @@ public class SqlJobUserDao implements JobUserDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("id", jobUser.getId());
 
-            return baseDao.geoApiNamedJbdcTemaplate.update(JobUserQuery.REMOVE_JOB_USER.getSql(baseDao.getJobSchema()), params);
+            return baseDao.geoApiNamedJbdcTemplate.update(JobUserQuery.REMOVE_JOB_USER.getSql(baseDao.getJobSchema()), params);
         }
         catch (Exception sqlEx) {
             logger.error("Failed to remove JobUser in JobUserDao!");

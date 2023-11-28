@@ -2,12 +2,12 @@ package gov.nysenate.sage.dao.stats.api;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.stats.ApiUsageStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -47,7 +47,7 @@ public class SqlApiUsageStatsDao implements ApiUsageStatsDao
             params.addValue("to", to);
             params.addValue("requestInterval", requestInterval.field);
 
-            List<IntervalUsage> intervalUsageCounts = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<IntervalUsage> intervalUsageCounts = baseDao.geoApiNamedJbdcTemplate.query(
                     ApiUsageStatsQuery.GET_USAGE_STATS.getSql(baseDao.getLogSchema()),
                     params, new ApiIntervalUsageHandler());
 

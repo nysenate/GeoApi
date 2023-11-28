@@ -16,10 +16,10 @@ import gov.nysenate.sage.provider.geocode.NYSGeocoder;
 import gov.nysenate.sage.provider.geocode.TigerGeocoder;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.util.TimeUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -241,7 +241,7 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
         }
 
         /** Cache result */
-        if (CACHE_ENABLED && !cacheHit && !doNotCache) {
+        if (CACHE_ENABLED && !cacheHit && !doNotCache && geocodeResult.getGeocodedAddress().isValidGeocode()) {
             geocache.saveToCacheAndFlush(geocodeResult);
         }
         return geocodeResult;

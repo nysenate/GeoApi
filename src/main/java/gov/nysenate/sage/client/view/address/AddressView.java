@@ -15,6 +15,7 @@ public class AddressView
     protected String state = "";
     protected String zip5 = "";
     protected String zip4 = "";
+    protected Integer id = null;
 
     public AddressView(Address address)
     {
@@ -24,9 +25,10 @@ public class AddressView
         this.state = address.getState();
         this.zip5 = address.getZip5();
         this.zip4 = address.getZip4();
+        this.id = address.getId();
     }
 
-    public AddressView(String addr1, String addr2, String city, String state, String zip5, String zip4)
+    public AddressView(String addr1, String addr2, String city, String state, String zip5, String zip4, Integer id)
     {
         this.addr1 = addr1;
         this.addr2 = addr2;
@@ -34,6 +36,7 @@ public class AddressView
         this.state = state;
         this.zip5 = zip5;
         this.zip4 = zip4;
+        this.id = id;
     }
 
     public String getAddr1() {
@@ -58,5 +61,9 @@ public class AddressView
 
     public String getZip4() {
         return zip4;
+    }
+
+    public Integer getId() {
+        return id;
     }
 }

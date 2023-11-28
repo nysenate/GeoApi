@@ -3,8 +3,8 @@ package gov.nysenate.sage.dao.logger.exception;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
 import gov.nysenate.sage.util.FormatUtil;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ public class SqlExceptionLogger implements ExceptionLogger
             params.addValue("stackTrace",FormatUtil.toJsonString(sw.toString()));
             params.addValue("catchTime",catchTime);
 
-            baseDao.geoApiNamedJbdcTemaplate.query(ExceptionQuery.INSERT_EXCEPTION.getSql(baseDao.getLogSchema()),
+            baseDao.geoApiNamedJbdcTemplate.query(ExceptionQuery.INSERT_EXCEPTION.getSql(baseDao.getLogSchema()),
                     params, new ExceptionIdHandler());
         }
         catch (Exception ex2) {

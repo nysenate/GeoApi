@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.address.StreetFinderAddress;
+
 import java.io.IOException;
 
 /**
@@ -182,7 +183,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getSecondaryLow(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setSecondaryBldg_low(splitLine[10]);
+        //StreetFinderAddress.setSecondaryBldg_low(splitLine[10]);
     }
 
     /**
@@ -191,7 +192,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getSecondaryHigh(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
-        StreetFinderAddress.setSecondaryBldg_high(splitLine[11]);
+        //StreetFinderAddress.setSecondaryBldg_high(splitLine[11]);
     }
 
     /**
@@ -200,6 +201,7 @@ public class SuffolkParser extends NTSParser{
      * @param StreetFinderAddress
      */
     private void getSecondaryRangeType(String[] splitLine, StreetFinderAddress StreetFinderAddress) {
+        /*******
         if(splitLine[12].equals("E")) {
             StreetFinderAddress.setSecondaryBldg_parity("EVENS");
         } else if(splitLine[12].equals("O")) {
@@ -207,6 +209,7 @@ public class SuffolkParser extends NTSParser{
         } else if(splitLine[12].equals("B")) {
             StreetFinderAddress.setSecondaryBldg_parity("ALL");
         }
+        *******/
     }
 
     /**

@@ -5,14 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.UrlRequest;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -53,6 +51,12 @@ public class HttpNYSGeoDao {
                     + address.getCity() + "," + address.getZip5());
             String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
             geocodedAddress = getGeocodedAddress(url, false);
+            if (geocodedAddress == null) {
+                geocodedAddress = new GeocodedAddress(address, null);
+            } else {
+                geocodedAddress.setAddress(address);
+            }
+
         }
         catch (NullPointerException ex) {
             logger.error("Null pointer while performing google geocode!", ex);
