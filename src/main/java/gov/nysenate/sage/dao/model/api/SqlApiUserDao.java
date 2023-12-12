@@ -2,12 +2,12 @@ package gov.nysenate.sage.dao.model.api;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.api.ApiUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,7 +34,7 @@ public class SqlApiUserDao implements ApiUserDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("id", id);
 
-            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemplate.query(
                     ApiUserQuery.GET_API_USER_BY_ID.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
 
             if (apiUserList != null) {
@@ -55,7 +55,7 @@ public class SqlApiUserDao implements ApiUserDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("name", name);
 
-            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemplate.query(
                     ApiUserQuery.GET_API_USER_BY_NAME.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
 
             if (apiUserList != null) {
@@ -76,7 +76,7 @@ public class SqlApiUserDao implements ApiUserDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("apikey", key);
 
-            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemaplate.query(ApiUserQuery.GET_API_USER_BY_KEY.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
+            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemplate.query(ApiUserQuery.GET_API_USER_BY_KEY.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
 
             if (apiUserList != null) {
                 return apiUserList.get(0);
@@ -93,7 +93,7 @@ public class SqlApiUserDao implements ApiUserDao
     public List<ApiUser> getApiUsers()
     {
         try {
-            return baseDao.geoApiNamedJbdcTemaplate.query(
+            return baseDao.geoApiNamedJbdcTemplate.query(
                     ApiUserQuery.GET_ALL_API_USERS.getSql(baseDao.getPublicSchema()), new ApiUserHandler());
         }
         catch (Exception sqlEx) {
@@ -113,7 +113,7 @@ public class SqlApiUserDao implements ApiUserDao
             params.addValue("description",  apiUser.getDescription());
             params.addValue("admin", apiUser.isAdmin());
 
-            return baseDao.geoApiNamedJbdcTemaplate.update(
+            return baseDao.geoApiNamedJbdcTemplate.update(
                     ApiUserQuery.INSERT_API_USER.getSql(baseDao.getPublicSchema()), params);
         }
         catch (Exception sqlEx) {
@@ -130,7 +130,7 @@ public class SqlApiUserDao implements ApiUserDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("id", apiUser.getId());
 
-            return baseDao.geoApiNamedJbdcTemaplate.update(
+            return baseDao.geoApiNamedJbdcTemplate.update(
                     ApiUserQuery.REMOVE_API_USER.getSql(baseDao.getPublicSchema()), params);
         }
         catch (Exception sqlEx) {

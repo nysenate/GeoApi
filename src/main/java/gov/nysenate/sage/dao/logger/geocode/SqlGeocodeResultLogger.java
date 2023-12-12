@@ -1,8 +1,8 @@
 package gov.nysenate.sage.dao.logger.geocode;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.logger.point.SqlPointLogger;
 import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
+import gov.nysenate.sage.dao.logger.point.SqlPointLogger;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
@@ -12,8 +12,8 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocache.GeoCache;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -90,7 +90,7 @@ public class SqlGeocodeResultLogger implements GeocodeResultLogger
                 params.addValue("latLonId",(latLonId > 0) ? latLonId : null);
                 params.addValue("resultTime",geocodeResult.getResultTime());
 
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(
                         GeocodeResultQuery.INSERT_RESULT.getSql(baseDao.getLogSchema()),
                         params, new GeocodeResultIdHandler());
 

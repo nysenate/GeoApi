@@ -93,7 +93,8 @@ public class NYSAddressPoint {
     }
 
     public Address toAddress() {
-        return new Address(addressLabel, cityTownName, state, zipCode);
+        // Validation seems to do better without a city name since it is sometimes incorrect.
+        return new Address(addressLabel, "", state, zipCode);
     }
 
     public String getOid() {

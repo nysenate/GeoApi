@@ -2,12 +2,12 @@ package gov.nysenate.sage.dao.model.assembly;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.district.Assembly;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,7 +28,7 @@ public class SqlAssemblyDao implements AssemblyDao
     public List<Assembly> getAssemblies()
     {
         try {
-            return baseDao.geoApiNamedJbdcTemaplate.query(
+            return baseDao.geoApiNamedJbdcTemplate.query(
                     AssemblyQuery.GET_ALL_ASSEMBLY_MEMBERS.getSql(baseDao.getPublicSchema()), new AssemblyHandler());
         }
         catch (Exception ex){
@@ -44,7 +44,7 @@ public class SqlAssemblyDao implements AssemblyDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("district", district);
 
-            List<Assembly> assemblyList = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<Assembly> assemblyList = baseDao.geoApiNamedJbdcTemplate.query(
                     AssemblyQuery.GET_ASSMEBLY_MEMBER_BY_DISTRICT.getSql(baseDao.getPublicSchema()),
                     params, new AssemblyHandler());
             if (assemblyList == null || assemblyList.size() <= 0) {
@@ -68,7 +68,7 @@ public class SqlAssemblyDao implements AssemblyDao
             params.addValue("memberName", assembly.getMemberName());
             params.addValue("memberUrl",assembly.getMemberUrl());
 
-            int numRows = baseDao.geoApiNamedJbdcTemaplate.update(
+            int numRows = baseDao.geoApiNamedJbdcTemplate.update(
                     AssemblyQuery.INSERT_ASSEMBLY_MEMBER.getSql(baseDao.getPublicSchema()), params);
             if (numRows > 0) { logger.info("Added Assembly member " + assembly.getMemberName()); }
         }
@@ -95,7 +95,7 @@ public class SqlAssemblyDao implements AssemblyDao
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("district", district);
 
-            baseDao.geoApiNamedJbdcTemaplate.update(
+            baseDao.geoApiNamedJbdcTemplate.update(
                     AssemblyQuery.DELETE_ASSEMBLY_DISTRICT.getSql(baseDao.getPublicSchema()), params);
         }
         catch (Exception ex) {

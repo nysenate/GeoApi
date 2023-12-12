@@ -4,8 +4,8 @@ import gov.nysenate.sage.dao.provider.usps.HttpUSPSAMSDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,10 +51,14 @@ public class USPSAMS implements AddressService
             List<AddressResult> results = httpUSPSAMSDao.getValidatedAddressResults(addresses);
             if (results != null && results.size() == addresses.size()) {
                 for (AddressResult result : results) {
+                    if (result.getAddress() != null) {
+                        result.getAddress().setUspsValidated( result.isValidated() );
+                    }
                     result.setSource(this.getClass());
                 }
                 return results;
             }
+            //TODO Determine if this else block should stay. It could be unreachable with current code flow changes
             else {
                 List<AddressResult> errorResults = new ArrayList<>();
                 for (int i = 0; i < addresses.size(); i++) {

@@ -10,8 +10,10 @@ import gov.nysenate.sage.provider.address.USPSAIS;
 import gov.nysenate.sage.provider.address.USPSAMS;
 import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.TimeUtil;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -112,39 +114,34 @@ public class AddressServiceProvider implements AddressProvider
      * @param usePunct Apply address punctuation to each result.
      * @return List<AddressResult>
      */
-    public List<AddressResult> validate(List<Address> addresses, String provider, Boolean usePunct)
-    {
-        List<AddressResult> addressResults = new ArrayList<>();
-        Timestamp startTime = TimeUtil.currentTimestamp();
-        if (addresses != null && !addresses.isEmpty()) {
-            logger.info(String.format("Performing USPS correction on %d addresses.", addresses.size()));
+    public List<AddressResult> validate(List<Address> addresses, String provider, Boolean usePunct) {
+        if (CollectionUtils.isEmpty(addresses)) {
+            return new ArrayList<>();
+        }
 
-            if (this.providers.containsKey(provider)) {
-                addressResults = this.providers.get(provider).validate(addresses);
-                logger.info(String.format("USPS validate time: %d ms.", TimeUtil.getElapsedMs(startTime)));
-                if (usePunct) {
-                    for (AddressResult addressResult : addressResults) {
-                        if (addressResult != null && addressResult.isValidated()) {
-                            addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
-                        }
-                    }
-                }
-            }
-            else {
-                for (int i = 0; i < addresses.size(); i++) {
-                    addressResults.add(new AddressResult(this.getClass(), ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED));
+        logger.info(String.format("Performing USPS correction on %d addresses.", addresses.size()));
+        Timestamp startTime = TimeUtil.currentTimestamp();
+
+        AddressService providerService = StringUtils.isEmpty(provider) ? this.defaultProvider : this.providers.get(provider);
+        List<AddressResult> addressResults = providerService.validate(addresses);
+        logger.info(String.format("USPS validate time: %d ms.", TimeUtil.getElapsedMs(startTime)));
+
+        if (usePunct) {
+            for (AddressResult addressResult : addressResults) {
+                if (addressResult != null && addressResult.isValidated()) {
+                    addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
                 }
             }
         }
+
         //log batch results here
         if (BATCH_LOGGING_ENABLED) {
-            for (AddressResult addressResult: addressResults) {
+            for (AddressResult addressResult : addressResults) {
                 try {
                     if (addressResult.getAddress() != null) {
                         sqlAddressLogger.logAddress(addressResult.getAddress());
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     logger.warn("Failed to insert address result in the DB " + e.getMessage());
                 }
             }

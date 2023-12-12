@@ -84,6 +84,42 @@ public class DataGenController {
         setAdminResponse(apiResponse, response);
     }
 
+    /**
+     * Vacantize Senator Data Api
+     * -----------------------
+     * <p>
+     * Generates and replaces the Senator table with vacant senator data
+     * <p>
+     * Usage:
+     * (GET)    /admin/datagen/vacantize
+     *
+     * @param request  HttpServletRequest
+     * @param response HttpServletResponse
+     * @param username String
+     * @param password String
+     */
+    @RequestMapping(value = "/vacantize", method = RequestMethod.GET)
+    public void vacantizeSenatorData(HttpServletRequest request, HttpServletResponse response,
+                                 @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                 @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                 @RequestParam(required = false, defaultValue = "") String key) {
+        Object apiResponse;
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+            try {
+                apiResponse = dataGenService.vacantizeSenateData();
+            } catch (Exception e) {
+                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+            }
+        } else {
+            apiResponse = invalidAuthResponse();
+        }
+        setAdminResponse(apiResponse, response);
+    }
 
     /**
      * Senator Cache Update Api

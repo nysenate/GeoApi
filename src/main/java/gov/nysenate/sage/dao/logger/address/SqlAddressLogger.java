@@ -2,8 +2,8 @@ package gov.nysenate.sage.dao.logger.address;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -34,7 +34,7 @@ public class SqlAddressLogger implements AddressLogger
                 if (retrievedId > 0) return retrievedId;
 
                 MapSqlParameterSource params = getAddrParams(address);
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(AddressQuery.INSERT_ADDRESS.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(AddressQuery.INSERT_ADDRESS.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
                 if (idList == null || idList.size() <= 0) {
                     return 0;
                 }
@@ -54,7 +54,7 @@ public class SqlAddressLogger implements AddressLogger
             try {
 
                 MapSqlParameterSource params = getAddrParams(address);
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemaplate.query(AddressQuery.GET_ADDRESS_ID.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
+                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(AddressQuery.GET_ADDRESS_ID.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
                 if (idList == null || idList.size() <= 0) {
                     return 0;
                 }

@@ -3,12 +3,12 @@ package gov.nysenate.sage.dao.stats.deployment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.stats.Deployment;
 import gov.nysenate.sage.model.stats.DeploymentStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,7 +30,7 @@ public class SqlDeploymentStatsDao implements DeploymentStatsDao
     public DeploymentStats getDeploymentStats()
     {
         try {
-            List<Deployment> deployments = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<Deployment> deployments = baseDao.geoApiNamedJbdcTemplate.query(
                     DeploymentStatsQuery.SELECT_DEPLOY_STATS.getSql(baseDao.getLogSchema()), new DeploymentStatsMapper());
             return new DeploymentStats(deployments);
         }
@@ -48,7 +48,7 @@ public class SqlDeploymentStatsDao implements DeploymentStatsDao
             params.addValue("since", since);
             params.addValue("until", until);
 
-            List<Deployment> deployments = baseDao.geoApiNamedJbdcTemaplate.query(
+            List<Deployment> deployments = baseDao.geoApiNamedJbdcTemplate.query(
                     DeploymentStatsQuery.SELECT_TIME_RANGE_STATS.getSql(
                             baseDao.getLogSchema()), params, new DeploymentStatsMapper());
             return new DeploymentStats(deployments);

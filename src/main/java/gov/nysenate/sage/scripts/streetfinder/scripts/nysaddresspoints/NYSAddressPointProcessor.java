@@ -78,59 +78,55 @@ public class NYSAddressPointProcessor {
         ResultIterator<NYSAddressPoint, ParsingContext> iterator = tsvRoutines.iterate(NYSAddressPoint.class, reader).iterator();
 
         int batchNum = 1;
-        List<NYSAddressPoint> addressPointsBatch;
+        List<NYSAddressPoint> batch;
         do {
-            addressPointsBatch = new ArrayList<>(batchSize);
-            while (addressPointsBatch.size() < batchSize && iterator.hasNext()) {
+            batch = new ArrayList<>(batchSize);
+            while (batch.size() < batchSize && iterator.hasNext()) {
                 NYSAddressPoint point = iterator.next();
-                addressPointsBatch.add(point);
+                batch.add(point);
             }
             // Process each batch
-            List<AddressPointValidationResult> validationResults = validateBatch(addressPointsBatch);
-            processValidatedAddresses(validationResults, batchSize, saveNycToSeparateFile, outputFile, nycOutputFile);
-            processUnvalidatedAddresses(validationResults, errorFile);
+            List<AddressPointValidationResult> validationResults = processBatch(batch);
+            saveResults(validationResults, outputFile, nycOutputFile, errorFile, saveNycToSeparateFile);
             logger.info("Done processing batch number {}", batchNum);
             batchNum++;
-        } while (addressPointsBatch.size() == batchSize);
+        } while (batch.size() == batchSize);
     }
 
-    private List<AddressPointValidationResult> validateBatch(List<NYSAddressPoint> batch) {
-        List<Address> batchAddresses = batch.stream().map(NYSAddressPoint::toAddress).collect(Collectors.toList());
-        List<AddressResult> results = addressServiceProvider.validate(batchAddresses, "usps", false);
-        return IntStream.range(0, results.size())
-                .mapToObj(i -> new AddressPointValidationResult(batch.get(i), results.get(i)))
-                .collect(Collectors.toList());
-    }
+    public List<AddressPointValidationResult> processBatch(List<NYSAddressPoint> batch) {
+        // Run through usps address validator.
+        List<AddressPointValidationResult> validationResults = validateBatch(batch);
 
-    /**
-     * Set street address on each successfully validated result. This separates the address number field from the street,
-     * it also gives us additional fields needed in the output tsv.
-     */
-    private void setStreetAddresses(List<AddressPointValidationResult> validationResults) {
-        for (var res : validationResults) {
-            if (res.validationResult().isValidated()) {
-                res.setStreetAddress(StreetAddressParser.parseAddress(res.validationResult().getAddress()));
+        for (var result : validationResults) {
+            if (result.validationResult().isValidated()) {
+                // For all successfully validated addresses.
+                //   - Set street addresses.
+                result.setStreetAddress(StreetAddressParser.parseAddress(result.validationResult().getAddress()));
+                //   - Lookup other district codes in SAGE.
+                Point p = new Point(result.addressPoint().latitude, result.addressPoint().longitude);
+                DistrictInfo info = districtShapeFileDao.getDistrictInfo(p, LOOKUP_DISTRICT_TYPES, false, false);
+                result.setLookedUpDistrictCodes(info.getDistrictCodes());
             }
         }
+        return validationResults;
     }
 
-    // Process successfully validated addresses.
-    private void processValidatedAddresses(List<AddressPointValidationResult> validationResults, int batchSize,
-                                           boolean saveNycToSeparateFile, String outputFile, String nycOutputFile) throws IOException {
-        List<AddressPointValidationResult> validated = validationResults.stream()
+    private void saveResults(List<AddressPointValidationResult> results, String outputFile, String nycOutputFile,
+                             String errorFile, boolean saveNycToSeparateFile) throws IOException {
+        // Save errors/unable to validate.
+        List<AddressPointValidationResult> notValidated = results.stream()
+                .filter(r -> !r.validationResult().isValidated())
+                .collect(Collectors.toList());
+
+        for (var res : notValidated) {
+            AddressPointFileWriter.appendToUnsuccessfulFile(errorFile, res);
+        }
+
+        List<AddressPointValidationResult> validated = results.stream()
                 .filter(r -> r.validationResult().isValidated())
                 .collect(Collectors.toList());
 
-        logger.info("Successfully validated " + validated.size() + " out of " + batchSize);
-
-        setStreetAddresses(validated);
-
-        // Lookup other district codes in SAGE.
-        for (var v : validated) {
-            Point p = new Point(v.addressPoint().latitude, v.addressPoint().longitude);
-            DistrictInfo info = districtShapeFileDao.getDistrictInfo(p, LOOKUP_DISTRICT_TYPES, false, false);
-            v.setLookedUpDistrictCodes(info.getDistrictCodes());
-        }
+        logger.info("Successfully validated " + validated.size() + " out of " + results.size());
 
         // Split into NYC and non NYC addresses.
         List<AddressPointValidationResult> nycAddresses = validated.stream()
@@ -157,15 +153,11 @@ public class NYSAddressPointProcessor {
         }
     }
 
-    // Process non-validated addresses.
-    private void processUnvalidatedAddresses(List<AddressPointValidationResult> validationResults,
-                                             String errorFileName) throws IOException {
-        List<AddressPointValidationResult> notValidated = validationResults.stream()
-                .filter(r -> !r.validationResult().isValidated())
+    private List<AddressPointValidationResult> validateBatch(List<NYSAddressPoint> batch) {
+        List<Address> batchAddresses = batch.stream().map(NYSAddressPoint::toAddress).collect(Collectors.toList());
+        List<AddressResult> results = addressServiceProvider.validate(batchAddresses, "usps", false);
+        return IntStream.range(0, results.size())
+                .mapToObj(i -> new AddressPointValidationResult(batch.get(i), results.get(i)))
                 .collect(Collectors.toList());
-
-        for (var res : notValidated) {
-            AddressPointFileWriter.appendToUnsuccessfulFile(errorFileName, res);
-        }
     }
 }

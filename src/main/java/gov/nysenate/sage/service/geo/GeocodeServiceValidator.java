@@ -11,10 +11,10 @@ import gov.nysenate.sage.provider.geocode.NYSGeocoder;
 import gov.nysenate.sage.provider.geocode.TigerGeocoder;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -164,10 +164,10 @@ public class GeocodeServiceValidator
             failedRequests.put(geocodeService, ++failedCount);
 
             /** If the failure count reaches the threshold, freeze the geocoder if not already. */
-            if (failedCount >= FAILURE_THRESHOLD && !frozenGeocoders.containsKey(geocodeService)) {
-                frozenGeocoders.put(geocodeService, TimeUtil.currentTimestamp());
-                logger.info("Temporarily blocking " + geocodeService.getSimpleName() + " for " + RETRY_INTERVAL_SECS + " secs due to consecutive failures.");
-            }
+//            if (failedCount >= FAILURE_THRESHOLD && !frozenGeocoders.containsKey(geocodeService)) {
+//                frozenGeocoders.put(geocodeService, TimeUtil.currentTimestamp());
+//                logger.info("Temporarily blocking " + geocodeService.getSimpleName() + " for " + RETRY_INTERVAL_SECS + " secs due to consecutive failures.");
+//            }
         }
     }
 

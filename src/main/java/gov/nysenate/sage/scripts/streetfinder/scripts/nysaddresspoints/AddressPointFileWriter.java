@@ -27,7 +27,7 @@ public class AddressPointFileWriter {
 
     static String toStreetfileRow(AddressPointValidationResult ap) {
         StringBuilder sb = new StringBuilder();
-        appendTsvColumn(sb, ap.streetAddress().getStreetName());
+        appendTsvColumn(sb, ap.fullStreetName());
         appendTsvColumn(sb, ap.streetAddress().getLocation());
         appendTsvColumn(sb, ap.streetAddress().getState());
         appendTsvColumn(sb, ap.streetAddress().getZip5());
@@ -35,17 +35,12 @@ public class AddressPointFileWriter {
         appendTsvColumn(sb, ap.streetAddress().getBldgChar());
         appendTsvColumn(sb, String.valueOf(ap.streetAddress().getBldgNum()));
         appendTsvColumn(sb, ap.streetAddress().getBldgChar());
-        appendTsvColumn(sb, ap.streetAddress().getBldgParity());
-        appendTsvColumn(sb, "\\N"); // apt_lo_num
-        appendTsvColumn(sb, "\\N"); // apt_lo_char
-        appendTsvColumn(sb, "\\N"); // apt_hi_num
-        appendTsvColumn(sb, "\\N"); // apt_hi_char
-        appendTsvColumn(sb, "ALL"); // apt_parity
+        appendTsvColumn(sb, "ALL");
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.ELECTION)); // election code
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.COUNTY)); // county_code
-        appendTsvColumn(sb, ap.addressPoint().assemblyDistrict); // assembly_code
-        appendTsvColumn(sb, ap.addressPoint().senateDistrict); // senate code
-        appendTsvColumn(sb, ap.addressPoint().congressionalDistrict); // congressional code
+        appendTsvColumn(sb, ap.addressPoint().assemblyDistrict == null ? "\\N" : ap.addressPoint().assemblyDistrict); // assembly_code
+        appendTsvColumn(sb, ap.addressPoint().senateDistrict == null ? "\\N" : ap.addressPoint().senateDistrict); // senate code
+        appendTsvColumn(sb, ap.addressPoint().congressionalDistrict == null ? "\\N" : ap.addressPoint().congressionalDistrict); // congressional code
         appendTsvColumn(sb, "\\N"); // boe town code
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.TOWN)); // town code
         appendTsvColumn(sb, ap.getLookupCodeTsvValue(DistrictType.WARD)); // ward code
@@ -73,11 +68,6 @@ public class AddressPointFileWriter {
         appendTsvColumn(sb, "bldg_hi_num");
         appendTsvColumn(sb, "bldg_hi_chr");
         appendTsvColumn(sb, "bldg_parity");
-        appendTsvColumn(sb, "apt_lo_num"); // apt_lo_num
-        appendTsvColumn(sb, "apt_lo_chr"); // apt_lo_char
-        appendTsvColumn(sb, "apt_hi_num"); // apt_hi_num
-        appendTsvColumn(sb, "apt_hi_chr"); // apt_hi_char
-        appendTsvColumn(sb, "apt_parity"); // apt_parity
         appendTsvColumn(sb, "election_code"); // election code
         appendTsvColumn(sb, "county_code"); // county_code
         appendTsvColumn(sb, "assembly_code"); // assembly_code

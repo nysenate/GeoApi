@@ -22,6 +22,7 @@ import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import gov.nysenate.services.NYSenateClientService;
 import gov.nysenate.services.NYSenateJSONClient;
+import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Office;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.io.IOUtils;
@@ -98,6 +99,47 @@ public class DataGenService implements SageDataGenService {
         }
 
         return apiResponse;
+    }
+
+    public Object vacantizeSenateData() {
+        boolean updated = false;
+        Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID );
+
+        ArrayList<Senator> vacantSenatorsList = new ArrayList<>();
+        //handle the empty ones
+        for (int i=0; i < 64; i++) {
+            Senator vacantSenator = new Senator();
+            vacantSenator.setDistrict(new District(i,"https://www.nysenate.gov/district/" + i));
+            vacantSenator.setShortName("Vacant");
+            vacantSenator.setName("Vacant District " + i);
+            vacantSenator.setFirstName("Vacant");
+            vacantSenator.setLastName("District");
+            vacantSenator.setImageUrl("https://www.nysenate.gov/themes/custom/nysenate_theme/dist/images/nys_logo_header240x240.jpg");
+            vacantSenatorsList.add(vacantSenator);
+        }
+
+        try {
+            //empty senator table in the database
+            sqlSenateDao.deleteSenators();
+            //insert new entries
+            for (Senator vacantSenator : vacantSenatorsList) {
+                sqlSenateDao.insertSenator(vacantSenator);
+            }
+            //Update Cache
+            sqlSenateDao.updateSenatorCache();
+            updated = true;
+        }
+        catch (Exception e) {
+            logger.error("Failed to vacantize the Senator table " + e);
+            apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        }
+
+        if (updated) {
+            return new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        }
+        else {
+            return apiResponse;
+        }
     }
 
 
@@ -217,9 +259,15 @@ public class DataGenService implements SageDataGenService {
         /** Retrieve the list of senators from the client API */
         List<Senator> senators = senateClient.getSenators();
 
+//        boolean[] emptySenators = new boolean[62];
+//        for (int i=0; i < 62; i++) {
+//            emptySenators[i] = true;
+//        }
+
         for (Senator senator : senators) {
             int district = senator.getDistrict().getNumber();
             if (district > 0) {
+//                emptySenators[district] = false;
                 Senator existingSenator = sqlSenateDao.getSenatorByDistrict(district);
                 for (Office office : senator.getOffices()) {
                     getUpdatedGeocode(office);
@@ -240,6 +288,20 @@ public class DataGenService implements SageDataGenService {
                 updated = true;
             }
         }
+        //handle the empty ones
+//        for (int i=0; i < 62; i++) {
+//            if (emptySenators[i] = true) {
+//                Senator vacantSenator = new Senator();
+//                vacantSenator.setDistrict(new District(i,"https://www.nysenate.gov/district/" + i));
+//                vacantSenator.setShortName("Vacant");
+//                vacantSenator.setName("Vacant");
+//                vacantSenator.setFirstName("Empty");
+//                vacantSenator.setLastName("District");
+//                vacantSenator.setImageUrl("https://www.nysenate.gov/sites/all/themes/nysenate/images/nys_logo224x224.png");
+//                updated = true;
+//            }
+//        }
+
         if (updated) {
             updateSenatorCache();
         }

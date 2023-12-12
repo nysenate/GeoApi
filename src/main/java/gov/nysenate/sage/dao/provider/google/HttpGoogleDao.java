@@ -10,10 +10,10 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.GeocodeUtil;
 import gov.nysenate.sage.util.UrlRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -70,6 +70,11 @@ public class HttpGoogleDao implements GoogleDao
             }
             String url = getBaseUrl() + formattedQuery;
             geocodedAddress = getGeocodedAddress(url);
+            if (geocodedAddress == null) {
+                geocodedAddress = new GeocodedAddress(address, null);
+            } else {
+                geocodedAddress.setAddress(address);
+            }
         }
         catch (UnsupportedEncodingException ex) {
             logger.error("UTF-8 encoding not supported!?", ex);

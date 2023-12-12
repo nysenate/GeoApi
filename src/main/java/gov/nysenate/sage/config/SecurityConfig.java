@@ -1,7 +1,6 @@
 package gov.nysenate.sage.config;
 
-import gov.nysenate.sage.service.security.ShiroCacheManager;
-import org.apache.shiro.cache.CacheManager;
+import org.apache.shiro.cache.MemoryConstrainedCacheManager;
 import org.apache.shiro.config.Ini;
 import org.apache.shiro.realm.Realm;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
@@ -11,7 +10,6 @@ import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -70,13 +68,8 @@ public class SecurityConfig
     @Bean(name = "securityManager")
     public DefaultWebSecurityManager securityManager() {
         DefaultWebSecurityManager defaultWebSecurityManager = new DefaultWebSecurityManager();
-        defaultWebSecurityManager.setCacheManager(shiroCacheManager());
+        defaultWebSecurityManager.setCacheManager(new MemoryConstrainedCacheManager());
         return defaultWebSecurityManager;
-    }
-
-    @Bean(name = "shiroCacheManager")
-    public CacheManager shiroCacheManager() {
-        return new ShiroCacheManager();
     }
 
     /**
