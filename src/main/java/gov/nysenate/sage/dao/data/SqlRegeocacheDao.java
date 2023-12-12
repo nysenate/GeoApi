@@ -128,7 +128,7 @@ public class SqlRegeocacheDao implements RegeocacheDao {
     public List<String> getAllZips() {
         return baseDao.geoApiJbdcTemplate.query(
                 RegeocacheQuery.SELECT_ZIPS.getSql(baseDao.getDistrictSchema()),
-                (rs, rowNum) -> rs.getString("zcta5ce10"));
+                (rs, rowNum) -> rs.getString("zip_code"));
     }
 
     public List<NYSGeoAddress> getBatchOfNysGeoDups(int nys_limit, int nys_offset) {

@@ -54,7 +54,7 @@ public enum RegeocacheQuery implements BasicSqlQuery {
             "set latlon = ST_GeomFromText(?), method = ?, quality = ?, zip4 = ?, updated = now()\n" +
             "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ? and zip5 = ? and location = ?;"),
 
-    SELECT_ZIPS("select zcta5ce10 from ${schema}." + SqlTable.DISTRICT_ZIP + ";"),
+    SELECT_ZIPS("select zip_code from ${schema}." + SqlTable.DISTRICT_ZIP + ";"),
 
     DUP_TOTAL_COUNT_SQL("SELECT count(*)\n" +
             "FROM " + SqlTable.ADDRESS_POINTS_SAM + " x\n" +

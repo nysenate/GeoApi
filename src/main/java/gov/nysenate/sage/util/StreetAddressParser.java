@@ -97,7 +97,7 @@ public abstract class StreetAddressParser
     {
         if (street != null && !street.isEmpty()) {
             List<String> parts = new ArrayList<>(Arrays.asList(street.split(" ")));
-            if (parts.size() > 0) {
+            if (!parts.isEmpty()) {
                 String streetPrefix = parts.get(0);
                 String replaceStreetPrefix = AddressDictionary.streetPrefixMap.get(streetPrefix.toUpperCase());
                 if (replaceStreetPrefix != null && !replaceStreetPrefix.isEmpty()) {
@@ -433,7 +433,7 @@ public abstract class StreetAddressParser
         String streetType = null;
         /** Look for regular street types. Street types have street names before type. */
         LinkedList<String> sList = new LinkedList<>(sts);
-        while (sList.size() > 0) {
+        while (!sList.isEmpty()) {
             String type = StringUtils.join(sList, " ");
             if (streetTypeSet.contains(type)) {
                 streetType = normalize(AddressDictionary.streetTypeMap.get(type));
@@ -450,7 +450,7 @@ public abstract class StreetAddressParser
          *  This essentially does the same search above but in reverse. */
         if (streetType == null) {
             sList = new LinkedList<>(sts);
-            while (sList.size() > 0) {
+            while (!sList.isEmpty()) {
                 String type = StringUtils.join(sList, " ");
                 if (highWaySet.contains(type)) {
                     streetAddress.setStreetType(normalize(AddressDictionary.highWayMap.get(type)));
@@ -477,7 +477,7 @@ public abstract class StreetAddressParser
     private static String extractInternal(LinkedList<String> candidates, LinkedList<String> streetList, StreetAddress streetAddress)
     {
         String internal = "";
-        while (candidates.size() > 0) {
+        while (!candidates.isEmpty()) {
             String s = candidates.peek();
             if (unitSet.contains(s) || unitSet.contains(s.replace("#", "")) || s.contains("#")) {
                 String unit = AddressDictionary.unitMap.get(s);

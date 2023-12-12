@@ -8,22 +8,22 @@ import java.util.*;
 public final class AddressDictionary {
     public static final ImmutableMap<String, String>
             stateMap = getMap(
-            "AL","Alabama", "AK","Alaska", "AS","American Samoa", "AZ","Arizona",
-            "AR","Arkansas", "CA","California", "CO","Colorado", "CT","Connecticut",
-            "DE","Delaware", "DC","District of Columbia", "FM","Federated States of Micronesia", "FL","Florida",
-            "GA","Georgia", "GU","Guam", "HI","Hawaii", "ID","Idaho",
-            "IL","Illinois", "IN","Indiana", "IA","Iowa", "KS","Kansas",
-            "KY","Kentucky", "LA","Louisiana", "ME","Maine", "MH","Marshall Islands",
-            "MD","Maryland", "MA","Massachusetts", "MI","Michigan", "MN","Minnesota",
-            "MS","Mississippi", "MO","Missouri", "MT","Montana", "NE","Nebraska",
-            "NV","Nevada", "NH","New Hampshire", "NJ","New Jersey", "NM","New Mexico",
-            "NY","New York", "NC","North Carolina", "ND","North Dakota", "MP","Northern Mariana Islands",
-            "OH","Ohio", "OK","Oklahoma", "OR","Oregon", "PW","Palau",
-            "PA","Pennsylvania", "PR","Puerto Rico", "RI","Rhode Island", "SC","South Carolina",
-            "SD","South Dakota", "TN","Tennessee", "TX","Texas", "UT","Utah",
-            "VT","Vermont", "VI","Virgin Islands", "VA","Virginia", "WA","Washington",
-            "WV","West Virginia", "WI","Wisconsin", "WY","Wyoming"
-    ),
+                    "AL","Alabama", "AK","Alaska", "AS","American Samoa", "AZ","Arizona",
+                    "AR","Arkansas", "CA","California", "CO","Colorado", "CT","Connecticut",
+                    "DE","Delaware", "DC","District of Columbia", "FM","Federated States of Micronesia", "FL","Florida",
+                    "GA","Georgia", "GU","Guam", "HI","Hawaii", "ID","Idaho",
+                    "IL","Illinois", "IN","Indiana", "IA","Iowa", "KS","Kansas",
+                    "KY","Kentucky", "LA","Louisiana", "ME","Maine", "MH","Marshall Islands",
+                    "MD","Maryland", "MA","Massachusetts", "MI","Michigan", "MN","Minnesota",
+                    "MS","Mississippi", "MO","Missouri", "MT","Montana", "NE","Nebraska",
+                    "NV","Nevada", "NH","New Hampshire", "NJ","New Jersey", "NM","New Mexico",
+                    "NY","New York", "NC","North Carolina", "ND","North Dakota", "MP","Northern Mariana Islands",
+                    "OH","Ohio", "OK","Oklahoma", "OR","Oregon", "PW","Palau",
+                    "PA","Pennsylvania", "PR","Puerto Rico", "RI","Rhode Island", "SC","South Carolina",
+                    "SD","South Dakota", "TN","Tennessee", "TX","Texas", "UT","Utah",
+                    "VT","Vermont", "VI","Virgin Islands", "VA","Virginia", "WA","Washington",
+                    "WV","West Virginia", "WI","Wisconsin", "WY","Wyoming"
+            ),
             streetTypeMap = getMap(
                     "Aly", List.of("ALLEE", "ALLEY", "ALLY", "ALY"), "Anx", List.of("ANEX", "ANNEX", "ANNX", "ANX"),
                     "Arc", List.of("ARC", "ARCADE"), "Ave", List.of("AV", "AVE", "AVEN", "AVENU", "AVENUE", "AVN", "AVNUE"),
@@ -105,8 +105,7 @@ public final class AddressDictionary {
                     "Rdgs", List.of("RDGS", "RIDGES"), "Rds", List.of("RDS", "ROADS"),
                     "Riv", List.of("RIV", "RIVER", "RIVR", "RVR"), "Rnch", List.of("RANCH", "RANCHES", "RNCH", "RNCHS"),
                     "Row", List.of("ROW"), "Rpd", List.of("RAPID", "RPD"), "Rpds", List.of("RAPIDS", "RPDS"),
-                    "Rst", List.of("REST", "RST"), "Rte", List.of("RTE"), "Rue", List.of("RUE"),
-                    "Run", List.of("RUN"),
+                    "Rst", List.of("REST", "RST"), "Rue", List.of("RUE"), "Run", List.of("RUN"),
                     "Shl", List.of("SHL", "SHOAL"), "Shls", List.of("SHLS", "SHOALS"),
                     "Shr", List.of("SHOAR", "SHORE", "SHR"), "Shrs", List.of("SHOARS", "SHORES", "SHRS"),
                     "Skwy", List.of("SKWY", "SKYWAY"), "Smt", List.of("SMT", "SUMIT", "SUMITT", "SUMMIT"),
@@ -134,15 +133,27 @@ public final class AddressDictionary {
                     "Wl", List.of("WELL", "WL"), "Wls", List.of("WELLS", "WLS"),
                     "Xing", List.of("CROSSING", "CRSSING", "CRSSNG", "XING"), "Xrd", List.of("CROSSROAD", "XRD")
             ),
-            unitMap = getMap(
+            unitNoNumMap = getMap(
+                    "BSMT", List.of("BASEMENT", "BSMT"),
+                    "FRNT", List.of("FRNT"),
+                    "LEFT", List.of("LEFT"),
+                    "LBBY", List.of("LBBY", "LOBBY"),
+                    "LOWR", List.of("LOWER", "LOWR"),
+                    "PH", List.of("PENTHOUSE", "PH"),
+                    "REAR", List.of("REAR"),
+                    "RIGHT", List.of("RIGHT"),
+                    "UPPR", List.of("UPPER", "UPPR")
+            ),
+            unitNumMap = getMap(
                     "APT", List.of("APARTMENT", "APT"), "BLDG", List.of("BLDG", "BUILDING"),
-                    "BSMT", List.of("BASEMENT", "BSMT"), "DEPT", List.of("DEPARTMENT", "DEPT"),
-                    "FL", List.of("FL", "FLOOR"), "FRNT", List.of("FRNT"), "HNGR", List.of("HANGAR", "HNGR"),
-                    "LBBY", List.of("LBBY", "LOBBY"), "LOT", List.of("LOT"), "LOWR", List.of("LOWER", "LOWR"),
-                    "OFC", List.of("OFC", "OFFICE"), "PH", List.of("PENTHOUSE", "PH"),
-                    "PIER", List.of("PIER"), "REAR", List.of("REAR"), "RM", List.of("RM", "ROOM"),
+                    "DEPT", List.of("DEPARTMENT", "DEPT"), "FL", List.of("FL", "FLOOR"),
+                    "HNGR", List.of("HANGAR", "HNGR"), "LOT", List.of("LOT"),
+                    "OFC", List.of("OFC", "OFFICE"), "PIER", List.of("PIER"), "RM", List.of("RM", "ROOM"),
                     "SIDE", List.of("SIDE"), "SLIP", List.of("SLIP"), "SPC", List.of("SPACE", "SPC"),
                     "STE", List.of("STE", "SUITE"), "STOP", List.of("STOP"), "TRLR", List.of("TRAILER", "TRLR")
+            ),
+            unitMap = getUnitMap(
+
             ),
             highWayMap = getMap(
                     "Cam", List.of("CAM", "CAM.", "CAMINO"), "Co Hwy", List.of("CO HWY", "COUNTY HIGH WAY", "COUNTY HIGHWAY", "COUNTY HWY"),
@@ -154,7 +165,7 @@ public final class AddressDictionary {
                     "Fwy", List.of("FREEWAY", "FREEWY", "FRWAY", "FRWY", "FWY"),
                     "Hwy", List.of("HIGHWAY", "HIGHWY", "HIWAY", "HIWY", "HWAY", "HWY"),
                     "I-", List.of("I", "I-", "INTERSTATE", "INTERSTATE ROUTE", "INTERSTATE RT", "INTERSTATE RTE", "INTERSTATE RTE."),
-                    "Rte", List.of("ROUTE", "RT"), "State Hwy", List.of("STATE HIGH WAY", "STATE HIGHWAY", "STATE HWY"),
+                    "Rte", List.of("ROUTE", "RT", "RTE"), "State Hwy", List.of("STATE HIGH WAY", "STATE HIGHWAY", "STATE HWY"),
                     "State Rd", List.of("STATE RD", "STATE ROAD"), "State Rte", List.of("STATE ROUTE", "STATE RT", "STATE RTE"),
                     "Tpke", List.of("TPK", "TPKE", "TRNPK", "TRPK", "TURNPIKE", "TURNPK"),
                     "US Hwy", List.of("U.S.", "US HIGH WAY", "US HIGHWAY", "US HWY"),
@@ -185,6 +196,12 @@ public final class AddressDictionary {
             }
         }
         return ImmutableSortedMap.copyOf(currMap);
+    }
+
+    private static ImmutableSortedMap<String, String> getUnitMap() {
+        var fullUnitMap = new HashMap<>(unitNoNumMap);
+        fullUnitMap.putAll(unitNumMap);
+        return ImmutableSortedMap.copyOf(fullUnitMap);
     }
 
     private static ImmutableSortedMap<String, String> getDirectionMap() {
