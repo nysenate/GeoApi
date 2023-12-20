@@ -102,7 +102,7 @@ public class DistrictResult extends BaseResult
     public Set<DistrictType> getAssignedDistricts()
     {
         return (this.getDistrictInfo() != null) ? this.getDistrictInfo().getAssignedDistricts()
-                                                : new HashSet<DistrictType>();
+                                                : new HashSet<>();
     }
 
     /**

@@ -57,7 +57,7 @@ public class BaseDao
     }
 
     @PreDestroy
-    public void destroy(){
+    public void destroy() {
         close();
     }
 
@@ -68,7 +68,7 @@ public class BaseDao
      */
     public static List<Line> getLinesFromJson(String jsonLines)
     {
-        if (jsonLines != null && !jsonLines.isEmpty() && jsonLines != "null") {
+        if (jsonLines != null && !jsonLines.isEmpty() && !jsonLines.equals("null")) {
             //logger.debug("jsonLines: " + jsonLines);
             List<Line> lines = new ArrayList<>();
             ObjectMapper objectMapper = new ObjectMapper();

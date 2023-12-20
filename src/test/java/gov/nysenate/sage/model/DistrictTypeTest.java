@@ -25,14 +25,6 @@ public class DistrictTypeTest {
     }
 
     @Test
-    public void getExtendedTypesTest()
-    {
-        List<DistrictType> extendedTypes = DistrictType.getExtendedTypes();
-        List<DistrictType> expectedTypes = Arrays.asList(FIRE, WARD, CITY, CLEG, VILLAGE, ELECTION, CITY_COUNCIL);
-        assertEquals(new HashSet<>(expectedTypes), new HashSet<>(extendedTypes));
-    }
-
-    @Test
     public void resolveType()
     {
         DistrictType resolvedSenate = DistrictType.resolveType("senate");

@@ -49,10 +49,7 @@ public class ParallelDistrictService implements SageParallelDistrictService
             try {
                 districtResults.add(districtResult.get());
             }
-            catch (InterruptedException ex) {
-                logger.error(ex.getMessage());
-            }
-            catch (ExecutionException ex) {
+            catch (InterruptedException | ExecutionException ex) {
                 logger.error(ex.getMessage());
             }
         }

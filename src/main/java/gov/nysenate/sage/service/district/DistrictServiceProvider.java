@@ -627,7 +627,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                     /** Fetch the neighbors and add them to the district info if it is allowed. */
                     if (allowNeighborAssignSet.contains(districtType)) {
                         Map<String, DistrictMap> neighborDistricts = shapeService.nearbyDistricts(geocodedAddress, districtType);
-                        if (neighborDistricts != null && neighborDistricts.size() > 0) {
+                        if (neighborDistricts != null && !neighborDistricts.isEmpty()) {
                             List<DistrictMap> neighborList = new ArrayList<>();
                             for (DistrictMap neighborMap : neighborDistricts.values()) {
                                 logger.trace("Adding " + districtType + " neighbor: " + neighborMap.getDistrictCode());
