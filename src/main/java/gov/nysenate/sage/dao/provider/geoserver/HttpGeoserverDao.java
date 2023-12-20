@@ -117,17 +117,13 @@ public class HttpGeoserverDao implements GeoserverDao
 
             String layer = feature.get("id").asText().split("\\.")[0];
             DistrictType districtType = DistrictType.resolveType(layer);
-            if (districtType != null){
-                /** Get the column names used in the shapefiles */
-                String nameColumn = DistrictShapeCode.getNameColumn(districtType);
-                String codeColumn = DistrictShapeCode.getCodeColumn(districtType);
-
-                /** Set the name, code, and map data for the district layer */
-                districtInfo.setDistName(districtType, properties.get(nameColumn).asText());
-                districtInfo.setDistCode(districtType, properties.get(codeColumn).asText());
+            if (districtType != null) {
+                // Set the name, code, and map data for the district layer
+                districtInfo.setDistName(districtType, properties.get(districtType.nameColumn()).asText());
+                districtInfo.setDistCode(districtType, properties.get(districtType.codeColumn()).asText());
                 districtInfo.setDistMap(districtType, getDistrictMapFromFeature(feature));
 
-                /** Handle county fips -> senate code conversion */
+                // Handle county fips -> senate code conversion
                 if (districtType == COUNTY){
                     Integer countyCode = Integer.valueOf(districtInfo.getDistCode(COUNTY));
                     districtInfo.setDistCode(COUNTY, Integer.toString(fipsCountyMap.get(countyCode).getId()));

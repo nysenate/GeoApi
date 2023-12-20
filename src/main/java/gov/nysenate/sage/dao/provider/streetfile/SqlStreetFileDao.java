@@ -393,7 +393,7 @@ public class SqlStreetFileDao implements StreetFileDao
             /** Iterate through all district types and ensure that the districts in the base range are consistent
              *  with the current range. If a district has a mismatch, then the district code in the base range is nullified.
              */
-            for (DistrictType distType : DistrictType.getAllTypes()) {
+            for (DistrictType distType : DistrictType.values()) {
 
                 String baseCode = baseDist.getDistCode(distType);
                 String baseCounty = baseDist.getDistCode(COUNTY);
@@ -403,12 +403,10 @@ public class SqlStreetFileDao implements StreetFileDao
                 String rangeTown = rangeDist.getDistCode(TOWN);
                 boolean baseCodeValid = baseDist.hasDistrictCode(distType);
                 boolean rangeCodeValid = rangeDist.hasDistrictCode(distType);
-                boolean isCountyBased = DistrictType.getCountyBasedTypes().contains(distType);
-                boolean isTownBased = DistrictType.getTownBasedTypes().contains(distType);
 
                 if ( !(baseCodeValid && rangeCodeValid && rangeCode.equals(baseCode))
-                                     || (isCountyBased && (rangeCounty == null || !rangeCounty.equals(baseCounty)))
-                                     || (isTownBased && (rangeTown == null || !rangeTown.equals(baseTown)))) {
+                                     || (distType.isCountyBased() && (rangeCounty == null || !rangeCounty.equals(baseCounty)))
+                                     || (distType.isTownBased() && (rangeTown == null || !rangeTown.equals(baseTown)))) {
                     baseDist.setDistCode(distType, null);
                 }
             }

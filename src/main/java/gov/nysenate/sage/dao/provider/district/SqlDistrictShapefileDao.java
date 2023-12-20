@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.dao.model.county.SqlCountyDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.GeometryTypes;
 import gov.nysenate.sage.model.geo.Line;
@@ -13,11 +12,11 @@ import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -31,38 +30,31 @@ import java.util.*;
  * overlaps and intersections between districts.
  */
 @Repository
-public class SqlDistrictShapefileDao implements DistrictShapeFileDao
-{
+public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
+    private static final Logger logger = LoggerFactory.getLogger(SqlDistrictShapefileDao.class);
     private static final String SCHEMA = "districts";
-    private final Logger logger = LoggerFactory.getLogger(SqlDistrictShapefileDao.class);
-    private BaseDao baseDao;
-    private SqlCountyDao sqlCountyDao;
-
     /** Memory Cached District Maps */
     private static Map<DistrictType, List<DistrictMap>> districtMapCache;
     private static Map<DistrictType, Map<String, DistrictMap>> districtMapLookup;
-
     /** Set of DistrictTypes that can't be cached effectively due to non-unique codes.
      * These district maps are retrieved during getDistrictInfo() queries. */
-    private static Set<DistrictType> retrieveMapSet = new HashSet<>();
-    static {
-        retrieveMapSet.add(DistrictType.SCHOOL);
-    }
+    private static final Set<DistrictType> retrieveMapSet = Set.of(DistrictType.SCHOOL);
+
+    private final BaseDao baseDao;
+    private final CountyDao countyDao;
 
     @Autowired
-    public SqlDistrictShapefileDao(BaseDao baseDao, SqlCountyDao sqlCountyDao) {
+    public SqlDistrictShapefileDao(BaseDao baseDao, CountyDao countyDao) {
         this.baseDao = baseDao;
-        this.sqlCountyDao = sqlCountyDao;
-        /** Initialize district map cache */
+        this.countyDao = countyDao;
         if (!cacheDistrictMaps()) {
             throw new RuntimeException("Failed to initialize district map cache");
-        };
+        }
     }
 
     /** {@inheritDoc} */
-    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps, boolean getProximity)
-    {
-        /** Template SQL for looking up district given a point */
+    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps, boolean getProximity) {
+        // Template SQL for looking up district given a point
         String sqlTmpl =
                 "SELECT '%s' AS type, %s AS name, %s as code " +
                         "%s, " + // <- mapQuery
@@ -70,39 +62,37 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
                 "FROM " + SCHEMA + ".%s " +
                 "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)' , " + "%s" + "))";
 
-        /** Iterate through all the requested types and format the template sql */
+        // Iterate through all the requested types and format the template sql
         ArrayList<String> queryList = new ArrayList<>();
-        for (DistrictType districtType : districtTypes){
-            if (DistrictShapeCode.contains(districtType)) {
-                String nameColumn = DistrictShapeCode.getNameColumn(districtType);
-                String codeColumn = resolveCodeColumn(districtType);
-                String srid = resolveSRID(districtType);
+        for (DistrictType districtType : districtTypes) {
+            String nameColumn = districtType.nameColumn();
+            if (nameColumn != null) {
                 String mapQuery = ((getSpecialMaps && retrieveMapSet.contains(districtType)) ? ", ST_AsGeoJson(geom) AS map"
                                                                                              : ", null as map");
                 String proximityQuery = "100000 as proximity";
                 if (getProximity) {
                     proximityQuery = "ST_DistanceSphere(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity";
-                    proximityQuery = String.format(proximityQuery, point.getLon(), point.getLat(), srid);
+                    proximityQuery = String.format(proximityQuery, point.getLon(), point.getLat(), districtType.sridColumn());
                 }
 
-                queryList.add(String.format(sqlTmpl, districtType, nameColumn, codeColumn, mapQuery, proximityQuery, districtType, point.getLon(), point.getLat(), srid)); // lon,lat is correct order
+                queryList.add(String.format(sqlTmpl, districtType, nameColumn, districtType.codeColumn(),
+                        mapQuery, proximityQuery, districtType, point.getLon(), point.getLat(), districtType.sridColumn())); // lon,lat is correct order
             }
         }
 
-        /** Combine the queries using UNION ALL */
+        // Combine the queries using UNION ALL
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
 
         try {
             return baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictInfoHandler());
-        }
-        catch (Exception ex){
+        } catch (Exception ex) {
             logger.error("" + ex);
         }
         return null;
     }
+
     private String resolveCode(DistrictType districtType, String id) {
         if (districtType.equals(DistrictType.COUNTY)) {
-            SqlCountyDao countyDao = new SqlCountyDao(baseDao);
             return String.valueOf(countyDao.getCountyById(Integer.parseInt(id)).getFipsCode());
         }
         return id;
@@ -113,20 +103,22 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
         for (String refCode : refCodes) {
             refCode = resolveCode(refDistrictType, refCode);
             refWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')",
-                    resolveCodeColumn(refDistrictType), StringEscapeUtils.escapeSql(refCode)));
+                    refDistrictType.codeColumn(), StringEscapeUtils.escapeSql(refCode)));
         }
         return StringUtils.join(refWhereList, " OR ");
     }
 
     /** {@inheritDoc} */
     public DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType, Set<String> targetCodes,
-                      DistrictType refDistrictType, Set<String> refCodes)
-    {
+                      DistrictType refDistrictType, Set<String> refCodes) {
 
-        if (targetCodes == null) targetCodes = new HashSet<>();
+        if (targetCodes == null) {
+            targetCodes = new HashSet<>();
+        }
 
-        String intersectSql = "ST_Intersection(ST_Transform(target.geom, %s), ST_Transform(source.geom, %s))";
-        intersectSql = String.format(intersectSql, resolveSRID(refDistrictType), resolveSRID(refDistrictType));
+        // TODO: seems wrong?
+        String intersectSql = "ST_Intersection(ST_Transform(target.geom, %s), ST_Transform(source.geom, %s))"
+                .formatted(refDistrictType.sridColumn(), refDistrictType.sridColumn());
         String intersectAreaSql = String.format(
                 "ST_Area(" +
                     "ST_Transform(%s , utmzone(ST_Centroid(target.geom)))" +
@@ -137,7 +129,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
             "    ST_Area( \n" +
             "        ST_Transform(source.geom, utmzone(ST_Centroid(source.geom)))\n" +
             "    ) AS source_area \n" +
-            /** Get intersection polygon*/
+            // Get intersection polygon
             String.format(", ST_AsGeoJson(ST_CollectionExtract(%s, 3)) AS intersect_geom \n", intersectSql) +
             "FROM " + SCHEMA + ".%s target, " +
             "     (SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s WHERE %s) AS source\n" +
@@ -148,10 +140,10 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
         List<String> targetWhereList = new ArrayList<>();
         for (String targetCode : targetCodes) {
             targetCode = resolveCode(targetDistrictType, targetCode);
-            targetWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", resolveCodeColumn(targetDistrictType), StringEscapeUtils.escapeSql(targetCode)));
+            targetWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", targetDistrictType.codeColumn(), StringEscapeUtils.escapeSql(targetCode)));
         }
-        String targetWhereSql = (targetWhereList.size() > 0) ? StringUtils.join(targetWhereList, " OR ") : intersectSql + " > 0";
-        String sqlQuery = String.format(sqlTmpl, resolveCodeColumn(targetDistrictType), targetDistrictType.name(), targetDistrictType.name(), refDistrictType.name(),
+        String targetWhereSql = targetWhereList.isEmpty() ? intersectSql + " > 0" : String.join(" OR ", targetWhereList);
+        String sqlQuery = String.format(sqlTmpl, targetDistrictType.codeColumn(), targetDistrictType.name(), targetDistrictType.name(), refDistrictType.name(),
                                                  refWhereSql, targetWhereSql);
         try {
             DistrictOverlap overlap = new DistrictOverlap(refDistrictType, targetDistrictType, refCodes, DistrictOverlap.AreaUnit.SQ_METERS);
@@ -164,8 +156,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
     }
 
     /** {@inheritDoc} */
-    public Map<String, List<Line>> getIntersectingStreetLine(DistrictType districtType, Set<String> codes, String jsonGeom)
-    {
+    public Map<String, List<Line>> getIntersectingStreetLine(DistrictType districtType, Set<String> codes, String jsonGeom) {
         String sqlTmpl =
             "SELECT %s AS code, '%s' AS type, ST_AsGeoJson(" +
                 "ST_CollectionExtract(" +
@@ -177,85 +168,75 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
         List<String> whereCodeList = new ArrayList<>();
         for (String code : codes) {
             whereCodeList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')",
-                    resolveCodeColumn(districtType), code));
+                    districtType.codeColumn(), code));
         }
         String whereSql = StringUtils.join(whereCodeList, " OR ");
-        String sql = String.format(sqlTmpl, resolveCodeColumn(districtType), districtType.name(), resolveSRID(districtType), whereSql);
+        String sql = String.format(sqlTmpl, districtType.codeColumn(), districtType.name(), districtType.sridColumn(), whereSql);
         try {
-            return baseDao.geoApiJbdcTemplate.query(sql, new StreetLineIntersectHandler(this.baseDao), jsonGeom);
-        }
-        catch (Exception ex) {
+            return baseDao.geoApiJbdcTemplate.query(sql, new StreetLineIntersectHandler(), jsonGeom);
+        } catch (Exception ex) {
             logger.error("Failed to retrieve intersecting district street lines!", ex);
         }
         return null;
     }
 
     /** {@inheritDoc} */
-    public DistrictMap getOverlapReferenceBoundary(DistrictType refDistrictType, Set<String> refCodes)
-    {
+    public DistrictMap getOverlapReferenceBoundary(DistrictType refDistrictType, Set<String> refCodes) {
         String sql = "SELECT ST_AsGeoJson(ST_CollectionExtract(source.geom, 3)) AS source_map \n" +
                      "FROM \n" +
                      "(SELECT ST_Union(geom) AS geom FROM " + SCHEMA + ".%s %s) AS source";
         String refWhereSql = "WHERE " +  gatherRefWhereSql(refDistrictType, refCodes);
         String sqlQuery = String.format(sql, refDistrictType.name(), refWhereSql);
         try {
-            return baseDao.geoApiJbdcTemplate.query(sqlQuery, new ResultSetExtractor<DistrictMap>(){
-                @Override
-                public DistrictMap extractData(ResultSet rs) throws SQLException {
-                    if (rs.next()) {
-                        return getDistrictMapFromJson(rs.getString("source_map"));
-                    }
-                    return null;
+            return baseDao.geoApiJbdcTemplate.query(sqlQuery, rs -> {
+                if (rs.next()) {
+                    return getDistrictMapFromJson(rs.getString("source_map"));
                 }
+                return null;
             });
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             logger.debug("Failed to get overlap reference boundary!", ex);
         }
         return null;
     }
 
     /** {@inheritDoc} */
-    public Map<DistrictType, Map<String, DistrictMap>> getDistrictMapLookup()
-    {
+    public Map<String, DistrictMap> getCodeToDistrictMapMap(DistrictType type) {
         if (districtMapLookup == null) {
             cacheDistrictMaps();
         }
-        return districtMapLookup;
+        return districtMapLookup.get(type);
     }
 
     /** {@inheritDoc} */
-    public Map<DistrictType, List<DistrictMap>> getCachedDistrictMaps()
-    {
+    public List<DistrictMap> getDistrictMaps(DistrictType type) {
         if (districtMapCache == null) {
             cacheDistrictMaps();
         }
-        return districtMapCache;
+        return districtMapCache.get(type);
     }
 
     /** {@inheritDoc} */
-    public boolean cacheDistrictMaps()
-    {
+    public boolean cacheDistrictMaps() {
         String sql = "SELECT '%s' AS type, %s as name, %s as code, ST_AsGeoJson(ST_Union(geom)) AS map " +
                      "FROM " + SCHEMA + ".%s " +
                      "GROUP BY %s, %s";
 
-        /** Iterate through all the requested types and format the template sql */
+        // Iterate through all the requested types and format the template sql
         ArrayList<String> queryList = new ArrayList<>();
         for (DistrictType districtType : DistrictType.getStandardTypes()) {
-            if (DistrictShapeCode.contains(districtType)) {
-                String nameColumn = resolveNameColumn(districtType);
-                String codeColumn = resolveCodeColumn(districtType);
+            if (districtType.nameColumn() != null) {
+                String nameColumn = districtType.nameColumn();
+                String codeColumn = districtType.codeColumn();
                 queryList.add(String.format(sql, districtType, nameColumn, codeColumn, districtType,
                                                                nameColumn, codeColumn));
             }
         }
 
-        /** Combine the queries using UNION ALL and set the sort condition */
+        // Combine the queries using UNION ALL and set the sort condition
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ") + " ORDER BY type, code";
 
         try {
-            String test = sqlQuery;
             baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictMapsCacheHandler());
             logger.info("Cached standard district maps");
             return true;
@@ -267,10 +248,8 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
     }
 
     /** {@inheritDoc} */
-    public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int proximity, int count)
-    {
-        if (DistrictShapeCode.contains(districtType)) {
-            String srid = resolveSRID(districtType);
+    public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int proximity, int count) {
+        if (districtType.nameColumn() != null) {
             String tmpl =
                 "SELECT '%s' AS type, %s as name, %s AS code, " + ((getMaps) ? "ST_AsGeoJson(geom) AS map " : "null as map \n") +
                 "FROM " + SCHEMA +".%s \n" +
@@ -279,8 +258,8 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
                 "ORDER BY ST_ClosestPoint(geom, %s) <-> %s \n" +
                 "LIMIT %d;";
 
-            String pointText = String.format("ST_PointFromText('POINT(%s %s)', %s)", point.getLon(), point.getLat(), srid);
-            String sqlQuery = String.format(tmpl, districtType.name(), resolveNameColumn(districtType), resolveCodeColumn(districtType),
+            String pointText = String.format("ST_PointFromText('POINT(%s %s)', %s)", point.getLon(), point.getLat(), districtType.sridColumn());
+            String sqlQuery = String.format(tmpl, districtType.name(), districtType.nameColumn(), districtType.codeColumn(),
                     districtType.name(),             // Table name
                     pointText,                       // ST_Contains -> Where clause
                     pointText, pointText, proximity, // ST_DistanceSphere -> Where clause
@@ -288,53 +267,26 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
 
             try {
                 return baseDao.geoApiJbdcTemplate.query(sqlQuery, new NearbyDistrictMapsHandler());
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 logger.error("" + ex);
             }
         }
         return null;
     }
 
-    /** Convenience method to access DistrictShapeCode */
-    private String resolveCodeColumn(DistrictType districtType)
-    {
-        return DistrictShapeCode.getCodeColumn(districtType);
-    }
-
-    /** Convenience method to access DistrictShapeCode */
-    private String resolveNameColumn(DistrictType districtType)
-    {
-        return DistrictShapeCode.getNameColumn(districtType);
-    }
-
-    /** Convenience method to access DistrictShapeCode */
-    private String resolveSRID(DistrictType districtType)
-    {
-        return DistrictShapeCode.getSridColumn(districtType);
-    }
-
     /**
      * Projects the result set into a DistrictInfo object.
      */
-    private class DistrictInfoHandler implements ResultSetExtractor<DistrictInfo>
-    {
+    private class DistrictInfoHandler implements ResultSetExtractor<DistrictInfo> {
         @Override
         public DistrictInfo extractData(ResultSet rs) throws SQLException {
             DistrictInfo districtInfo = new DistrictInfo();
             while (rs.next()) {
                 DistrictType type = DistrictType.resolveType(rs.getString("type"));
                 if (type != null) {
-                    /** District name */
                     districtInfo.setDistName(type, rs.getString("name"));
-
-                    /** District code */
                     districtInfo.setDistCode(type, getDistrictCode(rs));
-
-                    /** District map */
                     districtInfo.setDistMap(type, getDistrictMapFromJson(rs.getString("map")));
-
-                    /** District proximity */
                     districtInfo.setDistProximity(type, rs.getDouble("proximity"));
                 }
                 else {
@@ -350,12 +302,10 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
      * data based on district type and code:
      * { DistrictType:type -> { String:code -> DistrictMap:map} }
      */
-    private class DistrictMapsCacheHandler implements ResultSetExtractor<Map<DistrictType, Map<String, DistrictMap>>>
-    {
+    private class DistrictMapsCacheHandler implements ResultSetExtractor<Map<DistrictType, Map<String, DistrictMap>>> {
         @Override
-        public Map<DistrictType, Map<String, DistrictMap>> extractData(ResultSet rs) throws SQLException
-        {
-            /** Initialize the cache maps */
+        public Map<DistrictType, Map<String, DistrictMap>> extractData(ResultSet rs) throws SQLException {
+            // Initialize the cache maps
             districtMapCache = new HashMap<>();
             districtMapLookup = new HashMap<>();
 
@@ -364,8 +314,8 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
                 if (type != null) {
                     if (!districtMapCache.containsKey(type)) {
                         logger.debug("Caching " + type.name());
-                        districtMapCache.put(type, new ArrayList<DistrictMap>());
-                        districtMapLookup.put(type, new HashMap<String, DistrictMap>());
+                        districtMapCache.put(type, new ArrayList<>());
+                        districtMapLookup.put(type, new HashMap<>());
                     }
 
                     String code = getDistrictCode(rs);
@@ -374,8 +324,8 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
                     DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
                     map.setDistrictMetadata(metadata);
 
-                    /** Set values in the lookup HashMap */
-                    if (code != null && map != null) {
+                    // Set values in the lookup HashMap
+                    if (code != null) {
                         districtMapCache.get(type).add(map);
                         districtMapLookup.get(type).put(code, map);
                     }
@@ -385,11 +335,9 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
         }
     }
 
-    private class NearbyDistrictMapsHandler implements ResultSetExtractor<LinkedHashMap<String, DistrictMap>>
-    {
+    private class NearbyDistrictMapsHandler implements ResultSetExtractor<LinkedHashMap<String, DistrictMap>> {
         @Override
-        public LinkedHashMap<String, DistrictMap> extractData(ResultSet rs) throws SQLException
-        {
+        public LinkedHashMap<String, DistrictMap> extractData(ResultSet rs) throws SQLException {
             LinkedHashMap<String, DistrictMap> nearbyDistrictMaps = new LinkedHashMap<>();
             while (rs.next()) {
                 DistrictType type = DistrictType.resolveType(rs.getString("type"));
@@ -407,9 +355,8 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
         }
     }
 
-    private class DistrictOverlapHandler implements ResultSetExtractor<DistrictOverlap>
-    {
-        private DistrictOverlap districtOverlap;
+    private class DistrictOverlapHandler implements ResultSetExtractor<DistrictOverlap> {
+        private final DistrictOverlap districtOverlap;
 
         public DistrictOverlapHandler(DistrictOverlap districtOverlap) {
             this.districtOverlap = districtOverlap;
@@ -422,7 +369,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
                 BigDecimal area = rs.getBigDecimal("intersected_area");
                 DistrictMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geom"));
                 this.districtOverlap.addIntersectionMap(code, intersectMap);
-                /** Only add districts that actually intersect */
+                // Only add districts that actually intersect
                 if (area != null && area.compareTo(BigDecimal.ZERO) == 1) {
                     this.districtOverlap.getTargetOverlap().put(code, area);
                 }
@@ -434,22 +381,13 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
         }
     }
 
-    private class StreetLineIntersectHandler implements ResultSetExtractor<Map<String, List<Line>>>
-    {
-        BaseDao baseDao;
-
-        public StreetLineIntersectHandler(BaseDao baseDao) {
-            this.baseDao = baseDao;
-        }
-
+    private class StreetLineIntersectHandler implements ResultSetExtractor<Map<String, List<Line>>> {
         @Override
-        public Map<String, List<Line>> extractData(ResultSet rs) throws SQLException
-        {
+        public Map<String, List<Line>> extractData(ResultSet rs) throws SQLException {
             Map<String, List<Line>> intersectMap = new HashMap<>();
             while (rs.next()) {
-                String code = getDistrictCode(rs);
-                List<Line> lines = this.baseDao.getLinesFromJson(rs.getString("street_intersect"));
-                intersectMap.put(code, lines);
+                List<Line> lines = BaseDao.getLinesFromJson(rs.getString("street_intersect"));
+                intersectMap.put(getDistrictCode(rs), lines);
             }
             return intersectMap;
         }
@@ -462,20 +400,21 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
      * @return
      * @throws SQLException
      */
-    private String getDistrictCode(ResultSet rs) throws SQLException
-    {
+    private String getDistrictCode(ResultSet rs) throws SQLException {
         if (rs != null) {
             DistrictType type = DistrictType.resolveType(rs.getString("type"));
             String code;
 
-            /** County codes need to be mapped from FIPS code */
-            if (type == DistrictType.COUNTY){
-                code = Integer.toString(sqlCountyDao.getFipsCountyMap().get(rs.getInt("code")).getId());
+            // County codes need to be mapped from FIPS code
+            if (type == DistrictType.COUNTY) {
+                code = Integer.toString(countyDao.getFipsCountyMap().get(rs.getInt("code")).getId());
             }
-            /** Normal district code */
+            // Normal district code
             else {
                 code = rs.getString("code");
-                if (code != null) { code = code.trim(); }
+                if (code != null) {
+                    code = code.trim();
+                }
             }
             return FormatUtil.trimLeadingZeroes(code);
         }
@@ -489,9 +428,8 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
      * @return          DistrictMap containing the geometry.
      *                  null if map string not present or error
      */
-    private DistrictMap getDistrictMapFromJson(String jsonMap)
-    {
-        if (jsonMap != null && !jsonMap.isEmpty() && jsonMap != "null") {
+    private DistrictMap getDistrictMapFromJson(String jsonMap) {
+        if (jsonMap != null && !jsonMap.isEmpty() && !jsonMap.equals("null")) {
             DistrictMap districtMap = new DistrictMap();
             ObjectMapper objectMapper = new ObjectMapper();
             try {
@@ -522,13 +460,5 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao
             }
         }
         return null;
-    }
-
-    public static void clearCache()
-    {
-        districtMapCache.clear();
-        districtMapLookup.clear();
-        districtMapCache = null;
-        districtMapLookup = null;
     }
 }

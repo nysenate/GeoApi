@@ -177,8 +177,9 @@ public class DistrictShapefile implements DistrictService, MapService
         MapResult mapResult = new MapResult(this.getClass());
         if (code != null && !code.isEmpty()) {
             code = FormatUtil.trimLeadingZeroes(code);
-            if (sqlDistrictShapefileDao.getDistrictMapLookup().get(districtType) != null) {
-                DistrictMap map = sqlDistrictShapefileDao.getDistrictMapLookup().get(districtType).get(code);
+            var strToDistMap = sqlDistrictShapefileDao.getCodeToDistrictMapMap(districtType);
+            if (strToDistMap != null) {
+                DistrictMap map = strToDistMap.get(code);
                 if (map != null) {
                     if (districtType.equals(DistrictType.COUNTY)) { //This if block is for the COVID19 links
                         map.setLink(sqlCountyDao.getCountyById(Integer.parseInt(code)).getLink());
@@ -205,7 +206,7 @@ public class DistrictShapefile implements DistrictService, MapService
     public MapResult getDistrictMaps(DistrictType districtType)
     {
         MapResult mapResult = new MapResult(this.getClass());
-        List<DistrictMap> mapCollection = sqlDistrictShapefileDao.getCachedDistrictMaps().get(districtType);
+        List<DistrictMap> mapCollection = sqlDistrictShapefileDao.getDistrictMaps(districtType);
         if (mapCollection != null) {
             mapResult.setDistrictMaps(mapCollection);
             mapResult.setStatusCode(ResultStatus.SUCCESS);

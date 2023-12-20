@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 
 public interface DistrictShapeFileDao {
-
     /**
      * Retrieves a DistrictInfo object based on the districts that intersect the given point.
      * @param point          Point of interest
@@ -22,7 +21,7 @@ public interface DistrictShapeFileDao {
      *                       since they do not have a unique district code identifier.
      * @return  DistrictInfo if query was successful, null otherwise
      */
-    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps, boolean getProximity);
+    DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps, boolean getProximity);
 
     /**
      * Creates and returns a DistrictOverlap object which contains lists of all districts that contained
@@ -35,10 +34,10 @@ public interface DistrictShapeFileDao {
      * @param refCodes           The list of codes that represent the base area.
      * @return DistrictOverlap
      */
-    public DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType, Set<String> targetCodes,
-                                              DistrictType refDistrictType, Set<String> refCodes);
+    DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType, Set<String> targetCodes,
+                                       DistrictType refDistrictType, Set<String> refCodes);
 
-    public Map<String, List<Line>> getIntersectingStreetLine(DistrictType districtType, Set<String> codes, String jsonGeom);
+    Map<String, List<Line>> getIntersectingStreetLine(DistrictType districtType, Set<String> codes, String jsonGeom);
 
     /**
      * Generates a DistrictMap containing geometry that represents the area contained within the
@@ -48,25 +47,25 @@ public interface DistrictShapeFileDao {
      * @param refCodes        The reference district codes.
      * @return DistrictMap
      */
-    public DistrictMap getOverlapReferenceBoundary(DistrictType refDistrictType, Set<String> refCodes);
+    DistrictMap getOverlapReferenceBoundary(DistrictType refDistrictType, Set<String> refCodes);
 
     /**
      * Retrieves a mapped collection of district code to DistrictMap that's grouped by DistrictType.
      * @return Map<DistrictType, Map<String, DistrictMap>>
      */
-    public Map<DistrictType, Map<String, DistrictMap>> getDistrictMapLookup();
+    Map<String, DistrictMap> getCodeToDistrictMapMap(DistrictType type);
 
     /**
      * Retrieves a mapped collection of DistrictMaps.
      * @return Map<DistrictType, List<DistrictMap>>
      */
-    public Map<DistrictType, List<DistrictMap>> getCachedDistrictMaps();
+    List<DistrictMap> getDistrictMaps(DistrictType type);
 
     /**
      * Fetches all the district maps from the database and stores them in a collection as well as
      * a lookup cache for fast retrieval.
      */
-    public boolean cacheDistrictMaps();
+    boolean cacheDistrictMaps();
 
     /**
      * Obtain a list of districts that are closest to the given point. This list does not include the
@@ -75,7 +74,7 @@ public interface DistrictShapeFileDao {
      * @param point
      * @return
      */
-    public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int proximity, int count);
+    LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int proximity, int count);
 
 
 }
