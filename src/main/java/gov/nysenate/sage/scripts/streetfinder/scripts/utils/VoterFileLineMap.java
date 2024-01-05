@@ -1,5 +1,8 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
+import gov.nysenate.sage.scripts.streetfinder.parsers.NonStandardAddress;
+import gov.nysenate.sage.scripts.streetfinder.parsers.NonStandardAddressType;
+
 import java.util.EnumMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,7 +15,7 @@ import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileLine
  */
 public class VoterFileLineMap extends EnumMap<VoterFileField, String> {
     private static final Pattern BOEIDpattern = Pattern.compile("NY(\\d{18})");
-    private final VoterFileLineType type;
+    private VoterFileLineType type = VALID;
     private long id;
 
     public VoterFileLineMap(String line) {
@@ -42,11 +45,26 @@ public class VoterFileLineMap extends EnumMap<VoterFileField, String> {
             return;
         }
         boolean emptyStandardAddress = standardAddressFields.stream().map(this::get).allMatch(String::isEmpty);
-        if (emptyStandardAddress) {
-            this.type = get(RADDRNONSTD).isEmpty() ? NO_ADDRESS : NON_STANDARD_ADDRESS;
+        if (!get(RADDRNONSTD).isEmpty()) {
+            handleNonstandardAddresses(emptyStandardAddress);
+        }
+        else if (emptyStandardAddress) {
+            this.type = NO_ADDRESS;
+        }
+    }
+
+    private void handleNonstandardAddresses(boolean emptyStandardAddress) {
+        if (!emptyStandardAddress) {
+            this.type = TWO_ADDRESS_FORMATS;
+            // TODO: may be possible to combine the types sometimes
         }
         else {
-            this.type = get(RADDRNONSTD).isEmpty() ? VALID : TWO_ADDRESS_FORMATS;
+            var nonStAddr = new NonStandardAddress(get(RADDRNONSTD));
+            if (nonStAddr.type() == NonStandardAddressType.VALID) {
+                putAll(nonStAddr.getParsedFields());
+            } else {
+                this.type = INVALID_NON_STANDARD_ADDRESS;
+            }
         }
     }
 

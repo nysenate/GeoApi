@@ -152,9 +152,7 @@ public final class AddressDictionary {
                     "SIDE", List.of("SIDE"), "SLIP", List.of("SLIP"), "SPC", List.of("SPACE", "SPC"),
                     "STE", List.of("STE", "SUITE"), "STOP", List.of("STOP"), "TRLR", List.of("TRAILER", "TRLR")
             ),
-            unitMap = getUnitMap(
-
-            ),
+            unitMap = getUnitMap(),
             highWayMap = getMap(
                     "Cam", List.of("CAM", "CAM.", "CAMINO"), "Co Hwy", List.of("CO HWY", "COUNTY HIGH WAY", "COUNTY HIGHWAY", "COUNTY HWY"),
                     "Co Rd", List.of("CO RD", "CORD", "COUNTY RD", "COUNTY ROAD"),

@@ -16,7 +16,7 @@ public enum VoterFileLineType {
     // TODO: has_tabs should have full line printed
     VALID, HAS_TABS, WRONG_FIELD_LENGTH(VoterFileField.values()),
     BAD_ID, MISSING_ZIP_5, NO_ADDRESS,
-    NON_STANDARD_ADDRESS(RADDRNONSTD),
+    INVALID_NON_STANDARD_ADDRESS(RADDRNONSTD),
     TWO_ADDRESS_FORMATS(displayAddressFields());
 
     private final SortedSet<VoterFileField> displayFields;

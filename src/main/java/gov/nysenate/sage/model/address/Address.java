@@ -100,10 +100,10 @@ public class Address implements Serializable, Cloneable
     public String toString()
     {
         if (isParsed()) {
-            return ((!addr1.equals("") ? addr1 : "") + (!addr2.equals("") ? " " + addr2 + "" : "")
-                    + (!addr1.equals("") || !addr2.equals("") ? "," : "")
-                    + (!city.equals("") ? " " + city + "," : "") + ( !state.equals("") ? " " + state : "")
-                    + (!zip5.equals("") ? " " + zip5 : "") + ( !zip4.equals("")  ? "-"+zip4 : "")).trim();
+            return ((!addr1.isEmpty() ? addr1 : "") + (!addr2.isEmpty() ? " " + addr2 + "" : "")
+                    + (!addr1.isEmpty() || !addr2.isEmpty() ? "," : "")
+                    + (!city.isEmpty() ? " " + city + "," : "") + (!state.isEmpty() ? " " + state : "")
+                    + (!zip5.isEmpty() ? " " + zip5 : "") + (!zip4.isEmpty() ? "-"+zip4 : "")).trim();
         }
         else {
             return addr1;
@@ -212,7 +212,7 @@ public class Address implements Serializable, Cloneable
     {
         if (postal != null) {
             ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(postal.split("-")));
-            this.setZip5((zipParts.size() > 0) ? zipParts.get(0).trim() : "");
+            this.setZip5((!zipParts.isEmpty()) ? zipParts.get(0).trim() : "");
             this.setZip4((zipParts.size() > 1) ? zipParts.get(1).trim() : "");
         }
     }
