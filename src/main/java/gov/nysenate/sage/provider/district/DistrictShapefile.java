@@ -228,12 +228,11 @@ public class DistrictShapefile implements DistrictService, MapService
      * @param geocodedAddress GeocodedAddress
      * @return DistrictResult with overlaps and street ranges set.
      */
-    public DistrictResult getMultiMatchResult(GeocodedAddress geocodedAddress, Boolean zipProvided)
+    public DistrictResult getMultiMatchResult(GeocodedAddress geocodedAddress, boolean zipProvided)
     {
         DistrictResult districtResult = new DistrictResult(this.getClass());
         DistrictedAddress districtedAddress = new DistrictedAddress(geocodedAddress, null, DistrictMatchLevel.NOMATCH);
         DistrictInfo districtInfo = new DistrictInfo();
-        DistrictMatchLevel matchLevel = DistrictMatchLevel.NOMATCH;
         ResultStatus resultStatus = ResultStatus.INSUFFICIENT_ADDRESS;
 
         /** Validate the geocoded address before proceeding */
@@ -249,38 +248,25 @@ public class DistrictShapefile implements DistrictService, MapService
 
         logger.debug("Zip Provided: " + zipProvided);
 
-        switch(geocodeQuality) {
-            case NOMATCH: matchLevel = DistrictMatchLevel.NOMATCH;
-                break;
-            case STATE: matchLevel = DistrictMatchLevel.STATE;
-                break;
-            case COUNTY: matchLevel = DistrictMatchLevel.STATE;
-                break;
-            case CITY: matchLevel = DistrictMatchLevel.CITY;
-                break;
-            case ZIP: matchLevel = DistrictMatchLevel.ZIP5;
-                break;
-            case ZIP_EXT: matchLevel = DistrictMatchLevel.ZIP5;
-                break;
-            case STREET: matchLevel = DistrictMatchLevel.STREET;
-                break;
-            case HOUSE: matchLevel = DistrictMatchLevel.HOUSE;
-                break;
-            case POINT: matchLevel = DistrictMatchLevel.HOUSE;
-                break;
-        }
+        DistrictMatchLevel matchLevel = switch (geocodeQuality) {
+            case STATE, COUNTY -> DistrictMatchLevel.STATE;
+            case CITY -> DistrictMatchLevel.CITY;
+            case ZIP, ZIP_EXT -> DistrictMatchLevel.ZIP5;
+            case STREET -> DistrictMatchLevel.STREET;
+            case HOUSE, POINT -> DistrictMatchLevel.HOUSE;
+            default -> DistrictMatchLevel.NOMATCH;
+        };
         if (zipProvided && matchLevel == DistrictMatchLevel.NOMATCH) {
             matchLevel = DistrictMatchLevel.ZIP5;
             geocodeQuality = GeocodeQuality.ZIP;
 
             Address reorderdAddress = StreetAddressParser.parseAddress(geocodedAddress.getAddress()).toAddress();
             geocodedAddress.setAddress(reorderdAddress);
-
         }
         districtedAddress.setDistrictMatchLevel(matchLevel);
 
         if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) { //40 quality or more
-            if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 &&!address.getZip5().isEmpty()) { //64 or more
+            if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 && !address.getZip5().isEmpty()) { //64 or more
                 if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) { //72 or more
                     logger.debug("Determining street level district overlap");
                     streetList.add(address.getAddr1());

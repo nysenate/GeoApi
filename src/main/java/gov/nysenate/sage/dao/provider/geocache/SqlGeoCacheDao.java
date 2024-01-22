@@ -80,7 +80,7 @@ public class SqlGeoCacheDao implements GeoCacheDao
     public GeocodedStreetAddress getCacheHit(StreetAddress sa)
     {
         if (logger.isTraceEnabled()) {
-            logger.trace("Looking up " + sa.toStringParsed() + " in cache..");
+            logger.trace("Looking up " + sa.toStringParsed() + " in cache...");
         }
         if (isStreetAddressRetrievable(sa)) {
             boolean buildingMatch = (!sa.isPoBoxAddress() && !sa.isStreetEmpty());

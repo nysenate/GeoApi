@@ -68,7 +68,7 @@ public class GeoCache implements GeocodeCacheService
         GeocodeResult geocodeResult  = new GeocodeResult(this.getClass());
 
         /* Proceed only on valid input */
-        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
+        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
             logger.info(address + " is invalid");
             geocodeResult.setGeocodedAddress(new GeocodedAddress());
             return geocodeResult;
@@ -85,7 +85,7 @@ public class GeoCache implements GeocodeCacheService
 
         /* Validate and return */
         if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), reformedGeocodedAddress, geocodeResult, false)) {
-            logger.info("Failed to find cache hit for " + address.toString());
+            logger.info("Failed to find cache hit for " + address);
         }
         return geocodeResult;
     }

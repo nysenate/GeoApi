@@ -114,7 +114,7 @@ public class SqlGeocodeResultLogger implements GeocodeResultLogger
     {
         if (batchGeoRequest != null && geocodeResults != null) {
             try {
-                if (batchGeoRequest.getAddresses().size() > 0) {
+                if (!batchGeoRequest.getAddresses().isEmpty()) {
                     for (int i = 0; i < batchGeoRequest.getAddresses().size(); i++) {
                         Address address = batchGeoRequest.getAddresses().get(i);
                         GeocodeRequest geoRequest = (GeocodeRequest) batchGeoRequest.clone();
@@ -128,7 +128,7 @@ public class SqlGeocodeResultLogger implements GeocodeResultLogger
                         }
                     }
                 }
-                else if (batchGeoRequest.getPoints().size() > 0 && batchGeoRequest.isReverse()) {
+                else if (!batchGeoRequest.getPoints().isEmpty() && batchGeoRequest.isReverse()) {
                     for (int i = 0; i < batchGeoRequest.getPoints().size(); i++) {
                         Point point = batchGeoRequest.getPoints().get(i);
                         GeocodeRequest geoRequest = (GeocodeRequest) batchGeoRequest.clone();

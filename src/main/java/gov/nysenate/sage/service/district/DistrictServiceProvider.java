@@ -403,7 +403,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
 
     /** Multi District Overlap ---------------------------------------------------------------------------------------*/
 
-    public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, Boolean zipProvided)
+    public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, boolean zipProvided)
     {
         Timestamp startTime = TimeUtil.currentTimestamp();
         DistrictShapefile districtShapeFile = (DistrictShapefile) this.providers.get("shapefile");

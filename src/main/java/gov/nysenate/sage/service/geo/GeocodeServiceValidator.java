@@ -183,7 +183,7 @@ public class GeocodeServiceValidator
             geocodeResult.setStatusCode(MISSING_ADDRESS);
             return false;
         }
-        else if (address.isEmpty()){
+        else if (address.isEmpty()) {
             geocodeResult.setStatusCode(INSUFFICIENT_ADDRESS);
             return false;
         }

@@ -79,7 +79,7 @@ public interface SageDistrictServiceProvider {
      * @param zipProvided
      * @return
      */
-    public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, Boolean zipProvided);
+    public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, boolean zipProvided);
 
 
 }
