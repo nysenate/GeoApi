@@ -258,3 +258,8 @@ job.process.cron = 0 * * * * *
 #####################################
 # Working directory for processing the NYS Address Point file from ITS into a streetfile tsv.
 streetfile.nysaddresspoint.dir = /data/geoapi_data/street_files/NYS_SAM_address_points/
+
+#####################################
+## Post Office Data
+#####################################
+post.office.data.dir = /data/geoapi_data/post_offices
