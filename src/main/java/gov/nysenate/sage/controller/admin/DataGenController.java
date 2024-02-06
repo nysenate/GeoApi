@@ -4,6 +4,7 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.scripts.streetfinder.scripts.nysaddresspoints.NYSAddressPointProcessor;
 import gov.nysenate.sage.service.data.DataGenService;
+import gov.nysenate.sage.service.district.PostOfficeService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
@@ -31,19 +33,22 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminRespon
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datagen")
 public class DataGenController {
 
-    private Logger logger = LoggerFactory.getLogger(DataGenController.class);
-    private AdminUserAuth adminUserAuth;
-    private DataGenService dataGenService;
-    private ApiUserAuth apiUserAuth;
-    private NYSAddressPointProcessor nysAddressPointProcessor;
+    private static final Logger logger = LoggerFactory.getLogger(DataGenController.class);
+    private final AdminUserAuth adminUserAuth;
+    private final DataGenService dataGenService;
+    private final ApiUserAuth apiUserAuth;
+    private final NYSAddressPointProcessor nysAddressPointProcessor;
+    private final PostOfficeService postOfficeService;
 
     @Autowired
     public DataGenController(AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth,
-                             DataGenService dataGenService, NYSAddressPointProcessor nysAddressPointProcessor) {
+                             DataGenService dataGenService, NYSAddressPointProcessor nysAddressPointProcessor,
+                             PostOfficeService postOfficeService) {
         this.adminUserAuth = adminUserAuth;
         this.apiUserAuth = apiUserAuth;
         this.dataGenService = dataGenService;
         this.nysAddressPointProcessor = nysAddressPointProcessor;
+        this.postOfficeService = postOfficeService;
     }
 
     /**
@@ -288,6 +293,30 @@ public class DataGenController {
                 apiResponse = "Processing sucessfully started";
             } catch (Exception e) {
                 logger.error("Error trying to process the sam-nys-statewide-address file", e);
+                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+            }
+        } else {
+            apiResponse = invalidAuthResponse();
+        }
+        setAdminResponse(apiResponse, response);
+    }
+
+    @RequestMapping(value = "/process/post-offices")
+    public void processPostOffices(HttpServletRequest request, HttpServletResponse response,
+                                   @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                   @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                   @RequestParam(required = false, defaultValue = "") String key) {
+        Object apiResponse;
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
+        Subject subject = SecurityUtils.getSubject();
+
+        if (subject.hasRole("ADMIN") ||
+                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+            try {
+                apiResponse = postOfficeService.replaceData();
+            } catch (IOException ex) {
+                logger.error("Error trying to process post office data", ex);
                 apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
             }
         } else {
