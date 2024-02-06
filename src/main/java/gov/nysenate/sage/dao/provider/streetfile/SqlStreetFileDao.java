@@ -18,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateDistrictInfo;
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 @Repository
@@ -375,47 +376,6 @@ public class SqlStreetFileDao implements StreetFileDao
         DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
         if (consolidatedDist != null){
             return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, DistrictMatchLevel.ZIP5);
-        }
-        else {
-            return null;
-        }
-    }
-
-    /** {@inheritDoc} */
-    public DistrictInfo consolidateDistrictInfo(List<DistrictInfo> districtInfoList)
-    {
-        if (districtInfoList.size() == 0) return null;
-        DistrictInfo baseDist = districtInfoList.get(0);
-
-        for (int i= 1; i < districtInfoList.size(); i++) {
-            DistrictInfo rangeDist = districtInfoList.get(i);
-
-            /** Iterate through all district types and ensure that the districts in the base range are consistent
-             *  with the current range. If a district has a mismatch, then the district code in the base range is nullified.
-             */
-            for (DistrictType distType : DistrictType.getAllTypes()) {
-
-                String baseCode = baseDist.getDistCode(distType);
-                String baseCounty = baseDist.getDistCode(COUNTY);
-                String baseTown = baseDist.getDistCode(TOWN);
-                String rangeCode = rangeDist.getDistCode(distType);
-                String rangeCounty = rangeDist.getDistCode(COUNTY);
-                String rangeTown = rangeDist.getDistCode(TOWN);
-                boolean baseCodeValid = baseDist.hasDistrictCode(distType);
-                boolean rangeCodeValid = rangeDist.hasDistrictCode(distType);
-                boolean isCountyBased = DistrictType.getCountyBasedTypes().contains(distType);
-                boolean isTownBased = DistrictType.getTownBasedTypes().contains(distType);
-
-                if ( !(baseCodeValid && rangeCodeValid && rangeCode.equals(baseCode))
-                                     || (isCountyBased && (rangeCounty == null || !rangeCounty.equals(baseCounty)))
-                                     || (isTownBased && (rangeTown == null || !rangeTown.equals(baseTown)))) {
-                    baseDist.setDistCode(distType, null);
-                }
-            }
-        }
-
-        if (baseDist.hasDistrictCode(SENATE)) {
-            return baseDist;
         }
         else {
             return null;

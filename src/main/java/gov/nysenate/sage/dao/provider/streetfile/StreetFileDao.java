@@ -100,15 +100,4 @@ public interface StreetFileDao {
      * @throws SQLException
      */
     public DistrictedAddress getDistAddressByZip(StreetAddress streetAddress) throws SQLException;
-
-    /**
-     * Iterates over a list of DistrictInfo and returns a single DistrictInfo that represents the districts
-     * that were common amongst every entry.
-     * @param districtInfoList
-     * @return DistrictInfo containing the districts that were common.
-     *         If the senate code is not common, the return value will be null.
-     */
-    public DistrictInfo consolidateDistrictInfo(List<DistrictInfo> districtInfoList);
-
-
 }
