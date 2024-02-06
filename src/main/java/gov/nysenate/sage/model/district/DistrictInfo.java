@@ -2,11 +2,12 @@ package gov.nysenate.sage.model.district;
 
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.geo.Line;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.services.model.Senator;
+import org.apache.commons.lang.WordUtils;
 
 import java.util.*;
 
+import static gov.nysenate.sage.controller.api.DistrictUtil.isValidDistCode;
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
@@ -75,7 +76,7 @@ public class DistrictInfo
     }
 
     public String getDistCode(DistrictType districtType) {
-        return this.districtCodes.get(districtType);
+        return districtCodes.get(districtType);
     }
 
     /**
@@ -84,30 +85,20 @@ public class DistrictInfo
      * @param districtType
      * @param code
      */
-    public void setDistCode(DistrictType districtType, String code)
-    {
-        this.districtCodes.put(districtType, code);
+    public void setDistCode(DistrictType districtType, String code) {
+        districtCodes.put(districtType, code);
         if (isValidDistCode(code)) {
-            this.assignedDistricts.add(districtType);
+            assignedDistricts.add(districtType);
 
             /** Fill in the names for congressional and assembly districts */
-            if (districtType.equals(SENATE)) {
-                this.districtNames.put(SENATE, "NY Senate District " + code);
-            }
-            else if (districtType.equals(CONGRESSIONAL)) {
-                this.districtNames.put(CONGRESSIONAL, "NY Congressional District " + code);
-            }
-            else if (districtType.equals(ASSEMBLY)) {
-                this.districtNames.put(ASSEMBLY, "NY Assembly District " + code);
+            if (districtType == SENATE || districtType == ASSEMBLY || districtType == CONGRESSIONAL) {
+                String displayStr = WordUtils.capitalizeFully(districtType.name());
+                districtNames.put(districtType, "NY %s District %s".formatted(displayStr, code));
             }
         }
         else {
-            this.assignedDistricts.remove(districtType);
+            assignedDistricts.remove(districtType);
         }
-    }
-
-    public boolean isCompletelyAssigned() {
-        return completelyAssigned;
     }
 
     public void setCompletelyAssigned(boolean completelyAssigned) {
@@ -115,19 +106,19 @@ public class DistrictInfo
     }
 
     public DistrictMap getDistMap(DistrictType districtType) {
-        return this.districtMaps.get(districtType);
+        return districtMaps.get(districtType);
     }
 
     public void setDistMap(DistrictType districtType, DistrictMap districtMap) {
-        this.districtMaps.put(districtType, districtMap);
+        districtMaps.put(districtType, districtMap);
     }
 
     public DistrictMember getDistrictMember(DistrictType districtType) {
-        return this.districtMembers.get(districtType);
+        return districtMembers.get(districtType);
     }
 
     public void setDistrictMember(DistrictType districtType, DistrictMember districtMember) {
-        this.districtMembers.put(districtType, districtMember);
+        districtMembers.put(districtType, districtMember);
     }
 
     public Double getDistProximity(DistrictType districtType) {
@@ -135,39 +126,23 @@ public class DistrictInfo
     }
 
     public void setDistProximity(DistrictType districtType, Double districtProximity) {
-        this.districtProximities.put(districtType, districtProximity);
+        districtProximities.put(districtType, districtProximity);
     }
 
     public Set<DistrictType> getNearBorderDistricts() {
         return nearBorderDistricts;
     }
 
-    public void setNearBorderDistricts(Set<DistrictType> nearBorderDistricts) {
-        this.nearBorderDistricts = nearBorderDistricts;
-    }
-
     public void addNearBorderDistrict(DistrictType districtType) {
-        this.nearBorderDistricts.add(districtType);
+        nearBorderDistricts.add(districtType);
     }
 
     public Set<DistrictType> getAssignedDistricts() {
         return assignedDistricts;
     }
 
-    public void setAssignedDistricts(Set<DistrictType> assignedDistricts) {
-        this.assignedDistricts = assignedDistricts;
-    }
-
     public Map<DistrictType, String> getDistrictCodes() {
-        return this.districtCodes;
-    }
-
-    public Map<DistrictType, DistrictMap> getDistrictMaps() {
-        return this.districtMaps;
-    }
-
-    public Map<DistrictType, List<DistrictMap>> getNeighborMaps() {
-        return neighborMaps;
+        return districtCodes;
     }
 
     /**
@@ -176,11 +151,7 @@ public class DistrictInfo
      * @return List<DistrictMap>
      */
     public List<DistrictMap> getNeighborMaps(DistrictType districtType) {
-        return (neighborMaps.get(districtType) != null) ? neighborMaps.get(districtType) : new ArrayList<DistrictMap>();
-    }
-
-    public void setNeighborMaps(Map<DistrictType, List<DistrictMap>> neighborMaps) {
-        this.neighborMaps = neighborMaps;
+        return (neighborMaps.get(districtType) != null) ? neighborMaps.get(districtType) : new ArrayList<>();
     }
 
     /**
@@ -199,18 +170,12 @@ public class DistrictInfo
         return districtOverlaps;
     }
 
-    public void setDistrictOverlaps(Map<DistrictType, DistrictOverlap> districtOverlaps) {
-        this.districtOverlaps = districtOverlaps;
+    public void addDistrictOverlap(DistrictType districtType, DistrictOverlap districtOverlap) {
+        districtOverlaps.put(districtType, districtOverlap);
     }
 
-    public void addDistrictOverlap(DistrictType districtType, DistrictOverlap districtOverlap)
-    {
-        this.districtOverlaps.put(districtType, districtOverlap);
-    }
-
-    public DistrictOverlap getDistrictOverlap(DistrictType districtType)
-    {
-        return this.districtOverlaps.get(districtType);
+    public DistrictOverlap getDistrictOverlap(DistrictType districtType) {
+        return districtOverlaps.get(districtType);
     }
 
     public DistrictMap getReferenceMap() {
@@ -242,26 +207,12 @@ public class DistrictInfo
      * @param districtType
      * @return true if it has a valid code, false otherwise
      */
-    public boolean hasDistrictCode(DistrictType districtType)
-    {
+    public boolean hasDistrictCode(DistrictType districtType) {
         return isValidDistCode(this.districtCodes.get(districtType));
     }
 
-    /**
-     * Determines if code is valid or not by ensuring that the trimmed code does not equal '', 0, or null.
-     * @param code
-     * @return
-     */
-    private boolean isValidDistCode(String code){
-        if (code != null) {
-            String c = FormatUtil.trimLeadingZeroes(code.trim());
-            return !c.isEmpty() && !c.equalsIgnoreCase("null") && !c.equals("0") && !c.equals("000");
-        }
-        return false;
-    }
-
-    public String toString()
-    {
+    @Override
+    public String toString() {
         StringBuilder out = new StringBuilder();
         for (DistrictType t : assignedDistricts){
             out.append(t).append(": name = ").append(getDistName(t)).append(" code = ").append(getDistCode(t)).append(" map = ").append(getDistMap(t)).append("\n");

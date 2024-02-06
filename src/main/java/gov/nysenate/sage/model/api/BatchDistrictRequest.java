@@ -4,6 +4,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class BatchDistrictRequest extends DistrictRequest
               dr.isUspsValidate(), dr.isSkipGeocode(), dr.getDistrictStrategy());
     }
 
+    @Nonnull
     public List<Point> getPoints() {
         return points;
     }
@@ -32,6 +34,7 @@ public class BatchDistrictRequest extends DistrictRequest
         this.points = points;
     }
 
+    @Nonnull
     public List<Address> getAddresses() {
         return addresses;
     }

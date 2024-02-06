@@ -27,12 +27,12 @@ public class DistrictResult extends BaseResult
         this(null, null);
     }
 
-    public DistrictResult(Class sourceClass)
+    public DistrictResult(Class<?> sourceClass)
     {
         this(sourceClass, null);
     }
 
-    public DistrictResult(Class sourceClass, DistrictedAddress districtedAddress)
+    public DistrictResult(Class<?> sourceClass, DistrictedAddress districtedAddress)
     {
         this.setSource(sourceClass);
         this.setDistrictedAddress(districtedAddress);
@@ -102,7 +102,7 @@ public class DistrictResult extends BaseResult
     public Set<DistrictType> getAssignedDistricts()
     {
         return (this.getDistrictInfo() != null) ? this.getDistrictInfo().getAssignedDistricts()
-                                                : new HashSet<DistrictType>();
+                                                : new HashSet<>();
     }
 
     /**
@@ -114,7 +114,7 @@ public class DistrictResult extends BaseResult
     }
 
     public boolean isUspsValidated() {
-        return (getAddress() != null) ? getAddress().isUspsValidated() : false;
+        return getAddress() != null && getAddress().isUspsValidated();
     }
 
     public DistrictType getIntersectType(){
