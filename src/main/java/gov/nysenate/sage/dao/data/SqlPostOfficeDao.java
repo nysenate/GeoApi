@@ -1,7 +1,9 @@
 package gov.nysenate.sage.dao.data;
 
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.PostOfficeAddress;
+import gov.nysenate.sage.util.AddressUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -28,14 +30,16 @@ public class SqlPostOfficeDao implements PostOfficeDao {
     }
 
     @Override
-    public synchronized void replaceData(List<PostOfficeAddress> newData) {
+    public synchronized void replaceData(List<PostOfficeAddress> postalAddresses) {
         baseDao.geoApiNamedJbdcTemplate.update(PostOfficeQuery.CLEAR_TABLE.getSql(baseDao.getPublicSchema()), Map.of());
-        for (PostOfficeAddress address : newData) {
-            var params = new MapSqlParameterSource("deliveryZip", address.deliveryZip())
-                    .addValue("streetWithNum", address.streetWithNum())
-                    .addValue("city", address.city())
-                    .addValue("zip5", address.zip5())
-                    .addValue("zip4", address.zip4());
+        for (PostOfficeAddress postalAddress : postalAddresses) {
+            Address address = postalAddress.getAddress();
+            var params = new MapSqlParameterSource("deliveryZip", postalAddress.getDeliveryZip())
+                    .addValue("addr1", address.getAddr1())
+                    .addValue("addr2", address.getAddr2())
+                    .addValue("city", address.getCity())
+                    .addValue("zip5", AddressUtil.parseZip(address.getZip5()))
+                    .addValue("zip4", AddressUtil.parseZip(address.getZip4()));
             String sql = PostOfficeQuery.ADD_ADDRESS.getSql(baseDao.getPublicSchema());
             baseDao.geoApiNamedJbdcTemplate.update(sql, params);
         }
@@ -44,8 +48,9 @@ public class SqlPostOfficeDao implements PostOfficeDao {
     private static class PostOfficeHandler implements RowMapper<PostOfficeAddress> {
         @Override
         public PostOfficeAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new PostOfficeAddress(rs.getInt("deliveryZip"), rs.getString("address"),
-                    rs.getString("city"), rs.getInt("zip5"), rs.getInt("zip4"));
+            var address = new Address(rs.getString("addr1"), rs.getString("addr2"),
+                    rs.getString("city"), "NY", rs.getString("zip5"), rs.getString("zip4"));
+            return new PostOfficeAddress(rs.getInt("delivery_zip"), address);
         }
     }
 }

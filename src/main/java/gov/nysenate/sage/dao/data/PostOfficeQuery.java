@@ -7,8 +7,8 @@ public enum PostOfficeQuery implements BasicSqlQuery {
     CLEAR_TABLE("DELETE FROM ${schema}." + SqlTable.POST_OFFICE),
     GET_ALL_POST_OFFICES("SELECT * FROM ${schema}." + SqlTable.POST_OFFICE),
     ADD_ADDRESS(
-            "INSERT INTO ${schema}." + SqlTable.POST_OFFICE + " (delivery_zip, street_with_num, city, zip5, zip4)\n" +
-            "VALUES (:deliveryZip, :streetWithNum, :city, :zip5, :zip4)"
+            "INSERT INTO ${schema}." + SqlTable.POST_OFFICE + " (delivery_zip, addr1, addr2, city, zip5, zip4)\n" +
+            "VALUES (:deliveryZip, :addr1, :addr2, :city, :zip5, :zip4)"
     );
 
     private final String sql;

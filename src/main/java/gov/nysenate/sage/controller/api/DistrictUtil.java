@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -107,11 +108,11 @@ public final class DistrictUtil {
         return districtRequest;
     }
 
-    public static DistrictedAddress consolidateDistrictedAddress(List<DistrictedAddress> results) {
+    public static DistrictedAddress consolidateDistrictedAddress(Collection<DistrictedAddress> results) {
         if (results.isEmpty()) {
             return new DistrictedAddress();
         }
-        GeocodedAddress geoAddr = results.size() == 1 ? results.get(0).getGeocodedAddress() : null;
+        GeocodedAddress geoAddr = results.size() == 1 ? results.iterator().next().getGeocodedAddress() : null;
         DistrictInfo districtInfo = consolidateDistrictInfo(results.stream().map(DistrictedAddress::getDistrictInfo).toList());
         DistrictMatchLevel matchLevel = results.stream().map(DistrictedAddress::getDistrictMatchLevel)
                 .min(DistrictMatchLevel::compareTo).orElse(DistrictMatchLevel.NOMATCH);
@@ -124,21 +125,24 @@ public final class DistrictUtil {
      * @return DistrictInfo containing the districts that were common.
      *         If the senate code is not common, the return value will be null.
      */
-    public static DistrictInfo consolidateDistrictInfo(List<DistrictInfo> districtInfoList) {
+    public static DistrictInfo consolidateDistrictInfo(Collection<DistrictInfo> districtInfoList) {
         if (districtInfoList.isEmpty()) {
             return null;
         }
-        DistrictInfo baseDist = districtInfoList.get(0);
+        DistrictInfo baseDistInfo = districtInfoList.iterator().next();
+        if (baseDistInfo == null) {
+            return null;
+        }
         for (DistrictType distType : DistrictType.values()) {
-            String baseCode = baseDist.getDistCode(distType);
+            String baseCode = baseDistInfo.getDistCode(distType);
             List<String> codes = districtInfoList.stream().map(info -> info.getDistCode(distType)).toList();
             if (codes.stream().anyMatch(code -> !isValidDistCode(code) || !baseCode.equals(code))) {
-                baseDist.setDistCode(distType, null);
+                baseDistInfo.setDistCode(distType, null);
             }
         }
-
-        if (baseDist.hasDistrictCode(SENATE)) {
-            return baseDist;
+        // TODO: but why? Can mismatch on SENATE, but match on others: see Assembly for 11788 Post Offices
+        if (baseDistInfo.hasDistrictCode(SENATE)) {
+            return baseDistInfo;
         }
         else {
             return null;

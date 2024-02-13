@@ -10,5 +10,5 @@ public interface PostOfficeDao {
     /**
      * Clears the database table, and adds the given data.
      */
-    void replaceData(List<PostOfficeAddress> newData);
+    void replaceData(List<PostOfficeAddress> postalAddresses);
 }

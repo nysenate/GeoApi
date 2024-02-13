@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder;
 
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.PostOfficeAddress;
 
 import java.io.File;
@@ -25,7 +26,8 @@ public final class PostOfficeParser {
             if (!lineData[8].equals("NY")) {
                 continue;
             }
-            dataList.add(new PostOfficeAddress(lineData[4], lineData[6], lineData[7], lineData[9], lineData[10]));
+            var currAddr = new Address(lineData[6], lineData[7], "NY", lineData[9] + "-" + lineData[10]);
+            dataList.add(new PostOfficeAddress(Integer.parseInt(lineData[4]), currAddr));
         }
         return dataList;
     }
