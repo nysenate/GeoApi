@@ -71,7 +71,7 @@ public class HttpGoogleDao implements GoogleDao
             String url = getBaseUrl() + formattedQuery;
             geocodedAddress = getGeocodedAddress(url);
             if (geocodedAddress == null) {
-                geocodedAddress = new GeocodedAddress(address, null);
+                geocodedAddress = new GeocodedAddress(address);
             } else {
                 geocodedAddress.setAddress(address);
             }

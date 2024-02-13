@@ -52,7 +52,7 @@ public class HttpNYSGeoDao {
             String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
             geocodedAddress = getGeocodedAddress(url, false);
             if (geocodedAddress == null) {
-                geocodedAddress = new GeocodedAddress(address, null);
+                geocodedAddress = new GeocodedAddress(address);
             } else {
                 geocodedAddress.setAddress(address);
             }

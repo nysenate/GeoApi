@@ -66,7 +66,7 @@ public class DistrictedAddress implements Serializable, Cloneable
             this.getGeocodedAddress().setGeocode(geocode);
         }
         else {
-            this.setGeocodedAddress(new GeocodedAddress(null, geocode));
+            this.setGeocodedAddress(new GeocodedAddress(geocode));
         }
     }
 

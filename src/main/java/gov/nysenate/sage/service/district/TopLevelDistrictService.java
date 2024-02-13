@@ -208,11 +208,11 @@ public class TopLevelDistrictService {
 
         List<GeocodedAddress> geocodedAddresses;
         if (!reorderedAddresses.isEmpty()) {
-            geocodedAddresses = getGeocodedAddresses(batchRequest, reorderedAddresses);
+            geocodedAddresses = getGeocodedAddresses(batchRequest);
         }
         else if (!points.isEmpty()) {
             geocodedAddresses = points.stream().map(point -> new Geocode(point, GeocodeQuality.POINT, "User Supplied"))
-                    .map(geocode -> new GeocodedAddress(null, geocode)).toList();
+                    .map(GeocodedAddress::new).toList();
             batchRequest.setDistrictStrategy(DistrictServiceProvider.DistrictStrategy.shapeOnly);
         }
         else {
@@ -235,39 +235,34 @@ public class TopLevelDistrictService {
         return districtResults;
     }
 
-    private List<GeocodedAddress> getGeocodedAddresses(BatchDistrictRequest batchRequest, List<Address> addresses) {
-        var geocodedAddresses = new ArrayList<GeocodedAddress>();
+    private List<GeocodedAddress> getGeocodedAddresses(BatchDistrictRequest batchRequest) {
+        List<Address> addresses = batchRequest.getAddresses();
         /* Batch USPS validation */
         if (batchRequest.isUspsValidate()) {
             List<AddressResult> validationResult = addressProvider.validate(addresses, null, batchRequest.isUsePunct());
             if (validationResult != null && validationResult.size() == addresses.size()) {
-                for (AddressResult addressResult : validationResult) {
-                    geocodedAddresses.add(new GeocodedAddress(addressResult.getAddress()));
-                }
+                addresses = validationResult.stream().map(AddressResult::getAddress).toList();
             }
         }
 
-        /* Batch Geocoding */
-        if (!batchRequest.isSkipGeocode()) {
-            BatchGeocodeRequest batchGeocodeRequest = new BatchGeocodeRequest(batchRequest);
-            List<GeocodeResult> geocodeResults = geocodeProvider.geocode(batchGeocodeRequest);
-            for (int i = 0; i < geocodeResults.size(); i++) {
-                GeocodeResult geocodeResult = geocodeResults.get(i);
-                GeocodedAddress currAddress = geocodedAddresses.get(i);
-                if (geocodeResult != null) {
-                    if (currAddress.isValidAddress() && currAddress.getAddress().isUspsValidated()) {
-                        currAddress.setGeocode(geocodeResult.getGeocode());
-                    } else {
-                        geocodedAddresses.set(i, geocodeResult.getGeocodedAddress());
-                    }
-                }
-            }
-            if (BATCH_LOGGING_ENABLED) {
-                sqlGeocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
+        if (batchRequest.isSkipGeocode()) {
+            return addresses.stream().map(GeocodedAddress::new).toList();
+        }
+        BatchGeocodeRequest batchGeocodeRequest = new BatchGeocodeRequest(batchRequest);
+        List<GeocodeResult> geocodeResults = geocodeProvider.geocode(batchGeocodeRequest);
+        for (int i = 0; i < geocodeResults.size(); i++) {
+            GeocodeResult geocodeResult = geocodeResults.get(i);
+            Address currAddress = addresses.get(i);
+            // Use Address if good, otherwise just keep geocoded address
+            if (!currAddress.isEmpty() && currAddress.isUspsValidated()) {
+                geocodeResult.setAddress(currAddress);
             }
         }
+        if (BATCH_LOGGING_ENABLED) {
+            sqlGeocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
+        }
 
-        return geocodedAddresses;
+        return geocodeResults.stream().map(GeocodeResult::getGeocodedAddress).toList();
     }
 
     /**
