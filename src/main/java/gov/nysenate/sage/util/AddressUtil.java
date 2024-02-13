@@ -56,6 +56,9 @@ public final class AddressUtil {
         if (address == null) {
             return null;
         }
+        if (address.isPOBox()) {
+            return address;
+        }
         Address reorderedAddress = StreetAddressParser.parseAddress(address).toAddress();
         if (reorderedAddress.getState().isEmpty() && !reorderedAddress.isAddressBlank()) {
             reorderedAddress.setState("NY");
@@ -64,5 +67,13 @@ public final class AddressUtil {
             reorderedAddress.setId(address.getId());
         }
         return reorderedAddress;
+    }
+
+    public static Integer parseZip(String zip) {
+        try {
+            return Integer.parseInt(zip.trim());
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }
