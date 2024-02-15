@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,7 @@ public class PostOfficeDistrictData {
     private final Map<String, DistrictedAddress> townToDistAddrMap = new HashMap<>();
     private final DistrictedAddress consolidatedDistAddr;
 
-    public PostOfficeDistrictData(List<DistrictedAddress> possibleDistAddrs) {
+    public PostOfficeDistrictData(Collection<DistrictedAddress> possibleDistAddrs) {
         // A town may have multiple Post Offices.
         Multimap<String, DistrictedAddress> townToDistAddrMultimap = ArrayListMultimap.create();
         for (DistrictedAddress addr : possibleDistAddrs) {
@@ -39,5 +40,9 @@ public class PostOfficeDistrictData {
             return consolidatedDistAddr;
         }
         return townToDistAddrMap.getOrDefault(city.toUpperCase(), consolidatedDistAddr);
+    }
+
+    public boolean isEmpty() {
+        return townToDistAddrMap.isEmpty();
     }
 }

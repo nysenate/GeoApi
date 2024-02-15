@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nonnull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -23,20 +24,21 @@ public class SqlPostOfficeDao implements PostOfficeDao {
         this.baseDao = baseDao;
     }
 
+    @Nonnull
     @Override
-    public List<PostOfficeAddress> getAllPostOffices() {
-        String sql = PostOfficeQuery.GET_ALL_POST_OFFICES.getSql(baseDao.getPublicSchema());
-        return baseDao.geoApiNamedJbdcTemplate.query(sql, new PostOfficeHandler());
+    public List<PostOfficeAddress> getPostOffices(int deliveryZip) {
+        String sql = PostOfficeQuery.GET_ADDRESSES_BY_DELIVERY_ZIP.getSql(baseDao.getPublicSchema());
+        var params = new MapSqlParameterSource("deliveryZip", deliveryZip);
+        return baseDao.geoApiNamedJbdcTemplate.query(sql, params, new PostOfficeHandler());
     }
 
     @Override
     public synchronized void replaceData(List<PostOfficeAddress> postalAddresses) {
         baseDao.geoApiNamedJbdcTemplate.update(PostOfficeQuery.CLEAR_TABLE.getSql(baseDao.getPublicSchema()), Map.of());
         for (PostOfficeAddress postalAddress : postalAddresses) {
-            Address address = postalAddress.getAddress();
-            var params = new MapSqlParameterSource("deliveryZip", postalAddress.getDeliveryZip())
-                    .addValue("addr1", address.getAddr1())
-                    .addValue("addr2", address.getAddr2())
+            Address address = postalAddress.address();
+            var params = new MapSqlParameterSource("deliveryZip", postalAddress.deliveryZip())
+                    .addValue("streetWithNum", address.getAddr1())
                     .addValue("city", address.getCity())
                     .addValue("zip5", AddressUtil.parseZip(address.getZip5()))
                     .addValue("zip4", AddressUtil.parseZip(address.getZip4()));
@@ -48,8 +50,9 @@ public class SqlPostOfficeDao implements PostOfficeDao {
     private static class PostOfficeHandler implements RowMapper<PostOfficeAddress> {
         @Override
         public PostOfficeAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
-            var address = new Address(rs.getString("addr1"), rs.getString("addr2"),
-                    rs.getString("city"), "NY", rs.getString("zip5"), rs.getString("zip4"));
+            var address = new Address(rs.getString("street_with_num"));
+            address.setCity(rs.getString("city"));
+            address.setPostal(rs.getString("zip5") + "-" + rs.getString("zip4"));
             return new PostOfficeAddress(rs.getInt("delivery_zip"), address);
         }
     }

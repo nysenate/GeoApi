@@ -140,13 +140,7 @@ public final class DistrictUtil {
                 baseDistInfo.setDistCode(distType, null);
             }
         }
-        // TODO: but why? Can mismatch on SENATE, but match on others: see Assembly for 11788 Post Offices
-        if (baseDistInfo.hasDistrictCode(SENATE)) {
-            return baseDistInfo;
-        }
-        else {
-            return null;
-        }
+        return baseDistInfo;
     }
 
     /**

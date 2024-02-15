@@ -27,7 +27,7 @@ public final class PostOfficeParser {
                 continue;
             }
             var currAddr = new Address(lineData[6], lineData[7], "NY", lineData[9] + "-" + lineData[10]);
-            dataList.add(new PostOfficeAddress(Integer.parseInt(lineData[4]), currAddr));
+            dataList.add(new PostOfficeAddress(lineData[4], currAddr));
         }
         return dataList;
     }

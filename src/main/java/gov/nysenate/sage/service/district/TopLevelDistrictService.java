@@ -145,7 +145,9 @@ public class TopLevelDistrictService {
         Address address = Optional.ofNullable(districtRequest.getAddress()).orElse(new Address());
         if (address.isPOBox()) {
             DistrictedAddress result = postOfficeService.getDistrictedAddress(address.getZip5(), address.getCity());
-            return new DistrictResult(PostOfficeService.class, result);
+            if (result != null) {
+                return new DistrictResult(PostOfficeService.class, result);
+            }
         }
         GeocodedAddress geocodedAddress;
 
@@ -226,7 +228,10 @@ public class TopLevelDistrictService {
         for (DistrictResult currResult : districtResults) {
             Address currAddr = currResult.getAddress();
             if (currAddr != null && currAddr.isPOBox()) {
-                currResult.setDistrictedAddress(postOfficeService.getDistrictedAddress(currAddr.getZip5(), currAddr.getCity()));
+                DistrictedAddress poResult = postOfficeService.getDistrictedAddress(currAddr.getZip5(), currAddr.getCity());
+                if (poResult != null) {
+                    currResult.setDistrictedAddress(poResult);
+                }
             }
         }
         if (BATCH_LOGGING_ENABLED) {
