@@ -15,8 +15,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import static gov.nysenate.sage.model.district.DistrictType.SENATE;
-
 public final class DistrictUtil {
     private DistrictUtil() {}
 
