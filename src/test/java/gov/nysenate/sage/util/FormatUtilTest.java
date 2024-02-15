@@ -1,26 +1,22 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.BaseTests;
-import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.annotation.UnitTest;
-import gov.nysenate.sage.config.DatabaseConfig;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 @Category(UnitTest.class)
-public class FormatUtilTest extends BaseTests {
+public class FormatUtilTest {
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void toCamelCaseTest()
     {
         String s = "";
         assertEquals("", FormatUtil.toCamelCase(s));
         s = null;
-        assertEquals(null, FormatUtil.toCamelCase(s));
+        assertNull(FormatUtil.toCamelCase(s));
         s = "street_address_1";
         assertEquals("streetAddress1", FormatUtil.toCamelCase(s));
         s = "alreadyCamelCased";

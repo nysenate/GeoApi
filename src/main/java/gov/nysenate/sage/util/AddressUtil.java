@@ -8,9 +8,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class AddressUtil
-{
-    public AddressUtil() {}
+public final class AddressUtil {
+    private AddressUtil() {}
 
     /**
      * Adds a period to the end of every directional, street type abbreviation, and unit type.
@@ -51,5 +50,30 @@ public abstract class AddressUtil
             address.setAddr1(addr1);
         }
         return address;
+    }
+
+    public static Address reorderAddress(Address address) {
+        if (address == null) {
+            return null;
+        }
+        if (address.isPOBox()) {
+            return address;
+        }
+        Address reorderedAddress = StreetAddressParser.parseAddress(address).toAddress();
+        if (reorderedAddress.getState().isEmpty() && !reorderedAddress.isAddressBlank()) {
+            reorderedAddress.setState("NY");
+        }
+        if (address.getId() != null) {
+            reorderedAddress.setId(address.getId());
+        }
+        return reorderedAddress;
+    }
+
+    public static Integer parseZip(String zip) {
+        try {
+            return Integer.parseInt(zip.trim());
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }

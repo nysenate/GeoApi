@@ -4,7 +4,15 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum PostOfficeQuery implements BasicSqlQuery {
-    GET_ADDRESS_FROM_ZIP("SELECT address FROM ${schema}." + SqlTable.POST_OFFICE + " WHERE po_box_zip5 = :zip5");
+    CLEAR_TABLE("DELETE FROM ${schema}." + SqlTable.POST_OFFICE),
+    ADD_ADDRESS(
+            "INSERT INTO ${schema}." + SqlTable.POST_OFFICE + " (delivery_zip, street_with_num, city, zip5, zip4)\n" +
+            "VALUES (:deliveryZip, :streetWithNum, :city, :zip5, :zip4)"
+    ),
+    GET_ADDRESSES_BY_DELIVERY_ZIP(
+            "SELECT * FROM ${schema}." + SqlTable.POST_OFFICE +
+            " WHERE delivery_zip = :deliveryZip"
+    );
 
     private final String sql;
 

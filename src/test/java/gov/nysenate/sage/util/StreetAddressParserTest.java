@@ -1,24 +1,21 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.UnitTest;
-import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.StreetAddress;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.springframework.transaction.annotation.Transactional;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @Category(UnitTest.class)
-public class StreetAddressParserTest extends BaseTests {
+public class StreetAddressParserTest {
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void edgeCases()
     {
         StreetAddress streetAddress = StreetAddressParser.parseAddress("Queens NY");
@@ -27,7 +24,6 @@ public class StreetAddressParserTest extends BaseTests {
     }
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void semiParsedTest()
     {
         // PreDir with Internal
@@ -38,7 +34,6 @@ public class StreetAddressParserTest extends BaseTests {
     }
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void comparisonTest() {
         Address address = new Address("60 Jordan Road, Climax, NY");
         StreetAddress one = StreetAddressParser.parseAddress(address);

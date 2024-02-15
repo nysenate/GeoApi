@@ -20,6 +20,10 @@ public class GeocodedAddress implements Serializable, Cloneable
         this(address, null);
     }
 
+    public GeocodedAddress(Geocode geocode) {
+        this(null, geocode);
+    }
+
     public GeocodedAddress(Address address, Geocode geocode)
     {
         this.setAddress(address);

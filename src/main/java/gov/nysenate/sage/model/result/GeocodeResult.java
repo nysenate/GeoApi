@@ -52,4 +52,11 @@ public class GeocodeResult extends BaseResult
     {
         this.geocodedAddress = geocodedAddress;
     }
+
+    public void setAddress(Address address) {
+        if (geocodedAddress == null) {
+            this.geocodedAddress = new GeocodedAddress();
+        }
+        geocodedAddress.setAddress(address);
+    }
 }
