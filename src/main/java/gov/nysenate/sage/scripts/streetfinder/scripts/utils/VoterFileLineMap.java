@@ -59,7 +59,7 @@ public class VoterFileLineMap extends EnumMap<VoterFileField, String> {
             // TODO: may be possible to combine the types sometimes
         }
         else {
-            var nonStAddr = new NonStandardAddress(get(RADDRNONSTD));
+            var nonStAddr = new NonStandardAddress(get(RADDRNONSTD), get(RZIP5));
             if (nonStAddr.type() == NonStandardAddressType.VALID) {
                 putAll(nonStAddr.getParsedFields());
             } else {

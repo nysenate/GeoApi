@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 // TODO: WIP for quick testing
 public class NonStandardAddressParser {
     private static final String outputFilename = "parsed-addresses.csv";
+    private static final Map<Integer, Integer> otherZipMap = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
         var filePath = Path.of(args[0]);
@@ -20,13 +22,23 @@ public class NonStandardAddressParser {
             uniqueLines.add(scanner.nextLine().replaceAll(" {2,}", " ").trim());
             totalSize++;
         }
-
         for (String line : uniqueLines) {
-            addressTypeMap.merge(new NonStandardAddress(line).type(), 1, Integer::sum);
+            var matcher = Pattern.compile("(?<data>.*), (?<zip>\\d{5})$").matcher(line);
+            matcher.matches();
+            var nsa = new NonStandardAddress(matcher.group("data"), matcher.group("zip"));
+            if (nsa.type() == NonStandardAddressType.OTHER) {
+                otherZipMap.merge(Integer.parseInt(matcher.group("zip")), 1, Integer::sum);
+            }
+            addressTypeMap.merge(nsa.type(), 1, Integer::sum);
         }
-        // TODO: CU,?
 //        Files.write(Path.of(filePath.getParent() + "/" + outputFilename), parsedAddresses);
         System.out.println(100 * uniqueLines.size()/totalSize + "% of lines are unique");
+        System.out.println("Unique line count: " + uniqueLines.size());
+        for (var entry : otherZipMap.entrySet()) {
+            if (entry.getValue() >= 40) {
+                System.out.println(entry);
+            }
+        }
         System.out.println(addressTypeMap);
     }
 
