@@ -1,6 +1,8 @@
 package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
@@ -8,21 +10,24 @@ import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.DistrictShapefile;
 import gov.nysenate.sage.provider.district.StreetFile;
 import gov.nysenate.sage.util.ExecutorUtil;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * Point of access for all district assignment requests. This class maintains a collection of available
@@ -58,12 +63,14 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
     protected DistrictService defaultProvider;
     protected Map<String,DistrictService> providers = new HashMap<>();
     protected LinkedList<String> defaultFallBack = new LinkedList<>();
+    protected PostOfficeService postOfficeService;
 
     @Autowired
-    public DistrictServiceProvider(Environment env, DistrictShapefile districtShapefile, StreetFile streetFile)
+    public DistrictServiceProvider(Environment env, DistrictShapefile districtShapefile, StreetFile streetFile, PostOfficeService postOfficeService)
     {
         this.env = env;
         this.defaultProvider = districtShapefile;
+        this.postOfficeService = postOfficeService;
         providers.put("shapefile", districtShapefile);
         providers.put("streetfile", streetFile);
         defaultFallBack.add("streetfile");
@@ -206,7 +213,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                 }
             }
         }
-
+        fixPostOfficeBoxResult(districtResult);
         districtResult.setSource(DistrictServiceProvider.class);
         districtResult.setGeocodedAddress(geocodedAddress);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
@@ -394,11 +401,22 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                 }
             }
         }
-
+        districtResults.forEach(this::fixPostOfficeBoxResult);
         districtElapsedMs = TimeUtil.getElapsedMs(startTime);
         logger.info(String.format("District assign time: %d ms.", districtElapsedMs));
 
         return districtResults;
+    }
+
+    private void fixPostOfficeBoxResult(DistrictResult result) {
+        Address currAddr = result.getAddress();
+        if (currAddr != null && currAddr.isPOBox()) {
+            DistrictedAddress poResult = postOfficeService.getDistrictedAddress(currAddr.getZip5(), currAddr.getCity());
+            if (poResult != null) {
+                result.setStatusCode(ResultStatus.SUCCESS);
+                result.setDistrictedAddress(poResult);
+            }
+        }
     }
 
     /** Multi District Overlap ---------------------------------------------------------------------------------------*/

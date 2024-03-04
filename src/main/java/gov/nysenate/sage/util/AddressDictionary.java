@@ -711,6 +711,7 @@ public class AddressDictionary
         highWayMap.put("INTERSTATE RT", "I-");
         highWayMap.put("ROUTE", "Rte");
         highWayMap.put("RT", "Rte");
+        highWayMap.put("RTE", "Rte");
         highWayMap.put("STATE HWY", "State Hwy");
         highWayMap.put("STATE HIGHWAY", "State Hwy");
         highWayMap.put("STATE HIGH WAY", "State Hwy");

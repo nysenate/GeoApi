@@ -7,7 +7,6 @@ import gov.nysenate.sage.dao.logger.district.SqlDistrictResultLogger;
 import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeRequestLogger;
 import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeResultLogger;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.*;
@@ -50,7 +49,6 @@ public class TopLevelDistrictService {
     private final RevGeocodeServiceProvider revGeocodeProvider;
     private final MapServiceProvider mapProvider;
     private final DistrictMemberProvider districtMemberProvider;
-    private final PostOfficeService postOfficeService;
 
     private final boolean SINGLE_LOGGING_ENABLED;
     private final boolean BATCH_LOGGING_ENABLED;
@@ -62,16 +60,14 @@ public class TopLevelDistrictService {
     public TopLevelDistrictService(Environment env, AddressServiceProvider addressProvider, DistrictServiceProvider districtProvider,
                                    GeocodeServiceProvider geocodeProvider, RevGeocodeServiceProvider revGeocodeProvider,
                                    MapServiceProvider mapProvider, DistrictMemberProvider districtMemberProvider,
-                                   PostOfficeService postOfficeService, SqlGeocodeRequestLogger sqlGeocodeRequestLogger,
-                                   SqlGeocodeResultLogger sqlGeocodeResultLogger, SqlDistrictRequestLogger sqlDistrictRequestLogger,
-                                   SqlDistrictResultLogger sqlDistrictResultLogger) {
+                                   SqlGeocodeRequestLogger sqlGeocodeRequestLogger, SqlGeocodeResultLogger sqlGeocodeResultLogger,
+                                   SqlDistrictRequestLogger sqlDistrictRequestLogger, SqlDistrictResultLogger sqlDistrictResultLogger) {
         this.addressProvider = addressProvider;
         this.districtProvider = districtProvider;
         this.geocodeProvider = geocodeProvider;
         this.revGeocodeProvider = revGeocodeProvider;
         this.mapProvider = mapProvider;
         this.districtMemberProvider = districtMemberProvider;
-        this.postOfficeService = postOfficeService;
         this.sqlGeocodeRequestLogger = sqlGeocodeRequestLogger;
         this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         this.sqlDistrictRequestLogger = sqlDistrictRequestLogger;
@@ -143,12 +139,6 @@ public class TopLevelDistrictService {
      */
     public DistrictResult handleDistrictRequest(DistrictRequest districtRequest, int requestId) {
         Address address = Optional.ofNullable(districtRequest.getAddress()).orElse(new Address());
-        if (address.isPOBox()) {
-            DistrictedAddress result = postOfficeService.getDistrictedAddress(address.getZip5(), address.getCity());
-            if (result != null) {
-                return new DistrictResult(PostOfficeService.class, result);
-            }
-        }
         GeocodedAddress geocodedAddress;
 
         /* Parse the input address */
@@ -225,15 +215,6 @@ public class TopLevelDistrictService {
 
         batchRequest.setGeocodedAddresses(geocodedAddresses);
         List<DistrictResult> districtResults = districtProvider.assignDistricts(batchRequest);
-        for (DistrictResult currResult : districtResults) {
-            Address currAddr = currResult.getAddress();
-            if (currAddr != null && currAddr.isPOBox()) {
-                DistrictedAddress poResult = postOfficeService.getDistrictedAddress(currAddr.getZip5(), currAddr.getCity());
-                if (poResult != null) {
-                    currResult.setDistrictedAddress(poResult);
-                }
-            }
-        }
         if (BATCH_LOGGING_ENABLED) {
             sqlDistrictResultLogger.logBatchDistrictResults(batchRequest, districtResults, true);
         }

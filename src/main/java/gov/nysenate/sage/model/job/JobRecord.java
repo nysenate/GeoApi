@@ -96,16 +96,23 @@ public class JobRecord
 
     public void applyDistrictResult(DistrictResult districtResult)
     {
-        if (districtResult != null && (districtResult.isSuccess())) {
+        if (districtResult != null && districtResult.isSuccess()) {
             this.districtInfo = districtResult.getDistrictInfo();
             this.dataMap.put(Column.senate, districtInfo.getDistCode(DistrictType.SENATE));
             this.dataMap.put(Column.assembly, districtInfo.getDistCode(DistrictType.ASSEMBLY));
             this.dataMap.put(Column.congressional, districtInfo.getDistCode(DistrictType.CONGRESSIONAL));
             this.dataMap.put(Column.county, districtInfo.getDistCode(DistrictType.COUNTY));
             this.dataMap.put(Column.school, districtInfo.getDistCode(DistrictType.SCHOOL));
-            this.dataMap.put(Column.town, districtInfo.getDistCode(DistrictType.TOWN));
+            // Ensures the town isn't overwritten
+            String townCode = districtInfo.getDistCode(DistrictType.TOWN);
+            if (townCode != null) {
+                this.dataMap.put(Column.town, townCode);
+            }
             this.dataMap.put(Column.election, districtInfo.getDistCode(DistrictType.ELECTION));
             this.dataMap.put(Column.ward, districtInfo.getDistCode(DistrictType.WARD));
+        }
+        else {
+            System.out.println("TESTING: status code was " + districtResult.getStatusCode());
         }
     }
 

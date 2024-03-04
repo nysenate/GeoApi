@@ -15,15 +15,18 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
-import gov.nysenate.sage.util.*;
+import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.JobFileUtil;
+import gov.nysenate.sage.util.Mailer;
+import gov.nysenate.sage.util.TimeUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.CsvListWriter;
@@ -32,14 +35,16 @@ import org.supercsv.prefs.CsvPreference;
 import javax.annotation.PreDestroy;
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedTransferQueue;
 
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
 import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
@@ -607,10 +612,6 @@ public class JobBatchProcessor implements JobProcessor {
             this.jobProcess = jobProcess;
             this.futureJobBatch = futureJobBatch;
             this.districtTypes = types;
-            /** Change the strategy if the types contain town or school since they are typically missing in street files */
-            if (this.districtTypes.contains(DistrictType.TOWN) || this.districtTypes.contains(DistrictType.SCHOOL)) {
-                this.districtStrategy = DistrictStrategy.streetFallback;
-            }
             this.districtServiceProvider = districtServiceProvider;
             this.sqlDistrictResultLogger = sqlDistrictResultLogger;
         }
