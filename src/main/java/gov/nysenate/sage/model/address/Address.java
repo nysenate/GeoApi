@@ -17,7 +17,7 @@ import java.util.Arrays;
  */
 public class Address implements Serializable, Cloneable
 {
-    private static final String poBoxPattern = "(?i)P\\.?O\\.?\\s+Box\\s+\\d+";
+    private static final String poBoxPattern = "(?i)PO Box \\d+";
     // Note that these can never be null, since cleanString never returns null on non-null input.
     protected String addr1 = "";
     protected String addr2 = "";
@@ -245,7 +245,8 @@ public class Address implements Serializable, Cloneable
     }
 
     public boolean isPOBox() {
-        return addr1.matches(poBoxPattern);
+        return addr1.replaceAll("[.,:]", "")
+                .replaceAll("\\s+", " ").matches(poBoxPattern);
     }
 
     @Override
