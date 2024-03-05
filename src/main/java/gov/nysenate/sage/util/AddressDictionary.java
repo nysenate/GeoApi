@@ -3,8 +3,10 @@ package gov.nysenate.sage.util;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 
+// Data source can be found at: https://pe.usps.com/text/pub28/28apc_002.htm
 public final class AddressDictionary {
     public static final ImmutableMap<String, String>
             stateMap = getMap(

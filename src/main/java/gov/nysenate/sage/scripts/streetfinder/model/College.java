@@ -1,15 +1,15 @@
 package gov.nysenate.sage.scripts.streetfinder.model;
 
-import com.google.common.collect.ImmutableMap;
-
-import java.util.HashMap;
-
+// Contains some code to check if a NonStandardAddress is from an enumerated college.
+// TODO: utilize this class
 public enum College {
-    SKIDMORE("Skidmore College", 12866), LE_MOYNE("(0 )?Lemoyne Col", 13214),
-    SUNY_ONEONTA(".*SUNY", 13820), SUNY_BINGHAMTON("", 13902),
-    HARTWICK(".*Hartwick Col", 13820), ALFRED_TECH("1 Alfred AG Tech", 14802),
+    ALFRED_TECH("1 Alfred AG Tech", 14802),
     CORNELL(".*(House|Ujammaa|Alice Cook|Anna Comstock|Baker Tower|Carl Becker|(High|Low) Rise)", 14853),
-    VASSAR(".*Vassar College", 12604);
+    HARTWICK(".*Hartwick Col", 13820), LE_MOYNE("(0 )?Lemoyne Col", 13214),
+    SKIDMORE("Skidmore College", 12866), SUNY_ALBANY("", 12222),
+    SUNY_BINGHAMTON("", 13902), SUNY_ONEONTA(".*SUNY", 13820),
+    SYRACUSE("", 13210), VASSAR(".*Vassar College", 12604);
+
 
     private final String regex;
     private final int zip;

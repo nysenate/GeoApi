@@ -1,7 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
 import gov.nysenate.sage.scripts.streetfinder.parsers.NonStandardAddress;
-import gov.nysenate.sage.scripts.streetfinder.parsers.NonStandardAddressType;
 
 import java.util.EnumMap;
 import java.util.regex.Matcher;
@@ -44,27 +43,25 @@ public class VoterFileLineMap extends EnumMap<VoterFileField, String> {
             this.type = MISSING_ZIP_5;
             return;
         }
-        boolean emptyStandardAddress = standardAddressFields.stream().map(this::get).allMatch(String::isEmpty);
-        if (!get(RADDRNONSTD).isEmpty()) {
-            handleNonstandardAddresses(emptyStandardAddress);
-        }
-        else if (emptyStandardAddress) {
-            this.type = NO_ADDRESS;
-        }
+        handleNonstandardAddresses();
     }
 
-    private void handleNonstandardAddresses(boolean emptyStandardAddress) {
-        if (!emptyStandardAddress) {
-            this.type = TWO_ADDRESS_FORMATS;
-            // TODO: may be possible to combine the types sometimes
-        }
-        else {
+    private void handleNonstandardAddresses() {
+        boolean emptyStandardAddress = standardAddressFields.stream().map(this::get).allMatch(String::isEmpty);
+        if (!get(RADDRNONSTD).isEmpty()) {
+            if (!emptyStandardAddress) {
+                this.type = TWO_ADDRESS_FORMATS;
+                // TODO: may be possible to combine the types sometimes
+            }
             var nonStAddr = new NonStandardAddress(get(RADDRNONSTD), get(RZIP5));
-            if (nonStAddr.type() == NonStandardAddressType.VALID) {
+            if (nonStAddr.type().isValid()) {
                 putAll(nonStAddr.getParsedFields());
             } else {
                 this.type = INVALID_NON_STANDARD_ADDRESS;
             }
+        }
+        else if (emptyStandardAddress) {
+            this.type = NO_ADDRESS;
         }
     }
 
