@@ -162,18 +162,22 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
                 addressResult.addMessage(String.format("%s - %s", ftName, ftDesc));
             }
 
-            String addr1 = addressNode.get("addr1").asText();
-            String addr2 = addressNode.get("addr2").asText();
-            String city = addressNode.get("city").asText();
-            String state = addressNode.get("state").asText();
-            String zip5 = addressNode.get("zip5").asText();
-            String zip4 = addressNode.get("zip4").asText();
-            Integer id = (addressNode.has("id")) ? addressNode.get("id").asInt() : null;
+            try {
+                String addr1 = addressNode.get("addr1").asText();
+                String addr2 = addressNode.get("addr2").asText();
+                String city = addressNode.get("city").asText();
+                String state = addressNode.get("state").asText();
+                String zip5 = addressNode.get("zip5").asText();
+                String zip4 = addressNode.get("zip4").asText();
+                Integer id = (addressNode.has("id")) ? addressNode.get("id").asInt() : null;
 
-            Address validatedAddress = new Address(addr1, addr2, city, state, zip5, zip4, id);
-            validatedAddress.setUspsValidated(validated);
-            addressResult.setAddress(validatedAddress);
-
+                Address validatedAddress = new Address(addr1, addr2, city, state, zip5, zip4, id);
+                validatedAddress.setUspsValidated(validated);
+                addressResult.setAddress(validatedAddress);
+            } catch (NullPointerException ex) {
+                logger.error("Failed on this result: " + root);
+                validated = false;
+            }
             if (!validated) {
                 addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
             }

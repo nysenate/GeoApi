@@ -32,8 +32,7 @@ public class AddressPointValidationResult {
     }
 
     public String fullStreetName() {
-        return Stream.of(streetAddress.getPreDir(), streetAddress.getStreetName(),
-                streetAddress.getStreetType(), streetAddress.getPostDir())
+        return Stream.of(streetAddress.getPreDir(), streetAddress.getStreet(), streetAddress.getPostDir())
                 .filter(s -> s != null && !s.isEmpty())
                 .collect(Collectors.joining(" "));
     }
