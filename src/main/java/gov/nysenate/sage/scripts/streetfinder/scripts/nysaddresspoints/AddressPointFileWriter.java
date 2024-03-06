@@ -9,20 +9,16 @@ import java.nio.charset.StandardCharsets;
 
 public class AddressPointFileWriter {
 
-    static void appendToStreetfile(String filename, String text) throws IOException {
-        File file = new File(filename);
-              FileUtils.writeStringToFile(file, text, StandardCharsets.UTF_8, true);
+    static void appendToStreetfile(File file, String text) throws IOException {
+        FileUtils.writeStringToFile(file, text, StandardCharsets.UTF_8, true);
     }
 
     /**
      * For addresses which failed validation, just print the OID from the NYS Address Point file to an error file.
      */
-    static void appendToUnsuccessfulFile(String filename, AddressPointValidationResult res) throws IOException {
-        File file = new File(filename);
-        StringBuilder sb = new StringBuilder();
-        sb.append(res.addressPoint().oid);
-        sb.append("\n");
-        FileUtils.writeStringToFile(file, sb.toString(), StandardCharsets.UTF_8, true);
+    static void appendToUnsuccessfulFile(File file, AddressPointValidationResult res) throws IOException {
+        String sb = res.addressPoint().oid + "\n";
+        FileUtils.writeStringToFile(file, sb, StandardCharsets.UTF_8, true);
     }
 
     static String toStreetfileRow(AddressPointValidationResult ap) {
@@ -56,8 +52,7 @@ public class AddressPointFileWriter {
         return sb.toString();
     }
 
-    static void writeStreetfileHeaders(String filename) throws IOException {
-        File file = new File(filename);
+    static void writeStreetfileHeaders(File file) throws IOException {
         StringBuilder sb = new StringBuilder();
         appendTsvColumn(sb, "street");
         appendTsvColumn(sb, "town");

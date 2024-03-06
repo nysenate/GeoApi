@@ -1,5 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.nysaddresspoints;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.ResultIterator;
 import com.univocity.parsers.tsv.TsvParserSettings;
@@ -11,6 +13,7 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.util.FileUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,28 +21,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
 public class NYSAddressPointProcessor {
-
     private static final Logger logger = LoggerFactory.getLogger(NYSAddressPointProcessor.class);
+    private static final List<DistrictType> LOOKUP_DISTRICT_TYPES = List.of(
+            DistrictType.COUNTY, DistrictType.SCHOOL, DistrictType.TOWN, DistrictType.ELECTION);
+    private static final DateTimeFormatter dirFormatter = DateTimeFormatter.ofPattern("yyyy_MM_dd'T'HH_mm_ss");
+    private static final File inputFile = new File("NYS_SAM_Address_Points.tsv"),
+            outputFile = new File("streetfile.tsv"), errorFile = new File("errors.txt");
+    private static final TsvRoutines tsvRoutines;
+    static {
+        var parserSettings = new TsvParserSettings();
+        parserSettings.setHeaderExtractionEnabled(true);
+        tsvRoutines = new TsvRoutines(parserSettings);
+    }
 
-    private static List<DistrictType> LOOKUP_DISTRICT_TYPES = Arrays.asList(DistrictType.COUNTY, DistrictType.SCHOOL,
-            DistrictType.TOWN, DistrictType.ELECTION);
-
-    private AddressServiceProvider addressServiceProvider;
-    private DistrictShapeFileDao districtShapeFileDao;
-    private String directory;
+    private final AddressServiceProvider addressServiceProvider;
+    private final DistrictShapeFileDao districtShapeFileDao;
+    private final String directory;
 
     @Autowired
     public NYSAddressPointProcessor(AddressServiceProvider addressServiceProvider,
@@ -53,111 +62,72 @@ public class NYSAddressPointProcessor {
     /**
      * Processes a tsv of NYS Address Point data into a tsv containing streetfile columns.
      */
-    public synchronized void processNysSamAddressPoints(int batchSize, boolean saveNycToSeparateFile) throws IOException {
-        // Init file names
-        LocalDateTime dt = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss_");
-        String prefix = dt.format(formatter);
-        final String inputFile = directory + "NYS_SAM_Address_Points.tsv";
-        final String outputFile = directory + prefix + "NYS_SAM_Address_Points_streetfile.tsv";
-        final String nycOutputFile = directory + prefix + "NYS_SAM_Address_Points_nyc_streetfile.tsv";
-        final String errorFile = directory + prefix + "errors.txt";
-
-        // Write headers in output files.
-        AddressPointFileWriter.writeStreetfileHeaders(outputFile);
-        if (saveNycToSeparateFile) {
-            AddressPointFileWriter.writeStreetfileHeaders(nycOutputFile);
+    public synchronized void processNysSamAddressPoints(int batchSize) throws IOException {
+        File currParentDir = new File(directory + LocalDateTime.now().format(dirFormatter));
+        if (!currParentDir.mkdir()) {
+            throw new IOException("Directory could not be created.");
         }
 
+        AddressPointFileWriter.writeStreetfileHeaders(outputFile);
         // Read from the input file in batches.
-        TsvParserSettings parserSettings = new TsvParserSettings();
-        parserSettings.setHeaderExtractionEnabled(true);
-        TsvRoutines tsvRoutines = new TsvRoutines(parserSettings);
-
+        double totalLines = FileUtil.getLineCount(inputFile);
+        double batchesPerFivePercent = Math.ceil(totalLines/batchSize)/20;
         Reader reader = new FileReader(inputFile);
         ResultIterator<NYSAddressPoint, ParsingContext> iterator = tsvRoutines.iterate(NYSAddressPoint.class, reader).iterator();
 
-        int batchNum = 1;
+        int batchCount = 0;
         List<NYSAddressPoint> batch;
-        do {
+        while (iterator.hasNext()) {
             batch = new ArrayList<>(batchSize);
             while (batch.size() < batchSize && iterator.hasNext()) {
-                NYSAddressPoint point = iterator.next();
-                batch.add(point);
+                batch.add(iterator.next());
             }
             // Process each batch
-            List<AddressPointValidationResult> validationResults = processBatch(batch);
-            saveResults(validationResults, outputFile, nycOutputFile, errorFile, saveNycToSeparateFile);
-            logger.info("Done processing batch number {}", batchNum);
-            batchNum++;
-        } while (batch.size() == batchSize);
-    }
-
-    public List<AddressPointValidationResult> processBatch(List<NYSAddressPoint> batch) {
-        // Run through usps address validator.
-        List<AddressPointValidationResult> validationResults = validateBatch(batch);
-
-        for (var result : validationResults) {
-            if (result.validationResult().isValidated()) {
-                // For all successfully validated addresses.
-                //   - Set street addresses.
-                result.setStreetAddress(StreetAddressParser.parseAddress(result.validationResult().getAddress()));
-                //   - Lookup other district codes in SAGE.
-                Point p = new Point(result.addressPoint().latitude, result.addressPoint().longitude);
-                DistrictInfo info = districtShapeFileDao.getDistrictInfo(p, LOOKUP_DISTRICT_TYPES, false, false);
-                result.setLookedUpDistrictCodes(info.getDistrictCodes());
+            saveResults(processBatch(batch));
+            if (++batchCount % batchesPerFivePercent == 0) {
+                logger.info(batchCount/batchesPerFivePercent + "% done");
             }
         }
-        return validationResults;
     }
 
-    private void saveResults(List<AddressPointValidationResult> results, String outputFile, String nycOutputFile,
-                             String errorFile, boolean saveNycToSeparateFile) throws IOException {
-        // Save errors/unable to validate.
-        List<AddressPointValidationResult> notValidated = results.stream()
-                .filter(r -> !r.validationResult().isValidated())
-                .collect(Collectors.toList());
+    /**
+     * Returns a map with all valid and invalid addresses.
+     * @param batch
+     * @return
+     */
+    public ListMultimap<Boolean, AddressPointValidationResult> processBatch(List<NYSAddressPoint> batch) {
+        // Run through usps address validator.
+        List<AddressPointValidationResult> validationResults = validateBatch(batch);
+        ListMultimap<Boolean, AddressPointValidationResult> validatedMap = ArrayListMultimap.create();
+        validationResults.forEach(result -> validatedMap.put(result.validationResult().isValidated(), result));
+        // For all successfully validated addresses.
+        for (var result : validatedMap.get(true)) {
+            result.setStreetAddress(StreetAddressParser.parseAddress(result.validationResult().getAddress()));
+            //   - Lookup other district codes in SAGE.
+            var p = new Point(result.addressPoint().latitude, result.addressPoint().longitude);
+            DistrictInfo info = districtShapeFileDao.getDistrictInfo(p, LOOKUP_DISTRICT_TYPES, false, false);
+            result.setLookedUpDistrictCodes(info.getDistrictCodes());
+        }
+        return validatedMap;
+    }
 
-        for (var res : notValidated) {
+    private void saveResults(ListMultimap<Boolean, AddressPointValidationResult> results) throws IOException {
+        // Save errors/unable to validate.
+        for (var res : results.get(false)) {
             AddressPointFileWriter.appendToUnsuccessfulFile(errorFile, res);
         }
-
-        List<AddressPointValidationResult> validated = results.stream()
-                .filter(r -> r.validationResult().isValidated())
-                .collect(Collectors.toList());
-
-        logger.info("Successfully validated " + validated.size() + " out of " + results.size());
-
-        // Split into NYC and non NYC addresses.
-        List<AddressPointValidationResult> nycAddresses = validated.stream()
-                .filter(r -> r.validationResult().getAddress().getCity()
-                        .matches("(?i)Bronx|Brooklyn|Manhattan|Queens|Staten Island"))
-                .collect(Collectors.toList());
-
-        List<AddressPointValidationResult> nonNycAddresses = validated.stream()
-                .filter(r -> !r.validationResult().getAddress().getCity()
-                        .matches("(?i)Bronx|Brooklyn|Manhattan|Queens|Staten Island"))
-                .collect(Collectors.toList());
-
-        // Write non NYC addresses to tsv file
-        for (var res : nonNycAddresses) {
-            var tsvData = AddressPointFileWriter.toStreetfileRow(res);
+        for (var result : results.get(true)) {
+            String tsvData = AddressPointFileWriter.toStreetfileRow(result);
             AddressPointFileWriter.appendToStreetfile(outputFile, tsvData);
         }
-
-        // Write NYC addresses to tsv file
-        for (var res : nycAddresses) {
-            var nycFile = saveNycToSeparateFile ? nycOutputFile : outputFile;
-            var tsvData = AddressPointFileWriter.toStreetfileRow(res);
-            AddressPointFileWriter.appendToStreetfile(nycFile, tsvData);
-        }
+        logger.info("Successfully validated " + results.get(true).size() + " out of " + results.size());
     }
 
     private List<AddressPointValidationResult> validateBatch(List<NYSAddressPoint> batch) {
-        List<Address> batchAddresses = batch.stream().map(NYSAddressPoint::toAddress).collect(Collectors.toList());
+        List<Address> batchAddresses = batch.stream().map(NYSAddressPoint::toAddress).toList();
         List<AddressResult> results = addressServiceProvider.validate(batchAddresses, "usps", false);
         return IntStream.range(0, results.size())
                 .mapToObj(i -> new AddressPointValidationResult(batch.get(i), results.get(i)))
-                .collect(Collectors.toList());
+                .toList();
     }
 }

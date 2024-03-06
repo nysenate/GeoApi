@@ -157,17 +157,22 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         }
 
         if (validated) {
-            String addr1 = addressNode.get("addr1").asText();
-            String addr2 = addressNode.get("addr2").asText();
-            String city = addressNode.get("city").asText();
-            String state = addressNode.get("state").asText();
-            String zip5 = addressNode.get("zip5").asText();
-            String zip4 = addressNode.get("zip4").asText();
+            try {
+                String addr1 = addressNode.get("addr1").asText();
+                String addr2 = addressNode.get("addr2").asText();
+                String city = addressNode.get("city").asText();
+                String state = addressNode.get("state").asText();
+                String zip5 = addressNode.get("zip5").asText();
+                String zip4 = addressNode.get("zip4").asText();
 
-            Address validatedAddress = new Address(addr1, addr2, city, state, zip5, zip4);
-            validatedAddress.setUspsValidated(true);
+                Address validatedAddress = new Address(addr1, addr2, city, state, zip5, zip4);
+                validatedAddress.setUspsValidated(true);
 
-            addressResult.setAddress(validatedAddress);
+                addressResult.setAddress(validatedAddress);
+            } catch (NullPointerException ex) {
+                logger.error("Bad root: " + root);
+                addressResult.setValidated(false);
+            }
         }
         else {
             addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
