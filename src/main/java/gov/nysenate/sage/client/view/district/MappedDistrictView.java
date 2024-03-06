@@ -1,6 +1,6 @@
 package gov.nysenate.sage.client.view.district;
 
-import gov.nysenate.sage.client.view.map.MapView;
+import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -10,7 +10,7 @@ import java.util.List;
 
 public class MappedDistrictView extends DistrictView
 {
-    protected MapView map;
+    protected PolygonMapView map;
     protected boolean nearBorder;
     public List<DistrictNeighborView> neighbors = new ArrayList<>();
 
@@ -18,7 +18,7 @@ public class MappedDistrictView extends DistrictView
     {
         super(districtType, districtInfo);
         if (districtInfo != null) {
-            this.map = new MapView(districtInfo.getDistMap(districtType));
+            this.map = new PolygonMapView(districtInfo.getDistMap(districtType));
             this.nearBorder = districtInfo.getNearBorderDistricts().contains(districtType);
             for (DistrictMap neighborMap : districtInfo.getNeighborMaps(districtType)) {
                 neighbors.add(new DistrictNeighborView(neighborMap));
@@ -26,7 +26,7 @@ public class MappedDistrictView extends DistrictView
         }
     }
 
-    public MapView getMap() {
+    public PolygonMapView getMap() {
         return (map != null && map.getGeom() != null && map.getGeom().size() > 0) ? map : null;
     }
 

@@ -15,8 +15,8 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.util.FileUtil;
 import gov.nysenate.sage.util.FormatUtil;
-import gov.nysenate.sage.util.JobFileUtil;
 import gov.nysenate.sage.util.Mailer;
 import gov.nysenate.sage.util.TimeUtil;
 import org.slf4j.Logger;
@@ -244,7 +244,7 @@ public class JobBatchProcessor implements JobProcessor {
             File targetFile = new File(DOWNLOAD_DIR, fileName);
 
             /** Determine the type of formatting (tab, comma, semi-colon) */
-            CsvPreference preference = JobFileUtil.getCsvPreference(uploadedFile);
+            CsvPreference preference = FileUtil.getCsvPreference(uploadedFile);
 
             FileReader fileReader = new FileReader(uploadedFile);
             jobReader = new CsvListReader(fileReader, preference);

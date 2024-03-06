@@ -2,7 +2,7 @@ package gov.nysenate.sage.client.response.map;
 
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.view.map.DistrictMapView;
-import gov.nysenate.sage.client.view.map.MapView;
+import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.model.result.MapResult;
 
 public class MapResponse extends BaseResponse
@@ -28,7 +28,7 @@ public class MapResponse extends BaseResponse
         return (map != null) ? map.getType() : null;
     }
 
-    public MapView getMap() {
+    public PolygonMapView getMap() {
         return (map != null) ? map.getMap() : null;
     }
 

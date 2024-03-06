@@ -9,7 +9,7 @@ public class DistrictMapView
     protected String type;
     protected String district;
     protected String name;
-    protected MapView map;
+    protected PolygonMapView map;
     protected Object member;
     protected String link;
 
@@ -27,7 +27,7 @@ public class DistrictMapView
             }
             this.district = districtMap.getDistrictCode();
             this.name = districtMap.getDistrictName();
-            this.map = (showMaps) ? new MapView(districtMap) : null;
+            this.map = (showMaps) ? new PolygonMapView(districtMap) : null;
             if (districtType.equals(DistrictType.SENATE)) {
                 this.member = districtMap.getSenator();
             }
@@ -48,7 +48,7 @@ public class DistrictMapView
         return district;
     }
 
-    public MapView getMap() {
+    public PolygonMapView getMap() {
         return map;
     }
 

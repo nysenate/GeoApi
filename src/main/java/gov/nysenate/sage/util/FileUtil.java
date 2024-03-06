@@ -1,15 +1,16 @@
 package gov.nysenate.sage.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.supercsv.prefs.CsvPreference;
 
 import java.io.*;
 
-public abstract class JobFileUtil
-{
-    private static Logger logger = LoggerFactory.getLogger(JobFileUtil.class);
+public final class FileUtil {
+    private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
+
+    private FileUtil() {}
 
     /**
      * Determines the CsvPreference based on the delimiter used in the header.
@@ -18,8 +19,7 @@ public abstract class JobFileUtil
      * @param file
      * @return
      */
-    public static CsvPreference getCsvPreference(File file)
-    {
+    public static CsvPreference getCsvPreference(File file) {
         try {
             BufferedReader sourceReader = new BufferedReader(new FileReader(file));
             String firstLine = sourceReader.readLine();
@@ -38,20 +38,32 @@ public abstract class JobFileUtil
                 }
             }
 
-            switch (index) {
-                case -1 : return null;
-                case  0 : logger.debug("Tab delimited"); return CsvPreference.TAB_PREFERENCE;
-                case  1 : logger.debug("Comma delimited"); return CsvPreference.STANDARD_PREFERENCE;
-                case  2 : logger.debug("Semi-colon delimited"); return CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE;
-                default : return null;
-            }
-        }
-        catch (FileNotFoundException ex) {
-            logger.error("File not found when trying to determine csv preference.", ex);
+            return switch (index) {
+                case 0 -> {
+                    logger.debug("Tab delimited");
+                    yield CsvPreference.TAB_PREFERENCE;
+                }
+                case 1 -> {
+                    logger.debug("Comma delimited");
+                    yield CsvPreference.STANDARD_PREFERENCE;
+                }
+                case 2 -> {
+                    logger.debug("Semi-colon delimited");
+                    yield CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE;
+                }
+                default -> null;
+            };
         }
         catch (IOException ex) {
-            logger.error("IO Exception when trying to determine csv preference", ex);
+            logger.error(ex.getClass().getSimpleName() + " when trying to determine csv preference.", ex);
+            return null;
         }
-        return null;
+    }
+
+    public static int getLineCount(File file) throws IOException {
+        try (var reader = new LineNumberReader(new FileReader(file))) {
+            reader.skip(Long.MAX_VALUE);
+            return reader.getLineNumber() + 1;
+        }
     }
 }

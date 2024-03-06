@@ -1,7 +1,7 @@
 package gov.nysenate.sage.client.response.district;
 
 import gov.nysenate.sage.client.view.district.MappedDistrictOverlapView;
-import gov.nysenate.sage.client.view.map.MapView;
+import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.client.view.street.StreetRangeView;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.district.DistrictInfo;
@@ -19,8 +19,8 @@ import java.util.Map;
 public class MappedMultiDistrictResponse extends MappedDistrictResponse
 {
     protected Map<String, List<MappedDistrictOverlapView>> overlaps = new HashMap<>();
-    protected MapView referenceMap;
-    protected MapView streetLine;
+    protected PolygonMapView referenceMap;
+    protected PolygonMapView streetLine;
     protected BigDecimal totalReferenceArea;
     protected String areaUnit;
     protected String intersectType;
@@ -33,7 +33,7 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
 
         if (districtInfo != null) {
             if (!districtInfo.getDistrictOverlaps().isEmpty()) {
-                this.referenceMap = new MapView(districtInfo.getReferenceMap());
+                this.referenceMap = new PolygonMapView(districtInfo.getReferenceMap());
 
                 Map<DistrictType, DistrictOverlap> overlapsByDistrictType = districtInfo.getDistrictOverlaps();
                 for (DistrictType districtType : overlapsByDistrictType.keySet()) {
@@ -55,7 +55,7 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
                 }
             }
             /** Handle street line matches */
-            this.streetLine = new MapView(districtInfo.getStreetLineReference());
+            this.streetLine = new PolygonMapView(districtInfo.getStreetLineReference());
             if (districtInfo.getStreetRanges() != null && !districtInfo.getStreetRanges().isEmpty()) {
                 for (DistrictedStreetRange dsr : districtInfo.getStreetRanges()) {
                     this.streets.add(new StreetRangeView(dsr));
@@ -69,7 +69,7 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
         return overlaps;
     }
 
-    public MapView getReferenceMap() {
+    public PolygonMapView getReferenceMap() {
         return referenceMap;
     }
 
@@ -81,7 +81,7 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
         return areaUnit;
     }
 
-    public MapView getStreetLine() {
+    public PolygonMapView getStreetLine() {
         return streetLine;
     }
 

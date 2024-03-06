@@ -1,6 +1,6 @@
 package gov.nysenate.sage.client.view.district;
 
-import gov.nysenate.sage.client.view.map.MapView;
+import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 
@@ -9,13 +9,13 @@ public class DistrictNeighborView
     protected String name;
     protected String district;
     protected Object member;
-    protected MapView map;
+    protected PolygonMapView map;
 
     public DistrictNeighborView(DistrictMap neighborMap) {
         if (neighborMap != null) {
             this.name = neighborMap.getDistrictName();
             this.district = neighborMap.getDistrictCode();
-            this.map = new MapView(neighborMap);
+            this.map = new PolygonMapView(neighborMap);
             this.member = (neighborMap.getDistrictType().equals(DistrictType.SENATE)) ? neighborMap.getSenator() :
                                                                                         neighborMap.getMember();
         }
@@ -29,7 +29,7 @@ public class DistrictNeighborView
         return district;
     }
 
-    public MapView getMap() {
+    public PolygonMapView getMap() {
         return map;
     }
 

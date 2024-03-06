@@ -1,14 +1,14 @@
 package gov.nysenate.sage.client.view.district;
 
-import gov.nysenate.sage.client.view.map.MapView;
+import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictOverlap;
 
 public class MappedDistrictOverlapView extends DistrictOverlapView
 {
-    protected MapView map;
-    protected MapView fullMap;
+    protected PolygonMapView map;
+    protected PolygonMapView fullMap;
     protected Object member;
 
     public MappedDistrictOverlapView(DistrictOverlap districtOverlap, String district, DistrictMatchLevel matchLevel)
@@ -19,13 +19,13 @@ public class MappedDistrictOverlapView extends DistrictOverlapView
             DistrictMap districtMap = districtOverlap.getTargetDistrictMap(district);
 
             if (intersectionMap != null && !matchLevel.equals(DistrictMatchLevel.STREET)) {
-                this.map = new MapView(intersectionMap);
+                this.map = new PolygonMapView(intersectionMap);
                 if (districtMap != null) {
-                    this.fullMap = new MapView(districtMap);
+                    this.fullMap = new PolygonMapView(districtMap);
                 }
             }
             else if (districtMap != null) {
-                this.map = new MapView(districtMap);
+                this.map = new PolygonMapView(districtMap);
             }
 
             if (!districtOverlap.getTargetSenators().isEmpty()) {
@@ -34,7 +34,7 @@ public class MappedDistrictOverlapView extends DistrictOverlapView
         }
     }
 
-    public MapView getMap() {
+    public PolygonMapView getMap() {
         return map;
     }
 
@@ -42,7 +42,7 @@ public class MappedDistrictOverlapView extends DistrictOverlapView
         return member;
     }
 
-    public MapView getFullMap() {
+    public PolygonMapView getFullMap() {
         return fullMap;
     }
 }

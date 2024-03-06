@@ -8,8 +8,8 @@ import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.JobErrorResult;
 import gov.nysenate.sage.service.job.JobBatchProcessor;
+import gov.nysenate.sage.util.FileUtil;
 import gov.nysenate.sage.util.FormatUtil;
-import gov.nysenate.sage.util.JobFileUtil;
 import gov.nysenate.sage.util.auth.JobUserAuth;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import org.apache.commons.fileupload.FileItem;
@@ -21,13 +21,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 
@@ -40,7 +40,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import static gov.nysenate.sage.util.controller.ConstantUtil.*;
+import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
+import static gov.nysenate.sage.util.controller.ConstantUtil.JOB_LOGIN_JSP;
 import static gov.nysenate.sage.util.controller.JobControllerUtil.*;
 
 @Controller
@@ -312,7 +313,7 @@ public class JobController {
                 logger.debug("Saved uploaded file to temp location: " + tempFile.getAbsolutePath());
 
                 /* Determine the formatting by inspecting the header */
-                CsvPreference preference = JobFileUtil.getCsvPreference(tempFile);
+                CsvPreference preference = FileUtil.getCsvPreference(tempFile);
                 if (preference != null) {
                     JobFile jobFile = new JobFile();
                     sourceReader = new BufferedReader(new FileReader(tempFile));
