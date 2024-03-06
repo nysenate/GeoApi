@@ -1,20 +1,15 @@
 package gov.nysenate.sage.dao.data;
 
-import gov.nysenate.sage.scripts.streetfinder.NamePair;
-
-import java.util.List;
+import java.util.Map;
 
 public interface DataGenDao {
+    /**
+     * Retrieves a mapping from town names to their abbreviations.
+     */
+    Map<String, String> getTownToAbbrevMap();
 
     /**
-     * Retrieves the county codes from the public schema in the streetfile model format
-     * @return
+     * Retrieves a mapping from county names to their state Senate codes.
      */
-    List<NamePair> getCountyCodes();
-
-    /**
-     * Retreives the town codes from the district schema in the streetfile model format
-     * @return
-     */
-    List<NamePair> getTownCodes();
+    Map<String, String> getCountyToSenateCodeMap();
 }

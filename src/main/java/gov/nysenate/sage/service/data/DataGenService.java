@@ -6,7 +6,7 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.controller.admin.DataGenController;
-import gov.nysenate.sage.dao.data.SqlDataGenDao;
+import gov.nysenate.sage.dao.data.DataGenDao;
 import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
 import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
@@ -14,7 +14,6 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.scripts.streetfinder.NamePair;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.sage.util.ImageUtil;
@@ -42,10 +41,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,22 +54,22 @@ public class DataGenService implements SageDataGenService {
     private SqlAssemblyDao sqlAssemblyDao;
     private SqlCongressionalDao sqlCongressionalDao;
     private SqlSenateDao sqlSenateDao;
-    private SqlDataGenDao sqlDataGenDao;
+    private DataGenDao dataGenDao;
     private Environment env;
 
     @Autowired
     public DataGenService(SqlSenateDao sqlSenateDao,
                           SqlAssemblyDao sqlAssemblyDao, SqlCongressionalDao sqlCongressionalDao,
-                          Environment env, SqlDataGenDao sqlDataGenDao) {
+                          Environment env, DataGenDao dataGenDao) {
         this.sqlSenateDao = sqlSenateDao;
         this.sqlAssemblyDao = sqlAssemblyDao;
         this.sqlCongressionalDao = sqlCongressionalDao;
-        this.sqlDataGenDao = sqlDataGenDao;
+        this.dataGenDao = dataGenDao;
         this.env = env;
     }
 
-    public List<NamePair> getCodes(boolean townCodes) {
-        return townCodes ? sqlDataGenDao.getTownCodes() : sqlDataGenDao.getCountyCodes();
+    public Map<String, String> getCodes(boolean townCodes) {
+        return townCodes ? dataGenDao.getTownToAbbrevMap() : dataGenDao.getCountyToSenateCodeMap();
     }
 
     public Object generateSenatorImages(String path, int height) {

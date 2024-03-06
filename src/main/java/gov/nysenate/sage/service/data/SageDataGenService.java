@@ -1,19 +1,18 @@
 package gov.nysenate.sage.service.data;
 
-import gov.nysenate.sage.scripts.streetfinder.NamePair;
 import org.apache.xmlrpc.XmlRpcException;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
 
 public interface SageDataGenService {
 
     /**
      * Used to help fill in streetfiles.
      * @param townCodes true if we're getting the town codes, false if it's the county codes.
-     * @return the relevant pairs of data.
+     * @return the relevant mapping of data.
      */
-    List<NamePair> getCodes(boolean townCodes);
+    Map<String, String> getCodes(boolean townCodes);
 
     /**
      * Manually Updates the senator cache used by the front end

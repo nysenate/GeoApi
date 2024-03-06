@@ -2,7 +2,7 @@ package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
-import gov.nysenate.sage.scripts.streetfinder.NamePair;
+import gov.nysenate.sage.client.view.map.MapView;
 import gov.nysenate.sage.scripts.streetfinder.scripts.nysaddresspoints.NYSAddressPointProcessor;
 import gov.nysenate.sage.service.data.DataGenService;
 import gov.nysenate.sage.service.district.PostOfficeService;
@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.io.IOException;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
@@ -161,7 +159,8 @@ public class DataGenController {
     }
 
     /**
-     * Sends a response of all the relevant NamePairs.
+     * Sends the appropriate Map response.
+     * Note: the non-capturing group below is necessary.
      */
     @GetMapping(value = "/{type:(?:county|town)}codes")
     public void ensureCodeFilesExist(HttpServletRequest request, HttpServletResponse response,
@@ -169,16 +168,16 @@ public class DataGenController {
                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                      @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                      @RequestParam(required = false, defaultValue = "") String key) {
-        Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        Object apiResponse;
         String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            List<String> results = dataGenService.getCodes(type.equals("town"))
-                    .stream().map(NamePair::toString).collect(Collectors.toList());
-            apiResponse = new GenericResponse(true, String.join("|", results));
+            apiResponse = new MapView<>(dataGenService.getCodes(type.equals("town")));
+        } else {
+            apiResponse = invalidAuthResponse();
         }
         setAdminResponse(apiResponse, response);
     }
@@ -231,15 +230,13 @@ public class DataGenController {
      * @param username
      * @param password
      * @param batchSize
-     * @param saveNycToSeparateFile
      */
     @RequestMapping(value = "/process/sam-nys-statewide-addresses")
     public void processSamStatewideAddresses(HttpServletRequest request, HttpServletResponse response,
                                              @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                              @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                              @RequestParam(required = false, defaultValue = "") String key,
-                                             @RequestParam(required = false, defaultValue = "1000") int batchSize,
-                                             @RequestParam(required = false, defaultValue = "false") boolean saveNycToSeparateFile) {
+                                             @RequestParam(required = false, defaultValue = "1000") int batchSize) {
         Object apiResponse;
         String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
@@ -248,7 +245,7 @@ public class DataGenController {
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             try {
-                nysAddressPointProcessor.processNysSamAddressPoints(batchSize, saveNycToSeparateFile);
+                nysAddressPointProcessor.processNysSamAddressPoints(batchSize);
                 apiResponse = "Processing sucessfully started";
             } catch (Exception e) {
                 logger.error("Error trying to process the sam-nys-statewide-address file", e);
@@ -283,4 +280,5 @@ public class DataGenController {
         }
         setAdminResponse(apiResponse, response);
     }
+
 }
