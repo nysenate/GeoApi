@@ -1,7 +1,8 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineData;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
 import static gov.nysenate.sage.scripts.streetfinder.parsers.NTSParser.substringHelper;
 
 /**
@@ -18,7 +18,7 @@ import static gov.nysenate.sage.scripts.streetfinder.parsers.NTSParser.substring
  * Looks for zip, street, low, high, range type, town, ward, district
  * Polling information is unnecessary and skipped
  */
-public class MontgomeryParser extends BasicParser {
+public class MontgomeryParser extends BaseParser {
     // Indices keep location of the column of info for each block of data
     private int zipIndex;
     private int streetNameIndex;
@@ -68,7 +68,7 @@ public class MontgomeryParser extends BasicParser {
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
+    protected StreetfileDataExtractor getDataExtractor() {
         return null;
     }
 
@@ -76,14 +76,16 @@ public class MontgomeryParser extends BasicParser {
      * Calls all helper methods to parse the line and add data to StreetFinderAddress
      * TODO: should parse on whitespace, not indices
      */
-    protected void parseLine(String line) {
+    @Override
+    protected String[] parseLine(String line) {
         StreetFileAddressRange range = new StreetFileAddressRange();
-        range.put(ZIP, substringHelper(line, zipIndex, zipIndex + 5));
+        range.setZip5(substringHelper(line, zipIndex, zipIndex + 5));
         getStreetAndSuffix(line, range);
         getHouseRange(line, range);
         range.setBldgParity(getParity(line));
         getTownWardDist(line, range);
-        finalize(range);
+        data.put(new StreetfileLineData(range, null, null));
+        return null;
     }
 
     /**
@@ -95,7 +97,7 @@ public class MontgomeryParser extends BasicParser {
     private void getStreetAndSuffix(String line, StreetFileAddressRange range) {
         line = substringHelper(line, streetNameIndex, houseRangeIndex).trim();
         LinkedList<String> streetSplit = new LinkedList<>(List.of(line.split("\\s+")));
-        range.put(STREET, String.join(" ", streetSplit));
+        range.setStreet(String.join(" ", streetSplit));
     }
 
     /**
@@ -122,23 +124,6 @@ public class MontgomeryParser extends BasicParser {
      */
     private void getTownWardDist(String line, StreetFileAddressRange range) {
         String[] townWardDistrict = substringHelper(line, townWardDistrictIndex, line.length()).trim().split("/");
-
-        range.put(TOWN, townWardDistrict[0].trim());
-        if (townWardDistrict.length == 2) {
-            // Skip over word "District"
-            String[] district = townWardDistrict[1].trim().split(" ");
-            // TODO: I think this is supposed to set the district?
-            range.put(WARD, district[1]);
-
-        } else {
-            // Skip over word "Ward"
-            String[] ward = townWardDistrict[1].trim().split(" ");
-            range.put(WARD, ward[1]);
-
-            // Skip over word "District"
-            String[] district = townWardDistrict[2].trim().split(" ");
-            // TODO: this as well?
-            range.put(WARD, district[1]);
-        }
+        // TODO
     }
 }

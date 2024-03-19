@@ -1,33 +1,32 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
  * Parses Wyoming County 2018 .txt
  */
-public class WyomingParser extends BasicParser {
+public class WyomingParser extends BaseParser {
     public WyomingParser(File file) {
         super(file);
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
-        // TODO: The 0 and 1 indices might be the town and district, respectively
-        return new StreetFileFunctionList<>().skip(2).addStreetParts(4)
-                .addFunctions(buildingFunctions).addFunctions(false, TOWN, ZIP)
-                .addFunction(BaseParser::handlePrecinct)
-                .addFunctions(true, CONGRESSIONAL, SENATE, ASSEMBLY);
+    protected StreetfileDataExtractor getDataExtractor() {
+        return new StreetfileDataExtractor(WyomingParser.class.getSimpleName())
+                .addBuildingIndices(6, 7, 8).addStreetIndices(2, 3, 4, 5)
+                .addType(TOWN, 9).addType(ZIP, 10).addPrecinctIndex(11)
+                .addTypesInOrder(CONGRESSIONAL, SENATE, ASSEMBLY);
     }
 
-    protected void parseLine(String line) {
+    @Override
+    protected String[] parseLine(String line) {
         if (line.contains("ODD_EVEN")) {
-            return;
+            return null;
         }
-        super.parseLine(line);
+        return super.parseLine(line);
     }
 }

@@ -1,27 +1,24 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
  * Parses Westchester County 2018 file
- * Looks for town, pre-Direction, street, street suffix, post-direction, low, high, range type, zip, skips CNG, sen, asm, dist
  */
-public class WestchesterParser extends BasicParser {
-
+public class WestchesterParser extends BaseParser {
     public WestchesterParser(File file) {
         super(file);
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
-        return new StreetFileFunctionList<>().addFunctions(false, TOWN)
-                .addFunction(BaseParser::handlePrecinct).addStreetParts(4)
-                .addFunctions(buildingFunctions).addFunctions(false, ZIP)
-                .addFunctions(true, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG);
+    protected StreetfileDataExtractor getDataExtractor() {
+        return new StreetfileDataExtractor(WestchesterParser.class.getSimpleName())
+                .addBuildingIndices(6, 7, 8).addStreetIndices(2, 3, 4, 5)
+                .addType(TOWN, 0).addPrecinctIndex(1).addType(ZIP, 9)
+                .addTypesInOrder(CONGRESSIONAL, SENATE, ASSEMBLY, CLEG);
     }
 }

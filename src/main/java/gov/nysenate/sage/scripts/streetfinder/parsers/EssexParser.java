@@ -1,44 +1,38 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
-public class EssexParser extends BasicParser {
+// TODO: skip "M" for zip
+public class EssexParser extends BaseParser {
     public EssexParser(File file) {
         super(file);
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
-        return new StreetFileFunctionList<>().addFunctions(false, TOWN)
-                .addStreetParts(1).addFunctions(false, ELECTION_CODE)
-                .addFunctions(buildingFunctions).addFunctions(false, ASSEMBLY, CONGRESSIONAL, SENATE)
-                .addFunction(EssexParser::skipM);
+    protected StreetfileDataExtractor getDataExtractor() {
+        return new StreetfileDataExtractor(EssexParser.class.getSimpleName())
+                .addBuildingIndices(3, 4, 5).addStreetIndices(1)
+                .addType(TOWN, 0).addType(ELECTION, 2).addType(ASSEMBLY, 6)
+                .addTypesInOrder(CONGRESSIONAL, SENATE, ZIP);
     }
 
-
-    private static void skipM(StreetFileAddressRange range, String str) {
-        if (!str.equals("M")) {
-            range.put(ZIP, str);
-        }
-    }
 
     /**
-     * This type has a strange way of showing parity.
+     * This file has a strange way of showing parity.
      */
     @Override
-    protected void parseLine(String line) {
-        var split = new LinkedList<>(List.of(line.split(",")));
+    protected void addData(int lineNum, String... dataFields) {
+        var dataList = new LinkedList<>(List.of(dataFields));
         // Two parts must be combined into something usable.
-        String firstPart = split.get(5);
-        String secondPart = split.remove(6);
+        String firstPart = dataList.get(5);
+        String secondPart = dataList.remove(6);
         StreetParity parity;
         if (firstPart.equals("-1") && secondPart.equals("0")) {
             parity = StreetParity.ODDS;
@@ -47,7 +41,7 @@ public class EssexParser extends BasicParser {
         } else {
             parity = StreetParity.ALL;
         }
-        split.set(5, parity.name());
-        parseData(split);
+        dataList.set(5, parity.name());
+        super.addData(lineNum, dataList);
     }
 }

@@ -34,18 +34,18 @@ public enum StreetFileType {
     private static final Pattern countyPattern = Pattern.compile(".*(" + String.join("|", enumNames) + ").*");
     // The name of the county in our public.county table.
     private final String databaseName;
-    private final Function<File, ? extends BaseParser<?>> parserConstructor;
+    private final Function<File, ? extends BaseParser> parserConstructor;
 
     StreetFileType() {
         this(NTSParser::new);
     }
 
-    StreetFileType(Function<File, ? extends BaseParser<?>> parserConstructor) {
+    StreetFileType(Function<File, ? extends BaseParser> parserConstructor) {
         this.databaseName = name().toUpperCase();
         this.parserConstructor = parserConstructor;
     }
 
-    StreetFileType(String name, Function<File, ? extends BaseParser<?>> parserConstructor) {
+    StreetFileType(String name, Function<File, ? extends BaseParser> parserConstructor) {
         this.databaseName = name.toUpperCase();
         this.parserConstructor = parserConstructor;
     }
@@ -58,7 +58,7 @@ public enum StreetFileType {
         return sortedTypes.get(Integer.parseInt(id)).getDatabaseName();
     }
 
-    public BaseParser<?> getParser(File file) {
+    public BaseParser getParser(File file) {
         return parserConstructor.apply(file);
     }
 

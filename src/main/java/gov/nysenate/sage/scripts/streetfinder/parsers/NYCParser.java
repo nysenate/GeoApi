@@ -1,7 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,12 +11,12 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
  * Parses NYC Street files.
  */
-public class NYCParser extends BasicParser {
+public class NYCParser extends BaseParser {
     private static final String skippableLine = "^$|_{10,}|FROM TO ED AD ZIP CD SD MC CO",
             streetNameRegex = "(\\d{1,4} |9/11 )?\\D.+",
     // There is no zipcode for things like islands, nature areas, metro stops, and bridges.
@@ -38,6 +37,7 @@ public class NYCParser extends BasicParser {
     public void parseFile() throws IOException {
         var scanner = new Scanner(file);
         String currStreet = "";
+        int lineNum = 0;
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine().trim().replaceAll("\\s+", " ");
             if (line.matches(skippableLine)) {
@@ -56,9 +56,7 @@ public class NYCParser extends BasicParser {
                     dataList.add("");
                 }
                 Collections.addAll(dataList, line.split(" "));
-                // This is for the parity, which must be set after correction.
-                dataList.add(4, "");
-                parseData(dataList);
+                addData(lineNum, dataList);
             }
             else if (line.matches(streetNameRegex)) {
                 currStreet = line;
@@ -66,17 +64,18 @@ public class NYCParser extends BasicParser {
             else {
                 badLines.put(currStreet, line);
             }
+            lineNum++;
         }
         scanner.close();
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
-        return new StreetFileFunctionList<>().addFunctions(false, TOWN, STREET)
-                .addFunctions(buildingFunctions)
-                .addFunctions(false, ELECTION_CODE, ASSEMBLY, ZIP, CONGRESSIONAL, SENATE)
-                // TODO: might be municipal court?
-                .skip(1).addFunctions(false, CITY_COUNCIL);
+    protected StreetfileDataExtractor getDataExtractor() {
+        // TODO: 9 might be municipal court?
+        return new StreetfileDataExtractor(NYCParser.class.getSimpleName())
+                .addBuildingIndices(2, 3).addStreetIndices(1)
+                .addType(TOWN, 0).addType(ELECTION, 4)
+                .addTypesInOrder(ASSEMBLY, ZIP, CONGRESSIONAL, SENATE).addType(CITY_COUNCIL, 10);
     }
 
     private String getTown() {

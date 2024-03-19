@@ -1,47 +1,21 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
-public class NassauParser extends BasicParser {
+public class NassauParser extends BaseParser {
     public NassauParser(File file) {
         super(file);
     }
 
-    /**
-     * A pre-direction and/or post-direction may need to be inserted.
-     */
     @Override
-    protected void parseLine(String line) {
-        String[] commaSplit = line.split(",", 4);
-        LinkedList<String> streetList = new LinkedList<>(List.of(commaSplit[2].split("\\s+")));
-        if (isNotDirection(streetList.getFirst())) {
-            streetList.push("");
-        }
-        if (isNotDirection(streetList.getLast())) {
-            streetList.add("");
-        }
-        if (streetList.size() != 3) {
-            System.err.println("Problem with line: " + line);;
-        }
-        else {
-            streetList.add(1, commaSplit[1]);
-            String finalStreet = String.join(",", streetList);
-            parseData(commaSplit[0], finalStreet, commaSplit[3]);
-        }
-    }
-
-    @Override
-    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
-        return new StreetFileFunctionList<>().addFunction(BaseParser::handlePrecinct)
-                .addStreetParts(4).addFunctions(false, TOWN, ZIP)
-                .addFunctions(buildingFunctions).skip(1)
-                .addFunctions(true, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG);
+    protected StreetfileDataExtractor getDataExtractor() {
+        return new StreetfileDataExtractor(NassauParser.class.getSimpleName())
+                .addBuildingIndices(3, 4, 5).addStreetIndices(1).addPrecinctIndex(0)
+                .addType(TOWN, 2).addType(ZIP, 3).addType(CONGRESSIONAL, 8)
+                .addTypesInOrder(SENATE, ASSEMBLY, CLEG);
     }
 }

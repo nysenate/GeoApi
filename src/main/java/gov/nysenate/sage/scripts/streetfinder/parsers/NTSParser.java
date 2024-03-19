@@ -2,7 +2,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.DistrictIndices;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.util.AddressDictionary;
 
 import java.io.File;
@@ -11,17 +11,15 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
  * Parses files in the base NTS format.
  */
-public class NTSParser extends BasicParser {
+public class NTSParser extends BaseParser {
     private static final Pattern endOfPagePattern = Pattern.compile("TEAM SQL Version|r_strstd|Total No. of Street|r_ppstreet");
-    private static final Predicate<String> isNotEndOfPage = line -> !endOfPagePattern.matcher(line).find();
     private static final Predicate<String> isValidLine = line -> line.length() >= 25 && line.trim().split("\\s+").length >= 5;
     protected DistrictIndices indices;
     // These are used to save the variables when the line is a continuation of an above street.
@@ -41,17 +39,30 @@ public class NTSParser extends BasicParser {
      */
     public void parseFile() throws IOException {
         Stream<String> lines = Files.lines(file.toPath());
-        while (lines.findAny().isPresent()) {
-            lines = lines.dropWhile(line -> !line.contains("House Range"));
-            if (lines.findFirst().isEmpty()) {
+        while (true) {
+            Queue<String> lineQueue = new LinkedList<>(lines.dropWhile(line -> !line.contains("House Range")).toList());
+            if (lineQueue.isEmpty()) {
                 break;
             }
-            parseStartOfPage(lines.findFirst().get());
-            lines = lines.skip(1);
-            parsePage(lines.takeWhile(isNotEndOfPage).filter(isValidLine).collect(Collectors.toList()));
-            lines = lines.dropWhile(isNotEndOfPage).skip(1);
+            parseStartOfPage(lineQueue.poll());
+            var page = new ArrayList<String>();
+            while (!lineQueue.isEmpty() && !endOfPagePattern.matcher(lineQueue.peek()).find()) {
+                page.add(lineQueue.poll());
+            }
+            parsePage(page.stream().filter(isValidLine).toList());
+            lines = lineQueue.stream().skip(1);
         }
         lines.close();
+    }
+
+    @Override
+    protected StreetfileDataExtractor getDataExtractor() {
+        // TODO: BOE_TOWN_CODE at index 5
+        // TODO: the last 4 fields here vary depending on which county we're in.
+        return new StreetfileDataExtractor(NTSParser.class.getSimpleName())
+                .addBuildingIndices(1, 2, 3).addBuildingIndices(0)
+                .addType(WARD, 6).addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
+                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY);
     }
 
     protected void parseStartOfPage(String startingLine) {
@@ -72,21 +83,12 @@ public class NTSParser extends BasicParser {
                 i++;
             }
             List<String> cleanLine = cleanLine(currLine);
-            if (3 > cleanLine.size()) {
+            if (cleanLine.size() < 3) {
                 badLines.put("", currLine);
                 return;
             }
-            parseData(cleanLine);
+            parseLine(String.join(delim(), cleanLine));
         }
-    }
-
-    @Override
-    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
-        return new StreetFileFunctionList<>().addFunctions(false, ZIP)
-                .addFunctions(buildingFunctions)
-                // TODO: the last 4 lines here vary depending on which county we're in.
-                .addFunctions(false, TOWN, BOE_TOWN_CODE, WARD, ELECTION_CODE, CONGRESSIONAL,
-                        SENATE, ASSEMBLY, SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY);
     }
 
     /**
@@ -112,7 +114,7 @@ public class NTSParser extends BasicParser {
         String[] beforeZip = Arrays.copyOfRange(splitLine, 0, zipIndex);
         if (!line.contains("E. MAIN ST")) {
             if (line.charAt(0) == ' ') {
-                beforeZip = new String[] {range.get(STREET)};
+                beforeZip = new String[] {range.getStreet()};
             }
             else if (line.charAt(0) == '*') {
                 beforeZip = new String[] {};

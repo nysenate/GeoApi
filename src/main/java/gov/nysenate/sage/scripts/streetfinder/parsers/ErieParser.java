@@ -1,21 +1,20 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
-public class ErieParser extends BasicParser {
+public class ErieParser extends BaseParser {
     public ErieParser(File file) {
         super(file);
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
-        return new StreetFileFunctionList<>().addStreetParts(1).addFunctions(buildingFunctions)
-                .addFunctions(false, ZIP, TOWN).skip(3).addFunction(BaseParser::handlePrecinct)
-                .addFunctions(true, SENATE, ASSEMBLY, COUNTY_ID, CONGRESSIONAL);
+    protected StreetfileDataExtractor getDataExtractor() {
+        return new StreetfileDataExtractor(ErieParser.class.getSimpleName())
+                .addBuildingIndices(1, 2, 3).addStreetIndices(0).addPrecinctIndex(9)
+                .addTypesInOrder(ZIP, TOWN).addType(SENATE, 10).addTypesInOrder(ASSEMBLY, COUNTY, CONGRESSIONAL);
     }
 }

@@ -1,7 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileFunctionList;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -9,13 +8,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.*;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
  * Parses files similar to Saratoga County.
  * Main difference is spacing, and the town name being at the top of each data segment.
  */
-// TODO: may have towncode instead of town, or it may not have town at all
+// TODO: may have town_code instead of town, or it may not have town at all
 public class SaratogaParser extends NTSParser {
     private final Pattern invalidLine = Pattern.compile("Ward ,|Segments {4}|r_strtdd|Ward Ward");
     private String town;
@@ -25,12 +24,11 @@ public class SaratogaParser extends NTSParser {
     }
 
     @Override
-    protected StreetFileFunctionList<StreetFileAddressRange> getFunctions() {
-        return new StreetFileFunctionList<>().addStreetParts(2)
-                .addFunctions(false, ZIP, TOWN)
-                .addFunctions(buildingFunctions)
-                .addFunctions(false, BOE_TOWN_CODE, WARD, ELECTION_CODE, CONGRESSIONAL, SENATE,
-                        ASSEMBLY, SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY);
+    protected StreetfileDataExtractor getDataExtractor() {
+        return new StreetfileDataExtractor(SaratogaParser.class.getSimpleName())
+                .addBuildingIndices(4, 5, 6).addStreetIndices(0, 1).addType(ZIP, 2).addType(TOWN, 3)
+                .addType(WARD, 8).addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
+                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY);
     }
 
     @Override

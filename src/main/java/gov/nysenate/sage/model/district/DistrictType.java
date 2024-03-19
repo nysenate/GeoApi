@@ -7,7 +7,7 @@ import java.util.Map;
 public enum DistrictType {
     // Available as shape files
     ASSEMBLY("DISTRICT"), CONGRESSIONAL("DISTRICT"), SENATE("DISTRICT"), SCHOOL("TFCODE"), TOWN("ABBREV"),
-    COUNTY("namelsad", "COUNTYFP", 4326), ZIP("zip_code", "zip_code", 4326),
+    COUNTY("namelsad", "COUNTYFP"), ZIP("zip_code", "zip_code"),
     // Available only in street files
     ELECTION, WARD, CLEG, CITY, FIRE, VILLAGE, CITY_COUNCIL;
 
@@ -29,7 +29,11 @@ public enum DistrictType {
     }
 
     DistrictType(String code) {
-        this("NAME", code, 4326);
+        this("NAME", code);
+    }
+
+    DistrictType(String name, String code) {
+        this(name, code, 4326);
     }
 
     DistrictType(String name, String code, Integer srid) {
@@ -49,14 +53,6 @@ public enum DistrictType {
 
     public static List<DistrictType> getStateBasedTypes() {
         return List.of(ASSEMBLY, CONGRESSIONAL, SENATE, COUNTY);
-    }
-
-    public boolean isCountyBased() {
-        return this == SCHOOL || this == TOWN || this == CLEG;
-    }
-
-    public boolean isTownBased() {
-        return this == WARD || this == ELECTION;
     }
 
     public String nameColumn() {
