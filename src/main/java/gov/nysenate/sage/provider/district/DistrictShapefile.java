@@ -182,7 +182,7 @@ public class DistrictShapefile implements DistrictService, MapService
                 DistrictMap map = strToDistMap.get(code);
                 if (map != null) {
                     if (districtType.equals(DistrictType.COUNTY)) { //This if block is for the COVID19 links
-                        map.setLink(sqlCountyDao.getCountyById(Integer.parseInt(code)).getLink());
+                        map.setLink(sqlCountyDao.getCountyById(Integer.parseInt(code)).link());
                     }
                     mapResult.setDistrictMap(map);
                     mapResult.setStatusCode(ResultStatus.SUCCESS);
@@ -212,7 +212,7 @@ public class DistrictShapefile implements DistrictService, MapService
             mapResult.setStatusCode(ResultStatus.SUCCESS);
             if (districtType.equals(DistrictType.COUNTY)) {
                 for (DistrictMap map : mapCollection) {
-                    map.setLink( sqlCountyDao.getCountyById( Integer.parseInt( map.getDistrictCode() )).getLink() );
+                    map.setLink(sqlCountyDao.getCountyById( Integer.parseInt( map.getDistrictCode() )).link());
                 }
             }
         }

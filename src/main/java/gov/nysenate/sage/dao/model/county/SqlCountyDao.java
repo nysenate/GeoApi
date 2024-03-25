@@ -21,8 +21,8 @@ import java.util.Map;
 @Repository
 public class SqlCountyDao implements CountyDao
 {
-    private Logger logger = LoggerFactory.getLogger(SqlCountyDao.class);
-    private BaseDao baseDao;
+    private static final Logger logger = LoggerFactory.getLogger(SqlCountyDao.class);
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlCountyDao(BaseDao baseDao) {
@@ -52,7 +52,7 @@ public class SqlCountyDao implements CountyDao
             if (counties != null) {
                 fipsCountyMap = new HashMap<>();
                 for (County c : counties){
-                    fipsCountyMap.put(c.getFipsCode(), c);
+                    fipsCountyMap.put(c.fipsCode(), c);
                 }
             }
         }
@@ -62,60 +62,32 @@ public class SqlCountyDao implements CountyDao
     /** {@inheritDoc} */
     public County getCountyById(int id)
     {
-        try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("id", id);
-
-            List<County> countyList= baseDao.geoApiNamedJbdcTemplate.query(
-                    CountyQuery.GET_COUNTY_BY_ID.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
-
-            if (countyList != null && countyList.get(0) != null) {
-                return countyList.get(0);
-            }
-        }
-        catch (Exception ex){
-            logger.error("Failed to get county by id:" + id + "\n" + ex.getMessage());
-        }
-        return null;
+        return getCounty("senateCode", id, CountyQuery.GET_COUNTY_BY_ID);
     }
 
     /** {@inheritDoc} */
     public County getCountyByName(String name)
     {
-        try {
-
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("name", name);
-
-            List<County> countyList= baseDao.geoApiNamedJbdcTemplate.query(
-                    CountyQuery.GET_COUNTY_BY_NAME.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
-
-            if (countyList != null && countyList.get(0) != null) {
-                return countyList.get(0);
-            }
-        }
-        catch (Exception ex){
-            logger.error("Failed to get county by name:" + name + "\n" + ex.getMessage());
-        }
-        return null;
+        return getCounty("name", name, CountyQuery.GET_COUNTY_BY_NAME);
     }
 
     /** {@inheritDoc} */
     public County getCountyByFipsCode(int fipsCode)
     {
+        return getCounty("fipsCode", fipsCode, CountyQuery.GET_COUNTY_BY_FIPS_CODE);
+    }
+
+    private County getCounty(String paramName, Object param, CountyQuery query) {
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("fipsCode", fipsCode);
-
-            List<County> countyList= baseDao.geoApiNamedJbdcTemplate.query(
-                    CountyQuery.GET_COUNTY_BY_FIPS_CODE.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
-
-            if (countyList != null && countyList.get(0) != null) {
+            var params = new MapSqlParameterSource(paramName, param);
+            List<County> countyList = baseDao.geoApiNamedJbdcTemplate
+                    .query(query.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
+            if (countyList.get(0) != null) {
                 return countyList.get(0);
             }
         }
-        catch (Exception ex){
-            logger.error("Failed to get county by fipsCode:" + fipsCode + "\n" + ex.getMessage());
+        catch (Exception ex) {
+            logger.error("Failed to get county by %s: %s%n%s".formatted(paramName, param, ex.getMessage()));
         }
         return null;
     }
@@ -123,12 +95,8 @@ public class SqlCountyDao implements CountyDao
     private static class CountyHandler implements RowMapper<County> {
         @Override
         public County mapRow(ResultSet rs, int rowNum) throws SQLException {
-            County county = new County();
-            county.setId(rs.getInt("id"));
-            county.setName(rs.getString("name"));
-            county.setFipsCode(rs.getInt("fipsCode"));
-            county.setLink(rs.getString("link"));
-            return county;
+            return new County(rs.getInt("senate_code"), rs.getInt("fips_code"), rs.getInt("voterfile_code"),
+                    rs.getString("name"), rs.getString("link"), rs.getString("streetfile_name"));
         }
     }
 }

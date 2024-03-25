@@ -5,15 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.SqlCountyDao;
-import gov.nysenate.sage.model.district.*;
+import gov.nysenate.sage.model.district.County;
+import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -126,7 +129,7 @@ public class HttpGeoserverDao implements GeoserverDao
                 // Handle county fips -> senate code conversion
                 if (districtType == COUNTY){
                     Integer countyCode = Integer.valueOf(districtInfo.getDistCode(COUNTY));
-                    districtInfo.setDistCode(COUNTY, Integer.toString(fipsCountyMap.get(countyCode).getId()));
+                    districtInfo.setDistCode(COUNTY, Integer.toString(fipsCountyMap.get(countyCode).senateCode()));
                 }
             }
             else {

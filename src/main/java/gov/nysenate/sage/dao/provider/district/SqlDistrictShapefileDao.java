@@ -93,7 +93,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
 
     private String resolveCode(DistrictType districtType, String id) {
         if (districtType.equals(DistrictType.COUNTY)) {
-            return String.valueOf(countyDao.getCountyById(Integer.parseInt(id)).getFipsCode());
+            return String.valueOf(countyDao.getCountyById(Integer.parseInt(id)).fipsCode());
         }
         return id;
     }
@@ -407,7 +407,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
 
             // County codes need to be mapped from FIPS code
             if (type == DistrictType.COUNTY) {
-                code = Integer.toString(countyDao.getFipsCountyMap().get(rs.getInt("code")).getId());
+                code = Integer.toString(countyDao.getFipsCountyMap().get(rs.getInt("code")).senateCode());
             }
             // Normal district code
             else {

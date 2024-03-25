@@ -1,7 +1,9 @@
-package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
+package gov.nysenate.sage.service.address;
 
 import com.google.common.collect.Range;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.Addr1WithZip;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.AddressValidationResult;
 import gov.nysenate.sage.util.Pair;
 
 import java.io.IOException;
@@ -10,32 +12,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.STREET;
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.ZIP;
-
 /**
  * Contains various methods to held convert raw StreetFileAddressRanges into USPS corrected and validated ones.
  */
 public class AddressCorrectionHandler {
-    private final AddressCorrectionMap correctionMap;
-    private final ApiHelper apiHelper;
-
-    public AddressCorrectionHandler(AddressCorrectionMap correctionMap, ApiHelper apiHelper) {
-        this.correctionMap = correctionMap;
-        this.apiHelper = apiHelper;
-    }
-
-    public AddressCorrectionMap getCorrectionMap() {
-        return correctionMap;
-    }
-
     /**
      * Returns a list of StreetFileAddressRange with validated and corrected address data.
      * One base StreetFileAddressRange may turn into two, if the streets or zips of the
      * low and high building don't match.
      * @throws IOException if there was a problem accessing the API.
      */
-    public List<StreetFileAddressRange> getCorrectedAddressRanges(StreetFileAddressRange sfa) throws IOException {
+    public List<StreetfileAddressRange> getCorrectedAddressRanges(StreetfileAddressRange sfa) throws IOException {
         var originalLow = new Addr1WithZip(sfa, true);
         AddressValidationResult correctedLow = correctAddress(originalLow);
         if (!correctedLow.isValid()) {
@@ -54,11 +41,11 @@ public class AddressCorrectionHandler {
                 if (addrRanges == null) {
                     return List.of();
                 }
-                var sfa1 = new StreetFileAddressRange(sfa);
+                var sfa1 = new StreetfileAddressRange();
                 var low1 = new Addr1WithZip(addrRanges.first().lowerEndpoint(), correctedLow.addr());
                 setValues(sfa1, low1, String.valueOf(addrRanges.first().upperEndpoint()));
 
-                var sfa2 = new StreetFileAddressRange(sfa);
+                var sfa2 = new StreetfileAddressRange();
                 var low2 = new Addr1WithZip(addrRanges.second().lowerEndpoint(), correctedHigh.addr());
                 setValues(sfa2, low2, String.valueOf(addrRanges.second().upperEndpoint()));
                 return List.of(sfa1, sfa2);
@@ -71,11 +58,11 @@ public class AddressCorrectionHandler {
     /**
      * Corrects the address values in a StreetFileAddressRange with USPS validated data.
      */
-    private static void setValues(StreetFileAddressRange sfa, Addr1WithZip lowAddr, String highBldg) {
+    private static void setValues(StreetfileAddressRange sfa, Addr1WithZip lowAddr, String highBldg) {
         sfa.setBuilding(true, lowAddr.building());
         sfa.setBuilding(false, highBldg);
-        sfa.put(STREET, lowAddr.street());
-        sfa.put(ZIP, String.valueOf(lowAddr.zip()));
+        sfa.setStreet(lowAddr.street());
+        sfa.setZip5(String.valueOf(lowAddr.zip()));
     }
 
     /**
@@ -111,6 +98,11 @@ public class AddressCorrectionHandler {
         }
     }
 
+    // TODO
+    private AddressValidationResult correctAddress(Addr1WithZip input) {
+        return null;
+    }
+
     /**
      * Filters a set of Addr1WithZips to those that match the street and zip of a base Addr1WithZip,
      * and converts to a range.
@@ -123,23 +115,5 @@ public class AddressCorrectionHandler {
                 .filter(addr -> addr.ignoreBuildingEquals(base))
                 .map(addr -> Integer.parseInt(addr.building()))
                 .collect(Collectors.toList()));
-    }
-
-    /**
-     * Gets the corrected Addr1WithZip, using an API call if needed.
-     */
-    private AddressValidationResult correctAddress(Addr1WithZip addr) throws IOException {
-        if (!correctionMap.containsKey(addr)) {
-            AddressValidationResult correctedData = apiHelper.getValidatedAddress(addr);
-            if (correctedData == null) {
-                throw new IOException("Problem parsing " + addr.addr1());
-            }
-            correctionMap.put(addr, correctedData);
-        }
-        AddressValidationResult result = correctionMap.get(addr);
-        if (result.isValid() && !result.addr().building().matches("(?i)\\d+[A-Z]*")) {
-            System.err.println("Building seems wrong in " + result.addr());
-        }
-        return result;
     }
 }

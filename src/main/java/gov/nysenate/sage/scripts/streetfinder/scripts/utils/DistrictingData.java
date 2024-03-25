@@ -3,31 +3,36 @@ package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.util.Tuple;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DistrictingData {
-    private final Map<StreetFileAddressRange, Multimap<CompactDistrictMap, CellId>> internalTable;
+    private final Map<StreetfileAddressRange, Multimap<CompactDistrictMap, CellId>> internalTable;
 
     public DistrictingData(int expectedRows, int expectedCellsPerRow) {
         this.internalTable = new HashMap<>(expectedRows);
     }
 
-    public void combine(DistrictingData data) {
-        data.internalTable.forEach((addr, multimap) -> getMultimap(addr).putAll(multimap));
+    public void copyFromAndClear(DistrictingData toCopy) {
+        Queue<StreetfileAddressRange> rangeQueue = new LinkedList<>(toCopy.rows());
+        while (!rangeQueue.isEmpty()) {
+            getMultimap(rangeQueue.peek()).putAll(toCopy.getRow(rangeQueue.peek()));
+            toCopy.remove(rangeQueue.poll());
+        }
     }
 
     public void put(StreetfileLineData data) {
         getMultimap(data.addressRange()).put(data.districts(), data.cellId());
     }
 
-    private Multimap<CompactDistrictMap, CellId> getMultimap(StreetFileAddressRange address) {
+    public Multimap<CompactDistrictMap, CellId> remove(StreetfileAddressRange range) {
+        return internalTable.remove(range);
+    }
+
+    private Multimap<CompactDistrictMap, CellId> getMultimap(StreetfileAddressRange address) {
         var currMap = internalTable.get(address);
         if (currMap == null) {
             currMap = ArrayListMultimap.create(1, 2);
@@ -36,18 +41,18 @@ public class DistrictingData {
         return currMap;
     }
 
-    public Set<StreetFileAddressRange> rows() {
+    public Set<StreetfileAddressRange> rows() {
         return internalTable.keySet();
     }
 
-    public Multimap<CompactDistrictMap, CellId> getRow(StreetFileAddressRange range) {
+    public Multimap<CompactDistrictMap, CellId> getRow(StreetfileAddressRange range) {
         return internalTable.get(range);
     }
 
-    public Tuple<DistrictingData, Map<StreetFileAddressRange, CompactDistrictMap>> consolidate() {
+    public Tuple<DistrictingData, Map<StreetfileAddressRange, CompactDistrictMap>> consolidate() {
         var conflicts = new DistrictingData((int) (internalTable.size() * .05), 4);
-        var consolidatedMap = new HashMap<StreetFileAddressRange, CompactDistrictMap>(rows().size());
-        for (StreetFileAddressRange addr : rows()) {
+        var consolidatedMap = new HashMap<StreetfileAddressRange, CompactDistrictMap>(rows().size());
+        for (StreetfileAddressRange addr : rows()) {
             Multimap<CompactDistrictMap, CellId> currRow = internalTable.get(addr);
             CompactDistrictMap first = currRow.keySet().iterator().next();
             if (currRow.size() > 1) {

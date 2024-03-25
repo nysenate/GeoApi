@@ -1,15 +1,12 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Objects;
 
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.STREET;
-import static gov.nysenate.sage.scripts.streetfinder.model.StreetFileField.ZIP;
-
-// TODO: change to Record in Java 17
+// TODO: get rid of
 public class Addr1WithZip implements Serializable {
     private final String addr1, building, street;
     private final int zip5;
@@ -21,9 +18,10 @@ public class Addr1WithZip implements Serializable {
         this.addr1 = building + " " + street;
     }
 
-    public Addr1WithZip(StreetFileAddressRange sfa, boolean isLow) {
-        this(sfa.getBuildingRange().getBuilding(isLow) + " " + sfa.get(STREET),
-                Integer.parseInt(sfa.get(ZIP)));
+    public Addr1WithZip(StreetfileAddressRange sfa, boolean isLow) {
+        this("", 0);
+//        this(sfa.getBuildingRange().getBuilding(isLow) + " " + sfa.get(STREET),
+//                Integer.parseInt(sfa.get(ZIP)));
     }
 
     public Addr1WithZip(@Nonnull String addr1, int zip5) {

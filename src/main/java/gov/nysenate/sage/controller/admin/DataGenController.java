@@ -3,9 +3,9 @@ package gov.nysenate.sage.controller.admin;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.client.view.map.MapView;
-import gov.nysenate.sage.scripts.streetfinder.scripts.nysaddresspoints.NYSAddressPointProcessor;
 import gov.nysenate.sage.service.data.DataGenService;
 import gov.nysenate.sage.service.district.PostOfficeService;
+import gov.nysenate.sage.service.streetfile.StreetfileProcessor;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
@@ -33,20 +33,20 @@ public class DataGenController {
 
     private static final Logger logger = LoggerFactory.getLogger(DataGenController.class);
     private final AdminUserAuth adminUserAuth;
-    private final DataGenService dataGenService;
     private final ApiUserAuth apiUserAuth;
-    private final NYSAddressPointProcessor nysAddressPointProcessor;
+    private final DataGenService dataGenService;
     private final PostOfficeService postOfficeService;
+    private final StreetfileProcessor streetfileProcessor;
 
     @Autowired
     public DataGenController(AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth,
-                             DataGenService dataGenService, NYSAddressPointProcessor nysAddressPointProcessor,
+                             DataGenService dataGenService, StreetfileProcessor streetfileProcessor,
                              PostOfficeService postOfficeService) {
         this.adminUserAuth = adminUserAuth;
         this.apiUserAuth = apiUserAuth;
         this.dataGenService = dataGenService;
-        this.nysAddressPointProcessor = nysAddressPointProcessor;
         this.postOfficeService = postOfficeService;
+        this.streetfileProcessor = streetfileProcessor;
     }
 
     /**
@@ -245,7 +245,8 @@ public class DataGenController {
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             try {
-                nysAddressPointProcessor.processNysSamAddressPoints(batchSize);
+                // TODO
+//                nysAddressPointProcessor.processNysSamAddressPoints(batchSize);
                 apiResponse = "Processing sucessfully started";
             } catch (Exception e) {
                 logger.error("Error trying to process the sam-nys-statewide-address file", e);
