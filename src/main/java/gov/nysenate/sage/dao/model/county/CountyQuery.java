@@ -3,19 +3,13 @@ package gov.nysenate.sage.dao.model.county;
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
-public enum CountyQuery implements BasicSqlQuery { //${schema}." + SqlTable.PUBLIC_COUNTY
+public enum CountyQuery implements BasicSqlQuery {
+    GET_ALL_COUNTIES("SELECT * FROM ${schema}." + SqlTable.PUBLIC_COUNTY),
+    GET_COUNTY_BY_ID("SELECT * FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE senate_code = :senateCode"),
+    GET_COUNTY_BY_NAME("SELECT * FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE LOWER(name) = LOWER(:name)"),
+    GET_COUNTY_BY_FIPS_CODE("SELECT * FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE fips_code = :fipsCode ");
 
-    GET_ALL_COUNTIES("SELECT id, name, fips_code AS fipsCode, link FROM ${schema}." + SqlTable.PUBLIC_COUNTY),
-
-    GET_COUNTY_BY_ID("SELECT id, name, fips_code AS fipsCode, link FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE id = :id"),
-
-    GET_COUNTY_BY_NAME("SELECT id, name, fips_code AS fipsCode, link FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE LOWER(name) = LOWER(:name)"),
-
-    GET_COUNTY_BY_FIPS_CODE("SELECT id, name, fips_code AS fipsCode, link FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE fips_code = :fipsCode "),
-
-    ;
-
-    private String sql;
+    private final String sql;
 
     CountyQuery(String sql) {
         this.sql = sql;

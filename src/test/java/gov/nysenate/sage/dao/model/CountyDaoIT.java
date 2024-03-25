@@ -17,10 +17,9 @@ import static org.junit.Assert.*;
 
 @Category(IntegrationTest.class)
 public class CountyDaoIT extends BaseTests {
-
+    private static final int TOTAL_NUMBER_OF_COUNTIES = 62;
     @Autowired
     SqlCountyDao sqlCountyDao;
-    private static int TOTAL_NUMBER_OF_COUNTIES = 62;
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
@@ -32,9 +31,9 @@ public class CountyDaoIT extends BaseTests {
 
         County county = counties.get(0);
 
-        assertNotEquals(county.getId(), 0);
-        assertNotNull(county.getName());
-        assertNotEquals(county.getFipsCode(), 0);
+        assertNotEquals(county.senateCode(), 0);
+        assertNotNull(county.name());
+        assertNotEquals(county.fipsCode(), 0);
     }
 
     @Test
@@ -42,7 +41,7 @@ public class CountyDaoIT extends BaseTests {
     public void getCountyByIdTest()
     {
         County county = sqlCountyDao.getCountyById(14);
-        assertEquals("erie", county.getName().toLowerCase());
+        assertEquals("erie", county.name().toLowerCase());
     }
 
     @Test
@@ -50,10 +49,10 @@ public class CountyDaoIT extends BaseTests {
     public void getCountyByNameTest()
     {
         County county = sqlCountyDao.getCountyByName("Erie");
-        assertEquals("erie", county.getName().toLowerCase());
+        assertEquals("erie", county.name().toLowerCase());
 
         county = sqlCountyDao.getCountyByName("erie");
-        assertEquals("erie", county.getName().toLowerCase());
+        assertEquals("erie", county.name().toLowerCase());
     }
 
     @Test
@@ -61,7 +60,7 @@ public class CountyDaoIT extends BaseTests {
     public void getCountyByFipsCodeTest()
     {
         County county = sqlCountyDao.getCountyByFipsCode(29);
-        assertEquals("erie", county.getName().toLowerCase());
+        assertEquals("erie", county.name().toLowerCase());
     }
 
     @Test
@@ -69,7 +68,7 @@ public class CountyDaoIT extends BaseTests {
     public void getFipsCountyMapTest()
     {
         Map<Integer, County> fipsCountyMap = sqlCountyDao.getFipsCountyMap();
-        assertEquals(fipsCountyMap.get(1).getName().toLowerCase(), "albany");
-        assertEquals(fipsCountyMap.get(59).getName().toLowerCase(), "nassau");
+        assertEquals(fipsCountyMap.get(1).name().toLowerCase(), "albany");
+        assertEquals(fipsCountyMap.get(59).name().toLowerCase(), "nassau");
     }
 }
