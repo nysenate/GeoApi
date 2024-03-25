@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.BasicLineType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
@@ -62,7 +63,7 @@ public class NYCParser extends BaseParser {
                 currStreet = line;
             }
             else {
-                badLines.put(currStreet, line);
+                improperLineMap.put(BasicLineType.ERROR, "street: %s, line: %s".formatted(currStreet, line));
             }
             lineNum++;
         }

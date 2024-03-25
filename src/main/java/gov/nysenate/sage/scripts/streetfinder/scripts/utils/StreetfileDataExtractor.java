@@ -1,19 +1,22 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// TODO: "Builder" model instead, with some defaults?
 public class StreetfileDataExtractor {
     private static final int[] emptyIntArray = {};
     private final String sourceName;
-    private Map<DistrictType, Integer> typeToIndexMap = Map.of();
+    private final Map<DistrictType, Integer> typeToDistrictIndexMap = new HashMap<>(),
+            typeToStringIndexMap = new HashMap<>();
+    private final Map<DistrictType, Function<String, String>> typeCorrectionMap = new HashMap<>();
     private int[] buildingIndices = emptyIntArray, streetIndices = emptyIntArray;
     private int precinctIndex = -1;
     private BiFunction<List<String>, Integer, Long> getIdFunc = (lineParts, lineNum) -> Long.valueOf(lineNum);
@@ -37,21 +40,22 @@ public class StreetfileDataExtractor {
         return this;
     }
 
-    public StreetfileDataExtractor addTypeToIndexMap(Map<DistrictType, Integer> typeToIndexMap) {
-        this.typeToIndexMap = typeToIndexMap;
+    public StreetfileDataExtractor addType(DistrictType type, int index) {
+        addToMap(type, index);
         return this;
     }
 
-    public StreetfileDataExtractor addType(DistrictType type, int index) {
-        typeToIndexMap.put(type, index);
-        return this;
+    public StreetfileDataExtractor addTypeWithCorrection(DistrictType type, int index, Function<String, String> correctionFunc) {
+        typeCorrectionMap.put(type, correctionFunc);
+        return addType(type, index);
     }
 
     public StreetfileDataExtractor addTypesInOrder(DistrictType... types) {
         int maxIndex = getMax(buildingIndices, streetIndices, new int[]{precinctIndex});
-        maxIndex = Math.max(maxIndex, typeToIndexMap.values().stream().max(Integer::compareTo).orElse(0));
+        maxIndex = Math.max(maxIndex, typeToDistrictIndexMap.values().stream().max(Integer::compareTo).orElse(0));
+        maxIndex = Math.max(maxIndex, typeToStringIndexMap.values().stream().max(Integer::compareTo).orElse(0));
         for (DistrictType type : types) {
-            typeToIndexMap.put(type, ++maxIndex);
+            addToMap(type, ++maxIndex);
         }
         return this;
     }
@@ -61,21 +65,33 @@ public class StreetfileDataExtractor {
         return this;
     }
 
-    public StreetfileLineData getData(int lineNum, String[] lineFields) {
-        return getData(lineNum, List.of(lineFields));
-    }
-
     public StreetfileLineData getData(int lineNum, List<String> lineFields) {
-        var address = new StreetFileAddressRange();
-        address.setBuildingRange(Arrays.stream(buildingIndices).mapToObj(lineFields::get).collect(Collectors.joining(" ")));
+        for (var entry : typeCorrectionMap.entrySet()) {
+            int index = typeToStringIndexMap.get(entry.getKey());
+            index = typeToDistrictIndexMap.getOrDefault(entry.getKey(), index);
+            String current = lineFields.get(index);
+            lineFields.set(index, entry.getValue().apply(current));
+        }
+        var address = new StreetfileAddressRange();
+        address.setBuildingRange(Arrays.stream(buildingIndices).mapToObj(lineFields::get)
+                .collect(Collectors.joining(" ")));
         for (int i : streetIndices) {
             address.addToStreet(lineFields.get(i));
         }
-        var districts = CompactDistrictMap.getMap(typeToIndexMap.keySet(), type -> lineFields.get(typeToIndexMap.get(type)));
+        var districts = CompactDistrictMap.getMap(typeToDistrictIndexMap.keySet(),
+                type -> lineFields.get(typeToDistrictIndexMap.get(type)));
         return new StreetfileLineData(address, districts, new CellId(sourceName, getIdFunc.apply(lineFields, lineNum)));
     }
 
     private static int getMax(int[]... arrays) {
         return Arrays.stream(arrays).flatMapToInt(Arrays::stream).max().orElse(0);
+    }
+
+    private void addToMap(DistrictType type, int index) {
+        var currMap = switch (type) {
+            case TOWN, ZIP, CITY, VILLAGE -> typeToStringIndexMap;
+            default -> typeToDistrictIndexMap;
+        };
+        currMap.put(type, index);
     }
 }

@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.BasicLineType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
@@ -36,7 +37,7 @@ public class SuffolkParser extends BaseParser {
         splitLine[3] = splitLine[4];
         splitLine[4] = temp3;
         if (19 > splitLine.length) {
-            badLines.put("", line);
+            improperLineMap.put(BasicLineType.ERROR, line);
             return null;
         }
         return splitLine;

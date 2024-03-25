@@ -1,8 +1,10 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.SortedStringMultiMap;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 import gov.nysenate.sage.util.FileUtil;
 
 import java.io.File;
@@ -12,12 +14,12 @@ import java.util.Scanner;
 
 /**
  * Base class for all parsers, with some common code for parsing data.
- * Converts a text file (usually CSV) to a SQL TSV ready to import.
+ * Pareses data from a text file.
  */
 public abstract class BaseParser {
     protected final File file;
     protected DistrictingData data;
-    protected final SortedStringMultiMap badLines = new SortedStringMultiMap();
+    protected final Multimap<StreetfileLineType, String> improperLineMap = ArrayListMultimap.create();
     protected final StreetfileDataExtractor dataExtractor = getDataExtractor();
     private final String regex = "\\s*\"%s\"\\s*".formatted(delim());
 
@@ -30,6 +32,10 @@ public abstract class BaseParser {
         }
     }
 
+    public boolean isRangeData() {
+        return true;
+    }
+
     public void parseFile() throws IOException {
         var scanner = new Scanner(file);
         int lineNum = 0;
@@ -39,8 +45,12 @@ public abstract class BaseParser {
         scanner.close();
     }
 
-    public SortedStringMultiMap getBadLines() {
-        return badLines;
+    public Multimap<StreetfileLineType, String> getImproperLineMap() {
+        return improperLineMap;
+    }
+
+    public DistrictingData getData() {
+        return data;
     }
 
     protected abstract StreetfileDataExtractor getDataExtractor();

@@ -19,7 +19,6 @@ public class StreetAddress
     protected String zip4;
     protected String poBox;
     protected boolean isHwy;
-    protected String bldgParity;
 
     public StreetAddress(){}
 
@@ -208,13 +207,5 @@ public class StreetAddress
 
     public void setHwy(boolean hwy) {
         isHwy = hwy;
-    }
-
-    public String getBldgParity() {
-        return (bldgParity != null) ? bldgParity : "";
-    }
-
-    public void setBldgParity(String bldgParity) {
-        this.bldgParity = bldgParity;
     }
 }

@@ -10,6 +10,7 @@ public class StreetAddressRange extends StreetAddress
     public String bldgLoChr;
     public int bldgHiNum;
     public String bldgHiChr;
+    protected String bldgParity;
 
     public int getId() {
         return id;
@@ -49,5 +50,13 @@ public class StreetAddressRange extends StreetAddress
 
     public void setBldgHiChr(String bldgHiChr) {
         this.bldgHiChr = bldgHiChr;
+    }
+
+    public String getBldgParity() {
+        return (bldgParity != null) ? bldgParity : "";
+    }
+
+    public void setBldgParity(String bldgParity) {
+        this.bldgParity = bldgParity;
     }
 }

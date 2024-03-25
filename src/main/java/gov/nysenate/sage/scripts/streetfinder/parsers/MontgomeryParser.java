@@ -1,6 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineData;
 
@@ -78,7 +78,7 @@ public class MontgomeryParser extends BaseParser {
      */
     @Override
     protected String[] parseLine(String line) {
-        StreetFileAddressRange range = new StreetFileAddressRange();
+        StreetfileAddressRange range = new StreetfileAddressRange();
         range.setZip5(substringHelper(line, zipIndex, zipIndex + 5));
         getStreetAndSuffix(line, range);
         getHouseRange(line, range);
@@ -94,7 +94,7 @@ public class MontgomeryParser extends BaseParser {
      * @param line
      * @param range
      */
-    private void getStreetAndSuffix(String line, StreetFileAddressRange range) {
+    private void getStreetAndSuffix(String line, StreetfileAddressRange range) {
         line = substringHelper(line, streetNameIndex, houseRangeIndex).trim();
         LinkedList<String> streetSplit = new LinkedList<>(List.of(line.split("\\s+")));
         range.setStreet(String.join(" ", streetSplit));
@@ -105,7 +105,7 @@ public class MontgomeryParser extends BaseParser {
      * @param line
      * @param range
      */
-    private void getHouseRange(String line, StreetFileAddressRange range) {
+    private void getHouseRange(String line, StreetfileAddressRange range) {
         String[] buildingData = substringHelper(line, houseRangeIndex, houseRangeIndex + 12).split("-");
         range.setBuilding(true, buildingData[0].trim());
         range.setBuilding(false, buildingData[1].trim());
@@ -122,7 +122,7 @@ public class MontgomeryParser extends BaseParser {
      * @param line
      * @param range
      */
-    private void getTownWardDist(String line, StreetFileAddressRange range) {
+    private void getTownWardDist(String line, StreetfileAddressRange range) {
         String[] townWardDistrict = substringHelper(line, townWardDistrictIndex, line.length()).trim().split("/");
         // TODO
     }

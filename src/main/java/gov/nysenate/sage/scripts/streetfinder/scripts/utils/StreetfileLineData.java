@@ -1,5 +1,5 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 
-public record StreetfileLineData(StreetFileAddressRange addressRange, CompactDistrictMap districts, CellId cellId) {}
+public record StreetfileLineData(StreetfileAddressRange addressRange, CompactDistrictMap districts, CellId cellId) {}

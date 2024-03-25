@@ -24,10 +24,10 @@ public class BuildingRange {
 
     public void setData(boolean isLow, String data) {
         if (isLow) {
-            this.lowBuilding = data;
+            this.lowBuilding = data.intern();
         }
         else {
-            this.highBuilding = data;
+            this.highBuilding = data.intern();
         }
     }
 

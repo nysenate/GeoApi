@@ -1,12 +1,12 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.College;
-import gov.nysenate.sage.scripts.streetfinder.scripts.utils.VoterFileField;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRangeWithApt;
 import gov.nysenate.sage.util.AddressDictionary;
 import gov.nysenate.sage.util.Pair;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,7 +26,7 @@ public class NonStandardAddress {
             aptPattern = Pattern.compile("(?<numAptType>%s) (?<aptNum>\\d+)|(?<noNumAptType>%s)"
                     .formatted(aptNumRegex, String.join("|", AddressDictionary.unitNoNumMap.keySet())));
 
-    private final EnumMap<VoterFileField, String> parsedFields = new EnumMap<>(VoterFileField.class);
+    private final StreetfileAddressRangeWithApt address = new StreetfileAddressRangeWithApt();
     private final College college;
     private NonStandardAddressType type = NORMAL;
 
@@ -46,14 +46,15 @@ public class NonStandardAddress {
             this.type = NO_STREET_NUM;
             return;
         }
+
         String noHalf = bldgNum.replaceFirst("1/2", "");
         if (!noHalf.equals(bldgNum)) {
-            put(VoterFileField.RHALFCODE, "1/2");
+            // TODO: use 1/2
         }
-        put(VoterFileField.RADDNUMBER, noHalf.trim());
-        put(VoterFileField.RPREDIRECTION, addressMatcher.group("preDir"));
-        put(VoterFileField.RSTREETNAME, addressMatcher.group("street"));
-        put(VoterFileField.RPOSTDIRECTION, addressMatcher.group("postDir"));
+        address.setSingletonBuilding(noHalf.trim());
+        for (String groupName : List.of("preDir", "street", "postDir")) {
+            address.addToStreet(addressMatcher.group(groupName));
+        }
         int endIndex = addressMatcher.end();
         if (addressMatcher.find()) {
             this.type =  MULTIPLE_ADDRESSES;
@@ -61,10 +62,6 @@ public class NonStandardAddress {
         else {
             setAptFields(line.substring(endIndex).trim());
         }
-    }
-
-    public EnumMap<VoterFileField, String> getParsedFields() {
-        return parsedFields;
     }
 
     public College getCollege() {
@@ -100,15 +97,9 @@ public class NonStandardAddress {
                 this.type = MULTIPLE_APT_TYPES;
             }
             else {
-                put(VoterFileField.RAPARTMENTTYPE, aptData.first());
-                put(VoterFileField.RAPARTMENT, aptData.second());
+                address.setAptType(aptData.first());
+                address.setAptNum(aptData.second());
             }
-        }
-    }
-
-    private void put(VoterFileField field, String value) {
-        if (value != null && !value.isEmpty()) {
-            parsedFields.put(field, value);
         }
     }
 }

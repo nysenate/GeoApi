@@ -1,7 +1,8 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.model.DistrictIndices;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetFileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.BasicLineType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.util.AddressDictionary;
 
@@ -23,7 +24,7 @@ public class NTSParser extends BaseParser {
     private static final Predicate<String> isValidLine = line -> line.length() >= 25 && line.trim().split("\\s+").length >= 5;
     protected DistrictIndices indices;
     // These are used to save the variables when the line is a continuation of an above street.
-    private StreetFileAddressRange range = new StreetFileAddressRange();
+    private StreetfileAddressRange range = new StreetfileAddressRange();
     private String overloadStreetSuf = "";
     private final boolean isGreene;
     private final boolean isSchenectady;
@@ -84,7 +85,7 @@ public class NTSParser extends BaseParser {
             }
             List<String> cleanLine = cleanLine(currLine);
             if (cleanLine.size() < 3) {
-                badLines.put("", currLine);
+                improperLineMap.put(BasicLineType.ERROR, currLine);
                 return;
             }
             parseLine(String.join(delim(), cleanLine));
@@ -95,7 +96,7 @@ public class NTSParser extends BaseParser {
      * Makes some data corrections to lines.
      */
     protected List<String> cleanLine(String line) {
-        var streetFinderAddress = new StreetFileAddressRange();
+        var streetFinderAddress = new StreetfileAddressRange();
         String[] splitLine = line.split("\\s+");
 
         int zipIndex = 0;
