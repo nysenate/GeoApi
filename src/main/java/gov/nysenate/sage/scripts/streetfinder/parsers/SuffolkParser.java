@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.BasicLineType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
@@ -10,16 +11,16 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 /**
  * Parses Suffolk County txt file and outputs a tsv file
  */
-public class SuffolkParser extends BaseParser {
-    public SuffolkParser(File file) {
-        super(file);
+public class SuffolkParser extends CountyParser {
+    public SuffolkParser(File file, County county) {
+        super(file, county);
     }
 
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
         // TODO: careful that the suffix isn't part of the name
         // TODO: also has apartments
-        return new StreetfileDataExtractor(SuffolkParser.class.getSimpleName())
+        return super.getDataExtractor()
                 .addBuildingIndices(6, 7, 8).addStreetIndices(2, 3, 4, 5)
                 .addType(TOWN, 13)
                 .addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, COUNTY, FIRE, VILLAGE);

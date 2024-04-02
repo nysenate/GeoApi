@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
@@ -19,13 +20,13 @@ public class SaratogaParser extends NTSParser {
     private final Pattern invalidLine = Pattern.compile("Ward ,|Segments {4}|r_strtdd|Ward Ward");
     private String town;
 
-    public SaratogaParser(File file) {
-        super(file);
+    public SaratogaParser(File file, County county) {
+        super(file, county);
     }
 
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
-        return new StreetfileDataExtractor(SaratogaParser.class.getSimpleName())
+        return super.getDataExtractor()
                 .addBuildingIndices(4, 5, 6).addStreetIndices(0, 1).addType(ZIP, 2).addType(TOWN, 3)
                 .addType(WARD, 8).addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
                         SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY);

@@ -21,7 +21,7 @@ public abstract class BaseParser {
     protected DistrictingData data;
     protected final Multimap<StreetfileLineType, String> improperLineMap = ArrayListMultimap.create();
     protected final StreetfileDataExtractor dataExtractor = getDataExtractor();
-    private final String regex = "\\s*\"%s\"\\s*".formatted(delim());
+    private final String lineRegex = "\\s*\"%s\"\\s*".formatted(delim());
 
     public BaseParser(File file) {
         this.file = file;
@@ -61,7 +61,7 @@ public abstract class BaseParser {
      */
     protected String[] parseLine(String line) {
         line = line.replaceAll("^\"|\"$", "");
-        return line.split(regex, 0);
+        return line.split(lineRegex, 0);
     }
 
     protected void addData(int lineNum, String... dataFields) {

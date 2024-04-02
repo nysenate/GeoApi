@@ -4,21 +4,26 @@ import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtrac
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 // Validation seems to do better without a city name since it is sometimes incorrect.
 // TODO: use OID, or subtract 1
 public class AddressPointsParser extends BaseParser {
-    public AddressPointsParser(File file) {
+    private final Map<String, Integer> fipsCodeMap;
+
+    public AddressPointsParser(File file, Map<String, Integer> fipsCodeMap) {
         super(file);
+        this.fipsCodeMap = fipsCodeMap;
     }
 
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
         return new StreetfileDataExtractor(AddressPointsParser.class.getSimpleName())
                 .addBuildingIndices(1, 2, 3).addStreetIndices(13).addType(ZIP, 8)
-                .addType(SENATE, 24).addTypesInOrder(ASSEMBLY, CONGRESSIONAL);
+                .addType(SENATE, 24).addTypesInOrder(ASSEMBLY, CONGRESSIONAL)
+                .addCountyFunction(16, countyStr -> fipsCodeMap.get(countyStr.toLowerCase()));
     }
 
     @Override

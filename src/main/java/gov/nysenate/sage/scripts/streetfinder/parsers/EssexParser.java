@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
@@ -10,19 +11,18 @@ import java.util.List;
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 // TODO: skip "M" for zip
-public class EssexParser extends BaseParser {
-    public EssexParser(File file) {
-        super(file);
+public class EssexParser extends CountyParser {
+    public EssexParser(File file, County county) {
+        super(file, county);
     }
 
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
-        return new StreetfileDataExtractor(EssexParser.class.getSimpleName())
+        return super.getDataExtractor()
                 .addBuildingIndices(3, 4, 5).addStreetIndices(1)
                 .addType(TOWN, 0).addType(ELECTION, 2).addType(ASSEMBLY, 6)
                 .addTypesInOrder(CONGRESSIONAL, SENATE, ZIP);
     }
-
 
     /**
      * This file has a strange way of showing parity.

@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.DistrictIndices;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.BasicLineType;
@@ -19,7 +20,7 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 /**
  * Parses files in the base NTS format.
  */
-public class NTSParser extends BaseParser {
+public class NTSParser extends CountyParser {
     private static final Pattern endOfPagePattern = Pattern.compile("TEAM SQL Version|r_strstd|Total No. of Street|r_ppstreet");
     private static final Predicate<String> isValidLine = line -> line.length() >= 25 && line.trim().split("\\s+").length >= 5;
     protected DistrictIndices indices;
@@ -29,8 +30,8 @@ public class NTSParser extends BaseParser {
     private final boolean isGreene;
     private final boolean isSchenectady;
 
-    public NTSParser(File file) {
-        super(file);
+    public NTSParser(File file, County county) {
+        super(file, county);
         this.isGreene = file.getName().contains("Greene");
         this.isSchenectady = file.getName().contains("Schenectady");
     }
@@ -60,7 +61,7 @@ public class NTSParser extends BaseParser {
     protected StreetfileDataExtractor getDataExtractor() {
         // TODO: BOE_TOWN_CODE at index 5
         // TODO: the last 4 fields here vary depending on which county we're in.
-        return new StreetfileDataExtractor(NTSParser.class.getSimpleName())
+        return super.getDataExtractor()
                 .addBuildingIndices(1, 2, 3).addBuildingIndices(0)
                 .addType(WARD, 6).addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
                         SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY);

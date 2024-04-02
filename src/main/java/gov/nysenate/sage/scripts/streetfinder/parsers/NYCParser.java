@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.BasicLineType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
@@ -17,18 +18,18 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 /**
  * Parses NYC Street files.
  */
-public class NYCParser extends BaseParser {
+public class NYCParser extends CountyParser {
     private static final String skippableLine = "^$|_{10,}|FROM TO ED AD ZIP CD SD MC CO",
             streetNameRegex = "(\\d{1,4} |9/11 )?\\D.+",
     // There is no zipcode for things like islands, nature areas, metro stops, and bridges.
             data = "(?<buildingRange>(\\d{1,5}([A-Z]|-\\d{2,3}[A-Z]?)? ){2})?\\d{3} \\d{2}(?<zip> \\d{5})?( \\d{2}){4}";
     private static final Pattern townPattern = Pattern.compile("(?i)Bronx|Brooklyn|Manhattan|Queens");
 
-    private final String town;
+    private final String mailCity;
 
-    public NYCParser(File file) {
-        super(file);
-        this.town = getTown();
+    public NYCParser(File file, County county, String mailCity) {
+        super(file, county);
+        this.mailCity = mailCity;
     }
 
     /**
@@ -49,7 +50,7 @@ public class NYCParser extends BaseParser {
                 if (dataMatcher.group("zip") == null) {
                     continue;
                 }
-                List<String> dataList = new ArrayList<>(List.of(town, currStreet));
+                List<String> dataList = new ArrayList<>(List.of("New York City", currStreet));
                 String range = dataMatcher.group("buildingRange");
                 // Adds empty building range
                 if (range == null) {
@@ -73,7 +74,7 @@ public class NYCParser extends BaseParser {
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
         // TODO: 9 might be municipal court?
-        return new StreetfileDataExtractor(NYCParser.class.getSimpleName())
+        return super.getDataExtractor()
                 .addBuildingIndices(2, 3).addStreetIndices(1)
                 .addType(TOWN, 0).addType(ELECTION, 4)
                 .addTypesInOrder(ASSEMBLY, ZIP, CONGRESSIONAL, SENATE).addType(CITY_COUNCIL, 10);

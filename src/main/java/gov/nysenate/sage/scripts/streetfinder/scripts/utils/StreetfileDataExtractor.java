@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
+import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 
@@ -19,6 +20,7 @@ public class StreetfileDataExtractor {
     private final Map<DistrictType, Function<String, String>> typeCorrectionMap = new HashMap<>();
     private int[] buildingIndices = emptyIntArray, streetIndices = emptyIntArray;
     private int precinctIndex = -1;
+    private Function<List<String>, String> countyFipsFunction;
     private BiFunction<List<String>, Integer, Long> getIdFunc = (lineParts, lineNum) -> Long.valueOf(lineNum);
 
     public StreetfileDataExtractor(String sourceName) {
@@ -60,6 +62,16 @@ public class StreetfileDataExtractor {
         return this;
     }
 
+    public StreetfileDataExtractor addCountyFunction(int index, Function<String, Integer> fipsCodeMap) {
+        this.countyFipsFunction = list -> String.valueOf(fipsCodeMap.apply(list.get(index)));
+        return this;
+    }
+
+    public StreetfileDataExtractor addCountyFunction(County county) {
+        this.countyFipsFunction = list -> String.valueOf(county.fipsCode());
+        return this;
+    }
+
     public StreetfileDataExtractor addIdFunction(BiFunction<List<String>, Integer, Long> getIdFunc) {
         this.getIdFunc = getIdFunc;
         return this;
@@ -78,8 +90,7 @@ public class StreetfileDataExtractor {
         for (int i : streetIndices) {
             address.addToStreet(lineFields.get(i));
         }
-        var districts = CompactDistrictMap.getMap(typeToDistrictIndexMap.keySet(),
-                type -> lineFields.get(typeToDistrictIndexMap.get(type)));
+        CompactDistrictMap districts = CompactDistrictMap.getMap(typeToDistrictIndexMap.keySet(), type -> getValue(lineFields, type));
         return new StreetfileLineData(address, districts, new CellId(sourceName, getIdFunc.apply(lineFields, lineNum)));
     }
 
@@ -93,5 +104,12 @@ public class StreetfileDataExtractor {
             default -> typeToDistrictIndexMap;
         };
         currMap.put(type, index);
+    }
+
+    private String getValue(List<String> lineFields, DistrictType type) {
+        if (type == DistrictType.COUNTY) {
+            return countyFipsFunction.apply(lineFields);
+        }
+        return lineFields.get(typeToDistrictIndexMap.get(type));
     }
 }

@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineData;
@@ -18,7 +19,7 @@ import static gov.nysenate.sage.scripts.streetfinder.parsers.NTSParser.substring
  * Looks for zip, street, low, high, range type, town, ward, district
  * Polling information is unnecessary and skipped
  */
-public class MontgomeryParser extends BaseParser {
+public class MontgomeryParser extends CountyParser {
     // Indices keep location of the column of info for each block of data
     private int zipIndex;
     private int streetNameIndex;
@@ -29,8 +30,8 @@ public class MontgomeryParser extends BaseParser {
      * Calls the super constructor which sets up the tsv file
      * @param file
      */
-    public MontgomeryParser(File file) {
-        super(file);
+    public MontgomeryParser(File file, County county) {
+        super(file, county);
     }
 
     /**
