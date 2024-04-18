@@ -1,5 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
+import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 import gov.nysenate.sage.scripts.streetfinder.model.College;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRangeWithApt;
 import gov.nysenate.sage.util.AddressDictionary;
@@ -26,9 +28,9 @@ public class NonStandardAddress {
             aptPattern = Pattern.compile("(?<numAptType>%s) (?<aptNum>\\d+)|(?<noNumAptType>%s)"
                     .formatted(aptNumRegex, String.join("|", AddressDictionary.unitNoNumMap.keySet())));
 
-    private final StreetfileAddressRangeWithApt address = new StreetfileAddressRangeWithApt();
     private final College college;
     private NonStandardAddressType type = NORMAL;
+    private StreetfileAddressRangeWithApt address;
 
     public NonStandardAddress(final String line, final String zip5) {
         this.college = College.getCollege(line, zip5);
@@ -47,14 +49,12 @@ public class NonStandardAddress {
             return;
         }
 
-        String noHalf = bldgNum.replaceFirst("1/2", "");
-        if (!noHalf.equals(bldgNum)) {
-            // TODO: use 1/2
-        }
-        address.setSingletonBuilding(noHalf.trim());
+        var street = new StringBuilder();
         for (String groupName : List.of("preDir", "street", "postDir")) {
-            address.addToStreet(addressMatcher.group(groupName));
+            street.append(addressMatcher.group(groupName));
         }
+        var addressWithoutNum = new AddressWithoutNum(street.toString(), "", String.valueOf(zip5));
+        this.address = new StreetfileAddressRangeWithApt(new BuildingRange(bldgNum), addressWithoutNum);
         int endIndex = addressMatcher.end();
         if (addressMatcher.find()) {
             this.type =  MULTIPLE_ADDRESSES;
@@ -70,6 +70,10 @@ public class NonStandardAddress {
 
     public NonStandardAddressType type() {
         return type;
+    }
+
+    public StreetfileAddressRangeWithApt getAddress() {
+        return address;
     }
 
     // This method exists just to make declaration cleaner.

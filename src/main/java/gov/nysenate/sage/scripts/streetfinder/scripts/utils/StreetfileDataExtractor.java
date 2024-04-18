@@ -2,7 +2,8 @@ package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
+import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ public class StreetfileDataExtractor {
             typeToStringIndexMap = new HashMap<>();
     private final Map<DistrictType, Function<String, String>> typeCorrectionMap = new HashMap<>();
     private int[] buildingIndices = emptyIntArray, streetIndices = emptyIntArray;
-    private int precinctIndex = -1;
+    private int postalCityIndex = -1, precinctIndex = -1;
     private Function<List<String>, String> countyFipsFunction;
     private BiFunction<List<String>, Integer, Long> getIdFunc = (lineParts, lineNum) -> Long.valueOf(lineNum);
 
@@ -34,6 +35,11 @@ public class StreetfileDataExtractor {
 
     public StreetfileDataExtractor addStreetIndices(int... indices) {
         this.streetIndices = indices;
+        return this;
+    }
+
+    public StreetfileDataExtractor addPostalCityIndex(int index) {
+        this.postalCityIndex = index;
         return this;
     }
 
@@ -84,14 +90,17 @@ public class StreetfileDataExtractor {
             String current = lineFields.get(index);
             lineFields.set(index, entry.getValue().apply(current));
         }
-        var address = new StreetfileAddressRange();
-        address.setBuildingRange(Arrays.stream(buildingIndices).mapToObj(lineFields::get)
-                .collect(Collectors.joining(" ")));
-        for (int i : streetIndices) {
-            address.addToStreet(lineFields.get(i));
-        }
+        var buildingRange = BuildingRange.getBuildingRange(combine(lineFields, buildingIndices));
+        String street = combine(lineFields, buildingIndices);
         CompactDistrictMap districts = CompactDistrictMap.getMap(typeToDistrictIndexMap.keySet(), type -> getValue(lineFields, type));
-        return new StreetfileLineData(address, districts, new CellId(sourceName, getIdFunc.apply(lineFields, lineNum)));
+        var addressWithoutNum = new AddressWithoutNum(street, lineFields.get(postalCityIndex), typeToStringIndexMap.get(DistrictType.ZIP));
+        var cellId = new CellId(sourceName, getIdFunc.apply(lineFields, lineNum));
+        return new StreetfileLineData(buildingRange, addressWithoutNum, districts, cellId);
+    }
+
+    private static String combine(List<String> lineFields, int[] indices) {
+        return Arrays.stream(indices).mapToObj(lineFields::get)
+                .filter(str -> !str.isBlank()).collect(Collectors.joining(" "));
     }
 
     private static int getMax(int[]... arrays) {
@@ -100,7 +109,7 @@ public class StreetfileDataExtractor {
 
     private void addToMap(DistrictType type, int index) {
         var currMap = switch (type) {
-            case TOWN, ZIP, CITY, VILLAGE -> typeToStringIndexMap;
+            case TOWN, ZIP, VILLAGE -> typeToStringIndexMap;
             default -> typeToDistrictIndexMap;
         };
         currMap.put(type, index);
@@ -110,6 +119,7 @@ public class StreetfileDataExtractor {
         if (type == DistrictType.COUNTY) {
             return countyFipsFunction.apply(lineFields);
         }
-        return lineFields.get(typeToDistrictIndexMap.get(type));
+        Integer index = typeToDistrictIndexMap.get(type);
+        return index == null ? "" : lineFields.get(index);
     }
 }

@@ -21,7 +21,7 @@ public class SchoharieParser extends CountyParser {
         return super.getDataExtractor()
                 .addBuildingIndices(1, 2, 3).addStreetIndices(0)
                 .addType(TOWN, 4).addTypesInOrder(WARD, ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
-                        SCHOOL, CLEG, CITY, VILLAGE, FIRE);
+                        SCHOOL, CLEG, TOWN, VILLAGE, FIRE);
     }
 
     @Override

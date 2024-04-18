@@ -1,9 +1,10 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.district.County;
+import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
+import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
-import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineData;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -79,13 +80,13 @@ public class MontgomeryParser extends CountyParser {
      */
     @Override
     protected String[] parseLine(String line) {
-        StreetfileAddressRange range = new StreetfileAddressRange();
-        range.setZip5(substringHelper(line, zipIndex, zipIndex + 5));
-        getStreetAndSuffix(line, range);
-        getHouseRange(line, range);
-        range.setBldgParity(getParity(line));
+        String zip5 = substringHelper(line, zipIndex, zipIndex + 5);
+        String street = getStreetAndSuffix(line);
+        String[] bldgData = substringHelper(line, houseRangeIndex, houseRangeIndex + 12).split("-");
+        var buildingRange = new BuildingRange(bldgData[0], bldgData[1], getParity(line));
+        var range = new StreetfileAddressRange(buildingRange, new AddressWithoutNum(street, "", zip5));
         getTownWardDist(line, range);
-        data.put(new StreetfileLineData(range, null, null));
+        // TODO
         return null;
     }
 
@@ -93,23 +94,11 @@ public class MontgomeryParser extends CountyParser {
      * Gets the street name and suffix by looking in the locations of StreetNameIndex to HouseRangeIndex
      * Also checks for post or pre directions
      * @param line
-     * @param range
      */
-    private void getStreetAndSuffix(String line, StreetfileAddressRange range) {
+    private String getStreetAndSuffix(String line) {
         line = substringHelper(line, streetNameIndex, houseRangeIndex).trim();
         LinkedList<String> streetSplit = new LinkedList<>(List.of(line.split("\\s+")));
-        range.setStreet(String.join(" ", streetSplit));
-    }
-
-    /**
-     * Gets the low and high ranges by looking at HouseRangeIndex location
-     * @param line
-     * @param range
-     */
-    private void getHouseRange(String line, StreetfileAddressRange range) {
-        String[] buildingData = substringHelper(line, houseRangeIndex, houseRangeIndex + 12).split("-");
-        range.setBuilding(true, buildingData[0].trim());
-        range.setBuilding(false, buildingData[1].trim());
+        return String.join(" ", streetSplit);
     }
 
     private String getParity(String line) {

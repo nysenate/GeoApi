@@ -3,6 +3,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineData;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -28,7 +29,7 @@ public class EssexParser extends CountyParser {
      * This file has a strange way of showing parity.
      */
     @Override
-    protected void addData(int lineNum, String... dataFields) {
+    protected StreetfileLineData getData(int lineNum, String... dataFields) {
         var dataList = new LinkedList<>(List.of(dataFields));
         // Two parts must be combined into something usable.
         String firstPart = dataList.get(5);
@@ -42,6 +43,6 @@ public class EssexParser extends CountyParser {
             parity = StreetParity.ALL;
         }
         dataList.set(5, parity.name());
-        super.addData(lineNum, dataList);
+        return super.getData(lineNum, dataList);
     }
 }

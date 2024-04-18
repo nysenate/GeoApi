@@ -22,4 +22,14 @@ public enum StreetParity {
         } catch (Exception ignored) {}
         return ALL;
     }
+
+    public static StreetParity commonParity(StreetParity parity1, StreetParity parity2) {
+        if (parity1 == ALL) {
+            return parity2;
+        }
+        if (parity2 == ALL || parity1 == parity2) {
+            return parity1;
+        }
+        return null;
+    }
 }

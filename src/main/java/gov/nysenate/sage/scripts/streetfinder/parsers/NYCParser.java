@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.dao.provider.usps.USPSAMSDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.BasicLineType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
@@ -21,9 +22,8 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 public class NYCParser extends CountyParser {
     private static final String skippableLine = "^$|_{10,}|FROM TO ED AD ZIP CD SD MC CO",
             streetNameRegex = "(\\d{1,4} |9/11 )?\\D.+",
-    // There is no zipcode for things like islands, nature areas, metro stops, and bridges.
+            // There are no zipcode for things like islands, nature areas, metro stops, and bridges.
             data = "(?<buildingRange>(\\d{1,5}([A-Z]|-\\d{2,3}[A-Z]?)? ){2})?\\d{3} \\d{2}(?<zip> \\d{5})?( \\d{2}){4}";
-    private static final Pattern townPattern = Pattern.compile("(?i)Bronx|Brooklyn|Manhattan|Queens");
 
     private final String mailCity;
 
@@ -36,7 +36,7 @@ public class NYCParser extends CountyParser {
      * In these files, the street names are followed by a list of data points for that street.
      */
     @Override
-    public void parseFile() throws IOException {
+    public void parseFile(USPSAMSDao dao) throws IOException {
         var scanner = new Scanner(file);
         String currStreet = "";
         int lineNum = 0;
@@ -50,7 +50,7 @@ public class NYCParser extends CountyParser {
                 if (dataMatcher.group("zip") == null) {
                     continue;
                 }
-                List<String> dataList = new ArrayList<>(List.of("New York City", currStreet));
+                List<String> dataList = new ArrayList<>(List.of(mailCity, currStreet));
                 String range = dataMatcher.group("buildingRange");
                 // Adds empty building range
                 if (range == null) {
@@ -58,7 +58,8 @@ public class NYCParser extends CountyParser {
                     dataList.add("");
                 }
                 Collections.addAll(dataList, line.split(" "));
-                addData(lineNum, dataList);
+                // TODO
+//                addData(lineNum, dataList);
             }
             else if (line.matches(streetNameRegex)) {
                 currStreet = line;
@@ -73,15 +74,8 @@ public class NYCParser extends CountyParser {
 
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
-        // TODO: 9 might be municipal court?
-        return super.getDataExtractor()
-                .addBuildingIndices(2, 3).addStreetIndices(1)
-                .addType(TOWN, 0).addType(ELECTION, 4)
-                .addTypesInOrder(ASSEMBLY, ZIP, CONGRESSIONAL, SENATE).addType(CITY_COUNCIL, 10);
-    }
-
-    private String getTown() {
-        Matcher townMatcher = townPattern.matcher(file.getName());
-        return townMatcher.find() ? townMatcher.group() : "Staten Island";
+        return super.getDataExtractor().addPostalCityIndex(0).addStreetIndices(1)
+                .addBuildingIndices(2, 3).addType(ELECTION, 4)
+                .addTypesInOrder(ASSEMBLY, ZIP, CONGRESSIONAL, SENATE, MUNICIPAL_COURT, CITY_COUNCIL);
     }
 }

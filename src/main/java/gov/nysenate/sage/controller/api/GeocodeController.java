@@ -22,13 +22,13 @@ import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -46,7 +46,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "geo")
 public class GeocodeController {
-    private static Logger logger = LoggerFactory.getLogger(GeocodeController.class);
+    private static final Logger logger = LoggerFactory.getLogger(GeocodeController.class);
     private GeocodeServiceProvider geocodeServiceProvider;
     private RevGeocodeServiceProvider revGeocodeServiceProvider;
     private AddressServiceProvider addressProvider;

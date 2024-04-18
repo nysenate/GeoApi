@@ -2,7 +2,6 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.DistrictIndices;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.BasicLineType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.util.AddressDictionary;
@@ -25,7 +24,7 @@ public class NTSParser extends CountyParser {
     private static final Predicate<String> isValidLine = line -> line.length() >= 25 && line.trim().split("\\s+").length >= 5;
     protected DistrictIndices indices;
     // These are used to save the variables when the line is a continuation of an above street.
-    private StreetfileAddressRange range = new StreetfileAddressRange();
+    private String street;
     private String overloadStreetSuf = "";
     private final boolean isGreene;
     private final boolean isSchenectady;
@@ -64,7 +63,7 @@ public class NTSParser extends CountyParser {
         return super.getDataExtractor()
                 .addBuildingIndices(1, 2, 3).addBuildingIndices(0)
                 .addType(WARD, 6).addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
-                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY);
+                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, TOWN);
     }
 
     protected void parseStartOfPage(String startingLine) {
@@ -97,7 +96,7 @@ public class NTSParser extends CountyParser {
      * Makes some data corrections to lines.
      */
     protected List<String> cleanLine(String line) {
-        var streetFinderAddress = new StreetfileAddressRange();
+        String currStreet = "";
         String[] splitLine = line.split("\\s+");
 
         int zipIndex = 0;
@@ -116,7 +115,7 @@ public class NTSParser extends CountyParser {
         String[] beforeZip = Arrays.copyOfRange(splitLine, 0, zipIndex);
         if (!line.contains("E. MAIN ST")) {
             if (line.charAt(0) == ' ') {
-                beforeZip = new String[] {range.getStreet()};
+                beforeZip = new String[] {street};
             }
             else if (line.charAt(0) == '*') {
                 beforeZip = new String[] {};
@@ -126,7 +125,7 @@ public class NTSParser extends CountyParser {
         cleanedData.add(splitLine[zipIndex]);
         cleanedData.addAll(cleanAfterZip(Arrays.copyOfRange(splitLine, zipIndex + 1, splitLine.length)));
         cleanedData.addAll(indices.getPostAsmData(line));
-        range = streetFinderAddress;
+        street = currStreet;
         return cleanedData;
     }
 

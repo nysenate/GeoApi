@@ -8,12 +8,7 @@ import java.util.List;
  * A pair of two Objects of the same type. Order isn't relevant for comparisons.
  * @param <T>
  */
-public class Pair<T> extends Tuple<T, T> implements Iterable<T> {
-    public Pair(T one, T two) {
-        super(one, two);
-    }
-
-
+public record Pair<T>(T first, T second) implements Iterable<T> {
     @Override
     @Nonnull
     public Iterator<T> iterator() {

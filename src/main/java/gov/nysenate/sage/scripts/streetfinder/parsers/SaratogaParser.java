@@ -29,7 +29,7 @@ public class SaratogaParser extends NTSParser {
         return super.getDataExtractor()
                 .addBuildingIndices(4, 5, 6).addStreetIndices(0, 1).addType(ZIP, 2).addType(TOWN, 3)
                 .addType(WARD, 8).addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
-                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, CITY);
+                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, TOWN);
     }
 
     @Override

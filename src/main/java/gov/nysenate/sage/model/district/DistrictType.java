@@ -6,15 +6,16 @@ import java.util.Map;
 
 public enum DistrictType {
     // Available as shape files
+    // TODO: town -> townCity
     ASSEMBLY("DISTRICT"), CONGRESSIONAL("DISTRICT"), SENATE("DISTRICT"), SCHOOL("TFCODE"), TOWN("ABBREV"),
     COUNTY("namelsad", "COUNTYFP"), ZIP("zip_code", "zip_code"),
     // Available only in street files
-    ELECTION, WARD, CLEG, CITY, FIRE, VILLAGE, CITY_COUNCIL;
+    ELECTION, WARD, CLEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
 
     /** A Map container is used to associate type names with the enum type */
     private static final Map<String, DistrictType> resolveMap = new HashMap<>();
     static {
-        for (DistrictType dt : values()){
+        for (DistrictType dt : values()) {
             resolveMap.put(dt.name().toUpperCase(), dt);
         }
     }
