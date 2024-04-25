@@ -5,13 +5,10 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 public class StreetfileDataExtractor {
     private static final int[] emptyIntArray = {};
@@ -22,6 +19,7 @@ public class StreetfileDataExtractor {
     private int[] buildingIndices = emptyIntArray, streetIndices = emptyIntArray;
     private int postalCityIndex = -1, precinctIndex = -1;
     private Function<List<String>, String> countyFipsFunction;
+    private final List<Predicate<List<String>>> isProperPredicateList = new ArrayList<>(List.of(Objects::nonNull));
     private BiFunction<List<String>, Integer, Long> getIdFunc = (lineParts, lineNum) -> Long.valueOf(lineNum);
 
     public StreetfileDataExtractor(String sourceName) {
@@ -83,24 +81,36 @@ public class StreetfileDataExtractor {
         return this;
     }
 
+    public StreetfileDataExtractor addIsProperLengthFunction(int length) {
+        return addIsProperFunction(list -> list.size() == length);
+    }
+
+    public StreetfileDataExtractor addIsProperFunction(Predicate<List<String>> isProper) {
+        this.isProperPredicateList.add(isProper);
+        return this;
+    }
+
     public StreetfileLineData getData(int lineNum, List<String> lineFields) {
+        if (isProperPredicateList.stream().anyMatch(isProper -> !isProper.test(lineFields))) {
+            return null;
+        }
         for (var entry : typeCorrectionMap.entrySet()) {
             int index = typeToStringIndexMap.get(entry.getKey());
             index = typeToDistrictIndexMap.getOrDefault(entry.getKey(), index);
             String current = lineFields.get(index);
             lineFields.set(index, entry.getValue().apply(current));
         }
-        var buildingRange = BuildingRange.getBuildingRange(combine(lineFields, buildingIndices));
-        String street = combine(lineFields, buildingIndices);
+        var buildingRange = BuildingRange.getBuildingRange(getStrings(lineFields, buildingIndices));
+        String street = String.join(" ", getStrings(lineFields, streetIndices));
         CompactDistrictMap districts = CompactDistrictMap.getMap(typeToDistrictIndexMap.keySet(), type -> getValue(lineFields, type));
-        var addressWithoutNum = new AddressWithoutNum(street, lineFields.get(postalCityIndex), typeToStringIndexMap.get(DistrictType.ZIP));
+        var addressWithoutNum = new AddressWithoutNum(street, lineFields.get(postalCityIndex), lineFields.get(typeToStringIndexMap.get(DistrictType.ZIP)));
         var cellId = new CellId(sourceName, getIdFunc.apply(lineFields, lineNum));
         return new StreetfileLineData(buildingRange, addressWithoutNum, districts, cellId);
     }
 
-    private static String combine(List<String> lineFields, int[] indices) {
+    private static List<String> getStrings(List<String> lineFields, int[] indices) {
         return Arrays.stream(indices).mapToObj(lineFields::get)
-                .filter(str -> !str.isBlank()).collect(Collectors.joining(" "));
+                .filter(str -> !str.isBlank()).toList();
     }
 
     private static int getMax(int[]... arrays) {

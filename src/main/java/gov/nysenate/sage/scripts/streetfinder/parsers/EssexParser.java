@@ -3,7 +3,6 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
-import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineData;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -11,7 +10,6 @@ import java.util.List;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
-// TODO: skip "M" for zip
 public class EssexParser extends CountyParser {
     public EssexParser(File file, County county) {
         super(file, county);
@@ -19,7 +17,7 @@ public class EssexParser extends CountyParser {
 
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
-        return super.getDataExtractor()
+        return super.getDataExtractor().addIsProperFunction(lineParts -> !lineParts.get(9).matches("M"))
                 .addBuildingIndices(3, 4, 5).addStreetIndices(1)
                 .addType(TOWN, 0).addType(ELECTION, 2).addType(ASSEMBLY, 6)
                 .addTypesInOrder(CONGRESSIONAL, SENATE, ZIP);
@@ -29,8 +27,8 @@ public class EssexParser extends CountyParser {
      * This file has a strange way of showing parity.
      */
     @Override
-    protected StreetfileLineData getData(int lineNum, String... dataFields) {
-        var dataList = new LinkedList<>(List.of(dataFields));
+    protected List<String> parseLine(String line) {
+        var dataList = new LinkedList<>(super.parseLine(line));
         // Two parts must be combined into something usable.
         String firstPart = dataList.get(5);
         String secondPart = dataList.remove(6);
@@ -43,6 +41,6 @@ public class EssexParser extends CountyParser {
             parity = StreetParity.ALL;
         }
         dataList.set(5, parity.name());
-        return super.getData(lineNum, dataList);
+        return dataList;
     }
 }

@@ -60,7 +60,7 @@ public class NTSParser extends CountyParser {
     protected StreetfileDataExtractor getDataExtractor() {
         // TODO: BOE_TOWN_CODE at index 5
         // TODO: the last 4 fields here vary depending on which county we're in.
-        return super.getDataExtractor()
+        return super.getDataExtractor().addIsProperFunction(lineParts -> lineParts.contains("House Range"))
                 .addBuildingIndices(1, 2, 3).addBuildingIndices(0)
                 .addType(WARD, 6).addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
                         SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, TOWN);

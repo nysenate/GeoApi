@@ -8,11 +8,11 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,7 +37,6 @@ public class SqlStreetFileDao implements StreetFileDao
         distColMap.put(TOWN, "town_code");
         distColMap.put(ELECTION, "election_code");
         distColMap.put(CLEG, "cleg_code");
-        distColMap.put(CITY, "city_code");
         distColMap.put(CITY_COUNCIL, "cc_code");
         distColMap.put(FIRE, "fire_code");
         distColMap.put(VILLAGE, "vill_code");
@@ -66,11 +65,6 @@ public class SqlStreetFileDao implements StreetFileDao
         if (whereZip) {
             sqlBuilder.append(" AND zip5=? \n");
             params.add(Integer.valueOf(streetAddr.getZip5()));
-        }
-
-        if (whereState) {
-            sqlBuilder.append(" AND state=? \n");
-            params.add(streetAddr.getState());
         }
 
         if (whereStreet) {

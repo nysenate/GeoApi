@@ -1,16 +1,13 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.dao.provider.usps.USPSAMSDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.BasicLineType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,56 +23,48 @@ public class NYCParser extends CountyParser {
             data = "(?<buildingRange>(\\d{1,5}([A-Z]|-\\d{2,3}[A-Z]?)? ){2})?\\d{3} \\d{2}(?<zip> \\d{5})?( \\d{2}){4}";
 
     private final String mailCity;
+    private String currStreet;
 
     public NYCParser(File file, County county, String mailCity) {
         super(file, county);
         this.mailCity = mailCity;
     }
 
+    @Override
+    protected StreetfileDataExtractor getDataExtractor() {
+        // There are initially 9 parts, but the postalCity and street are added in.
+        return super.getDataExtractor().addIsProperLengthFunction(11)
+                .addPostalCityIndex(0).addStreetIndices(1)
+                .addBuildingIndices(2, 3).addType(ELECTION, 4)
+                .addTypesInOrder(ASSEMBLY, ZIP, CONGRESSIONAL, SENATE, MUNICIPAL_COURT, CITY_COUNCIL);
+    }
+
+    @Override
+    protected String delim() {
+        return " ";
+    }
+
     /**
      * In these files, the street names are followed by a list of data points for that street.
      */
     @Override
-    public void parseFile(USPSAMSDao dao) throws IOException {
-        var scanner = new Scanner(file);
-        String currStreet = "";
-        int lineNum = 0;
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine().trim().replaceAll("\\s+", " ");
-            if (line.matches(skippableLine)) {
-                continue;
-            }
-            Matcher dataMatcher = Pattern.compile(data).matcher(line);
-            if (dataMatcher.matches()) {
-                if (dataMatcher.group("zip") == null) {
-                    continue;
-                }
-                List<String> dataList = new ArrayList<>(List.of(mailCity, currStreet));
-                String range = dataMatcher.group("buildingRange");
-                // Adds empty building range
-                if (range == null) {
-                    dataList.add("");
-                    dataList.add("");
-                }
-                Collections.addAll(dataList, line.split(" "));
-                // TODO
-//                addData(lineNum, dataList);
-            }
-            else if (line.matches(streetNameRegex)) {
-                currStreet = line;
-            }
-            else {
-                improperLineMap.put(BasicLineType.ERROR, "street: %s, line: %s".formatted(currStreet, line));
-            }
-            lineNum++;
+    protected List<String> parseLine(String line) {
+        line = line.replaceAll("\\s+", " ");
+        if (line.matches(skippableLine)) {
+            return null;
         }
-        scanner.close();
-    }
-
-    @Override
-    protected StreetfileDataExtractor getDataExtractor() {
-        return super.getDataExtractor().addPostalCityIndex(0).addStreetIndices(1)
-                .addBuildingIndices(2, 3).addType(ELECTION, 4)
-                .addTypesInOrder(ASSEMBLY, ZIP, CONGRESSIONAL, SENATE, MUNICIPAL_COURT, CITY_COUNCIL);
+        Matcher dataMatcher = Pattern.compile(data).matcher(line);
+        if (dataMatcher.matches()) {
+            List<String> dataList = new ArrayList<>(List.of(mailCity, currStreet));
+            Collections.addAll(dataList, line.split(" "));
+            return dataList;
+        }
+        else if (line.matches(streetNameRegex)) {
+            currStreet = line;
+        }
+        else {
+            improperLineMap.put(BasicLineType.ERROR, "street: %s, line: %s".formatted(currStreet, line));
+        }
+        return null;
     }
 }

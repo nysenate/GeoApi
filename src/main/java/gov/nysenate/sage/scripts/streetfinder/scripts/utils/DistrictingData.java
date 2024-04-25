@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Contains data from a streetfile, stored in a compact form. There are conflicts within and between data sources:
@@ -29,7 +30,6 @@ public class DistrictingData {
     }
 
     public void copyFromAndClear(DistrictingData toCopy) {
-        System.out.println("Combining sizes: " + internalTable.size() + ", " + toCopy.internalTable.size());
         for (var rowCol : toCopy.rowColSet()) {
             Multimap<CompactDistrictMap, CellId> cell = toCopy.internalTable.remove(rowCol.first(), rowCol.second());
             if (cell != null) {
@@ -39,8 +39,15 @@ public class DistrictingData {
     }
 
     public void put(StreetfileLineData data) {
-        System.out.println("Data size: " + internalTable.size());
         getMultimap(data.addressWithoutNum(), data.range()).put(data.districts(), data.cellId());
+    }
+
+    public void replace(AddressWithoutNum oldAwn, AddressWithoutNum newAwn) {
+        Set<BuildingRange> rowData = new HashSet<>(internalTable.row(oldAwn).keySet());
+        for (BuildingRange bldgRange : rowData) {
+            var cellData = internalTable.remove(oldAwn, bldgRange);
+            internalTable.put(newAwn, bldgRange, cellData);
+        }
     }
 
     /**
@@ -57,8 +64,11 @@ public class DistrictingData {
             for (var entry : singleTable.row(row).entrySet()) {
                 districtToRangeMap.put(entry.getValue(), entry.getKey());
             }
+            for (var entry : districtToRangeMap.asMap().entrySet()) {
+                Set<BuildingRange> combinedRanges = BuildingRange.combineRanges(entry.getValue());
+                districtToRangeMap.replaceValues(entry.getKey(), combinedRanges);
+            }
             // Conflicts can only occur with the same AddressWithoutNum
-            districtToRangeMap.asMap().replaceAll((districtMap, ranges) -> BuildingRange.combineRanges(ranges));
             var conflictRanges = new HashSet<BuildingRange>();
             for (BuildingRange bldgRange1 : districtToRangeMap.values()) {
                 for (BuildingRange bldgRange2 : districtToRangeMap.values()) {
@@ -69,8 +79,8 @@ public class DistrictingData {
                 }
             }
             // Simple printing and removing on range conflicts, e.g. [1, 4, ALL] and [2, 4, E] mapping to different districts.
-            for (BuildingRange range : conflictRanges) {
-                Files.writeString(conflictFilePath, "Conflict in: " + range);
+            for (BuildingRange conflictRange : conflictRanges) {
+                Files.writeString(conflictFilePath, "Conflict in: " + conflictRange);
             }
             districtToRangeMap.values().removeIf(conflictRanges::contains);
             districtToRangeMap.forEach((districtMap, range) -> consolidatedMap.put(new StreetfileAddressRange(range, row), districtMap));
@@ -93,11 +103,23 @@ public class DistrictingData {
     private Set<Tuple<AddressWithoutNum, BuildingRange>> rowColSet() {
         var set = new HashSet<Tuple<AddressWithoutNum, BuildingRange>>();
         for (AddressWithoutNum row : internalTable.rowKeySet()) {
-            for (BuildingRange col : internalTable.columnKeySet()) {
+            for (BuildingRange col : internalTable.row(row).keySet()) {
                 set.add(new Tuple<>(row, col));
             }
         }
         return set;
+    }
+
+    /**
+     * Helper method for iteration over the table.
+     */
+    public Map<AddressWithoutNum, List<Integer>> rowToNumMap() {
+        var map = new HashMap<AddressWithoutNum, List<Integer>>();
+        for (AddressWithoutNum row : internalTable.rowKeySet()) {
+            map.put(row, internalTable.row(row).keySet().stream()
+                    .flatMap(range -> Stream.of(range.low(), range.high()).distinct()).toList());
+        }
+        return map;
     }
 
     /**

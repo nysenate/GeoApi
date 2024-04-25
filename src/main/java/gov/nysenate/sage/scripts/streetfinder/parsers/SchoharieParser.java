@@ -18,26 +18,25 @@ public class SchoharieParser extends CountyParser {
 
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
-        return super.getDataExtractor()
+        return super.getDataExtractor().addIsProperFunction(SchoharieParser::isProper)
                 .addBuildingIndices(1, 2, 3).addStreetIndices(0)
                 .addType(TOWN, 4).addTypesInOrder(WARD, ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
                         SCHOOL, CLEG, TOWN, VILLAGE, FIRE);
     }
 
+    private static boolean isProper(List<String> lineParts) {
+        String line = String.join(" ", lineParts);
+        return !line.contains("House Range") && !line.contains("This conflicts")
+                && !line.contains("Ricks Test") && !line.contains("Dist");
+    }
+
+
     @Override
-    protected String[] parseLine(String line) {
-        if (line.contains("House Range") && line.contains("This conflicts")
-                && line.contains("Ricks Test") && line.contains("Dist")) {
-            return null;
-        }
+    protected List<String> parseLine(String line) {
         String[] lineSplit = line.split(",", 3);
-        String buildingData = lineSplit[1];
-        if (buildingData.isEmpty() || buildingData.contains("House Range")) {
-            return null;
-        }
         // Puts building data into the proper CSV format.
         line = String.join("," , List.of(lineSplit[0],
-                buildingData.replaceAll("-", ","), lineSplit[2]));
+                lineSplit[1].replaceAll("-", ","), lineSplit[2]));
         return super.parseLine(line);
     }
 }

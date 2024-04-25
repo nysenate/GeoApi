@@ -18,16 +18,9 @@ public class WyomingParser extends CountyParser {
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
         return super.getDataExtractor()
+                .addIsProperFunction(lineParts -> lineParts.stream().noneMatch(linePart -> linePart.contains("ODD_EVEN")))
                 .addBuildingIndices(6, 7, 8).addStreetIndices(2, 3, 4, 5)
                 .addType(TOWN, 9).addType(ZIP, 10).addPrecinctIndex(11)
                 .addTypesInOrder(CONGRESSIONAL, SENATE, ASSEMBLY);
-    }
-
-    @Override
-    protected String[] parseLine(String line) {
-        if (line.contains("ODD_EVEN")) {
-            return null;
-        }
-        return super.parseLine(line);
     }
 }

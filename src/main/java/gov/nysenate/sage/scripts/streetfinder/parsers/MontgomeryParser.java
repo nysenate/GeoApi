@@ -79,7 +79,7 @@ public class MontgomeryParser extends CountyParser {
      * TODO: should parse on whitespace, not indices
      */
     @Override
-    protected String[] parseLine(String line) {
+    protected List<String> parseLine(String line) {
         String zip5 = substringHelper(line, zipIndex, zipIndex + 5);
         String street = getStreetAndSuffix(line);
         String[] bldgData = substringHelper(line, houseRangeIndex, houseRangeIndex + 12).split("-");

@@ -1,9 +1,9 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
-import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineData;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
@@ -20,6 +20,7 @@ public class VoterFileParser extends BaseParser {
     protected StreetfileDataExtractor getDataExtractor() {
         // TODO: add towncity?
         return new StreetfileDataExtractor(VoterFileParser.class.getSimpleName())
+                .addIsProperLengthFunction(47).addIsProperFunction(lineParts -> !lineParts.get(41).matches("[IP]"))
                 .addBuildingIndices(4).addStreetIndices(6, 7, 8).addPostalCityIndex(12).addType(ZIP, 13)
                 .addType(COUNTY, 23).addTypesInOrder(ELECTION, CLEG).addType(WARD, 27)
                 .addTypesInOrder(CONGRESSIONAL, SENATE, ASSEMBLY)
@@ -27,25 +28,22 @@ public class VoterFileParser extends BaseParser {
                 .addIdFunction((lineParts, lineNum) -> Long.parseLong(lineParts.get(45).replaceFirst("^NY", "")));
     }
 
-    // TODO: better document improper addresses
     @Override
-    protected StreetfileLineData getData(int lineNum, String... dataFields) {
-        if (dataFields[41].matches("[IP]")) {
-            return null;
-        }
-        boolean emptyStandardAddress = dataFields[4].isEmpty() || dataFields[7].isEmpty();
-        if (!dataFields[11].isEmpty()) {
+    protected List<String> parseLine(String line) {
+        List<String> parsedLine = super.parseLine(line);
+        boolean emptyStandardAddress = parsedLine.get(4).isEmpty() || parsedLine.get(7).isEmpty();
+        if (!parsedLine.get(11).isEmpty()) {
             if (!emptyStandardAddress) {
                 return null;
             }
             else {
-                var nonStAddr = new NonStandardAddress(dataFields[11], dataFields[13]);
+                var nonStAddr = new NonStandardAddress(parsedLine.get(11), parsedLine.get(13));
                 if (nonStAddr.type().isValid()) {
-                    dataFields[4] = String.valueOf(nonStAddr.getAddress().getBuildingRange().low());
-                    dataFields[5] = "";
-                    dataFields[6] = "";
-                    dataFields[7] = nonStAddr.getAddress().getStreet();
-                    dataFields[8] = "";
+                    parsedLine.set(4, String.valueOf(nonStAddr.getAddress().getBuildingRange().low()));
+                    parsedLine.set(5, "");
+                    parsedLine.set(6, "");
+                    parsedLine.set(7, nonStAddr.getAddress().getStreet());
+                    parsedLine.set(8, "");
                 } else {
                     return null;
                 }
@@ -53,7 +51,7 @@ public class VoterFileParser extends BaseParser {
         } else if (emptyStandardAddress) {
             return null;
         }
-        return super.getData(lineNum, dataFields);
+        return parsedLine;
     }
 
     @Override
