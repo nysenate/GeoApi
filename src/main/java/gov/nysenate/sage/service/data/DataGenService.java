@@ -341,15 +341,15 @@ public class DataGenService implements SageDataGenService {
         //Reorder the address
         officeAddress = StreetAddressParser.parseAddress(officeAddress).toAddress();
         //URL Encode all of the address parts
-        officeAddress.setAddr1( URLEncoder.encode(officeAddress.getAddr1(), StandardCharsets.UTF_8.toString())  );
-        officeAddress.setAddr2( URLEncoder.encode(officeAddress.getAddr2(), StandardCharsets.UTF_8.toString()) );
-        officeAddress.setCity( URLEncoder.encode(officeAddress.getCity(), StandardCharsets.UTF_8.toString()) );
-        officeAddress.setZip5( URLEncoder.encode(officeAddress.getZip5(), StandardCharsets.UTF_8.toString()) );
+        officeAddress.setAddr1( URLEncoder.encode(officeAddress.getAddr1(), StandardCharsets.UTF_8)  );
+        officeAddress.setAddr2( URLEncoder.encode(officeAddress.getAddr2(), StandardCharsets.UTF_8) );
+        officeAddress.setPostalCity( URLEncoder.encode(officeAddress.getPostalCity(), StandardCharsets.UTF_8) );
+        officeAddress.setZip5( URLEncoder.encode(officeAddress.getZip5(), StandardCharsets.UTF_8) );
         //Ensure Mixed Case
         StreetAddressParser.performInitCapsOnAddress(officeAddress);
         //Construct Url String
         String urlString = env.getBaseUrl() + "/api/v2/geo/geocode?addr1=" +
-                officeAddress.getAddr1() + "&addr2=" + officeAddress.getAddr2() + "&city=" + officeAddress.getCity() +
+                officeAddress.getAddr1() + "&addr2=" + officeAddress.getAddr2() + "&city=" + officeAddress.getPostalCity() +
                 "&state=NY&zip5=" + officeAddress.getZip5();
         urlString = urlString.replaceAll(" ", "%20");
         try {

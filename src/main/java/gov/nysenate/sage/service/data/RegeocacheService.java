@@ -26,7 +26,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -237,7 +240,7 @@ public class RegeocacheService implements SageRegeocacheService {
     //Formats a url for use with some form of geocaching
     private String formatMassGeocacheUrl(String url, Address geocacheAddress) {
         url = String.format(url, geocacheAddress.getAddr1(), geocacheAddress.getAddr2(),
-                geocacheAddress.getCity(), geocacheAddress.getState(), geocacheAddress.getZip5());
+                geocacheAddress.getPostalCity(), geocacheAddress.getState(), geocacheAddress.getZip5());
         url = url.replaceAll(" ", "%20");
         url = StringUtils.deleteWhitespace(url);
         url = url.replaceAll("`", "");
