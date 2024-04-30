@@ -38,38 +38,38 @@ public class Address implements Serializable, Cloneable
         this(addr1, "","","","","");
     }
 
-    public Address(String addr1, String city, String state, String postal)
+    public Address(String addr1, String postalCity, String state, String postal)
     {
         this.setAddr1(addr1);
-        this.setCity(city);
+        this.setPostalCity(postalCity);
         this.setState(state);
-        this.setPostal(postal);
+        this.setZip9(postal);
     }
 
-    public Address(String addr1, String city, String state, String postal, Integer id)
+    public Address(String addr1, String postalCity, String state, String postal, Integer id)
     {
         this.setAddr1(addr1);
-        this.setCity(city);
+        this.setPostalCity(postalCity);
         this.setState(state);
-        this.setPostal(postal);
+        this.setZip9(postal);
         this.setId(id);
     }
 
-    public Address(String addr1, String addr2, String city, String state, String zip5, String zip4)
+    public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4)
     {
         this.setAddr1(addr1);
         this.setAddr2(addr2);
-        this.setCity(city);
+        this.setPostalCity(postalCity);
         this.setState(state);
         this.setZip5(zip5);
         this.setZip4(zip4);
     }
 
-    public Address(String addr1, String addr2, String city, String state, String zip5, String zip4, Integer id)
+    public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4, Integer id)
     {
         this.setAddr1(addr1);
         this.setAddr2(addr2);
-        this.setCity(city);
+        this.setPostalCity(postalCity);
         this.setState(state);
         this.setZip5(zip5);
         this.setZip4(zip4);
@@ -79,7 +79,7 @@ public class Address implements Serializable, Cloneable
     public Address(StreetAddress streetAddress) {
         this.setAddr1(formAddr1(streetAddress));
         this.setAddr2("");
-        this.setCity(streetAddress.getLocation());
+        this.setPostalCity(streetAddress.getLocation());
         this.setState(streetAddress.getState());
         this.setZip5(streetAddress.getZip5());
         this.setZip4(streetAddress.getZip4());
@@ -100,7 +100,7 @@ public class Address implements Serializable, Cloneable
     public String toString()
     {
         if (isParsed()) {
-            return ((!addr1.isEmpty() ? addr1 : "") + (!addr2.isEmpty() ? " " + addr2 + "" : "")
+            return ((!addr1.isEmpty() ? addr1 : "") + (!addr2.isEmpty() ? " " + addr2 : "")
                     + (!addr1.isEmpty() || !addr2.isEmpty() ? "," : "")
                     + (!city.isEmpty() ? " " + city + "," : "") + (!state.isEmpty() ? " " + state : "")
                     + (!zip5.isEmpty() ? " " + zip5 : "") + (!zip4.isEmpty() ? "-"+zip4 : "")).trim();
@@ -159,15 +159,15 @@ public class Address implements Serializable, Cloneable
         }
     }
 
-    public String getCity()
+    public String getPostalCity()
     {
         return city;
     }
 
-    public void setCity(String city)
+    public void setPostalCity(String postalCity)
     {
-        if (city != null) {
-            this.city = FormatUtil.cleanString( city );
+        if (postalCity != null) {
+            this.city = FormatUtil.cleanString(postalCity);
         }
     }
 
@@ -208,7 +208,7 @@ public class Address implements Serializable, Cloneable
     }
 
     /** Stores 12345-1234 style postal codes into zip5 and zip4 parts */
-    public void setPostal(String postal)
+    public void setZip9(String postal)
     {
         if (postal != null) {
             ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(postal.split("-")));

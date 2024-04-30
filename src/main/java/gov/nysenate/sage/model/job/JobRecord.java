@@ -74,7 +74,7 @@ public class JobRecord
             this.correctedAddress = addressResult.getAddress();
 
             this.dataMap.put(Column.uspsStreet, this.correctedAddress.getAddr1());
-            this.dataMap.put(Column.uspsCity, this.correctedAddress.getCity());
+            this.dataMap.put(Column.uspsCity, this.correctedAddress.getPostalCity());
             this.dataMap.put(Column.uspsState, this.correctedAddress.getState());
             this.dataMap.put(Column.uspsZip5, this.correctedAddress.getZip5());
             this.dataMap.put(Column.uspsZip4, this.correctedAddress.getZip4());
@@ -104,7 +104,7 @@ public class JobRecord
             this.dataMap.put(Column.county, districtInfo.getDistCode(DistrictType.COUNTY));
             this.dataMap.put(Column.school, districtInfo.getDistCode(DistrictType.SCHOOL));
             // Ensures the town isn't overwritten
-            String townCode = districtInfo.getDistCode(DistrictType.TOWN);
+            String townCode = districtInfo.getDistCode(DistrictType.TOWN_CITY);
             if (townCode != null) {
                 this.dataMap.put(Column.town, townCode);
             }

@@ -16,7 +16,7 @@ public class ErieParser extends CountyParser {
     protected StreetfileDataExtractor getDataExtractor() {
         return super.getDataExtractor().addBuildingIndices(1, 2, 3)
                 .addStreetIndices(0).addPrecinctIndex(9)
-                .addTypesInOrder(ZIP, TOWN).addType(SENATE, 10)
+                .addTypesInOrder(ZIP, TOWN_CITY).addType(SENATE, 10)
                 .addTypesInOrder(ASSEMBLY, COUNTY, CONGRESSIONAL);
     }
 }

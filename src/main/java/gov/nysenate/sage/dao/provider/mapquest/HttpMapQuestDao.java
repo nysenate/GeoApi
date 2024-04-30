@@ -9,12 +9,12 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.UrlRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -235,9 +235,9 @@ public class HttpMapQuestDao implements MapQuestDao
         String addr1 = location.hasNonNull("street") ? location.get("street").asText() : "";
         addr1 = addr1.replaceFirst("^\\[.*\\]", "");
         address.setAddr1(addr1);
-        address.setCity(location.hasNonNull("adminArea5") ? location.get("adminArea5").asText() : "");
+        address.setPostalCity(location.hasNonNull("adminArea5") ? location.get("adminArea5").asText() : "");
         address.setState(location.hasNonNull("adminArea3") ? location.get("adminArea3").asText() : "");
-        address.setPostal(location.hasNonNull("postalCode") ? location.get("postalCode").asText() : "");
+        address.setZip9(location.hasNonNull("postalCode") ? location.get("postalCode").asText() : "");
         return address;
     }
 

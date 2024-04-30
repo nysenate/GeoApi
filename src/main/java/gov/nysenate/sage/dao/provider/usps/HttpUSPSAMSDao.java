@@ -57,7 +57,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         try {
             urlParams.append("?addr1=").append(encode(address.getAddr1()))
                     .append("&addr2=").append(encode(address.getAddr2()))
-                    .append("&city=").append(encode(address.getCity()))
+                    .append("&city=").append(encode(address.getPostalCity()))
                     .append("&state=").append(encode(address.getState()))
                     .append("&zip5=").append(encode(address.getZip5()))
                     .append("&initCaps=true");
@@ -106,7 +106,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
             ObjectNode addressNode = jsonNodeFactory.objectNode();
             addressNode.put("addr1", address.getAddr1());
             addressNode.put("addr2", address.getAddr2());
-            addressNode.put("city", address.getCity());
+            addressNode.put("city", address.getPostalCity());
             addressNode.put("state", address.getState());
             addressNode.put("zip5", address.getZip5());
             addressNode.put("zip4", address.getZip4());

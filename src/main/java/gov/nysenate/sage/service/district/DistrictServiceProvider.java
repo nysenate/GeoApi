@@ -411,7 +411,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
     private void fixPostOfficeBoxResult(DistrictResult result) {
         Address currAddr = result.getAddress();
         if (currAddr != null && currAddr.isPOBox()) {
-            DistrictedAddress poResult = postOfficeService.getDistrictedAddress(currAddr.getZip5(), currAddr.getCity());
+            DistrictedAddress poResult = postOfficeService.getDistrictedAddress(currAddr.getZip5(), currAddr.getPostalCity());
             if (poResult != null) {
                 result.setStatusCode(ResultStatus.SUCCESS);
                 result.setDistrictedAddress(poResult);

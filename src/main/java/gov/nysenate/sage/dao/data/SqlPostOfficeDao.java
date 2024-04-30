@@ -39,7 +39,7 @@ public class SqlPostOfficeDao implements PostOfficeDao {
             Address address = postalAddress.address();
             var params = new MapSqlParameterSource("deliveryZip", postalAddress.deliveryZip())
                     .addValue("streetWithNum", address.getAddr1())
-                    .addValue("city", address.getCity())
+                    .addValue("city", address.getPostalCity())
                     .addValue("zip5", AddressUtil.parseZip(address.getZip5()))
                     .addValue("zip4", AddressUtil.parseZip(address.getZip4()));
             String sql = PostOfficeQuery.ADD_ADDRESS.getSql(baseDao.getPublicSchema());
@@ -51,8 +51,8 @@ public class SqlPostOfficeDao implements PostOfficeDao {
         @Override
         public PostOfficeAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
             var address = new Address(rs.getString("street_with_num"));
-            address.setCity(rs.getString("city"));
-            address.setPostal(rs.getString("zip5") + "-" + rs.getString("zip4"));
+            address.setPostalCity(rs.getString("city"));
+            address.setZip9(rs.getString("zip5") + "-" + rs.getString("zip4"));
             return new PostOfficeAddress(rs.getInt("delivery_zip"), address);
         }
     }

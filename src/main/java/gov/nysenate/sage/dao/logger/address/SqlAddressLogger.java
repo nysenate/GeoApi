@@ -71,7 +71,7 @@ public class SqlAddressLogger implements AddressLogger
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("addr1",address.getAddr1());
         params.addValue("addr2", address.getAddr2());
-        params.addValue("city", address.getCity());
+        params.addValue("city", address.getPostalCity());
         params.addValue("state",address.getState());
         params.addValue("zip5", address.getZip5());
         params.addValue("zip4",address.getZip4());

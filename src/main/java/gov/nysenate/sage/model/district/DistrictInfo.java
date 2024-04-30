@@ -55,7 +55,7 @@ public class DistrictInfo
         this.setDistCode(COUNTY, countyCode);
         this.setDistCode(SENATE, senateCode);
         this.setDistCode(ASSEMBLY, assemblyCode);
-        this.setDistCode(TOWN, townCode);
+        this.setDistCode(TOWN_CITY, townCode);
         this.setDistCode(SCHOOL, schoolCode);
     }
 

@@ -28,7 +28,7 @@ public class MappedDistrictsView
             this.county = new MappedDistrictView(COUNTY, dInfo);
             this.election = new MappedDistrictView(ELECTION, dInfo);
             this.school = new MappedDistrictView(SCHOOL, dInfo);
-            this.town = new MappedDistrictView(TOWN, dInfo);
+            this.town = new MappedDistrictView(TOWN_CITY, dInfo);
             this.zip = new MappedDistrictView(ZIP, dInfo);
             this.cleg = new MappedDistrictView(CLEG, dInfo);
             this.ward = new MappedDistrictView(WARD, dInfo);

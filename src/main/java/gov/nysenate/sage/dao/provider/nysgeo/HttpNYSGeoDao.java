@@ -48,7 +48,7 @@ public class HttpNYSGeoDao {
 
         try {
             String formattedQuery = String.format(GEOCODE_QUERY,address.getAddr1() + " " + address.getAddr2() + " "
-                    + address.getCity() + "," + address.getZip5());
+                    + address.getPostalCity() + "," + address.getZip5());
             String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
             geocodedAddress = getGeocodedAddress(url, false);
             if (geocodedAddress == null) {

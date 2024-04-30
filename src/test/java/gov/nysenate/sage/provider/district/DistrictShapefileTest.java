@@ -28,7 +28,7 @@ public class DistrictShapefileTest extends BaseTests {
     @Autowired private DistrictShapefile districtShapefile;
 
     private static final List<DistrictType> types = Arrays.asList(DistrictType.ASSEMBLY, DistrictType.CONGRESSIONAL,
-            DistrictType.COUNTY, DistrictType.SENATE, DistrictType.SCHOOL, DistrictType.TOWN, DistrictType.ZIP);
+            DistrictType.COUNTY, DistrictType.SENATE, DistrictType.SCHOOL, DistrictType.TOWN_CITY, DistrictType.ZIP);
 
     @Ignore
     @Test

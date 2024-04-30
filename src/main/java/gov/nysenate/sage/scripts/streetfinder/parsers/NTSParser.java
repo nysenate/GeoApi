@@ -2,8 +2,8 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.DistrictIndices;
-import gov.nysenate.sage.scripts.streetfinder.scripts.utils.BasicLineType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 import gov.nysenate.sage.util.AddressDictionary;
 
 import java.io.File;
@@ -60,10 +60,10 @@ public class NTSParser extends CountyParser {
     protected StreetfileDataExtractor getDataExtractor() {
         // TODO: BOE_TOWN_CODE at index 5
         // TODO: the last 4 fields here vary depending on which county we're in.
-        return super.getDataExtractor().addIsProperFunction(lineParts -> lineParts.contains("House Range"))
+        return super.getDataExtractor().addTest(line -> line.contains("House Range"), StreetfileLineType.SKIP)
                 .addBuildingIndices(1, 2, 3).addBuildingIndices(0)
                 .addType(WARD, 6).addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
-                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, TOWN);
+                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, TOWN_CITY);
     }
 
     protected void parseStartOfPage(String startingLine) {
@@ -85,7 +85,7 @@ public class NTSParser extends CountyParser {
             }
             List<String> cleanLine = cleanLine(currLine);
             if (cleanLine.size() < 3) {
-                improperLineMap.put(BasicLineType.ERROR, currLine);
+                improperLineMap.put(StreetfileLineType.IMPROPER, currLine);
                 return;
             }
             parseLine(String.join(delim(), cleanLine));

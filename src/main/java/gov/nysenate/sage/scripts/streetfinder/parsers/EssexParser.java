@@ -3,6 +3,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -17,9 +18,10 @@ public class EssexParser extends CountyParser {
 
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
-        return super.getDataExtractor().addIsProperFunction(lineParts -> !lineParts.get(9).matches("M"))
+        return super.getDataExtractor()
+                .addSplitTest(lineParts -> lineParts.get(9).matches("M"), StreetfileLineType.SKIP)
                 .addBuildingIndices(3, 4, 5).addStreetIndices(1)
-                .addType(TOWN, 0).addType(ELECTION, 2).addType(ASSEMBLY, 6)
+                .addType(TOWN_CITY, 0).addType(ELECTION, 2).addType(ASSEMBLY, 6)
                 .addTypesInOrder(CONGRESSIONAL, SENATE, ZIP);
     }
 

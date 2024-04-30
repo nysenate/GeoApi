@@ -11,10 +11,10 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.util.UrlRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -62,7 +62,7 @@ public class RubyGeocoder implements GeocodeService
         }
 
         if (address.isParsed()) {
-            url = m_baseUrl+"?street="+address.getAddr1()+"&city="+address.getCity()+"&state="+address.getState()+"&zip="+address.getZip5();
+            url = m_baseUrl+"?street="+address.getAddr1()+"&city="+address.getPostalCity()+"&state="+address.getState()+"&zip="+address.getZip5();
         }
         else {
             url = m_baseUrl+"?address="+address.toString();
@@ -208,7 +208,7 @@ public class RubyGeocoder implements GeocodeService
     private String addressToJson(Address address)
     {
         return String.format("{\"street\":\"%s\",\"city\":\"%s\",\"state\":\"%s\",\"zip5\":\"%s\"}",
-                address.getAddr1(), address.getCity(), address.getState(), address.getZip5());
+                address.getAddr1(), address.getPostalCity(), address.getState(), address.getZip5());
     }
 
 }

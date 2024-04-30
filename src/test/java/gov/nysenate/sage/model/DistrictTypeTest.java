@@ -20,7 +20,7 @@ public class DistrictTypeTest {
     public void getStandardTypesTest()
     {
         List<DistrictType> standardTypes = DistrictType.getStandardTypes();
-        List<DistrictType> expectedTypes = Arrays.asList(SENATE, CONGRESSIONAL,ZIP, ASSEMBLY, SCHOOL, TOWN, COUNTY);
+        List<DistrictType> expectedTypes = Arrays.asList(SENATE, CONGRESSIONAL,ZIP, ASSEMBLY, SCHOOL, TOWN_CITY, COUNTY);
         assertEquals(new HashSet<>(expectedTypes), new HashSet<>(standardTypes));
     }
 

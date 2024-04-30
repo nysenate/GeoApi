@@ -15,6 +15,6 @@ public abstract class CountyParser extends BaseParser {
 
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
-        return new StreetfileDataExtractor(getClass().getSimpleName()).addCountyFunction(county);
+        return super.getDataExtractor().addCountyFunction(county);
     }
 }

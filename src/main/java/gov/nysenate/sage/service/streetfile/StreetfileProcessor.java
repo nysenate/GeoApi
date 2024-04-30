@@ -1,15 +1,16 @@
 package gov.nysenate.sage.service.streetfile;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.usps.USPSAMSDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.parsers.*;
-import gov.nysenate.sage.scripts.streetfinder.scripts.utils.CompactDistrictMap;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,47 +32,71 @@ import java.util.stream.Collectors;
 public class StreetfileProcessor {
     private static final Logger logger = LoggerFactory.getLogger(StreetfileProcessor.class);
     private static final int BATCH_SIZE = 1000;
-    private final File streetfileDir;
-    private final Path streetfilePath, conflictPath;
+    private final File sourceDir, resultsDir;
+    private final Path streetfilePath, conflictPath, improperPath, invalidPath;
     private final USPSAMSDao amsDao;
     private final List<County> counties;
 
     @Autowired
     public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir,
                               USPSAMSDao amsDao, CountyDao countyDao) {
-        this.streetfileDir = Path.of(streetfileDir, "sourceData").toFile();
-        this.streetfilePath = Path.of(streetfileDir, "results", "streetfile.txt");
-        this.conflictPath = Path.of(streetfileDir, "results", "conflicts.txt");
+        this.sourceDir = Path.of(streetfileDir, "sourceData").toFile();
+        this.resultsDir = Path.of(streetfileDir, "results").toFile();
+        this.streetfilePath = Path.of(resultsDir.getPath(), "streetfile.txt");
+        this.conflictPath = Path.of(resultsDir.getPath(), "conflicts.txt");
+        this.improperPath = Path.of(resultsDir.getPath(), "improper.txt");
+        this.invalidPath = Path.of(resultsDir.getPath(), "invalid.txt");
         this.amsDao = amsDao;
         this.counties = countyDao.getCounties();
     }
 
     public synchronized void regenerateStreetfile() throws IOException {
-        File[] files = streetfileDir.listFiles();
-        if (files == null || files.length == 0) {
+        File[] dataFiles = sourceDir.listFiles();
+        File[] resultFiles = resultsDir.listFiles();
+        if (dataFiles == null || dataFiles.length == 0 || resultFiles == null) {
             return;
         }
-        DistrictingData result = new DistrictingData(4000000, files.length);
+        for (File resultFile : resultFiles) {
+            if (resultFile.isFile()) {
+                Files.deleteIfExists(resultFile.toPath());
+            }
+        }
+        DistrictingData fullData = new DistrictingData(4000000, dataFiles.length);
         final var correctionMap = new HashMap<AddressWithoutNum, AddressWithoutNum>(100000);
+        Multimap<StreetfileLineType, String> fullImproperLineMap = ArrayListMultimap.create();
         logger.info("Starting streetfile processing...");
-        for (File streetfile : files) {
+        for (File streetfile : dataFiles) {
             if (streetfile.isDirectory()) {
                 continue;
             }
             BaseParser parser = getParser(streetfile);
             parser.parseFile();
+            fullImproperLineMap.putAll(parser.getImproperLineMap());
             logger.info("Parsed " + streetfile.getName() + ". Validating addresses...");
             addCorrections(parser.getData(), correctionMap);
-            result.copyFromAndClear(parser.getData());
             logger.info("Validated " + streetfile.getName() + " addresses.");
+            fullData.copyFromAndClear(parser.getData());
         }
-        correctionMap.forEach(result::replace);
-        Files.deleteIfExists(conflictPath);
-        Files.createFile(conflictPath);
+
+        DistrictingData invalidData = fullData.removeInvalidAddresses(correctionMap);
+        Files.write(invalidPath, List.of(invalidData.toString()), StandardOpenOption.CREATE);
         logger.info("Done parsing streetfiles. Consolidating...");
-        Map<StreetfileAddressRange, CompactDistrictMap> fullData = result.consolidate(conflictPath);
-        List<String> lines = fullData.entrySet().stream().map(entry -> entry.getKey() + " " + entry.getValue()).toList();
-        Files.write(streetfilePath, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        List<String> lines = fullData.consolidate(conflictPath).entrySet().stream()
+                .map(entry -> entry.getKey() + " " + entry.getValue()).toList();
+        Files.write(streetfilePath, lines, StandardOpenOption.CREATE);
+
+        lines = new ArrayList<>(BATCH_SIZE);
+        int lineCount = 0;
+        for (StreetfileLineType type : fullImproperLineMap.keySet()) {
+            lines.add(type.name());
+            for (String line : fullImproperLineMap.get(type)) {
+                lines.add('\t' + line);
+                if (++lineCount % BATCH_SIZE == 0) {
+                    Files.write(improperPath, lines, StandardOpenOption.CREATE);
+                    lines.clear();
+                }
+            }
+        }
     }
 
     private BaseParser getParser(File file) {
@@ -153,7 +178,7 @@ public class StreetfileProcessor {
 
     private static Address getAddress(int num, AddressWithoutNum awn) {
         var addr = new Address(num + " " + awn.street());
-        addr.setPostal(awn.postalCity());
+        addr.setPostalCity(awn.postalCity());
         addr.setZip5(String.valueOf(awn.zip5()));
         addr.setState("NY");
         return addr;

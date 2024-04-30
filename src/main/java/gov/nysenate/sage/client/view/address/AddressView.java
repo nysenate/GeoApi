@@ -21,7 +21,7 @@ public class AddressView
     {
         this.addr1 = address.getAddr1();
         this.addr2 = address.getAddr2();
-        this.city = address.getCity();
+        this.city = address.getPostalCity();
         this.state = address.getState();
         this.zip5 = address.getZip5();
         this.zip4 = address.getZip4();

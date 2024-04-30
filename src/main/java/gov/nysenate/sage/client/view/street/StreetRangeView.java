@@ -37,7 +37,7 @@ public class StreetRangeView
                 districts.put("assembly", dInfo.getDistCode(DistrictType.ASSEMBLY));
                 districts.put("congressional", dInfo.getDistCode(DistrictType.CONGRESSIONAL));
                 districts.put("county", dInfo.getDistCode(DistrictType.COUNTY));
-                districts.put("town", dInfo.getDistCode(DistrictType.TOWN));
+                districts.put("town", dInfo.getDistCode(DistrictType.TOWN_CITY));
                 districts.put("election", dInfo.getDistCode(DistrictType.ELECTION));
             }
         }

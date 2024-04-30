@@ -334,7 +334,7 @@ public class USPSAIS implements AddressService, Observer
                         Address resultAddress = new Address();
                         String city = xpath.evaluate("City", addressResponse);
                         city = (city != null) ? WordUtils.capitalizeFully(city) : city;
-                        resultAddress.setCity(city);
+                        resultAddress.setPostalCity(city);
                         resultAddress.setState(xpath.evaluate("State", addressResponse));
                         resultAddress.setZip5(xpath.evaluate("Zip5", addressResponse));
 
@@ -407,7 +407,7 @@ public class USPSAIS implements AddressService, Observer
                            + "<Zip5>%s</Zip5>"
                            + "<Zip4>%s</Zip4>"
                            + "</Address>",
-                           id, "", (addr.getAddr1() + " " + addr.getAddr2()).trim(), addr.getCity(),
+                           id, "", (addr.getAddr1() + " " + addr.getAddr2()).trim(), addr.getPostalCity(),
                            addr.getState(), addr.getZip5(), addr.getZip4());
     }
 }

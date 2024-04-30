@@ -118,7 +118,7 @@ public final class StreetAddressParser {
         StreetAddress stAddr = new StreetAddress();
 
         if (addr.isParsed()) {
-            stAddr.setLocation(normalize(addr.getCity()));
+            stAddr.setLocation(normalize(addr.getPostalCity()));
             stAddr.setState(normalize(addr.getState()));
             stAddr.setZip5(addr.getZip5());
             stAddr.setZip4(addr.getZip4());
@@ -535,7 +535,7 @@ public final class StreetAddressParser {
     public static Address performInitCapsOnAddress(Address address) {
         address.setAddr1(initCapStreetLine(address.getAddr1()));
         address.setAddr2(initCapStreetLine(address.getAddr2()));
-        address.setCity( WordUtils.capitalizeFully(address.getCity().toLowerCase()) );
+        address.setPostalCity( WordUtils.capitalizeFully(address.getPostalCity().toLowerCase()) );
         return address;
     }
     /**

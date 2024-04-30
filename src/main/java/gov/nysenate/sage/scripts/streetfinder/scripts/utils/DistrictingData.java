@@ -1,15 +1,13 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
+import com.google.common.collect.*;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.util.Tuple;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,14 +38,6 @@ public class DistrictingData {
 
     public void put(StreetfileLineData data) {
         getMultimap(data.addressWithoutNum(), data.range()).put(data.districts(), data.cellId());
-    }
-
-    public void replace(AddressWithoutNum oldAwn, AddressWithoutNum newAwn) {
-        Set<BuildingRange> rowData = new HashSet<>(internalTable.row(oldAwn).keySet());
-        for (BuildingRange bldgRange : rowData) {
-            var cellData = internalTable.remove(oldAwn, bldgRange);
-            internalTable.put(newAwn, bldgRange, cellData);
-        }
     }
 
     /**
@@ -88,6 +78,27 @@ public class DistrictingData {
         return consolidatedMap;
     }
 
+    public DistrictingData removeInvalidAddresses(Map<AddressWithoutNum, AddressWithoutNum> correctionMap) {
+        Set<AddressWithoutNum> currRows = internalTable.rowKeySet();
+        Sets.SetView<AddressWithoutNum> toRemove = Sets.difference(currRows, correctionMap.keySet());
+        var invalidData = new DistrictingData(toRemove.size(), 2);
+
+        for (AddressWithoutNum oldAwn : new HashSet<>(currRows)) {
+            var currRow = internalTable.row(oldAwn);
+            for (BuildingRange bldgRange : new HashSet<>(currRow.keySet())) {
+                var cellData = internalTable.remove(oldAwn, bldgRange);
+                if (correctionMap.containsKey(oldAwn)) {
+                    internalTable.put(correctionMap.get(oldAwn), bldgRange, cellData);
+                }
+                else {
+                    invalidData.getMultimap(oldAwn, bldgRange).putAll(cellData);
+                }
+            }
+        }
+        return invalidData;
+    }
+
+    @Nonnull
     private Multimap<CompactDistrictMap, CellId> getMultimap(AddressWithoutNum addressWithoutNum, BuildingRange range) {
         var currMap = internalTable.get(addressWithoutNum, range);
         if (currMap == null) {
@@ -148,6 +159,26 @@ public class DistrictingData {
         }
         Files.writeString(conflictFilePath, conflicts.internalTable.toString());
         return consolidatedTable;
+    }
+
+    @Override
+    public String toString() {
+        var strBuilder = new StringBuilder();
+        for (AddressWithoutNum awn : internalTable.rowKeySet()) {
+            strBuilder.append(awn).append('\n');
+            var currRow = internalTable.row(awn);
+            for (BuildingRange bldgRange : currRow.keySet()) {
+                strBuilder.append('\t').append(bldgRange).append('\n');
+                var currCellMap = currRow.get(bldgRange).asMap();
+                for (CompactDistrictMap districtMap : currCellMap.keySet()) {
+                    strBuilder.append('\t').append('\t').append(districtMap).append(": ");
+                    List<String> cellIdStrings = currCellMap.get(districtMap).stream().map(Record::toString).toList();
+                    strBuilder.append(String.join(", ", cellIdStrings)).append('\n');
+                }
+            }
+            strBuilder.append('\n');
+        }
+        return strBuilder.toString();
     }
 
     /**

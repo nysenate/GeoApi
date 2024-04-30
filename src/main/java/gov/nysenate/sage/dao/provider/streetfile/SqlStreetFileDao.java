@@ -34,7 +34,7 @@ public class SqlStreetFileDao implements StreetFileDao
         distColMap.put(CONGRESSIONAL, "congressional_code");
         distColMap.put(COUNTY, "county_code");
         distColMap.put(SCHOOL, "school_code");
-        distColMap.put(TOWN, "town_code");
+        distColMap.put(TOWN_CITY, "town_code");
         distColMap.put(ELECTION, "election_code");
         distColMap.put(CLEG, "cleg_code");
         distColMap.put(CITY_COUNCIL, "cc_code");

@@ -10,13 +10,15 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.service.geo.*;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
+import gov.nysenate.sage.service.geo.ParallelGeocodeService;
+import gov.nysenate.sage.service.geo.ParallelRevGeocodeService;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.ArrayList;
 
@@ -164,7 +166,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
         }
 
         /** Check to see if the cities match */
-        if (inputAddress.getCity().equalsIgnoreCase(sa.getLocation())) { return GeocodeQuality.CITY; }
+        if (inputAddress.getPostalCity().equalsIgnoreCase(sa.getLocation())) { return GeocodeQuality.CITY; }
 
 
         /**

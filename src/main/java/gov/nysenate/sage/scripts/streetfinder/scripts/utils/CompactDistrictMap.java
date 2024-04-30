@@ -17,8 +17,8 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  * This is condensed into an array of shorts.
  */
 public class CompactDistrictMap {
-    // Only some DistrictTypes can be stored in a short
-    private static final Set<DistrictType> invalidTypes = Set.of(TOWN, VILLAGE, ZIP);
+    // Some DistrictTypes can't be stored in a short
+    private static final Set<DistrictType> invalidTypes = Set.of(TOWN_CITY, VILLAGE, ZIP);
     // A few special wards have ward numbers, but data is given in 3-letter codes.
     private static final Map<String, Integer> wardCorrectionMap = Map.of(
             "DEL", 10, "ELL", 20,
@@ -70,7 +70,7 @@ public class CompactDistrictMap {
                 return wardCorrectionMap.get(districtString).shortValue();
             }
             if (!districtString.isBlank()) {
-                System.out.println("District " + districtString + " is neither numeric nor empty!");
+                System.err.println("District " + districtString + " is neither numeric nor empty!");
             }
             return 0;
         }

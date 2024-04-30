@@ -13,17 +13,19 @@ import java.util.function.Predicate;
 public class StreetfileDataExtractor {
     private static final int[] emptyIntArray = {};
     private final String sourceName;
+    private final Function<String, List<String>> lineParser;
     private final Map<DistrictType, Integer> typeToDistrictIndexMap = new HashMap<>(),
             typeToStringIndexMap = new HashMap<>();
-    private final Map<DistrictType, Function<String, String>> typeCorrectionMap = new HashMap<>();
     private int[] buildingIndices = emptyIntArray, streetIndices = emptyIntArray;
     private int postalCityIndex = -1, precinctIndex = -1;
     private Function<List<String>, String> countyFipsFunction;
-    private final List<Predicate<List<String>>> isProperPredicateList = new ArrayList<>(List.of(Objects::nonNull));
+    private final List<LineTest<String>> lineTests = new ArrayList<>();
+    private final List<LineTest<List<String>>> splitLineTests = new ArrayList<>();
     private BiFunction<List<String>, Integer, Long> getIdFunc = (lineParts, lineNum) -> Long.valueOf(lineNum);
 
-    public StreetfileDataExtractor(String sourceName) {
+    public StreetfileDataExtractor(String sourceName, Function<String, List<String>> lineParser) {
         this.sourceName = sourceName;
+        this.lineParser = lineParser;
     }
 
     public StreetfileDataExtractor addBuildingIndices(int... indices) {
@@ -49,11 +51,6 @@ public class StreetfileDataExtractor {
     public StreetfileDataExtractor addType(DistrictType type, int index) {
         addToMap(type, index);
         return this;
-    }
-
-    public StreetfileDataExtractor addTypeWithCorrection(DistrictType type, int index, Function<String, String> correctionFunc) {
-        typeCorrectionMap.put(type, correctionFunc);
-        return addType(type, index);
     }
 
     public StreetfileDataExtractor addTypesInOrder(DistrictType... types) {
@@ -82,30 +79,42 @@ public class StreetfileDataExtractor {
     }
 
     public StreetfileDataExtractor addIsProperLengthFunction(int length) {
-        return addIsProperFunction(list -> list.size() == length);
+        return addSplitTest(lineParts -> lineParts.size() != length, StreetfileLineType.WRONG_LENGTH);
     }
 
-    public StreetfileDataExtractor addIsProperFunction(Predicate<List<String>> isProper) {
-        this.isProperPredicateList.add(isProper);
+    public StreetfileDataExtractor addTest(Predicate<String> predicate, StreetfileLineType errorType) {
+        this.lineTests.add(new LineTest<>(predicate, errorType));
         return this;
     }
 
-    public StreetfileLineData getData(int lineNum, List<String> lineFields) {
-        if (isProperPredicateList.stream().anyMatch(isProper -> !isProper.test(lineFields))) {
-            return null;
+    public StreetfileDataExtractor addSplitTest(Predicate<List<String>> predicate, StreetfileLineType errorType) {
+        this.splitLineTests.add(new LineTest<>(predicate, errorType));
+        return this;
+    }
+
+    public StreetfileLineData getData(int lineNum, String line) {
+        for (LineTest<String> lineTest : lineTests) {
+            if (lineTest.test().test(line)) {
+                return new StreetfileLineData(lineTest.errorType());
+            }
         }
-        for (var entry : typeCorrectionMap.entrySet()) {
-            int index = typeToStringIndexMap.get(entry.getKey());
-            index = typeToDistrictIndexMap.getOrDefault(entry.getKey(), index);
-            String current = lineFields.get(index);
-            lineFields.set(index, entry.getValue().apply(current));
+        List<String> lineFields = lineParser.apply(line);
+        for (LineTest<List<String>> lineTest : splitLineTests) {
+            if (lineTest.test().test(lineFields)) {
+                return new StreetfileLineData(lineTest.errorType());
+            }
         }
-        var buildingRange = BuildingRange.getBuildingRange(getStrings(lineFields, buildingIndices));
+        BuildingRange buildingRange;
+        try {
+            buildingRange = BuildingRange.getBuildingRange(getStrings(lineFields, buildingIndices));
+        } catch (NumberFormatException ex) {
+            return new StreetfileLineData(StreetfileLineType.BAD_BUILDING_NUMBER);
+        }
         String street = String.join(" ", getStrings(lineFields, streetIndices));
         CompactDistrictMap districts = CompactDistrictMap.getMap(typeToDistrictIndexMap.keySet(), type -> getValue(lineFields, type));
         var addressWithoutNum = new AddressWithoutNum(street, lineFields.get(postalCityIndex), lineFields.get(typeToStringIndexMap.get(DistrictType.ZIP)));
         var cellId = new CellId(sourceName, getIdFunc.apply(lineFields, lineNum));
-        return new StreetfileLineData(buildingRange, addressWithoutNum, districts, cellId);
+        return new StreetfileLineData(buildingRange, addressWithoutNum, districts, cellId, StreetfileLineType.PROPER);
     }
 
     private static List<String> getStrings(List<String> lineFields, int[] indices) {
@@ -119,7 +128,7 @@ public class StreetfileDataExtractor {
 
     private void addToMap(DistrictType type, int index) {
         var currMap = switch (type) {
-            case TOWN, ZIP, VILLAGE -> typeToStringIndexMap;
+            case TOWN_CITY, ZIP, VILLAGE -> typeToStringIndexMap;
             default -> typeToDistrictIndexMap;
         };
         currMap.put(type, index);

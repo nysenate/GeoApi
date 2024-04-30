@@ -270,7 +270,7 @@ public class DistrictShapefile implements DistrictService, MapService
                 if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) { //72 or more
                     logger.debug("Determining street level district overlap");
                     streetList.add(address.getAddr1());
-                    zip5List = (zipProvided) ? Arrays.asList(address.getZip5()) : cityZipDBDao.getZipsByCity(address.getCity());
+                    zip5List = (zipProvided) ? Arrays.asList(address.getZip5()) : cityZipDBDao.getZipsByCity(address.getPostalCity());
                     districtInfo.setStreetLineReference(sqlTigerGeocoderDao.getStreetLineGeometry(address.getAddr1(), zip5List));
                     districtInfo.setStreetRanges(sqlStreetFileDao.getDistrictStreetRanges(address.getAddr1(), zip5List));
                 }
@@ -279,9 +279,9 @@ public class DistrictShapefile implements DistrictService, MapService
                     zip5List = Arrays.asList(address.getZip5());
                 }
             }
-            else if (!address.getCity().isEmpty()) {
+            else if (!address.getPostalCity().isEmpty()) {
                 logger.debug("Determining city level district overlap");
-                zip5List = cityZipDBDao.getZipsByCity(address.getCity());
+                zip5List = cityZipDBDao.getZipsByCity(address.getPostalCity());
             }
 
             if (!zip5List.isEmpty()) {

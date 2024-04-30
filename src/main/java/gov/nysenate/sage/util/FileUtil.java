@@ -63,7 +63,7 @@ public final class FileUtil {
     public static int getLineCount(File file) throws IOException {
         try (var reader = new LineNumberReader(new FileReader(file))) {
             reader.skip(Long.MAX_VALUE);
-            return reader.getLineNumber() + 1;
+            return reader.getLineNumber();
         }
     }
 }

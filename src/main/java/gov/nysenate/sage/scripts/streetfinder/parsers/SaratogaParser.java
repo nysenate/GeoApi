@@ -27,9 +27,9 @@ public class SaratogaParser extends NTSParser {
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
         return super.getDataExtractor()
-                .addBuildingIndices(4, 5, 6).addStreetIndices(0, 1).addType(ZIP, 2).addType(TOWN, 3)
+                .addBuildingIndices(4, 5, 6).addStreetIndices(0, 1).addType(ZIP, 2).addType(TOWN_CITY, 3)
                 .addType(WARD, 8).addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
-                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, TOWN);
+                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL);
     }
 
     @Override

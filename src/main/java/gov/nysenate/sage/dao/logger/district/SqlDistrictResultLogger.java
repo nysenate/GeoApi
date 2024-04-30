@@ -61,7 +61,7 @@ public class SqlDistrictResultLogger implements DistrictResultLogger
                 ad = dinfo.getDistCode(DistrictType.ASSEMBLY);
                 cd = dinfo.getDistCode(DistrictType.CONGRESSIONAL);
                 cc = dinfo.getDistCode(DistrictType.COUNTY);
-                town = dinfo.getDistCode(DistrictType.TOWN);
+                town = dinfo.getDistCode(DistrictType.TOWN_CITY);
                 school = dinfo.getDistCode(DistrictType.SCHOOL);
             }
             try {
