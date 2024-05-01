@@ -4,6 +4,7 @@ import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
@@ -40,7 +41,8 @@ public class MontgomeryParser extends CountyParser {
      * parseLine is called to parse the line
      * @throws FileNotFoundException
      */
-    public void parseFile() throws IOException {
+    @Override
+    public void parseFile(DistrictingData data) throws IOException {
         Scanner scanner = new Scanner(file);
         String currentLine = scanner.nextLine();
         boolean inData = false;

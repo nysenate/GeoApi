@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,17 +28,8 @@ public class DistrictingData {
         this.internalTable = HashBasedTable.create(expectedRows, expectedCellsPerRow);
     }
 
-    public void copyFromAndClear(DistrictingData toCopy) {
-        for (var rowCol : toCopy.rowColSet()) {
-            Multimap<CompactDistrictMap, CellId> cell = toCopy.internalTable.remove(rowCol.first(), rowCol.second());
-            if (cell != null) {
-                getMultimap(rowCol.first(), rowCol.second()).putAll(cell);
-            }
-        }
-    }
-
     public void put(StreetfileLineData data) {
-        getMultimap(data.addressWithoutNum(), data.range()).put(data.districts(), data.cellId());
+        getMultimap(data.addressWithoutNum().intern(), data.range()).put(data.districts(), data.cellId());
     }
 
     /**
@@ -45,6 +37,7 @@ public class DistrictingData {
      * @param conflictFilePath for printing conflicts.
      * @return Unconnected ranges mapped to one set of districts.
      */
+    // TODO: better algorithm using queues to fully combine ranges
     public Map<StreetfileAddressRange, CompactDistrictMap> consolidate(Path conflictFilePath) throws IOException {
         Table<AddressWithoutNum, BuildingRange, CompactDistrictMap> singleTable =
                 consolidateToSingleTable(conflictFilePath);
@@ -70,7 +63,7 @@ public class DistrictingData {
             }
             // Simple printing and removing on range conflicts, e.g. [1, 4, ALL] and [2, 4, E] mapping to different districts.
             for (BuildingRange conflictRange : conflictRanges) {
-                Files.writeString(conflictFilePath, "Conflict in: " + conflictRange);
+                Files.writeString(conflictFilePath, "Conflict in: " + conflictRange + '\n', StandardOpenOption.APPEND);
             }
             districtToRangeMap.values().removeIf(conflictRanges::contains);
             districtToRangeMap.forEach((districtMap, range) -> consolidatedMap.put(new StreetfileAddressRange(range, row), districtMap));
@@ -124,11 +117,12 @@ public class DistrictingData {
     /**
      * Helper method for iteration over the table.
      */
-    public Map<AddressWithoutNum, List<Integer>> rowToNumMap() {
-        var map = new HashMap<AddressWithoutNum, List<Integer>>();
+    public Map<AddressWithoutNum, Queue<Integer>> rowToNumMap() {
+        var map = new HashMap<AddressWithoutNum, Queue<Integer>>();
         for (AddressWithoutNum row : internalTable.rowKeySet()) {
-            map.put(row, internalTable.row(row).keySet().stream()
-                    .flatMap(range -> Stream.of(range.low(), range.high()).distinct()).toList());
+            List<Integer> tempList = internalTable.row(row).keySet().stream()
+                    .flatMap(range -> Stream.of(range.low(), range.high()).distinct()).toList();
+            map.put(row, new LinkedList<>(tempList));
         }
         return map;
     }
@@ -157,7 +151,7 @@ public class DistrictingData {
             }
             consolidatedTable.put(rowCol.first(), rowCol.second(), consolidateMaps(currCell.keySet()));
         }
-        Files.writeString(conflictFilePath, conflicts.internalTable.toString());
+        Files.writeString(conflictFilePath, conflicts.internalTable.toString() + '\n', StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         return consolidatedTable;
     }
 

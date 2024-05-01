@@ -8,7 +8,9 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.parsers.*;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.CompactDistrictMap;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 import org.slf4j.Logger;
@@ -17,21 +19,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 @Service
 public class StreetfileProcessor {
     private static final Logger logger = LoggerFactory.getLogger(StreetfileProcessor.class);
-    private static final int BATCH_SIZE = 1000;
+    private static final int THOUSAND = 1000, VALIDATION_BATCH_SIZE = 8 * THOUSAND,
+            PRINT_BATCH_SIZE = 10 * THOUSAND, NUM_HOUSEHOLDS = 8 * THOUSAND * THOUSAND, NUM_STREETS = 100 * THOUSAND;
     private final File sourceDir, resultsDir;
     private final Path streetfilePath, conflictPath, improperPath, invalidPath;
     private final USPSAMSDao amsDao;
@@ -61,42 +66,50 @@ public class StreetfileProcessor {
                 Files.deleteIfExists(resultFile.toPath());
             }
         }
-        DistrictingData fullData = new DistrictingData(4000000, dataFiles.length);
-        final var correctionMap = new HashMap<AddressWithoutNum, AddressWithoutNum>(100000);
+
+        DistrictingData fullData = new DistrictingData(NUM_STREETS, NUM_HOUSEHOLDS/NUM_STREETS);
+        final var correctionMap = new HashMap<AddressWithoutNum, AddressWithoutNum>(NUM_STREETS);
         Multimap<StreetfileLineType, String> fullImproperLineMap = ArrayListMultimap.create();
-        logger.info("Starting streetfile processing...");
-        for (File streetfile : dataFiles) {
-            if (streetfile.isDirectory()) {
-                continue;
+        for (File dataFile : dataFiles) {
+            if (dataFile.isFile()) {
+                BaseParser parser = getParser(dataFile);
+                parser.parseFile(fullData);
+                fullImproperLineMap.putAll(parser.getImproperLineMap());
             }
-            BaseParser parser = getParser(streetfile);
-            parser.parseFile();
-            fullImproperLineMap.putAll(parser.getImproperLineMap());
-            logger.info("Parsed " + streetfile.getName() + ". Validating addresses...");
-            addCorrections(parser.getData(), correctionMap);
-            logger.info("Validated " + streetfile.getName() + " addresses.");
-            fullData.copyFromAndClear(parser.getData());
         }
 
+        logger.info("Beginning address validation. This may take some time.");
+        addCorrections(fullData, correctionMap);
         DistrictingData invalidData = fullData.removeInvalidAddresses(correctionMap);
-        Files.write(invalidPath, List.of(invalidData.toString()), StandardOpenOption.CREATE);
-        logger.info("Done parsing streetfiles. Consolidating...");
-        List<String> lines = fullData.consolidate(conflictPath).entrySet().stream()
-                .map(entry -> entry.getKey() + " " + entry.getValue()).toList();
-        Files.write(streetfilePath, lines, StandardOpenOption.CREATE);
+        Files.write(invalidPath, List.of(invalidData.toString()), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        logger.info("Validation completed. Consolidating...");
 
-        lines = new ArrayList<>(BATCH_SIZE);
+        Map<StreetfileAddressRange, CompactDistrictMap> consolidatedData = fullData.consolidate(conflictPath);
+        var bufferedWriter = new BufferedWriter(new PrintWriter(streetfilePath.toFile()));
         int lineCount = 0;
+        for (var entry : consolidatedData.entrySet()) {
+            bufferedWriter.write(entry.getKey() + " " + entry.getValue());
+            bufferedWriter.newLine();
+            if (++lineCount % PRINT_BATCH_SIZE == 0) {
+                bufferedWriter.flush();
+            }
+        }
+        bufferedWriter.close();
+
+        bufferedWriter = new BufferedWriter(new PrintWriter(improperPath.toFile()));
+        lineCount = 0;
         for (StreetfileLineType type : fullImproperLineMap.keySet()) {
-            lines.add(type.name());
+            bufferedWriter.write(type.name());
+            bufferedWriter.newLine();
             for (String line : fullImproperLineMap.get(type)) {
-                lines.add('\t' + line);
-                if (++lineCount % BATCH_SIZE == 0) {
-                    Files.write(improperPath, lines, StandardOpenOption.CREATE);
-                    lines.clear();
+                bufferedWriter.write('\t' + line);
+                bufferedWriter.newLine();
+                if (++lineCount % PRINT_BATCH_SIZE == 0) {
+                    bufferedWriter.flush();
                 }
             }
         }
+        bufferedWriter.close();
     }
 
     private BaseParser getParser(File file) {
@@ -142,22 +155,17 @@ public class StreetfileProcessor {
     }
 
     private void addCorrections(DistrictingData data, final Map<AddressWithoutNum, AddressWithoutNum> correctionMap) {
-        Map<AddressWithoutNum, List<Integer>> toCorrectMap = data.rowToNumMap().entrySet().stream()
+        Map<AddressWithoutNum, Queue<Integer>> toCorrectMap = data.rowToNumMap().entrySet().stream()
                 .filter(entry -> !correctionMap.containsKey(entry.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        for (int currIndex = 0; !toCorrectMap.isEmpty(); currIndex++) {
-            final int finalCurrIndex = currIndex;
-            // Removed AddressWithoutNums that weren't validated this time around.
-            toCorrectMap.entrySet().stream()
-                    .filter(entry -> finalCurrIndex >= entry.getValue().size())
-                    .map(Map.Entry::getKey).toList().forEach(toCorrectMap::remove);
-            List<AddressWithoutNum> awns = new ArrayList<>(toCorrectMap.keySet());
-            List<Address> toValidate = awns.stream().limit(BATCH_SIZE)
-                    .map(awn -> getAddress(toCorrectMap.get(awn).get(finalCurrIndex), awn)).toList();
-            List<AddressResult> validatedAddrs = amsDao.getValidatedAddressResults(toValidate);
-            for (int addrIndex = 0; addrIndex < validatedAddrs.size(); addrIndex++) {
-                AddressResult result = validatedAddrs.get(addrIndex);
+        while (!toCorrectMap.isEmpty()) {
+            List<AddressWithoutNum> awns = toCorrectMap.keySet().stream().limit(VALIDATION_BATCH_SIZE).toList();
+            List<Address> toValidate = awns.stream()
+                    .map(awn -> getAddress(toCorrectMap.get(awn).poll(), awn)).toList();
+            List<AddressResult> validationResults = amsDao.getValidatedAddressResults(toValidate);
+            for (int addrIndex = 0; addrIndex < validationResults.size(); addrIndex++) {
+                AddressResult result = validationResults.get(addrIndex);
                 if (!result.isValidated()) {
                     continue;
                 }
@@ -168,11 +176,14 @@ public class StreetfileProcessor {
                     correctionMap.put(uncorrectedAwn, currCorrectedAwn);
                     toCorrectMap.remove(uncorrectedAwn);
                 }
-                // Note: this doesn't guarantee no conflicts
                 else if (!currCorrectedAwn.equals(mapCorrectedAwn)) {
                     logger.error("Conflict between corrections: " + mapCorrectedAwn + " and " + currCorrectedAwn);
                 }
             }
+            // Removes AddressWithoutNums without any valid addresses.
+            toCorrectMap.entrySet().stream()
+                    .filter(entry -> entry.getValue().isEmpty())
+                    .map(Map.Entry::getKey).toList().forEach(toCorrectMap::remove);
         }
     }
 

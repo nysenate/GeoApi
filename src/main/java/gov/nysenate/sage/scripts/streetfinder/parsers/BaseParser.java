@@ -24,25 +24,20 @@ import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLin
  */
 public abstract class BaseParser {
     private static final Logger logger = LoggerFactory.getLogger(BaseParser.class);
-    private static final double batchPercent = 5;
+    private static final int SECONDS_PER_PRINT = 15;
     protected final File file;
-    protected DistrictingData data;
     protected final Multimap<StreetfileLineType, String> improperLineMap = ArrayListMultimap.create();
     protected final StreetfileDataExtractor dataExtractor = getDataExtractor();
     private final String lineRegex = " *%s *".formatted(delim());
 
     public BaseParser(File file) {
         this.file = file;
-        try {
-            this.data = new DistrictingData(FileUtil.getLineCount(file), 1);
-        } catch (Exception ex) {
-            this.data = null;
-        }
     }
 
-    public void parseFile() throws IOException {
+    public void parseFile(DistrictingData data) throws IOException {
+        logger.info("Parsing streetfile {}", file.getName());
+        long lastPrintTime = System.currentTimeMillis();
         int totalLines = FileUtil.getLineCount(file);
-        int batchSize = (int) (batchPercent * totalLines/100);
         // A Scanner does not properly read in the voterfile.
         var reader = new BufferedReader(new FileReader(file));
         int lineNum = 0;
@@ -59,22 +54,21 @@ public abstract class BaseParser {
             } catch (Exception ex) {
                 improperLineMap.put(UNKNOWN_ERROR, nextLine);
             }
-            if (lineNum%batchSize == 0) {
-                logger.info("Processed {}% of lines.", (int) (batchPercent * lineNum/batchSize));
+            long currTime = System.currentTimeMillis();
+            if (currTime - lastPrintTime >= SECONDS_PER_PRINT * 1000) {
+                logger.info("Processed {}% of lines.", (int) (100.0*lineNum / totalLines));
+                lastPrintTime = currTime;
             }
         }
         reader.close();
         if (lineNum != totalLines) {
             logger.error("Error! Only {} out of {} lines were read.", lineNum, totalLines);
         }
+        logger.info("Parsed {}", file.getName());
     }
 
     public Multimap<StreetfileLineType, String> getImproperLineMap() {
         return improperLineMap;
-    }
-
-    public DistrictingData getData() {
-        return data;
     }
 
     protected StreetfileDataExtractor getDataExtractor() {
@@ -83,7 +77,7 @@ public abstract class BaseParser {
 
     protected List<String> parseLine(String line) {
         return new ArrayList<>(List.of(
-                line.replaceAll("^\"|\"$", "").split(lineRegex, 0)
+                line.replaceAll("^\"|\"$", "").split(lineRegex, -1)
         ));
     }
 

@@ -2,6 +2,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.DistrictIndices;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 import gov.nysenate.sage.util.AddressDictionary;
@@ -38,7 +39,8 @@ public class NTSParser extends CountyParser {
     /**
      * Some extraneous data must be removed, and some data stored from the start of the page.
      */
-    public void parseFile() throws IOException {
+    @Override
+    public void parseFile(DistrictingData data) throws IOException {
         Stream<String> lines = Files.lines(file.toPath());
         while (true) {
             Queue<String> lineQueue = new LinkedList<>(lines.dropWhile(line -> !line.contains("House Range")).toList());
