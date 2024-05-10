@@ -32,7 +32,7 @@ public class VoterFileParser extends BaseParser {
                 .addBuildingIndices(4).addStreetIndices(6, 7, 8).addPostalCityIndex(12).addType(ZIP, 13)
                 .addType(COUNTY, 23).addTypesInOrder(ELECTION, CLEG).addType(WARD, 27)
                 .addTypesInOrder(CONGRESSIONAL, SENATE, ASSEMBLY)
-                .addCountyFunction(23, countyStr -> countyFipsCodeMap.get(Integer.parseInt(countyStr)))
+                .addCountyFunction(lineParts -> countyFipsCodeMap.get(Integer.parseInt(lineParts.get(23))))
                 .addIdFunction((lineParts, lineNum) -> Long.parseLong(lineParts.get(45).replaceFirst("^NY", "")));
     }
 

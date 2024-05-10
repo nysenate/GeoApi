@@ -26,7 +26,7 @@ public class AddressPointsParser extends BaseParser {
                 .addIdFunction((lineParts, lineNum) -> Long.valueOf(lineParts.get(0)))
                 .addBuildingIndices(2).addStreetIndices(13).addPostalCityIndex(6).addType(ZIP, 8)
                 .addType(SENATE, 24).addTypesInOrder(ASSEMBLY, CONGRESSIONAL)
-                .addCountyFunction(16, countyStr -> fipsCodeMap.get(countyStr.toLowerCase()));
+                .addCountyFunction(lineParts -> fipsCodeMap.get(lineParts.get(16).toLowerCase()));
     }
 
     @Override

@@ -35,8 +35,8 @@ import java.util.stream.Collectors;
 @Service
 public class StreetfileProcessor {
     private static final Logger logger = LoggerFactory.getLogger(StreetfileProcessor.class);
-    private static final int THOUSAND = 1000, VALIDATION_BATCH_SIZE = 8 * THOUSAND,
-            PRINT_BATCH_SIZE = 10 * THOUSAND, NUM_HOUSEHOLDS = 8 * THOUSAND * THOUSAND, NUM_STREETS = 100 * THOUSAND;
+    private static final int THOUSAND = 1000, VALIDATION_BATCH_SIZE = 4 * THOUSAND,
+            PRINT_BATCH_SIZE = 10 * THOUSAND, NUM_STREETS = 100 * THOUSAND;
     private final File sourceDir, resultsDir;
     private final Path streetfilePath, conflictPath, improperPath, invalidPath;
     private final USPSAMSDao amsDao;
@@ -58,17 +58,15 @@ public class StreetfileProcessor {
     public synchronized void regenerateStreetfile() throws IOException {
         File[] dataFiles = sourceDir.listFiles();
         File[] resultFiles = resultsDir.listFiles();
-        if (dataFiles == null || dataFiles.length == 0 || resultFiles == null) {
+        if (dataFiles == null || resultFiles == null) {
+            throw new IOException("Couldn't access directories.");
+        }
+        if (dataFiles.length == 0) {
+            logger.info("No streetfile data to process.");
             return;
         }
-        for (File resultFile : resultFiles) {
-            if (resultFile.isFile()) {
-                Files.deleteIfExists(resultFile.toPath());
-            }
-        }
 
-        DistrictingData fullData = new DistrictingData(NUM_STREETS, NUM_HOUSEHOLDS/NUM_STREETS);
-        final var correctionMap = new HashMap<AddressWithoutNum, AddressWithoutNum>(NUM_STREETS);
+        DistrictingData fullData = new DistrictingData(NUM_STREETS);
         Multimap<StreetfileLineType, String> fullImproperLineMap = ArrayListMultimap.create();
         for (File dataFile : dataFiles) {
             if (dataFile.isFile()) {
@@ -78,8 +76,14 @@ public class StreetfileProcessor {
             }
         }
 
+        // Clears out old results files.
+        for (File resultFile : resultFiles) {
+            if (resultFile.isFile()) {
+                Files.deleteIfExists(resultFile.toPath());
+            }
+        }
         logger.info("Beginning address validation. This may take some time.");
-        addCorrections(fullData, correctionMap);
+        final var correctionMap = getCorrections(fullData);
         DistrictingData invalidData = fullData.removeInvalidAddresses(correctionMap);
         Files.write(invalidPath, List.of(invalidData.toString()), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         logger.info("Validation completed. Consolidating...");
@@ -98,7 +102,10 @@ public class StreetfileProcessor {
 
         bufferedWriter = new BufferedWriter(new PrintWriter(improperPath.toFile()));
         lineCount = 0;
-        for (StreetfileLineType type : fullImproperLineMap.keySet()) {
+        for (StreetfileLineType type : StreetfileLineType.values()) {
+            if (!fullImproperLineMap.containsKey(type)) {
+                continue;
+            }
             bufferedWriter.write(type.name());
             bufferedWriter.newLine();
             for (String line : fullImproperLineMap.get(type)) {
@@ -128,10 +135,8 @@ public class StreetfileProcessor {
             else throw new IllegalArgumentException(file.getName() + " could not be matched with a parser.");
         }
         return switch (county.name()) {
+            case "Bronx", "New York", "Queens", "Kings", "Richmond" -> new NYCParser(file, county);
             case "Allegany", "Columbia", "Saratoga" -> new SaratogaParser(file, county);
-            case "Bronx", "New York" -> new NYCParser(file, county, county.name());
-            case "Kings", "Richmond" -> new NYCParser(file, county, county.streetfileName());
-            case "Queens" -> new NYCParser(file, county, "");
             case "Erie" -> new ErieParser(file, county);
             case "Essex" -> new EssexParser(file, county);
             case "Montgomery" -> new MontgomeryParser(file, county);
@@ -154,9 +159,9 @@ public class StreetfileProcessor {
         return null;
     }
 
-    private void addCorrections(DistrictingData data, final Map<AddressWithoutNum, AddressWithoutNum> correctionMap) {
+    private Map<AddressWithoutNum, AddressWithoutNum> getCorrections(DistrictingData data) {
+        final var correctionMap = new HashMap<AddressWithoutNum, AddressWithoutNum>(NUM_STREETS);
         Map<AddressWithoutNum, Queue<Integer>> toCorrectMap = data.rowToNumMap().entrySet().stream()
-                .filter(entry -> !correctionMap.containsKey(entry.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         while (!toCorrectMap.isEmpty()) {
@@ -185,6 +190,7 @@ public class StreetfileProcessor {
                     .filter(entry -> entry.getValue().isEmpty())
                     .map(Map.Entry::getKey).toList().forEach(toCorrectMap::remove);
         }
+        return correctionMap;
     }
 
     private static Address getAddress(int num, AddressWithoutNum awn) {

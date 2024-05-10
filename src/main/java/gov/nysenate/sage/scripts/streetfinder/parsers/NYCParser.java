@@ -20,9 +20,13 @@ public class NYCParser extends CountyParser {
     private final String mailCity;
     private String currStreet;
 
-    public NYCParser(File file, County county, String mailCity) {
+    public NYCParser(File file, County county) {
         super(file, county);
-        this.mailCity = mailCity;
+        this.mailCity = switch (county.name()) {
+            case "Queens" -> "";
+            case "Kings", "Richmond" -> county.streetfileName();
+            default -> county.name();
+        };
     }
 
     @Override

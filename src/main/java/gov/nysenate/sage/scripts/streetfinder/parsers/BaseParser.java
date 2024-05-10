@@ -56,7 +56,7 @@ public abstract class BaseParser {
             }
             long currTime = System.currentTimeMillis();
             if (currTime - lastPrintTime >= SECONDS_PER_PRINT * 1000) {
-                logger.info("Processed {}% of lines.", (int) (100.0*lineNum / totalLines));
+                logger.info("Processed {}% of lines.", Math.round(100.0*lineNum / totalLines));
                 lastPrintTime = currTime;
             }
         }
@@ -73,12 +73,13 @@ public abstract class BaseParser {
 
     protected StreetfileDataExtractor getDataExtractor() {
         return new StreetfileDataExtractor(getClass().getSimpleName(), this::parseLine);
-    };
+    }
 
     protected List<String> parseLine(String line) {
-        return new ArrayList<>(List.of(
-                line.replaceAll("^\"|\"$", "").split(lineRegex, -1)
-        ));
+        String[] tempLine = line.split(lineRegex, -1);
+        tempLine[0] = tempLine[0].replaceFirst("^\"", "");
+        tempLine[tempLine.length - 1] = tempLine[0].replaceFirst("\"$", "");
+        return new ArrayList<>(List.of(tempLine));
     }
 
     protected String delim() {

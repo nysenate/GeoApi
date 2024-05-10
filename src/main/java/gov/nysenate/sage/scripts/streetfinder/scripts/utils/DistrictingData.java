@@ -1,19 +1,18 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
-import com.google.common.collect.*;
-import gov.nysenate.sage.model.district.DistrictType;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
-import gov.nysenate.sage.util.Tuple;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -21,15 +20,14 @@ import java.util.stream.Stream;
  * the same address could map to different sets of districts in different places.
  */
 public class DistrictingData {
-    // We need this complicated data structure so we can combine ranges later.
-    private final Table<AddressWithoutNum, BuildingRange, Multimap<CompactDistrictMap, CellId>> internalTable;
+    private final Map<AddressWithoutNum, Map<BuildingRange, RangeDistrictData>> internalTable;
 
-    public DistrictingData(int expectedRows, int expectedCellsPerRow) {
-        this.internalTable = HashBasedTable.create(expectedRows, expectedCellsPerRow);
+    public DistrictingData(int expectedRows) {
+        this.internalTable = new HashMap<>(expectedRows);
     }
 
     public void put(StreetfileLineData data) {
-        getMultimap(data.addressWithoutNum().intern(), data.range()).put(data.districts(), data.cellId());
+        put(data.addressWithoutNum().intern(), data.range().intern(), data.cell());
     }
 
     /**
@@ -37,164 +35,104 @@ public class DistrictingData {
      * @param conflictFilePath for printing conflicts.
      * @return Unconnected ranges mapped to one set of districts.
      */
-    // TODO: better algorithm using queues to fully combine ranges
     public Map<StreetfileAddressRange, CompactDistrictMap> consolidate(Path conflictFilePath) throws IOException {
-        Table<AddressWithoutNum, BuildingRange, CompactDistrictMap> singleTable =
-                consolidateToSingleTable(conflictFilePath);
         var consolidatedMap = new HashMap<StreetfileAddressRange, CompactDistrictMap>();
-        for (AddressWithoutNum row : singleTable.rowKeySet()) {
-            Multimap<CompactDistrictMap, BuildingRange> districtToRangeMap = ArrayListMultimap.create();
-            for (var entry : singleTable.row(row).entrySet()) {
-                districtToRangeMap.put(entry.getValue(), entry.getKey());
+        Table<AddressWithoutNum, Integer, String> conflictTable = HashBasedTable.create();
+
+        for (AddressWithoutNum row : internalTable.keySet()) {
+            final var conflictMap = new HashMap<Integer, String>();
+            Map<BuildingRange, CompactDistrictMap> consolidatedRangeMap =
+                    consolidateCells(internalTable.get(row), conflictMap);
+            for (var entry : consolidatedRangeMap.entrySet()) {
+                consolidatedMap.put(new StreetfileAddressRange(entry.getKey(), row), entry.getValue());
             }
-            for (var entry : districtToRangeMap.asMap().entrySet()) {
-                Set<BuildingRange> combinedRanges = BuildingRange.combineRanges(entry.getValue());
-                districtToRangeMap.replaceValues(entry.getKey(), combinedRanges);
-            }
-            // Conflicts can only occur with the same AddressWithoutNum
-            var conflictRanges = new HashSet<BuildingRange>();
-            for (BuildingRange bldgRange1 : districtToRangeMap.values()) {
-                for (BuildingRange bldgRange2 : districtToRangeMap.values()) {
-                    if (!bldgRange1.equals(bldgRange2) && bldgRange1.overlaps(bldgRange2)) {
-                        conflictRanges.add(bldgRange1);
-                        conflictRanges.add(bldgRange2);
-                    }
-                }
-            }
-            // Simple printing and removing on range conflicts, e.g. [1, 4, ALL] and [2, 4, E] mapping to different districts.
-            for (BuildingRange conflictRange : conflictRanges) {
-                Files.writeString(conflictFilePath, "Conflict in: " + conflictRange + '\n', StandardOpenOption.APPEND);
-            }
-            districtToRangeMap.values().removeIf(conflictRanges::contains);
-            districtToRangeMap.forEach((districtMap, range) -> consolidatedMap.put(new StreetfileAddressRange(range, row), districtMap));
         }
+
+        var strBuilder = new StringBuilder();
+        for (AddressWithoutNum row : conflictTable.rowKeySet()) {
+            strBuilder.append(row).append('\n');
+            for (var entry : conflictTable.row(row).entrySet()) {
+                strBuilder.append(entry.getKey()).append('\t').append(entry.getValue());
+            }
+        }
+        Files.writeString(conflictFilePath, strBuilder.toString(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         return consolidatedMap;
     }
 
-    public DistrictingData removeInvalidAddresses(Map<AddressWithoutNum, AddressWithoutNum> correctionMap) {
-        Set<AddressWithoutNum> currRows = internalTable.rowKeySet();
-        Sets.SetView<AddressWithoutNum> toRemove = Sets.difference(currRows, correctionMap.keySet());
-        var invalidData = new DistrictingData(toRemove.size(), 2);
+    public DistrictingData removeInvalidAddresses(final Map<AddressWithoutNum, AddressWithoutNum> correctionMap) {
+        var invalidData = new DistrictingData(internalTable.size() - correctionMap.size());
 
-        for (AddressWithoutNum oldAwn : new HashSet<>(currRows)) {
-            var currRow = internalTable.row(oldAwn);
-            for (BuildingRange bldgRange : new HashSet<>(currRow.keySet())) {
-                var cellData = internalTable.remove(oldAwn, bldgRange);
-                if (correctionMap.containsKey(oldAwn)) {
-                    internalTable.put(correctionMap.get(oldAwn), bldgRange, cellData);
-                }
-                else {
-                    invalidData.getMultimap(oldAwn, bldgRange).putAll(cellData);
-                }
-            }
+        Queue<AddressWithoutNum> uncorrectedAwns = new LinkedList<>(internalTable.keySet());
+        while (!uncorrectedAwns.isEmpty()) {
+            AddressWithoutNum currAwn = uncorrectedAwns.remove();
+            Map<BuildingRange, RangeDistrictData> rowValue = internalTable.remove(currAwn);
+            AddressWithoutNum finalCurrAwn = correctionMap.getOrDefault(currAwn, currAwn);
+            DistrictingData tableToUpdate = correctionMap.containsKey(currAwn) ? this : invalidData;
+            rowValue.forEach((key, value) -> tableToUpdate.put(finalCurrAwn, key, value));
         }
         return invalidData;
     }
 
-    @Nonnull
-    private Multimap<CompactDistrictMap, CellId> getMultimap(AddressWithoutNum addressWithoutNum, BuildingRange range) {
-        var currMap = internalTable.get(addressWithoutNum, range);
-        if (currMap == null) {
-            currMap = ArrayListMultimap.create(1, 2);
-            internalTable.put(addressWithoutNum, range, currMap);
-        }
-        return currMap;
-    }
-
-    /**
-     * Helper method for iteration over the table.
-     */
-    private Set<Tuple<AddressWithoutNum, BuildingRange>> rowColSet() {
-        var set = new HashSet<Tuple<AddressWithoutNum, BuildingRange>>();
-        for (AddressWithoutNum row : internalTable.rowKeySet()) {
-            for (BuildingRange col : internalTable.row(row).keySet()) {
-                set.add(new Tuple<>(row, col));
-            }
-        }
-        return set;
-    }
-
-    /**
-     * Helper method for iteration over the table.
-     */
     public Map<AddressWithoutNum, Queue<Integer>> rowToNumMap() {
         var map = new HashMap<AddressWithoutNum, Queue<Integer>>();
-        for (AddressWithoutNum row : internalTable.rowKeySet()) {
-            List<Integer> tempList = internalTable.row(row).keySet().stream()
+        for (AddressWithoutNum rowId : internalTable.keySet()) {
+            List<Integer> tempList = internalTable.get(rowId).keySet().stream()
                     .flatMap(range -> Stream.of(range.low(), range.high()).distinct()).toList();
-            map.put(row, new LinkedList<>(tempList));
+            map.put(rowId, new LinkedList<>(tempList));
         }
         return map;
     }
 
-    /**
-     * Consolidates the Multimap<CompactDistrictMap, CellId> of each cell into a single CompactDistrictMap.
-     * Also, prints data about conflicts between different sources.
-     */
-    private Table<AddressWithoutNum, BuildingRange, CompactDistrictMap> consolidateToSingleTable(Path conflictFilePath) throws IOException {
-        var conflicts = new DistrictingData((int) (internalTable.size() * .05), 4);
-        Table<AddressWithoutNum, BuildingRange, CompactDistrictMap> consolidatedTable =
-                HashBasedTable.create(internalTable.rowKeySet().size(), 4);
-        for (var rowCol : rowColSet()) {
-            Multimap<CompactDistrictMap, CellId> currCell = internalTable.remove(rowCol.first(), rowCol.second());
-            if (currCell == null) {
-                continue;
-            }
-            CompactDistrictMap first = currCell.keySet().iterator().next();
-            Set<DistrictType> conflictingTypes = Arrays.stream(DistrictType.values())
-                    .filter(type -> currCell.keySet().stream().anyMatch(map -> map.get(type) != first.get(type)))
-                    .collect(Collectors.toSet());
-            if (!conflictingTypes.isEmpty()) {
-                Multimap<CompactDistrictMap, CellId> currConflictCell = ArrayListMultimap.create(currCell.size(), 2);
-                currCell.forEach((key, value) -> currConflictCell.put(key.withTypes(conflictingTypes), value));
-                conflicts.internalTable.put(rowCol.first(), rowCol.second(), currConflictCell);
-            }
-            consolidatedTable.put(rowCol.first(), rowCol.second(), consolidateMaps(currCell.keySet()));
+    private void put(AddressWithoutNum row, BuildingRange col, RangeDistrictData cell) {
+        Map<BuildingRange, RangeDistrictData> columnData = internalTable.get(row);
+        if (columnData == null) {
+            columnData = new CompactMap<>();
+            internalTable.put(row, columnData);
         }
-        Files.writeString(conflictFilePath, conflicts.internalTable.toString() + '\n', StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        return consolidatedTable;
-    }
-
-    @Override
-    public String toString() {
-        var strBuilder = new StringBuilder();
-        for (AddressWithoutNum awn : internalTable.rowKeySet()) {
-            strBuilder.append(awn).append('\n');
-            var currRow = internalTable.row(awn);
-            for (BuildingRange bldgRange : currRow.keySet()) {
-                strBuilder.append('\t').append(bldgRange).append('\n');
-                var currCellMap = currRow.get(bldgRange).asMap();
-                for (CompactDistrictMap districtMap : currCellMap.keySet()) {
-                    strBuilder.append('\t').append('\t').append(districtMap).append(": ");
-                    List<String> cellIdStrings = currCellMap.get(districtMap).stream().map(Record::toString).toList();
-                    strBuilder.append(String.join(", ", cellIdStrings)).append('\n');
-                }
-            }
-            strBuilder.append('\n');
+        RangeDistrictData currCell = columnData.get(col);
+        if (currCell == null) {
+            columnData.put(col, cell);
         }
-        return strBuilder.toString();
+        else {
+            currCell.add(cell);
+        }
     }
 
     /**
-     * Districts with a value of 0 are ignored entirely.
-     * Otherwise, if there is a conflict for a DistrictType, that type is ignored as well.
-     * @param districtMaps to consolidate
-     * @return a single CompactDistrictMap
+     * Consolidates DistrictCell data and stores conflicts.
+     * @param conflicts stores pretty print Strings about conflicts.
      */
-    private static CompactDistrictMap consolidateMaps(Collection<CompactDistrictMap> districtMaps) {
-        var typeMap = new HashMap<DistrictType, Short>();
-        for (DistrictType type : DistrictType.values()) {
-            for (CompactDistrictMap districtMap : districtMaps) {
-                short typeMapValue = typeMap.getOrDefault(type, ((short) 0));
-                short districtMapValue = districtMap.get(type);
-                if (typeMapValue == 0 && districtMapValue != 0) {
-                    typeMap.put(type, districtMapValue);
-                } else if (typeMapValue != districtMapValue) {
-                    typeMap.remove(type);
-                    break;
+    private static Map<BuildingRange, CompactDistrictMap> consolidateCells(
+            Map<BuildingRange, RangeDistrictData> input, final Map<Integer, String> conflicts) {
+        // The algorithm becomes much easier when just dealing with numbers.
+        var bldgNumToCells = new HashMap<Integer, RangeDistrictData>();
+        input.forEach((key, value) -> {
+            for (int bldgNum : key.allInRange()) {
+                RangeDistrictData currCell = bldgNumToCells.get(bldgNum);
+                if (currCell == null) {
+                    currCell = new RangeDistrictData(value);
                 }
+                else {
+                    currCell.add(value);
+                }
+                bldgNumToCells.put(bldgNum, currCell);
             }
+        });
+        // Collect the building numbers with common districts.
+        Multimap<CompactDistrictMap, Integer> districtsToBldgNums = ArrayListMultimap.create();
+        for (var entry : bldgNumToCells.entrySet()) {
+            var consolidationResult = entry.getValue().consolidationResult();
+            if (!consolidationResult.second().isEmpty()) {
+                conflicts.put(entry.getKey(), consolidationResult.second());
+            }
+            districtsToBldgNums.put(consolidationResult.first(), entry.getKey());
         }
-        return CompactDistrictMap.getMap(typeMap);
+        // Combine ranges of building numbers.
+        var rangeToDistrictMap = new HashMap<BuildingRange, CompactDistrictMap>();
+        for (var entry : districtsToBldgNums.asMap().entrySet()) {
+            BuildingRange.combineRanges(entry.getValue())
+                    .forEach(range -> rangeToDistrictMap.put(range, entry.getKey()));
+        }
+        return rangeToDistrictMap;
     }
 }

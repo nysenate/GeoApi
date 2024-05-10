@@ -1,6 +1,5 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
-import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
@@ -10,6 +9,10 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/**
+ * Class containing information on how to parse a streetfile.
+ * Has a builder pattern to clean up initialization.
+ */
 public class StreetfileDataExtractor {
     private static final int[] emptyIntArray = {};
     private final String sourceName;
@@ -18,9 +21,12 @@ public class StreetfileDataExtractor {
             typeToStringIndexMap = new HashMap<>();
     private int[] buildingIndices = emptyIntArray, streetIndices = emptyIntArray;
     private int postalCityIndex = -1, precinctIndex = -1;
+    // Maps a line to a county FIPS code
     private Function<List<String>, String> countyFipsFunction;
+    // Could test the line before or after parsing.
     private final List<LineTest<String>> lineTests = new ArrayList<>();
     private final List<LineTest<List<String>>> splitLineTests = new ArrayList<>();
+    // Identifies lines for debugging and error reporting.
     private BiFunction<List<String>, Integer, Long> getIdFunc = (lineParts, lineNum) -> Long.valueOf(lineNum);
 
     public StreetfileDataExtractor(String sourceName, Function<String, List<String>> lineParser) {
@@ -53,8 +59,13 @@ public class StreetfileDataExtractor {
         return this;
     }
 
+    /**
+     * For example: if the highest index set for parsing is 4,
+     * the next 3 types added with this function will have indices 5, 6, and 7.
+     * @param types to add indices for.
+     */
     public StreetfileDataExtractor addTypesInOrder(DistrictType... types) {
-        int maxIndex = getMax(buildingIndices, streetIndices, new int[]{precinctIndex});
+        int maxIndex = getMax(buildingIndices, streetIndices, new int[]{precinctIndex}, new int[]{postalCityIndex});
         maxIndex = Math.max(maxIndex, typeToDistrictIndexMap.values().stream().max(Integer::compareTo).orElse(0));
         maxIndex = Math.max(maxIndex, typeToStringIndexMap.values().stream().max(Integer::compareTo).orElse(0));
         for (DistrictType type : types) {
@@ -63,13 +74,8 @@ public class StreetfileDataExtractor {
         return this;
     }
 
-    public StreetfileDataExtractor addCountyFunction(int index, Function<String, Integer> fipsCodeMap) {
-        this.countyFipsFunction = list -> String.valueOf(fipsCodeMap.apply(list.get(index)));
-        return this;
-    }
-
-    public StreetfileDataExtractor addCountyFunction(County county) {
-        this.countyFipsFunction = list -> String.valueOf(county.fipsCode());
+    public StreetfileDataExtractor addCountyFunction(Function<List<String>, Integer> lineToFipsFunction) {
+        this.countyFipsFunction = lineParts -> String.valueOf(lineToFipsFunction.apply(lineParts));
         return this;
     }
 
@@ -106,20 +112,20 @@ public class StreetfileDataExtractor {
         }
         BuildingRange buildingRange;
         try {
-            buildingRange = BuildingRange.getBuildingRange(getStrings(lineFields, buildingIndices));
+            buildingRange = BuildingRange.getBuildingRange(getStrings(lineFields, buildingIndices, true));
         } catch (NumberFormatException ex) {
             return new StreetfileLineData(StreetfileLineType.BAD_BUILDING_NUMBER);
         }
-        String street = String.join(" ", getStrings(lineFields, streetIndices));
+        String street = String.join(" ", getStrings(lineFields, streetIndices, false));
         CompactDistrictMap districts = CompactDistrictMap.getMap(typeToDistrictIndexMap.keySet(), type -> getValue(lineFields, type));
         var addressWithoutNum = new AddressWithoutNum(street, lineFields.get(postalCityIndex), lineFields.get(typeToStringIndexMap.get(DistrictType.ZIP)));
-        var cellId = new CellId(sourceName, getIdFunc.apply(lineFields, lineNum));
-        return new StreetfileLineData(buildingRange, addressWithoutNum, districts, cellId, StreetfileLineType.PROPER);
+        var cell = new RangeDistrictData(districts, sourceName, getIdFunc.apply(lineFields, lineNum));
+        return new StreetfileLineData(buildingRange, addressWithoutNum, cell, StreetfileLineType.PROPER);
     }
 
-    private static List<String> getStrings(List<String> lineFields, int[] indices) {
+    private static List<String> getStrings(List<String> lineFields, int[] indices, boolean keepBlanks) {
         return Arrays.stream(indices).mapToObj(lineFields::get)
-                .filter(str -> !str.isBlank()).toList();
+                .filter(str -> keepBlanks || !str.isBlank()).toList();
     }
 
     private static int getMax(int[]... arrays) {

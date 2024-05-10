@@ -1,8 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.model;
 
-
-import com.google.common.collect.DiscreteDomain;
-import com.google.common.collect.Range;
+import gov.nysenate.sage.scripts.streetfinder.scripts.utils.Intern;
 
 import java.util.*;
 
@@ -10,11 +8,17 @@ import java.util.*;
  * Stores a range of building numbers and their parity.
  */
 public record BuildingRange(int low, int high, StreetParity parity) {
-    private static final Range<Integer> emptyRange = Range.closedOpen(-1, -1).canonical(DiscreteDomain.integers());
+    private static final Intern<BuildingRange> interned = new Intern<>();
 
     public BuildingRange {
         if (low > high) {
             throw new IllegalArgumentException(low + " > " + high);
+        }
+        if (low < 0) {
+            throw new IllegalArgumentException(low + " is negative");
+        }
+        if (!parity.matches(low) || !parity.matches(high)) {
+            throw new IllegalArgumentException("%d and %d must have parity %s".formatted(low, high, parity.name()));
         }
     }
 
@@ -55,114 +59,79 @@ public record BuildingRange(int low, int high, StreetParity parity) {
      * E.g. [(1, 5, ODDS), (2, 6, EVENS)] -> {(1, 6, ALL)}
      * Really extends the idea of a RangeSet to use StreetParity.
      */
-    public static Set<BuildingRange> combineRanges(Collection<BuildingRange> ranges) {
-        var rangeSetMap = new HashMap<StreetParity, Set<Range<Integer>>>();
+    public static Set<BuildingRange> combineRanges(Collection<Integer> bldgNums) {
+        var rangeSetMap = new HashMap<StreetParity, Set<BuildingRange>>();
+        // Generates the canonical Sets of even and odd ranges.
         List.of(StreetParity.EVENS, StreetParity.ODDS)
-                .forEach(parity -> rangeSetMap.put(parity, getParityRangeSet(ranges, parity)));
-        // Some ranges will be added as part of BuildingRanges with parity ALL: we'll want to skip these.
-        var added = new HashSet<Range<Integer>>();
+                .forEach(parity -> rangeSetMap.put(parity, getParityRangeSet(bldgNums, parity)));
 
         var combinedResults = new HashSet<BuildingRange>();
-        var evens = rangeSetMap.get(StreetParity.EVENS);
-        var odds = rangeSetMap.get(StreetParity.ODDS);
-        for (Range<Integer> evenRange : evens) {
-            for (Range<Integer> oddRange : odds) {
+        Iterator<BuildingRange> evensIter = rangeSetMap.get(StreetParity.EVENS).iterator();
+        // Combines even and odd ranges when possible.
+        while (evensIter.hasNext()) {
+            BuildingRange evenRange = evensIter.next();
+            Iterator<BuildingRange> oddsIter = rangeSetMap.get(StreetParity.ODDS).iterator();
+            while (oddsIter.hasNext()) {
+                BuildingRange oddRange = oddsIter.next();
                 // E.g. (3, 7, ODDS) can combine with (2, 6, EVENS) or (4, 8, EVENS)
-                if (!added.contains(evenRange) && !added.contains(oddRange) &&
-                        Math.abs(evenRange.lowerEndpoint() - oddRange.lowerEndpoint()) == 1 &&
-                        Math.abs(evenRange.upperEndpoint() - oddRange.upperEndpoint()) == 1) {
-                    Range<Integer> allRange = evenRange.span(oddRange);
-                    combinedResults.add(get(allRange, StreetParity.ALL));
-                    added.add(evenRange);
-                    added.add(oddRange);
+                if (Math.abs(evenRange.low - oddRange.low) == 1 && Math.abs(evenRange.high - oddRange.high) == 1) {
+                    combinedResults.add(new BuildingRange(
+                            Math.min(evenRange.low, oddRange.low), Math.max(evenRange.high, oddRange.high), StreetParity.ALL
+                    ));
+                    // Removed from the underlying Sets to prevent duplication.
+                    evensIter.remove();
+                    oddsIter.remove();
+                    break;
                 }
             }
         }
-        for (StreetParity parity : rangeSetMap.keySet()) {
-            rangeSetMap.get(parity)
-                    .stream().filter(range -> !added.contains(range))
-                    .forEach(range -> combinedResults.add(get(range, parity)));
-        }
+        // Remaining even and odd values can be directly added.
+        rangeSetMap.values().stream().flatMap(Collection::stream).forEach(combinedResults::add);
         return combinedResults;
     }
 
-    public Range<Integer> getRange() {
-        return Range.closed(low, high);
+    public Set<Integer> allInRange() {
+        var set = new HashSet<Integer>();
+        for (int i = low; i <= high; i += (parity == StreetParity.ALL ? 1 : 2)) {
+            set.add(i);
+        }
+        return set;
     }
 
-    public boolean overlaps(BuildingRange otherRange) {
-        StreetParity commonParity = StreetParity.commonParity(parity, otherRange.parity);
-        if (commonParity == null) {
-            return false;
-        }
-        Range<Integer> thisCommonParity = this.intRangeWithParity(commonParity),
-                otherCommonParity = otherRange.intRangeWithParity(commonParity);
-        try {
-            Range<Integer> overlap = thisCommonParity.intersection(otherCommonParity);
-            return !overlap.isEmpty();
-        } catch (IllegalArgumentException ex) {
-            return false;
-        }
+    public BuildingRange intern() {
+        return interned.get(this);
     }
 
-    private Range<Integer> intRangeWithParity(StreetParity newParity) {
-        if (parity == newParity || newParity == StreetParity.ALL) {
-            return getRange();
-        }
-        if (parity == StreetParity.ALL) {
-            int mod = newParity == StreetParity.EVENS ? 0 : 1;
-            int lower = low;
-            int higher = high;
-            if (lower%2 != mod) {
-                lower++;
-            }
-            if (higher%2 != mod) {
-                higher--;
-            }
-            if (higher >= lower) {
-                return Range.closed(lower, higher);
-            }
-        }
-        return emptyRange;
-    }
-
-    private static BuildingRange get(Range<Integer> range, StreetParity parity) {
-        range = range.canonical(DiscreteDomain.integers());
-        return new BuildingRange(range.lowerEndpoint(), range.upperEndpoint() - 1, parity);
-    }
-
-    private static Set<Range<Integer>> getParityRangeSet(Collection<BuildingRange> ranges, StreetParity parity) {
+    /**
+     * A major part of the range consolidation algorithm.
+     * @param bldgNums to consolidate.
+     * @param parity to pull from ranges.
+     * @return a canonical Set of all the ranges with the given parity.
+     */
+    private static Set<BuildingRange> getParityRangeSet(Collection<Integer> bldgNums, StreetParity parity) {
         if (parity == StreetParity.ALL) {
             throw new IllegalArgumentException("Parity cannot be ALL!");
         }
+        // This set will contain all numbers in these ranges with the proper parity.
         var numSet = new TreeSet<Integer>();
-        ranges.stream()
-                .map(bldgRange -> bldgRange.intRangeWithParity(parity))
-                .filter(range -> range != null && !range.isEmpty())
-                .forEach(range -> addAllInRange(numSet, range));
+        bldgNums.stream().filter(parity::matches).forEach(numSet::add);
         if (numSet.isEmpty()) {
             return Set.of();
         }
-        var rangeSet = new HashSet<Range<Integer>>();
+        var rangeSet = new HashSet<BuildingRange>();
         int currLow = numSet.pollFirst(), currHigh = currLow;
         while (!numSet.isEmpty()) {
             if (numSet.first() - currHigh == 2) {
                 currHigh = numSet.pollFirst();
             }
             else {
-                rangeSet.add(Range.closed(currLow, currHigh));
+                rangeSet.add(new BuildingRange(currLow, currHigh, parity));
                 currLow = numSet.pollFirst();
                 currHigh = currLow;
             }
         }
-        rangeSet.add(Range.closed(currLow, currHigh));
+        rangeSet.add(new BuildingRange(currLow, currHigh, parity));
         return rangeSet;
-    }
-
-    private static void addAllInRange(SortedSet<Integer> set, Range<Integer> range) {
-        for (int i = range.lowerEndpoint(); i <= range.upperEndpoint(); i += 2) {
-            set.add(i);
-        }
     }
 
     /**

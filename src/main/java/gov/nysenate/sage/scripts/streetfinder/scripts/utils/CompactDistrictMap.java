@@ -13,8 +13,8 @@ import java.util.function.Function;
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
- * Mainly a data structure mapping VoterFileFields to shorts of district numbers.
- * This is condensed into an array of shorts.
+ * A data structure mapping DistrictTypes to shorts of district numbers.
+ * Due to lots of repetition, interning is enforced.
  */
 public class CompactDistrictMap {
     // Some DistrictTypes can't be stored in a short
@@ -91,10 +91,6 @@ public class CompactDistrictMap {
             return "";
         }
         return Short.toString(value);
-    }
-
-    public CompactDistrictMap withTypes(Set<DistrictType> types) {
-        return new CompactDistrictMap(types, this::get);
     }
 
     @Override
