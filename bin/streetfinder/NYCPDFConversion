@@ -1,6 +1,0 @@
-#!/bin/bash
-#special conversion script for NYC street files
-# -fixed 4 is a special trick that gets the files into a better txt format than normal
-source source config.properties
-echo "Converting $1 to .txt"
-pdftotext -fixed 6 "${raw_dir}"
