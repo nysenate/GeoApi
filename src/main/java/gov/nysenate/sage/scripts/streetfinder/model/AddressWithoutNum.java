@@ -28,4 +28,9 @@ public record AddressWithoutNum(String street, String postalCity, int zip5) {
     public AddressWithoutNum intern() {
         return interned.get(this);
     }
+
+    @Override
+    public String toString() {
+        return String.join(", ", street, postalCity, Integer.toString(zip5));
+    }
 }

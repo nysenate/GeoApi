@@ -72,13 +72,13 @@ public abstract class BaseParser {
     }
 
     protected StreetfileDataExtractor getDataExtractor() {
-        return new StreetfileDataExtractor(getClass().getSimpleName(), this::parseLine);
+        return new StreetfileDataExtractor(file.getName(), this::parseLine);
     }
 
     protected List<String> parseLine(String line) {
         String[] tempLine = line.split(lineRegex, -1);
         tempLine[0] = tempLine[0].replaceFirst("^\"", "");
-        tempLine[tempLine.length - 1] = tempLine[0].replaceFirst("\"$", "");
+        tempLine[tempLine.length - 1] = tempLine[tempLine.length - 1].replaceFirst("\"$", "");
         return new ArrayList<>(List.of(tempLine));
     }
 

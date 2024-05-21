@@ -46,6 +46,7 @@ public class DistrictingData {
             for (var entry : consolidatedRangeMap.entrySet()) {
                 consolidatedMap.put(new StreetfileAddressRange(entry.getKey(), row), entry.getValue());
             }
+            conflictMap.forEach((num, str) -> conflictTable.put(row, num, str));
         }
 
         var strBuilder = new StringBuilder();
@@ -54,21 +55,30 @@ public class DistrictingData {
             for (var entry : conflictTable.row(row).entrySet()) {
                 strBuilder.append(entry.getKey()).append('\t').append(entry.getValue());
             }
+            strBuilder.append('\n');
         }
         Files.writeString(conflictFilePath, strBuilder.toString(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         return consolidatedMap;
     }
 
-    public DistrictingData removeInvalidAddresses(final Map<AddressWithoutNum, AddressWithoutNum> correctionMap) {
-        var invalidData = new DistrictingData(internalTable.size() - correctionMap.size());
+    public Multimap<String, String> removeInvalidAddresses(final Map<AddressWithoutNum, AddressWithoutNum> correctionMap) {
+        Multimap<String, String> invalidData = ArrayListMultimap.create();
 
         Queue<AddressWithoutNum> uncorrectedAwns = new LinkedList<>(internalTable.keySet());
         while (!uncorrectedAwns.isEmpty()) {
             AddressWithoutNum currAwn = uncorrectedAwns.remove();
             Map<BuildingRange, RangeDistrictData> rowValue = internalTable.remove(currAwn);
-            AddressWithoutNum finalCurrAwn = correctionMap.getOrDefault(currAwn, currAwn);
-            DistrictingData tableToUpdate = correctionMap.containsKey(currAwn) ? this : invalidData;
-            rowValue.forEach((key, value) -> tableToUpdate.put(finalCurrAwn, key, value));
+            AddressWithoutNum correctedAwn = correctionMap.get(currAwn);
+            if (correctedAwn != null) {
+                rowValue.forEach((key, value) -> put(correctedAwn, key, value));
+            }
+            else {
+                rowValue.forEach((key, value) -> {
+                    for (String sourceParser : value.getSourceParsers()) {
+                        invalidData.put(sourceParser, key.rangeString() + " " + currAwn);
+                    }
+                });
+            }
         }
         return invalidData;
     }

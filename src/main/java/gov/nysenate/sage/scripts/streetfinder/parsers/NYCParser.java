@@ -16,7 +16,7 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  * Also, tons of lines are identifiable buildings, but without building numbers.
  */
 public class NYCParser extends CountyParser {
-    private static final String skippableLine = "^$|_{10,}|FROM", streetNameRegex = "(\\d{1,4} |9/11 )?\\D.+";
+    private static final String streetNameRegex = "(\\d{1,4} |9/11 )?\\D.+";
     private final String mailCity;
     private String currStreet;
 
@@ -54,9 +54,6 @@ public class NYCParser extends CountyParser {
 
     private boolean skipLine(String line) {
         line = line.replaceAll("\\s+", " ").trim();
-        if (line.matches(skippableLine)) {
-            return true;
-        }
         // In these files, the street names are followed by a list of data points for that street.
         if (line.matches(streetNameRegex)) {
             currStreet = line;

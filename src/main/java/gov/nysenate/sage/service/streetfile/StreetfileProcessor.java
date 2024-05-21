@@ -45,7 +45,7 @@ public class StreetfileProcessor {
     @Autowired
     public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir,
                               USPSAMSDao amsDao, CountyDao countyDao) {
-        this.sourceDir = Path.of(streetfileDir, "sourceData").toFile();
+        this.sourceDir = Path.of(streetfileDir, "text_files").toFile();
         this.resultsDir = Path.of(streetfileDir, "results").toFile();
         this.streetfilePath = Path.of(resultsDir.getPath(), "streetfile.txt");
         this.conflictPath = Path.of(resultsDir.getPath(), "conflicts.txt");
@@ -66,7 +66,7 @@ public class StreetfileProcessor {
             return;
         }
 
-        DistrictingData fullData = new DistrictingData(NUM_STREETS);
+        var fullData = new DistrictingData(NUM_STREETS);
         Multimap<StreetfileLineType, String> fullImproperLineMap = ArrayListMultimap.create();
         for (File dataFile : dataFiles) {
             if (dataFile.isFile()) {
@@ -84,8 +84,8 @@ public class StreetfileProcessor {
         }
         logger.info("Beginning address validation. This may take some time.");
         final var correctionMap = getCorrections(fullData);
-        DistrictingData invalidData = fullData.removeInvalidAddresses(correctionMap);
-        Files.write(invalidPath, List.of(invalidData.toString()), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        Multimap<String, String> invalidData = fullData.removeInvalidAddresses(correctionMap);
+        Files.writeString(invalidPath, invalidData.toString(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         logger.info("Validation completed. Consolidating...");
 
         Map<StreetfileAddressRange, CompactDistrictMap> consolidatedData = fullData.consolidate(conflictPath);

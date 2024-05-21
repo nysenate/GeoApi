@@ -69,6 +69,10 @@ public class RangeDistrictData {
         return new Tuple<>(CompactDistrictMap.getMap(typeMap), conflictString(conflictTypes));
     }
 
+    public String[] getSourceParsers() {
+        return sourceParsers;
+    }
+
     @Nonnull
     private String conflictString(final Set<DistrictType> conflictTypes) {
         if (conflictTypes.isEmpty()) {

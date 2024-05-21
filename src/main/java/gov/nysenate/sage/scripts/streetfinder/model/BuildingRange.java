@@ -102,6 +102,10 @@ public record BuildingRange(int low, int high, StreetParity parity) {
         return interned.get(this);
     }
 
+    public String rangeString() {
+        return low + "-" + high;
+    }
+
     /**
      * A major part of the range consolidation algorithm.
      * @param bldgNums to consolidate.

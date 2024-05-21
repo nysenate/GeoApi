@@ -70,7 +70,7 @@ public class CompactDistrictMap {
                 return wardCorrectionMap.get(districtString).shortValue();
             }
             if (!districtString.isBlank()) {
-                System.err.println("District " + districtString + " is neither numeric nor empty!");
+                System.err.println("District " + districtString + " is not a short!");
             }
             return 0;
         }
