@@ -10,21 +10,20 @@ import java.util.*;
  * Utility class to compactly store district information and its source.
  */
 public class RangeDistrictData {
-    // Always at least one of each of these, but there may be more.
     private CompactDistrictMap[] districtMaps;
     private String[] sourceParsers;
     private long[] ids;
+
+    public RangeDistrictData() {
+        this.districtMaps = new CompactDistrictMap[]{};
+        this.sourceParsers = new String[]{};
+        this.ids = new long[]{};
+    }
 
     public RangeDistrictData(CompactDistrictMap districtMap, String sourceParser, long id) {
         this.districtMaps = new CompactDistrictMap[]{districtMap};
         this.sourceParsers = new String[]{sourceParser};
         this.ids = new long[]{id};
-    }
-
-    public RangeDistrictData(RangeDistrictData toCopy) {
-        this.districtMaps = Arrays.copyOf(toCopy.districtMaps, toCopy.districtMaps.length);
-        this.sourceParsers = Arrays.copyOf(toCopy.sourceParsers, toCopy.sourceParsers.length);
-        this.ids = Arrays.copyOf(toCopy.ids, toCopy.ids.length);
     }
 
     public void add(RangeDistrictData toAdd) {

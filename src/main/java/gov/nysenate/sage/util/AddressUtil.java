@@ -76,4 +76,21 @@ public final class AddressUtil {
             return null;
         }
     }
+
+    public static String addSuffixToNumber(String numStr) {
+        try {
+            int num = Math.abs(Integer.parseInt(numStr));
+            if (num > 10 && num < 14) {
+                return numStr + "TH";
+            }
+            return numStr + switch (num%10) {
+                case 1 -> "ST";
+                case 2 -> "ND";
+                case 3 -> "RD";
+                default -> "TH";
+            };
+        } catch (NumberFormatException ex) {
+            return numStr;
+        }
+    }
 }

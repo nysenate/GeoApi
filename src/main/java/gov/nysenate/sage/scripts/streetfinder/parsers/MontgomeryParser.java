@@ -85,7 +85,7 @@ public class MontgomeryParser extends CountyParser {
         String zip5 = substringHelper(line, zipIndex, zipIndex + 5);
         String street = getStreetAndSuffix(line);
         String[] bldgData = substringHelper(line, houseRangeIndex, houseRangeIndex + 12).split("-");
-        var buildingRange = new BuildingRange(bldgData[0], bldgData[1], getParity(line));
+        var buildingRange = BuildingRange.getBuildingRange(List.of(bldgData[0], bldgData[1], getParity(line)));
         var range = new StreetfileAddressRange(buildingRange, new AddressWithoutNum(street, "", zip5));
         getTownWardDist(line, range);
         // TODO

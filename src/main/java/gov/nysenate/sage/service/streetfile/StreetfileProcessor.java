@@ -3,11 +3,7 @@ package gov.nysenate.sage.service.streetfile;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.dao.provider.usps.USPSAMSDao;
-import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.County;
-import gov.nysenate.sage.model.result.AddressResult;
-import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.parsers.*;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.CompactDistrictMap;
@@ -26,33 +22,31 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.stream.Collectors;
 
 @Service
 public class StreetfileProcessor {
     private static final Logger logger = LoggerFactory.getLogger(StreetfileProcessor.class);
-    private static final int THOUSAND = 1000, VALIDATION_BATCH_SIZE = 4 * THOUSAND,
-            PRINT_BATCH_SIZE = 10 * THOUSAND, NUM_STREETS = 100 * THOUSAND;
+    private static final int PRINT_BATCH_SIZE = 10000;
+
     private final File sourceDir, resultsDir;
     private final Path streetfilePath, conflictPath, improperPath, invalidPath;
-    private final USPSAMSDao amsDao;
     private final List<County> counties;
+    private final StreetfileAddressCorrectionService correctionService;
 
     @Autowired
-    public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir,
-                              USPSAMSDao amsDao, CountyDao countyDao) {
+    public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir, CountyDao countyDao,
+                               StreetfileAddressCorrectionService correctionService) {
         this.sourceDir = Path.of(streetfileDir, "text_files").toFile();
         this.resultsDir = Path.of(streetfileDir, "results").toFile();
         this.streetfilePath = Path.of(resultsDir.getPath(), "streetfile.txt");
         this.conflictPath = Path.of(resultsDir.getPath(), "conflicts.txt");
         this.improperPath = Path.of(resultsDir.getPath(), "improper.txt");
         this.invalidPath = Path.of(resultsDir.getPath(), "invalid.txt");
-        this.amsDao = amsDao;
         this.counties = countyDao.getCounties();
+        this.correctionService = correctionService;
     }
 
     public synchronized void regenerateStreetfile() throws IOException {
@@ -66,7 +60,7 @@ public class StreetfileProcessor {
             return;
         }
 
-        var fullData = new DistrictingData(NUM_STREETS);
+        var fullData = new DistrictingData();
         Multimap<StreetfileLineType, String> fullImproperLineMap = ArrayListMultimap.create();
         for (File dataFile : dataFiles) {
             if (dataFile.isFile()) {
@@ -83,9 +77,13 @@ public class StreetfileProcessor {
             }
         }
         logger.info("Beginning address validation. This may take some time.");
-        final var correctionMap = getCorrections(fullData);
+        final var correctionMap = correctionService.getCorrections(fullData);
         Multimap<String, String> invalidData = fullData.removeInvalidAddresses(correctionMap);
-        Files.writeString(invalidPath, invalidData.toString(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        for (String source : invalidData.keySet()) {
+            var currData = invalidData.get(source);
+            String toPrint = source + "\n\t" + String.join("\n\t", currData) + "\n";
+            Files.writeString(invalidPath, toPrint, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        }
         logger.info("Validation completed. Consolidating...");
 
         Map<StreetfileAddressRange, CompactDistrictMap> consolidatedData = fullData.consolidate(conflictPath);
@@ -157,47 +155,5 @@ public class StreetfileProcessor {
             }
         }
         return null;
-    }
-
-    private Map<AddressWithoutNum, AddressWithoutNum> getCorrections(DistrictingData data) {
-        final var correctionMap = new HashMap<AddressWithoutNum, AddressWithoutNum>(NUM_STREETS);
-        Map<AddressWithoutNum, Queue<Integer>> toCorrectMap = data.rowToNumMap().entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        while (!toCorrectMap.isEmpty()) {
-            List<AddressWithoutNum> awns = toCorrectMap.keySet().stream().limit(VALIDATION_BATCH_SIZE).toList();
-            List<Address> toValidate = awns.stream()
-                    .map(awn -> getAddress(toCorrectMap.get(awn).poll(), awn)).toList();
-            List<AddressResult> validationResults = amsDao.getValidatedAddressResults(toValidate);
-            for (int addrIndex = 0; addrIndex < validationResults.size(); addrIndex++) {
-                AddressResult result = validationResults.get(addrIndex);
-                if (!result.isValidated()) {
-                    continue;
-                }
-                final var currCorrectedAwn = new AddressWithoutNum(result.getAddress());
-                AddressWithoutNum uncorrectedAwn = awns.get(addrIndex);
-                AddressWithoutNum mapCorrectedAwn = correctionMap.get(uncorrectedAwn);
-                if (mapCorrectedAwn == null) {
-                    correctionMap.put(uncorrectedAwn, currCorrectedAwn);
-                    toCorrectMap.remove(uncorrectedAwn);
-                }
-                else if (!currCorrectedAwn.equals(mapCorrectedAwn)) {
-                    logger.error("Conflict between corrections: " + mapCorrectedAwn + " and " + currCorrectedAwn);
-                }
-            }
-            // Removes AddressWithoutNums without any valid addresses.
-            toCorrectMap.entrySet().stream()
-                    .filter(entry -> entry.getValue().isEmpty())
-                    .map(Map.Entry::getKey).toList().forEach(toCorrectMap::remove);
-        }
-        return correctionMap;
-    }
-
-    private static Address getAddress(int num, AddressWithoutNum awn) {
-        var addr = new Address(num + " " + awn.street());
-        addr.setPostalCity(awn.postalCity());
-        addr.setZip5(String.valueOf(awn.zip5()));
-        addr.setState("NY");
-        return addr;
     }
 }

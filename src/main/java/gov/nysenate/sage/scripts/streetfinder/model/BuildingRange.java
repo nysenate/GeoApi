@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.model;
 
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.Intern;
+import gov.nysenate.sage.util.Pair;
 
 import java.util.*;
 
@@ -26,32 +27,17 @@ public record BuildingRange(int low, int high, StreetParity parity) {
         this(low, high, StreetParity.getParityFromRange(low, high));
     }
 
-    public BuildingRange(String lowBuilding, String highBuilding) {
-        this(getBuildingNum(lowBuilding), getBuildingNum(highBuilding));
-    }
-
-    public BuildingRange(String lowBuilding, String highBuilding, String parityStr) {
-        this(getBuildingNum(lowBuilding), getBuildingNum(highBuilding),
-                StreetParity.getParityFromWord(parityStr));
-    }
-
-    public BuildingRange(String building) {
-        this(building, building);
-    }
-
     public static BuildingRange getBuildingRange(List<String> buildingData) {
-        if (buildingData.size() == 1) {
-            return new BuildingRange(buildingData.get(0));
+        int highIndex = buildingData.size() == 1 ? 0 : 1;
+        Pair<Integer> nums = getBuildingNums(buildingData.get(0), buildingData.get(highIndex));
+        if (buildingData.size() < 3) {
+            return new BuildingRange(nums.first(), nums.second());
         }
-        else if (buildingData.size() == 2) {
-            return new BuildingRange(buildingData.get(0), buildingData.get(1));
+        if (buildingData.size() == 3) {
+            StreetParity parity = StreetParity.getParityFromWord(buildingData.get(2));
+            return new BuildingRange(nums.first(), nums.second(), parity);
         }
-        else if (buildingData.size() == 3) {
-            return new BuildingRange(buildingData.get(0), buildingData.get(1), buildingData.get(2));
-        }
-        else {
-            throw new RuntimeException("Can't parse " + buildingData.size() + " building fields.");
-        }
+        throw new RuntimeException("Can't parse " + buildingData.size() + " building fields.");
     }
 
     /**
@@ -142,7 +128,28 @@ public record BuildingRange(int low, int high, StreetParity parity) {
      * Parses a building number from a String.
      * Note that letters and fractions are ignored.
      */
-    private static int getBuildingNum(String data) {
-        return Integer.parseInt(data.replaceAll("(?i)[A-Z]|-|\\d/\\d", "").trim());
+    private static Pair<Integer> getBuildingNums(String data1, String data2) {
+        final String replacePattern = "(?i)[A-Z]|\\d/\\d";
+        data1 = data1.replaceAll(replacePattern, "").trim();
+        data2 = data2.replaceAll(replacePattern, "").trim();
+        // Extra care is needed with Queens addresses.
+        if (data1.contains("-") || data2.contains("-")) {
+            String[] data1Ar = data1.split("-");
+            String[] data2Ar = data2.split("-");
+            if (data1Ar.length != 2 || data2Ar.length != 2
+                    || data1Ar[0].length() > data2Ar[0].length()
+                    || data1Ar[1].length() > data2Ar[1].length()) {
+                throw new NumberFormatException("Unclear how to parse %s to %s".formatted(data1, data2));
+            }
+            if (data1Ar[1].length() < data2Ar[1].length()) {
+                boolean isEven = Integer.parseInt(data2Ar[1])%2 == 0;
+                int newNum = (int) (Math.pow(10, data1Ar[1].length()) - (isEven ? 2 : 1));
+                System.err.printf("Losing some data on the range: %s to %s%n", data1, data2);
+                data2Ar[1] = Integer.toString(newNum);
+            }
+            data1 = data1Ar[0] + data1Ar[1];
+            data2 = data2Ar[0] + data2Ar[1];
+        }
+        return new Pair<>(Integer.parseInt(data1), Integer.parseInt(data2));
     }
 }

@@ -1,5 +1,9 @@
 package gov.nysenate.sage.model.address;
 
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 /**
  * Represents a street address with address components broken down.
  */
@@ -100,9 +104,16 @@ public class StreetAddress
     }
 
     public String getStreet() {
-        return (this.street != null) ? this.street :
-               (!this.isHwy) ? this.getStreetName() + ((this.streetType != null) ? " " + this.streetType : "") :
-                               this.getStreetType() + ((this.streetName != null) ? " " + this.streetName : "");
+        if (street == null) {
+            street = isHwy ? combine(preDir, getStreetType(), streetName, postDir) :
+                    combine(preDir, getStreetName(), streetType, postDir);
+        }
+        return street;
+    }
+
+    private static String combine(String... parts) {
+        return Arrays.stream(parts).filter(Objects::nonNull)
+                .collect(Collectors.joining(" ")).trim();
     }
 
     public void setStreet(String street) {

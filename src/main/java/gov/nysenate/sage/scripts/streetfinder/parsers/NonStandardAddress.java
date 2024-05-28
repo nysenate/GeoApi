@@ -43,8 +43,8 @@ public class NonStandardAddress {
             this.type = OTHER;
             return;
         }
-        String bldgNum = addressMatcher.group("bldgNum");
-        if (bldgNum == null) {
+        String bldgNumStr = addressMatcher.group("bldgNum");
+        if (bldgNumStr == null) {
             this.type = NO_STREET_NUM;
             return;
         }
@@ -53,8 +53,9 @@ public class NonStandardAddress {
         for (String groupName : List.of("preDir", "street", "postDir")) {
             street.append(addressMatcher.group(groupName));
         }
+        int bldgNum = Integer.parseInt(bldgNumStr);
         var addressWithoutNum = new AddressWithoutNum(street.toString(), "", String.valueOf(zip5));
-        this.address = new StreetfileAddressRangeWithApt(new BuildingRange(bldgNum), addressWithoutNum);
+        this.address = new StreetfileAddressRangeWithApt(new BuildingRange(bldgNum, bldgNum), addressWithoutNum);
         int endIndex = addressMatcher.end();
         if (addressMatcher.find()) {
             this.type =  MULTIPLE_ADDRESSES;

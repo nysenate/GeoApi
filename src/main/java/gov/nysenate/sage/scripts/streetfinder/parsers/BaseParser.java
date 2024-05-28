@@ -27,11 +27,12 @@ public abstract class BaseParser {
     private static final int SECONDS_PER_PRINT = 15;
     protected final File file;
     protected final Multimap<StreetfileLineType, String> improperLineMap = ArrayListMultimap.create();
-    protected final StreetfileDataExtractor dataExtractor = getDataExtractor();
+    protected final StreetfileDataExtractor dataExtractor;
     private final String lineRegex = " *%s *".formatted(delim());
 
     public BaseParser(File file) {
         this.file = file;
+        this.dataExtractor = getDataExtractor();
     }
 
     public void parseFile(DistrictingData data) throws IOException {

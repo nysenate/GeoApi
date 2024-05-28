@@ -32,9 +32,11 @@ for filename in "${non_txt_dir}"/*.pdf; do
   getNycCounty "$filename"
   if [[ "$nycCounty" != "" ]]; then
     temp_output="${nycCounty}_temp.txt"
+    perm_output="${txt_dir}/${nycCounty}.txt"
+    rm "${perm_output}"
     for ((i=0; i<num_columns; i++)); do
-      pdftotext -f ${text_start_page} -fixed 6 -x $((i * single_col_width)) -y ${header_height} -W ${single_col_width} -H ${text_height} "${filename}" "${temp_output}"
-      cat "${temp_output}" >> "${txt_dir}/${nycCounty}.txt"
+      pdftotext -f ${text_start_page} -fixed 4 -x $((i * single_col_width)) -y ${header_height} -W ${single_col_width} -H ${text_height} "${filename}" "${temp_output}"
+      cat "${temp_output}" >> "${perm_output}"
     done
     rm "${temp_output}"
   else pdftotext -layout "${filename}" "${txt_dir}/${filename%%.*}"

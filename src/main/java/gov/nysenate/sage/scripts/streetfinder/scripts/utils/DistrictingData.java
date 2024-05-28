@@ -20,11 +20,9 @@ import java.util.stream.Stream;
  * the same address could map to different sets of districts in different places.
  */
 public class DistrictingData {
-    private final Map<AddressWithoutNum, Map<BuildingRange, RangeDistrictData>> internalTable;
-
-    public DistrictingData(int expectedRows) {
-        this.internalTable = new HashMap<>(expectedRows);
-    }
+    private static final int NUM_STREETS = 100000;
+    private final Map<AddressWithoutNum, Map<BuildingRange, RangeDistrictData>> internalTable =
+            new HashMap<>(NUM_STREETS);
 
     public void put(StreetfileLineData data) {
         put(data.addressWithoutNum().intern(), data.range().intern(), data.cell());
@@ -37,10 +35,10 @@ public class DistrictingData {
      */
     public Map<StreetfileAddressRange, CompactDistrictMap> consolidate(Path conflictFilePath) throws IOException {
         var consolidatedMap = new HashMap<StreetfileAddressRange, CompactDistrictMap>();
-        Table<AddressWithoutNum, Integer, String> conflictTable = HashBasedTable.create();
+        Table<AddressWithoutNum, BuildingRange, String> conflictTable = HashBasedTable.create();
 
         for (AddressWithoutNum row : internalTable.keySet()) {
-            final var conflictMap = new HashMap<Integer, String>();
+            final var conflictMap = new HashMap<BuildingRange, String>();
             Map<BuildingRange, CompactDistrictMap> consolidatedRangeMap =
                     consolidateCells(internalTable.get(row), conflictMap);
             for (var entry : consolidatedRangeMap.entrySet()) {
@@ -53,7 +51,7 @@ public class DistrictingData {
         for (AddressWithoutNum row : conflictTable.rowKeySet()) {
             strBuilder.append(row).append('\n');
             for (var entry : conflictTable.row(row).entrySet()) {
-                strBuilder.append(entry.getKey()).append('\t').append(entry.getValue());
+                strBuilder.append(entry.getKey()).append('\n').append(entry.getValue());
             }
             strBuilder.append('\n');
         }
@@ -113,36 +111,35 @@ public class DistrictingData {
      * @param conflicts stores pretty print Strings about conflicts.
      */
     private static Map<BuildingRange, CompactDistrictMap> consolidateCells(
-            Map<BuildingRange, RangeDistrictData> input, final Map<Integer, String> conflicts) {
+            Map<BuildingRange, RangeDistrictData> input, final Map<BuildingRange, String> conflicts) {
         // The algorithm becomes much easier when just dealing with numbers.
         var bldgNumToCells = new HashMap<Integer, RangeDistrictData>();
         input.forEach((key, value) -> {
             for (int bldgNum : key.allInRange()) {
-                RangeDistrictData currCell = bldgNumToCells.get(bldgNum);
-                if (currCell == null) {
-                    currCell = new RangeDistrictData(value);
-                }
-                else {
-                    currCell.add(value);
-                }
-                bldgNumToCells.put(bldgNum, currCell);
+                bldgNumToCells.computeIfAbsent(bldgNum, k -> new RangeDistrictData()).add(value);
             }
         });
         // Collect the building numbers with common districts.
         Multimap<CompactDistrictMap, Integer> districtsToBldgNums = ArrayListMultimap.create();
+        Multimap<String, Integer> conflictStringToBldgNums = ArrayListMultimap.create();
         for (var entry : bldgNumToCells.entrySet()) {
             var consolidationResult = entry.getValue().consolidationResult();
             if (!consolidationResult.second().isEmpty()) {
-                conflicts.put(entry.getKey(), consolidationResult.second());
+                conflictStringToBldgNums.put(consolidationResult.second(), entry.getKey());
             }
             districtsToBldgNums.put(consolidationResult.first(), entry.getKey());
         }
         // Combine ranges of building numbers.
-        var rangeToDistrictMap = new HashMap<BuildingRange, CompactDistrictMap>();
-        for (var entry : districtsToBldgNums.asMap().entrySet()) {
+        conflicts.putAll(combineBuildingNums(conflictStringToBldgNums));
+        return combineBuildingNums(districtsToBldgNums);
+    }
+
+    private static <T> Map<BuildingRange, T> combineBuildingNums(Multimap<T, Integer> inputMap) {
+        var outputMap = new HashMap<BuildingRange, T>();
+        for (var entry : inputMap.asMap().entrySet()) {
             BuildingRange.combineRanges(entry.getValue())
-                    .forEach(range -> rangeToDistrictMap.put(range, entry.getKey()));
+                    .forEach(range -> outputMap.put(range, entry.getKey()));
         }
-        return rangeToDistrictMap;
+        return outputMap;
     }
 }

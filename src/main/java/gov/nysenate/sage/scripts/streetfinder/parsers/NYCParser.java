@@ -32,8 +32,9 @@ public class NYCParser extends CountyParser {
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
         // There are initially 9 parts, but the postalCity and street are added in.
-        return super.getDataExtractor().addIsProperLengthFunction(11)
+        return super.getDataExtractor()
                 .addTest(this::skipLine, StreetfileLineType.SKIP)
+                .addIsProperLengthFunction(11)
                 .addPostalCityIndex(0).addStreetIndices(1)
                 .addBuildingIndices(2, 3).addType(ELECTION, 4)
                 .addTypesInOrder(ASSEMBLY, ZIP, CONGRESSIONAL, SENATE, MUNICIPAL_COURT, CITY_COUNCIL);
@@ -46,7 +47,7 @@ public class NYCParser extends CountyParser {
 
     @Override
     protected List<String> parseLine(String line) {
-        String[] lineParts = line.replaceAll("\\s+", " ").split(" ");
+        String[] lineParts = line.replaceAll("\\s+", " ").trim().split(" ");
         List<String> dataList = new ArrayList<>(List.of(mailCity, currStreet));
         Collections.addAll(dataList, lineParts);
         return dataList;
@@ -59,6 +60,6 @@ public class NYCParser extends CountyParser {
             currStreet = line;
             return true;
         }
-        return false;
+        return line.isEmpty();
     }
 }
