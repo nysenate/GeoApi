@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.DistrictIndices;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
@@ -30,8 +31,8 @@ public class NTSParser extends CountyParser {
     private final boolean isGreene;
     private final boolean isSchenectady;
 
-    public NTSParser(File file, County county) {
-        super(file, county);
+    public NTSParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap, County county) {
+        super(file, typeAndNameToIdMap, county);
         this.isGreene = file.getName().contains("Greene");
         this.isSchenectady = file.getName().contains("Schenectady");
     }
@@ -87,7 +88,7 @@ public class NTSParser extends CountyParser {
             }
             List<String> cleanLine = cleanLine(currLine);
             if (cleanLine.size() < 3) {
-                improperLineMap.put(StreetfileLineType.IMPROPER, currLine);
+                improperLineMap.put(StreetfileLineType.MISSING_ADDRESS_DATA, currLine);
                 return;
             }
             parseLine(String.join(delim(), cleanLine));

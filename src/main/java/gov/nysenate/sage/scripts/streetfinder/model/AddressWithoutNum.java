@@ -11,20 +11,17 @@ public record AddressWithoutNum(String street, String postalCity, int zip5) {
     private static final Intern<AddressWithoutNum> interned = new Intern<>();
 
     public AddressWithoutNum {
-        street = correctStreet(street).intern();
+        street = street.intern();
         postalCity = postalCity.intern();
     }
 
-    public AddressWithoutNum(String street, String postalCity, String zip5) {
-        this(street, postalCity, Integer.parseInt(zip5));
+    public AddressWithoutNum(String street, String postalCity, String zip5, boolean standardizeAddress) {
+        this(standardizeAddress ? standardizeStreet(street) : street, postalCity, Integer.parseInt(zip5));
     }
 
-    public AddressWithoutNum(StreetAddress streetAddr) {
-        this(streetAddr.getStreet(), streetAddr.getLocation(), streetAddr.getZip5());
-    }
-
-    public AddressWithoutNum(Address addr) {
-        this(StreetAddressParser.parseAddress(addr));
+    public static AddressWithoutNum fromAddress(Address addr) {
+        StreetAddress sa = StreetAddressParser.parseAddress(addr);
+        return new AddressWithoutNum(sa.getStreet(), sa.getLocation(), sa.getZip5(), false);
     }
 
     public AddressWithoutNum intern() {
@@ -38,14 +35,20 @@ public record AddressWithoutNum(String street, String postalCity, int zip5) {
                 new String[] {street, postalCity, strZip};
         return String.join(", ", parts);
     }
-    private static String correctStreet(String street) {
-        String[] streetParts = street.split(" ");
-        // Sometimes, USPS can validate incorrectly without this standardization.
-        // E.g. (9151 71 ROAD, 11375) would become (9151 71ST AVE, 11375) without this
-        for (int i = 0; i < streetParts.length; i++) {
-            streetParts[i] = AddressUtil.addSuffixToNumber(streetParts[i]);
-            streetParts[i] = AddressDictionary.streetTypeMap.getOrDefault(streetParts[i], streetParts[i]);
+    /**
+     * Sometimes, USPS can validate incorrectly without this standardization.
+     * E.g. (9151 71 ROAD, 11375) would become (9151 71ST AVE, 11375) without this
+     */
+    private static String standardizeStreet(String street) {
+        String[] streetParts = street.toUpperCase().split(" ");
+        int tempIdx = 0;
+        // Can't be too aggressive in correction: "20 STREET" -> "20th STREET", but "ROUTE 20" is correct.
+        if (AddressDictionary.directionMap.containsKey(streetParts[0]) && streetParts.length  > 1) {
+            tempIdx = 1;
         }
-        return String.join(" ", streetParts).toUpperCase();
+        streetParts[tempIdx] = AddressUtil.addSuffixToNumber(streetParts[tempIdx]);
+        tempIdx = streetParts.length - 1;
+        streetParts[tempIdx] = AddressDictionary.streetTypeMap.getOrDefault(streetParts[tempIdx], streetParts[tempIdx]);
+        return String.join(" ", streetParts);
     }
 }

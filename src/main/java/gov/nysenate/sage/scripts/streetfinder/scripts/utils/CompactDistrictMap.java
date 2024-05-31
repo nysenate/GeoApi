@@ -10,7 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import static gov.nysenate.sage.model.district.DistrictType.*;
+import static gov.nysenate.sage.model.district.DistrictType.VILLAGE;
+import static gov.nysenate.sage.model.district.DistrictType.ZIP;
 
 /**
  * A data structure mapping DistrictTypes to shorts of district numbers.
@@ -18,7 +19,7 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  */
 public class CompactDistrictMap {
     // Some DistrictTypes can't be stored in a short
-    private static final Set<DistrictType> invalidTypes = Set.of(TOWN_CITY, VILLAGE, ZIP);
+    private static final Set<DistrictType> invalidTypes = Set.of(VILLAGE, ZIP);
     // A few special wards have ward numbers, but data is given in 3-letter codes.
     private static final Map<String, Integer> wardCorrectionMap = Map.of(
             "DEL", 10, "ELL", 20,
@@ -51,7 +52,9 @@ public class CompactDistrictMap {
     private CompactDistrictMap(Set<DistrictType> types, Function<DistrictType, Short> getShort) {
         this.data = new short[typeToIndexMap.size()];
         for (DistrictType type : types) {
-            data[typeToIndexMap.get(type)] = getShort.apply(type);
+            if (typeToIndexMap.containsKey(type)) {
+                data[typeToIndexMap.get(type)] = getShort.apply(type);
+            }
         }
     }
 

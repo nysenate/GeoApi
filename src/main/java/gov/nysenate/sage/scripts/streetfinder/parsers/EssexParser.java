@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
@@ -8,12 +9,13 @@ import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 public class EssexParser extends CountyParser {
-    public EssexParser(File file, County county) {
-        super(file, county);
+    public EssexParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap, County county) {
+        super(file, typeAndNameToIdMap, county);
     }
 
     @Override

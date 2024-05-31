@@ -81,13 +81,13 @@ public final class AddressUtil {
         try {
             int num = Math.abs(Integer.parseInt(numStr));
             if (num > 10 && num < 14) {
-                return numStr + "TH";
+                return numStr + "th";
             }
             return numStr + switch (num%10) {
-                case 1 -> "ST";
-                case 2 -> "ND";
-                case 3 -> "RD";
-                default -> "TH";
+                case 1 -> "st";
+                case 2 -> "nd";
+                case 3 -> "rd";
+                default -> "th";
             };
         } catch (NumberFormatException ex) {
             return numStr;

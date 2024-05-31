@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
@@ -8,6 +9,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
@@ -16,12 +18,13 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  * Also, tons of lines are identifiable buildings, but without building numbers.
  */
 public class NYCParser extends CountyParser {
+    private static final String nyc = "New York";
     private static final String streetNameRegex = "(\\d{1,4} |9/11 )?\\D.+";
     private final String mailCity;
     private String currStreet;
 
-    public NYCParser(File file, County county) {
-        super(file, county);
+    public NYCParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap, County county) {
+        super(file, typeAndNameToIdMap, county);
         this.mailCity = switch (county.name()) {
             case "Queens" -> "";
             case "Kings", "Richmond" -> county.streetfileName();
@@ -34,9 +37,9 @@ public class NYCParser extends CountyParser {
         // There are initially 9 parts, but the postalCity and street are added in.
         return super.getDataExtractor()
                 .addTest(this::skipLine, StreetfileLineType.SKIP)
-                .addIsProperLengthFunction(11)
-                .addPostalCityIndex(0).addStreetIndices(1)
-                .addBuildingIndices(2, 3).addType(ELECTION, 4)
+                .addIsProperLengthFunction(12)
+                .addPostalCityIndex(0).addStreetIndices(1).addType(TOWN_CITY, 2)
+                .addBuildingIndices(3, 4).addType(ELECTION, 5)
                 .addTypesInOrder(ASSEMBLY, ZIP, CONGRESSIONAL, SENATE, MUNICIPAL_COURT, CITY_COUNCIL);
     }
 
@@ -48,7 +51,7 @@ public class NYCParser extends CountyParser {
     @Override
     protected List<String> parseLine(String line) {
         String[] lineParts = line.replaceAll("\\s+", " ").trim().split(" ");
-        List<String> dataList = new ArrayList<>(List.of(mailCity, currStreet));
+        List<String> dataList = new ArrayList<>(List.of(mailCity, currStreet, nyc));
         Collections.addAll(dataList, lineParts);
         return dataList;
     }

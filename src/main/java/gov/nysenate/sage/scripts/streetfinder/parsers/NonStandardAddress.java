@@ -53,8 +53,8 @@ public class NonStandardAddress {
         for (String groupName : List.of("preDir", "street", "postDir")) {
             street.append(addressMatcher.group(groupName));
         }
-        int bldgNum = Integer.parseInt(bldgNumStr);
-        var addressWithoutNum = new AddressWithoutNum(street.toString(), "", String.valueOf(zip5));
+        int bldgNum = Integer.parseInt(bldgNumStr.replaceAll("[A-Z]| ", ""));
+        var addressWithoutNum = new AddressWithoutNum(street.toString(), "", String.valueOf(zip5), true);
         this.address = new StreetfileAddressRangeWithApt(new BuildingRange(bldgNum, bldgNum), addressWithoutNum);
         int endIndex = addressMatcher.end();
         if (addressMatcher.find()) {

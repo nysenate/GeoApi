@@ -1,10 +1,12 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 
 import java.io.File;
+import java.util.Map;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
@@ -12,8 +14,8 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  * Parses Suffolk County txt file and outputs a tsv file
  */
 public class SuffolkParser extends CountyParser {
-    public SuffolkParser(File file, County county) {
-        super(file, county);
+    public SuffolkParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap, County county) {
+        super(file, typeAndNameToIdMap, county);
     }
 
     @Override

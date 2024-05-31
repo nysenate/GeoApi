@@ -3,6 +3,8 @@ package gov.nysenate.sage.service.streetfile;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.model.county.CountyDao;
+import gov.nysenate.sage.dao.provider.district.DistrictShapeFileDao;
+import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.parsers.*;
@@ -34,11 +36,12 @@ public class StreetfileProcessor {
     private final File sourceDir, resultsDir;
     private final Path streetfilePath, conflictPath, improperPath, invalidPath;
     private final List<County> counties;
+    private final Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap;
     private final StreetfileAddressCorrectionService correctionService;
 
     @Autowired
     public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir, CountyDao countyDao,
-                               StreetfileAddressCorrectionService correctionService) {
+                               DistrictShapeFileDao shapeFileDao, StreetfileAddressCorrectionService correctionService) {
         this.sourceDir = Path.of(streetfileDir, "text_files").toFile();
         this.resultsDir = Path.of(streetfileDir, "results").toFile();
         this.streetfilePath = Path.of(resultsDir.getPath(), "streetfile.txt");
@@ -46,6 +49,7 @@ public class StreetfileProcessor {
         this.improperPath = Path.of(resultsDir.getPath(), "improper.txt");
         this.invalidPath = Path.of(resultsDir.getPath(), "invalid.txt");
         this.counties = countyDao.getCounties();
+        this.typeAndNameToIdMap = shapeFileDao.getTypeAndNameToIdMap();
         this.correctionService = correctionService;
     }
 
@@ -123,27 +127,27 @@ public class StreetfileProcessor {
         if (county == null) {
             if (filename.contains("voter")) {
                 var map = counties.stream().collect(Collectors.toMap(County::voterfileCode, County::fipsCode));
-                return new VoterFileParser(file, map);
+                return new VoterFileParser(file, typeAndNameToIdMap, map);
             }
             // AddressPoints
             else if (filename.contains("address_points")) {
                 var map = counties.stream().collect(Collectors.toMap(tempCounty -> tempCounty.name().toLowerCase(), County::fipsCode));
-                return new AddressPointsParser(file, map);
+                return new AddressPointsParser(file, typeAndNameToIdMap, map);
             }
             else throw new IllegalArgumentException(file.getName() + " could not be matched with a parser.");
         }
         return switch (county.name()) {
-            case "Bronx", "New York", "Queens", "Kings", "Richmond" -> new NYCParser(file, county);
-            case "Allegany", "Columbia", "Saratoga" -> new SaratogaParser(file, county);
-            case "Erie" -> new ErieParser(file, county);
-            case "Essex" -> new EssexParser(file, county);
-            case "Montgomery" -> new MontgomeryParser(file, county);
-            case "Nassau" -> new NassauParser(file, county);
-            case "Schoharie" -> new SchoharieParser(file, county);
-            case "Suffolk" -> new SuffolkParser(file, county);
-            case "Westchester" -> new WestchesterParser(file, county);
-            case "Wyoming" -> new WyomingParser(file, county);
-            default -> new NTSParser(file, county);
+            case "Bronx", "New York", "Queens", "Kings", "Richmond" -> new NYCParser(file, typeAndNameToIdMap, county);
+            case "Allegany", "Columbia", "Saratoga" -> new SaratogaParser(file, typeAndNameToIdMap, county);
+            case "Erie" -> new ErieParser(file, typeAndNameToIdMap, county);
+            case "Essex" -> new EssexParser(file, typeAndNameToIdMap, county);
+            case "Montgomery" -> new MontgomeryParser(file, typeAndNameToIdMap, county);
+            case "Nassau" -> new NassauParser(file, typeAndNameToIdMap, county);
+            case "Schoharie" -> new SchoharieParser(file, typeAndNameToIdMap, county);
+            case "Suffolk" -> new SuffolkParser(file, typeAndNameToIdMap, county);
+            case "Westchester" -> new WestchesterParser(file, typeAndNameToIdMap, county);
+            case "Wyoming" -> new WyomingParser(file, typeAndNameToIdMap, county);
+            default -> new NTSParser(file, typeAndNameToIdMap, county);
         };
     }
 

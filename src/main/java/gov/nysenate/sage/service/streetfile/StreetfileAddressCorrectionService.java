@@ -57,7 +57,7 @@ public final class StreetfileAddressCorrectionService {
                             .add(numsToValidate.get(addrIndex));
                     continue;
                 }
-                final var currCorrectedAwn = new AddressWithoutNum(result.getAddress());
+                final var currCorrectedAwn = AddressWithoutNum.fromAddress(result.getAddress());
                 AddressWithoutNum mapCorrectedAwn = correctionMap.get(uncorrectedAwn);
                 if (mapCorrectedAwn == null) {
                     correctionMap.put(uncorrectedAwn, currCorrectedAwn);

@@ -1,11 +1,13 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,8 +22,8 @@ public class SaratogaParser extends NTSParser {
     private final Pattern invalidLine = Pattern.compile("Ward ,|Segments {4}|r_strtdd|Ward Ward");
     private String town;
 
-    public SaratogaParser(File file, County county) {
-        super(file, county);
+    public SaratogaParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap, County county) {
+        super(file, typeAndNameToIdMap, county);
     }
 
     @Override

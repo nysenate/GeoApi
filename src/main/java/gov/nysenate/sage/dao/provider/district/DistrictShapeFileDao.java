@@ -67,6 +67,8 @@ public interface DistrictShapeFileDao {
      */
     boolean cacheDistrictMaps();
 
+    Map<MunicipalityType, Map<String, Integer>> getTypeAndNameToIdMap();
+
     /**
      * Obtain a list of districts that are closest to the given point. This list does not include the
      * district that the point actually resides within.

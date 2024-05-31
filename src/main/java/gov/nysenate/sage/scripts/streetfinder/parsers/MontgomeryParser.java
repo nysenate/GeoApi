@@ -1,5 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
@@ -12,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import static gov.nysenate.sage.scripts.streetfinder.parsers.NTSParser.substringHelper;
@@ -32,8 +34,8 @@ public class MontgomeryParser extends CountyParser {
      * Calls the super constructor which sets up the tsv file
      * @param file
      */
-    public MontgomeryParser(File file, County county) {
-        super(file, county);
+    public MontgomeryParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap, County county) {
+        super(file, typeAndNameToIdMap, county);
     }
 
     /**
@@ -86,7 +88,7 @@ public class MontgomeryParser extends CountyParser {
         String street = getStreetAndSuffix(line);
         String[] bldgData = substringHelper(line, houseRangeIndex, houseRangeIndex + 12).split("-");
         var buildingRange = BuildingRange.getBuildingRange(List.of(bldgData[0], bldgData[1], getParity(line)));
-        var range = new StreetfileAddressRange(buildingRange, new AddressWithoutNum(street, "", zip5));
+        var range = new StreetfileAddressRange(buildingRange, new AddressWithoutNum(street, "", zip5, true));
         getTownWardDist(line, range);
         // TODO
         return null;
