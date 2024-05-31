@@ -1,4 +1,4 @@
-package gov.nysenate.sage.service.district;
+package gov.nysenate.sage.model;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;

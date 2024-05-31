@@ -1,11 +1,14 @@
-package gov.nysenate.sage.service.district;
+package gov.nysenate.sage.service;
 
 import gov.nysenate.sage.dao.data.PostOfficeDao;
+import gov.nysenate.sage.model.PostOfficeDistrictData;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.PostOfficeAddress;
 import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.scripts.streetfinder.PostOfficeParser;
+import gov.nysenate.sage.service.district.DistrictServiceProvider;
+import gov.nysenate.sage.service.district.TopLevelDistrictService;
+import gov.nysenate.sage.util.PostOfficeParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

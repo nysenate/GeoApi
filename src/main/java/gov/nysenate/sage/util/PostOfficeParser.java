@@ -1,4 +1,4 @@
-package gov.nysenate.sage.scripts.streetfinder;
+package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.PostOfficeAddress;
