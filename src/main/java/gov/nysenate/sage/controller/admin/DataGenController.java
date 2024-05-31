@@ -49,6 +49,11 @@ public class DataGenController {
         this.streetfileProcessor = streetfileProcessor;
     }
 
+    @GetMapping("/streetfile")
+    public void generateStreetfile(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        streetfileProcessor.regenerateStreetfile();
+    }
+
     /**
      * Generate Meta Data Api
      * -----------------------
@@ -216,45 +221,6 @@ public class DataGenController {
             apiResponse = invalidAuthResponse();
         }
 
-        setAdminResponse(apiResponse, response);
-    }
-
-    /**
-     * Processes a SAM NYS Address file into tsv streetfiles.
-     * ---------------------------
-     * Usage:
-     * (GET)    /admin/datagen/process/sam-nys-statewide-addresses
-     *
-     * @param request
-     * @param response
-     * @param username
-     * @param password
-     * @param batchSize
-     */
-    @RequestMapping(value = "/process/sam-nys-statewide-addresses")
-    public void processSamStatewideAddresses(HttpServletRequest request, HttpServletResponse response,
-                                             @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                             @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                                             @RequestParam(required = false, defaultValue = "") String key,
-                                             @RequestParam(required = false, defaultValue = "1000") int batchSize) {
-        Object apiResponse;
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            try {
-                // TODO
-//                nysAddressPointProcessor.processNysSamAddressPoints(batchSize);
-                apiResponse = "Processing sucessfully started";
-            } catch (Exception e) {
-                logger.error("Error trying to process the sam-nys-statewide-address file", e);
-                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-            }
-        } else {
-            apiResponse = invalidAuthResponse();
-        }
         setAdminResponse(apiResponse, response);
     }
 

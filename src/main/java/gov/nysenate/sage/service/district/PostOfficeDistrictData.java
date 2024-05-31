@@ -20,7 +20,7 @@ public class PostOfficeDistrictData {
         // A town may have multiple Post Offices.
         Multimap<String, DistrictedAddress> townToDistAddrMultimap = ArrayListMultimap.create();
         for (DistrictedAddress addr : possibleDistAddrs) {
-            townToDistAddrMultimap.put(addr.getGeocodedAddress().getAddress().getCity().toUpperCase(), addr);
+            townToDistAddrMultimap.put(addr.getGeocodedAddress().getAddress().getPostalCity().toUpperCase(), addr);
         }
         for (var entry : townToDistAddrMultimap.asMap().entrySet()) {
             this.townToDistAddrMap.put(entry.getKey(), DistrictUtil.consolidateDistrictedAddress(entry.getValue()));

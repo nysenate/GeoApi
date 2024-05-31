@@ -30,7 +30,7 @@ public class VoterFileParser extends BaseParser {
                            Map<Integer, Integer> countyFipsCodeMap) {
         super(file, typeAndNameToIdMap);
         this.countyFipsCodeMap = countyFipsCodeMap;
-        this.richmondId = dataExtractor.getTownCityId("Richmond", false);
+        this.richmondId = dataExtractor.getTownCityId("Richmond");
     }
 
     @Override
@@ -60,7 +60,7 @@ public class VoterFileParser extends BaseParser {
             int i = 0;
         }
         if (!richmondId.equals("0") &&
-                richmondId.equals(dataExtractor.getTownCityId(townCity, false))) {
+                richmondId.equals(dataExtractor.getTownCityId(townCity))) {
             try {
                 if (Integer.parseInt(tempLine.get(28)) <= 16) {
                     townCity = "New York";

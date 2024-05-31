@@ -12,12 +12,13 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @Service
 public class PostOfficeService {
-    private final ConcurrentMap<Integer, PostOfficeDistrictData> cache = new ConcurrentHashMap<>();
+    public final ConcurrentMap<Integer, PostOfficeDistrictData> cache = new ConcurrentHashMap<>();
     private final File dataDir;
     private final PostOfficeDao dao;
     // Autowired to prevent circular dependency
@@ -41,14 +42,16 @@ public class PostOfficeService {
         if (files == null) {
             return dataDir + " is not a valid directory.";
         }
-        if (files.length > 1) {
-            return "Multiple data files found. No action taken.";
+        if (files.length == 0) {
+            return "No files found.";
         }
-        if (files.length == 1) {
-            dao.replaceData(PostOfficeParser.getData(files[0]));
+        var poAddrs = new ArrayList<PostOfficeAddress>();
+        for (File file : files) {
+            poAddrs.addAll(PostOfficeParser.getData(file));
         }
+        dao.replaceData(poAddrs);
         cache.clear();
-        return files.length == 0 ? "No data files found. Cleared cache instead." : "Success.";
+        return "Success.";
     }
 
     public DistrictedAddress getDistrictedAddress(String poBoxZip5, String city) {

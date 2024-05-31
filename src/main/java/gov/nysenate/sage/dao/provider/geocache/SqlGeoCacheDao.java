@@ -11,12 +11,12 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.lang3.text.WordUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -240,7 +240,7 @@ public class SqlGeoCacheDao implements GeoCacheDao
 
     /**
      * Retrieves a GeocodedStreetAddress from the result set. This is the parsed format used for look-ups.
-     * If the constructor is initialized with true, the result will be null if the geocode is not of HOUSE quality.
+     * If the constructor is initialized with true, the result will be null if the geocode is not at least of HOUSE quality.
      * Otherwise the geocode quality won't be checked.
      */
     public class GeocodedStreetAddressHandler implements ResultSetExtractor<GeocodedStreetAddress>

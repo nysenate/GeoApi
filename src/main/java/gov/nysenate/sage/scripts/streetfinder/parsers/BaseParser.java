@@ -2,6 +2,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineData;
@@ -14,8 +15,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType.*;
 
@@ -25,14 +25,15 @@ import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLin
 public abstract class BaseParser {
     private static final Logger logger = LoggerFactory.getLogger(BaseParser.class);
     private static final int SECONDS_PER_PRINT = 15;
+    private static final Comparator<Map.Entry<String, Integer>> entryComparator = Collections.reverseOrder(Map.Entry.comparingByValue());
     protected final File file;
     protected final Multimap<StreetfileLineType, String> improperLineMap = ArrayListMultimap.create();
     protected final StreetfileDataExtractor dataExtractor;
     private final String lineRegex = " *%s *".formatted(delim());
 
-    public BaseParser(File file) {
+    public BaseParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap) {
         this.file = file;
-        this.dataExtractor = getDataExtractor();
+        this.dataExtractor = getDataExtractor().setTable(typeAndNameToIdMap);
     }
 
     public void parseFile(DistrictingData data) throws IOException {
@@ -52,6 +53,9 @@ public abstract class BaseParser {
                 else if (lineData.type() != SKIP) {
                     improperLineMap.put(lineData.type(), nextLine);
                 }
+            } catch (OutOfMemoryError ex) {
+                System.err.println("FAILURE. Out of memory.");
+                break;
             } catch (Exception ex) {
                 improperLineMap.put(UNKNOWN_ERROR, nextLine);
             }

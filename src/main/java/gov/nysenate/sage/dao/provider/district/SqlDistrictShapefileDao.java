@@ -12,17 +12,23 @@ import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.collections.CaseInsensitiveKeyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+
+import static gov.nysenate.sage.dao.provider.district.MunicipalityType.CITY;
+import static gov.nysenate.sage.dao.provider.district.MunicipalityType.TOWN;
 
 /**
  * DistrictShapefileDao utilizes a PostGIS database loaded with Census shapefiles to
@@ -247,6 +253,14 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
         }
     }
 
+    @Override
+    public Map<MunicipalityType, Map<String, Integer>> getTypeAndNameToIdMap() {
+        final String sql = "SELECT * FROM " + SCHEMA + "." + DistrictType.TOWN_CITY.name().toLowerCase();
+        var rch = new TownCityHandler();
+        baseDao.geoApiJbdcTemplate.query(sql, rch);
+        return rch.results;
+    }
+
     /** {@inheritDoc} */
     public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int proximity, int count) {
         if (districtType.nameColumn() != null) {
@@ -390,6 +404,20 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                 intersectMap.put(getDistrictCode(rs), lines);
             }
             return intersectMap;
+        }
+    }
+
+    private static class TownCityHandler implements RowCallbackHandler {
+        private final Map<MunicipalityType, Map<String, Integer>> results =
+                Map.of(TOWN, new CaseInsensitiveKeyMap<>(), CITY, new CaseInsensitiveKeyMap<>());
+
+        @Override
+        public void processRow(@Nonnull ResultSet rs) throws SQLException {
+            String name = rs.getString("name");
+            int id = rs.getInt("gid");
+            Map<String, Integer> currMap = results.get(rs.getInt("ct_type") == 2 ? TOWN : CITY);
+            currMap.put(name, id);
+            currMap.put(name.replaceAll(" ", ""), id);
         }
     }
 
