@@ -1,8 +1,10 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.dao.provider.district.MunicipalityType;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,12 @@ public class VoterFileParser extends BaseParser {
         super(file, typeAndNameToIdMap);
         this.countyFipsCodeMap = countyFipsCodeMap;
         this.richmondId = dataExtractor.getTownCityId("Richmond");
+    }
+
+    @Nonnull
+    @Override
+    public StreetfileType type() {
+        return StreetfileType.VOTER;
     }
 
     @Override

@@ -3,6 +3,8 @@ package gov.nysenate.sage.controller.admin;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.client.view.map.MapView;
+import gov.nysenate.sage.scripts.streetfinder.model.ResolveConflictConfiguration;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
 import gov.nysenate.sage.service.PostOfficeService;
 import gov.nysenate.sage.service.data.DataGenService;
 import gov.nysenate.sage.service.streetfile.StreetfileProcessor;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
@@ -50,8 +53,11 @@ public class DataGenController {
     }
 
     @GetMapping("/streetfile")
-    public void generateStreetfile(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        streetfileProcessor.regenerateStreetfile();
+    public void generateStreetfile(@RequestParam(defaultValue = "false") boolean voterFirst,
+                                   @RequestParam(defaultValue = "0.8") double threshold) throws IOException {
+        List<StreetfileType> priorityList = voterFirst ? List.of(StreetfileType.VOTER, StreetfileType.COUNTY) :
+                List.of(StreetfileType.COUNTY, StreetfileType.VOTER);
+        streetfileProcessor.regenerateStreetfile(new ResolveConflictConfiguration(priorityList, threshold));
     }
 
     /**

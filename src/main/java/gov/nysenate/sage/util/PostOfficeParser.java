@@ -12,7 +12,7 @@ import java.util.Scanner;
 
 /**
  * Processes the Post Office data from a given file.
- * As of writing, said file can be found online at: <a href="https://postalpro.usps.com/ZIP_Locale_Detail">...</a>
+ * As of writing, said files can be found online at: <a href="https://postalpro.usps.com/ZIP_Locale_Detail">...</a>
  */
 public final class PostOfficeParser {
     private PostOfficeParser() {}

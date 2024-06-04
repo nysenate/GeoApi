@@ -1,10 +1,12 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.util.Tuple;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Utility class to compactly store district information and its source.
@@ -41,39 +43,16 @@ public class RangeDistrictData {
         return outputArray;
     }
 
-    /**
-     * Districts with a value of 0 are ignored entirely.
-     * Otherwise, if there is a conflict for a DistrictType, that type is ignored as well.
-     * @return the consolidated district map, and a display String for conflicts.
-     */
-    public Tuple<CompactDistrictMap, String> consolidationResult() {
-        final var typeMap = new HashMap<DistrictType, Short>();
-        final var conflictTypes = new HashSet<DistrictType>();
-        for (DistrictType type : DistrictType.values()) {
-            for (CompactDistrictMap districtMap : districtMaps) {
-                short districtMapValue = districtMap.get(type);
-                if (districtMapValue == 0) {
-                    continue;
-                }
-                short typeMapValue = typeMap.getOrDefault(type, ((short) 0));
-                if (typeMapValue == 0) {
-                    typeMap.put(type, districtMapValue);
-                } else if (typeMapValue != districtMapValue) {
-                    typeMap.remove(type);
-                    conflictTypes.add(type);
-                    break;
-                }
-            }
-        }
-        return new Tuple<>(CompactDistrictMap.getMap(typeMap), conflictString(conflictTypes));
-    }
-
-    public String[] getSourceParsers() {
+    public String[] getSourceNames() {
         return sourceParsers;
     }
 
+    public CompactDistrictMap[] getDistrictMaps() {
+        return districtMaps;
+    }
+
     @Nonnull
-    private String conflictString(final Set<DistrictType> conflictTypes) {
+    public String conflictString(final Set<DistrictType> conflictTypes) {
         if (conflictTypes.isEmpty()) {
             return "";
         }

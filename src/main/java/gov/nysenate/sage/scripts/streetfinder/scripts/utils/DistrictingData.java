@@ -4,9 +4,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
-import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
-import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
-import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
+import gov.nysenate.sage.scripts.streetfinder.model.*;
+import gov.nysenate.sage.util.Tuple;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,6 +22,16 @@ public class DistrictingData {
     private static final int NUM_STREETS = 100000;
     private final Map<AddressWithoutNum, Map<BuildingRange, RangeDistrictData>> internalTable =
             new HashMap<>(NUM_STREETS);
+    private final Map<String, StreetfileType> sourceToTypeMap = new HashMap<>();
+    private final ResolveConflictConfiguration config;
+
+    public DistrictingData(ResolveConflictConfiguration config) {
+        this.config = config;
+    }
+
+    public void putSource(String sourceName, StreetfileType type) {
+        sourceToTypeMap.put(sourceName, type);
+    }
 
     public void put(StreetfileLineData data) {
         put(data.addressWithoutNum().intern(), data.range().intern(), data.cell());
@@ -38,13 +47,11 @@ public class DistrictingData {
         Table<AddressWithoutNum, BuildingRange, String> conflictTable = HashBasedTable.create();
 
         for (AddressWithoutNum row : internalTable.keySet()) {
-            final var conflictMap = new HashMap<BuildingRange, String>();
-            Map<BuildingRange, CompactDistrictMap> consolidatedRangeMap =
-                    consolidateCells(internalTable.get(row), conflictMap);
-            for (var entry : consolidatedRangeMap.entrySet()) {
+            var data = consolidateCells(internalTable.get(row));
+            for (var entry : data.first().entrySet()) {
                 consolidatedMap.put(new StreetfileAddressRange(entry.getKey(), row), entry.getValue());
             }
-            conflictMap.forEach((num, str) -> conflictTable.put(row, num, str));
+            data.second().forEach((num, str) -> conflictTable.put(row, num, str));
         }
 
         var strBuilder = new StringBuilder();
@@ -72,7 +79,7 @@ public class DistrictingData {
             }
             else {
                 rowValue.forEach((key, value) -> {
-                    for (String sourceParser : value.getSourceParsers()) {
+                    for (String sourceParser : value.getSourceNames()) {
                         invalidData.put(sourceParser, key.rangeString() + " " + currAwn);
                     }
                 });
@@ -107,11 +114,10 @@ public class DistrictingData {
     }
 
     /**
-     * Consolidates DistrictCell data and stores conflicts.
-     * @param conflicts stores pretty print Strings about conflicts.
+     * Consolidates CompactDistrictMap data and returns (consolidated data, conflict Strings).
      */
-    private static Map<BuildingRange, CompactDistrictMap> consolidateCells(
-            Map<BuildingRange, RangeDistrictData> input, final Map<BuildingRange, String> conflicts) {
+    private Tuple<Map<BuildingRange, CompactDistrictMap>, Map<BuildingRange, String>> consolidateCells(
+            Map<BuildingRange, RangeDistrictData> input) {
         // The algorithm becomes much easier when just dealing with numbers.
         var bldgNumToCells = new HashMap<Integer, RangeDistrictData>();
         input.forEach((key, value) -> {
@@ -123,15 +129,14 @@ public class DistrictingData {
         Multimap<CompactDistrictMap, Integer> districtsToBldgNums = ArrayListMultimap.create();
         Multimap<String, Integer> conflictStringToBldgNums = ArrayListMultimap.create();
         for (var entry : bldgNumToCells.entrySet()) {
-            var consolidationResult = entry.getValue().consolidationResult();
+            var consolidationResult = config.consolidationResult(entry.getValue(), sourceToTypeMap);
             if (!consolidationResult.second().isEmpty()) {
                 conflictStringToBldgNums.put(consolidationResult.second(), entry.getKey());
             }
             districtsToBldgNums.put(consolidationResult.first(), entry.getKey());
         }
         // Combine ranges of building numbers.
-        conflicts.putAll(combineBuildingNums(conflictStringToBldgNums));
-        return combineBuildingNums(districtsToBldgNums);
+        return new Tuple<>(combineBuildingNums(districtsToBldgNums), combineBuildingNums(conflictStringToBldgNums));
     }
 
     private static <T> Map<BuildingRange, T> combineBuildingNums(Multimap<T, Integer> inputMap) {

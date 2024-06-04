@@ -6,6 +6,7 @@ import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.district.DistrictShapeFileDao;
 import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.County;
+import gov.nysenate.sage.scripts.streetfinder.model.ResolveConflictConfiguration;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.parsers.*;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.CompactDistrictMap;
@@ -53,7 +54,7 @@ public class StreetfileProcessor {
         this.correctionService = correctionService;
     }
 
-    public synchronized void regenerateStreetfile() throws IOException {
+    public synchronized void regenerateStreetfile(ResolveConflictConfiguration config) throws IOException {
         File[] dataFiles = sourceDir.listFiles();
         File[] resultFiles = resultsDir.listFiles();
         if (dataFiles == null || resultFiles == null) {
@@ -64,11 +65,12 @@ public class StreetfileProcessor {
             return;
         }
 
-        var fullData = new DistrictingData();
+        var fullData = new DistrictingData(config);
         Multimap<StreetfileLineType, String> fullImproperLineMap = ArrayListMultimap.create();
         for (File dataFile : dataFiles) {
             if (dataFile.isFile()) {
                 BaseParser parser = getParser(dataFile);
+                fullData.putSource(dataFile.getName(), parser.type());
                 parser.parseFile(fullData);
                 fullImproperLineMap.putAll(parser.getImproperLineMap());
             }

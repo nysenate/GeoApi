@@ -3,6 +3,7 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.provider.district.MunicipalityType;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineData;
@@ -11,11 +12,14 @@ import gov.nysenate.sage.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType.*;
 
@@ -25,7 +29,6 @@ import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLin
 public abstract class BaseParser {
     private static final Logger logger = LoggerFactory.getLogger(BaseParser.class);
     private static final int SECONDS_PER_PRINT = 15;
-    private static final Comparator<Map.Entry<String, Integer>> entryComparator = Collections.reverseOrder(Map.Entry.comparingByValue());
     protected final File file;
     protected final Multimap<StreetfileLineType, String> improperLineMap = ArrayListMultimap.create();
     protected final StreetfileDataExtractor dataExtractor;
@@ -75,6 +78,9 @@ public abstract class BaseParser {
     public Multimap<StreetfileLineType, String> getImproperLineMap() {
         return improperLineMap;
     }
+
+    @Nonnull
+    public abstract StreetfileType type();
 
     protected StreetfileDataExtractor getDataExtractor() {
         return new StreetfileDataExtractor(file.getName(), this::parseLine);

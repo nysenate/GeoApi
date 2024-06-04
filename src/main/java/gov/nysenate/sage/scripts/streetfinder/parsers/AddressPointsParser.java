@@ -1,9 +1,11 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.dao.provider.district.MunicipalityType;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,12 @@ public class AddressPointsParser extends BaseParser {
                                Map<String, Integer> fipsCodeMap) {
         super(file, typeAndNameToIdMap);
         this.fipsCodeMap = fipsCodeMap;
+    }
+
+    @Nonnull
+    @Override
+    public StreetfileType type() {
+        return StreetfileType.ADDRESS_POINTS;
     }
 
     @Override
