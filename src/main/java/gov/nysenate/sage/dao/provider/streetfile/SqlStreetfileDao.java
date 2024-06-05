@@ -5,6 +5,8 @@ import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
+import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,10 +22,11 @@ import java.util.*;
 
 import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateDistrictInfo;
 import static gov.nysenate.sage.model.district.DistrictType.*;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetParity.EVENS;
+import static gov.nysenate.sage.scripts.streetfinder.model.StreetParity.ODDS;
 
 @Repository
-public class SqlStreetfileDao implements StreetfileDao
-{
+public class SqlStreetfileDao implements StreetfileDao {
     private final Logger logger = LoggerFactory.getLogger(SqlStreetfileDao.class);
     private final BaseDao baseDao;
 
@@ -44,91 +47,47 @@ public class SqlStreetfileDao implements StreetfileDao
         this.baseDao = baseDao;
     }
 
-    /** {@inheritDoc} */
-    public Map<StreetAddressRange, DistrictInfo> getDistrictStreetRangeMap(
-            StreetAddress streetAddr, boolean useStreet, boolean fuzzy, boolean useHouse) {
-        var params = new ArrayList<>();
-        StringBuilder sqlBuilder = new StringBuilder(512);
-        sqlBuilder.append("SELECT * FROM streetfile WHERE 1=1 \n");
-
-        boolean whereZip = (streetAddr.getZip5() != null && !streetAddr.getZip5().isEmpty());
-        boolean whereStreet = (useStreet && streetAddr.getStreet() != null && !streetAddr.getStreet().isEmpty());
-        boolean whereBldg = (useHouse && streetAddr.getBldgNum() != 0);
-        boolean whereBldgChr = (useHouse && streetAddr.getBldgChar() != null && !streetAddr.getBldgChar().isEmpty());
-
-        if (whereZip) {
-            sqlBuilder.append(" AND zip5=? \n");
-            params.add(Integer.valueOf(streetAddr.getZip5()));
-        }
-
-        if (whereStreet) {
-            // Obtain a formatted street name with post/pre directionals applied
-            String street = getFormattedStreet(streetAddr, false);
-
-            // This street name is similar to the above except a matching prefix will be abbreviated.
-            // i.e 'SAINT MARKS PL' -> 'ST MARKS PL'
-            String streetPrefixAbbr = getFormattedStreet(streetAddr, true);
-
-            // Sometimes the bldg_chr is actually the tail end of the street name
-            if (whereBldgChr) {
-                // Every one else gets a range check; sometimes the suffix is actually part of the street prefix.
-                if (streetAddr.getBldgChar() != null) {
-                    if (fuzzy) {
-                        sqlBuilder.append(" AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n");
-                        params.add(streetAddr.getBldgChar() + " " + street + "%");
-                        params.add(street + "%");
-                    }
-                    else {
-                        sqlBuilder.append(" AND (street = ? OR (street = ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n");
-                        params.add(streetAddr.getBldgChar() + " " + street);
-                        params.add(street);
-                    }
-                    params.add(streetAddr.getBldgChar());
-                    params.add(streetAddr.getBldgChar());
-                }
-            }
-            else {
-                if (fuzzy) {
-                    sqlBuilder.append(" AND (street LIKE ? OR street LIKE ?) \n");
-                    params.add(street + "%");
-                    params.add(streetPrefixAbbr + "%");
-                }
-                else {
-                    sqlBuilder.append(" AND (street = ?) \n");
-                    params.add(street);
-                }
-            }
-
-            if (whereBldg) {
-                sqlBuilder.append(" AND (bldg_lo_num <= ? AND ? <= bldg_hi_num AND (bldg_parity='ALL' or bldg_parity= ")
-                        .append(streetAddr.getBldgNum() % 2 == 0 ? "'EVENS'" : "'ODDS'")
-                        .append(")) \n");
-                params.add(streetAddr.getBldgNum());
-                params.add(streetAddr.getBldgNum());
-            }
-        }
-        // Only do a lookup if we have meaningful filters on the query
-        if (whereZip || whereStreet) {
-            return baseDao.geoApiJbdcTemplate.query(sqlBuilder.toString(),
-                    new DistrictStreetRangeMapHandler(), params.toArray());
-        }
-        else {
-            logger.debug("Skipping address: no identifying information " + streetAddr);
+    public DistrictedAddress getDistrictedAddress(Address addr, DistrictMatchLevel matchLevel) {
+        if (matchLevel == null || matchLevel.compareTo(DistrictMatchLevel.CITY) < 0) {
             return null;
         }
+        AddressWithoutNum awn = AddressWithoutNum.fromAddress(addr);
+        var sqlBuilder = new StringBuilder("SELECT * FROM streetfile WHERE postal_city = '%s'\n".formatted(awn.postalCity()));
+        if (matchLevel.compareTo(DistrictMatchLevel.ZIP5) >= 0) {
+            sqlBuilder.append("AND zip5 = %d\n".formatted(awn.zip5()));
+        }
+        if (matchLevel.compareTo(DistrictMatchLevel.STREET) >= 0) {
+            sqlBuilder.append("AND street = '%s'".formatted(awn.street()));
+        }
+        if (matchLevel.compareTo(DistrictMatchLevel.HOUSE) >= 0) {
+            int bldgNum;
+            try {
+                bldgNum = Integer.parseInt(addr.getAddr1().replaceFirst(" .*$", ""));
+            } catch (NumberFormatException ex) {
+                return null;
+            }
+            StreetParity parity = bldgNum%2 == 0 ? EVENS : ODDS;
+            sqlBuilder.append("AND (bldg_low <= %d AND %d <= bldg_high)".formatted(bldgNum, bldgNum))
+                    .append("AND (parity = 'ALL' OR parity = '%s')".formatted(parity.name()));
+        }
+
+        var ranges = baseDao.geoApiJbdcTemplate.query(sqlBuilder.toString(), new DistrictStreetRangeMapHandler());
+        if (ranges == null || ranges.isEmpty()) {
+            return getDistrictedAddress(addr, matchLevel.getNextHighestLevel());
+        }
+        DistrictInfo consolidatedInfo = consolidateDistrictInfo(ranges.values());
+        return new DistrictedAddress(new GeocodedAddress(addr), consolidatedInfo, DistrictMatchLevel.ZIP5);
     }
 
     /** {@inheritDoc} */
-    public List<DistrictedStreetRange> getDistrictStreetRangesByZip(String zip5)
-    {
+    public List<DistrictedStreetRange> getDistrictStreetRangesByZip(String zip5) {
         return getDistrictStreetRanges("", List.of(zip5));
     }
 
     /** {@inheritDoc} */
-    public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<String> zip5List)
-    {
+    public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<String> zip5List) {
         // Format the street name to aid in street file match
-        street = (street != null) ? getFormattedStreet(street, false) : "";
+        street = (street != null) ? getFormattedStreet(street) : "";
 
         // Short circuit the request under conditions where lots of data would be retrieved.
         if (zip5List == null || zip5List.isEmpty()) {
@@ -186,8 +145,7 @@ public class SqlStreetfileDao implements StreetfileDao
     }
 
     /** {@inheritDoc} */
-    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List)
-    {
+    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List) {
         // Short circuit on missing input
         if ((zip5List == null || zip5List.isEmpty()) && (streetList == null || streetList.isEmpty())) return null;
 
@@ -212,7 +170,7 @@ public class SqlStreetfileDao implements StreetfileDao
         if (streetList != null && !streetList.isEmpty()) {
             List<String> streetWhereList = new ArrayList<>();
             for (String stRaw : streetList) {
-                String street = getFormattedStreet(stRaw, false);
+                String street = getFormattedStreet(stRaw);
                 if (!street.isEmpty()) {
                     streetWhereList.add(String.format("'%s'", StringEscapeUtils.escapeSql(street)));
                 }
@@ -240,8 +198,7 @@ public class SqlStreetfileDao implements StreetfileDao
     }
 
     /** {@inheritDoc} */
-    public Map<DistrictType, Set<String>> getAllIntersections(DistrictType distType, String sourceId)
-    {
+    public Map<DistrictType, Set<String>> getAllIntersections(DistrictType distType, String sourceId) {
         if (distType == null || sourceId == null) {
             return null;
         }
@@ -268,132 +225,48 @@ public class SqlStreetfileDao implements StreetfileDao
         return null;
     }
 
-    /** {@inheritDoc} */
-    public DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress) throws SQLException
-    {
-        return getDistAddressByHouse(streetAddress, false);
-    }
-
-    /** {@inheritDoc} */
-    public DistrictedAddress getDistAddressByStreet(StreetAddress streetAddress) throws SQLException
-    {
-        return getDistAddressByStreet(streetAddress, false);
-    }
-
-    private DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress, boolean useFuzzy) {
-        Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, true, useFuzzy, true);
-
-        if (rangeMap == null ) {
-            return null;
-        }
-
-        List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
-        DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
-
-        // If the consolidated dist returned null, we can either recurse with fuzzy on or return null
-        if (consolidatedDist == null) {
-            if (!useFuzzy) {
-                return getDistAddressByHouse(streetAddress, true);
-            }
-            else {
-                return null;
-            }
-        }
-        else {
-            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, DistrictMatchLevel.HOUSE);
-        }
-    }
-
-    private DistrictedAddress getDistAddressByStreet(StreetAddress streetAddress, boolean useFuzzy) {
-        Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, true, useFuzzy, false);
-
-        if (rangeMap == null ) {
-            return null;
-        }
-
-        List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
-        DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
-
-        // If the consolidated dist returned null, we can either recurse with fuzzy on or return null
-        if (consolidatedDist == null ) {
-            if (!useFuzzy) {
-                return getDistAddressByStreet(streetAddress, true);
-            }
-            else {
-                return null;
-            }
-        }
-        else {
-            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, DistrictMatchLevel.STREET);
-        }
-    }
-
-    /** {@inheritDoc} */
-    public DistrictedAddress getDistAddressByZip(StreetAddress streetAddress) throws SQLException
-    {
-        Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, false, false, false);
-
-        if (rangeMap == null ) {
-            return null;
-        }
-
-        List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
-        DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
-        if (consolidatedDist != null) {
-            return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, DistrictMatchLevel.ZIP5);
-        }
-        else {
-            return null;
-        }
-    }
-
     /**
      * Appends pre and post dirs to the street and upper cases the result.
      */
-    private String getFormattedStreet(String street, boolean prefixNormalize)
-    {
+    private String getFormattedStreet(String street) {
         StreetAddress streetAddress = new StreetAddress();
         StreetAddressParser.extractStreet(street, streetAddress);
         StreetAddressParser.normalizeStreetAddress(streetAddress);
-        return getFormattedStreet(streetAddress, prefixNormalize);
+        return getFormattedStreet(streetAddress);
     }
 
     /**
      * Appends pre and post dirs to the street and upper cases the result.
      */
-    private String getFormattedStreet(StreetAddress streetAddr, boolean prefixNormalize) {
-        if (streetAddr != null) {
-            String street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
-            street += (!prefixNormalize) ? streetAddr.getStreet() : StreetAddressParser.getPrefixNormalizedStreetName(streetAddr.getStreet());
-            street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
-            street = street.toUpperCase();
-            return street;
+    private String getFormattedStreet(StreetAddress streetAddr) {
+        if (streetAddr == null) {
+            return "";
         }
-        return "";
+        String street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
+        street += streetAddr.getStreet();
+        street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
+        return street.toUpperCase();
     }
 
-    public static class DistrictStreetRangeMapHandler implements ResultSetExtractor<Map<StreetAddressRange,DistrictInfo>>
-    {
+    private static class DistrictStreetRangeMapHandler implements ResultSetExtractor<Map<StreetAddressRange,DistrictInfo>> {
         @Override
-        public Map<StreetAddressRange, DistrictInfo> extractData(ResultSet rs) throws SQLException
-        {
+        public Map<StreetAddressRange, DistrictInfo> extractData(ResultSet rs) throws SQLException {
             Map<StreetAddressRange, DistrictInfo> streetRangeMap = new LinkedHashMap<>();
             while (rs.next()) {
-                StreetAddressRange sar = new StreetAddressRange();
-                DistrictInfo dInfo = new DistrictInfo();
+                var sar = new StreetAddressRange();
 
                 sar.setId(rs.getInt("id"));
                 sar.setBldgLoNum(rs.getInt("bldg_low"));
                 sar.setBldgHiNum(rs.getInt("bldg_high"));
+                sar.setBldgParity(rs.getString("parity"));
                 sar.setStreet(rs.getString("street"));
-                sar.setLocation(rs.getString("town"));
+                sar.setLocation(rs.getString("postal_city"));
                 sar.setZip5(rs.getString("zip5"));
-                sar.setBldgParity(rs.getString("bldg_parity"));
 
+                var dInfo = new DistrictInfo();
                 for (var type : DistrictType.values()) {
                     dInfo.setDistCode(type, rs.getString(distColMap.get(type)));
                 }
-
                 streetRangeMap.put(sar, dInfo);
             }
             return streetRangeMap;

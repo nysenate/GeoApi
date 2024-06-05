@@ -6,10 +6,7 @@ import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.WordUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -22,9 +19,7 @@ import java.util.List;
 
 @Repository
 public class SqlRegeocacheDao implements RegeocacheDao {
-
-    private Logger logger = LoggerFactory.getLogger(SqlRegeocacheDao.class);
-    private BaseDao baseDao;
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlRegeocacheDao(BaseDao baseDao) {
@@ -47,19 +42,13 @@ public class SqlRegeocacheDao implements RegeocacheDao {
 
     public List<StreetAddress> getMassGeocodeBatch(int offset, int limit, ArrayList<String> typeList) {
         String sql = RegeocacheQuery.MASS_GEOCACHE_SELECT.getSql(baseDao.getCacheSchema()) + getMassGeocacheBodySql(typeList)
-        + RegeocacheQuery.MASS_GEOCACHE_ORDER_BY.getSql() + RegeocacheQuery.MASS_GEOCACHE_LIMIT_OFFSET.getSql() ;
+                + RegeocacheQuery.MASS_GEOCACHE_ORDER_BY.getSql() + RegeocacheQuery.MASS_GEOCACHE_LIMIT_OFFSET.getSql() ;
 
-        MapSqlParameterSource params = generateParamsForMassGeocache(typeList);
-        params.addValue("limit", limit);
-        params.addValue("offset", offset);
-        if (params != null) {
-            return baseDao.tigerNamedJdbcTemplate.query(
-                    sql, params,
-                    new StreetAddressdRowMapper());
-        }
-        else {
-            return baseDao.tigerNamedJdbcTemplate.query(sql, new StreetAddressdRowMapper());
-        }
+        MapSqlParameterSource params = generateParamsForMassGeocache(typeList)
+                .addValue("limit", limit).addValue("offset", offset);
+        return baseDao.tigerNamedJdbcTemplate.query(
+                sql, params,
+                new StreetAddressdRowMapper());
     }
 
     public Integer getNYSTotalAddresses() {
@@ -77,20 +66,20 @@ public class SqlRegeocacheDao implements RegeocacheDao {
     }
 
     public GeocodedStreetAddress getProviderOfAddressInCacheIfExists(StreetAddress nysStreetAddress) {
-        MapSqlParameterSource geocacheParams = new MapSqlParameterSource();
-        geocacheParams.addValue("bldgnum", nysStreetAddress.getBldgNum());
-        geocacheParams.addValue("predir", nysStreetAddress.getPreDir());
-        geocacheParams.addValue("street", nysStreetAddress.getStreetName());
-        geocacheParams.addValue("postdir", nysStreetAddress.getPostDir());
-        geocacheParams.addValue("streettype", nysStreetAddress.getStreetType());
-        geocacheParams.addValue("zip5", nysStreetAddress.getZip5());
-        geocacheParams.addValue("location", nysStreetAddress.getLocation());
+        MapSqlParameterSource geocacheParams = new MapSqlParameterSource()
+                .addValue("bldgnum", nysStreetAddress.getBldgNum())
+                .addValue("predir", nysStreetAddress.getPreDir())
+                .addValue("street", nysStreetAddress.getStreetName())
+                .addValue("postdir", nysStreetAddress.getPostDir())
+                .addValue("streettype", nysStreetAddress.getStreetType())
+                .addValue("zip5", nysStreetAddress.getZip5())
+                .addValue("location", nysStreetAddress.getLocation());
 
         List<GeocodedStreetAddress> providerList = baseDao.tigerNamedJdbcTemplate
                 .query(RegeocacheQuery.GEOCACHE_SELECT.getSql(
                         baseDao.getCacheSchema()), geocacheParams, new geocodedStreetAddressdRowMapper());
 
-        if (providerList == null || providerList.isEmpty()) {
+        if (providerList.isEmpty()) {
             return null;
         }
         return providerList.get(0);
@@ -98,7 +87,7 @@ public class SqlRegeocacheDao implements RegeocacheDao {
 
     public void insetIntoGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) throws SQLException {
         baseDao.tigerJbdcTemplate.update(RegeocacheQuery.INSERT_GEOCACHE.getSql(baseDao.getCacheSchema()),
-                Integer.valueOf(nysStreetAddress.getBldgNum()),
+                nysStreetAddress.getBldgNum(),
                 nysStreetAddress.getPreDir(), nysStreetAddress.getStreetName(),
                 nysStreetAddress.getStreetType(),
                 nysStreetAddress.getPostDir(), nysStreetAddress.getLocation(),

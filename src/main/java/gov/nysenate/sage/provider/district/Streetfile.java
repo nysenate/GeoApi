@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
+import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.util.FormatUtil;
@@ -14,12 +15,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
-import static gov.nysenate.sage.model.result.ResultStatus.*;
+import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
+import static gov.nysenate.sage.model.result.ResultStatus.NO_DISTRICT_RESULT;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
 
@@ -62,22 +63,7 @@ public class Streetfile extends DistrictService implements StreetLookupService {
         }
 
         try {
-            DistrictedAddress match = null;
-
-            if (!streetAddr.isStreetEmpty()) {
-                /** Try a House level match */
-                match = sqlStreetFileDao.getDistAddressByHouse(streetAddr);
-                /** Try a Street level match */
-                if (match == null) {
-                    match = sqlStreetFileDao.getDistAddressByStreet(streetAddr);
-                }
-            }
-            /** Try a Zip5 level match */
-            if (match == null) {
-                match = sqlStreetFileDao.getDistAddressByZip(streetAddr);
-            }
-
-            /** Validate result and return error status */
+            DistrictedAddress match = sqlStreetFileDao.getDistrictedAddress(geocodedAddress.getAddress(), DistrictMatchLevel.HOUSE);
             if (match == null) {
                 districtResult.setStatusCode(NO_DISTRICT_RESULT);
             }
@@ -85,12 +71,7 @@ public class Streetfile extends DistrictService implements StreetLookupService {
                 validateDistrictInfo(match.getDistrictInfo(), reqTypes, districtResult);
                 districtResult.setDistrictedAddress(match);
             }
-        }
-        catch (SQLException ex) {
-            districtResult.setStatusCode(DATABASE_ERROR);
-            logger.error("" + ex);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             districtResult.setStatusCode(INTERNAL_ERROR);
             logger.error("" + ex);
         }

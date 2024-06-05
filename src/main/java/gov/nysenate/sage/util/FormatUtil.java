@@ -12,8 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -84,19 +84,11 @@ public abstract class FormatUtil {
      * @return String   JSON string
      * */
     public static String toJsonString(Object o){
-        ObjectMapper om = new ObjectMapper();
+        var om = new ObjectMapper();
         try {
             return om.writeValueAsString(o);
         }
-        catch(JsonGenerationException g){
-            logger.error("Object to JSON Error: ".concat(g.getMessage()));
-            return "";
-        }
-        catch(JsonMappingException m){
-            logger.error("Object to JSON Error: ".concat(m.getMessage()));
-            return "";
-        }
-        catch(Exception ex){
+        catch(Exception ex) {
             logger.error("Object to JSON Error: ".concat(ex.getMessage()));
             return "";
         }
