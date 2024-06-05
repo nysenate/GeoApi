@@ -6,41 +6,38 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.util.ExecutorUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * Parallel district assignment for use in a provider's batch district implementation.
  */
 @Service
-public class ParallelDistrictService implements SageParallelDistrictService
-{
-    private static Logger logger = LoggerFactory.getLogger(ParallelDistrictService.class);
-    private int THREAD_COUNT;
-    private static ThreadPoolTaskExecutor executor;
-    private Environment env;
+public class ParallelDistrictService implements SageParallelDistrictService {
+    private static final Logger logger = LoggerFactory.getLogger(ParallelDistrictService.class);
+    private final int thread_count;
+    private final ThreadPoolTaskExecutor executor;
 
     @Autowired
     public ParallelDistrictService(Environment env) {
-        this.env = env;
-        this.THREAD_COUNT = this.env.getValidateThreads();
-        this.executor = ExecutorUtil.createExecutor("district", THREAD_COUNT);
-//        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("district"));
+        this.thread_count = env.getValidateThreads();
+        this.executor = ExecutorUtil.createExecutor("district", thread_count);
     }
 
-    public List<DistrictResult> assignDistricts(DistrictService districtService, List<GeocodedAddress> geocodedAddresses, List<DistrictType> types)
-    {
-        ArrayList<DistrictResult> districtResults = new ArrayList<>();
-        ArrayList<Future<DistrictResult>> futureDistrictResults = new ArrayList<>();
+    public List<DistrictResult> assignDistricts(DistrictService districtService, List<GeocodedAddress> geocodedAddresses, List<DistrictType> types) {
+        var districtResults = new ArrayList<DistrictResult>();
+        var futureDistrictResults = new ArrayList<Future<DistrictResult>>();
 
-        logger.trace("District Assigning using " + THREAD_COUNT + " threads.");
+        logger.trace("District Assigning using " + thread_count + " threads.");
         for (GeocodedAddress geocodedAddress : geocodedAddresses) {
             futureDistrictResults.add(executor.submit(new ParallelDistAssign(districtService, geocodedAddress, types)));
         }
@@ -60,23 +57,11 @@ public class ParallelDistrictService implements SageParallelDistrictService
         executor.shutdown();
     }
 
-    private static class ParallelDistAssign implements Callable<DistrictResult>
-    {
-        public final DistrictService districtService;
-        public final GeocodedAddress geocodedAddress;
-        public final List<DistrictType> types;
-
-        public ParallelDistAssign(DistrictService districtService, GeocodedAddress geocodedAddress, List<DistrictType> types)
-        {
-            this.districtService = districtService;
-            this.geocodedAddress = geocodedAddress;
-            this.types = types;
-        }
-
+    private record ParallelDistAssign(DistrictService districtService, GeocodedAddress geocodedAddress,
+                                      List<DistrictType> types) implements Callable<DistrictResult> {
         @Override
-        public DistrictResult call()
-        {
-            return districtService.assignDistrictsForBatch(geocodedAddress, types);
+            public DistrictResult call() {
+                return districtService.assignDistrictsForBatch(geocodedAddress, types);
+            }
         }
-    }
 }

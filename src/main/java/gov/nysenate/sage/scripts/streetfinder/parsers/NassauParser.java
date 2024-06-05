@@ -19,6 +19,6 @@ public class NassauParser extends CountyParser {
         return super.getDataExtractor()
                 .addBuildingIndices(3, 4, 5).addStreetIndices(1).addPrecinctIndex(0)
                 .addType(TOWN_CITY, 2).addType(ZIP, 3).addType(CONGRESSIONAL, 8)
-                .addTypesInOrder(SENATE, ASSEMBLY, CLEG);
+                .addTypesInOrder(SENATE, ASSEMBLY, COUNTY_LEG);
     }
 }

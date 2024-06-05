@@ -33,7 +33,7 @@ public class DistrictsView {
         this.school = new DistrictView(SCHOOL, dInfo);
         this.town = new DistrictView(TOWN_CITY, dInfo);
         this.zip = new DistrictView(ZIP, dInfo);
-        this.cleg = new DistrictView(CLEG, dInfo);
+        this.cleg = new DistrictView(COUNTY_LEG, dInfo);
         this.ward = new DistrictView(WARD, dInfo);
         this.village = new DistrictView(VILLAGE, dInfo);
         this.cityCouncil = new DistrictView(CITY_COUNCIL, dInfo);

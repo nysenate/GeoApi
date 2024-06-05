@@ -30,7 +30,7 @@ public class MappedDistrictsView
             this.school = new MappedDistrictView(SCHOOL, dInfo);
             this.town = new MappedDistrictView(TOWN_CITY, dInfo);
             this.zip = new MappedDistrictView(ZIP, dInfo);
-            this.cleg = new MappedDistrictView(CLEG, dInfo);
+            this.cleg = new MappedDistrictView(COUNTY_LEG, dInfo);
             this.ward = new MappedDistrictView(WARD, dInfo);
             this.village = new MappedDistrictView(VILLAGE, dInfo);
             this.cityCouncil = new MappedDistrictView(CITY_COUNCIL, dInfo);

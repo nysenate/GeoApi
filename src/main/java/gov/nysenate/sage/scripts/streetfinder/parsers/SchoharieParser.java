@@ -24,7 +24,7 @@ public class SchoharieParser extends CountyParser {
         return super.getDataExtractor().addTest(SchoharieParser::isNotProper, StreetfileLineType.SKIP)
                 .addBuildingIndices(1, 2, 3).addStreetIndices(0)
                 .addType(TOWN_CITY, 4).addTypesInOrder(WARD, ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
-                        SCHOOL, CLEG, VILLAGE, FIRE);
+                        SCHOOL, COUNTY_LEG, VILLAGE, FIRE);
     }
 
     private static boolean isNotProper(String line) {

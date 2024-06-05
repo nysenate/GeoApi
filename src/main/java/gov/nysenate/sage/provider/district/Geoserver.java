@@ -1,25 +1,20 @@
 package gov.nysenate.sage.provider.district;
 
-import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.geoserver.HttpGeoserverDao;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.service.district.ParallelDistrictService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.Map;
 
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
@@ -31,49 +26,18 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
  * is required to perform district assignment using this implementation.
  */
 @Service
-public class Geoserver implements DistrictService
-{
-    private static Logger logger = LoggerFactory.getLogger(Geoserver.class);
-    private HttpGeoserverDao httpGeoserverDao;
-    private boolean fetchMaps = false;
-    private BaseDao baseDao;
-    private Environment env;
-
-    private ParallelDistrictService parallelDistrictService;
+public class Geoserver extends DistrictService {
+    private static final Logger logger = LoggerFactory.getLogger(Geoserver.class);
+    private final HttpGeoserverDao httpGeoserverDao;
 
     @Autowired
-    public Geoserver(HttpGeoserverDao httpGeoserverDao, BaseDao baseDao, ParallelDistrictService parallelDistrictService,
-                     Environment env)
-    {
-        this.env = env;
+    public Geoserver(HttpGeoserverDao httpGeoserverDao) {
         this.httpGeoserverDao = httpGeoserverDao;
-        this.baseDao = baseDao;
-        this.parallelDistrictService = parallelDistrictService;
-        logger.debug("Geoserver instantiated");
     }
 
     /** {@inheritDoc} */
     @Override
-    public boolean requiresGeocode() { return true; }
-
-    /** {@inheritDoc} */
-    @Override
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
-    {
-        return assignDistricts(geocodedAddress, DistrictType.getStandardTypes());
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses)
-    {
-        return assignDistricts(geocodedAddresses, DistrictType.getStandardTypes());
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
-    {
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
@@ -96,32 +60,5 @@ public class Geoserver implements DistrictService
             logger.error("" + ex);
         }
         return districtResult;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes)
-    {
-        return parallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
-        return assignDistricts(geocodedAddress, reqTypes);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType) {
-        logger.warn("Nearby districts is not implemented in Geoserver");
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count) {
-        logger.warn("Nearby districts is not implemented in Geoserver");
-        return null;
     }
 }

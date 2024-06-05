@@ -4,7 +4,7 @@ import com.google.common.collect.Sets;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.county.SqlCountyDao;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
-import gov.nysenate.sage.dao.provider.streetfile.SqlStreetFileDao;
+import gov.nysenate.sage.dao.provider.streetfile.SqlStreetfileDao;
 import gov.nysenate.sage.dao.provider.tiger.SqlTigerGeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
@@ -17,7 +17,6 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.cityzip.CityZipDB;
-import gov.nysenate.sage.service.district.ParallelDistrictService;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.slf4j.Logger;
@@ -33,22 +32,19 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
 
 @Service
-public class DistrictShapefile implements DistrictService, MapService
-{
-    private static Logger logger = LoggerFactory.getLogger(DistrictShapefile.class);
-    private final Environment env;
-    private SqlDistrictShapefileDao sqlDistrictShapefileDao;
+public class DistrictShapefile extends DistrictService implements MapService {
+    private static final Logger logger = LoggerFactory.getLogger(DistrictShapefile.class);
+    private final SqlDistrictShapefileDao sqlDistrictShapefileDao;
 
     /** The street file and cityzip daos are needed to determine overlap */
-    private SqlStreetFileDao sqlStreetFileDao;
-    private CityZipDB cityZipDBDao;
-    private SqlTigerGeocoderDao sqlTigerGeocoderDao;
-    private SqlCountyDao sqlCountyDao;
-    private ParallelDistrictService parallelDistrictService;
+    private final SqlStreetfileDao sqlStreetFileDao;
+    private final CityZipDB cityZipDBDao;
+    private final SqlTigerGeocoderDao sqlTigerGeocoderDao;
+    private final SqlCountyDao sqlCountyDao;
 
     /** Specifies the maximum distance a neighbor district can be from a specific point to still be considered
      * a nearby neighbor. */
-    private static Integer NEIGHBOR_PROXIMITY = 500;
+    private final Integer neighbor_proximity;
 
     /** Specifies the maximum number of nearby neighbors that will be returned by default. */
     private static Integer MAX_NEIGHBORS = 2;
@@ -59,28 +55,20 @@ public class DistrictShapefile implements DistrictService, MapService
             Arrays.asList(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
 
     @Autowired
-    public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, SqlStreetFileDao sqlStreetFileDao,
+    public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, SqlStreetfileDao sqlStreetFileDao,
                              CityZipDB cityZipDB, SqlTigerGeocoderDao sqlTigerGeocoderDao, SqlCountyDao sqlCountyDao,
-                             Environment env, ParallelDistrictService parallelDistrictService)
-    {
+                             Environment env) {
         this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
         this.sqlStreetFileDao = sqlStreetFileDao;
         this.cityZipDBDao = cityZipDB;
         this.sqlTigerGeocoderDao = sqlTigerGeocoderDao;
         this.sqlCountyDao = sqlCountyDao;
-        this.parallelDistrictService = parallelDistrictService;
-        this.env = env;
-        NEIGHBOR_PROXIMITY = env.getNeighborProximity();
+        this.neighbor_proximity = env.getNeighborProximity();
         logger.debug("Instantiated DistrictShapefile.");
     }
 
     /** {@inheritDoc} */
-    @Override
-    public boolean requiresGeocode() { return true; }
-
-    /** {@inheritDoc} */
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes, boolean getSpecialMaps, boolean getProximity)
-    {
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes, boolean getSpecialMaps, boolean getProximity) {
         DistrictResult districtResult = new DistrictResult(this.getClass());
 
         /** Validate input */
@@ -119,61 +107,35 @@ public class DistrictShapefile implements DistrictService, MapService
 
     /** {@inheritDoc} */
     @Override
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress)
-    {
-        return assignDistricts(geocodedAddress, DistrictType.getStateBasedTypes());
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
-    {
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
         return assignDistricts(geocodedAddress, reqTypes, true, true);
     }
 
     /** {@inheritDoc} */
     @Override
-    public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes)
-    {
+    public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
         return assignDistricts(geocodedAddress, reqTypes, false, false);
     }
 
     /** {@inheritDoc} */
     @Override
-    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses)
-    {
-        return assignDistricts(geocodedAddresses, DistrictType.getStandardTypes());
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes)
-    {
-        return parallelDistrictService.assignDistricts(this, geocodedAddresses, reqTypes);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType)
-    {
+    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType) {
         return nearbyDistricts(geocodedAddress, districtType, MAX_NEIGHBORS);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count)
-    {
+    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count) {
         if (geocodedAddress != null && geocodedAddress.isValidGeocode()) {
             Point point = geocodedAddress.getGeocode().getLatLon();
-            return this.sqlDistrictShapefileDao.getNearbyDistricts(districtType, point, true, NEIGHBOR_PROXIMITY, count);
+            return this.sqlDistrictShapefileDao.getNearbyDistricts(districtType, point, true, neighbor_proximity, count);
         }
         return null;
     }
 
     /** {@inheritDoc} */
     @Override
-    public MapResult getDistrictMap(DistrictType districtType, String code)
-    {
+    public MapResult getDistrictMap(DistrictType districtType, String code) {
         MapResult mapResult = new MapResult(this.getClass());
         if (code != null && !code.isEmpty()) {
             code = FormatUtil.trimLeadingZeroes(code);
@@ -203,8 +165,7 @@ public class DistrictShapefile implements DistrictService, MapService
 
     /** {@inheritDoc} */
     @Override
-    public MapResult getDistrictMaps(DistrictType districtType)
-    {
+    public MapResult getDistrictMaps(DistrictType districtType) {
         MapResult mapResult = new MapResult(this.getClass());
         List<DistrictMap> mapCollection = sqlDistrictShapefileDao.getDistrictMaps(districtType);
         if (mapCollection != null) {
@@ -228,8 +189,7 @@ public class DistrictShapefile implements DistrictService, MapService
      * @param geocodedAddress GeocodedAddress
      * @return DistrictResult with overlaps and street ranges set.
      */
-    public DistrictResult getMultiMatchResult(GeocodedAddress geocodedAddress, boolean zipProvided)
-    {
+    public DistrictResult getMultiMatchResult(GeocodedAddress geocodedAddress, boolean zipProvided) {
         DistrictResult districtResult = new DistrictResult(this.getClass());
         DistrictedAddress districtedAddress = new DistrictedAddress(geocodedAddress, null, DistrictMatchLevel.NOMATCH);
         DistrictInfo districtInfo = new DistrictInfo();
@@ -341,8 +301,7 @@ public class DistrictShapefile implements DistrictService, MapService
      * @param intersectType DistrictType the type of district we are searching for intersections with districtId
      * @return DistrictResult with overlaps set.
      */
-    public DistrictResult getIntersectionResult(DistrictType districtType, String districtId, DistrictType intersectType)
-    {
+    public DistrictResult getIntersectionResult(DistrictType districtType, String districtId, DistrictType intersectType) {
         DistrictResult districtResult = new DistrictResult(this.getClass());
         // The match can always be set to the state level
         DistrictedAddress districtedAddress = new DistrictedAddress(null, null, DistrictMatchLevel.STATE);

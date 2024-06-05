@@ -60,18 +60,14 @@ public class DistrictServiceValidator
                                                final DistrictResult districtResult)
     {
         /** An empty district info is an invalid response so we return false */
-        if (districtInfo == null || districtInfo.getAssignedDistricts().size() == 0) {
+        if (districtInfo == null || districtInfo.getAssignedDistricts().isEmpty()) {
             districtResult.setStatusCode(ResultStatus.NO_DISTRICT_RESULT);
             districtResult.setDistrictMatchLevel(DistrictMatchLevel.NOMATCH);
             return false;
         }
         /** If the result is only partial, set completelyAssigned to false. */
-        else if (!districtInfo.getAssignedDistricts().containsAll(reqTypes)) {
-            districtInfo.setCompletelyAssigned(false);
-        }
-        /** Otherwise set completelyAssigned to true */
         else {
-            districtInfo.setCompletelyAssigned(true);
+            districtInfo.setCompletelyAssigned(districtInfo.getAssignedDistricts().containsAll(reqTypes));
         }
         return true;
     }

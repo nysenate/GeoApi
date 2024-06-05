@@ -25,8 +25,10 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,7 +56,7 @@ public class StreetfileProcessor {
         this.correctionService = correctionService;
     }
 
-    public synchronized void regenerateStreetfile(ResolveConflictConfiguration config) throws IOException {
+    public synchronized Path regenerateStreetfile(ResolveConflictConfiguration config) throws IOException {
         File[] dataFiles = sourceDir.listFiles();
         File[] resultFiles = resultsDir.listFiles();
         if (dataFiles == null || resultFiles == null) {
@@ -62,7 +64,7 @@ public class StreetfileProcessor {
         }
         if (dataFiles.length == 0) {
             logger.info("No streetfile data to process.");
-            return;
+            return null;
         }
 
         var fullData = new DistrictingData(config);
@@ -94,33 +96,32 @@ public class StreetfileProcessor {
 
         Map<StreetfileAddressRange, CompactDistrictMap> consolidatedData = fullData.consolidate(conflictPath);
         var bufferedWriter = new BufferedWriter(new PrintWriter(streetfilePath.toFile()));
-        int lineCount = 0;
-        for (var entry : consolidatedData.entrySet()) {
-            bufferedWriter.write(entry.getKey() + " " + entry.getValue());
-            bufferedWriter.newLine();
-            if (++lineCount % PRINT_BATCH_SIZE == 0) {
-                bufferedWriter.flush();
-            }
-        }
+        writeLines(bufferedWriter, consolidatedData.entrySet(), entry -> entry.getKey() + " " + entry.getValue());
         bufferedWriter.close();
 
         bufferedWriter = new BufferedWriter(new PrintWriter(improperPath.toFile()));
-        lineCount = 0;
         for (StreetfileLineType type : StreetfileLineType.values()) {
             if (!fullImproperLineMap.containsKey(type)) {
                 continue;
             }
             bufferedWriter.write(type.name());
             bufferedWriter.newLine();
-            for (String line : fullImproperLineMap.get(type)) {
-                bufferedWriter.write('\t' + line);
-                bufferedWriter.newLine();
-                if (++lineCount % PRINT_BATCH_SIZE == 0) {
-                    bufferedWriter.flush();
-                }
-            }
+            writeLines(bufferedWriter, fullImproperLineMap.get(type), line -> '\t' + line);
         }
         bufferedWriter.close();
+        return streetfilePath;
+    }
+
+    private static <T> void writeLines(BufferedWriter writer, Collection<T> data, Function<T, String> toLine) throws IOException {
+        int lineCount = 0;
+        for (T lineData : data) {
+            writer.write(toLine.apply(lineData));
+            writer.newLine();
+            if (++lineCount % PRINT_BATCH_SIZE == 0) {
+                writer.flush();
+            }
+        }
+        writer.flush();
     }
 
     private BaseParser getParser(File file) {

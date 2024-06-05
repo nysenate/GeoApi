@@ -1,7 +1,6 @@
 package gov.nysenate.sage.model.result;
 
-public enum ResultStatus
-{
+public enum ResultStatus {
     SUCCESS(0, "Success."),
 
     SERVICE_NOT_SUPPORTED(1, "The requested service is unsupported."),
@@ -57,6 +56,8 @@ public enum ResultStatus
     UNSUPPORTED_DISTRICT_MAP(81, "Maps for the requested district type are not available"),
     MISSING_DISTRICT_CODE(82, "A district code is required"),
 
+    NO_STREETFILES_TO_PROCESS(90, "There were no streetfiles to process. No action was taken."),
+
     /** Unexpected errors */
     NOT_FOUND(404, "Not Found"),
     INTERNAL_ERROR(500, "Internal Server Error."),
@@ -64,21 +65,19 @@ public enum ResultStatus
     RESPONSE_ERROR(502, "Application failed to provide a response."),
     RESPONSE_SERIALIZATION_ERROR(503, "Failed to serialize response.");
 
-    private int code;
-    private String desc;
-    ResultStatus(int code, String desc){
+    private final int code;
+    private final String desc;
+
+    ResultStatus(int code, String desc) {
         this.code = code;
         this.desc = desc;
     }
 
-    public int getCode()
-    {
+    public int getCode() {
         return this.code;
     }
 
-    public String getDesc()
-    {
+    public String getDesc() {
         return this.desc;
     }
-
 }

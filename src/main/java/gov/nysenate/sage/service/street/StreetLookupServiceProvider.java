@@ -1,7 +1,7 @@
 package gov.nysenate.sage.service.street;
 
-import gov.nysenate.sage.provider.district.StreetFile;
 import gov.nysenate.sage.provider.district.StreetLookupService;
+import gov.nysenate.sage.provider.district.Streetfile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ public class StreetLookupServiceProvider implements SageStreetLookUpProvider { /
     protected Map<String,StreetLookupService> providers = new HashMap<>();
 
     @Autowired
-    public StreetLookupServiceProvider(StreetFile streetFile) {
+    public StreetLookupServiceProvider(Streetfile streetFile) {
         this.defaultProvider = streetFile;
         providers.put("streetfile", this.defaultProvider);
     }

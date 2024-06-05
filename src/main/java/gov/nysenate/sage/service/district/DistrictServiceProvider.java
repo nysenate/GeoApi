@@ -13,7 +13,7 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.DistrictShapefile;
-import gov.nysenate.sage.provider.district.StreetFile;
+import gov.nysenate.sage.provider.district.Streetfile;
 import gov.nysenate.sage.service.PostOfficeService;
 import gov.nysenate.sage.util.ExecutorUtil;
 import gov.nysenate.sage.util.FormatUtil;
@@ -67,7 +67,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
     protected PostOfficeService postOfficeService;
 
     @Autowired
-    public DistrictServiceProvider(Environment env, DistrictShapefile districtShapefile, StreetFile streetFile, PostOfficeService postOfficeService)
+    public DistrictServiceProvider(Environment env, DistrictShapefile districtShapefile, Streetfile streetFile, PostOfficeService postOfficeService)
     {
         this.env = env;
         this.defaultProvider = districtShapefile;

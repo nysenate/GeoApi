@@ -66,7 +66,7 @@ public class NTSParser extends CountyParser {
         return super.getDataExtractor().addTest(line -> line.contains("House Range"), StreetfileLineType.SKIP)
                 .addBuildingIndices(1, 2, 3).addBuildingIndices(0)
                 .addType(WARD, 6).addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY,
-                        SCHOOL, VILLAGE, CLEG, FIRE, CITY_COUNCIL, TOWN_CITY);
+                        SCHOOL, VILLAGE, COUNTY_LEG, FIRE, CITY_COUNCIL, TOWN_CITY);
     }
 
     protected void parseStartOfPage(String startingLine) {

@@ -9,7 +9,7 @@ public enum DistrictType {
     ASSEMBLY("DISTRICT"), CONGRESSIONAL("DISTRICT"), SENATE("DISTRICT"), SCHOOL("TFCODE"), TOWN_CITY("ABBREV"),
     COUNTY("namelsad", "COUNTYFP"), ZIP("zip_code", "zip_code"),
     // Available only in street files
-    ELECTION, WARD, CLEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
+    ELECTION, WARD, COUNTY_LEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
 
     /** A Map container is used to associate type names with the enum type */
     private static final Map<String, DistrictType> resolveMap = new HashMap<>();
@@ -44,15 +44,11 @@ public enum DistrictType {
 
     /** Returns the DistrictType that matches the String representation */
     public static DistrictType resolveType(String type) {
-        return (type == null? null : resolveMap.get(type.toUpperCase()));
+        return (type == null ? null : resolveMap.get(type.toUpperCase()));
     }
 
     public static List<DistrictType> getStandardTypes() {
         return List.of(ASSEMBLY, CONGRESSIONAL, SENATE, SCHOOL, TOWN_CITY, COUNTY, ZIP);
-    }
-
-    public static List<DistrictType> getStateBasedTypes() {
-        return List.of(ASSEMBLY, CONGRESSIONAL, SENATE, COUNTY);
     }
 
     public String nameColumn() {

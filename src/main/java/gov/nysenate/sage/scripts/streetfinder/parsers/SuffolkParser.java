@@ -24,7 +24,7 @@ public class SuffolkParser extends CountyParser {
         return super.getDataExtractor().addIsProperLengthFunction(19)
                 .addSplitTest(list -> list.get(3).contains("DO NOT USE MAIL"), StreetfileLineType.SKIP)
                 .addBuildingIndices(6, 7, 8).addStreetIndices(2, 3, 4, 5).addType(TOWN_CITY, 13)
-                .addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY, CLEG, COUNTY, FIRE, VILLAGE);
+                .addTypesInOrder(ELECTION, CONGRESSIONAL, SENATE, ASSEMBLY, COUNTY_LEG, COUNTY, FIRE, VILLAGE);
     }
 
     @Override

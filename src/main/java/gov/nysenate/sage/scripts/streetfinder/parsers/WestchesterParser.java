@@ -22,6 +22,6 @@ public class WestchesterParser extends CountyParser {
         return super.getDataExtractor()
                 .addBuildingIndices(6, 7, 8).addStreetIndices(2, 3, 4, 5)
                 .addType(TOWN_CITY, 0).addPrecinctIndex(1).addType(ZIP, 9)
-                .addTypesInOrder(CONGRESSIONAL, SENATE, ASSEMBLY, CLEG);
+                .addTypesInOrder(CONGRESSIONAL, SENATE, ASSEMBLY, COUNTY_LEG);
     }
 }

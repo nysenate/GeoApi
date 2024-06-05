@@ -20,10 +20,10 @@ import java.util.Arrays;
 import java.util.List;
 
 @Category(IntegrationTest.class)
-public class StreetFileTest extends BaseTests {
+public class StreetfileTest extends BaseTests {
 
     @Autowired
-    private StreetFile streetFile;
+    private Streetfile streetFile;
 
     private static final List<DistrictType> types = Arrays.asList(DistrictType.ASSEMBLY, DistrictType.CONGRESSIONAL,
             DistrictType.COUNTY, DistrictType.SENATE, DistrictType.SCHOOL, DistrictType.TOWN_CITY, DistrictType.ZIP);

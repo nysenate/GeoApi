@@ -9,6 +9,7 @@ CREATE TABLE public.streetfile (
     parity      parity NOT NULL,
     street      VARCHAR(255) NOT NULL,
     postalCity  VARCHAR(255) NOT NULL,
+    zip5        INT NOT NULL,
 
     congressional_district      SMALLINT REFERENCES congressional (district),
     senate_district             SMALLINT REFERENCES senate (district),

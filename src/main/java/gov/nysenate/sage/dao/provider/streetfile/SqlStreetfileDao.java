@@ -22,42 +22,36 @@ import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateDistrictI
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 @Repository
-public class SqlStreetFileDao implements StreetFileDao
+public class SqlStreetfileDao implements StreetfileDao
 {
-    private final Logger logger = LoggerFactory.getLogger(SqlStreetFileDao.class);
+    private final Logger logger = LoggerFactory.getLogger(SqlStreetfileDao.class);
     private final BaseDao baseDao;
 
     private static final Map<DistrictType, String> distColMap = new HashMap<>();
     static {
-        distColMap.put(SENATE, "senate_code");
-        distColMap.put(ASSEMBLY, "assembly_code");
-        distColMap.put(CONGRESSIONAL, "congressional_code");
-        distColMap.put(COUNTY, "county_code");
-        distColMap.put(SCHOOL, "school_code");
-        distColMap.put(TOWN_CITY, "town_code");
-        distColMap.put(ELECTION, "election_code");
-        distColMap.put(CLEG, "cleg_code");
-        distColMap.put(CITY_COUNCIL, "cc_code");
-        distColMap.put(FIRE, "fire_code");
-        distColMap.put(VILLAGE, "vill_code");
+        for (DistrictType type : List.of(CONGRESSIONAL, SENATE, ASSEMBLY, ELECTION, COUNTY_LEG, CITY_COUNCIL, MUNICIPAL_COURT)) {
+            distColMap.put(type, type.name().toLowerCase() + "_district");
+        }
+        distColMap.put(COUNTY, "county_fips_code");
+        distColMap.put(TOWN_CITY, "town_city_gid");
+        distColMap.put(COUNTY_LEG, "county_leg_code");
         distColMap.put(WARD, "ward_code");
         distColMap.put(ZIP, "zip5");
     }
 
     @Autowired
-    public SqlStreetFileDao(BaseDao baseDao) {
+    public SqlStreetfileDao(BaseDao baseDao) {
         this.baseDao = baseDao;
     }
 
     /** {@inheritDoc} */
     public Map<StreetAddressRange, DistrictInfo> getDistrictStreetRangeMap(
             StreetAddress streetAddr, boolean useStreet, boolean fuzzy, boolean useHouse) {
-        ArrayList<Object> params = new ArrayList<>();
+        var params = new ArrayList<>();
         StringBuilder sqlBuilder = new StringBuilder(512);
         sqlBuilder.append("SELECT * FROM streetfile WHERE 1=1 \n");
 
         boolean whereZip = (streetAddr.getZip5() != null && !streetAddr.getZip5().isEmpty());
-        boolean whereState = (streetAddr.getState() != null && !streetAddr.getState().isEmpty());
         boolean whereStreet = (useStreet && streetAddr.getStreet() != null && !streetAddr.getStreet().isEmpty());
         boolean whereBldg = (useHouse && streetAddr.getBldgNum() != 0);
         boolean whereBldgChr = (useHouse && streetAddr.getBldgChar() != null && !streetAddr.getBldgChar().isEmpty());
@@ -68,16 +62,16 @@ public class SqlStreetFileDao implements StreetFileDao
         }
 
         if (whereStreet) {
-            /** Obtain a formatted street name with post/pre directionals applied */
+            // Obtain a formatted street name with post/pre directionals applied
             String street = getFormattedStreet(streetAddr, false);
 
-            /** This street name is similar to the above except a matching prefix will be abbreviated.
-             *  i.e 'SAINT MARKS PL' -> 'ST MARKS PL' */
+            // This street name is similar to the above except a matching prefix will be abbreviated.
+            // i.e 'SAINT MARKS PL' -> 'ST MARKS PL'
             String streetPrefixAbbr = getFormattedStreet(streetAddr, true);
 
-            /** Sometimes the bldg_chr is actually the tail end of the street name */
+            // Sometimes the bldg_chr is actually the tail end of the street name
             if (whereBldgChr) {
-                /** Every one else gets a range check; sometimes the suffix is actually part of the street prefix. */
+                // Every one else gets a range check; sometimes the suffix is actually part of the street prefix.
                 if (streetAddr.getBldgChar() != null) {
                     if (fuzzy) {
                         sqlBuilder.append(" AND (street LIKE ? OR (street LIKE ? AND (bldg_lo_chr='' OR bldg_lo_chr <= ?) AND (bldg_hi_chr='' OR ? <= bldg_hi_chr))) \n");
@@ -94,13 +88,11 @@ public class SqlStreetFileDao implements StreetFileDao
                 }
             }
             else {
-                /** Loose street match */
                 if (fuzzy) {
                     sqlBuilder.append(" AND (street LIKE ? OR street LIKE ?) \n");
                     params.add(street + "%");
                     params.add(streetPrefixAbbr + "%");
                 }
-                /** Strict street match */
                 else {
                     sqlBuilder.append(" AND (street = ?) \n");
                     params.add(street);
@@ -115,7 +107,7 @@ public class SqlStreetFileDao implements StreetFileDao
                 params.add(streetAddr.getBldgNum());
             }
         }
-        /** Only do a lookup if we have meaningful filters on the query */
+        // Only do a lookup if we have meaningful filters on the query
         if (whereZip || whereStreet) {
             return baseDao.geoApiJbdcTemplate.query(sqlBuilder.toString(),
                     new DistrictStreetRangeMapHandler(), params.toArray());
@@ -129,16 +121,16 @@ public class SqlStreetFileDao implements StreetFileDao
     /** {@inheritDoc} */
     public List<DistrictedStreetRange> getDistrictStreetRangesByZip(String zip5)
     {
-        return getDistrictStreetRanges("", Arrays.asList(zip5));
+        return getDistrictStreetRanges("", List.of(zip5));
     }
 
     /** {@inheritDoc} */
     public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<String> zip5List)
     {
-        /** Format the street name to aid in street file match */
+        // Format the street name to aid in street file match
         street = (street != null) ? getFormattedStreet(street, false) : "";
 
-        /** Short circuit the request under conditions where lots of data would be retrieved. */
+        // Short circuit the request under conditions where lots of data would be retrieved.
         if (zip5List == null || zip5List.isEmpty()) {
             return null;
         }
@@ -151,7 +143,7 @@ public class SqlStreetFileDao implements StreetFileDao
             "FROM streetfile " +
             "WHERE CASE WHEN ? != '' THEN street = ? ELSE TRUE END " +
             "AND (%s) " +
-            "ORDER BY street, bldg_lo_num";
+            "ORDER BY street, bldg_low";
 
         List<String> zip5WhereList = new ArrayList<>();
         for (String zip5 : zip5List) {
@@ -164,7 +156,7 @@ public class SqlStreetFileDao implements StreetFileDao
         try {
             Map<StreetAddressRange, DistrictInfo> resultMap =
                     baseDao.geoApiJbdcTemplate.query(sql, new DistrictStreetRangeMapHandler(), street, street);
-            if (resultMap != null && resultMap.size() > 0) {
+            if (resultMap != null && !resultMap.isEmpty()) {
                 List<DistrictedStreetRange> districtedStreetRanges = new ArrayList<>();
                 for (StreetAddressRange sar : resultMap.keySet()) {
                     districtedStreetRanges.add(new DistrictedStreetRange(sar, resultMap.get(sar)));
@@ -178,52 +170,32 @@ public class SqlStreetFileDao implements StreetFileDao
         return null;
     }
 
-    /** {@inheritDoc} */
-    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(String zip5)
-    {
-        return getAllStandardDistrictMatches(null, Arrays.asList(zip5));
-    }
-
-    /** {@inheritDoc} */
-    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(String street, String zip5)
-    {
-        return getAllStandardDistrictMatches(Arrays.asList(street), Arrays.asList(zip5));
-    }
-
-    /** {@inheritDoc} */
-    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> zip5)
-    {
-        return getAllStandardDistrictMatches(null, zip5);
-    }
-
     private Map<DistrictType, Set<String>> extractMapResults(String sqlQuery) {
-        return baseDao.geoApiJbdcTemplate.query(sqlQuery, new ResultSetExtractor<Map<DistrictType, Set<String>>>() {
-            @Override
-            public Map<DistrictType, Set<String>> extractData(ResultSet rs) throws SQLException {
-                Map<DistrictType, Set<String>> resultMap = new HashMap<>();
-                while (rs.next()) {
-                    DistrictType type = DistrictType.resolveType(rs.getString("type"));
-                    String code = rs.getString("code");
-                    if (!resultMap.containsKey(type)) {
-                        resultMap.put(type, new HashSet<>());
-                    }
-                    resultMap.get(type).add(code);
+        return baseDao.geoApiJbdcTemplate.query(sqlQuery, rs -> {
+            Map<DistrictType, Set<String>> resultMap = new HashMap<>();
+            while (rs.next()) {
+                DistrictType type = DistrictType.resolveType(rs.getString("type"));
+                String code = rs.getString("code");
+                if (!resultMap.containsKey(type)) {
+                    resultMap.put(type, new HashSet<>());
                 }
-                return resultMap;
+                resultMap.get(type).add(code);
             }
+            return resultMap;
         });
     }
 
     /** {@inheritDoc} */
     public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List)
     {
-        /** Short circuit on missing input */
+        // Short circuit on missing input
         if ((zip5List == null || zip5List.isEmpty()) && (streetList == null || streetList.isEmpty())) return null;
 
-        String sqlTmpl = "SELECT DISTINCT %s::character varying AS code, '%s' AS type\n" +
-                         "FROM streetfile\n" +
-                         "WHERE (%s) AND (%s)";
-        /** Create where clause for zip5 codes */
+        String sqlTmpl = """
+                SELECT DISTINCT %s::character varying AS code, '%s' AS type
+                FROM streetfile
+                WHERE (%s) AND (%s)""";
+        // Create where clause for zip5 codes
         String zip5WhereSql = "TRUE";
         if (zip5List != null && !zip5List.isEmpty()) {
             List<String> zip5WhereList = new ArrayList<>();
@@ -235,7 +207,7 @@ public class SqlStreetFileDao implements StreetFileDao
             zip5WhereSql = String.format("zip5 IN (%s)", StringUtils.join(zip5WhereList, ","));
         }
 
-        /** Create where clause for street names */
+        // Create where clause for street names
         String streetWhereSql = "TRUE";
         if (streetList != null && !streetList.isEmpty()) {
             List<String> streetWhereList = new ArrayList<>();
@@ -250,7 +222,6 @@ public class SqlStreetFileDao implements StreetFileDao
             }
         }
 
-        /** Format final query */
         List<String> queryList = new ArrayList<>();
         for (DistrictType dType : DistrictType.getStandardTypes()) {
             String column = distColMap.get(dType);
@@ -271,14 +242,15 @@ public class SqlStreetFileDao implements StreetFileDao
     /** {@inheritDoc} */
     public Map<DistrictType, Set<String>> getAllIntersections(DistrictType distType, String sourceId)
     {
-        /** Can't process if either of these are null */
-        if (distType == null || sourceId == null) return null;
+        if (distType == null || sourceId == null) {
+            return null;
+        }
 
-        String sqlTmpl = "SELECT DISTINCT %s::character varying AS code, '%s' AS type\n" +
-                "FROM streetfile\n" +
-                "WHERE (%s)";
+        String sqlTmpl = """
+                SELECT DISTINCT %s::character varying AS code, '%s' AS type
+                FROM streetfile
+                WHERE (%s)""";
 
-        /** Format query */
         String districtSpec = distColMap.get(distType) + " = " + String.format("'%s'", sourceId);
         List<String> queryList = new ArrayList<>();
         for (DistrictType dType : DistrictType.getStandardTypes()) {
@@ -318,7 +290,7 @@ public class SqlStreetFileDao implements StreetFileDao
         List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
         DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
 
-        /** If the consolidated dist returned null, we can either recurse with fuzzy on or return null */
+        // If the consolidated dist returned null, we can either recurse with fuzzy on or return null
         if (consolidatedDist == null) {
             if (!useFuzzy) {
                 return getDistAddressByHouse(streetAddress, true);
@@ -332,8 +304,7 @@ public class SqlStreetFileDao implements StreetFileDao
         }
     }
 
-    private DistrictedAddress getDistAddressByStreet(StreetAddress streetAddress, boolean useFuzzy) throws SQLException
-    {
+    private DistrictedAddress getDistAddressByStreet(StreetAddress streetAddress, boolean useFuzzy) {
         Map<StreetAddressRange, DistrictInfo> rangeMap = getDistrictStreetRangeMap(streetAddress, true, useFuzzy, false);
 
         if (rangeMap == null ) {
@@ -343,7 +314,7 @@ public class SqlStreetFileDao implements StreetFileDao
         List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
         DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
 
-        /** If the consolidated dist returned null, we can either recurse with fuzzy on or return null */
+        // If the consolidated dist returned null, we can either recurse with fuzzy on or return null
         if (consolidatedDist == null ) {
             if (!useFuzzy) {
                 return getDistAddressByStreet(streetAddress, true);
@@ -368,7 +339,7 @@ public class SqlStreetFileDao implements StreetFileDao
 
         List<DistrictInfo> ranges = new ArrayList<>(rangeMap.values());
         DistrictInfo consolidatedDist = consolidateDistrictInfo(ranges);
-        if (consolidatedDist != null){
+        if (consolidatedDist != null) {
             return new DistrictedAddress(new GeocodedAddress(streetAddress.toAddress()), consolidatedDist, DistrictMatchLevel.ZIP5);
         }
         else {
@@ -378,8 +349,6 @@ public class SqlStreetFileDao implements StreetFileDao
 
     /**
      * Appends pre and post dirs to the street and upper cases the result.
-     * @param street
-     * @return
      */
     private String getFormattedStreet(String street, boolean prefixNormalize)
     {
@@ -391,8 +360,6 @@ public class SqlStreetFileDao implements StreetFileDao
 
     /**
      * Appends pre and post dirs to the street and upper cases the result.
-     * @param streetAddr
-     * @return
      */
     private String getFormattedStreet(StreetAddress streetAddr, boolean prefixNormalize) {
         if (streetAddr != null) {
@@ -416,8 +383,8 @@ public class SqlStreetFileDao implements StreetFileDao
                 DistrictInfo dInfo = new DistrictInfo();
 
                 sar.setId(rs.getInt("id"));
-                sar.setBldgLoNum(rs.getInt("bldg_lo_num"));
-                sar.setBldgHiNum(rs.getInt("bldg_hi_num"));
+                sar.setBldgLoNum(rs.getInt("bldg_low"));
+                sar.setBldgHiNum(rs.getInt("bldg_high"));
                 sar.setStreet(rs.getString("street"));
                 sar.setLocation(rs.getString("town"));
                 sar.setZip5(rs.getString("zip5"));

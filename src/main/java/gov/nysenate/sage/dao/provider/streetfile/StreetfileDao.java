@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface StreetFileDao {
+public interface StreetfileDao {
     /**
      * Performs a street file lookup.
      * @param streetAddr     The StreetAddress to base the search on
@@ -22,7 +22,7 @@ public interface StreetFileDao {
      * @return               A LinkedHashMap containing StreetAddressRange and DistrictInfo
      * @throws SQLException
      */
-    public Map<StreetAddressRange, DistrictInfo> getDistrictStreetRangeMap(
+    Map<StreetAddressRange, DistrictInfo> getDistrictStreetRangeMap(
             StreetAddress streetAddr, boolean useStreet, boolean fuzzy, boolean useHouse) throws SQLException;
 
     /**
@@ -30,7 +30,7 @@ public interface StreetFileDao {
      * @param zip5
      * @return List of DistrictedStreetRange
      */
-    public List<DistrictedStreetRange> getDistrictStreetRangesByZip(String zip5);
+    List<DistrictedStreetRange> getDistrictStreetRangesByZip(String zip5);
 
     /**
      * Returns a list of street ranges with district information for a given street and zip5 list.
@@ -38,29 +38,7 @@ public interface StreetFileDao {
      * @param zip5List
      * @return List of DistrictedStreetRange
      */
-    public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<String> zip5List);
-
-    /**
-     * Retrieves the district matches based off of the zip5
-     * @param zip5
-     * @return
-     */
-    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(String zip5);
-
-    /**
-     * Retrieves the district matches based off of a street and a zip code
-     * @param street
-     * @param zip5
-     * @return
-     */
-    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(String street, String zip5);
-
-    /**
-     * Retrieves the district matches for a list of zip 5's
-     * @param zip5
-     * @return
-     */
-    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> zip5);
+    List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<String> zip5List);
 
     /**
      * Finds state district codes that overlap a given street/zip range.
@@ -68,7 +46,7 @@ public interface StreetFileDao {
      * @param zip5List   Zip5 to match against
      * @return       A map of district types to a set of matched district codes.
      */
-    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List);
+    Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List);
 
     /**
      * Finds state district codes that overlap a given street/zip range.
@@ -76,14 +54,14 @@ public interface StreetFileDao {
      * @param sourceId The id of that district
      * @return       A map of district types to a set of matched district codes.
      */
-    public Map<DistrictType, Set<String>> getAllIntersections(DistrictType distType, String sourceId);
+    Map<DistrictType, Set<String>> getAllIntersections(DistrictType distType, String sourceId);
     /**
      * Retreives a districted address by a house in th a street address
      * @param streetAddress
      * @return
      * @throws SQLException
      */
-    public DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress) throws SQLException;
+    DistrictedAddress getDistAddressByHouse(StreetAddress streetAddress) throws SQLException;
 
     /**
      * Retrieves a districted address by a street in a street address
@@ -91,7 +69,7 @@ public interface StreetFileDao {
      * @return
      * @throws SQLException
      */
-    public DistrictedAddress getDistAddressByStreet(StreetAddress streetAddress) throws SQLException;
+    DistrictedAddress getDistAddressByStreet(StreetAddress streetAddress) throws SQLException;
 
     /**
      * Retrieves a districted address object from a zip code in a street address
@@ -99,5 +77,5 @@ public interface StreetFileDao {
      * @return
      * @throws SQLException
      */
-    public DistrictedAddress getDistAddressByZip(StreetAddress streetAddress) throws SQLException;
+    DistrictedAddress getDistAddressByZip(StreetAddress streetAddress) throws SQLException;
 }
