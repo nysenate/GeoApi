@@ -7,28 +7,29 @@ import java.util.stream.Collectors;
 /**
  * Represents a street address with address components broken down.
  */
-public class StreetAddress
-{
-    protected int bldgNum;
-    protected String bldgChar;
-    protected String preDir;
-    protected String street;
-    protected String streetName;
-    protected String streetType;
-    protected String postDir;
-    protected String internal;
-    protected String location;
-    protected String state;
-    protected String zip5;
-    protected String zip4;
-    protected String poBox;
-    protected boolean isHwy;
+public class StreetAddress {
+    // TODO: should be an Integer, because a house number of 0 can be valid
+    private Integer bldgNum;
+    private String bldgChar;
+    // TODO: Combine these into a simple street name if possible
+    private String preDir;
+    private String street;
+    private String streetName;
+    private String streetType;
+    private String postDir;
+    private String internal;
+    private String location;
+    private String state;
+    // TODO: both zips should be Integers
+    private String zip5;
+    private String zip4;
+    private String poBox;
+    private boolean isHwy;
 
-    public StreetAddress(){}
+    public StreetAddress() {}
 
     public StreetAddress(int bldgNum, String preDir, String streetName, String streetType, String postDir, String internal,
-                         String location, String state, String zip5)
-    {
+                         String location, String state, String zip5) {
         this.setBldgNum(bldgNum);
         this.setPreDir(preDir);
         this.setStreetName(streetName);
@@ -45,10 +46,9 @@ public class StreetAddress
      * necessary null checks.
      * @return  Address
      */
-    public Address toAddress()
-    {
+    public Address toAddress() {
         String addr1 = "";
-        if (getBldgNum() != 0) addr1 += getBldgNum() + " ";
+        if (bldgNum != null) addr1 += getBldgNum() + " ";
         if (!getPreDir().isEmpty()) addr1 += getPreDir() + " ";
         if (!getStreet().isEmpty()) addr1 += getStreet() + " ";
         if (!getPostDir().isEmpty()) addr1 += getPostDir() + " ";
@@ -60,7 +60,7 @@ public class StreetAddress
     }
 
     public boolean equals(StreetAddress streetAddress) { //(str1 == null ? str2 == null : str1.equals(str2))
-        boolean bldgNumEquals = (this.bldgNum == streetAddress.getBldgNum() );
+        boolean bldgNumEquals = (Objects.equals(this.bldgNum, streetAddress.getBldgNum()));
         boolean preDirEquals = compareStrings(this.preDir, streetAddress.getPreDir());
         boolean postDirEquals = compareStrings(this.postDir, streetAddress.getPostDir());
         boolean streetNameEquals = compareStrings(this.streetName, streetAddress.getStreetName());
@@ -76,18 +76,15 @@ public class StreetAddress
         return (str1 == null ? str2 == null : str1.equalsIgnoreCase(str2));
     }
 
-    public boolean isStreetEmpty()
-    {
+    public boolean isStreetEmpty() {
         return this.getStreet().isEmpty();
     }
 
-    public String toString()
-    {
+    public String toString() {
         return this.toAddress().toString();
     }
 
-    public String toStringParsed()
-    {
+    public String toStringParsed() {
         return "bldgNum [" + this.getBldgNum() + "] preDir [" + this.getPreDir() + "] streetName [" + this.getStreetName() + "] postDir [" +
                 this.getPostDir() + "] streetType [" + this.getStreetType() + "] city [" + this.getLocation() +
                 "] state [" + this.getState() + "] zip5 [" + this.getZip5() + "]";
@@ -95,7 +92,7 @@ public class StreetAddress
 
     /** Getters / Setters */
 
-    public int getBldgNum() {
+    public Integer getBldgNum() {
         return bldgNum;
     }
 
@@ -111,8 +108,8 @@ public class StreetAddress
         return street;
     }
 
-    private static String combine(String... parts) {
-        return Arrays.stream(parts).filter(Objects::nonNull)
+    public static String combine(String... parts) {
+        return Arrays.stream(parts).filter(str -> str != null && !str.isEmpty())
                 .collect(Collectors.joining(" ")).trim();
     }
 

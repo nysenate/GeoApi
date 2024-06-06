@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * TigerGeocoder is a geocoding implementation that resides as a collection of functions
@@ -152,7 +153,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
         /** A matching building number usually means its a house quality match. Also we don't want to
          *  perform any zipcode corrections for house level matches. If the zipcodes don't match it is
          *  not a house level match */
-        if (sa.getBldgNum() != 0 && inputAddress.getAddr1().contains(Integer.toString(sa.getBldgNum()))) {
+        if (sa.getBldgNum() != null && inputAddress.getAddr1().contains(Integer.toString(sa.getBldgNum()))) {
             if (inputAddress.getZip5().isEmpty() || inputAddress.getZip5().equals(sa.getZip5())){
                 return GeocodeQuality.HOUSE;
             }
@@ -174,8 +175,8 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
             given to tiger might not all be in the addr field. To compare specifics for a slit apart addr, It is
             converted to an StreetAddress
          */
-        if (sa.getBldgNum() != 0 && isa.getBldgNum() == sa.getBldgNum()) {
-            if(isa.getZip5().isEmpty() || isa.getZip5().equals(sa.getZip5())) {
+        if (sa.getBldgNum() != null && Objects.equals(isa.getBldgNum(), sa.getBldgNum())) {
+            if (isa.getZip5().isEmpty() || isa.getZip5().equals(sa.getZip5())) {
                 return GeocodeQuality.HOUSE;
             }
         }

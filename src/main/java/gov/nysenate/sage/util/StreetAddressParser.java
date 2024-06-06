@@ -1,6 +1,5 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.client.view.address.AddressView;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.StreetAddress;
 import org.apache.commons.lang3.StringUtils;
@@ -73,7 +72,7 @@ public final class StreetAddressParser {
         String street = streetAddr.getStreetName();
         if (isset(street)) {
             /** The following line would remove all numerical suffixes and special characters.
-             *  This causes problems when matching the street file table. This may adversly affect the geocache table
+             *  This causes problems when matching the street file table. This may adversely affect the geocache table
              */
             street = street.replaceFirst("(?<=[0-9])(?:ST|ND|RD|TH)", "");
             street = street.replaceAll("[#:;.,]", "").replaceAll("'", "").replaceAll(" +", " ").replaceAll("-", " ");
@@ -83,30 +82,6 @@ public final class StreetAddressParser {
 
         return streetAddr;
     }
-
-    /**
-     * Sometimes a street may be prefixed with `Saint` (as in `Saint Marks`) or `Fort` and an abbreviated
-     * street name is desired (i.e `St Marks`)
-     * @param street Street name to normalize
-     * @return       If the criteria matched on the first word, replace that portion and return the full street name.
-     */
-    public static String getPrefixNormalizedStreetName(String street)
-    {
-        if (street != null && !street.isEmpty()) {
-            List<String> parts = new ArrayList<>(Arrays.asList(street.split(" ")));
-            if (!parts.isEmpty()) {
-                String streetPrefix = parts.get(0);
-                String replaceStreetPrefix = AddressDictionary.streetPrefixMap.get(streetPrefix.toUpperCase());
-                if (replaceStreetPrefix != null && !replaceStreetPrefix.isEmpty()) {
-                    parts.set(0, replaceStreetPrefix);
-                    street = StringUtils.join(parts, " ");
-                }
-            }
-        }
-        return street;
-    }
-
-    /** Internal parsing code ----------------------------------------------------------------------------------------*/
 
     /**
     * Delegates to parsing methods based on the Address.isParsed condition.
@@ -260,7 +235,7 @@ public final class StreetAddressParser {
                  */
                 if (addrParts.length == 2) {
                     intParts = new LinkedList<>(stParts);
-                    String internal = extractInternal(intParts, stParts, streetAddress);
+                    String internal = extractInternal(intParts, stParts);
                     if (!internal.isEmpty()) {
                         streetAddress.setInternal(internal);
                         logger.debug("Internal: " + streetAddress.getInternal());
@@ -272,7 +247,7 @@ public final class StreetAddressParser {
                     else {
                         intParts = new LinkedList<>(Arrays.asList(addrParts[1].split(" ")));
                         normalize(intParts);
-                        internal = extractInternal(intParts, null, streetAddress);
+                        internal = extractInternal(intParts, null);
                         if (!internal.isEmpty()) {
                             streetAddress.setInternal(internal);
                             logger.debug("Internal: " + streetAddress.getInternal());
@@ -287,7 +262,7 @@ public final class StreetAddressParser {
                 }
                 else {
                     intParts = new LinkedList<>(stParts);
-                    String internal = extractInternal(intParts, stParts, streetAddress);
+                    String internal = extractInternal(intParts, stParts);
 
                     /** If an internal is found, it might be possible that the location is also included.
                      *  Here we determine the bounds of the internal component and set whatever is to the right
@@ -410,7 +385,7 @@ public final class StreetAddressParser {
             }
 
             /** If a 'street' was found but it doesn't have a building number and a street type, it's probably the location. */
-            if (streetAddress.getStreetType().isEmpty() && streetAddress.getBldgNum() == 0
+            if (streetAddress.getStreetType().isEmpty() && streetAddress.getBldgNum() == null
                 && streetAddress.getLocation().isEmpty() && !streetAddress.getStreet().isEmpty()) {
                 streetAddress.setLocation(streetAddress.getStreet());
                 streetAddress.setStreetName("");
@@ -468,10 +443,9 @@ public final class StreetAddressParser {
     * @param candidates     List of words that are extracted from the street level portion of the address string
     * @param streetList     The overall street level list that could be the same as the candidates list
     *                       If a match for a unit type is found in candidates, it will be removed from streetList.
-    * @param streetAddress  StreetAddress to set
     * @return String representation of the matched internal component
     */
-    private static String extractInternal(LinkedList<String> candidates, LinkedList<String> streetList, StreetAddress streetAddress)
+    private static String extractInternal(LinkedList<String> candidates, LinkedList<String> streetList)
     {
         String internal = "";
         while (!candidates.isEmpty()) {
@@ -520,11 +494,6 @@ public final class StreetAddressParser {
         list.replaceAll(StreetAddressParser::normalize);
     }
 
-    public static AddressView performInitCapsOnAddressView(AddressView addressView) {
-        Address initCapsAddress = performInitCapsOnAddress(new Address(addressView.getAddr1(), addressView.getAddr2(),
-                addressView.getCity(), addressView.getState(), addressView.getZip5(), addressView.getZip4()));
-        return new AddressView(initCapsAddress);
-    }
     /**
      * This method takes in a street address and ensures that it is in mixed case
      * For example, W TYPICAL ST NW APT 1S -> W Typical St NW Apt 1S

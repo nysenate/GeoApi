@@ -77,12 +77,13 @@ public class Address implements Serializable, Cloneable
     }
 
     public Address(StreetAddress streetAddress) {
-        this.setAddr1(formAddr1(streetAddress));
-        this.setAddr2("");
-        this.setPostalCity(streetAddress.getLocation());
-        this.setState(streetAddress.getState());
-        this.setZip5(streetAddress.getZip5());
-        this.setZip4(streetAddress.getZip4());
+        String bldgNum = streetAddress.getBldgNum() == null ? "" : String.valueOf(streetAddress.getBldgNum());
+        setAddr1(StreetAddress.combine(bldgNum + streetAddress.getBldgChar(), streetAddress.getStreet()));
+        setAddr2(streetAddress.getInternal());
+        setPostalCity(streetAddress.getLocation());
+        setState(streetAddress.getState());
+        setZip5(streetAddress.getZip5());
+        setZip4(streetAddress.getZip4());
     }
 
     public boolean isParsed()
@@ -128,11 +129,6 @@ public class Address implements Serializable, Cloneable
     public String toNormalizedString()
     {
         return toString().replaceFirst("^(\\d+)(-)(\\d+)","$1$3");
-    }
-
-    private String formAddr1(StreetAddress streetAddress) {
-        return streetAddress.getBldgNum() + " " + streetAddress.getPreDir() + " " + streetAddress.getStreetName()
-                + " " + streetAddress.getPostDir() + " " + streetAddress.getStreetType();
     }
 
     public String getAddr1()

@@ -37,7 +37,7 @@ public record AddressWithoutNum(String street, String postalCity, int zip5) {
     }
     /**
      * Sometimes, USPS can validate incorrectly without this standardization.
-     * E.g. (9151 71 ROAD, 11375) would become (9151 71ST AVE, 11375) without this
+     * E.g. (9151 71 ROAD, 11375) would become (9151 71ST AVE, 11375) without this.
      */
     private static String standardizeStreet(String street) {
         String[] streetParts = street.toUpperCase().split(" ");

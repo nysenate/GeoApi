@@ -64,7 +64,8 @@ public class SqlStreetfileDao implements StreetfileDao {
             try {
                 bldgNum = Integer.parseInt(addr.getAddr1().replaceFirst(" .*$", ""));
             } catch (NumberFormatException ex) {
-                return null;
+                logger.warn("Did not parse building number.");
+                return getDistrictedAddress(addr, matchLevel.getNextHighestLevel());
             }
             StreetParity parity = bldgNum%2 == 0 ? EVENS : ODDS;
             sqlBuilder.append("AND (bldg_low <= %d AND %d <= bldg_high)".formatted(bldgNum, bldgNum))
@@ -229,20 +230,10 @@ public class SqlStreetfileDao implements StreetfileDao {
      * Appends pre and post dirs to the street and upper cases the result.
      */
     private String getFormattedStreet(String street) {
-        StreetAddress streetAddress = new StreetAddress();
-        StreetAddressParser.extractStreet(street, streetAddress);
-        StreetAddressParser.normalizeStreetAddress(streetAddress);
-        return getFormattedStreet(streetAddress);
-    }
-
-    /**
-     * Appends pre and post dirs to the street and upper cases the result.
-     */
-    private String getFormattedStreet(StreetAddress streetAddr) {
-        if (streetAddr == null) {
-            return "";
-        }
-        String street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
+        var streetAddr = new StreetAddress();
+        StreetAddressParser.extractStreet(street, streetAddr);
+        StreetAddressParser.normalizeStreetAddress(streetAddr);
+        street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
         street += streetAddr.getStreet();
         street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
         return street.toUpperCase();
