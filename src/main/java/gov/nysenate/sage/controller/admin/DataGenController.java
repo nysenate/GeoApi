@@ -3,7 +3,7 @@ package gov.nysenate.sage.controller.admin;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
-import gov.nysenate.sage.client.view.map.MapView;
+import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.scripts.streetfinder.model.ResolveConflictConfiguration;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
@@ -16,17 +16,15 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
@@ -36,40 +34,47 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminRespon
 @Controller
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datagen")
 public class DataGenController {
-    private static final Logger logger = LoggerFactory.getLogger(DataGenController.class);
     private final AdminUserAuth adminUserAuth;
     private final ApiUserAuth apiUserAuth;
     private final DataGenService dataGenService;
     private final PostOfficeService postOfficeService;
     private final StreetfileProcessor streetfileProcessor;
+    private final StreetfileDao streetfileDao;
 
     @Autowired
     public DataGenController(AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth,
                              DataGenService dataGenService, StreetfileProcessor streetfileProcessor,
-                             PostOfficeService postOfficeService) {
+                             PostOfficeService postOfficeService, StreetfileDao streetfileDao) {
         this.adminUserAuth = adminUserAuth;
         this.apiUserAuth = apiUserAuth;
         this.dataGenService = dataGenService;
         this.postOfficeService = postOfficeService;
         this.streetfileProcessor = streetfileProcessor;
+        this.streetfileDao = streetfileDao;
     }
 
     @GetMapping("/streetfile")
-    public BaseResponse generateStreetfile(@RequestParam(defaultValue = "false") boolean voterFirst,
-                                   @RequestParam(defaultValue = "0.8") double threshold) throws IOException {
-        List<StreetfileType> priorityList = voterFirst ? List.of(StreetfileType.VOTER, StreetfileType.COUNTY) :
-                List.of(StreetfileType.COUNTY, StreetfileType.VOTER);
-        Path streetfilePath = streetfileProcessor.regenerateStreetfile(
-                new ResolveConflictConfiguration(priorityList, threshold));
-        var response = new BaseResponse();
-        if (streetfilePath == null) {
-            response.setStatus(ResultStatus.NO_STREETFILES_TO_PROCESS);
-        }
-        else {
-            // TODO: run COPY command
-            response.setStatus(SUCCESS);
-        }
-        return response;
+    public void generateStreetfile(HttpServletRequest request, HttpServletResponse response,
+                                   @RequestParam(defaultValue = "false") boolean voterFirst,
+                                   @RequestParam(defaultValue = "0.8") double threshold,
+                                   @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                   @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                   @RequestParam(required = false, defaultValue = "") String key) {
+        authenticateAndRun(request, response, username, password, key, () -> {
+            List<StreetfileType> priorityList = voterFirst ? List.of(StreetfileType.VOTER, StreetfileType.COUNTY) :
+                    List.of(StreetfileType.COUNTY, StreetfileType.VOTER);
+            Path streetfilePath = streetfileProcessor.regenerateStreetfile(
+                    new ResolveConflictConfiguration(priorityList, threshold));
+            var apiResponse = new BaseResponse();
+            if (streetfilePath == null) {
+                apiResponse.setStatus(ResultStatus.NO_STREETFILES_TO_PROCESS);
+            }
+            else {
+                streetfileDao.replaceStreetfile(streetfilePath);
+                apiResponse.setStatus(SUCCESS);
+            }
+            return apiResponse;
+        });
     }
 
     /**
@@ -80,12 +85,7 @@ public class DataGenController {
      * <p>
      * Usage:
      * (GET)    /admin/datagen/genmetadata/{option}
-     *
-     * @param request  HttpServletRequest
-     * @param response HttpServletResponse
      * @param option   String value that can be either all, assembly, congress, senate, a, c, s
-     * @param username String
-     * @param password String
      */
     @RequestMapping(value = "/genmetadata/{option}", method = RequestMethod.GET)
     public void generateMetaData(HttpServletRequest request, HttpServletResponse response,
@@ -93,22 +93,7 @@ public class DataGenController {
                                  @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                  @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                  @RequestParam(required = false, defaultValue = "") String key) {
-        Object apiResponse;
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            try {
-                apiResponse = dataGenService.generateMetaData(option);
-            } catch (Exception e) {
-                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-            }
-        } else {
-            apiResponse = invalidAuthResponse();
-        }
-        setAdminResponse(apiResponse, response);
+        authenticateAndRun(request, response, username, password, key, () -> dataGenService.generateMetaData(option));
     }
 
     /**
@@ -119,90 +104,30 @@ public class DataGenController {
      * <p>
      * Usage:
      * (GET)    /admin/datagen/vacantize
-     *
-     * @param request  HttpServletRequest
-     * @param response HttpServletResponse
-     * @param username String
-     * @param password String
      */
     @RequestMapping(value = "/vacantize", method = RequestMethod.GET)
     public void vacantizeSenatorData(HttpServletRequest request, HttpServletResponse response,
                                  @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                  @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                  @RequestParam(required = false, defaultValue = "") String key) {
-        Object apiResponse;
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            try {
-                apiResponse = dataGenService.vacantizeSenateData();
-            } catch (Exception e) {
-                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-            }
-        } else {
-            apiResponse = invalidAuthResponse();
-        }
-        setAdminResponse(apiResponse, response);
+        authenticateAndRun(request, response, username, password, key, dataGenService::vacantizeSenateData);
     }
 
     /**
      * Senator Cache Update Api
      * ------------------------
      * Updates the Senator Cache from GenMetaData Manually
-     *
      *  /admin/datagen/rebuild/sencache
-     *
-     * @param request
-     * @param response
-     * @param username
-     * @param password
-     * @param key
      */
     @RequestMapping(value = "/rebuild/sencache", method = RequestMethod.GET)
     public void updateSenatorCache(HttpServletRequest request, HttpServletResponse response,
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                    @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                    @RequestParam(required = false, defaultValue = "") String key) {
-
-        Object apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+        authenticateAndRun(request, response, username, password, key, () -> {
             dataGenService.updateSenatorCache();
-            apiResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
-        }
-
-        setAdminResponse(apiResponse, response);
-    }
-
-    /**
-     * Sends the appropriate Map response.
-     * Note: the non-capturing group below is necessary.
-     */
-    @GetMapping(value = "/{type:(?:county|town)}codes")
-    public void ensureCodeFilesExist(HttpServletRequest request, HttpServletResponse response,
-                                     @PathVariable String type,
-                                     @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                     @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                                     @RequestParam(required = false, defaultValue = "") String key) {
-        Object apiResponse;
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            apiResponse = new MapView<>(dataGenService.getCodes(type.equals("town")));
-        } else {
-            apiResponse = invalidAuthResponse();
-        }
-        setAdminResponse(apiResponse, response);
+            return new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        });
     }
 
     /**
@@ -213,9 +138,6 @@ public class DataGenController {
      * <p>
      * Usage:
      * (GET)    /admin/datagen/zipcodes
-     *
-     * @param request  HttpServletRequest
-     * @param response HttpServletResponse
      */
 
     @RequestMapping(value = "/zipcodes", method = RequestMethod.GET)
@@ -223,23 +145,7 @@ public class DataGenController {
                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                      @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                      @RequestParam(required = false, defaultValue = "") String key) {
-        Object apiResponse;
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            try {
-                apiResponse = dataGenService.generateZipCsv();
-            } catch (Exception e) {
-                apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-            }
-        } else {
-            apiResponse = invalidAuthResponse();
-        }
-
-        setAdminResponse(apiResponse, response);
+        authenticateAndRun(request, response, username, password, key, dataGenService::generateZipCsv);
     }
 
     @RequestMapping(value = "/process/post-offices")
@@ -247,17 +153,21 @@ public class DataGenController {
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                    @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                    @RequestParam(required = false, defaultValue = "") String key) {
+        authenticateAndRun(request, response, username, password, key, postOfficeService::replaceData);
+    }
+
+    private void authenticateAndRun(HttpServletRequest request, HttpServletResponse response,
+                                    String username, String password, String key,
+                                    Callable<Object> responseSupplier) {
         Object apiResponse;
         String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
-
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             try {
-                apiResponse = postOfficeService.replaceData();
-            } catch (IOException ex) {
-                logger.error("Error trying to process post office data", ex);
+                apiResponse = responseSupplier.call();
+            } catch (Exception e) {
                 apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
             }
         } else {
@@ -265,5 +175,4 @@ public class DataGenController {
         }
         setAdminResponse(apiResponse, response);
     }
-
 }
