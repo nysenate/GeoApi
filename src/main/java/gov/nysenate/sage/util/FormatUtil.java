@@ -1,13 +1,6 @@
 package gov.nysenate.sage.util;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.jsoup.Jsoup;
@@ -15,24 +8,22 @@ import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.function.Function;
 
 /**
  * Utility class for performing JSON object serialization/de-serialization and mapping.
 */
-public abstract class FormatUtil {
+public final class FormatUtil {
+    private static final Logger logger = LoggerFactory.getLogger(FormatUtil.class);
+    private static final int PRINT_BATCH_SIZE = 10000;
 
-    protected static Logger logger = LoggerFactory.getLogger(FormatUtil.class);
-    protected static ObjectMapper mapper = new ObjectMapper();
+    private FormatUtil() {}
 
     public static boolean isStringEmptyorNull(String string) {
-        if (string == null || string.isEmpty() ) {
-            return true;
-        }
-        return false;
+        return string == null || string.isEmpty();
     }
 
     public static String cleanString(String string) {
@@ -42,8 +33,7 @@ public abstract class FormatUtil {
         return string;
     }
 
-    public static String toCamelCase(String s)
-    {
+    public static String toCamelCase(String s) {
         if (s != null && s.contains("_")) {
             return StringUtils.uncapitalize(WordUtils.capitalizeFully(s, '_').replaceAll("_", ""));
         }
@@ -51,30 +41,11 @@ public abstract class FormatUtil {
     }
 
     /** Removes leading zeroes in a string */
-    public static String trimLeadingZeroes(String s)
-    {
-        if (s != null){
-            return s.replaceFirst("^0+(?!$)", "");
+    public static String trimLeadingZeroes(String s) {
+        if (s == null) {
+            return "";
         }
-        return "";
-    }
-
-    /**
-     * Custom serializer to deal with element names when outputting collections.
-     * Uses the object's simple class name as the element to represent the content of the collection.
-     */
-    public static class CollectionSerializer extends JsonSerializer<Collection>
-    {
-        public void serialize(Collection value, JsonGenerator generator, SerializerProvider provider) throws IOException, JsonProcessingException
-        {
-            generator.writeStartObject();
-            for (Object o : value) {
-                generator.writeFieldName(o.getClass().getSimpleName());
-                JsonSerializer<Object> ser = provider.findTypedValueSerializer(o.getClass(), true, null);
-                ser.serialize(o, generator, provider);
-            }
-            generator.writeEndObject();
-        }
+        return s.replaceFirst("^0+(?!$)", "");
     }
 
     /**
@@ -83,7 +54,7 @@ public abstract class FormatUtil {
      *
      * @return String   JSON string
      * */
-    public static String toJsonString(Object o){
+    public static String toJsonString(Object o) {
         var om = new ObjectMapper();
         try {
             return om.writeValueAsString(o);
@@ -94,39 +65,18 @@ public abstract class FormatUtil {
         }
     }
 
-    /** Prints out JSON representation of object to standard out */
-    public static String printObject(Object o){
-        return printObject(o, System.out);
-    }
-
-    /** Prints out JSON representation of object to the given print stream */
-    public static String printObject(Object o, PrintStream ps){
-        String s = toJsonString(o);
-        if (ps != null){
-            ps.println(s);
-        }
-        return s;
-    }
-
     /**
-     * Given a JSON string return a hash map of the key value pairs.
-     * */
-    public static HashMap<String,Object> jsonToHashMap(String json){
-        TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
-        try {
-            return mapper.readValue(json, typeRef);
+     * Converts each T into a line, writes each line, and flushing periodically.
+     */
+    public static <T> void writeLines(BufferedWriter writer, Collection<T> data, Function<T, String> toLine) throws IOException {
+        int lineCount = 0;
+        for (T lineData : data) {
+            writer.write(toLine.apply(lineData));
+            writer.newLine();
+            if (++lineCount % PRINT_BATCH_SIZE == 0) {
+                writer.flush();
+            }
         }
-        catch(JsonGenerationException g){
-            logger.error("Object to JSON Error: ".concat(g.getMessage()));
-            return null;
-        }
-        catch(JsonMappingException m){
-            logger.error("Object to JSON Error: ".concat(m.getMessage()));
-            return null;
-        }
-        catch(Exception ex){
-            logger.error("Object to JSON Error: ".concat(ex.getMessage()));
-            return null;
-        }
+        writer.flush();
     }
 }

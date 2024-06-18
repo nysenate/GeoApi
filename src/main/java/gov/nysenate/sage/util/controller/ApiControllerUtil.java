@@ -23,9 +23,10 @@ import java.util.Date;
 
 import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_USERNAME_ATTR;
 
-public class ApiControllerUtil {
+public final class ApiControllerUtil {
+    private static final Logger logger = LogManager.getLogger(ApiControllerUtil.class);
 
-    private static Logger logger = LogManager.getLogger(ApiControllerUtil.class);
+    private ApiControllerUtil() {};
 
     /**
      * Constructs a new Address object using the query parameters of the supplied HttpServletRequest.
@@ -35,19 +36,16 @@ public class ApiControllerUtil {
      * @return      new Address instance if r was valid
      *              null if r was null
      */
-    public static Address getAddressFromParams(HttpServletRequest request)
-    {
-        Address address = null;
-        if (request != null){
-            if (request.getParameter("addr") != null) {
-                address = new Address(request.getParameter("addr"));
-            }
-            else {
-                address = new Address(request.getParameter("addr1"), request.getParameter("addr2"), request.getParameter("city"),
-                        request.getParameter("state"), request.getParameter("zip5"),  request.getParameter("zip4"));
-            }
+    public static Address getAddressFromParams(HttpServletRequest request) {
+        if (request == null) {
+            return null;
         }
-        return address;
+        if (request.getParameter("addr") != null) {
+            return new Address(request.getParameter("addr"));
+        } else {
+            return new Address(request.getParameter("addr1"), request.getParameter("addr2"), request.getParameter("city"),
+                    request.getParameter("state"), request.getParameter("zip5"), request.getParameter("zip4"));
+        }
     }
 
     /**
@@ -55,44 +53,17 @@ public class ApiControllerUtil {
      * This method exists to provide consistency among the different controllers when retrieving an
      * address from the api.
      * @param addr  complete address in 1 param
-     * @param addr1
-     * @param addr2
-     * @param city
-     * @param state
-     * @param zip5
-     * @param zip4
      * @return      new Address instance if r was valid
      *              null if r was null
      */
     public static Address getAddressFromParams(String addr, String addr1, String addr2 , String city,
-                                               String state, String zip5, String zip4)
-    {
-        Address address = null;
-            if (addr != null) {
-                address = new Address(addr);
-            }
-            else {
-                address = new Address(addr1, addr2, city, state, zip5, zip4);
-            }
-        return address;
-    }
-
-    /**
-     * Constructs a new Point object using the query parameters of the supplied HttpServletRequest
-     * @param r     HttpServletRequest
-     * @return      new Point instance or null
-     */
-    public static Point getPointFromParams(HttpServletRequest r)
-    {
-        Point point = null;
-        if (r != null){
-            try {
-                point = new Point(Double.parseDouble( FormatUtil.cleanString(r.getParameter("lat"))),
-                        Double.parseDouble(FormatUtil.cleanString( r.getParameter("lon")) ));
-            }
-            catch (Exception ex) { /** Ignored Exception */ }
+                                               String state, String zip5, String zip4) {
+        if (addr != null) {
+            return new Address(addr);
         }
-        return point;
+        else {
+            return new Address(addr1, addr2, city, state, zip5, zip4);
+        }
     }
 
     /**
@@ -101,22 +72,19 @@ public class ApiControllerUtil {
      * @param lon String
      * @return      new Point instance or null
      */
-    public static Point getPointFromParams(String lat, String lon)
-    {
-        Point point = null;
-        if (lat != null && lon != null){
+    public static Point getPointFromParams(String lat, String lon) {
+        if (lat != null && lon != null) {
             try {
-                point = new Point(Double.parseDouble(FormatUtil.cleanString(lat)),
+                return new Point(Double.parseDouble(FormatUtil.cleanString(lat)),
                         Double.parseDouble(FormatUtil.cleanString(lon)));
             }
-            catch (Exception ex) { /** Ignored Exception */ }
+            catch (Exception ignored) {}
         }
-        return point;
+        return null;
     }
 
     /** Delegates response to ApiFilter */
-    public static void setApiResponse(Object response, HttpServletRequest request)
-    {
+    public static void setApiResponse(Object response, HttpServletRequest request) {
         ApiFilter.setApiResponse(response, request);
     }
 
@@ -130,15 +98,14 @@ public class ApiControllerUtil {
      * @param json Json payload
      * @return ArrayList<Address>
      */
-    public static ArrayList<Address> getAddressesFromJsonBody(String json)
-    {
+    public static ArrayList<Address> getAddressesFromJsonBody(String json) {
         ArrayList<Address> addresses = new ArrayList<>();
         try {
-            logger.trace("Batch address json body: " + json);
+            logger.trace("Batch address json body: {}", json);
             ObjectMapper mapper = new ObjectMapper();
             return new ArrayList<>(Arrays.asList(mapper.readValue(json, Address[].class)));
         }
-        catch(Exception ex){
+        catch(Exception ex) {
             logger.debug("No valid batch address payload detected.");
             logger.trace(ex);
         }
@@ -155,11 +122,10 @@ public class ApiControllerUtil {
      * @param json Json payload
      * @return
      */
-    public static ArrayList<Point> getPointsFromJsonBody(String json)
-    {
-        ArrayList<Point> points = new ArrayList<>();
+    public static ArrayList<Point> getPointsFromJsonBody(String json) {
+        var points = new ArrayList<Point>();
         try {
-            logger.trace("Batch points json body " + json);
+            logger.trace("Batch points json body {}", json);
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
             for (int i = 0; i < node.size(); i++) {
@@ -167,7 +133,7 @@ public class ApiControllerUtil {
                 points.add(new Point(point.get("lat").asDouble(), point.get("lon").asDouble()));
             }
         }
-        catch(Exception ex){
+        catch(Exception ex) {
             logger.debug("No valid batch point payload detected.");
             logger.trace(ex);
         }
@@ -176,28 +142,13 @@ public class ApiControllerUtil {
 
 
     /**
-     * Determine if the current session is authentic by checking to see if an admin auth session key has been set.
-     * @param request HttpServletRequest
-     * @return True if authenticated (user has logged in as admin), false otherwise.
-     */
-    public static boolean isAuthenticated(HttpServletRequest request)
-    {
-        HttpSession session = request.getSession();
-        if (session.getAttribute(ADMIN_USERNAME_ATTR) != null) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Sets the current session as either authenticated or not authenticated. If the user is specified as
      * not authenticated, the entire session will be invalidated.
      * @param request HttpServletRequest
      * @param authenticated Indicate if the user's admin credentials were valid.
      * @param username Indicate the admin username used for login.
      */
-    public static void setAuthenticated(HttpServletRequest request, boolean authenticated, String username)
-    {
+    public static void setAuthenticated(HttpServletRequest request, boolean authenticated, String username) {
         HttpSession session = request.getSession();
         if (authenticated) {
             session.setAttribute(ADMIN_USERNAME_ATTR, username);
@@ -214,11 +165,9 @@ public class ApiControllerUtil {
      * @param responseObj Object to serialize.
      * @param response The HeepServletResponse to write the result to.
      */
-    public static void setAdminResponse(Object responseObj, HttpServletResponse response)
-    {
-        String json;
+    public static void setAdminResponse(Object responseObj, HttpServletResponse response) {
         try {
-            json = FormatUtil.toJsonString(responseObj);
+            String json = FormatUtil.toJsonString(responseObj);
             response.setContentType("application/json");
             response.setContentLength(json.length());
             response.getWriter().write(json);
@@ -249,18 +198,16 @@ public class ApiControllerUtil {
      * @return Timestamp
      */
     public static Timestamp getBeginTimestamp(HttpServletRequest request) {
-        Timestamp from;
         try {
-            from = new Timestamp(Long.parseLong(request.getParameter("from")));
+            return new Timestamp(Long.parseLong(request.getParameter("from")));
         }
         catch (Exception ex) {
             logger.debug("Invalid `from` timestamp parameter.", ex);
             Calendar c = Calendar.getInstance();
             c.setTime(new Date());
             c.add(Calendar.DATE, -7);
-            from = new Timestamp(c.getTimeInMillis());
+            return new Timestamp(c.getTimeInMillis());
         }
-        return from;
     }
 
     /**
@@ -272,21 +219,17 @@ public class ApiControllerUtil {
      * @return Timestamp
      */
     public static Timestamp getEndTimestamp(HttpServletRequest request) {
-        Timestamp to;
         try {
-            to = new Timestamp(Long.parseLong(request.getParameter("to")));
+            return new Timestamp(Long.parseLong(request.getParameter("to")));
         }
         catch (Exception ex) {
             logger.debug("Invalid `to` timestamp parameter.", ex);
-            to = new Timestamp(new Date().getTime());
+            return new Timestamp(new Date().getTime());
         }
-        return to;
     }
 
     /**
-     * This method retrieves the ip address from HttpServletRequest
-     * @param request
-     * @return
+     * Retrieves the ip address from HttpServletRequest.
      */
     public static String getIpAddress(HttpServletRequest request) {
         String forwardedForIp = request.getHeader("x-forwarded-for");
