@@ -6,7 +6,6 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.controller.admin.DataGenController;
-import gov.nysenate.sage.dao.data.DataGenDao;
 import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
 import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
@@ -16,7 +15,6 @@ import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
-import gov.nysenate.sage.util.ImageUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import gov.nysenate.services.NYSenateClientService;
@@ -41,7 +39,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,52 +49,19 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 @Service
 public class DataGenService implements SageDataGenService {
-
     private Logger logger = LoggerFactory.getLogger(DataGenController.class);
     private SqlAssemblyDao sqlAssemblyDao;
     private SqlCongressionalDao sqlCongressionalDao;
     private SqlSenateDao sqlSenateDao;
-    private DataGenDao dataGenDao;
     private Environment env;
 
     @Autowired
-    public DataGenService(SqlSenateDao sqlSenateDao,
-                          SqlAssemblyDao sqlAssemblyDao, SqlCongressionalDao sqlCongressionalDao,
-                          Environment env, DataGenDao dataGenDao) {
+    public DataGenService(SqlSenateDao sqlSenateDao, SqlAssemblyDao sqlAssemblyDao,
+                          SqlCongressionalDao sqlCongressionalDao, Environment env) {
         this.sqlSenateDao = sqlSenateDao;
         this.sqlAssemblyDao = sqlAssemblyDao;
         this.sqlCongressionalDao = sqlCongressionalDao;
-        this.dataGenDao = dataGenDao;
         this.env = env;
-    }
-
-    public Map<String, String> getCodes(boolean townCodes) {
-        return townCodes ? dataGenDao.getTownToAbbrevMap() : dataGenDao.getCountyToSenateCodeMap();
-    }
-
-    public Object generateSenatorImages(String path, int height) {
-        Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID );
-
-        try {
-            Collection<Senator> senators = sqlSenateDao.getSenators();
-            for (Senator senator : senators) {
-                String filePath =  path + senator.getShortName() + ".png";
-                File file = new File(filePath);
-                if (!file.exists()) {
-                    file.createNewFile();
-                }
-                String baseImageDir = "http://www.nysenate.gov/files/profile-pictures/";
-                String url = baseImageDir + senator.getImageUrl()
-                        .replace(baseImageDir, "").replace(" ", "%20");
-                ImageUtil.saveResizedImage(url, "png", file, height);
-                apiResponse = new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
-            }
-        }
-        catch (IOException e) {
-            apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-        }
-
-        return apiResponse;
     }
 
     public Object vacantizeSenateData() {

@@ -64,9 +64,6 @@ public class VoterFileParser extends BaseParser {
                 .replaceAll("\\s+", "").replaceFirst("^T ", "TOWN OF ")
                 .replaceFirst("^C ", "CITY OF");
         // Richmond is both a NYC neighborhood and a town upstate.
-        if (townCity.contains("BROOKLYN")) {
-            int i = 0;
-        }
         if (!richmondId.equals("0") &&
                 richmondId.equals(dataExtractor.getTownCityId(townCity))) {
             try {
