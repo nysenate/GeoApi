@@ -131,7 +131,7 @@ public class StreetfileDataExtractor {
         if (townCityIndex != null && typeAndNameToIdMap != null) {
             lineFields.set(townCityIndex, getTownCityId(lineFields.get(townCityIndex)));
         }
-        CompactDistrictMap districts = CompactDistrictMap.getMap(typeToDistrictIndexMap.keySet(), type -> getValue(lineFields, type));
+        CompactDistrictMap districts = CompactDistrictMap.getMap(type -> getValue(lineFields, type));
         String zip = lineFields.get(typeToDistrictIndexMap.get(DistrictType.ZIP));
         var addressWithoutNum = new AddressWithoutNum(street, lineFields.get(postalCityIndex), zip, true);
         var cell = new RangeDistrictData(districts, sourceName, getIdFunc.apply(lineFields, lineNum));

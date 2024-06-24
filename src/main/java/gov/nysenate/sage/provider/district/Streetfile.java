@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider.district;
 
-import gov.nysenate.sage.dao.provider.streetfile.SqlStreetfileDao;
+import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -31,18 +31,18 @@ import static gov.nysenate.sage.service.district.DistrictServiceValidator.valida
 @Service
 public class Streetfile extends DistrictService implements StreetLookupService {
     private static final Logger logger = LoggerFactory.getLogger(Streetfile.class);
-    private final SqlStreetfileDao sqlStreetFileDao;
+    private final StreetfileDao streetfileDao;
 
     @Autowired
-    public Streetfile(SqlStreetfileDao sqlStreetFileDao) {
-        this.sqlStreetFileDao = sqlStreetFileDao;
+    public Streetfile(StreetfileDao streetfileDao) {
+        this.streetfileDao = streetfileDao;
     }
 
     /** {@inheritDoc} */
     @Override
     public List<DistrictedStreetRange> streetLookup(String zip5) {
         try {
-            return sqlStreetFileDao.getDistrictStreetRangesByZip(zip5);
+            return streetfileDao.getDistrictStreetRangesByZip(zip5);
         }
         catch (NumberFormatException ex) {
             logger.error("Zip5 was not valid. Possible non-NY entry.", ex);
@@ -63,7 +63,7 @@ public class Streetfile extends DistrictService implements StreetLookupService {
         }
 
         try {
-            DistrictedAddress match = sqlStreetFileDao.getDistrictedAddress(geocodedAddress.getAddress(), DistrictMatchLevel.HOUSE);
+            DistrictedAddress match = streetfileDao.getDistrictedAddress(geocodedAddress.getAddress(), DistrictMatchLevel.HOUSE);
             if (match == null) {
                 districtResult.setStatusCode(NO_DISTRICT_RESULT);
             }

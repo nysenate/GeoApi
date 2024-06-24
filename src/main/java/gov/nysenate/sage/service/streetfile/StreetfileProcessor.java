@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.district.DistrictShapeFileDao;
 import gov.nysenate.sage.dao.provider.district.MunicipalityType;
+import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.model.ResolveConflictConfiguration;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
@@ -12,6 +13,7 @@ import gov.nysenate.sage.scripts.streetfinder.parsers.*;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.CompactDistrictMap;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
+import gov.nysenate.sage.util.FormatUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,26 +27,24 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 public class StreetfileProcessor {
     private static final Logger logger = LoggerFactory.getLogger(StreetfileProcessor.class);
-    private static final int PRINT_BATCH_SIZE = 10000;
-
     private final File sourceDir, resultsDir;
     private final Path streetfilePath, conflictPath, improperPath, invalidPath;
     private final List<County> counties;
     private final Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap;
     private final StreetfileAddressCorrectionService correctionService;
+    private final StreetfileDao streetfileDao;
 
     @Autowired
     public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir, CountyDao countyDao,
-                               DistrictShapeFileDao shapeFileDao, StreetfileAddressCorrectionService correctionService) {
+                               DistrictShapeFileDao shapeFileDao, StreetfileAddressCorrectionService correctionService,
+                               StreetfileDao streetfileDao) {
         this.sourceDir = Path.of(streetfileDir, "text_files").toFile();
         this.resultsDir = Path.of(streetfileDir, "results").toFile();
         this.streetfilePath = Path.of(resultsDir.getPath(), "streetfile.txt");
@@ -54,9 +54,10 @@ public class StreetfileProcessor {
         this.counties = countyDao.getCounties();
         this.typeAndNameToIdMap = shapeFileDao.getTypeAndNameToIdMap();
         this.correctionService = correctionService;
+        this.streetfileDao = streetfileDao;
     }
 
-    public synchronized Path regenerateStreetfile(ResolveConflictConfiguration config) throws IOException {
+    public Path regenerateStreetfile(ResolveConflictConfiguration config) throws IOException {
         File[] dataFiles = sourceDir.listFiles();
         File[] resultFiles = resultsDir.listFiles();
         if (dataFiles == null || resultFiles == null) {
@@ -96,7 +97,7 @@ public class StreetfileProcessor {
 
         Map<StreetfileAddressRange, CompactDistrictMap> consolidatedData = fullData.consolidate(conflictPath);
         var bufferedWriter = new BufferedWriter(new PrintWriter(streetfilePath.toFile()));
-        writeLines(bufferedWriter, consolidatedData.entrySet(), entry -> entry.getKey() + " " + entry.getValue());
+        FormatUtil.writeLines(bufferedWriter, consolidatedData.entrySet(), this::toCsvLine);
         bufferedWriter.close();
 
         bufferedWriter = new BufferedWriter(new PrintWriter(improperPath.toFile()));
@@ -106,22 +107,21 @@ public class StreetfileProcessor {
             }
             bufferedWriter.write(type.name());
             bufferedWriter.newLine();
-            writeLines(bufferedWriter, fullImproperLineMap.get(type), line -> '\t' + line);
+            FormatUtil.writeLines(bufferedWriter, fullImproperLineMap.get(type), line -> '\t' + line);
         }
         bufferedWriter.close();
+        logger.info("Finished writing streetfile data.");
         return streetfilePath;
     }
 
-    private static <T> void writeLines(BufferedWriter writer, Collection<T> data, Function<T, String> toLine) throws IOException {
-        int lineCount = 0;
-        for (T lineData : data) {
-            writer.write(toLine.apply(lineData));
-            writer.newLine();
-            if (++lineCount % PRINT_BATCH_SIZE == 0) {
-                writer.flush();
-            }
-        }
-        writer.flush();
+    private String toCsvLine(Map.Entry<StreetfileAddressRange, CompactDistrictMap> entry) {
+        List<String> districts = streetfileDao.order().stream().map(entry.getValue()::get)
+                .map(dist -> dist == 0 ? streetfileDao.nullString(): String.valueOf(dist)).toList();
+        List<String> fullParts = entry.getKey().parts();
+        fullParts.addAll(districts);
+        // Null strings do not have quotes.
+        return ('"' + String.join("\",\"", fullParts) + '"')
+                .replaceAll("\"%s\"".formatted(streetfileDao.nullString()), streetfileDao.nullString());
     }
 
     private BaseParser getParser(File file) {

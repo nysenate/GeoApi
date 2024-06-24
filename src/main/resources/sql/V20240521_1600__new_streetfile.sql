@@ -21,4 +21,10 @@ CREATE TABLE public.streetfile (
     city_council_district       SMALLINT,
     municipal_court_district    SMALLINT,
     town_city_gid               SMALLINT REFERENCES districts.town_city (gid)
-)
+);
+
+CREATE INDEX address_no_num_idx
+ON public.streetfile(street, postal_city, zip5);
+
+CREATE INDEX num_range_idx
+    ON public.streetfile(bldg_low, bldg_high);

@@ -1,5 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -39,8 +41,12 @@ public class StreetfileAddressRange {
 
     @Override
     public String toString() {
-        return String.join(", ", Integer.toString(primaryBuilding.low()), Integer.toString(primaryBuilding.high()),
+        return String.join(", ", parts());
+    }
+
+    public List<String> parts() {
+        return new ArrayList<>(List.of(Integer.toString(primaryBuilding.low()), Integer.toString(primaryBuilding.high()),
                 primaryBuilding.parity().name(), addressWithoutNum.street(), addressWithoutNum.postalCity(),
-                Integer.toString(addressWithoutNum.zip5()));
+                Integer.toString(addressWithoutNum.zip5())));
     }
 }

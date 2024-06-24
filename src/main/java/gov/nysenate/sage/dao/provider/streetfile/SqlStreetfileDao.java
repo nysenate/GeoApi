@@ -1,5 +1,6 @@
 package gov.nysenate.sage.dao.provider.streetfile;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictInfo;
@@ -10,41 +11,62 @@ import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.postgresql.copy.CopyManager;
+import org.postgresql.core.BaseConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
 import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateDistrictInfo;
-import static gov.nysenate.sage.model.district.DistrictType.*;
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetParity.EVENS;
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetParity.ODDS;
 
 @Repository
 public class SqlStreetfileDao implements StreetfileDao {
-    private final Logger logger = LoggerFactory.getLogger(SqlStreetfileDao.class);
+    private static final Logger logger = LoggerFactory.getLogger(SqlStreetfileDao.class);
+    private static final String copySqlTemplate = "COPY public.streetfile(%s) FROM STDIN CSV NULL '%s'";
     private final BaseDao baseDao;
-
-    private static final Map<DistrictType, String> distColMap = new HashMap<>();
-    static {
-        for (DistrictType type : List.of(CONGRESSIONAL, SENATE, ASSEMBLY, ELECTION, COUNTY_LEG, CITY_COUNCIL, MUNICIPAL_COURT)) {
-            distColMap.put(type, type.name().toLowerCase() + "_district");
-        }
-        distColMap.put(COUNTY, "county_fips_code");
-        distColMap.put(TOWN_CITY, "town_city_gid");
-        distColMap.put(COUNTY_LEG, "county_leg_code");
-        distColMap.put(WARD, "ward_code");
-        distColMap.put(ZIP, "zip5");
-    }
+    private final String columnOrder;
+    private final Connection connection;
+    private boolean locked = false;
 
     @Autowired
-    public SqlStreetfileDao(BaseDao baseDao) {
+    public SqlStreetfileDao(BaseDao baseDao, ComboPooledDataSource geoApiPostgresDataSource) throws SQLException {
         this.baseDao = baseDao;
+        List<String> colList = new ArrayList<>(List.of("bldg_low", "bldg_high", "parity", "street", "postal_city", "zip5"));
+        colList.addAll(order().stream().map(distColMap::get).toList());
+        this.columnOrder = String.join(", ", colList);
+        this.connection = geoApiPostgresDataSource.getConnection().unwrap(BaseConnection.class);
+    }
+
+    @Override
+    public String nullString() {
+        return "null";
+    }
+
+    @Override
+    public List<DistrictType> order() {
+        return distColMap.keySet().stream().filter(type -> type != DistrictType.ZIP).toList();
+    }
+
+    @Override
+    public void replaceStreetfile(Path streetfilePath) throws SQLException, IOException {
+        checkLock();
+        locked = true;
+        baseDao.geoApiJbdcTemplate.execute("TRUNCATE streetfile RESTART IDENTITY");
+        var copyManager = new CopyManager((BaseConnection) connection);
+        copyManager.copyIn(copySqlTemplate.formatted(columnOrder, nullString()), new FileReader(streetfilePath.toFile()));
+        locked = false;
     }
 
     public DistrictedAddress getDistrictedAddress(Address addr, DistrictMatchLevel matchLevel) {
@@ -72,6 +94,7 @@ public class SqlStreetfileDao implements StreetfileDao {
                     .append("AND (parity = 'ALL' OR parity = '%s')".formatted(parity.name()));
         }
 
+        checkLock();
         var ranges = baseDao.geoApiJbdcTemplate.query(sqlBuilder.toString(), new DistrictStreetRangeMapHandler());
         if (ranges == null || ranges.isEmpty()) {
             return getDistrictedAddress(addr, matchLevel.getNextHighestLevel());
@@ -114,6 +137,7 @@ public class SqlStreetfileDao implements StreetfileDao {
         String zip5WhereSql = StringUtils.join(zip5WhereList, " OR ");
         sql = String.format(sql, zip5WhereSql);
         try {
+            checkLock();
             Map<StreetAddressRange, DistrictInfo> resultMap =
                     baseDao.geoApiJbdcTemplate.query(sql, new DistrictStreetRangeMapHandler(), street, street);
             if (resultMap != null && !resultMap.isEmpty()) {
@@ -131,6 +155,7 @@ public class SqlStreetfileDao implements StreetfileDao {
     }
 
     private Map<DistrictType, Set<String>> extractMapResults(String sqlQuery) {
+        checkLock();
         return baseDao.geoApiJbdcTemplate.query(sqlQuery, rs -> {
             Map<DistrictType, Set<String>> resultMap = new HashMap<>();
             while (rs.next()) {
@@ -237,6 +262,12 @@ public class SqlStreetfileDao implements StreetfileDao {
         street += streetAddr.getStreet();
         street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
         return street.toUpperCase();
+    }
+
+    private void checkLock() {
+        if (locked) {
+            throw new RuntimeException("Streetfile is currently being reprocessed. Check back soon.");
+        }
     }
 
     private static class DistrictStreetRangeMapHandler implements ResultSetExtractor<Map<StreetAddressRange,DistrictInfo>> {
