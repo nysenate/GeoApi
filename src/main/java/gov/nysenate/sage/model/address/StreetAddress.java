@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
  * Represents a street address with address components broken down.
  */
 public class StreetAddress {
-    // TODO: should be an Integer, because a house number of 0 can be valid
     private Integer bldgNum;
     private String bldgChar;
     // TODO: Combine these into a simple street name if possible

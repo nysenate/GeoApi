@@ -59,7 +59,7 @@ public class Streetfile extends DistrictService implements StreetLookupService {
         }
         StreetAddress streetAddr = StreetAddressParser.parseAddress(geocodedAddress.getAddress());
         if (logger.isTraceEnabled()) {
-            logger.trace("Streetfile lookup on " + streetAddr.toStringParsed());
+            logger.trace("Streetfile lookup on {}", streetAddr.toStringParsed());
         }
 
         try {
@@ -73,7 +73,7 @@ public class Streetfile extends DistrictService implements StreetLookupService {
             }
         } catch (Exception ex) {
             districtResult.setStatusCode(INTERNAL_ERROR);
-            logger.error("" + ex);
+            logger.error("{}", String.valueOf(ex));
         }
 
         districtResult.setResultTime(new Timestamp(new Date().getTime()));

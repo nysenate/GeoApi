@@ -1,5 +1,6 @@
 package gov.nysenate.sage.dao.provider.streetfile;
 
+import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.*;
@@ -28,17 +29,32 @@ import java.sql.SQLException;
 import java.util.*;
 
 import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateDistrictInfo;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetParity.EVENS;
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetParity.ODDS;
 
 @Repository
 public class SqlStreetfileDao implements StreetfileDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlStreetfileDao.class);
+    private static final Map<DistrictType, String> distColMap;
     private static final String copySqlTemplate = "COPY public.streetfile(%s) FROM STDIN CSV NULL '%s'";
     private final BaseDao baseDao;
     private final String columnOrder;
     private final Connection connection;
     private boolean locked = false;
+
+    static {
+        var tempMap = new HashMap<DistrictType, String>();
+        for (DistrictType type : List.of(CONGRESSIONAL, SENATE, ASSEMBLY, ELECTION, CITY_COUNCIL, MUNICIPAL_COURT)) {
+            tempMap.put(type, type.name().toLowerCase() + "_district");
+        }
+        tempMap.put(COUNTY, "county_fips_code");
+        tempMap.put(COUNTY_LEG, "county_leg_code");
+        tempMap.put(TOWN_CITY, "town_city_gid");
+        tempMap.put(WARD, "ward_code");
+        tempMap.put(ZIP, "zip5");
+        distColMap = ImmutableMap.copyOf(tempMap);
+    }
 
     @Autowired
     public SqlStreetfileDao(BaseDao baseDao, ComboPooledDataSource geoApiPostgresDataSource) throws SQLException {
@@ -286,7 +302,7 @@ public class SqlStreetfileDao implements StreetfileDao {
                 sar.setZip5(rs.getString("zip5"));
 
                 var dInfo = new DistrictInfo();
-                for (var type : DistrictType.values()) {
+                for (var type : distColMap.keySet()) {
                     dInfo.setDistCode(type, rs.getString(distColMap.get(type)));
                 }
                 streetRangeMap.put(sar, dInfo);

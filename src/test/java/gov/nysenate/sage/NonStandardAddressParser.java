@@ -1,6 +1,10 @@
-package gov.nysenate.sage.scripts.streetfinder.parsers;
+package gov.nysenate.sage;
 
+import gov.nysenate.sage.annotation.SillyTest;
 import gov.nysenate.sage.scripts.streetfinder.model.College;
+import gov.nysenate.sage.scripts.streetfinder.parsers.NonStandardAddress;
+import gov.nysenate.sage.scripts.streetfinder.parsers.NonStandardAddressType;
+import org.junit.experimental.categories.Category;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,6 +15,7 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 // For quick testing.
+@Category(SillyTest.class)
 public class NonStandardAddressParser {
     public static void main(String[] args) throws IOException {
         var filePath = Path.of(args[0]);
