@@ -26,12 +26,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Repository
-public class SqlGeoCacheDao implements GeoCacheDao
-{
-    private static Logger logger = LoggerFactory.getLogger(SqlGeoCacheDao.class);
-    private static BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
+public class SqlGeoCacheDao implements GeoCacheDao {
+    private static final Logger logger = LoggerFactory.getLogger(SqlGeoCacheDao.class);
+    private static final BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
     private static int BUFFER_SIZE = 100;
-    private BaseDao baseDao;
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlGeoCacheDao(Environment env, BaseDao baseDao) {
@@ -45,17 +44,6 @@ public class SqlGeoCacheDao implements GeoCacheDao
     private final static String SQLFRAG_SELECT =
         "SELECT gc.*, ST_Y(latlon) AS lat, ST_X(latlon) AS lon \n" +
         "FROM cache.geocache AS gc";
-
-    private final static String SQLFRAG_WHERE_FULL_MATCH =
-        "WHERE gc.bldgnum = ? \n" +
-            "AND gc.predir = ? \n" +
-            "AND gc.street = ? \n" +
-            "AND gc.postdir = ? \n" +
-            "AND gc.streetType = ? \n" +
-            // Zip level match
-            "AND (gc.zip5 = ? AND gc.zip5 != '' AND gc.quality NOT IN ('CITY', 'UNKNOWN')\n" +
-            // City (location) match when zip is empty
-            "  OR ? = '' AND gc.zip5 = '' AND gc.location = ? AND gc.location != '' AND gc.state = ?)";
 
     private final static String SQLFRAG_WITHOUT_ZIP =
     "WHERE gc.bldgnum = ? \n" +
@@ -77,18 +65,16 @@ public class SqlGeoCacheDao implements GeoCacheDao
             String.format("%s\n%s\n%s\nLIMIT 1", SQLFRAG_SELECT, SQLFRAG_WITHOUT_ZIP, SQLFRAG_WITH_ZIP);
 
     /** {@inheritDoc} */
-    public GeocodedStreetAddress getCacheHit(StreetAddress sa)
-    {
+    public GeocodedStreetAddress getCacheHit(StreetAddress sa) {
         if (logger.isTraceEnabled()) {
-            logger.trace("Looking up " + sa.toStringParsed() + " in cache...");
+            logger.trace("Looking up {} in cache...", sa.toStringParsed());
         }
-        if (isStreetAddressRetrievable(sa)) {
-            boolean buildingMatch = (!sa.isPoBoxAddress() && !sa.isStreetEmpty());
+        if (isCacheableStreetAddress(sa)) {
+            boolean buildingMatch = (!sa.isPoBoxAddress() && sa.hasStreet());
             if (sa.getState().isEmpty()) {
                 sa.setState("NY");
             }
             try {
-
                 if (sa.getZip5().isEmpty()) {
                     //without zip
                     return baseDao.tigerJbdcTemplate.query(SQL_CACHE_HIT_FULL_WITHOUT_ZIP,
@@ -109,14 +95,13 @@ public class SqlGeoCacheDao implements GeoCacheDao
             }
         }
         if (logger.isTraceEnabled()) {
-            logger.trace("Address " + sa.toStringParsed() + " is not retrievable");
+            logger.trace("Address {} is not retrievable", sa.toStringParsed());
         }
         return null;
     }
 
     /** {@inheritDoc} */
-    public void cacheGeocodedAddress(GeocodedAddress geocodedAddress)
-    {
+    public void cacheGeocodedAddress(GeocodedAddress geocodedAddress) {
         if (geocodedAddress != null && geocodedAddress.isValidAddress() && geocodedAddress.isValidGeocode()) {
             Geocode gc = geocodedAddress.getGeocode();
             if (!gc.isCached()) {
@@ -129,8 +114,7 @@ public class SqlGeoCacheDao implements GeoCacheDao
     }
 
     /** {@inheritDoc} */
-    public void cacheGeocodedAddresses(List<GeocodedAddress> geocodedAddresses)
-    {
+    public void cacheGeocodedAddresses(List<GeocodedAddress> geocodedAddresses) {
         if (geocodedAddresses != null) {
             for (GeocodedAddress geocodedAddress : geocodedAddresses) {
                 cacheGeocodedAddress(geocodedAddress);
@@ -150,8 +134,7 @@ public class SqlGeoCacheDao implements GeoCacheDao
      * Saves any GeocodedAddress objects stored in the buffer into the database. The address is parsed into
      * a StreetAddress object so that look-up is more reliable given variations in the address.
      */
-    public synchronized void flushCacheBuffer()
-    {
+    public synchronized void flushCacheBuffer() {
         if (!cacheBuffer.isEmpty()) {
             Timestamp startTime = TimeUtil.currentTimestamp();
             int startSize = cacheBuffer.size();
@@ -164,46 +147,46 @@ public class SqlGeoCacheDao implements GeoCacheDao
                     StreetAddress sa = StreetAddressParser.parseAddress(address);
                     if (isCacheableStreetAddress(sa)) {
                         try {
-                            MapSqlParameterSource params = new MapSqlParameterSource();
-                            params.addValue("latlon","POINT(" + gc.getLon() + " " + gc.getLat() + ")");
-                            params.addValue("method",gc.getMethod());
-                            params.addValue("quality",gc.getQuality().name());
-                            params.addValue("zip4",sa.getZip4());
-                            params.addValue("bldgnum",sa.getBldgNum());
-                            params.addValue("street",sa.getStreetName());
-                            params.addValue("streettype",sa.getStreetType());
-                            params.addValue("predir",sa.getPreDir());
-                            params.addValue("postdir",sa.getPostDir());
-                            params.addValue("zip5",sa.getZip5());
-                            params.addValue("location",sa.getLocation());
+                            var params = new MapSqlParameterSource()
+                                    .addValue("latlon", "POINT(" + gc.getLon() + " " + gc.getLat() + ")")
+                                    .addValue("method", gc.getMethod())
+                                    .addValue("quality", gc.getQuality().name())
+                                    .addValue("zip4", sa.getZip4())
+                                    .addValue("bldgnum", sa.getBldgNum())
+                                    .addValue("street", sa.getStreetName())
+                                    .addValue("streettype", sa.getStreetType())
+                                    .addValue("predir", sa.getPreDir())
+                                    .addValue("postdir", sa.getPostDir())
+                                    .addValue("zip5", sa.getZip5())
+                                    .addValue("location", sa.getLocation());
 
-                            Integer rowUpdated = baseDao.tigerNamedJdbcTemplate.update(SQL_UPDATE_CACHE_ENTRY, params);
+                            int rowUpdated = baseDao.tigerNamedJdbcTemplate.update(SQL_UPDATE_CACHE_ENTRY, params);
 
                             if (logger.isTraceEnabled() && rowUpdated == 1) {
-                                logger.trace("Number of rows updated = " + rowUpdated);
-                                logger.trace("Updated " + sa.toString() + " in cache.");
+                                logger.trace("Number of rows updated = {}", rowUpdated);
+                                logger.trace("Updated {} in cache.", sa);
                             }
 
                             if (rowUpdated == 0) {
-                                MapSqlParameterSource insertParams = new MapSqlParameterSource();
-                                insertParams.addValue("bldgnum",Integer.valueOf(sa.getBldgNum()));
-                                insertParams.addValue("predir",sa.getPreDir());
-                                insertParams.addValue("street",sa.getStreetName());
-                                insertParams.addValue("streettype",sa.getStreetType());
-                                insertParams.addValue("postdir", sa.getPostDir());
-                                insertParams.addValue("location", sa.getLocation());
-                                insertParams.addValue("state", sa.getState());
-                                insertParams.addValue("zip5", sa.getZip5());
-                                insertParams.addValue("latlon","POINT(" + gc.getLon() + " " + gc.getLat() + ")");
-                                insertParams.addValue("method", gc.getMethod());
-                                insertParams.addValue("quality",gc.getQuality().name());
-                                insertParams.addValue("zip4",sa.getZip4());
+                                var insertParams = new MapSqlParameterSource()
+                                        .addValue("bldgnum", sa.getBldgNum())
+                                        .addValue("predir",sa.getPreDir())
+                                        .addValue("street",sa.getStreetName())
+                                        .addValue("streettype",sa.getStreetType())
+                                        .addValue("postdir", sa.getPostDir())
+                                        .addValue("location", sa.getLocation())
+                                        .addValue("state", sa.getState())
+                                        .addValue("zip5", sa.getZip5())
+                                        .addValue("latlon","POINT(" + gc.getLon() + " " + gc.getLat() + ")")
+                                        .addValue("method", gc.getMethod())
+                                        .addValue("quality",gc.getQuality().name())
+                                        .addValue("zip4",sa.getZip4());
 
-                                Integer rowsInserted = baseDao.tigerNamedJdbcTemplate.update(SQL_INSERT_CACHE_ENTRY, insertParams);
+                                int rowsInserted = baseDao.tigerNamedJdbcTemplate.update(SQL_INSERT_CACHE_ENTRY, insertParams);
 
                                 if (logger.isTraceEnabled()) {
-                                    logger.trace("Number of rows inserted = " + rowsInserted);
-                                    logger.trace("Inserted " + sa.toString() + " in cache.");
+                                    logger.trace("Number of rows inserted = {}", rowsInserted);
+                                    logger.trace("Inserted {} in cache.", sa);
                                 }
 
                             }
@@ -212,29 +195,15 @@ public class SqlGeoCacheDao implements GeoCacheDao
                             }
 
                         }
-                        catch(Exception e) {
+                        catch (Exception e) {
                             logger.error("SQL EXCEPTION", e);
                         }
                     }
                 }
             }
             if (startSize > 1) {
-                logger.info(String.format("Cached %d geocodes in %d ms.", startSize, TimeUtil.getElapsedMs(startTime)));
+                logger.info("Cached {} geocodes in {} ms.", startSize, TimeUtil.getElapsedMs(startTime));
             }
-        }
-    }
-
-    /**
-     * Useful for debugging. Change the sql for update and insert to return an id
-     */
-    public class UpdateIdHandler implements ResultSetExtractor<Integer> {
-
-        @Override
-        public Integer extractData(ResultSet rs) throws SQLException {
-            if (rs.next()) {
-                return (Integer) rs.getInt("id");
-            }
-            return null;
         }
     }
 
@@ -243,9 +212,8 @@ public class SqlGeoCacheDao implements GeoCacheDao
      * If the constructor is initialized with true, the result will be null if the geocode is not at least of HOUSE quality.
      * Otherwise the geocode quality won't be checked.
      */
-    public class GeocodedStreetAddressHandler implements ResultSetExtractor<GeocodedStreetAddress>
-    {
-        private boolean buildingMatch;
+    public class GeocodedStreetAddressHandler implements ResultSetExtractor<GeocodedStreetAddress> {
+        private final boolean buildingMatch;
 
         public GeocodedStreetAddressHandler(boolean buildingMatch) {
             this.buildingMatch = buildingMatch;
@@ -260,7 +228,7 @@ public class SqlGeoCacheDao implements GeoCacheDao
                     return null;
                 }
 
-                StreetAddress sa = new StreetAddress();
+                var sa = new StreetAddress();
                 sa.setBldgNum(rs.getInt("bldgnum"));
                 sa.setPreDir(rs.getString("predir"));
                 sa.setStreetName(WordUtils.capitalizeFully(rs.getString("street")));
@@ -279,54 +247,36 @@ public class SqlGeoCacheDao implements GeoCacheDao
     /**
      * Constructs a Geocode from the result set.
      * @param rs    Result set that has rs.next() already called
-     * @throws SQLException
      */
-    private Geocode getGeocodeFromResultSet(ResultSet rs) throws SQLException
-    {
-        if (rs != null) {
-            Geocode gc = new Geocode();
-            gc.setLat(rs.getDouble("lat"));
-            gc.setLon(rs.getDouble("lon"));
-            gc.setMethod(rs.getString("method"));
-            gc.setCached(true);
-            gc.encodeOpenLocationCode();
-            try {
-                if (rs.getString("quality") != null) {
-                    gc.setQuality(GeocodeQuality.valueOf(rs.getString("quality").toUpperCase()));
-                }
-                else {
-                    gc.setQuality(GeocodeQuality.UNKNOWN);
-                }
+    private Geocode getGeocodeFromResultSet(ResultSet rs) throws SQLException {
+        if (rs == null) {
+            return null;
+        }
+        var gc = new Geocode();
+        gc.setLat(rs.getDouble("lat"));
+        gc.setLon(rs.getDouble("lon"));
+        gc.setMethod(rs.getString("method"));
+        gc.setCached(true);
+        gc.encodeOpenLocationCode();
+        try {
+            if (rs.getString("quality") != null) {
+                gc.setQuality(GeocodeQuality.valueOf(rs.getString("quality").toUpperCase()));
             }
-            catch (IllegalArgumentException ex) {
+            else {
                 gc.setQuality(GeocodeQuality.UNKNOWN);
             }
-            return gc;
         }
-        return null;
+        catch (IllegalArgumentException ex) {
+            gc.setQuality(GeocodeQuality.UNKNOWN);
+        }
+        return gc;
     }
 
     /**
-     * Determines if street address is cache-able. The goal is to cache unique street level addresses and
-     * unique (location/zip only) addresses. The location/zip only addresses allow for caching PO BOX type
-     * addresses where the geocode is likely going to be that of the (city, state, zip).
-     * @param sa StreetAddress
+     * Determines if street address is cache-able. The goal is to cache unique street level addresses.
      * @return true if street address is cacheable.
      */
-    private boolean isCacheableStreetAddress(StreetAddress sa)
-    {
-        return (!sa.getStreet().isEmpty() && !sa.getStreet().startsWith("[") && sa.getBldgNum() > 0)
-               || (sa.getStreet().isEmpty() && sa.getBldgNum() == 0 &&
-                  ((!sa.getLocation().isEmpty() && !sa.getState().isEmpty()) || !sa.getZip5().isEmpty()));
-    }
-
-    /**
-     * Determines if the street address has enough data to be retrievable from cache.
-     * @param sa StreetAddress
-     * @return true if street address is retrievable.
-     */
-    private boolean isStreetAddressRetrievable(StreetAddress sa)
-    {
-        return isCacheableStreetAddress(sa);
+    private boolean isCacheableStreetAddress(StreetAddress sa) {
+        return !sa.getStreet().isEmpty() && !sa.getStreet().startsWith("[") && sa.getBldgNum() != null;
     }
 }

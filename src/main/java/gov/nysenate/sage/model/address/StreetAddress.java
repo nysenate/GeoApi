@@ -75,10 +75,11 @@ public class StreetAddress {
         return (str1 == null ? str2 == null : str1.equalsIgnoreCase(str2));
     }
 
-    public boolean isStreetEmpty() {
-        return this.getStreet().isEmpty();
+    public boolean hasStreet() {
+        return !getStreet().isEmpty();
     }
 
+    @Override
     public String toString() {
         return this.toAddress().toString();
     }

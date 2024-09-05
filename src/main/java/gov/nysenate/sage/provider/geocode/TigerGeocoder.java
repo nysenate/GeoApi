@@ -105,7 +105,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
     {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
         StreetAddress streetAddress = sqlTigerGeocoderDao.getStreetAddress(point);
-        if (streetAddress != null && !streetAddress.isStreetEmpty()){
+        if (streetAddress != null && streetAddress.hasStreet()) {
             Address address = streetAddress.toAddress();
             Geocode geocode = new Geocode(point);
             GeocodedAddress geocodedAddress = new GeocodedAddress(address, geocode);
