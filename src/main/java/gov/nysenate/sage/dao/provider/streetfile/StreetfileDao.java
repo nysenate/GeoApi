@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.util.NonnullList;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -31,13 +32,13 @@ public interface StreetfileDao {
      * Returns a list of street ranges with district information for a given zip5.
      * @return List of DistrictedStreetRange
      */
-    List<DistrictedStreetRange> getDistrictStreetRangesByZip(String zip5);
+    List<DistrictedStreetRange> getDistrictStreetRangesByZip(Integer zip5);
 
     /**
      * Returns a list of street ranges with district information for a given street and zip5 list.
      * @return List of DistrictedStreetRange
      */
-    List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<String> zip5List);
+    List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<Integer> zip5List);
 
     /**
      * Finds state district codes that overlap a given street/zip range.
@@ -45,7 +46,7 @@ public interface StreetfileDao {
      * @param zip5List   Zip5 to match against
      * @return       A map of district types to a set of matched district codes.
      */
-    Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List);
+    Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, NonnullList<Integer> zip5List);
 
     /**
      * Finds state district codes that overlap a given street/zip range.

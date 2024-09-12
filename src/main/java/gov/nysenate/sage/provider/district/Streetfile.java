@@ -40,7 +40,7 @@ public class Streetfile extends DistrictService implements StreetLookupService {
 
     /** {@inheritDoc} */
     @Override
-    public List<DistrictedStreetRange> streetLookup(String zip5) {
+    public List<DistrictedStreetRange> streetLookup(Integer zip5) {
         try {
             return streetfileDao.getDistrictStreetRangesByZip(zip5);
         }
@@ -59,7 +59,7 @@ public class Streetfile extends DistrictService implements StreetLookupService {
         }
         StreetAddress streetAddr = StreetAddressParser.parseAddress(geocodedAddress.getAddress());
         if (logger.isTraceEnabled()) {
-            logger.trace("Streetfile lookup on {}", streetAddr.toStringParsed());
+            logger.trace("Streetfile lookup on {}", streetAddr);
         }
 
         try {

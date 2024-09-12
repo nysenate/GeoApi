@@ -3,7 +3,6 @@ package gov.nysenate.sage.provider.geocode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -15,45 +14,36 @@ import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
+import java.util.List;
 
 @Service
-public class OSM implements GeocodeService
-{
-    private final Logger logger = LoggerFactory.getLogger(OSM.class);
-    private ObjectMapper objectMapper;
-    private String baseUrl;
-    private BaseDao baseDao;
-
-    private GeocodeServiceValidator geocodeServiceValidator;
-    private ParallelGeocodeService parallelGeocodeService;
-    private Environment env;
+public class OSM implements GeocodeService {
+    private static final Logger logger = LoggerFactory.getLogger(OSM.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final String baseUrl;
+    private final GeocodeServiceValidator geocodeServiceValidator;
+    private final ParallelGeocodeService parallelGeocodeService;
 
     @Autowired
-    public OSM(GeocodeServiceValidator geocodeServiceValidator, ParallelGeocodeService parallelGeocodeService,
-               BaseDao baseDao, Environment env)
-    {
-        this.baseDao = baseDao;
-        this.env = env;
+    public OSM(GeocodeServiceValidator geocodeServiceValidator,
+               ParallelGeocodeService parallelGeocodeService, Environment env) {
         this.geocodeServiceValidator = geocodeServiceValidator;
         this.parallelGeocodeService = parallelGeocodeService;
-        this.baseUrl = this.env.getOsmUrl();
-        this.objectMapper = new ObjectMapper();
+        this.baseUrl = env.getOsmUrl();
     }
 
     /** {@inheritDoc} */
     @Override
-    public GeocodeResult geocode(Address address)
-    {
+    public GeocodeResult geocode(Address address) {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Ensure that the geocoder is active, otherwise return error result. */
@@ -62,7 +52,7 @@ public class OSM implements GeocodeService
         }
 
         /** Proceed only on valid input */
-        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
+        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
             return geocodeResult;
         }
 
@@ -142,8 +132,7 @@ public class OSM implements GeocodeService
 
     /** {@inheritDoc} */
     @Override
-    public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
-    {
+    public List<GeocodeResult> geocode(List<Address> addresses) {
         return parallelGeocodeService.geocode(this, addresses);
     }
 }

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -152,6 +153,7 @@ public class AddressServiceProvider implements AddressProvider
     /**
      * Use USPS for a city state lookup by default.
      */
+    @Nonnull
     public AddressResult lookupCityState(Address address, String providerName)
     {
         AddressService provider;

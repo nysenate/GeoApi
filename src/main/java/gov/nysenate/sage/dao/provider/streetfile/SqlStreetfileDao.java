@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
+import gov.nysenate.sage.util.NonnullList;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -120,14 +121,14 @@ public class SqlStreetfileDao implements StreetfileDao {
     }
 
     /** {@inheritDoc} */
-    public List<DistrictedStreetRange> getDistrictStreetRangesByZip(String zip5) {
+    public List<DistrictedStreetRange> getDistrictStreetRangesByZip(Integer zip5) {
         return getDistrictStreetRanges("", List.of(zip5));
     }
 
     /** {@inheritDoc} */
-    public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<String> zip5List) {
+    public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<Integer> zip5List) {
         // Format the street name to aid in street file match
-        street = (street != null) ? getFormattedStreet(street) : "";
+        street = (street != null) ? StreetAddressParser.normalizeStreet(street) : "";
 
         // Short circuit the request under conditions where lots of data would be retrieved.
         if (zip5List == null || zip5List.isEmpty()) {
@@ -145,9 +146,9 @@ public class SqlStreetfileDao implements StreetfileDao {
             "ORDER BY street, bldg_low";
 
         List<String> zip5WhereList = new ArrayList<>();
-        for (String zip5 : zip5List) {
-            if (zip5 != null && !zip5.isEmpty()) {
-                zip5WhereList.add(String.format("zip5 = '%s'", StringEscapeUtils.escapeSql(zip5)));
+        for (Integer zip5 : zip5List) {
+            if (zip5 != null) {
+                zip5WhereList.add(String.format("zip5 = '%d'", zip5));
             }
         }
         String zip5WhereSql = StringUtils.join(zip5WhereList, " OR ");
@@ -187,9 +188,11 @@ public class SqlStreetfileDao implements StreetfileDao {
     }
 
     /** {@inheritDoc} */
-    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, List<String> zip5List) {
+    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, NonnullList<Integer> zip5List) {
         // Short circuit on missing input
-        if ((zip5List == null || zip5List.isEmpty()) && (streetList == null || streetList.isEmpty())) return null;
+        if ((zip5List == null || zip5List.isEmpty()) && (streetList == null || streetList.isEmpty())) {
+            return null;
+        }
 
         String sqlTmpl = """
                 SELECT DISTINCT %s::character varying AS code, '%s' AS type
@@ -198,13 +201,7 @@ public class SqlStreetfileDao implements StreetfileDao {
         // Create where clause for zip5 codes
         String zip5WhereSql = "TRUE";
         if (zip5List != null && !zip5List.isEmpty()) {
-            List<String> zip5WhereList = new ArrayList<>();
-            for (String zip5 : zip5List) {
-                if (zip5 != null && !zip5.isEmpty()) {
-                    zip5WhereList.add(String.format("'%s'", StringEscapeUtils.escapeSql(zip5)));
-                }
-            }
-            zip5WhereSql = String.format("zip5 IN (%s)", StringUtils.join(zip5WhereList, ","));
+            zip5WhereSql = String.format("zip5 IN (%s)", StringUtils.join(zip5List, ","));
         }
 
         // Create where clause for street names
@@ -212,7 +209,7 @@ public class SqlStreetfileDao implements StreetfileDao {
         if (streetList != null && !streetList.isEmpty()) {
             List<String> streetWhereList = new ArrayList<>();
             for (String stRaw : streetList) {
-                String street = getFormattedStreet(stRaw);
+                String street = StreetAddressParser.normalizeStreet(stRaw);
                 if (!street.isEmpty()) {
                     streetWhereList.add(String.format("'%s'", StringEscapeUtils.escapeSql(street)));
                 }
@@ -267,19 +264,6 @@ public class SqlStreetfileDao implements StreetfileDao {
         return null;
     }
 
-    /**
-     * Appends pre and post dirs to the street and upper cases the result.
-     */
-    private String getFormattedStreet(String street) {
-        var streetAddr = new StreetAddress();
-        StreetAddressParser.extractStreet(street, streetAddr);
-        StreetAddressParser.normalizeStreetAddress(streetAddr);
-        street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
-        street += streetAddr.getStreet();
-        street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
-        return street.toUpperCase();
-    }
-
     private void checkLock() {
         if (locked) {
             throw new RuntimeException("Streetfile is currently being reprocessed. Check back soon.");
@@ -291,15 +275,10 @@ public class SqlStreetfileDao implements StreetfileDao {
         public Map<StreetAddressRange, DistrictInfo> extractData(ResultSet rs) throws SQLException {
             Map<StreetAddressRange, DistrictInfo> streetRangeMap = new LinkedHashMap<>();
             while (rs.next()) {
-                var sar = new StreetAddressRange();
-
-                sar.setId(rs.getInt("id"));
-                sar.setBldgLoNum(rs.getInt("bldg_low"));
-                sar.setBldgHiNum(rs.getInt("bldg_high"));
-                sar.setBldgParity(rs.getString("parity"));
-                sar.setStreet(rs.getString("street"));
-                sar.setLocation(rs.getString("postal_city"));
-                sar.setZip5(rs.getString("zip5"));
+                var awn = new AddressWithoutNum(rs.getString("street"),
+                        rs.getString("postal_city"), rs.getInt("zip5"));
+                var sar = new StreetAddressRange(rs.getInt("bldg_low"), rs.getInt("bldg_high"),
+                        rs.getString("parity"), awn);
 
                 var dInfo = new DistrictInfo();
                 for (var type : distColMap.keySet()) {

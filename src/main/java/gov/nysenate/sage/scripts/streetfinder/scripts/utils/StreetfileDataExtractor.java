@@ -4,6 +4,7 @@ import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
+import gov.nysenate.sage.util.AddressUtil;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -125,7 +126,9 @@ public class StreetfileDataExtractor {
         } catch (NumberFormatException ex) {
             return new StreetfileLineData(StreetfileLineType.BAD_BUILDING_NUMBER);
         }
-        String street = String.join(" ", getStrings(lineFields, streetIndices, false));
+        String street = AddressUtil.standardizeStreet(
+                String.join(" ", getStrings(lineFields, streetIndices, false))
+        );
 
         Integer townCityIndex = typeToDistrictIndexMap.get(DistrictType.TOWN_CITY);
         if (townCityIndex != null && typeAndNameToIdMap != null) {
@@ -133,7 +136,7 @@ public class StreetfileDataExtractor {
         }
         CompactDistrictMap districts = CompactDistrictMap.getMap(type -> getValue(lineFields, type));
         String zip = lineFields.get(typeToDistrictIndexMap.get(DistrictType.ZIP));
-        var addressWithoutNum = new AddressWithoutNum(street, lineFields.get(postalCityIndex), zip, true);
+        var addressWithoutNum = new AddressWithoutNum(street.intern(), lineFields.get(postalCityIndex).intern(), zip);
         var cell = new RangeDistrictData(districts, sourceName, getIdFunc.apply(lineFields, lineNum));
         return new StreetfileLineData(buildingRange, addressWithoutNum, cell, StreetfileLineType.PROPER);
     }

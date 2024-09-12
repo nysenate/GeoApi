@@ -30,7 +30,7 @@ public final class AddressUtil {
             String res = addr1;
 
             if (addr1 != null && !addr1.isEmpty()) {
-                Matcher m = Pattern.compile("(?i)(" + unitAlt + ")([ ]*#?[ ]*\\d*-?\\w*)$").matcher(addr1);
+                Matcher m = Pattern.compile("(?i)(" + unitAlt + ")( *#? *\\d*-?\\w*)$").matcher(addr1);
                 if (m.find()) {
                     String internal = m.group();
                     addr1 = m.replaceFirst("$1.$2");
@@ -52,32 +52,24 @@ public final class AddressUtil {
         return address;
     }
 
-    public static Address reorderAddress(Address address) {
-        if (address == null) {
-            return null;
+    /**
+     * Sometimes, USPS can validate incorrectly without this standardization.
+     * E.g. (9151 71 ROAD, 11375) would become (9151 71ST AVE, 11375) without this.
+     */
+    public static String standardizeStreet(String street) {
+        String[] streetParts = street.toUpperCase().split(" ");
+        int tempIdx = 0;
+        // Can't be too aggressive in correction: "20 STREET" -> "20th STREET", but "ROUTE 20" is correct.
+        if (AddressDictionary.directionMap.containsKey(streetParts[0]) && streetParts.length  > 1) {
+            tempIdx = 1;
         }
-        if (address.isPOBox()) {
-            return address;
-        }
-        Address reorderedAddress = StreetAddressParser.parseAddress(address).toAddress();
-        if (reorderedAddress.getState().isEmpty() && !reorderedAddress.isAddressBlank()) {
-            reorderedAddress.setState("NY");
-        }
-        if (address.getId() != null) {
-            reorderedAddress.setId(address.getId());
-        }
-        return reorderedAddress;
+        streetParts[tempIdx] = AddressUtil.addSuffixToNumber(streetParts[tempIdx]);
+        tempIdx = streetParts.length - 1;
+        streetParts[tempIdx] = AddressDictionary.streetTypeMap.getOrDefault(streetParts[tempIdx], streetParts[tempIdx]);
+        return String.join(" ", streetParts);
     }
 
-    public static Integer parseZip(String zip) {
-        try {
-            return Integer.parseInt(zip.trim());
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public static String addSuffixToNumber(String numStr) {
+    private static String addSuffixToNumber(String numStr) {
         try {
             int num = Math.abs(Integer.parseInt(numStr));
             if (num > 10 && num < 14) {

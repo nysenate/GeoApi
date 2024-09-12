@@ -24,7 +24,6 @@ public class CreateTestFiles {
         String testDirName = "src/test/java/gov/nysenate/sage";
         File testDir = new File(testDirName);
         recursion(testDir);
-
         System.out.println(count);
     }
 
@@ -36,24 +35,24 @@ public class CreateTestFiles {
      *
      * @param dir the package
      */
-    private static void recursion(File dir){
+    private static void recursion(File dir) {
         File[] files = dir.listFiles();
         Arrays.sort(files, Collections.reverseOrder());
 
-        for(File file : files){
-            if(file.isDirectory()){
+        for (File file : files){
+            if (file.isDirectory()) {
                 recursion(file);
             }
-            else{
+            else {
                 String name = file.getName();
 
-                if(name.endsWith("java")){
+                if (name.endsWith("java")) {
                     name = name.substring(0, name.indexOf(".java"));
 
-                    if(!name.endsWith("Test") && !name.endsWith("IT")){
-                        try(Scanner scanner = new Scanner(file).useDelimiter("\\Z")){
+                    if (!name.endsWith("Test") && !name.endsWith("IT")) {
+                        try(Scanner scanner = new Scanner(file).useDelimiter("\\Z")) {
                             String contents = scanner.next();
-                            if(contents.contains("@Test")){
+                            if (contents.contains("@Test")) {
                                 count++;
                                 makeFile(dir, name, contents);
                             }
@@ -75,31 +74,27 @@ public class CreateTestFiles {
      * @param name     the filename
      * @param contents the contents of the file
      */
-    private static void makeFile(File dir, String name, String contents){
+    private static void makeFile(File dir, String name, String contents) {
         String dirAbsolute = dir.getAbsolutePath();
         String pack = dirAbsolute.substring(dirAbsolute.indexOf("gov")).replace("/", ".");
 
         CategoryTypes category = CategoryTypes.SillyTest;
 
         // Integration Test
-        if(INTEGRATION_PATTERN.matcher(contents).find()){
+        if (INTEGRATION_PATTERN.matcher(contents).find()) {
             category = CategoryTypes.IntegrationTest;
         }
 
         // Unit Test
-        else if(UNIT_PATTERN.matcher(contents).find()){
+        else if (UNIT_PATTERN.matcher(contents).find()) {
             category = CategoryTypes.UnitTest;
         }
 
-        StringBuilder sb = new StringBuilder();
-        sb = sb.append("package " + pack + ";\n")
-                .append("import " + ANNOTATION_PACKAGE + '.' + category + ";\n")
-                .append("import org.junit.Assert;\n")
-                .append("import org.junit.Test;\n")
-                .append("import org.junit.experimental.categories.Category;\n")
-                .append("\n")
-                .append("@Category(" + category + ".class)\n")
-                .append("public class " + name + category.getSuffix() + " {}\n");
+        String sb = "package " + pack + ";\n" + "import " + ANNOTATION_PACKAGE + '.' + category + ";\n" +
+                "import org.junit.Assert;\n" +
+                "import org.junit.Test;\n" +
+                "import org.junit.experimental.categories.Category;\n" +
+                "\n" + "@Category(" + category + ".class)\n" + "public class " + name + category.getSuffix() + " {}\n";
         System.out.println(sb);
     }
 }

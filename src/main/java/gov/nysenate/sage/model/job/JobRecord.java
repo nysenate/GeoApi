@@ -28,15 +28,6 @@ public class JobRecord
     protected Geocode geocode;
     protected DistrictInfo districtInfo;
 
-    public JobRecord()
-    {
-        this.address = new Address();
-        this.correctedAddress = new Address();
-        this.streetAddress = new StreetAddress();
-        this.geocode = new Geocode();
-        this.districtInfo = new DistrictInfo();
-    }
-
     public JobRecord(JobFile parentJobFile, List<Object> row)
     {
         this.row = row;

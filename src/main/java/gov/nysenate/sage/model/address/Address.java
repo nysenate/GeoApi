@@ -1,11 +1,9 @@
 package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 
 /**
  * A generic address structure for representing the basic address components.
@@ -15,110 +13,62 @@ import java.util.Arrays;
  *
  * @author Graylin Kim, Ash Islam
  */
-public class Address implements Serializable, Cloneable
-{
+public class Address implements Serializable, Cloneable {
     private static final String poBoxPattern = "(?i)PO Box \\d+";
     // Note that these can never be null, since cleanString never returns null on non-null input.
-    protected String addr1 = "";
-    protected String addr2 = "";
-    protected String city = "";
-    protected String state = "";
-    protected String zip5 = "";
-    protected String zip4 = "";
-    //ID is only used for batch districting requests
-    protected Integer id = null;
+    private String addr1 = "";
+    private String addr2 = "";
+    private String city = "";
+    private Zip5 zip5 = null;
+    private Zip4 zip4 = null;
+    // ID is only used for batch districting requests
+    private Integer id = null;
 
     /** Verification info */
-    protected boolean uspsValidated = false;
+    private boolean uspsValidated = false;
 
     public Address() {}
 
-    public Address(String addr1)
-    {
-        this(addr1, "","","","","");
+    public Address(String addr1) {
+        this.addr1 = addr1;
     }
 
-    public Address(String addr1, String postalCity, String state, String postal)
-    {
-        this.setAddr1(addr1);
-        this.setPostalCity(postalCity);
-        this.setState(state);
-        this.setZip9(postal);
+    public Address(String addr1, String postalCity, String state, String postal) {
+        setAddr1(addr1);
+        setPostalCity(postalCity);
+        setZip9(postal);
     }
 
-    public Address(String addr1, String postalCity, String state, String postal, Integer id)
-    {
-        this.setAddr1(addr1);
-        this.setPostalCity(postalCity);
-        this.setState(state);
-        this.setZip9(postal);
-        this.setId(id);
+    public Address(String addr1, String postalCity, String state, String postal, Integer id) {
+        setAddr1(addr1);
+        setPostalCity(postalCity);
+        setZip9(postal);
+        setId(id);
     }
 
-    public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4)
-    {
-        this.setAddr1(addr1);
-        this.setAddr2(addr2);
-        this.setPostalCity(postalCity);
-        this.setState(state);
-        this.setZip5(zip5);
-        this.setZip4(zip4);
+    public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
+        setAddr1(addr1);
+        setAddr2(addr2);
+        setPostalCity(postalCity);
+        setZip5(Integer.valueOf(zip5));
+        setZip4(Integer.valueOf(zip4));
     }
 
-    public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4, Integer id)
-    {
-        this.setAddr1(addr1);
-        this.setAddr2(addr2);
-        this.setPostalCity(postalCity);
-        this.setState(state);
-        this.setZip5(zip5);
-        this.setZip4(zip4);
-        this.setId(id);
-    }
-
-    public Address(StreetAddress streetAddress) {
-        String bldgNum = streetAddress.getBldgNum() == null ? "" : String.valueOf(streetAddress.getBldgNum());
-        setAddr1(StreetAddress.combine(bldgNum + streetAddress.getBldgChar(), streetAddress.getStreet()));
-        setAddr2(streetAddress.getInternal());
-        setPostalCity(streetAddress.getLocation());
-        setState(streetAddress.getState());
-        setZip5(streetAddress.getZip5());
-        setZip4(streetAddress.getZip4());
-    }
-
-    public boolean isParsed()
-    {
-        return !(addr2.trim().isEmpty() && city.trim().isEmpty() &&
-                 state.trim().isEmpty() && zip5.trim().isEmpty());
-    }
-
-    public boolean isEmpty()
-    {
-        return (addr1.trim().isEmpty() && !isParsed());
+    public boolean isEmpty() {
+        return addr1.trim().isEmpty();
     }
 
     @Override
-    public String toString()
-    {
-        if (isParsed()) {
-            return ((!addr1.isEmpty() ? addr1 : "") + (!addr2.isEmpty() ? " " + addr2 : "")
-                    + (!addr1.isEmpty() || !addr2.isEmpty() ? "," : "")
-                    + (!city.isEmpty() ? " " + city + "," : "") + (!state.isEmpty() ? " " + state : "")
-                    + (!zip5.isEmpty() ? " " + zip5 : "") + (!zip4.isEmpty() ? "-"+zip4 : "")).trim();
-        }
-        else {
-            return addr1;
-        }
+    public String toString() {
+        return ((!addr1.isEmpty() ? addr1 : "") + (!addr2.isEmpty() ? " " + addr2 : "")
+                + (!addr1.isEmpty() || !addr2.isEmpty() ? "," : "")
+                + (!city.isEmpty() ? " " + city + "," : "")
+                + (!zip5.isMissing() ? " " + zip5 : "") + (!zip4.isMissing() ? "-" + zip4 : "")).trim();
     }
 
     public String toLogString() {
-        if (isParsed()) { //like a get request
-            return "addr1=" + addr1 +"&addr2=" + addr2 + "&city=" + city +
-                    "&state=" + state + "&zip5=" + zip5 + "&zip4=" + zip4;
-        }
-        else {
-            return "addr="+addr1;
-        }
+        return "addr1=" + addr1 +"&addr2=" + addr2 + "&city=" + city +
+                "&zip5=" + zip5 + "&zip4=" + zip4;
     }
 
     /**
@@ -126,90 +76,72 @@ public class Address implements Serializable, Cloneable
      * - Remove the dash within the building number
      * @return String
      */
-    public String toNormalizedString()
-    {
+    public String toNormalizedString() {
         return toString().replaceFirst("^(\\d+)(-)(\\d+)","$1$3");
     }
 
-    public String getAddr1()
-    {
+    public String getAddr1() {
         return addr1;
     }
 
-    public void setAddr1(String addr1)
-    {
+    public void setAddr1(String addr1) {
         if (addr1 != null){
             this.addr1 = FormatUtil.cleanString( addr1 );
         }
     }
 
-    public String getAddr2()
-    {
+    public String getAddr2() {
         return addr2;
     }
 
-    public void setAddr2(String addr2)
-    {
+    public void setAddr2(String addr2) {
         if (addr2 != null){
             this.addr2 = FormatUtil.cleanString( addr2 );
         }
     }
 
-    public String getPostalCity()
-    {
+    public String getPostalCity() {
         return city;
     }
 
-    public void setPostalCity(String postalCity)
-    {
+    public void setPostalCity(String postalCity) {
         if (postalCity != null) {
+            postalCity = postalCity.replaceFirst("^(TOWN|CITY) (OF )?", "")
+                    .replaceFirst("(\\(CITY\\)|/CITY)$", "");
             this.city = FormatUtil.cleanString(postalCity);
         }
     }
 
-    public String getState()
-    {
-        return state;
+    public String getState() {
+        return "NY";
     }
 
-    public void setState(String state)
-    {
-        if (state != null){
-            this.state = FormatUtil.cleanString( state );
-        }
+    public Integer getZip5() {
+        return zip5.zip();
     }
 
-    public String getZip5()
-    {
-        return this.zip5;
+    public void setZip5(Integer zip5) {
+        this.zip5 = new Zip5(zip5);
     }
 
-    public void setZip5(String zip5)
-    {
-        if (zip5 != null && !zip5.isEmpty() && !zip5.equalsIgnoreCase("null")){
-            this.zip5 = FormatUtil.cleanString( StringUtils.leftPad(zip5, 5, "0"));
-        }
+    public Integer getZip4() {
+        return zip4.zip();
     }
 
-    public String getZip4()
-    {
-        return this.zip4;
-    }
-
-    public void setZip4(String zip4)
-    {
-        if (zip4 != null && !zip4.isEmpty() && !zip5.equalsIgnoreCase("null")){
-            this.zip4 = FormatUtil.cleanString( StringUtils.leftPad(zip4, 4, "0") );
-        }
+    public void setZip4(Integer zip4) {
+        this.zip4 = new Zip4(zip4);
     }
 
     /** Stores 12345-1234 style postal codes into zip5 and zip4 parts */
-    public void setZip9(String postal)
-    {
+    public void setZip9(String postal) {
         if (postal != null) {
-            ArrayList<String> zipParts = new ArrayList<>(Arrays.asList(postal.split("-")));
-            this.setZip5((!zipParts.isEmpty()) ? zipParts.get(0).trim() : "");
-            this.setZip4((zipParts.size() > 1) ? zipParts.get(1).trim() : "");
+            List<String> zipParts = List.of(postal.split("-"));
+            if (!zipParts.isEmpty()) {
+                setZip5(Integer.parseInt(zipParts.get(0).trim()));
+            }
+            if (zipParts.size() > 1) {
+                setZip4(Integer.parseInt(zipParts.get(1).trim()));
+            }
         }
     }
 
@@ -233,11 +165,11 @@ public class Address implements Serializable, Cloneable
 
     /** Address is eligible for usps validation if addr1 and either zip or city/state are set. */
     public boolean isEligibleForUSPS() {
-        return (!addr1.isEmpty() && (!zip5.isEmpty() || (!city.isEmpty() && !state.isEmpty())));
+        return !addr1.isEmpty() && (zip5.zip() != null || !city.isEmpty());
     }
 
     public boolean isAddressBlank() {
-        return (addr1.isEmpty() && addr2.isEmpty() && city.isEmpty() && state.isEmpty() && zip5.isEmpty() && zip4.isEmpty());
+        return addr1.isEmpty() && addr2.isEmpty() && city.isEmpty() && zip5.isMissing() && zip4.isMissing();
     }
 
     public boolean isPOBox() {
@@ -246,8 +178,7 @@ public class Address implements Serializable, Cloneable
     }
 
     @Override
-    public Address clone()
-    {
+    public Address clone() {
         try {
             return (Address)super.clone();
         }
@@ -255,5 +186,8 @@ public class Address implements Serializable, Cloneable
             return null;
         }
     }
-}
 
+    public static boolean validState(String state) {
+        return state.replaceAll("[.]", "").toUpperCase().trim().matches("^$|NY|NEW YORK");
+    }
+}

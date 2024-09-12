@@ -25,15 +25,14 @@ import java.time.LocalDateTime;
 import static gov.nysenate.sage.model.notification.NotificationType.EVENT_BUS_EXCEPTION;
 
 @Configuration
-public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer
-{
+public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer {
     private static final Logger logger = LoggerFactory.getLogger(ApplicationConfig.class);
 
     /** --- Eh Cache Spring Configuration --- */
 
     @Value("${validate.threads:3}") private int validateThreads;
 
-    @Value("${distassign.threads:3}") private int distassignThreads;
+    @Value("${distassign.threads:3}") private int distAssignThreads;
 
     @Value("${geocode.threads:3}") private int geocodeThreads;
 
@@ -88,7 +87,7 @@ public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer
 
     @Bean(name = "jobDistAssign", destroyMethod = "shutdown")
     public ThreadPoolTaskExecutor getJobDistrictAssignExecutor() {
-        return ExecutorUtil.createExecutor("job-dist-assign", distassignThreads);
+        return ExecutorUtil.createExecutor("job-dist-assign", distAssignThreads);
     }
 
     /**
@@ -101,7 +100,7 @@ public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer
      * @param context SubscriberExceptionContext
      */
     private void handleEventBusException(Throwable exception, SubscriberExceptionContext context) {
-        logger.error("Event Bus Exception thrown during event handling within " + context.getSubscriberMethod(), exception);
+        logger.error("Event Bus Exception thrown during event handling within {}", context.getSubscriberMethod(), exception);
 
         LocalDateTime occurred = LocalDateTime.now();
         String summary = "Event Bus Exception within " + context.getSubscriberMethod() +

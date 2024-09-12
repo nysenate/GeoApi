@@ -95,8 +95,7 @@ public final class StreetfileAddressCorrectionService {
     private static Address getAddress(int num, AddressWithoutNum awn) {
         var addr = new Address(num + " " + awn.street());
         addr.setPostalCity(awn.postalCity());
-        addr.setZip5(String.valueOf(awn.zip5()));
-        addr.setState("NY");
+        addr.setZip5(awn.zip5());
         return addr;
     }
 }

@@ -12,7 +12,6 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
-import gov.nysenate.sage.service.geo.ParallelRevGeocodeService;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import org.slf4j.Logger;
@@ -20,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -30,37 +29,31 @@ import java.util.Objects;
  * and performs validation and result formatting.
  */
 @Service
-public class TigerGeocoder implements GeocodeService, RevGeocodeService
-{
-    private static Logger logger = LoggerFactory.getLogger(TigerGeocoder.class);
-    private SqlTigerGeocoderDao sqlTigerGeocoderDao;
-    private GeocodeServiceValidator geocodeServiceValidator;
-    private ParallelGeocodeService parallelGeocodeService;
-    private ParallelRevGeocodeService parallelRevGeocodeService;
+public class TigerGeocoder implements GeocodeService, RevGeocodeService {
+    private static final Logger logger = LoggerFactory.getLogger(TigerGeocoder.class);
+    private final SqlTigerGeocoderDao sqlTigerGeocoderDao;
+    private final GeocodeServiceValidator geocodeServiceValidator;
+    private final ParallelGeocodeService parallelGeocodeService;
 
     @Autowired
     public TigerGeocoder(SqlTigerGeocoderDao sqlTigerGeocoderDao, GeocodeServiceValidator geocodeServiceValidator,
-                         ParallelGeocodeService parallelGeocodeService,
-                         ParallelRevGeocodeService parallelRevGeocodeService)
-    {
+                         ParallelGeocodeService parallelGeocodeService) {
         this.sqlTigerGeocoderDao = sqlTigerGeocoderDao;
         this.geocodeServiceValidator = geocodeServiceValidator;
         this.parallelGeocodeService = parallelGeocodeService;
-        this.parallelRevGeocodeService = parallelRevGeocodeService;
         logger.debug("Instantiated TigerGeocoder.");
     }
 
     /** {@inheritDoc} */
     @Override
-    public GeocodeResult geocode(Address address)
-    {
+    public GeocodeResult geocode(Address address) {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
         if (address == null) {
             geocodeResult.setStatusCode(ResultStatus.MISSING_ADDRESS);
             geocodeResult.setResultTime(TimeUtil.currentTimestamp());
         }
         else {
-            logger.debug("Performing geocoding using TigerGeocoder for address " + address.toString());
+            logger.debug("Performing geocoding using TigerGeocoder for address {}", address);
 
             /** Ensure that the geocoder is active, otherwise return error result. */
             if (!geocodeServiceValidator.isGeocodeServiceActive(this.getClass(), geocodeResult)) {
@@ -68,7 +61,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
             }
 
             /** Proceed if valid address */
-            if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
+            if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
                 return geocodeResult;
             }
 
@@ -94,15 +87,13 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
 
     /** {@inheritDoc} */
     @Override
-    public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
-    {
+    public List<GeocodeResult> geocode(List<Address> addresses) {
         return parallelGeocodeService.geocode(this, addresses);
     }
 
     /** {@inheritDoc} */
     @Override
-    public GeocodeResult reverseGeocode(Point point)
-    {
+    public GeocodeResult reverseGeocode(Point point) {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
         StreetAddress streetAddress = sqlTigerGeocoderDao.getStreetAddress(point);
         if (streetAddress != null && streetAddress.hasStreet()) {
@@ -117,13 +108,6 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
         return geocodeResult;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
-    {
-        return parallelRevGeocodeService.reverseGeocode(this, points);
-    }
-
     /**
      * TigerGeocoder provides more of a confidence rating than a quality rating. For example a geocode
      * that has a high rating ( low ratings are better ) might turn out to be accurate but the
@@ -134,8 +118,7 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
      * @param gsa           The geo street address returned by the TigerGeocoderDao
      * @return              Resolved GeocodeQuality
      */
-    private GeocodeQuality resolveGeocodeQuality(Address inputAddress, GeocodedStreetAddress gsa)
-    {
+    private static GeocodeQuality resolveGeocodeQuality(Address inputAddress, GeocodedStreetAddress gsa) {
         int rawQuality = gsa.getGeocode().getRawQuality();
         StreetAddress sa = gsa.getStreetAddress();
 
@@ -150,46 +133,50 @@ public class TigerGeocoder implements GeocodeService, RevGeocodeService
 
         //The following comparisons are based on the Address object inputAddress
 
-        /** A matching building number usually means its a house quality match. Also we don't want to
-         *  perform any zipcode corrections for house level matches. If the zipcodes don't match it is
-         *  not a house level match */
-        if (sa.getBldgNum() != null && inputAddress.getAddr1().contains(Integer.toString(sa.getBldgNum()))) {
-            if (inputAddress.getZip5().isEmpty() || inputAddress.getZip5().equals(sa.getZip5())){
+        // A matching building number usually means it's a house quality match. Also, we don't want to
+        // perform any zipcode corrections for house level matches. If the zipcodes don't match it is
+        // not a house level match.
+        if (sa.getBldgId() != null && inputAddress.getAddr1().contains(sa.getBldgId())) {
+            if (inputAddress.getZip5() == null || inputAddress.getZip5().equals(sa.getZip5())){
                 return GeocodeQuality.HOUSE;
             }
         }
 
-        /** If the zip code matches, we can check to see if the streets match. If they don't match, we
-         * can't be sure if it's the correct street or not so it becomes a zip level geocode. */
-        if (!inputAddress.getZip5().isEmpty() && inputAddress.getZip5().equals( sa.getZip5() ) ) {
-            if (inputAddress.getAddr1().contains(sa.getStreetName()) && rawQuality <= 60 ) { return GeocodeQuality.STREET; }
+        // If the zip code matches, we can check to see if the streets match. If they don't match, we
+        // can't be sure if it's the correct street or not so it becomes a zip level geocode.
+        if (inputAddress.getZip5() != null && inputAddress.getZip5().equals(sa.getZip5()) ) {
+            if (inputAddress.getAddr1().contains(sa.getStreet()) && rawQuality <= 60 ) {
+                return GeocodeQuality.STREET;
+            }
             return GeocodeQuality.ZIP;
         }
 
-        /** Check to see if the cities match */
-        if (inputAddress.getPostalCity().equalsIgnoreCase(sa.getLocation())) { return GeocodeQuality.CITY; }
+        // Check to see if the cities match
+        if (inputAddress.getPostalCity().equalsIgnoreCase(sa.getPostalCity())) {
+            return GeocodeQuality.CITY;
+        }
 
-
-        /**
-         * The following comparisons are based on the StreetAddress object isa. This is necessary because an address
-            given to tiger might not all be in the addr field. To compare specifics for a slit apart addr, It is
-            converted to an StreetAddress
-         */
-        if (sa.getBldgNum() != null && Objects.equals(isa.getBldgNum(), sa.getBldgNum())) {
-            if (isa.getZip5().isEmpty() || isa.getZip5().equals(sa.getZip5())) {
+        // The following comparisons are based on the StreetAddress object isa. This is necessary because an address
+        // given to tiger might not all be in the addr field. To compare specifics for a slit apart addr, it is
+        // converted to an StreetAddress
+        if (sa.getBldgId() != null && Objects.equals(isa.getBldgId(), sa.getBldgId())) {
+            if (isa.getZip5() == null || isa.getZip5().equals(sa.getZip5())) {
                 return GeocodeQuality.HOUSE;
             }
         }
 
-        if (!isa.getZip5().isEmpty() && isa.getZip5().equals( sa.getZip5() ) ) {
-            if (isa.getStreetName().contains(sa.getStreetName()) && rawQuality <= 60 ) { return GeocodeQuality.STREET; }
+        if (isa.getZip5() != null && isa.getZip5().equals( sa.getZip5() ) ) {
+            if (isa.getStreet().contains(sa.getStreet()) && rawQuality <= 60 ) {
+                return GeocodeQuality.STREET;
+            }
             return GeocodeQuality.ZIP;
         }
 
-        if (isa.getLocation().equalsIgnoreCase(sa.getLocation())) { return GeocodeQuality.CITY; }
+        if (isa.getPostalCity().equalsIgnoreCase(sa.getPostalCity())) {
+            return GeocodeQuality.CITY;
+        }
 
-
-        /** Failed to determine if the geocode is accurate, so it's safer to return no match */
+        // Failed to determine if the geocode is accurate, so it's safer to return no match
         return GeocodeQuality.NOMATCH;
     }
 }

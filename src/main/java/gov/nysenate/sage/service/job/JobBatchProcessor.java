@@ -299,7 +299,7 @@ public class JobBatchProcessor implements JobProcessor {
                     jobFile.addRecord(new JobRecord(jobFile, row));
                 }
                 logMemoryUsage();
-                logger.info(jobFile.getRecords().size() + " records");
+                logger.info("{} records", jobFile.getRecords().size());
                 logger.info("--------------------------------------------------------------------");
 
                 LinkedTransferQueue<Future<JobBatch>> jobResultsQueue = new LinkedTransferQueue<>();
@@ -311,7 +311,7 @@ public class JobBatchProcessor implements JobProcessor {
 
                 for (int i = 0; i < batchCount; i++) {
                     int from = (i * JOB_BATCH_SIZE);
-                    int to = (from + JOB_BATCH_SIZE < recordCount) ? (from + JOB_BATCH_SIZE) : recordCount;
+                    int to = Math.min(from + JOB_BATCH_SIZE, recordCount);
                     ArrayList<JobRecord> batchRecords = new ArrayList<>(jobFile.getRecords().subList(from, to));
                     JobBatch jobBatch = new JobBatch(batchRecords, from, to);
 
@@ -322,6 +322,7 @@ public class JobBatchProcessor implements JobProcessor {
 
                     if (jobFile.requiresGeocode() || jobFile.requiresDistrictAssign()) {
                         Future<JobBatch> futureGeocodedBatch;
+                        // TODO: Future<X> vs. X, can be combined
                         if (jobFile.requiresAddressValidation() && futureValidatedBatch != null) {
                             futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(futureValidatedBatch, jobProcess,geocodeProvider, sqlGeocodeResultLogger));
                         }
@@ -329,7 +330,7 @@ public class JobBatchProcessor implements JobProcessor {
                             futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(jobBatch, jobProcess, geocodeProvider, sqlGeocodeResultLogger));
                         }
 
-                        if (jobFile.requiresDistrictAssign() && futureGeocodedBatch != null) {
+                        if (jobFile.requiresDistrictAssign()) {
                             Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new JobBatchProcessor.DistrictJobBatch(futureGeocodedBatch, districtTypes, jobProcess, districtProvider, sqlDistrictResultLogger));
                             jobResultsQueue.add(futureDistrictedBatch);
                         }

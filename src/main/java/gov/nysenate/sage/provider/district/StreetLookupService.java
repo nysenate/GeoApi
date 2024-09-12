@@ -9,5 +9,5 @@ import java.util.List;
  * of street address ranges with district information associated with each range.
  */
 public interface StreetLookupService {
-    List<DistrictedStreetRange> streetLookup(String zip5);
+    List<DistrictedStreetRange> streetLookup(Integer zip5);
 }

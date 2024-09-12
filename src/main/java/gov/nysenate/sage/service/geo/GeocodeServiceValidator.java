@@ -3,7 +3,6 @@ package gov.nysenate.sage.service.geo;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.GoogleGeocoder;
@@ -26,35 +25,22 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 * Utility class for validating geocode requests and responses.
 */
 @Service
-public class GeocodeServiceValidator
-{
-
-
+public class GeocodeServiceValidator {
     private static final Logger logger = LoggerFactory.getLogger(GeocodeServiceValidator.class);
-
     /** Keep track of GeocodeService implementations that are temporarily unavailable. */
-    private static Set<Class<? extends GeocodeService>> activeGeocoders = new HashSet<>();
-    private static Map<String, Class<? extends GeocodeService>> geoProviders = new HashMap<>();
-    private static Map<Class<? extends GeocodeService>, Timestamp> frozenGeocoders = new ConcurrentHashMap<>();
-    private static Map<Class<? extends GeocodeService>, Integer> failedRequests = new ConcurrentHashMap<>();
-    private Integer FAILURE_THRESHOLD;
-    private Integer RETRY_INTERVAL_SECS;
-    Environment env;
+    private static final Set<Class<? extends GeocodeService>> activeGeocoders = new HashSet<>();
+    private static final Map<String, Class<? extends GeocodeService>> geoProviders = Map.of(
+            "google", GoogleGeocoder.class, "nysgeo", NYSGeocoder.class, "tiger", TigerGeocoder.class
+    );
+    private static final Map<Class<? extends GeocodeService>, Timestamp> frozenGeocoders = new ConcurrentHashMap<>();
+    private static final Map<Class<? extends GeocodeService>, Integer> failedRequests = new ConcurrentHashMap<>();
+    private final Integer retryIntervalSecs;
 
     @Autowired
     public GeocodeServiceValidator(Environment env) {
-        this.env = env;
-        this.FAILURE_THRESHOLD = this.env.getGeocoderFailureThreshold();
-        this.RETRY_INTERVAL_SECS = this.env.getGeocoderRetryInterval();
-
-        geoProviders.put("google", GoogleGeocoder.class);
-        geoProviders.put("tiger", TigerGeocoder.class);
-        geoProviders.put("nysgeo", NYSGeocoder.class);
-
-        String[] activeList = env.getGeocoderActive().split(",");
-        for (String provider : activeList) {
-            provider = provider.trim();
-            setGeocoderAsActive(geoProviders.get(provider));
+        this.retryIntervalSecs = env.getGeocoderRetryInterval();
+        for (String provider : env.getGeocoderActive().split(",")) {
+            setGeocoderAsActive(geoProviders.get(provider.trim()));
         }
     }
 
@@ -63,8 +49,7 @@ public class GeocodeServiceValidator
      * still be blocked if it fails to return valid responses over a period of time.
      * @param geocodeService GeocodeService implementation class to mark as active.
      */
-    public static void setGeocoderAsActive(Class<? extends GeocodeService> geocodeService)
-    {
+    public static void setGeocoderAsActive(Class<? extends GeocodeService> geocodeService) {
         activeGeocoders.add(geocodeService);
     }
 
@@ -74,8 +59,7 @@ public class GeocodeServiceValidator
      * @param geocodeResult GeocodeResult to set the result status if the service is in fact disabled.
      * @return True if geocodeService is active, false otherwise.
      */
-    public boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, GeocodeResult geocodeResult)
-    {
+    public boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, GeocodeResult geocodeResult) {
         if (geocodeResult == null) {
             geocodeResult = new GeocodeResult(geocodeService);
         }
@@ -91,7 +75,7 @@ public class GeocodeServiceValidator
                 /** Check if the freeze time has elapsed */
                 Timestamp freezeTime = frozenGeocoders.get(geocodeService);
                 Calendar refreshTime = Calendar.getInstance();
-                refreshTime.add(Calendar.SECOND, RETRY_INTERVAL_SECS * -1);
+                refreshTime.add(Calendar.SECOND, retryIntervalSecs * -1);
                 Timestamp refreshTimestamp = new Timestamp(refreshTime.getTimeInMillis());
 
                 /** If the geocoder's freeze time has expired, remove it from the disabled list */
@@ -123,8 +107,7 @@ public class GeocodeServiceValidator
      * @param inputSize The number of failed results to set in geocodeResultList if service is not active.
      * @return True if geocodeService is active, false otherwise.
      */
-    public boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, List<GeocodeResult> geocodeResultList, int inputSize)
-    {
+    public boolean isGeocodeServiceActive(Class<? extends GeocodeService> geocodeService, List<GeocodeResult> geocodeResultList, int inputSize) {
         /** If the geocode service is not active, populate the geocodeResults list with results indicating the
          * disabled geocoder status. */
         GeocodeResult result = new GeocodeResult(geocodeService);
@@ -143,8 +126,7 @@ public class GeocodeServiceValidator
      * Will remove the geocoder from it's frozen state.
      * @param geocodeService GeocodeService that returned the successful result.
      */
-    public static void removeGeocoderBlock(Class<? extends GeocodeService> geocodeService)
-    {
+    public static void removeGeocoderBlock(Class<? extends GeocodeService> geocodeService) {
         failedRequests.remove(geocodeService);
         frozenGeocoders.remove(geocodeService);
     }
@@ -154,20 +136,13 @@ public class GeocodeServiceValidator
      * to the frozen list, thus making it temporarily disabled.
      * @param geocodeService GeocodeService that returned the failed result.
      */
-    public synchronized void recordFailedResult(Class<? extends GeocodeService> geocodeService)
-    {
+    public synchronized void recordFailedResult(Class<? extends GeocodeService> geocodeService) {
         if (geocodeService != null) {
             int failedCount = 0;
             if (failedRequests.containsKey(geocodeService)) {
                 failedCount = failedRequests.get(geocodeService);
             }
             failedRequests.put(geocodeService, ++failedCount);
-
-            /** If the failure count reaches the threshold, freeze the geocoder if not already. */
-//            if (failedCount >= FAILURE_THRESHOLD && !frozenGeocoders.containsKey(geocodeService)) {
-//                frozenGeocoders.put(geocodeService, TimeUtil.currentTimestamp());
-//                logger.info("Temporarily blocking " + geocodeService.getSimpleName() + " for " + RETRY_INTERVAL_SECS + " secs due to consecutive failures.");
-//            }
         }
     }
 
@@ -177,8 +152,7 @@ public class GeocodeServiceValidator
      * @param geocodeResult GeocodeResult to set status codes to
      * @return              True if valid input, false otherwise
      */
-    public static boolean validateGeocodeInput(Address address, GeocodeResult geocodeResult)
-    {
+    public static boolean validateGeocodeInput(Address address, GeocodeResult geocodeResult) {
         if (address == null) {
             geocodeResult.setStatusCode(MISSING_ADDRESS);
             return false;
@@ -199,8 +173,7 @@ public class GeocodeServiceValidator
      * @return True if valid GeocodedAddress, false otherwise
      */
     public boolean validateGeocodeResult(Class<? extends GeocodeService> source, GeocodedAddress geocodedAddress,
-                                                GeocodeResult geocodeResult, Boolean freeze)
-    {
+                                                GeocodeResult geocodeResult, Boolean freeze) {
         if (geocodedAddress != null) {
             geocodeResult.setGeocodedAddress(geocodedAddress);
             if (!geocodedAddress.isValidGeocode()){
@@ -227,27 +200,6 @@ public class GeocodeServiceValidator
     }
 
     /**
-     * Perform validation on a GeocodedStreetAddress.
-     * @param source GeocodeService implementation that provided the result.
-     * @param geoStreetAddress The resulting GeocodedStreetAddress
-     * @param geocodeResult    The GeocodeResult to set
-     * @param freeze If true the geocode service may be temporarily disabled for a specified duration
-     *               if it keeps returning error results.
-     * @return GeocodeResult
-     */
-    public boolean validateGeocodeResult(Class<? extends GeocodeService> source, GeocodedStreetAddress geoStreetAddress, GeocodeResult geocodeResult, Boolean freeze)
-    {
-        Boolean success = false;
-        if (geoStreetAddress != null) {
-            success = validateGeocodeResult(source, geoStreetAddress.toGeocodedAddress(), geocodeResult, freeze);
-        }
-        if (!success) {
-            geocodeResult.setStatusCode(NO_GEOCODE_RESULT);
-        }
-        return success;
-    }
-
-    /**
      * Perform validation on a list of GeocodedAddresses. The entire batch is considered one request so
      * if freeze is true, a single failed attempt will be recorded if no successful results exist.
      * @param source GeocodeService implementation that provided the results.
@@ -258,9 +210,8 @@ public class GeocodeServiceValidator
      * if it keeps returning error results.
      * @return GeocodeResult
      */
-    public boolean validateBatchGeocodeResult(Class<? extends GeocodeService> source, ArrayList<Address> addresses, ArrayList<GeocodeResult> geocodeResults,
-                                                      List<GeocodedAddress> geocodedAddresses, Boolean freeze)
-    {
+    public boolean validateBatchGeocodeResult(Class<? extends GeocodeService> source, List<Address> addresses, ArrayList<GeocodeResult> geocodeResults,
+                                                      List<GeocodedAddress> geocodedAddresses, Boolean freeze) {
         boolean hasValidResult = false;
 
         /** Make sure the result array is empty at first */
@@ -291,13 +242,5 @@ public class GeocodeServiceValidator
             recordFailedResult(source);
         }
         return hasValidResult;
-    }
-
-    public Integer getFAILURE_THRESHOLD() {
-        return FAILURE_THRESHOLD;
-    }
-
-    public Integer getRETRY_INTERVAL_SECS() {
-        return RETRY_INTERVAL_SECS;
     }
 }

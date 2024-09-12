@@ -24,12 +24,12 @@ public class StreetRangeView
             StreetAddressRange sar = districtedStreetRange.getStreetAddressRange();
             DistrictInfo dInfo = districtedStreetRange.getDistrictInfo();
             if (sar != null) {
-                this.bldgLoNum = sar.getBldgLoNum();
-                this.bldgHiNum = sar.getBldgHiNum();
-                this.parity = sar.getBldgParity();
-                this.street = sar.getStreet();
-                this.location = sar.getLocation();
-                this.zip5 = sar.getZip5();
+                this.bldgLoNum = sar.bldgLow();
+                this.bldgHiNum = sar.bldgHigh();
+                this.parity = sar.parity();
+                this.street = sar.awn().street();
+                this.location = sar.awn().postalCity();
+                this.zip5 = String.valueOf(sar.awn().zip5());
             }
             if (dInfo != null) {
                 districts = new HashMap<>();

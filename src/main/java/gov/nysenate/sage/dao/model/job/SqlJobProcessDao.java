@@ -50,58 +50,27 @@ public class SqlJobProcessDao implements JobProcessDao {
     /** {@inheritDoc} */
     public int addJobProcess(JobProcess p) {
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("userId", p.getRequestor().getId());
-            params.addValue("fileName", p.getFileName());
-            params.addValue("fileType", p.getFileType());
-            params.addValue("sourceFileName", p.getSourceFileName());
-            params.addValue("requestTime", p.getRequestTime());
-            params.addValue("recordCount", p.getRecordCount());
-            params.addValue("validationReq", p.isValidationRequired());
-            params.addValue("geocodeReq", p.isGeocodeRequired());
-            params.addValue("districtReq", p.isDistrictRequired());
+            var params = new MapSqlParameterSource()
+                    .addValue("userId", p.getRequestor().getId())
+                    .addValue("fileName", p.getFileName())
+                    .addValue("fileType", p.getFileType())
+                    .addValue("sourceFileName", p.getSourceFileName())
+                    .addValue("requestTime", p.getRequestTime())
+                    .addValue("recordCount", p.getRecordCount())
+                    .addValue("validationReq", p.isValidationRequired())
+                    .addValue("geocodeReq", p.isGeocodeRequired())
+                    .addValue("districtReq", p.isDistrictRequired());
 
             List<Integer> jobProcessIdList = baseDao.geoApiNamedJbdcTemplate.query(
                     JobProcessQuery.INSERT_JOB_PROCESS.getSql(baseDao.getJobSchema()), params, new JobProcessIdHandler());
 
-            if (jobProcessIdList != null && jobProcessIdList.get(0) != null) {
+            if (jobProcessIdList.get(0) != null) {
                 return jobProcessIdList.get(0);
             }
         } catch (Exception ex) {
             logger.error("Failed to add job process!", ex);
         }
         return -1;
-    }
-
-    /** {@inheritDoc} */
-    public JobProcess getJobProcessById(int id) {
-        try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("id", id);
-
-            List<JobProcess> jobProcesses = baseDao.geoApiNamedJbdcTemplate.query(
-                    JobProcessQuery.GET_JOB_PROCESS_BY_ID.getSql(baseDao.getJobSchema()), params, processHandler);
-
-            if (jobProcesses != null && jobProcesses.get(0) != null) {
-                return jobProcesses.get(0);
-            }
-        } catch (Exception ex) {
-            logger.error("Failed to retrieve job process by id!", ex);
-        }
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    public List<JobProcess> getJobProcessesByUser(int userId) {
-        try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("userId", userId);
-            return baseDao.geoApiNamedJbdcTemplate.query(
-                    JobProcessQuery.GET_JOB_PROCESS_BY_USER.getSql(baseDao.getJobSchema()), params, processListHandler);
-        } catch (Exception ex) {
-            logger.error("Failed to retrieve job processes by user id!", ex);
-        }
-        return null;
     }
 
     /** {@inheritDoc} */
@@ -149,7 +118,7 @@ public class SqlJobProcessDao implements JobProcessDao {
             List<JobProcessStatus> jobProcessStatusList = baseDao.geoApiNamedJbdcTemplate.query(
                     JobProcessQuery.GET_JOB_PROCESS_STATUS.getSql(baseDao.getJobSchema()), params, statusHandler);
 
-            if (jobProcessStatusList != null && jobProcessStatusList.get(0) != null) {
+            if (jobProcessStatusList.get(0) != null) {
                 return jobProcessStatusList.get(0);
             }
         } catch (Exception ex) {
@@ -165,7 +134,7 @@ public class SqlJobProcessDao implements JobProcessDao {
 
     /** {@inheritDoc} */
     public List<JobProcessStatus> getJobStatusesByCondition(Condition condition, JobUser jobUser, Timestamp start, Timestamp end) {
-        return getJobStatusesByConditions(Arrays.asList(condition), jobUser, start, end);
+        return getJobStatusesByConditions(List.of(condition), jobUser, start, end);
     }
 
     /** {@inheritDoc} */

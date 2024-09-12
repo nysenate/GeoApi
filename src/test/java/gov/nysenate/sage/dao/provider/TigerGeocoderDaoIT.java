@@ -12,7 +12,6 @@ import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
@@ -46,8 +45,7 @@ public class TigerGeocoderDaoIT extends BaseTests {
 
     @Test
     @Transactional(value = DatabaseConfig.geocoderTxManager)
-    public void miscTest()
-    {
+    public void miscTest() {
         assertNotNull(sqlTigerGeocoderDao.getGeocodedStreetAddress(new Address("100 Nyroy Dr Troy NY 12180")));
     }
 
@@ -59,9 +57,8 @@ public class TigerGeocoderDaoIT extends BaseTests {
 
     @Test
     @Transactional(value = DatabaseConfig.geocoderTxManager)
-    public void getStreetLineGeometryTest()
-    {
-        List<Line> lines = sqlTigerGeocoderDao.getStreetLineGeometry("State St", Arrays.asList("12203", "12210"));
+    public void getStreetLineGeometryTest() {
+        List<Line> lines = sqlTigerGeocoderDao.getStreetLineGeometry("State St", List.of(12203, 12210));
         assertNotNull(lines);
     }
 }

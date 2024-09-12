@@ -81,7 +81,7 @@ public class RegeocacheService implements SageRegeocacheService {
 
         //Cycle through zip codes
         for (String zip : zipCodes) {
-            logger.info("Geocoding zip: " + zip);
+            logger.info("Geocoding zip: {}", zip);
             /*
         Execute http request
          */

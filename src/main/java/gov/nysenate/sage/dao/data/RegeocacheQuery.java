@@ -39,38 +39,19 @@ public enum RegeocacheQuery implements BasicSqlQuery {
     GEOCACHE_SELECT("SELECT * \n" +
             "FROM ${schema}." + SqlTable.GEOCACHE + " AS gc \n" +
             "WHERE gc.bldgnum = :bldgnum \n" +
-            "AND gc.predir = :predir \n" +
             "AND gc.street = :street \n" +
-            "AND gc.postdir = :postdir \n" +
-            "AND gc.streetType = :streettype \n" +
             "AND gc.zip5 = :zip5 \n" +
             "AND gc.location = :location \n"),
 
-    INSERT_GEOCACHE("INSERT INTO ${schema}." + SqlTable.GEOCACHE + " (bldgnum, predir, street, streettype, postdir, location, state, zip5, " +
+    INSERT_GEOCACHE("INSERT INTO ${schema}." + SqlTable.GEOCACHE + " (bldgnum, street, location, zip5, " +
             "latlon, method, quality, zip4) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?), ?, ?, ?)"),
+            "VALUES (?, ?, ?, ?, ST_GeomFromText(?), ?, ?, ?)"),
 
     UPDATE_GEOCACHE("update ${schema}." + SqlTable.GEOCACHE + "\n" +
             "set latlon = ST_GeomFromText(?), method = ?, quality = ?, zip4 = ?, updated = now()\n" +
-            "where bldgnum = ?  and street = ? and streettype = ? and predir = ? and postdir = ? and zip5 = ? and location = ?;"),
+            "where bldgnum = ?  and street = ? and zip5 = ? and location = ?;"),
 
     SELECT_ZIPS("select zip_code from ${schema}." + SqlTable.DISTRICT_ZIP + ";"),
-
-    DUP_TOTAL_COUNT_SQL("SELECT count(*)\n" +
-            "FROM " + SqlTable.ADDRESS_POINTS_SAM + " x\n" +
-            "         JOIN (SELECT t.addresslabel\n" +
-            "               FROM addresspoints_sam t\n" +
-            "               GROUP BY t.addresslabel\n" +
-            "               HAVING COUNT(t.addresslabel) > 1) y ON y.addresslabel = x.addresslabel;"),
-
-    DUP_BATCH_SQL("SELECT  x.addresslabel, x.citytownname, x.state, x.zipcode, x.latitude, x.longitude, x.pointtype\n" +
-            "FROM " + SqlTable.ADDRESS_POINTS_SAM + " x\n" +
-            "         JOIN (SELECT t.addresslabel\n" +
-            "               FROM addresspoints_sam t\n" +
-            "               GROUP BY t.addresslabel\n" +
-            "               HAVING COUNT(t.addresslabel) > 1) y ON y.addresslabel = x.addresslabel\n" +
-            "limit :limit\n" +
-            "offset :offset;"),
 
     METHOD_TOTAL_COUNT_SQL("select count(*) \n" +
             "from ${schema}." + SqlTable.GEOCACHE + "\n" +

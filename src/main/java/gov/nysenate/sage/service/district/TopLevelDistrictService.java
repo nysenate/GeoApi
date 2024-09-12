@@ -22,7 +22,6 @@ import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.map.MapServiceProvider;
-import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
@@ -194,12 +193,10 @@ public class TopLevelDistrictService {
      */
     public List<DistrictResult> handleBatchDistrictRequest(BatchDistrictRequest batchRequest) {
         List<Point> points = batchRequest.getPoints();
-        List<Address> reorderedAddresses = batchRequest.getAddresses().stream()
-                .map(AddressUtil::reorderAddress).toList();
-        batchRequest.setAddresses(reorderedAddresses);
+        batchRequest.setAddresses(batchRequest.getAddresses());
 
         List<GeocodedAddress> geocodedAddresses;
-        if (!reorderedAddresses.isEmpty()) {
+        if (!batchRequest.getAddresses().isEmpty()) {
             geocodedAddresses = getGeocodedAddresses(batchRequest);
         }
         else if (!points.isEmpty()) {
@@ -258,11 +255,11 @@ public class TopLevelDistrictService {
      * @return True if zip5 was provided, false otherwise
      */
     private static boolean isZipProvided(StreetAddress streetAddress) {
-        return streetAddress != null && streetAddress.getZip5().length() == 5;
+        return streetAddress != null && streetAddress.getZip5() != null;
     }
 
     private DistrictResult performIntersect(DistrictRequest districtRequest) {
-        DistrictResult districtResult = new DistrictResult(this.getClass());
+        var districtResult = new DistrictResult(this.getClass());
         districtResult.setStatusCode(NO_DISTRICT_RESULT);
 
         districtResult = districtProvider.assignIntersect(districtRequest.getDistrictType(),

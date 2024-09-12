@@ -12,7 +12,6 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.service.district.TopLevelDistrictService;
-import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
@@ -109,7 +108,7 @@ public class DistrictController {
                 getPointFromParams(lat, lon), provider, geoProvider, uspsValidate, showMembers, usePunct, skipGeocode,
                 showMaps, districtStrategy);
 
-        districtRequest.setAddress(AddressUtil.reorderAddress(districtRequest.getAddress()));
+        districtRequest.setAddress(districtRequest.getAddress());
 
         districtService.logDistrictRequest(apiRequest, districtRequest);
 
@@ -283,7 +282,7 @@ public class DistrictController {
         DistrictRequest districtRequest = createBlueBirdDistrictRequest(apiRequest, provider, geoProvider, usePunct,
                 address, getPointFromParams(lat, lon));
 
-        districtRequest.setAddress(AddressUtil.reorderAddress(districtRequest.getAddress()));
+        districtRequest.setAddress(districtRequest.getAddress());
 
         districtService.logDistrictRequest(apiRequest, districtRequest);
 

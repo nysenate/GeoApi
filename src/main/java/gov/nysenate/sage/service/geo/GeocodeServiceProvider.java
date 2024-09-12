@@ -311,7 +311,7 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
 
         /** Make note of the indices that contain empty addresses and create a new list of addresses
         * containing just the addresses with values. */
-        List<Address> validAddresses = new ArrayList<>(addressCount);
+        ArrayList<Address> validAddresses = new ArrayList<>(addressCount);
         List<Integer> invalidIndices = new ArrayList<>();
         for (int i = 0; i < addressCount; i++) {
             if (addresses.get(i) != null && !addresses.get(i).isEmpty()) {
@@ -331,7 +331,7 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
             logger.debug("Running batch through geo cache..");
             Timestamp benchmark1 = TimeUtil.currentTimestamp();
 
-            geocodeResults = this.geocache.geocode((ArrayList<Address>) validAddresses);
+            geocodeResults = this.geocache.geocode(validAddresses);
             cacheElapsedMs = TimeUtil.getElapsedMs(benchmark1);
 
             if (!fallback.contains(provider)) {
@@ -343,7 +343,7 @@ public class GeocodeServiceProvider implements SageGeocodeServiceProvider
             /** Remove the provider if it's set in the fallback chain */
             fallback.remove(provider);
             logger.info(String.format("Skipped cache lookup. Using %s.", provider));
-            geocodeResults = this.activeGeoProviders.get(provider).geocode((ArrayList<Address>) validAddresses);
+            geocodeResults = this.activeGeoProviders.get(provider).geocode(validAddresses);
         }
         /** Otherwise populate the results array with failed results so they get picked up
          *  during the fallback stage. */

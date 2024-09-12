@@ -1,23 +1,21 @@
 package gov.nysenate.sage.provider.geocode;
 
-import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.mapquest.HttpMapQuestDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.geo.*;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
+import gov.nysenate.sage.service.geo.RevGeocodeServiceValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import static gov.nysenate.sage.model.result.ResultStatus.*;
+import static gov.nysenate.sage.model.result.ResultStatus.RESPONSE_PARSE_ERROR;
 
 /**
  * MapQuest Geocoding provider implementation
@@ -26,34 +24,21 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
  * @author Graylin Kim, Ash Islam
  */
 @Service
-public class MapQuest implements GeocodeService, RevGeocodeService
-{
+public class MapQuest implements GeocodeService, RevGeocodeService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private HttpMapQuestDao httpMapQuestDao;
-
-    private GeocodeServiceValidator geocodeServiceValidator;
-    private ParallelRevGeocodeService parallelRevGeocodeService;
-    private BaseDao baseDao;
-    private Environment env;
+    private final HttpMapQuestDao httpMapQuestDao;
+    private final GeocodeServiceValidator geocodeServiceValidator;
 
     @Autowired
-    public MapQuest(BaseDao baseDao, HttpMapQuestDao httpMapQuestDao, GeocodeServiceValidator geocodeServiceValidator,
-                    ParallelRevGeocodeService parallelRevGeocodeService, Environment env)
-    {
-        this.baseDao = baseDao;
-        this.env = env;
+    public MapQuest(HttpMapQuestDao httpMapQuestDao, GeocodeServiceValidator geocodeServiceValidator) {
         this.geocodeServiceValidator = geocodeServiceValidator;
-        this.parallelRevGeocodeService = parallelRevGeocodeService;
         this.httpMapQuestDao = httpMapQuestDao;
 
     }
 
-    /** Geocode Service Implementation ------------------------------------------------------------------*/
-
     /** {@inheritDoc} */
     @Override
-    public GeocodeResult geocode(Address address)
-    {
+    public GeocodeResult geocode(Address address) {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Proceed only on valid input. */
@@ -62,8 +47,8 @@ public class MapQuest implements GeocodeService, RevGeocodeService
         }
 
         /** Delegate to the batch method. */
-        ArrayList<GeocodeResult> results = geocode(new ArrayList<>(Arrays.asList(address)));
-        if (results != null && results.size() > 0) {
+        List<GeocodeResult> results = geocode(List.of(address));
+        if (results != null && !results.isEmpty()) {
             geocodeResult = results.get(0);
         }
         else {
@@ -74,8 +59,7 @@ public class MapQuest implements GeocodeService, RevGeocodeService
 
     /** {@inheritDoc} */
     @Override
-    public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
-    {
+    public ArrayList<GeocodeResult> geocode(List<Address> addresses) {
         logger.trace("Performing geocoding using MapQuest");
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
 
@@ -98,8 +82,7 @@ public class MapQuest implements GeocodeService, RevGeocodeService
 
     /** {@inheritDoc} */
     @Override
-    public GeocodeResult reverseGeocode(Point point)
-    {
+    public GeocodeResult reverseGeocode(Point point) {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Validate the input */
@@ -112,15 +95,8 @@ public class MapQuest implements GeocodeService, RevGeocodeService
 
         /** Validate and set response */
         if (!RevGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {
-            logger.warn("Reverse geocode failed for point " + point + " using MapQuest");
+            logger.warn("Reverse geocode failed for point {} using MapQuest", point);
         }
         return geocodeResult;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
-    {
-        return parallelRevGeocodeService.reverseGeocode(this, points);
     }
 }

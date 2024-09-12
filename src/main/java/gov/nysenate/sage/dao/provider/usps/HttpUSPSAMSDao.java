@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
@@ -59,11 +58,11 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
                     .append("&addr2=").append(encode(address.getAddr2()))
                     .append("&city=").append(encode(address.getPostalCity()))
                     .append("&state=").append(encode(address.getState()))
-                    .append("&zip5=").append(encode(address.getZip5()))
+                    .append("&zip5=").append(address.getZip5())
                     .append("&initCaps=true");
 
             String url = base_url + VALIDATE_METHOD + urlParams;
-            logger.info("Making a connection to: \n" + url);
+            logger.info("Making a connection to: \n{}", url);
 
             String response = UrlRequest.getResponseFromUrl(url);
             if (response != null && !response.isEmpty()) {
@@ -75,7 +74,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
                                     StreetAddressParser.parseAddress(addressResult.getAddress()).toAddress()));
                 }
                 else { //This is what would happen if it was null but this prevents a null pointer exception
-                    addressResult.setAddress(StreetAddressParser.normalizeStreetAddress(new StreetAddress()).toAddress());
+                    addressResult.setAddress(new Address());
                 }
                 return addressResult;
             }
@@ -103,13 +102,13 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
         ArrayNode requestRoot = jsonNodeFactory.arrayNode();
         for (Address address : addresses) {
-            ObjectNode addressNode = jsonNodeFactory.objectNode();
-            addressNode.put("addr1", address.getAddr1());
-            addressNode.put("addr2", address.getAddr2());
-            addressNode.put("city", address.getPostalCity());
-            addressNode.put("state", address.getState());
-            addressNode.put("zip5", address.getZip5());
-            addressNode.put("zip4", address.getZip4());
+            ObjectNode addressNode = jsonNodeFactory.objectNode()
+                    .put("addr1", address.getAddr1())
+                    .put("addr2", address.getAddr2())
+                    .put("city", address.getPostalCity())
+                    .put("state", address.getState())
+                    .put("zip5", address.getZip5())
+                    .put("zip4", address.getZip4());
             requestRoot.add(addressNode);
         }
         String jsonPayload = requestRoot.toString();
@@ -170,7 +169,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
 
                 addressResult.setAddress(validatedAddress);
             } catch (NullPointerException ex) {
-                logger.error("Bad root: " + root);
+                logger.error("Bad root: {}", root);
                 addressResult.setValidated(false);
             }
         }
@@ -188,7 +187,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
 
         StringBuilder urlParams = new StringBuilder("?initCaps=true");
         try {
-            urlParams.append("&zip5=").append(encode(address.getZip5()));
+            urlParams.append("&zip5=").append(address.getZip5());
             String url = base_url + CITYSTATE_METHOD + urlParams;
             String response = UrlRequest.getResponseFromUrl(url);
             if (response != null && !response.isEmpty()) {

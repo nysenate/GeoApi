@@ -4,20 +4,18 @@ import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
-import org.springframework.jdbc.support.xml.SqlXmlFeatureNotImplementedException;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public interface RegeocacheDao {
-
     /**
      * Generates the sql used for counting the records that would be used in a mass geocache batch
      * @param typeList
      * @return
      */
-    public List<Integer> determineMassGeocodeRecordCount(ArrayList<String> typeList);
+    List<Integer> determineMassGeocodeRecordCount(ArrayList<String> typeList);
 
     /**
      * Generates the sql used for selecting a mass geocache batch
@@ -26,13 +24,13 @@ public interface RegeocacheDao {
      * @param typeList
      * @return
      */
-    public List<StreetAddress> getMassGeocodeBatch(int offset, int limit, ArrayList<String> typeList);
+    List<StreetAddress> getMassGeocodeBatch(int offset, int limit, ArrayList<String> typeList);
 
     /**
      * Retreives a total count of all rows contained from the NYS GEO DB
      * @return
      */
-    public Integer getNYSTotalAddresses();
+    Integer getNYSTotalAddresses();
 
     /**
      * Retrieves a batch of addresses from the NYS GEO DB
@@ -41,32 +39,32 @@ public interface RegeocacheDao {
      * @param nys_offset
      * @return
      */
-    public List<NYSGeoAddress> getBatchOfNYSGeoAddresses(int nys_limit, int nys_offset);
+    List<NYSGeoAddress> getBatchOfNYSGeoAddresses(int nys_limit, int nys_offset);
 
     /**
      * Checks our geocache for the given street address. It will return the geoprovider of the address
      * @param nysStreetAddress
      * @return
      */
-    public GeocodedStreetAddress getProviderOfAddressInCacheIfExists(StreetAddress nysStreetAddress);
+    GeocodedStreetAddress getProviderOfAddressInCacheIfExists(StreetAddress nysStreetAddress);
 
     /**
      * Inserts a new address into our geocache
      * @param nysStreetAddress
      * @param nysGeocode
      */
-    public void insetIntoGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) throws SQLException;
+    void insetIntoGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) throws SQLException;
 
     /**
      * Updates an address we already have in the geocache
      * @param nysStreetAddress
      * @param nysGeocode
      */
-    public void updateGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) throws SQLException;
+    void updateGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) throws SQLException;
 
     /**
      * Reteives a list of all zip codes that we have in the geoapi database
      * @return
      */
-    public List<String> getAllZips();
+    List<String> getAllZips();
 }

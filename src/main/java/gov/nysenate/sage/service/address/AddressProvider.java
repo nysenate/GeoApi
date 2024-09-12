@@ -3,6 +3,7 @@ package gov.nysenate.sage.service.address;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public interface AddressProvider {
@@ -28,6 +29,7 @@ public interface AddressProvider {
     /**
      * Use USPS for a city state lookup by default.
      */
+    @Nonnull
     public AddressResult lookupCityState(Address address, String providerName);
 
     /**

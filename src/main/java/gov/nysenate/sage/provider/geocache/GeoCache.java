@@ -21,14 +21,12 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class GeoCache implements GeocodeCacheService
-{
-    private final Logger logger = LoggerFactory.getLogger(GeoCache.class);
-    private static Set<GeocodeService> cacheableProviders = new HashSet<>();
-    private static Set<Class<? extends GeocodeService>> cacheableProvidersClasses = new HashSet<>();
-    private SqlGeoCacheDao sqlGeoCacheDao;
-    private ParallelGeocodeService parallelGeocodeService;
-    private GeocodeServiceValidator geocodeServiceValidator;
+public class GeoCache implements GeocodeCacheService {
+    private static final Logger logger = LoggerFactory.getLogger(GeoCache.class);
+    private static final Set<Class<? extends GeocodeService>> cacheableProvidersClasses = new HashSet<>();
+    private final SqlGeoCacheDao sqlGeoCacheDao;
+    private final ParallelGeocodeService parallelGeocodeService;
+    private final GeocodeServiceValidator geocodeServiceValidator;
 
     @Autowired
     public GeoCache(SqlGeoCacheDao sqlGeoCacheDao, ParallelGeocodeService parallelGeocodeService, GeocodeServiceValidator geocodeServiceValidator) {
@@ -42,10 +40,8 @@ public class GeoCache implements GeocodeCacheService
      * Designates a provider (that has been registered) as a reliable source for caching results.
      * @param provider the provider to be added to the cacheableProviders list
      */
-    public void registerProviderAsCacheable(GeocodeService provider)
-    {
+    public void registerProviderAsCacheable(GeocodeService provider) {
         if (provider != null) {
-            cacheableProviders.add(provider);
             cacheableProvidersClasses.add(provider.getClass());
         }
     }
@@ -55,21 +51,19 @@ public class GeoCache implements GeocodeCacheService
      * @param provider check name of this provider to see if it is registered as cacheable
      * @return true if it is allowed, false otherwise
      */
-    public boolean isProviderCacheable(Class<? extends GeocodeService> provider)
-    {
+    public boolean isProviderCacheable(Class<? extends GeocodeService> provider) {
         return cacheableProvidersClasses.contains(provider);
     }
 
     /** {@inheritDoc} */
     @Override
-    public GeocodeResult geocode(Address address)
-    {
+    public GeocodeResult geocode(Address address) {
         logger.trace("Attempting geocode cache lookup");
         GeocodeResult geocodeResult  = new GeocodeResult(this.getClass());
 
         /* Proceed only on valid input */
         if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)) {
-            logger.info(address + " is invalid");
+            logger.info("{} is invalid", address);
             geocodeResult.setGeocodedAddress(new GeocodedAddress());
             return geocodeResult;
         }
@@ -85,41 +79,31 @@ public class GeoCache implements GeocodeCacheService
 
         /* Validate and return */
         if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), reformedGeocodedAddress, geocodeResult, false)) {
-            logger.info("Failed to find cache hit for " + address);
+            logger.info("Failed to find cache hit for {}", address);
         }
         return geocodeResult;
     }
 
     /** {@inheritDoc} */
     @Override
-    public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
-    {
+    public List<GeocodeResult> geocode(List<Address> addresses) {
         return parallelGeocodeService.geocode(this, addresses);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void saveToCache(GeocodeResult geocodeResult)
-    {
+    public void saveToCacheAndFlush(GeocodeResult geocodeResult) {
         if (geocodeResult != null && geocodeResult.isSuccess() && geocodeResult.getSource() != null) {
             if (isProviderCacheable(geocodeResult.getSource())) {
                 sqlGeoCacheDao.cacheGeocodedAddress(geocodeResult.getGeocodedAddress());
             }
         }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void saveToCacheAndFlush(GeocodeResult geocodeResult)
-    {
-        this.saveToCache(geocodeResult);
         sqlGeoCacheDao.flushCacheBuffer();
     }
 
     /** {@inheritDoc} */
     @Override
-    public void saveToCache(List<GeocodeResult> geocodeResults)
-    {
+    public void saveToCacheAndFlush(List<GeocodeResult> geocodeResults) {
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
         for (GeocodeResult geocodeResult : geocodeResults) {
             if (geocodeResult != null && geocodeResult.isSuccess()) {
@@ -129,13 +113,6 @@ public class GeoCache implements GeocodeCacheService
             }
         }
         sqlGeoCacheDao.cacheGeocodedAddresses(geocodedAddresses);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void saveToCacheAndFlush(List<GeocodeResult> geocodeResults)
-    {
-        this.saveToCache(geocodeResults);
         sqlGeoCacheDao.flushCacheBuffer();
     }
 }

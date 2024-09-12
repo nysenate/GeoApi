@@ -7,18 +7,16 @@ import gov.nysenate.sage.model.address.Address;
  * AddressView represents the structure of an address representation on the response end of the API.
  */
 @JsonRootName("address")
-public class AddressView
-{
-    protected String addr1 = "";
-    protected String addr2 = "";
-    protected String city = "";
-    protected String state = "";
-    protected String zip5 = "";
-    protected String zip4 = "";
-    protected Integer id = null;
+public class AddressView {
+    protected String addr1;
+    protected String addr2;
+    protected String city;
+    protected String state;
+    protected Integer zip5;
+    protected Integer zip4;
+    protected Integer id;
 
-    public AddressView(Address address)
-    {
+    public AddressView(Address address) {
         this.addr1 = address.getAddr1();
         this.addr2 = address.getAddr2();
         this.city = address.getPostalCity();
@@ -26,17 +24,6 @@ public class AddressView
         this.zip5 = address.getZip5();
         this.zip4 = address.getZip4();
         this.id = address.getId();
-    }
-
-    public AddressView(String addr1, String addr2, String city, String state, String zip5, String zip4, Integer id)
-    {
-        this.addr1 = addr1;
-        this.addr2 = addr2;
-        this.city = city;
-        this.state = state;
-        this.zip5 = zip5;
-        this.zip4 = zip4;
-        this.id = id;
     }
 
     public String getAddr1() {
@@ -55,11 +42,11 @@ public class AddressView
         return state;
     }
 
-    public String getZip5() {
+    public Integer getZip5() {
         return zip5;
     }
 
-    public String getZip4() {
+    public Integer getZip4() {
         return zip4;
     }
 

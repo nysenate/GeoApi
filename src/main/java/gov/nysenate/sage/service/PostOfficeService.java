@@ -57,19 +57,16 @@ public class PostOfficeService {
         return "Success.";
     }
 
-    public DistrictedAddress getDistrictedAddress(String poBoxZip5, String city) {
-        int deliveryZip;
-        try {
-            deliveryZip = Integer.parseInt(poBoxZip5);
-        } catch (NumberFormatException ex) {
+    public DistrictedAddress getDistrictedAddress(Integer poBoxZip5, String city) {
+        if (poBoxZip5 == null) {
             return null;
         }
-        PostOfficeDistrictData result = cache.get(deliveryZip);
+        PostOfficeDistrictData result = cache.get(poBoxZip5);
         if (result == null) {
             result = new PostOfficeDistrictData(
-                    dao.getPostOffices(deliveryZip).stream().map(this::getDistrictedAddress).toList()
+                    dao.getPostOffices(poBoxZip5).stream().map(this::getDistrictedAddress).toList()
             );
-            cache.put(deliveryZip, result);
+            cache.put(poBoxZip5, result);
         }
         return result.isEmpty() ? null : result.getDistrictedAddress(city);
     }

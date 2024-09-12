@@ -16,6 +16,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
@@ -99,6 +100,7 @@ public class USPSAIS implements AddressService, Observer
     /**
      * Proxies to the overloaded validate method.
      */
+    @Nonnull
     @Override
     public AddressResult validate(Address address)
     {
@@ -259,11 +261,10 @@ public class USPSAIS implements AddressService, Observer
     }
 
 
+    @Nonnull
     @Override
-    public AddressResult lookupCityState(Address address)
-    {
-        List<Address> addressList = new ArrayList<>(Arrays.asList(address));
-        List<AddressResult> resultList = lookupCityState(addressList);
+    public AddressResult lookupCityState(Address address) {
+        List<AddressResult> resultList = lookupCityState(List.of(address));
         if (resultList != null && !resultList.isEmpty()) {
             return resultList.get(0);
         }
@@ -272,8 +273,7 @@ public class USPSAIS implements AddressService, Observer
 
 
     @Override
-    public List<AddressResult> lookupCityState(List<Address> addresses)
-    {
+    public List<AddressResult> lookupCityState(List<Address> addresses) {
         String url = "";
         Content page = null;
         Document response = null;
@@ -307,7 +307,7 @@ public class USPSAIS implements AddressService, Observer
                 /** If the request failed, mark them all as such */
                 Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
                 if (error != null) {
-                    ArrayList<String> messages = new ArrayList<String>();
+                    List<String> messages = new ArrayList<>();
                     messages.add(xpath.evaluate("Description", error).trim());
 
                     for (AddressResult result : batchResults) {
@@ -315,8 +315,7 @@ public class USPSAIS implements AddressService, Observer
                         result.setMessages(messages);
                     }
                 }
-                else
-                {
+                else {
                     NodeList responses = (NodeList)xpath.evaluate("CityStateLookupResponse/ZipCode", response, XPathConstants.NODESET);
                     for (int i = 0; i<responses.getLength(); i++) {
                         Node addressResponse = responses.item(i);
@@ -331,12 +330,15 @@ public class USPSAIS implements AddressService, Observer
                             continue;
                         }
 
+                        if (!Address.validState(xpath.evaluate("State", addressResponse))) {
+                           return null;
+                        }
                         Address resultAddress = new Address();
                         String city = xpath.evaluate("City", addressResponse);
                         city = (city != null) ? WordUtils.capitalizeFully(city) : city;
                         resultAddress.setPostalCity(city);
-                        resultAddress.setState(xpath.evaluate("State", addressResponse));
-                        resultAddress.setZip5(xpath.evaluate("Zip5", addressResponse));
+                        String zip5 = xpath.evaluate("Zip5", addressResponse);
+                        resultAddress.setZip5(Integer.parseInt(zip5));
 
                         batchResults.get(index % BATCH_SIZE).setAddress(resultAddress);
                         batchResults.get(index % BATCH_SIZE).setValidated(true);
@@ -344,15 +346,15 @@ public class USPSAIS implements AddressService, Observer
                 }
             }
             catch (MalformedURLException e) {
-                logger.error("Malformed URL '"+url+"', check api key and address values.", e);
+                logger.error("Malformed URL '{}', check api key and address values.", url, e);
                 return null;
             }
             catch (IOException e) {
-                logger.error("Error opening API resource '"+url+"'", e);
+                logger.error("Error opening API resource '{}'", url, e);
                 return null;
             }
             catch (SAXException e) {
-                logger.error("Malformed XML response for '"+url+"'\n"+page.asString(), e);
+                logger.error("Malformed XML response for '{}'\n{}", url, page.asString(), e);
                 return null;
             }
             catch (XPathExpressionException e) {
@@ -367,22 +369,7 @@ public class USPSAIS implements AddressService, Observer
         return results;
     }
 
-    @Override
-    public AddressResult lookupZipCode(Address address)
-    {
-        return validate(address);
-    }
-
-    /** ZipCode lookup for USPS has no advantage over address validation so just use the
-     *  existing validation method to get the zipcode */
-    @Override
-    public List<AddressResult> lookupZipCode(List<Address> addresses)
-    {
-        return validate(addresses);
-    }
-
-    private void configure()
-    {
+    private void configure() {
         baseUrl = env.getUspsAisUrl();
         apiKey = env.getUspsAisKey();
         if (baseUrl.isEmpty()) {
@@ -397,8 +384,7 @@ public class USPSAIS implements AddressService, Observer
      * @param addr  The Address object to build the XML request for.
      * @return      String containing the XML request.
      */
-    private String addressToXml(int id, Address addr)
-    {
+    private static String addressToXml(int id, Address addr) {
         return String.format("<Address ID=\"%d\">"
                            + "<Address1>%s</Address1>"
                            + "<Address2>%s</Address2>"

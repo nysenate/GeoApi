@@ -6,8 +6,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BaseResponse
-{
+public class BaseResponse {
     protected ResultStatus status = ResultStatus.RESPONSE_ERROR;
     protected String source = "";
     protected List<String> messages = new ArrayList<>();

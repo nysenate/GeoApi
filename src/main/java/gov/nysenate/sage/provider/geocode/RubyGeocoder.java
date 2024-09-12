@@ -17,25 +17,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
-public class RubyGeocoder implements GeocodeService
-{
+public class RubyGeocoder implements GeocodeService {
     private static final String DEFAULT_BASE_URL = "http://geocoder.nysenate.gov/GeoRubyAdapter/api";
     private final ObjectMapper jsonMapper;
     private final Logger logger;
     private final int BATCH_SIZE = 24;
-    private String m_baseUrl;
-    private String m_baseBulkUrl;
-    private GeocodeServiceValidator geocodeServiceValidator;
+    private final String m_baseUrl;
+    private final String m_baseBulkUrl;
+    private final GeocodeServiceValidator geocodeServiceValidator;
 
 
     @Autowired
-    public RubyGeocoder(GeocodeServiceValidator geocodeServiceValidator)
-    {
+    public RubyGeocoder(GeocodeServiceValidator geocodeServiceValidator) {
         this.logger = LoggerFactory.getLogger(this.getClass());
         this.jsonMapper = new ObjectMapper();
         m_baseUrl = DEFAULT_BASE_URL+"/geocode";
@@ -46,8 +45,7 @@ public class RubyGeocoder implements GeocodeService
 
     /** {@inheritDoc} */
     @Override
-    public GeocodeResult geocode(Address address)
-    {
+    public GeocodeResult geocode(Address address) {
         String url;
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
@@ -57,16 +55,11 @@ public class RubyGeocoder implements GeocodeService
         }
 
         /** Proceed if valid address */
-        if (!geocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
+        if (!GeocodeServiceValidator.validateGeocodeInput(address, geocodeResult)){
             return geocodeResult;
         }
 
-        if (address.isParsed()) {
-            url = m_baseUrl+"?street="+address.getAddr1()+"&city="+address.getPostalCity()+"&state="+address.getState()+"&zip="+address.getZip5();
-        }
-        else {
-            url = m_baseUrl+"?address="+address.toString();
-        }
+        url = m_baseUrl+"?street="+address.getAddr1()+"&city="+address.getPostalCity()+"&state="+address.getState()+"&zip="+address.getZip5();
         url = url.replaceAll(" ", "%20");
 
         try {
@@ -96,24 +89,18 @@ public class RubyGeocoder implements GeocodeService
 
     /** {@inheritDoc} */
     @Override
-    public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
-    {
+    public List<GeocodeResult> geocode(List<Address> addresses) {
         // RubyGeocoder has a special bulk method if all addresses are parsed
-        return geocodeParsedBulk(addresses);
-    }
+        if (addresses.isEmpty()) {
+            return List.of();
+        }
 
-    private ArrayList<GeocodeResult> geocodeParsedBulk(ArrayList<Address> addresses)
-    {
         String urlText = "";
         ArrayList<GeocodeResult> results = new ArrayList<>();
         ArrayList<GeocodeResult> batchResults = new ArrayList<>();
 
-        if (addresses.size() == 0) {
-            return results;
-        }
-
         try {
-            StringBuilder json = new StringBuilder();
+            var json = new StringBuilder();
             // Start with a=1 to make the batch boundary condition work nicely
             for (int a = 1; a <= addresses.size(); a++) {
                 Address address = addresses.get(a-1);
@@ -131,7 +118,7 @@ public class RubyGeocoder implements GeocodeService
                     continue;
                 }
 
-                urlText = m_baseBulkUrl+"?json=["+ URLEncoder.encode(json.substring(1), "utf-8")+"]";
+                urlText = m_baseBulkUrl+"?json=["+ URLEncoder.encode(json.substring(1), StandardCharsets.UTF_8)+"]";
                 logger.info(urlText);
 
                 String jsonString = UrlRequest.getResponseFromUrl(urlText);
@@ -147,7 +134,7 @@ public class RubyGeocoder implements GeocodeService
                 for (int i = 0; i < jsonResults.size(); i++) {
                     JsonNode jsonResult = jsonResults.get(i);
                     while (batchResults.get(i+resultOffset) == null) {
-                        logger.info(("looping! " + resultOffset));
+                        logger.info("looping! {}", resultOffset);
                         resultOffset++;
                     }
                     batchResults.set(i+resultOffset, getGeocodeResultFromResultNode(jsonResult));
@@ -157,12 +144,7 @@ public class RubyGeocoder implements GeocodeService
                 results.addAll(batchResults);
                 batchResults.clear();
             }
-
             return results;
-        }
-        catch (UnsupportedEncodingException e) {
-            String msg = "UTF-8 encoding not supported!?";
-            logger.error(msg);
         }
         catch (IOException e) {
             String msg = "Error opening API resource '"+urlText+"'";
@@ -171,8 +153,7 @@ public class RubyGeocoder implements GeocodeService
         return results;
     }
 
-    private GeocodeResult getGeocodeResultFromResultNode(JsonNode jsonResult)
-    {
+    private GeocodeResult getGeocodeResultFromResultNode(JsonNode jsonResult) {
         GeocodeResult geocodeResult = new GeocodeResult();
         if (jsonResult != null && jsonResult.has("lat")) {
             // For lower granularity lookups these fields might not be available.
@@ -205,8 +186,7 @@ public class RubyGeocoder implements GeocodeService
         return geocodeResult;
     }
 
-    private String addressToJson(Address address)
-    {
+    private static String addressToJson(Address address) {
         return String.format("{\"street\":\"%s\",\"city\":\"%s\",\"state\":\"%s\",\"zip5\":\"%s\"}",
                 address.getAddr1(), address.getPostalCity(), address.getState(), address.getZip5());
     }

@@ -5,8 +5,7 @@ import gov.nysenate.sage.model.address.Address;
 /**
  * AddressResult represents the response returned by an AddressService implementation.
  */
-public class AddressResult extends BaseResult
-{
+public class AddressResult extends BaseResult {
     private Address address;
     private boolean validated = false;
 

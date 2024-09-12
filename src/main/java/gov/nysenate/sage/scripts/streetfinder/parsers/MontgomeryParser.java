@@ -7,6 +7,7 @@ import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
+import gov.nysenate.sage.util.AddressUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -85,10 +86,10 @@ public class MontgomeryParser extends CountyParser {
     @Override
     protected List<String> parseLine(String line) {
         String zip5 = substringHelper(line, zipIndex, zipIndex + 5);
-        String street = getStreetAndSuffix(line);
+        String street = AddressUtil.standardizeStreet(getStreetAndSuffix(line));
         String[] bldgData = substringHelper(line, houseRangeIndex, houseRangeIndex + 12).split("-");
         var buildingRange = BuildingRange.getBuildingRange(List.of(bldgData[0], bldgData[1], getParity(line)));
-        var range = new StreetfileAddressRange(buildingRange, new AddressWithoutNum(street, "", zip5, true));
+        var range = new StreetfileAddressRange(buildingRange, new AddressWithoutNum(street.intern(), "", zip5));
         getTownWardDist(line, range);
         // TODO
         return null;

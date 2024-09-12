@@ -5,10 +5,9 @@ import gov.nysenate.sage.model.result.AddressResult;
 
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 
-public class ZipcodeResponse extends BaseResponse
-{
-    protected String zip5;
-    protected String zip4;
+public class ZipcodeResponse extends BaseResponse {
+    protected Integer zip5;
+    protected Integer zip4;
 
     public ZipcodeResponse(AddressResult addressResult)
     {
@@ -20,11 +19,11 @@ public class ZipcodeResponse extends BaseResponse
         }
     }
 
-    public String getZip5() {
+    public Integer getZip5() {
         return zip5;
     }
 
-    public String getZip4() {
+    public Integer getZip4() {
         return zip4;
     }
 }

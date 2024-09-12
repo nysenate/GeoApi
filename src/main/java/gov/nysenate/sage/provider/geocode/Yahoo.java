@@ -5,32 +5,26 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.geo.*;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
+import gov.nysenate.sage.service.geo.RevGeocodeServiceValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class Yahoo implements GeocodeService, RevGeocodeService
-{
+public class Yahoo implements GeocodeService, RevGeocodeService {
     private final Logger logger = LoggerFactory.getLogger(Yahoo.class);
-    private HttpYahooDao httpYahooDao;
-    private GeocodeServiceValidator geocodeServiceValidator;
-    private ParallelRevGeocodeService parallelRevGeocodeService;
-    private RevGeocodeServiceValidator revGeocodeServiceValidator;
+    private final HttpYahooDao httpYahooDao;
+    private final GeocodeServiceValidator geocodeServiceValidator;
 
     @Autowired
-    public Yahoo(HttpYahooDao httpYahooDao, GeocodeServiceValidator geocodeServiceValidator,
-                 ParallelRevGeocodeService parallelRevGeocodeService, RevGeocodeServiceValidator revGeocodeServiceValidator)
-    {
+    public Yahoo(HttpYahooDao httpYahooDao, GeocodeServiceValidator geocodeServiceValidator) {
         this.httpYahooDao = httpYahooDao;
         this.geocodeServiceValidator = geocodeServiceValidator;
-        this.parallelRevGeocodeService = parallelRevGeocodeService;
-        this.revGeocodeServiceValidator = revGeocodeServiceValidator;
         logger.debug("Instantiated Yahoo.");
     }
 
@@ -38,8 +32,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
 
     /** {@inheritDoc} */
     @Override
-    public GeocodeResult geocode(Address address)
-    {
+    public GeocodeResult geocode(Address address) {
         logger.trace("Performing geocoding using Yahoo Free");
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
@@ -58,7 +51,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
 
         /** Validate and set result */
         if (!geocodeServiceValidator.validateGeocodeResult(this.getClass(), geocodedAddress, geocodeResult, true)) {
-            logger.warn("Failed to geocode " + address.toString() + " using Yahoo Free!");
+            logger.warn("Failed to geocode {} using Yahoo Free!", address.toString());
         }
 
         return geocodeResult;
@@ -66,8 +59,7 @@ public class Yahoo implements GeocodeService, RevGeocodeService
 
     /** {@inheritDoc} */
     @Override
-    public ArrayList<GeocodeResult> geocode(ArrayList<Address> addresses)
-    {
+    public List<GeocodeResult> geocode(List<Address> addresses) {
         logger.trace("Performing batch geocoding using Yahoo Free");
         ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
 
@@ -92,12 +84,11 @@ public class Yahoo implements GeocodeService, RevGeocodeService
 
     /** {@inheritDoc} */
     @Override
-    public GeocodeResult reverseGeocode(Point point)
-    {
+    public GeocodeResult reverseGeocode(Point point) {
         GeocodeResult geocodeResult = new GeocodeResult(this.getClass());
 
         /** Validate the input */
-        if (!revGeocodeServiceValidator.validateRevGeocodeInput(point, geocodeResult)) {
+        if (!RevGeocodeServiceValidator.validateRevGeocodeInput(point, geocodeResult)) {
             return geocodeResult;
         }
 
@@ -105,16 +96,9 @@ public class Yahoo implements GeocodeService, RevGeocodeService
         GeocodedAddress revGeocodedAddress = this.httpYahooDao.getGeocodedAddress(point);
 
         /** Validate and set response */
-        if (!revGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {
+        if (!RevGeocodeServiceValidator.validateGeocodeResult(revGeocodedAddress, geocodeResult)) {
             logger.debug("Reverse geocode failed for point " + point + " using Yahoo Free");
         }
         return geocodeResult;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public ArrayList<GeocodeResult> reverseGeocode(ArrayList<Point> points)
-    {
-        return parallelRevGeocodeService.reverseGeocode(this, points);
     }
 }

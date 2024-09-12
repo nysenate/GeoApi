@@ -276,7 +276,7 @@ public final class AddressController
         ArrayList<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
 
         if (checkProvider(provider)) {
-            if (addresses != null && !addresses.isEmpty()) {
+            if (!addresses.isEmpty()) {
                 AddressService addressService;
                 if (provider == null || provider.isEmpty()) {
                     addressService = addressProvider.getDefaultProvider();

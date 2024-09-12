@@ -3,7 +3,6 @@ package gov.nysenate.sage.dao.data;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.PostOfficeAddress;
-import gov.nysenate.sage.util.AddressUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -40,8 +39,8 @@ public class SqlPostOfficeDao implements PostOfficeDao {
             var params = new MapSqlParameterSource("deliveryZip", postalAddress.deliveryZip())
                     .addValue("streetWithNum", address.getAddr1())
                     .addValue("city", address.getPostalCity())
-                    .addValue("zip5", AddressUtil.parseZip(address.getZip5()))
-                    .addValue("zip4", AddressUtil.parseZip(address.getZip4()));
+                    .addValue("zip5", address.getZip5())
+                    .addValue("zip4", address.getZip4());
             String sql = PostOfficeQuery.ADD_ADDRESS.getSql(baseDao.getPublicSchema());
             baseDao.geoApiNamedJbdcTemplate.update(sql, params);
         }

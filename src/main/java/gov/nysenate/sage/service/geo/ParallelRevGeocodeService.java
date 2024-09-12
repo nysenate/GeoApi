@@ -5,15 +5,17 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.RevGeocodeService;
 import gov.nysenate.sage.util.ExecutorUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 @Service
 public class ParallelRevGeocodeService implements SageParallelRevGeocodeService
@@ -52,10 +54,7 @@ public class ParallelRevGeocodeService implements SageParallelRevGeocodeService
             try {
                 revGeocodeResults.add(geocodeResult.get());
             }
-            catch (InterruptedException ex) {
-                logger.error(ex.getMessage());
-            }
-            catch (ExecutionException ex) {
+            catch (InterruptedException | ExecutionException ex) {
                 logger.error(ex.getMessage());
             }
         }

@@ -5,6 +5,7 @@ import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 import gov.nysenate.sage.scripts.streetfinder.model.College;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRangeWithApt;
 import gov.nysenate.sage.util.AddressDictionary;
+import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.Pair;
 
 import java.util.ArrayList;
@@ -54,7 +55,8 @@ public class NonStandardAddress {
             street.append(addressMatcher.group(groupName));
         }
         int bldgNum = Integer.parseInt(bldgNumStr.replaceAll("[A-Z]| ", ""));
-        var addressWithoutNum = new AddressWithoutNum(street.toString(), "", String.valueOf(zip5), true);
+        String strStreet = AddressUtil.standardizeStreet(street.toString());
+        var addressWithoutNum = new AddressWithoutNum(strStreet.intern(), "", String.valueOf(zip5));
         this.address = new StreetfileAddressRangeWithApt(new BuildingRange(bldgNum, bldgNum), addressWithoutNum);
         int endIndex = addressMatcher.end();
         if (addressMatcher.find()) {

@@ -8,7 +8,6 @@ import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeRequestLogger;
 import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeResultLogger;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.api.GeocodeRequest;
@@ -18,7 +17,6 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
-import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
@@ -130,9 +128,8 @@ public class GeocodeController {
 
         determineCacheProviderProps(geocodeRequest); //useCache, bypassCache, doNotCache, provider
 
-        StreetAddress inputStreetAddress = StreetAddressParser.parseAddress(geocodeRequest.getAddress());
-        Address reorderdAddress = inputStreetAddress.toAddress();
-        geocodeRequest.setAddress(reorderdAddress);
+        // TODO: normalize address
+        geocodeRequest.setAddress(geocodeRequest.getAddress());
 
 
         logGeoRequest(apiRequest, geocodeRequest, requestId);

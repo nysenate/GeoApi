@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.controller.admin.DataGenController;
 import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
 import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
@@ -42,6 +41,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,11 +49,11 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 @Service
 public class DataGenService implements SageDataGenService {
-    private Logger logger = LoggerFactory.getLogger(DataGenController.class);
-    private SqlAssemblyDao sqlAssemblyDao;
-    private SqlCongressionalDao sqlCongressionalDao;
-    private SqlSenateDao sqlSenateDao;
-    private Environment env;
+    private static final Logger logger = LoggerFactory.getLogger(DataGenService.class);
+    private final SqlAssemblyDao sqlAssemblyDao;
+    private final SqlCongressionalDao sqlCongressionalDao;
+    private final SqlSenateDao sqlSenateDao;
+    private final Environment env;
 
     @Autowired
     public DataGenService(SqlSenateDao sqlSenateDao, SqlAssemblyDao sqlAssemblyDao,
@@ -311,7 +311,7 @@ public class DataGenService implements SageDataGenService {
         officeAddress.setAddr1( URLEncoder.encode(officeAddress.getAddr1(), StandardCharsets.UTF_8)  );
         officeAddress.setAddr2( URLEncoder.encode(officeAddress.getAddr2(), StandardCharsets.UTF_8) );
         officeAddress.setPostalCity( URLEncoder.encode(officeAddress.getPostalCity(), StandardCharsets.UTF_8) );
-        officeAddress.setZip5( URLEncoder.encode(officeAddress.getZip5(), StandardCharsets.UTF_8) );
+        officeAddress.setZip5(officeAddress.getZip5());
         //Ensure Mixed Case
         StreetAddressParser.performInitCapsOnAddress(officeAddress);
         //Construct Url String
@@ -322,7 +322,7 @@ public class DataGenService implements SageDataGenService {
         try {
             URL url = new URL(urlString);
             InputStream is = url.openStream();
-            String sageResponse = IOUtils.toString(is, "UTF-8");
+            String sageResponse = IOUtils.toString(is, StandardCharsets.UTF_8);
             JsonNode jsonResponse = new ObjectMapper().readTree(sageResponse);
             is.close();
 
@@ -348,12 +348,10 @@ public class DataGenService implements SageDataGenService {
         List<Office> offices = senator.getOffices();
 
         for (Office office : offices) {
-            Double latitude = office.getLatitude();
-            Double longitude = office.getLongitude();
+            double latitude = office.getLatitude();
+            double longitude = office.getLongitude();
 
-            if (latitude == null || longitude == null
-                    || latitude == 0.0 || longitude == 0.0
-                    || latitude.isNaN() ||  longitude.isNaN()) {
+            if (latitude == 0.0 || longitude == 0.0 || Double.isNaN(latitude) || Double.isNaN(longitude)) {
                 return false;
             }
         }
@@ -366,56 +364,47 @@ public class DataGenService implements SageDataGenService {
      * creates and compares the two files that was created.
      * A file that results from the comparison called final_list_zipcodes.csv will be created.
      */
-    public Object generateZipCsv() throws Exception {
-        Object generateResponse;
-        boolean createZipCodesToGoFile = false;
-        boolean createZipCodesFile = false;
-        createZipCodesToGoFile = siteZipCodesToGoCsv();
-        createZipCodesFile = siteZipCodesCsv();
-        if (createZipCodesToGoFile && createZipCodesFile) {
-            generateResponse = new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
-            HashMap<String,String> mapZips = new HashMap<String,String>();
-            try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
-                    + ConstantUtil.ZIPCODES_FILE))) {
-                stream.forEach(line -> {
-                    String[] zipcodeType = line.split(",");
-                    String zip = zipcodeType[0];
-                    String type = zipcodeType[1].trim();
-                    mapZips.put(zip,type);
-                });
-            }
-            catch (IOException e) {
-                logger.error("Unable to read " + ConstantUtil.ZIPCODES_FILE);
-            }
-            try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
-                    + ConstantUtil.ZIPCODESTOGO_FILE))) {
-                stream.forEach(line -> {
-                    if(!mapZips.containsKey(line)){
-                        mapZips.put(line,"");
-                    }
-                });
-            }
-            catch (IOException e) {
-                logger.error("Unable to read " + ConstantUtil.ZIPCODESTOGO_FILE);
-            }
-            ArrayList<String> finalList = new ArrayList<>();
-            try {
-                mapZips.entrySet().forEach(entry-> {
-                    finalList.add(entry.getKey()+","+entry.getValue());
-                });
-                FileWriter finalCSV = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
-                String collection = finalList.stream().collect(Collectors.joining("\n"));
-                finalCSV.write(collection);
-                finalCSV.close();
-            }
-            catch(IOException e) {
-                logger.error("Unable to write " + ConstantUtil.LAST_ZIPCODE_FILE);
-            }
+    public Object generateZipCsv() {
+        if (!siteZipCodesToGoCsv() || !siteZipCodesCsv()) {
+            return new ApiError(this.getClass(), INTERNAL_ERROR);
         }
-        else {
-            generateResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
+        Map<String,String> mapZips = new HashMap<>();
+        try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
+                + ConstantUtil.ZIPCODES_FILE))) {
+            stream.forEach(line -> {
+                String[] zipcodeType = line.split(",");
+                String zip = zipcodeType[0];
+                String type = zipcodeType[1].trim();
+                mapZips.put(zip,type);
+            });
         }
-        return generateResponse;
+        catch (IOException e) {
+            logger.error("Unable to read " + ConstantUtil.ZIPCODES_FILE);
+        }
+        try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
+                + ConstantUtil.ZIPCODESTOGO_FILE))) {
+            stream.forEach(line -> {
+                if(!mapZips.containsKey(line)){
+                    mapZips.put(line,"");
+                }
+            });
+        }
+        catch (IOException e) {
+            logger.error("Unable to read " + ConstantUtil.ZIPCODESTOGO_FILE);
+        }
+        List<String> finalList = new ArrayList<>();
+        try {
+            mapZips.forEach((key, value) -> finalList.add(key + "," + value));
+            FileWriter finalCSV = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
+            String collection = String.join("\n", finalList);
+            finalCSV.write(collection);
+            finalCSV.close();
+        }
+        catch(IOException e) {
+            logger.error("Unable to write " + ConstantUtil.LAST_ZIPCODE_FILE);
+        }
+        return new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+
     }
 
 
@@ -460,11 +449,10 @@ public class DataGenService implements SageDataGenService {
                 logger.info("zipcodes.csv file already exists");
                 return true;
             }
-            Document pageZipCodes;
-            pageZipCodes = Jsoup.connect("https://www.zip-codes.com/state/ny.asp").get();
+            Document pageZipCodes = Jsoup.connect("https://www.zip-codes.com/state/ny.asp").get();
             Elements trs = pageZipCodes.select("table.statTable tr");
             trs.remove(0);
-            ArrayList<String> arrayZipCodes = new ArrayList<>();
+            List<String> arrayZipCodes = new ArrayList<>();
             for(Element row : trs) {
                 Elements tds = row.getElementsByTag("td");
                 Element td = tds.first();
@@ -477,8 +465,8 @@ public class DataGenService implements SageDataGenService {
                     arrayZipCodes.add(zipandType);
                 }
             }
-            FileWriter writerZipsCodes = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODES_FILE);
-            String collection = arrayZipCodes.stream().collect(Collectors.joining("\n"));
+            var writerZipsCodes = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODES_FILE);
+            String collection = String.join("\n", arrayZipCodes);
             writerZipsCodes.write(collection);
             writerZipsCodes.close();
             return true;
