@@ -247,9 +247,9 @@ Methods have the following optional parameters:
 | uspsValidate| Specify if you want to usps correct a single geocode address                  |
 +-------------+-------------------------------------------------------------------------------+
 
-For example to use just yahoo without falling back to other providers in case of error::
+For example to use just google without falling back to other providers in case of error::
 
-    /api/v2/geo/<method>?<params..>&provider=yahoo&useFallback=false
+    /api/v2/geo/<method>?<params..>&provider=google&useFallback=false
 
 Geocode
 ^^^^^^^
