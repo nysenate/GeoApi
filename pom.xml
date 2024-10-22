@@ -143,7 +143,7 @@
         <mockito-core.version>4.5.1</mockito-core.version>
         <nysenate-java-client.version>2.3</nysenate-java-client.version>
         <openlocationcode.version>1.0.4</openlocationcode.version>
-        <postgresql.version>42.3.4</postgresql.version>
+        <postgresql.version>42.5.5</postgresql.version>
         <shiro.version>1.9.0</shiro.version>
         <signpost-core.version>2.1.1</signpost-core.version>
         <slf4j.version>1.7.36</slf4j.version>
