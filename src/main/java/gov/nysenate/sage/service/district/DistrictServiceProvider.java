@@ -1,6 +1,5 @@
 package gov.nysenate.sage.service.district;
 
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -21,6 +20,7 @@ import gov.nysenate.sage.util.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -35,8 +35,7 @@ import java.util.concurrent.Future;
  * district providers and contains logic for distributing requests and collecting responses from the providers.
  */
 @Service
-public class DistrictServiceProvider implements SageDistrictServiceProvider //shapefile and streetfile
-{
+public class DistrictServiceProvider implements SageDistrictServiceProvider {
     public enum DistrictStrategy {
         neighborMatch,  /** Perform shape and street lookup, performing neighbor consolidation as needed. */
         streetFallback, /** Perform shape lookup and consolidate street file results without neighbor checking. */
@@ -45,39 +44,33 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
         shapeOnly       /** Perform shape lookup only */
     }
 
-    private final Environment env;
     private final Logger logger = LoggerFactory.getLogger(DistrictServiceProvider.class);
 
-    private static DistrictStrategy SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf("neighborMatch");
-    private static DistrictStrategy BATCH_DISTRICT_STRATEGY = DistrictStrategy.valueOf("shapeFallback");
+    private final DistrictStrategy singleDistrictStrategy;
+    private final DistrictStrategy batchDistrictStrategy;
 
     /** Specifies the distance (meters) to a district boundary in which the accuracy of shapefiles is uncertain */
-    private static Integer PROXIMITY_THRESHOLD = 300;
+    @Value("${border.proximity:200}")
+    private int PROXIMITY_THRESHOLD;
 
     /** Specifies the set of districts that are allowed to obtain nearby neighbor info. The reason every
      * district that has shape files can't do this is because the query can be rather slow. */
-    private static final Set<DistrictType> allowNeighborAssignSet = new HashSet<>();
-    static {
-        allowNeighborAssignSet.add(DistrictType.SENATE);
-    }
+    private static final Set<DistrictType> allowNeighborAssignSet = Set.of(DistrictType.SENATE);
 
     protected DistrictService defaultProvider;
     protected Map<String,DistrictService> providers = new HashMap<>();
-    protected LinkedList<String> defaultFallBack = new LinkedList<>();
     protected PostOfficeService postOfficeService;
 
     @Autowired
-    public DistrictServiceProvider(Environment env, DistrictShapefile districtShapefile, Streetfile streetFile, PostOfficeService postOfficeService)
-    {
-        this.env = env;
+    public DistrictServiceProvider(@Value("${district.strategy.single:neighborMatch}") String singleDistrictStrategy,
+                                   @Value("${district.strategy.batch:streetFallback}") String batchDistrictStrategy,
+                                   DistrictShapefile districtShapefile, Streetfile streetFile, PostOfficeService postOfficeService) {
         this.defaultProvider = districtShapefile;
         this.postOfficeService = postOfficeService;
         providers.put("shapefile", districtShapefile);
         providers.put("streetfile", streetFile);
-        defaultFallBack.add("streetfile");
-        PROXIMITY_THRESHOLD = env.getBorderProximity();
-        SINGLE_DISTRICT_STRATEGY = DistrictStrategy.valueOf(env.getDistrictStrategySingle());
-        BATCH_DISTRICT_STRATEGY = DistrictStrategy.valueOf(env.getDistrictStrategyBatch());
+        this.singleDistrictStrategy = DistrictStrategy.valueOf(singleDistrictStrategy);
+        this.batchDistrictStrategy = DistrictStrategy.valueOf(batchDistrictStrategy);
     }
 
     /** Single District Assign ---------------------------------------------------------------------------------------*/
@@ -103,7 +96,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
      */
     public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress)
     {
-        return assignDistricts(geocodedAddress, null, DistrictType.getStandardTypes(), SINGLE_DISTRICT_STRATEGY);
+        return assignDistricts(geocodedAddress, null, DistrictType.getStandardTypes(), singleDistrictStrategy);
     }
 
     /**
@@ -114,7 +107,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
      */
     public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final String distProvider)
     {
-        return assignDistricts(geocodedAddress, distProvider, DistrictType.getStandardTypes(), SINGLE_DISTRICT_STRATEGY);
+        return assignDistricts(geocodedAddress, distProvider, DistrictType.getStandardTypes(), singleDistrictStrategy);
     }
 
     /**
@@ -143,7 +136,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                 DistrictService shapeFileService = this.providers.get("shapefile");
                 DistrictService streetFileService = this.providers.get("streetfile");
                 if (districtStrategy == null) {
-                    districtStrategy = SINGLE_DISTRICT_STRATEGY;
+                    districtStrategy = singleDistrictStrategy;
                 }
                 logger.debug("Using district assign strategy: " + districtStrategy);
 
@@ -202,10 +195,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                         break;
                 }
             }
-            catch (InterruptedException ex) {
-                logger.error("Failed to get district results from future!", ex);
-            }
-            catch (ExecutionException ex) {
+            catch (InterruptedException | ExecutionException ex) {
                 logger.error("Failed to get district results from future!", ex);
             }
             finally {
@@ -215,8 +205,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
             }
         }
         fixPostOfficeBoxResult(districtResult);
-        districtResult.setSource(DistrictServiceProvider.class);
-        districtResult.setGeocodedAddress(geocodedAddress);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
 
         if (districtResult.isSuccess()) {
@@ -297,7 +285,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
         }
         else {
             if (districtStrategy == null) {
-                districtStrategy = BATCH_DISTRICT_STRATEGY;
+                districtStrategy = batchDistrictStrategy;
             }
             logger.debug(String.format("Using district assign strategy: %s", districtStrategy));
 
@@ -321,7 +309,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                             DistrictResult consolidated =
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.neighborMatch);
-                            consolidated.setGeocodedAddress(geocodedAddresses.get(i));
                             if (consolidated.getGeocodedAddress() != null) {
                                 logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
                             }
@@ -349,7 +336,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                             DistrictResult consolidated =
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.streetFallback);
-                            consolidated.setGeocodedAddress(geocodedAddresses.get(i));
                             if (consolidated.getGeocodedAddress() != null) {
                                 logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
                             }
@@ -366,7 +352,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                             DistrictResult consolidated =
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, null, streetFileResults.get(i),
                                             DistrictStrategy.shapeFallback);
-                            consolidated.setGeocodedAddress(geocodedAddresses.get(i));
                             if (consolidated.getGeocodedAddress() != null) {
                                 logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
                             }
@@ -676,15 +661,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
         return null;
     }
 
-    public DistrictService getDefaultProvider() {
-        return defaultProvider;
-    }
-
     public Map<String, DistrictService> getProviders() {
         return providers;
-    }
-
-    public LinkedList<String> getDefaultFallBack() {
-        return defaultFallBack;
     }
 }

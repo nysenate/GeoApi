@@ -73,32 +73,6 @@ nys.geocoder.url = https://gisservices.its.ny.gov/arcgis/rest/services/Locators/
 nys.geocode.ext = /findAddressCandidates
 nys.revgeocode.ext = /reverseGeocode
 
-# RubyGeocoder (free service)
-#ruby.geocoder.url = http://geocoder.nysenate.gov/GeoRubyAdapter/api/geocode
-#ruby.geocoder.bulk.url = http://geocoder.nysenate.gov/GeoRubyAdapter/api/bulk
-
-# Yahoo (free service that uses YQL)
-#yahoo.url = http://query.yahooapis.com/v1/yql
-#yahoo.consumer.key = API key obtained from Yahoo
-#yahoo.consumer.secret = API secret obtained from Yahoo
-#yahoo.batch.size = 100
-
-# Yahoo BOSS (commercial service)
-#yahoo.boss.url = http://yboss.yahooapis.com/geo/placefinder
-#yahoo.boss.consumer_key = API key obtained from Yahoo
-#yahoo.boss.consumer_secret = API secret obtained from Yahoo
-
-# Microsoft Bing
-#bing.key = API key obtained from Microsoft
-
-# MapQuest (free and commercial services; free service is rate-limited)
-#mapquest.geo.url = http://www.mapquestapi.com/geocoding/v1/batch
-#mapquest.rev.url = http://www.mapquestapi.com/geocoding/v1/reverse
-#mapquest.key = <API key obtained from MapQuest>
-
-# OpenStreetMap (free service from MapQuest using OSM data)
-#osm.url = http://open.mapquestapi.com/nominatim/v1/search
-
 ###############################
 ## USPS Settings
 ###############################
@@ -114,22 +88,16 @@ usps.default = usps
 ###############################
 
 # Comma separated string indicating the geocoders that should be enabled.
-# Available geocoders: google, tiger, mapquest, osm
-geocoder.active = nysgeo, google, tiger
+# Available geocoders: nysgeo, google
+geocoder.active = nysgeo, google
 
 # Comma separated string indicating the order in which geocoders should be used.
 # Only the geocoders listed in this ranking will be used in the default fallback chain.
 # All other active geocoders have to be specifically requested by the user through the api.
-geocoder.rank = nysgeo, google, tiger
+geocoder.rank = nysgeo, google
 
 # Comma separated string indicating which geocoders are cacheable.
 geocoder.cacheable = nysgeo, google
-
-# Indicate the number of failed attempts a geocoder can make before being temporarily blocked.
-geocoder.failure.threshold = 20
-
-# The time (in seconds) that must elapse in order for a blocked geocoder to be unblocked.
-geocoder.retry.interval = 300
 
 # TigerGeocoder (in database) query time-out in ms
 tiger.geocoder.timeout = 30000
@@ -188,8 +156,6 @@ smtp.debug = false
 smtp.admin = zalewski@nysenate.gov
 smtp.tls.enable = true
 smtp.ssl.enable = false
-# The mailer doesn't have access to the server context, so specify manually
-smtp.context = http://helo.nysenate.gov:8080
 
 #################################
 ## Batch Job Configuration

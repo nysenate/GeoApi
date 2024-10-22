@@ -2,7 +2,6 @@ package gov.nysenate.sage.dao.provider.nysgeo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -11,65 +10,44 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.UrlRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 
 @Repository
-public class HttpNYSGeoDao {
-
+public class HttpNYSGeoDao implements GeocoderDao {
     private static final Logger logger = LoggerFactory.getLogger(HttpNYSGeoDao.class);
-    private final String DEFAULT_BASE_URL;
+    private static final String COMMON_PARAMS = "&outSR=4326&f=pjson";
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final String GEOCODE_EXTENSION;
-    private String GEOCODE_QUERY = "?SingleLine=%s";
-
-
-    private final String REV_GEOCODE_EXTENSION;
-    private String REV_GEOCODE_QUERY = "?location={\"x\" : %s, \"y\" : %s, \"spatialReference\" : {\"wkid\" : 4326}}&returnIntersection=false";
-
-    private final String COMMON_PARAMS = "&outSR=4326&f=pjson";
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-
-
-    @Autowired
-    public HttpNYSGeoDao(Environment env) {
-        this.DEFAULT_BASE_URL = env.getNysGeocoderUrl();
-        this.GEOCODE_EXTENSION = env.getNysGeocdeExtension();
-        this.REV_GEOCODE_EXTENSION = env.getNysRevGeocodeExtension();
-    }
+    @Value("${nys.geocoder.url:https://gisservices.its.ny.gov/arcgis/rest/services/Locators/Street_and_Address_Composite/GeocodeServer}")
+    private String DEFAULT_BASE_URL;
+    @Value("${nys.geocode.ext:/findAddressCandidates}")
+    private String GEOCODE_EXTENSION;
+    @Value("${nys.revgeocode.ext:/reverseGeocode}")
+    private String REV_GEOCODE_EXTENSION;
 
     /** {@inheritDoc} */
-    public GeocodedAddress getGeocodedAddress(Address address)
-    {
-        GeocodedAddress geocodedAddress = null;
-
+    public GeocodedAddress getGeocodedAddress(Address address) {
         try {
-            String formattedQuery = String.format(GEOCODE_QUERY,address.getAddr1() + " " + address.getAddr2() + " "
+            String formattedQuery = String.format("?SingleLine=%s",address.getAddr1() + " " + address.getAddr2() + " "
                     + address.getPostalCity() + "," + address.getZip5());
             String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
-            geocodedAddress = getGeocodedAddress(url, false);
-            if (geocodedAddress == null) {
-                geocodedAddress = new GeocodedAddress(address);
-            } else {
-                geocodedAddress.setAddress(address);
-            }
-
+            return getGeocodedAddress(url, false);
         }
         catch (NullPointerException ex) {
-            logger.error("Null pointer while performing google geocode!", ex);
+            logger.error("Null pointer while performing NYSGeo geocode!", ex);
         }
-        return geocodedAddress;
+        return null;
     }
 
     /** {@inheritDoc} */
-    public GeocodedAddress getGeocodedAddress(Point point)
-    {
+    public GeocodedAddress getGeocodedAddress(Point point) {
         GeocodedAddress geocodedAddress = null;
         try {
-            String formattedQuery = String.format(REV_GEOCODE_QUERY, point.getLon(), point.getLat());
+            String REV_GEOCODE_QUERY = "?location={\"x\" : %s, \"y\" : %s, \"spatialReference\" : {\"wkid\" : 4326}}&returnIntersection=false";
+            String formattedQuery = String.format(REV_GEOCODE_QUERY, point.lon(), point.lat());
             formattedQuery = formattedQuery.replaceAll(" ", "%20").replaceAll(" \" ","%22").replaceAll(",","%2C").replaceAll("\\{","%7B").replaceAll("}","%7D");
             logger.info(formattedQuery);
             String url = DEFAULT_BASE_URL + REV_GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
@@ -148,24 +126,21 @@ public class HttpNYSGeoDao {
      * @param isRevGeocode - whether the request was a revgeocode or not
      * @return geoQuality - the closest matching quality reference
      */
-    private GeocodeQuality resolveGeocodeQuality(int quality, boolean isRevGeocode)
-    {
-        GeocodeQuality geoQuality = null;
+    private static GeocodeQuality resolveGeocodeQuality(int quality, boolean isRevGeocode) {
         if (isRevGeocode) {
-            geoQuality = GeocodeQuality.UNKNOWN;
+            return GeocodeQuality.UNKNOWN;
         }
         else if (quality == 100) {
-            geoQuality = GeocodeQuality.POINT;
+            return GeocodeQuality.POINT;
         }
         else if (quality >= 90) {
-            geoQuality = GeocodeQuality.HOUSE;
+            return GeocodeQuality.HOUSE;
         }
         else if (quality == 0){
-            geoQuality = GeocodeQuality.NOMATCH;
+            return GeocodeQuality.NOMATCH;
         }
-        else if (quality < 90) {
-            geoQuality = GeocodeQuality.UNKNOWN;
+        else {
+            return GeocodeQuality.UNKNOWN;
         }
-        return geoQuality;
     }
 }

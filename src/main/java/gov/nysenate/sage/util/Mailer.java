@@ -1,10 +1,9 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.config.Environment;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
@@ -16,94 +15,72 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 
 @Component
-public class Mailer
-{
-    private Logger logger = LoggerFactory.getLogger(Mailer.class);
-    private String SMTP_HOST_NAME;
-    private String SMTP_DEBUG;
-    private String SMTP_ACTIVE;
-    private String SMTP_PORT;
-    private String SMTP_ACCOUNT_USER;
-    private String SMTP_ACCOUNT_PASS;
-    private String SMTP_ADMIN;
-    private String SMTP_TLS_ENABLE;
-    private String SMTP_SSL_ENABLE;
-    private String SMTP_CONTEXT;
-    private Environment env;
-
-    @Autowired
-    public Mailer(Environment env)
-    {
-        SMTP_HOST_NAME = env.getSmtpHost();
-        SMTP_DEBUG = env.getSmtpDebug().toString();
-        SMTP_ACTIVE = env.getSmtpActive().toString();
-        SMTP_PORT = Integer.toString(env.getSmtpPort());
-        SMTP_ACCOUNT_USER = env.getSmtpUser();
-        SMTP_ACCOUNT_PASS = env.getSmtpPass();
-        SMTP_ADMIN = env.getSmtpAdmin();
-        SMTP_TLS_ENABLE = String.valueOf(env.getSmtpTlsEnable());
-        SMTP_SSL_ENABLE = String.valueOf(env.getSmtpSslEnable());
-        SMTP_CONTEXT = env.getSmtpContext();
-    }
-
-    public String getContext() {
-        return SMTP_CONTEXT;
-    }
+public class Mailer {
+    private static final Logger logger = LoggerFactory.getLogger(Mailer.class);
+    @Value("${smtp.host}")
+    private String smtpHostName;
+    @Value("${smtp.debug}")
+    private String smtpDebug;
+    @Value("${smtp.active}")
+    private boolean smtpActive;
+    @Value("${smtp.port}")
+    private Integer smtpPort;
+    @Value("${smtp.user}")
+    private String smtpAccountUser;
+    @Value("${smtp.pass}")
+    private String smtpAccountPass;
+    @Value("${smtp.admin}")
+    private String smtpAdmin;
+    @Value("${smtp.tls.enable}")
+    private boolean smtpTlsEnable;
+    @Value("${smtp.ssl.enable}")
+    private boolean smtpSslEnable;
 
     public String getAdminEmail() {
-        return SMTP_ADMIN;
+        return smtpAdmin;
     }
 
-    public void sendMail(String to, String subject, String message) throws Exception
-    {
-        sendMail(to, subject, message, SMTP_ADMIN, "SAGE");
-    }
-
-    public void sendMail(String to, String subject, String message, String from, String fromDisplay) throws Exception
-    {
-	    if (!SMTP_ACTIVE.equals("true")) return;
-
-        /** Set FROM to admin if it is empty */
-        if (from == null || from.isEmpty()) {
-            from = SMTP_ADMIN;
+    public void sendMail(String to, String subject, String message) throws Exception {
+        if (smtpActive) {
+            return;
         }
 
-		Properties props = new Properties();
-		props.put("mail.smtp.host", SMTP_HOST_NAME);
-		props.put("mail.smtp.auth", "true");
-		props.put("mail.debug", SMTP_DEBUG);
-		props.put("mail.smtp.port", SMTP_PORT);
-		props.put("mail.smtp.starttls.enable",SMTP_TLS_ENABLE);
-		props.put("mail.smtp.socketFactory.port", SMTP_PORT);
-		props.put("mail.smtp.socketFactory.fallback", "false");
-		props.put("mail.smtp.ssl.enable",SMTP_SSL_ENABLE);
+        Properties props = new Properties();
+        props.put("mail.smtp.host", smtpHostName);
+        props.put("mail.smtp.auth", true);
+        props.put("mail.debug", smtpDebug);
+        props.put("mail.smtp.port", smtpPort);
+        props.put("mail.smtp.starttls.enable", smtpTlsEnable);
+        props.put("mail.smtp.socketFactory.port", smtpPort);
+        props.put("mail.smtp.socketFactory.fallback", false);
+        props.put("mail.smtp.ssl.enable", smtpSslEnable);
 
-		Session session = Session.getDefaultInstance(props,	new javax.mail.Authenticator() {
+        Session session = Session.getDefaultInstance(props,	new javax.mail.Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(SMTP_ACCOUNT_USER, SMTP_ACCOUNT_PASS);
+                return new PasswordAuthentication(smtpAccountUser, smtpAccountPass);
             }
         });
 
-		Message msg = new MimeMessage(session);
-		InternetAddress addressFrom = new InternetAddress(from);
-		addressFrom.setPersonal(fromDisplay);
-		msg.setFrom(addressFrom);
+        Message msg = new MimeMessage(session);
+        InternetAddress addressFrom = new InternetAddress(smtpAdmin);
+        addressFrom.setPersonal("SAGE");
+        msg.setFrom(addressFrom);
 
-		StringTokenizer st = new StringTokenizer (to,",");
+        StringTokenizer st = new StringTokenizer (to,",");
         InternetAddress[] rcps = new InternetAddress[st.countTokens()];
-		int idx = 0;
+        int idx = 0;
 
-		while (st.hasMoreTokens()) {
-			InternetAddress addressTo = new InternetAddress(st.nextToken());
-			rcps[idx++] = addressTo;
+        while (st.hasMoreTokens()) {
+            InternetAddress addressTo = new InternetAddress(st.nextToken());
+            rcps[idx++] = addressTo;
         }
 
-        logger.debug("Recipients list: " + FormatUtil.toJsonString(rcps));
-		msg.setRecipients(Message.RecipientType.TO,rcps);
-		msg.setSubject(subject);
-		msg.setContent(message, "text/html");
-		Transport.send(msg);
+        logger.debug("Recipients list: {}", FormatUtil.toJsonString(rcps));
+        msg.setRecipients(Message.RecipientType.TO,rcps);
+        msg.setSubject(subject);
+        msg.setContent(message, "text/html");
+        Transport.send(msg);
         logger.debug("Message delivered!");
-	}
+    }
 }

@@ -14,7 +14,7 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
-import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.service.geo.SageGeocodeServiceProvider;
 import gov.nysenate.sage.util.FileUtil;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.Mailer;
@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -32,13 +33,11 @@ import org.supercsv.io.CsvListReader;
 import org.supercsv.io.CsvListWriter;
 import org.supercsv.prefs.CsvPreference;
 
-import javax.annotation.PreDestroy;
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -52,50 +51,43 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 
 @Service
 public class JobBatchProcessor implements JobProcessor {
+    private static final Logger logger = LoggerFactory.getLogger(JobBatchProcessor.class);
+    private static final Marker fatal = MarkerFactory.getMarker("FATAL");
+    private static final int LOGGING_THRESHOLD = 1000;
 
-    private static String BASE_URL;
-    private static String UPLOAD_DIR;
-    private static String DOWNLOAD_DIR;
-    private static String DOWNLOAD_URL;
-    private static Integer JOB_BATCH_SIZE;
-    private static String TEMP_DIR = "/tmp";
-    private static String LOCK_FILENAME = "batchJobProcess.lock";
-    private static Boolean SEND_EMAILS = true;
-    private static Boolean LOGGING_ENABLED = false;
-    private static Integer LOGGING_THRESHOLD = 1000;
+    private final String uploadDir;
+    private final String downloadDir;
+    private final String downloadUrl;
+    private final boolean loggingEnabled;
 
-    public static Logger logger = LoggerFactory.getLogger(JobBatchProcessor.class);
-    Marker fatal = MarkerFactory.getMarker("FATAL");
-    private Environment env;
-    private Mailer mailer;
-    private AddressServiceProvider addressProvider;
-    private GeocodeServiceProvider geocodeProvider;
-    private DistrictServiceProvider districtProvider;
-    private SqlJobProcessDao sqlJobProcessDao;
+    private final Mailer mailer;
+    private final AddressServiceProvider addressProvider;
+    private final SageGeocodeServiceProvider geocodeProvider;
+    private final DistrictServiceProvider districtProvider;
+    private final SqlJobProcessDao sqlJobProcessDao;
 
-    private SqlGeocodeResultLogger sqlGeocodeResultLogger;
-    private SqlDistrictResultLogger sqlDistrictResultLogger;
-    private ApplicationConfig applicationConfig;
+    private final SqlGeocodeResultLogger sqlGeocodeResultLogger;
+    private final SqlDistrictResultLogger sqlDistrictResultLogger;
 
-    private ThreadPoolTaskExecutor addressExecutor;
-    private ThreadPoolTaskExecutor geocodeExecutor;
-    private ThreadPoolTaskExecutor districtExecutor;
+    private final ThreadPoolTaskExecutor addressExecutor;
+    private final ThreadPoolTaskExecutor geocodeExecutor;
+    private final ThreadPoolTaskExecutor districtExecutor;
+
+    @Value("${job.batch.size:40}")
+    private int jobBatchSize;
+    @Value("${job.send.email:true}")
+    private boolean sendEmails;
 
     @Autowired
     public JobBatchProcessor(Environment env, Mailer mailer, AddressServiceProvider addressServiceProvider,
-                             GeocodeServiceProvider geocodeServiceProvider,
+                             SageGeocodeServiceProvider geocodeServiceProvider,
                              DistrictServiceProvider districtServiceProvider,
                              SqlJobProcessDao sqlJobProcessDao, SqlGeocodeResultLogger sqlGeocodeResultLogger,
-                             SqlDistrictResultLogger sqlDistrictResultLogger, ApplicationConfig applicationConfig)
-    {
-        this.env = env;
-        BASE_URL = env.getBaseUrl();
-        UPLOAD_DIR = env.getJobUploadDir();
-        DOWNLOAD_DIR = env.getJobDownloadDir();
-        DOWNLOAD_URL = BASE_URL + DOWNLOAD_BASE_URL;
-        JOB_BATCH_SIZE = env.getJobBatchSize();
-        SEND_EMAILS = env.getJobSendEmail();
-        LOGGING_ENABLED = env.isBatchDetailedLoggingEnabled();
+                             SqlDistrictResultLogger sqlDistrictResultLogger, ApplicationConfig applicationConfig) {
+        this.uploadDir = env.getJobUploadDir();
+        this.downloadDir = env.getJobDownloadDir();
+        this.downloadUrl = env.getBaseUrl() + DOWNLOAD_BASE_URL;
+        this.loggingEnabled = env.isBatchDetailedLoggingEnabled();
 
         this.mailer = mailer;
         this.addressProvider = addressServiceProvider;
@@ -105,24 +97,10 @@ public class JobBatchProcessor implements JobProcessor {
 
         this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         this.sqlDistrictResultLogger = sqlDistrictResultLogger;
-        this.applicationConfig = applicationConfig;
 
-        this.addressExecutor = this.applicationConfig.getJobAddressValidationExecutor();
-        this.geocodeExecutor = this.applicationConfig.getJobGeocodeExecutor();
-        this.districtExecutor = this.applicationConfig.getJobDistrictAssignExecutor();
-    }
-
-    @PreDestroy
-    public void closeProcessor() {
-        this.mailer = null;
-        this.addressProvider = null;
-        this.geocodeProvider = null;
-        this.districtProvider = null;
-        this.sqlJobProcessDao = null;
-
-        this.sqlGeocodeResultLogger = null;
-        this.sqlDistrictResultLogger = null;
-        this.applicationConfig = null;
+        this.addressExecutor = applicationConfig.getJobAddressValidationExecutor();
+        this.geocodeExecutor = applicationConfig.getJobGeocodeExecutor();
+        this.districtExecutor = applicationConfig.getJobDistrictAssignExecutor();
     }
 
 
@@ -135,14 +113,8 @@ public class JobBatchProcessor implements JobProcessor {
     }
 
     /** Entry point for cron job */
-    public void run(String[] args) throws Exception
-    {
-        /** Ensure another job process is not running */
-        checkLockFile();
-
+    public synchronized void run(String[] args) throws Exception {
         if (args.length > 0) {
-
-
             switch (args[0]) {
                 case "clean" : {
                     cancelRunningJobs();
@@ -150,28 +122,25 @@ public class JobBatchProcessor implements JobProcessor {
                 }
                 case "process" : {
                     List<JobProcessStatus> runningJobs = getRunningJobProcesses();
-                    logger.info("Resuming " + runningJobs.size() + " jobs.");
+                    logger.info("Resuming {} jobs.", runningJobs.size());
                     for (JobProcessStatus runningJob : runningJobs) {
-                        logger.info("Processing job process id " + runningJob.getProcessId());
+                        logger.info("Processing job process id {}", runningJob.getProcessId());
                         processJob(runningJob);
                     }
 
                     List<JobProcessStatus> waitingJobs = getWaitingJobProcesses();
-                    logger.info(waitingJobs.size() + " batch jobs have been queued for processing.");
+                    logger.info("{} batch jobs have been queued for processing.", waitingJobs.size());
                     for (JobProcessStatus waitingJob : waitingJobs){
-                        logger.info("Processing job process id " + waitingJob.getProcessId());
+                        logger.info("Processing job process id {}", waitingJob.getProcessId());
                         processJob(waitingJob);
                     }
                     break;
                 }
                 default : {
-                    logger.error("Unsupported argument. " + args[0] + " Exiting..");
+                    logger.error("Unsupported argument. {} Exiting..", args[0]);
                 }
             }
-
-            /** Clean up and exit */
             logger.info("Finishing processing, Exiting Data Processor");
-            deleteLockFile();
         }
         else {
             logger.error("Usage: jobBatchProcessor [process | clean]");
@@ -181,35 +150,10 @@ public class JobBatchProcessor implements JobProcessor {
     }
 
     /**
-     * If the lock file already exists, then fail. Otherwise, create it and arrange for it to be automatically
-     * deleted on exit.
-     */
-    public static void checkLockFile() throws IOException
-    {
-        File lockFile = new File(TEMP_DIR, LOCK_FILENAME);
-        boolean rc = lockFile.createNewFile();
-        if (rc == true) {
-            logger.debug("Created lock file at: " + lockFile.getAbsolutePath());
-            lockFile.deleteOnExit();
-        }
-        else {
-            logger.info("Exiting Data Processor");
-            logger.debug("Lock file [" + lockFile.getAbsolutePath() + "] already exists; exiting immediately");
-            //back out of api call?
-        }
-    }
-
-    public static void deleteLockFile() throws IOException {
-        File lockFile = new File(TEMP_DIR, LOCK_FILENAME);
-        lockFile.deleteOnExit();
-    }
-
-    /**
      * Retrieves all job processes that are waiting to be picked up.
      * @return List<JobProcessStatus>
      */
-    public List<JobProcessStatus> getWaitingJobProcesses()
-    {
+    public List<JobProcessStatus> getWaitingJobProcesses() {
         return sqlJobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
     }
 
@@ -217,17 +161,14 @@ public class JobBatchProcessor implements JobProcessor {
      * Retrieves jobs that are still running and need to be finished.
      * @return List<JobProcessStatus>
      */
-    public List<JobProcessStatus> getRunningJobProcesses()
-    {
+    public List<JobProcessStatus> getRunningJobProcesses() {
         return sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
     }
 
     /**
      * Main routine for processing a JobProcess.
-     * @param jobStatus
      */
-    public void processJob(JobProcessStatus jobStatus) throws Exception
-    {
+    public void processJob(JobProcessStatus jobStatus) throws Exception {
         JobProcess jobProcess = jobStatus.getJobProcess();
         String fileName = jobProcess.getFileName();
 
@@ -235,47 +176,47 @@ public class JobBatchProcessor implements JobProcessor {
         CsvListWriter jobWriter = null;
 
         try {
-            /** Ensure directories for uploading and downloading exist*/
-            ensureDirectoryExists(UPLOAD_DIR);
-            ensureDirectoryExists(DOWNLOAD_DIR);
+            // Ensure directories for uploading and downloading exist
+            ensureDirectoryExists(uploadDir);
+            ensureDirectoryExists(downloadDir);
 
-            /** Initialize file readers and writers */
-            File uploadedFile = new File(UPLOAD_DIR + fileName);
-            File targetFile = new File(DOWNLOAD_DIR, fileName);
+            // Initialize file readers and writers
+            File uploadedFile = new File(uploadDir + fileName);
+            File targetFile = new File(downloadDir, fileName);
 
-            /** Determine the type of formatting (tab, comma, semi-colon) */
+            // Determine the type of formatting (tab, comma, semicolon)
             CsvPreference preference = FileUtil.getCsvPreference(uploadedFile);
 
             FileReader fileReader = new FileReader(uploadedFile);
             jobReader = new CsvListReader(fileReader, preference);
 
-            /** Target writer appends by default */
+            // Target writer appends by default
             FileWriter fileWriter = new FileWriter(targetFile, true);
             jobWriter = new CsvListWriter(fileWriter, preference);
 
-            /** Retrieve the header (first line) */
+            // Retrieve the header (first line)
             String[] header = jobReader.getHeader(true);
 
-            /** Create the job file and analyze the header columns */
+            // Create the job file and analyze the header columns
             JobFile jobFile = new JobFile();
             jobFile.processHeader(header);
 
             logger.info("--------------------------------------------------------------------");
             logger.info("Starting Batch Job");
-            logger.info("Job Header: " + FormatUtil.toJsonString(header));
+            logger.info("Job Header: {}", FormatUtil.toJsonString(header));
 
-            /** Check if file can be skipped */
+            // Check if file can be skipped
             if (!jobFile.requiresAny()) {
                 skipFile(jobStatus);
             }
             else {
                 final CellProcessor[] processors = jobFile.getProcessors().toArray(new CellProcessor[0]);
 
-                /** If process is already running, seek to the last saved record */
+                // If process is already running, seek to the last saved record
                 if (jobStatus.getCondition().equals(RUNNING)) {
                     int completedRecords = jobStatus.getCompletedRecords();
                     if (completedRecords > 0) {
-                        logger.debug("Skipping ahead " + completedRecords + " records.");
+                        logger.debug("Skipping ahead {} records.", completedRecords);
                         for (int i = 0; i < completedRecords; i++) {
                             jobReader.read(processors);
                         }
@@ -284,7 +225,7 @@ public class JobBatchProcessor implements JobProcessor {
                         jobWriter.writeHeader(header);
                     }
                 }
-                /** Otherwise write the header and set the status to running */
+                // Otherwise write the header and set the status to running
                 else {
                     jobWriter.writeHeader(header);
                     jobStatus.setCondition(RUNNING);
@@ -292,7 +233,7 @@ public class JobBatchProcessor implements JobProcessor {
                     sqlJobProcessDao.setJobProcessStatus(jobStatus);
                 }
 
-                /** Read records into a JobFile */
+                // Read records into a JobFile
                 logMemoryUsage();
                 List<Object> row;
                 while( (row = jobReader.read(processors)) != null ) {
@@ -306,18 +247,18 @@ public class JobBatchProcessor implements JobProcessor {
                 List<DistrictType> districtTypes = jobFile.getRequiredDistrictTypes();
 
                 int recordCount = jobFile.recordCount();
-                int batchCount =  (recordCount + JOB_BATCH_SIZE - 1) / JOB_BATCH_SIZE; // Allows us to round up
-                logger.info("Dividing job into " + batchCount + " batches");
+                int batchCount =  (recordCount + jobBatchSize - 1) / jobBatchSize; // Allows us to round up
+                logger.info("Dividing job into {} batches", batchCount);
 
                 for (int i = 0; i < batchCount; i++) {
-                    int from = (i * JOB_BATCH_SIZE);
-                    int to = Math.min(from + JOB_BATCH_SIZE, recordCount);
+                    int from = (i * jobBatchSize);
+                    int to = Math.min(from + jobBatchSize, recordCount);
                     ArrayList<JobRecord> batchRecords = new ArrayList<>(jobFile.getRecords().subList(from, to));
                     JobBatch jobBatch = new JobBatch(batchRecords, from, to);
 
                     Future<JobBatch> futureValidatedBatch = null;
                     if (jobFile.requiresAddressValidation()) {
-                        futureValidatedBatch = addressExecutor.submit(new JobBatchProcessor.ValidateJobBatch(jobBatch, jobProcess,  addressProvider));
+                        futureValidatedBatch = addressExecutor.submit(new JobBatchProcessor.ValidateJobBatch(jobBatch,  addressProvider));
                     }
 
                     if (jobFile.requiresGeocode() || jobFile.requiresDistrictAssign()) {
@@ -347,14 +288,14 @@ public class JobBatchProcessor implements JobProcessor {
                 int batchNum = 0;
                 while (jobResultsQueue.peek() != null) {
                     try {
-                        logger.info("Waiting on batch # " + batchNum);
+                        logger.info("Waiting on batch # {}", batchNum);
                         JobBatch batch = jobResultsQueue.poll().get();
                         for (JobRecord record : batch.getJobRecords()) {
                             jobWriter.write(record.getRow(), processors);
                         }
                         jobWriter.flush(); // Ensure records have been written
 
-                        /** Determine if this job process has been cancelled by the user */
+                        // Determine if this job process has been cancelled by the user
                         jobStatus = sqlJobProcessDao.getJobProcessStatus(jobProcess.getId());
                         if (jobStatus.getCondition().equals(CANCELLED)) {
                             logger.warn("Job process has been cancelled by the user!");
@@ -364,11 +305,11 @@ public class JobBatchProcessor implements JobProcessor {
 
                         jobStatus.setCompletedRecords(jobStatus.getCompletedRecords() + batch.getJobRecords().size());
                         sqlJobProcessDao.setJobProcessStatus(jobStatus);
-                        logger.info("Wrote results of batch # " + batchNum);
+                        logger.info("Wrote results of batch # {}", batchNum);
                         batchNum++;
                     }
                     catch (Exception e) {
-                        logger.error("" + e);
+                        logger.error("{}", String.valueOf(e));
                         e.getCause().printStackTrace();
                     }
                 }
@@ -377,7 +318,7 @@ public class JobBatchProcessor implements JobProcessor {
                     successfulProcessHandling(jobStatus);
                 }
 
-                if (SEND_EMAILS) {
+                if (sendEmails) {
                     logger.info("--------------------------------------------------------------------");
                     logger.info("Sending email confirmation                                         |");
                     logger.info("--------------------------------------------------------------------");
@@ -394,7 +335,7 @@ public class JobBatchProcessor implements JobProcessor {
                     logger.info("--------------------------------------------------------------------");
                 }
 
-                if (LOGGING_ENABLED) {
+                if (loggingEnabled) {
                     try {
                         logger.info("Flushing log cache...");
                         logMemoryUsage();
@@ -433,22 +374,21 @@ public class JobBatchProcessor implements JobProcessor {
                 jobReader.close();
                 jobWriter.close();
             }
-            catch (NullPointerException e) {}
+            catch (NullPointerException ignored) {}
 
             logger.info("Closed resources.");
         }
-
-        return;
     }
 
     private void ensureDirectoryExists(String dir)  {
         try {
-            if ( Files.notExists(Paths.get(dir)) ) {
-                Files.createDirectory(Paths.get(dir));
+            Path path = Path.of(dir);
+            if (Files.notExists(path)) {
+                Files.createDirectory(path);
             }
         }
         catch (IOException e) {
-            logger.warn("Unable to create directory " + dir);
+            logger.warn("Unable to create directory {}", dir);
         }
 
     }
@@ -464,7 +404,7 @@ public class JobBatchProcessor implements JobProcessor {
                               JobProcessStatus.Condition condition) {
         logger.error(fatal, loggerMessage, ex);
         setJobStatusError(jobStatus, condition, jobStatusMessage + ex.getMessage());
-        if (SEND_EMAILS) sendErrorMail(jobStatus, ex);
+        if (sendEmails) sendErrorMail(jobStatus, ex);
     }
 
     private void skipFile(JobProcessStatus jobStatus) {
@@ -480,44 +420,25 @@ public class JobBatchProcessor implements JobProcessor {
      * @param condition The condition to write.
      * @param message   The message to write.
      */
-    private void setJobStatusError(JobProcessStatus jobStatus, JobProcessStatus.Condition condition, String message)
-    {
+    private void setJobStatusError(JobProcessStatus jobStatus, JobProcessStatus.Condition condition, String message) {
         if (jobStatus != null) {
             jobStatus.setCondition(condition);
-            jobStatus.setMessages(Arrays.asList(message));
+            jobStatus.setMessages(List.of(message));
             sqlJobProcessDao.setJobProcessStatus(jobStatus);
         }
     }
 
-    /**
-     * A callable for the executor to perform address validation for a JobBatch.
-     */
-    public JobBatch validateJobBatch(JobBatch jobBatch) throws Exception
-    {
-        List<AddressResult> addressResults = addressProvider.validate(jobBatch.getAddresses(), null, false);
-        if (addressResults.size() == jobBatch.getAddresses().size()) {
-            for (int i = 0; i < addressResults.size(); i++) {
-                jobBatch.setAddressResult(i, addressResults.get(i));
-            }
-        }
-        return jobBatch;
-    }
+    public static class ValidateJobBatch implements Callable<JobBatch> {
+        private final JobBatch jobBatch;
+        private final AddressServiceProvider addressProvider;
 
-    public static class ValidateJobBatch implements Callable<JobBatch>
-    {
-        private JobBatch jobBatch;
-        private JobProcess jobProcess;
-        private  AddressServiceProvider addressProvider;
-
-        public ValidateJobBatch(JobBatch jobBatch, JobProcess jobProcess, AddressServiceProvider addressProvider) {
+        public ValidateJobBatch(JobBatch jobBatch, AddressServiceProvider addressProvider) {
             this.jobBatch = jobBatch;
-            this.jobProcess = jobProcess;
             this.addressProvider = addressProvider;
         }
 
         @Override
-        public JobBatch call() throws Exception
-        {
+        public JobBatch call() throws Exception {
             List<AddressResult> addressResults = addressProvider.validate(jobBatch.getAddresses(), null, false);
             if (addressResults.size() == jobBatch.getAddresses().size()) {
                 for (int i = 0; i < addressResults.size(); i++) {
@@ -531,17 +452,15 @@ public class JobBatchProcessor implements JobProcessor {
     /**
      * A callable for the executor to perform geocoding for a JobBatch.
      */
-    public static class GeocodeJobBatch implements Callable<JobBatch>
-    {
+    public class GeocodeJobBatch implements Callable<JobBatch> {
+        private final JobProcess jobProcess;
+        private final SageGeocodeServiceProvider geocodeServiceProvider;
+        private final SqlGeocodeResultLogger sqlGeocodeResultLogger;
         private JobBatch jobBatch;
         private Future<JobBatch> futureJobBatch;
-        private JobProcess jobProcess;
-
-        private GeocodeServiceProvider geocodeServiceProvider;
-        private SqlGeocodeResultLogger sqlGeocodeResultLogger;
 
         public GeocodeJobBatch(JobBatch jobBatch, JobProcess jobProcess,
-                               GeocodeServiceProvider geocodeServiceProvider,
+                               SageGeocodeServiceProvider geocodeServiceProvider,
                                SqlGeocodeResultLogger sqlGeocodeResultLogger) {
             this.jobBatch = jobBatch;
             this.jobProcess = jobProcess;
@@ -550,29 +469,23 @@ public class JobBatchProcessor implements JobProcessor {
         }
 
         public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, JobProcess jobProcess,
-                               GeocodeServiceProvider geocodeServiceProvider,
+                               SageGeocodeServiceProvider geocodeServiceProvider,
                                SqlGeocodeResultLogger sqlGeocodeResultLogger) {
             this.futureJobBatch = futureValidatedJobBatch;
             this.jobProcess = jobProcess;
-
             this.geocodeServiceProvider = geocodeServiceProvider;
             this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         }
 
         @Override
-        public JobBatch call() throws Exception
-        {
+        public JobBatch call() throws Exception {
             if (jobBatch == null && futureJobBatch != null) {
                 this.jobBatch = futureJobBatch.get();
             }
-            logger.info("Geocoding for records " + jobBatch.getFromRecord() + "-" + jobBatch.getToRecord());
+            logger.info("Geocoding for records {}-{}", jobBatch.getFromRecord(), jobBatch.getToRecord());
 
-            BatchGeocodeRequest batchGeoRequest = new BatchGeocodeRequest();
+            var batchGeoRequest = new BatchGeocodeRequest(this.jobBatch.getAddresses(true));
             batchGeoRequest.setJobProcess(this.jobProcess);
-            batchGeoRequest.setAddresses(this.jobBatch.getAddresses(true));
-            batchGeoRequest.setUseCache(true);
-            batchGeoRequest.setUseFallback(true);
-            batchGeoRequest.setRequestTime(TimeUtil.currentTimestamp());
 
             List<GeocodeResult> geocodeResults = geocodeServiceProvider.geocode(batchGeoRequest);
             if (geocodeResults.size() == jobBatch.getJobRecords().size()) {
@@ -581,14 +494,13 @@ public class JobBatchProcessor implements JobProcessor {
                 }
             }
 
-            if (LOGGING_ENABLED) {
+            if (loggingEnabled) {
                 sqlGeocodeResultLogger.logBatchGeocodeResults(batchGeoRequest, geocodeResults, false);
                 if (sqlGeocodeResultLogger.getLogCacheSize() > LOGGING_THRESHOLD) {
                     sqlGeocodeResultLogger.flushBatchRequestsCache();
                     logMemoryUsage();
                 }
             }
-
             return this.jobBatch;
         }
     }
@@ -596,20 +508,18 @@ public class JobBatchProcessor implements JobProcessor {
     /**
      * A callable for the executor to perform district assignment for a JobBatch.
      */
-    public static class DistrictJobBatch implements Callable<JobBatch>
-    {
-        private JobProcess jobProcess;
-        private Future<JobBatch> futureJobBatch;
-        private List<DistrictType> districtTypes;
-        private DistrictStrategy districtStrategy = DistrictStrategy.shapeFallback;
+    public class DistrictJobBatch implements Callable<JobBatch> {
+        private final JobProcess jobProcess;
+        private final Future<JobBatch> futureJobBatch;
+        private final List<DistrictType> districtTypes;
+        private final DistrictStrategy districtStrategy = DistrictStrategy.shapeFallback;
 
-        private DistrictServiceProvider districtServiceProvider;
-        private SqlDistrictResultLogger sqlDistrictResultLogger;
+        private final DistrictServiceProvider districtServiceProvider;
+        private final SqlDistrictResultLogger sqlDistrictResultLogger;
 
         public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types, JobProcess jobProcess,
                                 DistrictServiceProvider districtServiceProvider, SqlDistrictResultLogger sqlDistrictResultLogger)
-                throws InterruptedException, ExecutionException
-        {
+                throws InterruptedException, ExecutionException {
             this.jobProcess = jobProcess;
             this.futureJobBatch = futureJobBatch;
             this.districtTypes = types;
@@ -618,10 +528,9 @@ public class JobBatchProcessor implements JobProcessor {
         }
 
         @Override
-        public JobBatch call() throws Exception
-        {
+        public JobBatch call() throws Exception {
             JobBatch jobBatch = futureJobBatch.get();
-            logger.info("District assignment for records " + jobBatch.getFromRecord() + "-" + jobBatch.getToRecord());
+            logger.info("District assignment for records {}-{}", jobBatch.getFromRecord(), jobBatch.getToRecord());
 
             BatchDistrictRequest batchDistRequest = new BatchDistrictRequest();
             batchDistRequest.setJobProcess(this.jobProcess);
@@ -635,7 +544,7 @@ public class JobBatchProcessor implements JobProcessor {
                 jobBatch.setDistrictResult(i, districtResults.get(i));
             }
 
-            if (LOGGING_ENABLED) {
+            if (loggingEnabled) {
                 sqlDistrictResultLogger.logBatchDistrictResults(batchDistRequest, districtResults, false);
                 if (sqlDistrictResultLogger.getLogCacheSize() > LOGGING_THRESHOLD) {
                     sqlDistrictResultLogger.flushBatchRequestsCache();
@@ -648,36 +557,30 @@ public class JobBatchProcessor implements JobProcessor {
 
     /**
      * Sends an email to the JobProcess's submitter and the admin indicating that the job has completed successfully.
-     * @param jobStatus
-     * @throws Exception
      */
-    public void sendSuccessMail(JobProcessStatus jobStatus) throws Exception
-    {
+    public void sendSuccessMail(JobProcessStatus jobStatus) throws Exception {
         JobProcess jobProcess = jobStatus.getJobProcess();
         JobUser jobUser = jobProcess.getRequestor();
         String subject = "SAGE Batch Job #" + jobProcess.getId() + " Completed";
 
         String message = String.format("Your request on %s has been completed and can be downloaded <a href='%s'>here</a>." +
                         "<br/>This is an automated message.", jobProcess.getRequestTime().toString(),
-                DOWNLOAD_URL + jobProcess.getFileName());
+                downloadUrl + jobProcess.getFileName());
 
         String adminMessage = String.format("Request by %s on %s has been completed and can be downloaded <a href='%s'>here</a>." +
                         "<br/>This is an automated message.", jobUser.getEmail(),
-                jobProcess.getRequestTime().toString(), DOWNLOAD_URL + jobProcess.getFileName());
+                jobProcess.getRequestTime().toString(), downloadUrl + jobProcess.getFileName());
 
-        logger.info("Sending email to " + jobUser.getEmail());
+        logger.info("Sending email to {}", jobUser.getEmail());
         mailer.sendMail(jobUser.getEmail(), subject, message);
-        logger.info("Sending email to " + mailer.getAdminEmail());
+        logger.info("Sending email to {}", mailer.getAdminEmail());
         mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
     }
 
     /**
      * Sends an email to the JobProcess's submitter and the admin indicating that the job has encountered an error.
-     * @param jobStatus
-     * @throws Exception
      */
-    public void sendErrorMail(JobProcessStatus jobStatus, Exception ex)
-    {
+    public void sendErrorMail(JobProcessStatus jobStatus, Exception ex) {
         JobProcess jobProcess = jobStatus.getJobProcess();
         JobUser jobUser = jobProcess.getRequestor();
         String subject = "SAGE Batch Job #" + jobProcess.getId() + " Failed";
@@ -691,12 +594,12 @@ public class JobBatchProcessor implements JobProcessor {
 
         String adminMessage = String.format("Request by %s on %s has encountered a fatal error during processing:" +
                         "<br/><br/>Exception:<br/><pre>%s</pre><br/>Request:<br/><pre>%s</pre><br/>This is an automated message.",
-                jobUser.getEmail(), jobProcess.getRequestTime().toString(), sw.toString(), FormatUtil.toJsonString(jobStatus));
+                jobUser.getEmail(), jobProcess.getRequestTime().toString(), sw, FormatUtil.toJsonString(jobStatus));
 
         try {
-            logger.info("Sending email to " + jobUser.getEmail());
+            logger.info("Sending email to {}", jobUser.getEmail());
             mailer.sendMail(jobUser.getEmail(), subject, message);
-            logger.info("Sending email to " + mailer.getAdminEmail());
+            logger.info("Sending email to {}", mailer.getAdminEmail());
             mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
         }
         catch (Exception ex2) { logger.error(fatal, "Failed to send error email.. sheesh", ex2); }
@@ -705,13 +608,12 @@ public class JobBatchProcessor implements JobProcessor {
     /**
      * Marks all running jobs as cancelled effectively removing them from the queue.
      */
-    public void cancelRunningJobs()
-    {
+    public void cancelRunningJobs() {
         logger.info("Cancelling all running jobs!");
         List<JobProcessStatus> jobStatuses = sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
         for (JobProcessStatus jobStatus : jobStatuses) {
             jobStatus.setCondition(CANCELLED);
-            jobStatus.setMessages(Arrays.asList("Cancelled during cleanup."));
+            jobStatus.setMessages(List.of("Cancelled during cleanup."));
             jobStatus.setCompleteTime(TimeUtil.currentTimestamp());
             sqlJobProcessDao.setJobProcessStatus(jobStatus);
         }
@@ -720,9 +622,8 @@ public class JobBatchProcessor implements JobProcessor {
     /**
      * Prints out memory stats.
      */
-    private static void logMemoryUsage()
-    {
-        logger.info("[RUNTIME STATS]: Free Memory - " + Runtime.getRuntime().freeMemory() + " bytes.");
-        logger.info("[RUNTIME STATS]: Total Memory - " + Runtime.getRuntime().totalMemory() + " bytes.");
+    private static void logMemoryUsage() {
+        logger.info("[RUNTIME STATS]: Free Memory - {} bytes.", Runtime.getRuntime().freeMemory());
+        logger.info("[RUNTIME STATS]: Total Memory - {} bytes.", Runtime.getRuntime().totalMemory());
     }
 }

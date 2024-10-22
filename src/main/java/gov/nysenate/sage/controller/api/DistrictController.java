@@ -3,7 +3,6 @@ package gov.nysenate.sage.controller.api;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.district.*;
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
@@ -11,11 +10,13 @@ import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.service.district.TopLevelDistrictService;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -40,12 +41,13 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
 public class DistrictController {
-    private final String BLUEBIRD_DISTRICT_STRATEGY;
+    private final String bluebirdDistrictStrategy;
     private final TopLevelDistrictService districtService;
 
     @Autowired
-    public DistrictController(Environment env, TopLevelDistrictService districtService) {
-        BLUEBIRD_DISTRICT_STRATEGY = env.getDistrictStrategyBluebird();
+    public DistrictController(@Value("${district.strategy.bluebird:streetFallback}") String bluebirdDistrictStrategy,
+                              TopLevelDistrictService districtService) {
+        this.bluebirdDistrictStrategy = bluebirdDistrictStrategy;
         this.districtService = districtService;
     }
 
@@ -118,7 +120,8 @@ public class DistrictController {
 
         DistrictResult districtResult = districtService.handleDistrictRequest(districtRequest, requestId);
         if (districtResult.isMultiMatch() && showMultiMatch) {
-            districtResponse = (showMaps) ? new MappedMultiDistrictResponse(districtResult) : new MultiDistrictResponse(districtResult);
+            districtResponse = (showMaps) ? new MappedMultiDistrictResponse(districtResult, districtRequest.getIntersectType()) :
+                    new MultiDistrictResponse(districtResult);
         } else {
             districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
         }
@@ -218,11 +221,7 @@ public class DistrictController {
         ApiRequest apiRequest = getApiRequest(request);
 
         if (sourceId == null || sourceId.equals("null") || sourceId.isEmpty() || sourceType.equals(intersectType)) {
-            BaseResponse districtResponse = new BaseResponse();
-            districtResponse.setSource("DistrictController");
-            ArrayList<String> message = new ArrayList<>();
-            message.add("All districts overlay and same type overlay is not supported");
-            districtResponse.setMessages(message);
+            var districtResponse = new BaseResponse(ResultStatus.BAD_OVERLAY);
             setApiResponse(districtResponse, request);
         }
         else {
@@ -231,7 +230,7 @@ public class DistrictController {
             districtService.logIntersectRequest(apiRequest, districtRequest);
 
             DistrictResult districtResult = districtService.handleIntersectRequest(districtRequest, requestId);
-            MappedMultiDistrictResponse districtResponse = new MappedMultiDistrictResponse(districtResult);
+            MappedMultiDistrictResponse districtResponse = new MappedMultiDistrictResponse(districtResult, districtRequest.getIntersectType());
             setApiResponse(districtResponse, request);
         }
         districtService.logElapsedTime(startTime, apiRequest);
@@ -290,7 +289,7 @@ public class DistrictController {
             return;
         }
 
-        DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, BLUEBIRD_DISTRICT_STRATEGY);
+        DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, bluebirdDistrictStrategy);
         DistrictResult districtResult = districtService.handleDistrictRequest(bluebirdRequest, requestId);
         districtResponse = new DistrictResponse(districtResult);
 
@@ -339,7 +338,7 @@ public class DistrictController {
             points = getPointsFromJsonBody(batchJsonPayload);
         }
         if (!addresses.isEmpty() || !points.isEmpty()) {
-            DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, BLUEBIRD_DISTRICT_STRATEGY);
+            DistrictRequest bluebirdRequest = DistrictRequest.buildBluebirdRequest(districtRequest, bluebirdDistrictStrategy);
             BatchDistrictRequest batchBluebirdRequest = new BatchDistrictRequest(bluebirdRequest);
             batchBluebirdRequest.setAddresses(addresses);
             batchBluebirdRequest.setPoints(points);
