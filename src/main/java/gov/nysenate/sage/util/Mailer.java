@@ -23,6 +23,7 @@ public class Mailer
     private String SMTP_DEBUG;
     private String SMTP_ACTIVE;
     private String SMTP_PORT;
+    private String SMTP_AUTH;
     private String SMTP_ACCOUNT_USER;
     private String SMTP_ACCOUNT_PASS;
     private String SMTP_ADMIN;
@@ -34,10 +35,12 @@ public class Mailer
     @Autowired
     public Mailer(Environment env)
     {
+        this.env = env;
         SMTP_HOST_NAME = env.getSmtpHost();
         SMTP_DEBUG = env.getSmtpDebug().toString();
         SMTP_ACTIVE = env.getSmtpActive().toString();
         SMTP_PORT = Integer.toString(env.getSmtpPort());
+        SMTP_AUTH = env.getSmtpAuth().toString();
         SMTP_ACCOUNT_USER = env.getSmtpUser();
         SMTP_ACCOUNT_PASS = env.getSmtpPass();
         SMTP_ADMIN = env.getSmtpAdmin();
@@ -70,7 +73,7 @@ public class Mailer
 
 		Properties props = new Properties();
 		props.put("mail.smtp.host", SMTP_HOST_NAME);
-		props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.auth", SMTP_AUTH);
 		props.put("mail.debug", SMTP_DEBUG);
 		props.put("mail.smtp.port", SMTP_PORT);
 		props.put("mail.smtp.starttls.enable",SMTP_TLS_ENABLE);
@@ -78,14 +81,20 @@ public class Mailer
 		props.put("mail.smtp.socketFactory.fallback", "false");
 		props.put("mail.smtp.ssl.enable",SMTP_SSL_ENABLE);
 
-		Session session = Session.getDefaultInstance(props,	new javax.mail.Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(SMTP_ACCOUNT_USER, SMTP_ACCOUNT_PASS);
-            }
-        });
+        Session session;
+        if (env.getSmtpAuth()) {
+            session = Session.getDefaultInstance(props,	new javax.mail.Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(SMTP_ACCOUNT_USER, SMTP_ACCOUNT_PASS);
+                }
+            });
+        }
+		else {
+            session = Session.getDefaultInstance(props);
+        }
 
-		Message msg = new MimeMessage(session);
+        Message msg = new MimeMessage(session);
 		InternetAddress addressFrom = new InternetAddress(from);
 		addressFrom.setPersonal(fromDisplay);
 		msg.setFrom(addressFrom);

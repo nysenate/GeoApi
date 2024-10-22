@@ -102,6 +102,8 @@ public class Environment {
 
     @Value("${smtp.port}") private int smtpPort;
 
+    @Value("${smtp.auth}") private boolean smtpAuth;
+
     @Value("${smtp.user}") private String smtpUser;
 
     @Value("${smtp.pass}") private String smtpPass;
@@ -555,6 +557,10 @@ public class Environment {
     public void setSmtpPort(int smtpPort) {
         this.smtpPort = smtpPort;
     }
+
+    public Boolean getSmtpAuth() { return smtpAuth; }
+
+    public void setSmtpAuth(Boolean smtpAuth) { this.smtpAuth = smtpAuth; }
 
     public String getSmtpUser() {
         return smtpUser.trim();
