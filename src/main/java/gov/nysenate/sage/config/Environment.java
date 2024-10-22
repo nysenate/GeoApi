@@ -146,6 +146,7 @@ public class Environment {
         return cacheSchema.trim();
     }
 
+    // TODO: more to move
     public String getMassGeocacheErrorLog() {
         return massGeocacheError;
     }

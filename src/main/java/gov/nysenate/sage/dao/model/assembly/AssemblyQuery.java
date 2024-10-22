@@ -11,12 +11,9 @@ public enum AssemblyQuery implements BasicSqlQuery { //${schema}." +SqlTable.PUB
 
     INSERT_ASSEMBLY_MEMBER("INSERT INTO ${schema}." +SqlTable.PUBLIC_ASSEMBLY + " (district, memberName, memberUrl) VALUES (:district,:memberName,:memberUrl)"),
 
-    CLEAR_ASSEMBLY("DELETE FROM ${schema}." +SqlTable.PUBLIC_ASSEMBLY),
+    DELETE_ASSEMBLY_DISTRICT("DELETE FROM ${schema}." +SqlTable.PUBLIC_ASSEMBLY + " WHERE district = :district");
 
-    DELETE_ASSEMBLY_DISTRICT("DELETE FROM ${schema}." +SqlTable.PUBLIC_ASSEMBLY + " WHERE district = :district")
-    ;
-
-    private String sql;
+    private final String sql;
 
     AssemblyQuery(String sql) {
         this.sql = sql;

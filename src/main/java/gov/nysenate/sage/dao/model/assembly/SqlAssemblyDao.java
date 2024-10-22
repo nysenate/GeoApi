@@ -78,17 +78,6 @@ public class SqlAssemblyDao implements AssemblyDao
     }
 
     /** {@inheritDoc} */
-    public void deleteAssemblies()
-    {
-        try {
-            baseDao.geoApiJbdcTemplate.update(AssemblyQuery.CLEAR_ASSEMBLY.getSql(baseDao.getPublicSchema()));
-        }
-        catch (Exception ex) {
-            logger.error("Failed to delete assemblies " + ex.getMessage());
-        }
-    }
-
-    /** {@inheritDoc} */
     public void deleteAssemblies(int district)
     {
         try {

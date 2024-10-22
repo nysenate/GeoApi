@@ -15,10 +15,10 @@ public interface SageParallelRevGeocodeService {
      * @param points            List of points to lookup addresses for
      * @return                  ArrayList<GeocodeResult>
      */
-    public ArrayList<GeocodeResult> reverseGeocode(RevGeocodeService revGeocodeService, List<Point> points);
+    List<GeocodeResult> reverseGeocode(RevGeocodeService revGeocodeService, List<Point> points);
 
     /**
      * Shuts down the parallel threads performing the reverse geocodes
      */
-    public void shutdownThread();
+    void shutdownThread();
 }

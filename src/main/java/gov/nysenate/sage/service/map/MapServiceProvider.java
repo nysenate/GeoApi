@@ -79,10 +79,6 @@ public class MapServiceProvider implements SageMapServiceProvider
         return districtInfo;
     }
 
-    public MapService getDefaultProvider() {
-        return defaultProvider;
-    }
-
     public Map<String, MapService> getProviders() {
         return providers;
     }

@@ -14,37 +14,31 @@ import java.sql.Timestamp;
 import java.util.List;
 
 @Repository
-public class SqlDeploymentLogger implements DeploymentLogger
-{
-    private static Logger logger = LoggerFactory.getLogger(SqlDeploymentLogger.class);
-    private BaseDao baseDao;
+public class SqlDeploymentLogger implements DeploymentLogger {
+    private static final Logger logger = LoggerFactory.getLogger(SqlDeploymentLogger.class);
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlDeploymentLogger(BaseDao baseDao) {
         this.baseDao = baseDao;
     }
 
-    /** {@inheritDoc} */
-    public Integer logDeploymentStatus(boolean deployed, Integer deploymentId, Timestamp deployTime)
-    {
+    /**
+     * {@inheritDoc}
+     */
+    public void logDeploymentStatus(boolean deployed, Integer deploymentId, Timestamp deployTime) {
         try {
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("deployed",deployed)
+                    .addValue("refId",deploymentId)
+                    .addValue("deployTime",deployTime);
 
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("deployed",deployed);
-            params.addValue("refId",deploymentId);
-            params.addValue("deployTime",deployTime);
-
-            List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(
+            baseDao.geoApiNamedJbdcTemplate.query(
                     DeploymentQuery.INSERT_DEPLOYMENT.getSql(baseDao.getLogSchema()), params, new DeploymentIdHandler());
-            if (idList == null || idList.size() <= 0) {
-                return 0;
-            }
-            return  idList.get(0);
         }
         catch (Exception ex) {
             logger.error("Failed to log deployment");
         }
-        return 0;
     }
 
     private static class DeploymentIdHandler implements RowMapper<Integer> {

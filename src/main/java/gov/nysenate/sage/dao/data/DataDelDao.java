@@ -3,16 +3,15 @@ package gov.nysenate.sage.dao.data;
 import java.util.List;
 
 public interface DataDelDao {
+    Integer getGeocacheDistinctZipCodesCount();
 
-    public Integer getGeocacheDistinctZipCodesCount();
+    List<String> getGeocacheZipBatch(int limit, int offset);
 
-    public List<String> getGeocacheZipBatch(int limit, int offset);
+    void deleteZipInGeocache(String zip);
 
-    public void deleteZipInGeocache(String zip);
+    Integer getGeocacheDistinctStatesCount();
 
-    public Integer getGeocacheDistinctStatesCount();
+    List<String> getGeocacheStateBatch(int limit, int offset);
 
-    public List<String> getGeocacheStateBatch(int limit, int offset);
-
-    public void deleteStateInGeocache(String state);
+    void deleteStateInGeocache(String state);
 }

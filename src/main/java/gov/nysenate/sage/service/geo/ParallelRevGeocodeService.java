@@ -18,19 +18,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 @Service
-public class ParallelRevGeocodeService implements SageParallelRevGeocodeService
-{
-    private static Logger logger = LoggerFactory.getLogger(ParallelRevGeocodeService.class);
-    private int THREAD_COUNT;
-    private static ThreadPoolTaskExecutor executor;
-    private Environment env;
+public class ParallelRevGeocodeService implements SageParallelRevGeocodeService {
+    private static final Logger logger = LoggerFactory.getLogger(ParallelRevGeocodeService.class);
+    private final int THREAD_COUNT;
+    private final ThreadPoolTaskExecutor executor;
 
     @Autowired
     public ParallelRevGeocodeService(Environment env) {
-        this.env = env;
-        this.THREAD_COUNT = this.env.getValidateThreads();
+        this.THREAD_COUNT = env.getValidateThreads();
         this.executor = ExecutorUtil.createExecutor("revgeo", THREAD_COUNT);
-//        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("revgeo"));
     }
 
     /**
@@ -40,8 +36,8 @@ public class ParallelRevGeocodeService implements SageParallelRevGeocodeService
     * @param points            List of points to lookup addresses for
     * @return                  ArrayList<GeocodeResult>
     */
-    public ArrayList<GeocodeResult> reverseGeocode(RevGeocodeService revGeocodeService, List<Point> points)
-    {
+    // TODO: not used?
+    public List<GeocodeResult> reverseGeocode(RevGeocodeService revGeocodeService, List<Point> points) {
         ArrayList<GeocodeResult> revGeocodeResults = new ArrayList<>();
         ArrayList<Future<GeocodeResult>> futureRevGeocodeResults = new ArrayList<>();
 
@@ -68,19 +64,16 @@ public class ParallelRevGeocodeService implements SageParallelRevGeocodeService
     /**
      * Callable for parallel reverse geocoding requests
      */
-    private static class ParallelRevGeocode implements Callable<GeocodeResult>
-    {
+    private static class ParallelRevGeocode implements Callable<GeocodeResult> {
         public final RevGeocodeService revGeocodeService;
         public final Point point;
-        public ParallelRevGeocode(RevGeocodeService revGeocodeService, Point point)
-        {
+        public ParallelRevGeocode(RevGeocodeService revGeocodeService, Point point) {
             this.revGeocodeService = revGeocodeService;
             this.point = point;
         }
 
         @Override
-        public GeocodeResult call()
-        {
+        public GeocodeResult call() {
             return revGeocodeService.reverseGeocode(point);
         }
     }

@@ -5,9 +5,7 @@ import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum CountyQuery implements BasicSqlQuery {
     GET_ALL_COUNTIES("SELECT * FROM ${schema}." + SqlTable.PUBLIC_COUNTY),
-    GET_COUNTY_BY_ID("SELECT * FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE senate_code = :senateCode"),
-    GET_COUNTY_BY_NAME("SELECT * FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE LOWER(name) = LOWER(:name)"),
-    GET_COUNTY_BY_FIPS_CODE("SELECT * FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE fips_code = :fipsCode ");
+    GET_COUNTY_BY_ID("SELECT * FROM ${schema}." + SqlTable.PUBLIC_COUNTY + " WHERE senate_code = :senateCode");
 
     private final String sql;
 

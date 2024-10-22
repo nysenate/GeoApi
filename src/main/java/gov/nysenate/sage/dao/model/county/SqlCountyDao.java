@@ -65,18 +65,6 @@ public class SqlCountyDao implements CountyDao
         return getCounty("senateCode", id, CountyQuery.GET_COUNTY_BY_ID);
     }
 
-    /** {@inheritDoc} */
-    public County getCountyByName(String name)
-    {
-        return getCounty("name", name, CountyQuery.GET_COUNTY_BY_NAME);
-    }
-
-    /** {@inheritDoc} */
-    public County getCountyByFipsCode(int fipsCode)
-    {
-        return getCounty("fipsCode", fipsCode, CountyQuery.GET_COUNTY_BY_FIPS_CODE);
-    }
-
     private County getCounty(String paramName, Object param, CountyQuery query) {
         try {
             var params = new MapSqlParameterSource(paramName, param);

@@ -80,17 +80,6 @@ public class SqlCongressionalDao implements CongressionalDao
     }
 
     /** {@inheritDoc} */
-    public void deleteCongressionals()
-    {
-        try {
-            baseDao.geoApiJbdcTemplate.update(CongressionalQuery.CLEAR_CONGRESS.getSql(baseDao.getPublicSchema()));
-        }
-        catch (Exception ex) {
-            logger.error("Failed to delete congressionals " + ex.getMessage());
-        }
-    }
-
-    /** {@inheritDoc} */
     public void deleteCongressional(int district)
     {
         try {

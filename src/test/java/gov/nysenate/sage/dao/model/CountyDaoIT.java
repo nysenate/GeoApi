@@ -46,25 +46,6 @@ public class CountyDaoIT extends BaseTests {
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void getCountyByNameTest()
-    {
-        County county = sqlCountyDao.getCountyByName("Erie");
-        assertEquals("erie", county.name().toLowerCase());
-
-        county = sqlCountyDao.getCountyByName("erie");
-        assertEquals("erie", county.name().toLowerCase());
-    }
-
-    @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void getCountyByFipsCodeTest()
-    {
-        County county = sqlCountyDao.getCountyByFipsCode(29);
-        assertEquals("erie", county.name().toLowerCase());
-    }
-
-    @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void getFipsCountyMapTest()
     {
         Map<Integer, County> fipsCountyMap = sqlCountyDao.getFipsCountyMap();

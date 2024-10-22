@@ -7,8 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 @Repository
 public class SqlDataDelDao implements DataDelDao {
-
-    private BaseDao baseDao;
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlDataDelDao(BaseDao baseDao) {

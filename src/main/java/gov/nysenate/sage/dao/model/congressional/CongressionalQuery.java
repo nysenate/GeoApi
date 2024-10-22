@@ -11,12 +11,9 @@ public enum CongressionalQuery implements BasicSqlQuery { //${schema}." + SqlTab
 
     INSERT_CONGRESSIONAL_MEMBER("INSERT INTO ${schema}." +SqlTable.PUBLIC_CONGRESSIONAL + " (district, memberName, memberUrl) VALUES (:district,:memberName,:memberUrl)"),
 
-    CLEAR_CONGRESS("DELETE FROM ${schema}." +SqlTable.PUBLIC_CONGRESSIONAL),
+    DELETE_CONGRESSIONAL_DISTRICT("DELETE FROM ${schema}." +SqlTable.PUBLIC_CONGRESSIONAL + " WHERE district = :district");
 
-    DELETE_CONGRESSIONAL_DISTRICT("DELETE FROM ${schema}." +SqlTable.PUBLIC_CONGRESSIONAL + " WHERE district = :district")
-    ;
-
-    private String sql;
+    private final String sql;
 
     CongressionalQuery(String sql) {
         this.sql = sql;

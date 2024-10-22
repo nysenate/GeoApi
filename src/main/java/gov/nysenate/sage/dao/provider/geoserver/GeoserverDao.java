@@ -14,29 +14,16 @@ public interface GeoserverDao {
      * @param districtTypes    The types of districts to get features for
      * @return DistrictInfo if successful, null otherwise
      */
-    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes);
+    DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes);
 
     /**
-     * Retreive the workspace string for Geoserver
-     * @return
+     * Retrieve the workspace string for Geoserver
      */
-    public String getWorkspace();
-
-    /**
-     * Set the workspace string for Geoserver
-     * @param workspace
-     */
-    public void setWorkspace(String workspace);
+    String getWorkspace();
 
     /**
      * Retreive the base url for accessing Geoserver
      * @return
      */
-    public String getBaseUrl();
-
-    /**
-     * Set the base url for accessing Geoserver
-     * @param baseUrl
-     */
-    public void setBaseUrl(String baseUrl);
+    String getBaseUrl();
 }

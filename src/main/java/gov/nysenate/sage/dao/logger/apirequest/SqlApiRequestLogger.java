@@ -12,8 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -70,39 +68,6 @@ public class SqlApiRequestLogger implements ApiRequestLogger
         }
         catch (Exception ex) {
             logger.error("Failed to retrieve ApiRequest by id!", ex);
-        }
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    public List<ApiRequest> getApiRequests(String apiKey, String service, String method, boolean orderByRecent)
-    {
-        Timestamp from = new Timestamp(0);
-        Timestamp to = new Timestamp(new Date().getTime());
-        return getApiRequestsDuring(apiKey, service, method, from, to, -1, 0, orderByRecent);
-    }
-
-    /** {@inheritDoc} */
-    public List<ApiRequest> getApiRequestsDuring(String apiKey, String service, String method, Timestamp from,
-                                                 Timestamp to, int limit, int offset, boolean orderByRecent)
-    {
-        try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("from", from);
-            params.addValue("to", to);
-            params.addValue("service", service);
-            params.addValue("method", method);
-
-            String sql = ApiRequestQuery.GET_RANGE_API_REQUESTS.getSql(baseDao.getLogSchema());
-            if (limit > 0) {
-                sql = sql + " limit " + limit + " offset " + offset;
-            }
-
-            return baseDao.geoApiNamedJbdcTemplate.query(sql, params, new ListApiRequestResultHandler());
-
-        }
-        catch (Exception ex) {
-            logger.error("Failed to retrieve logged api requests!", ex);
         }
         return null;
     }

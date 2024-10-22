@@ -40,25 +40,6 @@ public class SqlDeploymentStatsDao implements DeploymentStatsDao
         return null;
     }
 
-    /** {@inheritDoc} */
-    public DeploymentStats getDeploymentStatsDuring(Timestamp since, Timestamp until)
-    {
-        try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("since", since);
-            params.addValue("until", until);
-
-            List<Deployment> deployments = baseDao.geoApiNamedJbdcTemplate.query(
-                    DeploymentStatsQuery.SELECT_TIME_RANGE_STATS.getSql(
-                            baseDao.getLogSchema()), params, new DeploymentStatsMapper());
-            return new DeploymentStats(deployments);
-        }
-        catch (Exception ex) {
-            logger.error("Failed to get deployment stats", ex);
-        }
-        return null;
-    }
-
     private static class DeploymentStatsMapper implements RowMapper<Deployment> {
         public Deployment mapRow(ResultSet rs, int rowNum) throws SQLException {
             Deployment deployment = new Deployment();

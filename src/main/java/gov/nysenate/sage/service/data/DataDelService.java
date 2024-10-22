@@ -1,8 +1,6 @@
 package gov.nysenate.sage.service.data;
 
-import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.data.SqlDataDelDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +14,8 @@ import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 @Service
 public class DataDelService implements SageDataDelService {
 
-    private Logger logger = LoggerFactory.getLogger(DataDelService.class);
-    private SqlDataDelDao sqlDataDelDao;
+    private static final Logger logger = LoggerFactory.getLogger(DataDelService.class);
+    private final SqlDataDelDao sqlDataDelDao;
 
     @Autowired
     public DataDelService(SqlDataDelDao sqlDataDelDao) {
@@ -29,14 +27,14 @@ public class DataDelService implements SageDataDelService {
 
         int total = sqlDataDelDao.getGeocacheDistinctZipCodesCount();
 
-        logger.info("Geocache zip total record count: " + total);
+        logger.info("Geocache zip total record count: {}", total);
 
         //start from 0 and loop until the total number in batches of 2000
         while (total > offset) {
             //Get batch of 2000
             List<String> zip_codes = sqlDataDelDao.getGeocacheZipBatch(limit, offset);
 
-            logger.info("At offset: " + offset);
+            logger.info("At offset: {}", offset);
             offset = limit + offset;
 
 
@@ -94,5 +92,4 @@ public class DataDelService implements SageDataDelService {
 
         return new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
     }
-
 }

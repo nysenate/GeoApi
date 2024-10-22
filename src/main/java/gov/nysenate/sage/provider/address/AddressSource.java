@@ -7,10 +7,10 @@ public enum AddressSource implements DataSource {
 
     public static AddressSource fromString(String value) {
         value = value.toUpperCase().trim();
-        if (value.matches("AMS|usps")) {
+        if (value.matches("(?i)AMS|usps")) {
             return AMS;
         }
-        if (value.matches("AIS|uspsais")) {
+        if (value.matches("(?i)AIS|uspsais")) {
             return AIS;
         }
         return null;

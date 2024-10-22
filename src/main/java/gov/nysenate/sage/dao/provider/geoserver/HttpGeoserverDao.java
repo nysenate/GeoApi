@@ -59,18 +59,8 @@ public class HttpGeoserverDao implements GeoserverDao {
     }
 
     /** {@inheritDoc} */
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
-    /** {@inheritDoc} */
     public String getBaseUrl() {
         return (this.baseUrl != null && !this.baseUrl.isEmpty()) ? this.baseUrl : DEFAULT_BASE_URL;
-    }
-
-    /** {@inheritDoc} */
-    public void setWorkspace(String workspace) {
-        this.workspace = workspace;
     }
 
     /** {@inheritDoc} */

@@ -49,27 +49,6 @@ public class SqlApiUserDao implements ApiUserDao
     }
 
     /** {@inheritDoc} */
-    public ApiUser getApiUserByName(String name)
-    {
-        try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("name", name);
-
-            List<ApiUser> apiUserList = baseDao.geoApiNamedJbdcTemplate.query(
-                    ApiUserQuery.GET_API_USER_BY_NAME.getSql(baseDao.getPublicSchema()), params, new ApiUserHandler());
-
-            if (apiUserList != null) {
-                return apiUserList.get(0);
-            }
-        }
-        catch (Exception sqlEx)         {
-            logger.error("Failed to get ApiUser by name in ApiUserDAO!");
-            logger.error(sqlEx.getMessage());
-        }
-        return null;
-    }
-
-    /** {@inheritDoc} */
     public ApiUser getApiUserByKey(String key)
     {
         try {
@@ -123,21 +102,22 @@ public class SqlApiUserDao implements ApiUserDao
         return 0;
     }
 
-    /** {@inheritDoc} */
-    public int removeApiUser(ApiUser apiUser)
+    /**
+     * {@inheritDoc}
+     */
+    public void removeApiUser(ApiUser apiUser)
     {
         try {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("id", apiUser.getId());
 
-            return baseDao.geoApiNamedJbdcTemplate.update(
+            baseDao.geoApiNamedJbdcTemplate.update(
                     ApiUserQuery.REMOVE_API_USER.getSql(baseDao.getPublicSchema()), params);
         }
         catch (Exception sqlEx) {
             logger.error("Failed to remove ApiUser in ApiUserDAO!");
             logger.error(sqlEx.getMessage());
         }
-        return 0;
     }
 
     private static class ApiUserHandler implements RowMapper<ApiUser> {

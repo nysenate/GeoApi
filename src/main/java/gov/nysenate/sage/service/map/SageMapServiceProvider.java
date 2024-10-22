@@ -7,24 +7,15 @@ import gov.nysenate.sage.provider.district.MapService;
 import java.util.Map;
 
 public interface SageMapServiceProvider {
-
     /**
      * Assigns district maps to a DistrictInfo result.
      * @param districtInfo DistrictInfo to set
      * @param override If false, previously set DistrictMaps will not be replaced
-     * @return
      */
-    public DistrictInfo assignMapsToDistrictInfo(DistrictInfo districtInfo, DistrictMatchLevel matchLevel, boolean override);
+    DistrictInfo assignMapsToDistrictInfo(DistrictInfo districtInfo, DistrictMatchLevel matchLevel, boolean override);
 
     /**
-     * Returns the default MapService configured in the app properties
-     * @return
+     * Return a map containing a MapService and its keyword
      */
-    public MapService getDefaultProvider();
-
-    /**
-     * Return a map containing a mapservice and its keyword
-     * @return
-     */
-    public Map<String, MapService> getProviders();
+    Map<String, MapService> getProviders();
 }

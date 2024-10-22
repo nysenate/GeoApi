@@ -11,17 +11,13 @@ import java.util.List;
  * native batch methods.
  */
 public interface SageParallelAddressService {
-
     /**
      * Validates a list of addresses with the specified address service
-     * @param addressService
-     * @param addresses
-     * @return
      */
-    public List<AddressResult> validate(AddressService addressService, List<Address> addresses);
+    List<AddressResult> validate(AddressService addressService, List<Address> addresses);
 
     /**
      * This method is used by spring to shut down Sage without errors
      */
-    public void shutdownThread();
+    void shutdownThread();
 }

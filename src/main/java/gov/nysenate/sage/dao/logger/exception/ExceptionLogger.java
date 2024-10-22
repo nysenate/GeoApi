@@ -9,5 +9,5 @@ public interface ExceptionLogger {
      * @param catchTime     The time the unhandled exception was eventually caught
      * @param apiRequestId  Associated apiRequestId set at the time when exception arose
      */
-    public void logException(Exception ex, Timestamp catchTime, Integer apiRequestId);
+    void logException(Exception ex, Timestamp catchTime, Integer apiRequestId);
 }
