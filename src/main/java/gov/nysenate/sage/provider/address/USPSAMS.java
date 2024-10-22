@@ -23,6 +23,11 @@ public class USPSAMS implements AddressService {
         this.httpUSPSAMSDao = httpUSPSAMSDao;
     }
 
+    @Override
+    public AddressSource source() {
+        return AddressSource.AMS;
+    }
+
     /** {@inheritDoc} */
     @Nonnull
     @Override
@@ -30,11 +35,10 @@ public class USPSAMS implements AddressService {
         if (address != null && !address.isEmpty()) {
             AddressResult result = httpUSPSAMSDao.getValidatedAddressResult(address);
             if (result != null) {
-                result.setSource(this.getClass());
                 return result;
             }
         }
-        return new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+        return new AddressResult(AddressSource.AMS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
     /** {@inheritDoc} */
@@ -49,7 +53,6 @@ public class USPSAMS implements AddressService {
                     if (result.getAddress() != null) {
                         result.getAddress().setUspsValidated( result.isValidated() );
                     }
-                    result.setSource(this.getClass());
                 }
                 return results;
             }
@@ -57,12 +60,12 @@ public class USPSAMS implements AddressService {
             else {
                 List<AddressResult> errorResults = new ArrayList<>();
                 for (int i = 0; i < addresses.size(); i++) {
-                    errorResults.add(new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
+                    errorResults.add(new AddressResult(AddressSource.AMS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
                 }
                 return errorResults;
             }
         }
-        return List.of(new AddressResult(this.getClass(), ResultStatus.MISSING_ADDRESS));
+        return List.of(new AddressResult(AddressSource.AMS, ResultStatus.MISSING_ADDRESS));
     }
 
     /** {@inheritDoc} */
@@ -72,11 +75,10 @@ public class USPSAMS implements AddressService {
         if (address != null && !address.isEmpty() && address.getZip5() != null) {
             AddressResult result = httpUSPSAMSDao.getCityStateResult(address);
             if (result != null) {
-                result.setSource(this.getClass());
                 return result;
             }
         }
-        return new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+        return new AddressResult(AddressSource.AMS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
     /** {@inheritDoc} */
@@ -87,9 +89,9 @@ public class USPSAMS implements AddressService {
             if (results != null && results.size() == addresses.size()) {
                 return results;
             }
-            return List.of(new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
+            return List.of(new AddressResult(AddressSource.AMS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
         }
-        return List.of(new AddressResult(this.getClass(), ResultStatus.MISSING_ADDRESS));
+        return List.of(new AddressResult(AddressSource.AMS, ResultStatus.MISSING_ADDRESS));
     }
 
 }

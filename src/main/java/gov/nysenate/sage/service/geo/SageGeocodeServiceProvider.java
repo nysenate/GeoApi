@@ -1,114 +1,155 @@
 package gov.nysenate.sage.service.geo;
 
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.api.BatchGeocodeRequest;
-import gov.nysenate.sage.model.api.GeocodeRequest;
+import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.geocache.GeoCache;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
+import gov.nysenate.sage.provider.geocode.Geocoder;
+import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.util.TimeUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public interface SageGeocodeServiceProvider {
+/**
+ * Point of access for all geocoding requests. This class maintains a collection of available
+ * geocoding providers and contains logic for distributing requests and collecting responses
+ * from the providers.
+ */
+@Service
+public class SageGeocodeServiceProvider implements GeocodeServiceProvider {
+    private static final Logger logger = LoggerFactory.getLogger(SageGeocodeServiceProvider.class);
 
-    /**
-     * Designates a provider (that has been registered) as a reliable source for caching results.
-     * @param provider Same providerName used when registering the provider
-     */
-    public void registerProviderAsCacheable(GeocodeService provider);
+    /** Caching members */
+    private final Map<Geocoder, GeocodeService> geocoderMap;
+    private final GeoCache geocache;
+    private final AddressServiceProvider addressServiceProvider;
 
-    /**
-     * Performs single geocode using GeocodeRequest.
-     * @param geocodeRequest GeocodeRequest object with geocode options and address set.
-     * @return GeocodeResult
-     */
-    public GeocodeResult geocode(GeocodeRequest geocodeRequest);
-
-    /**
-     * Perform a single geocode using the application defaults.
-     * @param address   Address to geocode
-     * @return          GeocodeResult
-     */
-    public GeocodeResult geocode(Address address);
-
-    /**
-     * Perform a single geocode with optional default fallback mode.
-     * @param address       Address to geocode
-     * @param provider      Provider to perform geocoding
-     * @param useFallback   Set true to use default fallback
-     * @return              GeocodeResult
-     */
-    public GeocodeResult geocode(Address address, String provider, boolean useFallback);
-
-    /**
-     * Perform a single geocode with caching and an optional default fallback mode.
-     * @param address       Address to geocode
-     * @param provider      Provider to perform geocoding
-     * @param useFallback   Set true to use default fallback
-     * @return              GeocodeResult
-     */
-    public GeocodeResult geocode(Address address, String provider, boolean useFallback, boolean useCache);
+    @Autowired
+    public SageGeocodeServiceProvider(GeoCache geocache, List<GeocodeService> geocodeServices,
+                                      AddressServiceProvider addressServiceProvider) {
+        this.geocache = geocache;
+        this.geocoderMap = geocodeServices.stream()
+                .collect(Collectors.toMap(GeocodeService::name, Function.identity()));
+        this.addressServiceProvider = addressServiceProvider;
+    }
 
     /**
      * Perform a single geocode with all specified parameters.
      * @param address           Address to geocode
-     * @param provider          Provider to perform geocoding
-     * @param fallbackProviders Sequence of providers to fallback to
-     * @param useFallback       Set true to use default fallback
-     * @param useCache          Set true to attempt cache lookup first
+     * @param providers         Providers to perform geocoding
      * @return                  GeocodeResult
      */
-    public GeocodeResult geocode(Address address, String provider, LinkedList<String> fallbackProviders, boolean useFallback,
-                                 boolean useCache, boolean doNotCache);
+    public GeocodeResult geocode(Address address, List<Geocoder> providers, boolean doNotCache) {
+        boolean uspsValidated = false;
+        var geocodeResult = new GeocodeResult(null, ResultStatus.NO_GEOCODE_RESULT);
 
-    /**
-     * Perform batch geocoding using supplied BatchGeocodeRequest
-     * @param batchGeoRequest BatchGeocodeRequest with desired fields set
-     * @return  List<GeocodeResult> corresponding to the addresses list
-     */
-    public List<GeocodeResult> geocode(BatchGeocodeRequest batchGeoRequest);
+        for (Geocoder geocoder : providers) {
+            geocodeResult = geocoderMap.get(geocoder).geocode(address);
+            if (geocodeResult.isSuccess()) {
+                break;
+            }
+        }
 
-    /**
-     * Perform batch geocoding using recommended application defaults
-     * @param addresses         List of addresses to geocode
-     * @return                  List<GeocodeResult> corresponding to the addresses list.
-     */
-    public List<GeocodeResult> geocode(List<Address> addresses);
+        // Ensure we don't return a null response
+        if (!geocodeResult.isSuccess()) {
+            logger.warn("No valid geocode result.");
+        }
+        else {
+            AddressResult addressResult = addressServiceProvider.validate(address, null, false);
+            if (addressResult != null && addressResult.isValidated()) {
+                geocodeResult.getGeocodedAddress().setAddress(addressResult.getAddress());
+                uspsValidated = true;
+            }
 
-    /**
-     * Perform batch geocoding with default fallback option
-     * @param addresses         List of addresses to geocode
-     * @param provider          Provider to perform geocoding
-     * @param useFallback       Set true to use default fallback
-     * @param useCache          Set true to attempt cache lookup first
-     * @return                  List<GeocodeResult> corresponding to the addresses list.
-     */
-    public List<GeocodeResult> geocode(List<Address> addresses, String provider, boolean useFallback, boolean useCache);
+            // USPS address correction
+            // Output result if log level is high enough
+            if (logger.isInfoEnabled()) {
+                Geocode gc = geocodeResult.getGeocode();
+                Address addr = geocodeResult.getAddress();
+                if (gc != null && addr != null) {
+                    String source = (geocodeResult.getSource() != null) ? geocodeResult.getSource().toString() : "Missing";
+                    logger.info("Geocode Result - Source: '{}', Quality: '{}', Lat/Lon: '{}', Address: '{}'", source, gc.quality(), gc.point(), addr);
+                }
+            }
+        }
+
+        geocodeResult.setResultTime(TimeUtil.currentTimestamp());
+        if (!uspsValidated) {
+            geocodeResult.setGeocodedAddress(new GeocodedAddress(address, geocodeResult.getGeocode()));
+        }
+        if (!doNotCache && geocodeResult.getGeocodedAddress().isValidGeocode()) {
+            geocache.saveToCacheAndFlush(geocodeResult);
+        }
+        return geocodeResult;
+    }
 
     /**
      * Perform batch geocoding with all specified parameters.
      * @param addresses         List of addresses to geocode
-     * @param provider          Provider to perform geocoding
-     * @param fallbackProviders Sequence of providers to fallback to
-     * @param useFallback       Set true to use fallback
-     * @param useCache          Set true to attempt cache lookup first
+     * @param providers         Providers to perform geocoding
      * @return                  List<GeocodeResult> corresponding to the addresses list.
      */
-    public List<GeocodeResult> geocode(List<Address> addresses, String provider,
-                                       List<String> fallbackProviders, boolean useFallback, boolean useCache);
+    public List<GeocodeResult> geocode(List<Address> addresses, List<Geocoder> providers, boolean doNotCache) {
+        final int addressCount = addresses.size();
+        final List<GeocodeResult> finalResults = new ArrayList<>(addresses.size());
+        for (Address address : addresses) {
+            finalResults.add(new GeocodeResult(null, ResultStatus.NO_GEOCODE_RESULT,
+                    new GeocodedAddress(address)));
+        }
 
-    /**
-     * Return a map containing a String and its Geocode Service.
-     * @return
-     */
-    public Map<String,GeocodeService> getActiveGeoProviders();
+        // Clone the list of fall back providers
+        logger.info("Performing {} geocodes.", addressCount);
 
-    /**
-     * Return a map containing a String and its Geocode Service. This is used on the front end to display the
-     * geoproviders we can currently contact
-     * @return
-     */
-    public Map<String, Class<? extends GeocodeService>> getActiveGeocoderClassMap();
 
+        Set<Integer> invalidIndices = new HashSet<>();
+        for (int i = 0; i < addressCount; i++) {
+            if (addresses.get(i) == null || addresses.get(i).isEmpty()) {
+                finalResults.set(i, new GeocodeResult(null, ResultStatus.MISSING_ADDRESS));
+                invalidIndices.add(i);
+            }
+        }
+
+        for (Geocoder provider : providers) {
+            List<Integer> indicesToGeocode = new ArrayList<>();
+            List<Address> addrsToGeocode = new ArrayList<>();
+            for (int i = 0; i < finalResults.size(); i++) {
+                GeocodeResult currResult = finalResults.get(i);
+                if (!currResult.isSuccess() && currResult.getStatusCode() != ResultStatus.MISSING_ADDRESS) {
+                    indicesToGeocode.add(i);
+                    addrsToGeocode.add(finalResults.get(i).getAddress());
+                }
+            }
+            List<GeocodeResult> results = geocoderMap.get(provider).geocode(addrsToGeocode);
+            for (int i = 0; i < invalidIndices.size(); i++) {
+                finalResults.set(indicesToGeocode.get(i), results.get(i));
+            }
+        }
+
+        // If the geocodeResults do not align with the valid input address set, produce error and return error result.
+        if (finalResults.size() != addresses.size()) {
+            logger.error("Batch geocode result size not equal to address set size!");
+            GeocodeResult errorResult = new GeocodeResult(null, ResultStatus.INTERNAL_ERROR);
+            errorResult.addMessage("Batch response was not consistent with the input addresses list.");
+            return List.of(errorResult);
+        }
+
+        if (!doNotCache) {
+            geocache.saveToCacheAndFlush(finalResults);
+        }
+        return finalResults;
+    }
+
+    public Set<Geocoder> geocoders() {
+        return geocoderMap.keySet();
+    }
 }

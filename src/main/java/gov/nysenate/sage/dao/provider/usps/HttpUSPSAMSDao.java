@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
@@ -126,7 +127,6 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
             logger.error("Failed to get and parse response from batch validate request!", ex);
             return List.of();
         }
-
     }
 
     /**
@@ -137,7 +137,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         if (root == null) {
             return null;
         }
-        AddressResult addressResult = new AddressResult();
+        var addressResult = new AddressResult(AddressSource.AMS);
         JsonNode statusNode = root.get("status");
         JsonNode addressNode = root.get("address");
         JsonNode footnotesNode = root.get("footnotes");
@@ -145,7 +145,6 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         boolean validated = root.get("validated").asBoolean(false);
         String status = statusNode.get("name").asText();
 
-        addressResult.setValidated(validated);
         addressResult.addMessage(String.format("Status: %s", status));
 
         for (int i = 0; i < footnotesNode.size(); i++) {
@@ -170,7 +169,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
                 addressResult.setAddress(validatedAddress);
             } catch (NullPointerException ex) {
                 logger.error("Bad root: {}", root);
-                addressResult.setValidated(false);
+                addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
             }
         }
         else {
@@ -198,9 +197,6 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
                 logger.error("Failed to obtain a valid response from USPS AMS!");
             }
 
-        }
-        catch (UnsupportedEncodingException ex) {
-            logger.error("Failed to encode URL in UTF-8!", ex);
         }
         catch (IOException ex) {
             logger.error("Failed to obtain response!", ex);
@@ -242,21 +238,18 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         return addressResults;
     }
 
-    private AddressResult getAddressResultFromJsonCityState(JsonNode root) throws IOException {
+    private static AddressResult getAddressResultFromJsonCityState(JsonNode root) throws IOException {
         if (root == null) {
             return null;
         }
-        AddressResult addressResult = new AddressResult();
-        boolean success = root.get("success").asBoolean(false);
-        addressResult.setValidated(success);
-        if (success) {
+        var addressResult = new AddressResult(AddressSource.AMS);
+        if (root.get("success").asBoolean(false)) {
             Address cityState = new Address(null, null, root.get("cityName").asText(),
                     root.get("stateAbbr").asText(),  root.get("zipCode").asText(), null);
             cityState.setUspsValidated(true);
             addressResult.setAddress(cityState);
         }
         else {
-            addressResult.setValidated(false);
             addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
         }
         addressResult.setResultTime(TimeUtil.currentTimestamp());

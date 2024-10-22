@@ -25,8 +25,8 @@ public class PolygonMapView
                     List<Double[]> geomPoly = new ArrayList<>();
                     for (Point point : polygon.getPoints()) {
                         Double[] p = new Double[2];
-                        BigDecimal lat = new BigDecimal(point.getLat());
-                        BigDecimal lon = new BigDecimal(point.getLon());
+                        BigDecimal lat = new BigDecimal(point.lat());
+                        BigDecimal lon = new BigDecimal(point.lon());
                         p[0] = lat.setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
                         p[1] = lon.setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
                         geomPoly.add(p);
@@ -46,8 +46,8 @@ public class PolygonMapView
                     List<Double[]> geomPoly = new ArrayList<>();
                     for (Point point : line.getPoints()) {
                         Double[] p = new Double[2];
-                        BigDecimal lat = new BigDecimal(point.getLat());
-                        BigDecimal lon = new BigDecimal(point.getLon());
+                        BigDecimal lat = new BigDecimal(point.lat());
+                        BigDecimal lon = new BigDecimal(point.lon());
                         p[0] = lat.setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
                         p[1] = lon.setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
                         geomPoly.add(p);

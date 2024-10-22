@@ -1,49 +1,35 @@
 package gov.nysenate.sage.service.geo;
 
-import gov.nysenate.sage.model.api.BatchGeocodeRequest;
-import gov.nysenate.sage.model.api.GeocodeRequest;
+import gov.nysenate.sage.model.api.SingleGeocodeRequest;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.provider.geocode.GoogleGeocoder;
 import gov.nysenate.sage.provider.geocode.NYSGeocoder;
 import gov.nysenate.sage.provider.geocode.RevGeocodeService;
-import gov.nysenate.sage.provider.geocode.TigerGeocoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
-import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
 * Point of access for all reverse geocoding requests.
 */
 @Service
-public class RevGeocodeServiceProvider implements SageRevGeocodeServiceProvider
-{
-    private final Logger logger = LoggerFactory.getLogger(GeocodeServiceProvider.class);
-
-    protected RevGeocodeService defaultProvider;
-    protected Map<String,RevGeocodeService> providers = new HashMap<>();
-    protected LinkedList<String> defaultFallback = new LinkedList<>();
+public class RevGeocodeServiceProvider implements SageRevGeocodeServiceProvider {
+    private final Map<Geocoder, RevGeocodeService> providerMap;
 
     @Autowired
-    public RevGeocodeServiceProvider(GoogleGeocoder googleGeocoder, TigerGeocoder tigerGeocoder,
-                                     NYSGeocoder nysGeocoder) {
-        this.defaultProvider = googleGeocoder;
-        this.providers.put("google", googleGeocoder);
-        this.providers.put("nysgeo", nysGeocoder);
-        this.providers.put("tiger", tigerGeocoder);
-        this.defaultFallback.add("nysgeo");
-        this.defaultFallback.add("tiger");
+    public RevGeocodeServiceProvider(GoogleGeocoder googleGeocoder, NYSGeocoder nysGeocoder) {
+        this.providerMap = Map.of(Geocoder.GOOGLE, googleGeocoder, Geocoder.NYSGEO, nysGeocoder);
     }
 
-    public GeocodeResult reverseGeocode(GeocodeRequest geocodeRequest)
-    {
+    @Override
+    public GeocodeResult reverseGeocode(SingleGeocodeRequest geocodeRequest) {
         if (geocodeRequest != null) {
-            return reverseGeocode(geocodeRequest.getPoint(), this.providers.get(geocodeRequest.getProvider()), geocodeRequest.isUseFallback());
+            return reverseGeocode(geocodeRequest.getPoint(), geocodeRequest.getGeocoders());
         }
         else {
             return null;
@@ -51,100 +37,42 @@ public class RevGeocodeServiceProvider implements SageRevGeocodeServiceProvider
     }
 
     /**
-     * Perform reverse geocode with default options.
-     * @param point Point to lookup address for
-     * @return      GeocodeResult
+     * Perform batch reverse geocoding using supplied BatchGeocodeRequest with points set.
+     * @return  List<GeocodeResult> or null if batchRevGeoRequest is null.
      */
-    public GeocodeResult reverseGeocode(Point point)
-    {
-        return reverseGeocode(point, this.defaultProvider, this.defaultFallback, true);
-    }
-
-    /**
-     * Perform reverse geocode with provider and fallback options.
-     * @param point        Point to lookup address for
-     * @param provider     Provider to perform reverse geocoding
-     * @param useFallback  Set true to use default fallback
-     * @return             GeocodeResult
-     */
-    public GeocodeResult reverseGeocode(Point point, RevGeocodeService provider, boolean useFallback)
-    {
-        return reverseGeocode(point, provider, this.defaultFallback, useFallback);
+    @Override
+    public List<GeocodeResult> reverseGeocode(List<Point> points, Geocoder provider) {
+        List<Geocoder> geocoders = new ArrayList<>();
+        geocoders.add(provider);
+        providerMap.keySet().stream().filter(gc -> gc != provider).forEach(geocoders::add);
+        List<GeocodeResult> geocodeResults = new ArrayList<>();
+        for (Point point : points) {
+            geocodeResults.add(reverseGeocode(point, geocoders));
+        }
+        return geocodeResults;
     }
 
     /**
      * Perform reverse geocoding with all options specified.
      * @param point             Point to lookup address for
-     * @param provider          Provider to perform reverse geocoding
-     * @param fallbackProviders Sequence of providers to fallback to
-     * @param useFallback       Set true to allow fallback
+     * @param providers         To use
      * @return                  GeocodeResult
      */
-    public GeocodeResult reverseGeocode(Point point, RevGeocodeService provider, LinkedList<String> fallbackProviders,
-                                        boolean useFallback)
-    {
-        logger.debug("Performing reverse geocode on point " + point);
-        GeocodeResult geocodeResult = new GeocodeResult(this.getClass(), ResultStatus.NO_REVERSE_GEOCODE_RESULT);
-        /** Clone the list of fall back reverse geocode providers */
-        LinkedList<String> fallback = (fallbackProviders != null) ? new LinkedList<>(fallbackProviders)
-                                                                  : new LinkedList<>(this.defaultFallback);
-
-        if (provider != null) {
-            geocodeResult = provider.reverseGeocode(point);
+    private GeocodeResult reverseGeocode(Point point, List<Geocoder> providers) {
+        if (providers == null || providers.isEmpty()) {
+            providers = List.of(Geocoder.GOOGLE);
         }
-        else {
-            geocodeResult = defaultProvider.reverseGeocode(point);
-        }
-
-        if (!geocodeResult.isSuccess() && useFallback) {
-            Iterator<String> fallbackIterator = fallback.iterator();
-            while (!geocodeResult.isSuccess() && fallbackIterator.hasNext()) {
-                geocodeResult = this.providers.get(fallbackIterator.next()).reverseGeocode(point);
+        GeocodeResult geocodeResult = null;
+        for (Geocoder provider : providers) {
+            RevGeocodeService revGeocodeService = providerMap.get(provider);
+            if (revGeocodeService == null) {
+                continue;
+            }
+            geocodeResult = revGeocodeService.reverseGeocode(point);
+            if (geocodeResult.isSuccess()) {
+                break;
             }
         }
-        geocodeResult.setResultTime(new Timestamp(new Date().getTime()));
         return geocodeResult;
-    }
-
-    /**
-     * Perform batch reverse geocoding using supploed BatchGeocodeRequest with points set.
-     * @param batchRevGeoRequest
-     * @return  List<GeocodeResult> or null if batchRevGeoRequest is null.
-     */
-    public List<GeocodeResult> reverseGeocode(BatchGeocodeRequest batchRevGeoRequest)
-    {
-        if (batchRevGeoRequest != null) {
-            return reverseGeocode(batchRevGeoRequest.getPoints(), this.providers.get(batchRevGeoRequest.getProvider()), this.defaultFallback);
-        }
-        return null;
-    }
-
-    /**
-    * Perform batch reverse geocoding.
-    */
-    public List<GeocodeResult> reverseGeocode(List<Point> points)
-    {
-        return reverseGeocode(points, this.defaultProvider, this.defaultFallback);
-    }
-
-    /**
-    * Perform batch reverse geocoding.
-    */
-    public List<GeocodeResult> reverseGeocode(List<Point> points, RevGeocodeService provider)
-    {
-        return reverseGeocode(points, provider, this.defaultFallback);
-    }
-
-    /**
-    * For batch reverse geocode, simply call the single reverse geocode method iteratively.
-    * Keeping things simple because performance here isn't that crucial.
-    */
-    public List<GeocodeResult> reverseGeocode(List<Point> points, RevGeocodeService provider, LinkedList<String> fallbackProviders)
-    {
-        List<GeocodeResult> geocodeResults = new ArrayList<>();
-        for (Point point : points) {
-            geocodeResults.add(reverseGeocode(point, provider, fallbackProviders, true));
-        }
-        return geocodeResults;
     }
 }

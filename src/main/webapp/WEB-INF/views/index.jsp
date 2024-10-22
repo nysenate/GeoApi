@@ -2,7 +2,7 @@
 <%@ page import="gov.nysenate.sage.config.Environment" %>
 <%@ page import="org.springframework.web.servlet.support.RequestContextUtils" %>
 <%@ page import="org.springframework.context.ApplicationContext" %>
-<%@ page import="gov.nysenate.sage.service.geo.GeocodeServiceProvider" %>
+<%@ page import="gov.nysenate.sage.service.geo.SageGeocodeServiceProvider" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
@@ -11,12 +11,12 @@
 <%
     ApplicationContext ac = RequestContextUtils.findWebApplicationContext(request);
     Environment env = (Environment) ac.getBean("environment");
-    GeocodeServiceProvider geocodeServiceProvider = (GeocodeServiceProvider) ac.getBean("geocodeServiceProvider");
+    SageGeocodeServiceProvider geocodeServiceProvider = (SageGeocodeServiceProvider) ac.getBean("sageGeocodeServiceProvider");
     request.setAttribute("amsUrl", env.getUspsAmsUiUrl());
-    request.setAttribute("activeGeocoders", geocodeServiceProvider.getActiveGeocoderClassMap());
+    request.setAttribute("geocoders", geocodeServiceProvider.getGeocoderMap());
     String googleMapsUrl = env.getGoogleMapsUrl();
     String googleMapsKey = env.getGoogleMapsKey();
-    if (googleMapsKey != null && !googleMapsKey.equals("")) {
+    if (googleMapsKey != null && !googleMapsKey.isEmpty()) {
         googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
     }
     request.setAttribute("googleMapsUrl", googleMapsUrl);
@@ -193,8 +193,8 @@
                                     <td>
                                         <select id="geocoderMenu" style="width: 100%;" ng-model="geoProvider">
                                             <option value="default">Default</option>
-                                            <c:forEach var="geocoder" items="${activeGeocoders}">
-                                                <option value="${geocoder.key}">${geocoder.value.simpleName}</option>
+                                            <c:forEach var="geocoder" items="${geocoders}">
+                                                <option value="${geocoder}">${geocoder}</option>
                                             </c:forEach>
                                         </select>
                                     </td>

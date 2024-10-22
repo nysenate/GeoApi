@@ -10,9 +10,7 @@ import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 
-import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 public final class DistrictUtil {
@@ -22,7 +20,7 @@ public final class DistrictUtil {
                                                                    boolean uspsValidate, boolean showMembers, boolean usePunct,
                                                                    boolean skipGeocode, boolean showMaps,
                                                                    String districtStrategy) {
-        DistrictRequest districtRequest = new DistrictRequest();
+        var districtRequest = new DistrictRequest();
         districtRequest.setApiRequest(apiRequest);
         districtRequest.setProvider(provider);
         districtRequest.setGeoProvider(geoProvider);
@@ -33,20 +31,18 @@ public final class DistrictUtil {
         districtRequest.setShowMaps(showMaps);
         districtRequest.setShowMembers(showMembers);
         districtRequest.setDistrictStrategy(districtStrategy);
-        districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
         return districtRequest;
     }
 
     public static DistrictRequest createBlueBirdDistrictRequest(ApiRequest apiRequest, String provider,
                                                                 String geoProvider, boolean usePunct,
                                                                 Address address, Point point) {
-        DistrictRequest districtRequest = new DistrictRequest();
+        var districtRequest = new DistrictRequest();
         districtRequest.setApiRequest(apiRequest);
         districtRequest.setProvider(provider);
         districtRequest.setGeoProvider(geoProvider);
         districtRequest.setPoint(point);
         districtRequest.setUsePunct(usePunct);
-        districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
         districtRequest.setAddress(address);
         districtRequest.setShowMaps(false);
         districtRequest.setShowMembers(false);
@@ -57,12 +53,11 @@ public final class DistrictUtil {
 
     public static DistrictRequest createBatchBlueBirdDistrictRequest(ApiRequest apiRequest, String provider,
                                                                      String geoProvider, boolean usePunct) {
-        DistrictRequest districtRequest = new DistrictRequest();
+        var districtRequest = new DistrictRequest();
         districtRequest.setApiRequest(apiRequest);
         districtRequest.setProvider(provider);
         districtRequest.setGeoProvider(geoProvider);
         districtRequest.setUsePunct(usePunct);
-        districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
         districtRequest.setShowMaps(false);
         districtRequest.setShowMembers(false);
         districtRequest.setUspsValidate(true);
@@ -75,7 +70,7 @@ public final class DistrictUtil {
                                                             boolean showMembers, boolean usePunct, boolean skipGeocode,
                                                             boolean showMaps, String districtStrategy) {
 
-        DistrictRequest districtRequest = new DistrictRequest();
+        var districtRequest = new DistrictRequest();
         districtRequest.setApiRequest(apiRequest);
         districtRequest.setAddress(address);
         districtRequest.setPoint(point);
@@ -86,7 +81,6 @@ public final class DistrictUtil {
         districtRequest.setUspsValidate(uspsValidate);
         districtRequest.setUsePunct(usePunct);
         districtRequest.setSkipGeocode(skipGeocode);
-        districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
         districtRequest.setDistrictStrategy(districtStrategy);
 
         return districtRequest;
@@ -95,9 +89,8 @@ public final class DistrictUtil {
     public static DistrictRequest createFullIntersectRequest(ApiRequest apiRequest, DistrictType sourceType, String sourceId,
                                                              DistrictType intersectType) {
 
-        DistrictRequest districtRequest = new DistrictRequest();
+        var districtRequest = new DistrictRequest();
         districtRequest.setApiRequest(apiRequest);
-        districtRequest.setRequestTime(new Timestamp(new Date().getTime()));
         districtRequest.setDistrictType(sourceType);
         districtRequest.setDistrictId(sourceId);
         districtRequest.setIntersectType(intersectType);

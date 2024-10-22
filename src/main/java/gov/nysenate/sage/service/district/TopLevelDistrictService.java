@@ -18,9 +18,10 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
-import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
+import gov.nysenate.sage.service.geo.SageGeocodeServiceProvider;
 import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -44,7 +46,7 @@ public class TopLevelDistrictService {
 
     private final AddressServiceProvider addressProvider;
     private final DistrictServiceProvider districtProvider;
-    private final GeocodeServiceProvider geocodeProvider;
+    private final SageGeocodeServiceProvider geocodeProvider;
     private final RevGeocodeServiceProvider revGeocodeProvider;
     private final MapServiceProvider mapProvider;
     private final DistrictMemberProvider districtMemberProvider;
@@ -57,7 +59,7 @@ public class TopLevelDistrictService {
     private final SqlDistrictResultLogger sqlDistrictResultLogger;
 
     public TopLevelDistrictService(Environment env, AddressServiceProvider addressProvider, DistrictServiceProvider districtProvider,
-                                   GeocodeServiceProvider geocodeProvider, RevGeocodeServiceProvider revGeocodeProvider,
+                                   SageGeocodeServiceProvider geocodeProvider, RevGeocodeServiceProvider revGeocodeProvider,
                                    MapServiceProvider mapProvider, DistrictMemberProvider districtMemberProvider,
                                    SqlGeocodeRequestLogger sqlGeocodeRequestLogger, SqlGeocodeResultLogger sqlGeocodeResultLogger,
                                    SqlDistrictRequestLogger sqlDistrictRequestLogger, SqlDistrictResultLogger sqlDistrictResultLogger) {
@@ -87,8 +89,14 @@ public class TopLevelDistrictService {
                 !districtProvider.getProviders().containsKey(provider.toLowerCase())) {
             errorStatus = DISTRICT_PROVIDER_NOT_SUPPORTED;
         }
-        if (geoProvider != null && !geoProvider.isEmpty() &&
-                !geocodeProvider.getActiveGeoProviders().containsKey(geoProvider.toLowerCase())) {
+        Geocoder geocoder;
+        try {
+            geocoder = Geocoder.valueOf(geoProvider.toLowerCase().trim());
+
+        } catch (IllegalArgumentException ex) {
+            geocoder = null;
+        }
+        if (geocoder == null || !geocodeProvider.geocoders().contains(geocoder)) {
             errorStatus = GEOCODE_PROVIDER_NOT_SUPPORTED;
         }
         if (errorStatus != null) {
@@ -138,7 +146,7 @@ public class TopLevelDistrictService {
      */
     public DistrictResult handleDistrictRequest(DistrictRequest districtRequest, int requestId) {
         Address address = Optional.ofNullable(districtRequest.getAddress()).orElse(new Address());
-        GeocodedAddress geocodedAddress;
+        GeocodedAddress geocodedAddress = null;
 
         /* Parse the input address */
         StreetAddress streetAddress = StreetAddressParser.parseAddress(address);
@@ -157,9 +165,7 @@ public class TopLevelDistrictService {
         else if (districtRequest.getPoint() != null) {
             geocodedAddress = new GeocodedAddress(new Geocode(districtRequest.getPoint(), GeocodeQuality.POINT, "User Supplied"));
         } else {
-            var districtResult = new DistrictResult(this.getClass());
-            districtResult.setStatusCode(MISSING_INPUT_PARAMS);
-            return districtResult;
+            return new DistrictResult(null, geocodedAddress, MISSING_INPUT_PARAMS);
         }
 
         DistrictResult districtResult = performDistrictAssign(geocodedAddress, districtRequest.getProvider(),
@@ -180,8 +186,8 @@ public class TopLevelDistrictService {
      */
     public DistrictResult handleIntersectRequest(DistrictRequest districtRequest, int requestId) {
         /* Get the map, boundary data and intersect statistics */
-        DistrictResult districtResult = performIntersect(districtRequest);
-        districtResult.setIntersectType(districtRequest.getIntersectType());
+        DistrictResult districtResult = districtProvider.assignIntersect(districtRequest.getDistrictType(),
+                districtRequest.getDistrictId(), districtRequest.getIntersectType());
         setDistrictResultInfo(districtResult, districtRequest.isShowMaps(), districtRequest.isShowMembers(), requestId);
         return districtResult;
     }
@@ -258,15 +264,6 @@ public class TopLevelDistrictService {
         return streetAddress != null && streetAddress.getZip5() != null;
     }
 
-    private DistrictResult performIntersect(DistrictRequest districtRequest) {
-        var districtResult = new DistrictResult(this.getClass());
-        districtResult.setStatusCode(NO_DISTRICT_RESULT);
-
-        districtResult = districtProvider.assignIntersect(districtRequest.getDistrictType(),
-                districtRequest.getDistrictId(), districtRequest.getIntersectType());
-        return districtResult;
-    }
-
     /**
      * Perform USPS address correction on either the geocoded address or the input address.
      * If the geocoded address is invalid, the original address will be corrected and set as the address
@@ -279,7 +276,7 @@ public class TopLevelDistrictService {
         AddressResult addressResult = addressProvider.validate(address, null, usePunct);
         if (addressResult != null && addressResult.isValidated()) {
             if (logger.isTraceEnabled()) {
-                logger.trace("USPS Validated Address: " + addressResult.getAdressLogString());
+                logger.trace("USPS Validated Address: " + addressResult.getAddress().toLogString());
             }
             var validatedAddress = addressResult.getAddress();
             if (validatedAddress != null && !validatedAddress.isEmpty()) {
@@ -313,16 +310,11 @@ public class TopLevelDistrictService {
      * @param geoRequest The GeocodeRequest to handle.
      * @return GeocodedAddress
      */
-    private GeocodedAddress performGeocode(GeocodeRequest geoRequest) {
-        String geoProvider = geoRequest.getProvider();
+    private GeocodedAddress performGeocode(SingleGeocodeRequest geoRequest) {
         GeocodeResult geocodeResult;
 
         /* Address-to-point geocoding */
         if (!geoRequest.isReverse()) {
-            /* Do not fallback to other geocoders if provider is specified */
-            if (geoProvider != null && !geoProvider.isEmpty()) {
-                geoRequest.setUseFallback(false);
-            }
             geocodeResult = geocodeProvider.geocode(geoRequest);
         }
         /* Point-to-address geocoding */
@@ -336,22 +328,18 @@ public class TopLevelDistrictService {
             sqlGeocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
         }
 
-        return (geocodeResult != null) ? geocodeResult.getGeocodedAddress() : null;
+        return geocodeResult != null ? geocodeResult.getGeocodedAddress() : null;
     }
 
     private GeocodedAddress getGeocodedAddress(DistrictRequest districtRequest, Address address) {
         if (districtRequest.isSkipGeocode()) {
             return new GeocodedAddress(address);
         }
-        GeocodeRequest geocodeRequest = new GeocodeRequest(districtRequest.getApiRequest(),
+        var geocodeRequest = new SingleGeocodeRequest(districtRequest.getApiRequest(),
                 address, districtRequest.getGeoProvider(), true, true);
-        /* Disable cache if provider is specified. */
-        if (districtRequest.getGeoProvider() != null && !districtRequest.getGeoProvider().isEmpty()) {
-            geocodeRequest.setUseCache(false);
-        }
         GeocodedAddress geocodedAddress = performGeocode(geocodeRequest);
         if (address.isUspsValidated() && geocodedAddress != null && geocodedAddress.isValidGeocode() &&
-                (geocodedAddress.getGeocode().getQuality().compareTo(GeocodeQuality.HOUSE) >= 0)) {
+                (geocodedAddress.getGeocode().quality().compareTo(GeocodeQuality.HOUSE) >= 0)) {
             geocodedAddress = new GeocodedAddress(address, geocodedAddress.getGeocode());
             geocodedAddress.getAddress().setUspsValidated(true);
         }
@@ -365,16 +353,13 @@ public class TopLevelDistrictService {
      * @param zipProvided     Set true if user input address included a zip5
      * @return DistrictResult
      */
-    private DistrictResult performDistrictAssign(GeocodedAddress geocodedAddress, String provider, List<DistrictType> types,
+    private DistrictResult performDistrictAssign(@Nonnull GeocodedAddress geocodedAddress, String provider, List<DistrictType> types,
                                                  DistrictServiceProvider.DistrictStrategy strategy, boolean zipProvided) {
-        if (geocodedAddress == null) {
-            return getResultFromStatus(MISSING_GEOCODED_ADDRESS);
-        }
         if (geocodedAddress.isValidAddress()) {
             if (!geocodedAddress.isValidGeocode()) {
-                return getResultFromStatus(INVALID_GEOCODE);
+                return new DistrictResult(null, geocodedAddress, INVALID_GEOCODE);
             }
-            GeocodeQuality level = geocodedAddress.getGeocode().getQuality();
+            GeocodeQuality level = geocodedAddress.getGeocode().quality();
             if (logger.isTraceEnabled()) {
                 logger.trace(FormatUtil.toJsonString(geocodedAddress));
             }
@@ -388,12 +373,6 @@ public class TopLevelDistrictService {
             return districtProvider.assignDistricts(geocodedAddress, provider,
                     types, DistrictServiceProvider.DistrictStrategy.shapeOnly);
         }
-        return getResultFromStatus(INSUFFICIENT_ADDRESS);
-    }
-
-    private static DistrictResult getResultFromStatus(ResultStatus status) {
-        var result = new DistrictResult(TopLevelDistrictService.class);
-        result.setStatusCode(status);
-        return result;
+        return new DistrictResult(null, geocodedAddress, INSUFFICIENT_ADDRESS);
     }
 }

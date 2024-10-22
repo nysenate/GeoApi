@@ -35,7 +35,7 @@ public class SqlPointLogger implements PointLogger
             try {
 
                 MapSqlParameterSource params = new MapSqlParameterSource();
-                params.addValue("latlon", "POINT (" + point.getLon() + " " + point.getLat() + ")");
+                params.addValue("latlon", "POINT (" + point.lon() + " " + point.lat() + ")");
 
                 List<Integer> idList =  baseDao.geoApiNamedJbdcTemplate.query(PointQuery.INSERT_POINT.getSql(baseDao.getLogSchema()),
                         params, new PointIdHandler());
@@ -57,7 +57,7 @@ public class SqlPointLogger implements PointLogger
             try {
 
                 MapSqlParameterSource params = new MapSqlParameterSource();
-                params.addValue("latlon", "POINT (" + point.getLon() + " " + point.getLat() + ")");
+                params.addValue("latlon", "POINT (" + point.lon() + " " + point.lat() + ")");
 
                 List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(PointQuery.GET_POINT_ID.getSql(baseDao.getLogSchema()),
                         params, new PointIdHandler());

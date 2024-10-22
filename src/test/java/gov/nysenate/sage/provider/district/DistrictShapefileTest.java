@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -36,10 +37,7 @@ public class DistrictShapefileTest extends BaseTests {
     public void shouldNotDistrictAssignCityGeocodeQuality() {
         Address addr = new Address("", "Delmar", "NY", "");
         addr.setUspsValidated(false);
-        Geocode geo = new Geocode(new Point(42.6220235, -73.8326232), GeocodeQuality.CITY);
-        geo.setCached(false);
-        geo.setRawQuality(0);
-        geo.setMethod("HttpGoogleDao");
+        Geocode geo = new Geocode(new Point(42.6220235, -73.8326232), GeocodeQuality.CITY, Geocoder.GOOGLE, false);
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
         DistrictResult res = districtShapefile.assignDistricts(geoAddr, types, false, false);
         System.out.println(res);

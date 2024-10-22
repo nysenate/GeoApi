@@ -205,9 +205,8 @@ public class DataGenService implements SageDataGenService {
      * Retrieves senate data from the NY Senate API Client and stores it in
      * the database.
      *
-     * @throws XmlRpcException
      */
-    private boolean generateSenateData() throws XmlRpcException, IOException {
+    private boolean generateSenateData() throws IOException {
         boolean updated = false;
 
         NYSenateClientService senateClient;
@@ -329,8 +328,8 @@ public class DataGenService implements SageDataGenService {
             if (jsonResponse.get("status").toString().equals("\"SUCCESS\"")) {
                 Geocode geocodedOffice = new ObjectMapper().readValue(jsonResponse.get("geocode").toString(), Geocode.class);
                 if (geocodedOffice != null) {
-                    senatorOffice.setLatitude( geocodedOffice.getLat() );
-                    senatorOffice.setLongitude( geocodedOffice.getLon() );
+                    senatorOffice.setLatitude( geocodedOffice.lat() );
+                    senatorOffice.setLongitude( geocodedOffice.lon() );
                 }
             }
             else {

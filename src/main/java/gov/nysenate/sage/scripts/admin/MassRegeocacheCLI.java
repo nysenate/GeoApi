@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Locale;
+import java.util.List;
 
 @Component
 public class MassRegeocacheCLI extends BaseScript {
@@ -42,7 +42,7 @@ public class MassRegeocacheCLI extends BaseScript {
 
         if (!opts.getArgList().isEmpty()) {
 
-            ArrayList<String> typeList = new ArrayList<>();
+            List<String> typeList = new ArrayList<>();
             String[] options = opts.getArgs();
 
             Integer offset = Integer.parseInt( options[0] );
@@ -70,7 +70,7 @@ public class MassRegeocacheCLI extends BaseScript {
                         " all, method, town, quality, zipcode, provider");
             }
 
-            Object response = regeocacheService.massRegeoache(offset, limit, useFallback ,typeList);
+            Object response = regeocacheService.massRegeoache(offset, limit, useFallback, typeList);
             logger.info(response.toString());
         }
         else {

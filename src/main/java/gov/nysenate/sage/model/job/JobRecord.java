@@ -78,10 +78,10 @@ public class JobRecord
             GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
             this.geocode = geocodedAddress.getGeocode();
 
-            this.dataMap.put(Column.lat, this.geocode.getLat());
-            this.dataMap.put(Column.lon, this.geocode.getLon());
-            this.dataMap.put(Column.geoMethod, this.geocode.getMethod());
-            this.dataMap.put(Column.geoQuality, this.geocode.getQuality());
+            this.dataMap.put(Column.lat, this.geocode.lat());
+            this.dataMap.put(Column.lon, this.geocode.lon());
+            this.dataMap.put(Column.geoMethod, this.geocode.originalGeocoder());
+            this.dataMap.put(Column.geoQuality, this.geocode.quality());
         }
     }
 

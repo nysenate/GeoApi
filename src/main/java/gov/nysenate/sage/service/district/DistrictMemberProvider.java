@@ -79,8 +79,6 @@ public class DistrictMemberProvider implements SageDistrictMemberProvider
                     }
                     senateOverlap.setTargetSenators(senatorMap);
                 }
-
-                districtResult.setDistrictInfo(districtInfo);
             }
         }
     }

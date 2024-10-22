@@ -1,6 +1,6 @@
 package gov.nysenate.sage.dao.logger.geocode;
 
-import gov.nysenate.sage.model.api.GeocodeRequest;
+import gov.nysenate.sage.model.api.SingleGeocodeRequest;
 
 public interface GeocodeRequestLogger {
 
@@ -9,5 +9,5 @@ public interface GeocodeRequestLogger {
      * @param geoRequest
      * @return id of geocode request. This id is set to the supplied GeocodeRequest as well.
      */
-    public int logGeocodeRequest(GeocodeRequest geoRequest);
+    int logGeocodeRequest(SingleGeocodeRequest geoRequest);
 }

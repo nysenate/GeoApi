@@ -176,10 +176,11 @@ public class DistrictRequest implements Cloneable
             this.provider = provider;
         }
         else {
-            this.provider = FormatUtil.cleanString( provider.toLowerCase());
+            this.provider = FormatUtil.cleanString(provider.toLowerCase());
         }
     }
 
+    // TODO: should be Geocoder
     public String getGeoProvider() {
         return geoProvider;
     }
@@ -189,7 +190,7 @@ public class DistrictRequest implements Cloneable
             this.geoProvider = geoProvider;
         }
         else {
-            this.geoProvider = FormatUtil.cleanString( geoProvider.toLowerCase());
+            this.geoProvider = FormatUtil.cleanString(geoProvider.toLowerCase());
         }
     }
 

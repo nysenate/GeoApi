@@ -1,7 +1,7 @@
 <%@ page import="gov.nysenate.sage.config.Environment" %>
 <%@ page import="org.springframework.web.servlet.support.RequestContextUtils" %>
 <%@ page import="org.springframework.context.ApplicationContext" %>
-<%@ page import="gov.nysenate.sage.service.geo.GeocodeServiceProvider" %>
+<%@ page import="gov.nysenate.sage.service.geo.SageGeocodeServiceProvider" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
@@ -10,12 +10,12 @@
 <%
     ApplicationContext ac = RequestContextUtils.findWebApplicationContext(request);
     Environment env = (Environment) ac.getBean("environment");
-    GeocodeServiceProvider geocodeServiceProvider = (GeocodeServiceProvider) ac.getBean("geocodeServiceProvider");
+    SageGeocodeServiceProvider geocodeServiceProvider = (SageGeocodeServiceProvider) ac.getBean("sageGeocodeServiceProvider");
     request.setAttribute("amsUrl", env.getUspsAmsUiUrl());
-    request.setAttribute("activeGeocoders", geocodeServiceProvider.getActiveGeoProviders());
+    request.setAttribute("geocoders", geocodeServiceProvider.geocoders());
     String googleMapsUrl = env.getGoogleMapsUrl();
     String googleMapsKey = env.getGoogleMapsKey();
-    if (googleMapsKey != null && !googleMapsKey.equals("")) {
+    if (googleMapsKey != null && !googleMapsKey.isEmpty()) {
         googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
     }
     request.setAttribute("googleMapsUrl", googleMapsUrl);

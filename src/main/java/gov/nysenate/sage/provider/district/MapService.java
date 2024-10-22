@@ -8,11 +8,10 @@ import gov.nysenate.sage.model.result.MapResult;
  * Only state level districts (senate, assembly, congressional, county) are
  * supported because lower level districts are not uniquely identified by a code.
  */
-public interface MapService
-{
+public interface MapService {
     /** Provides a district map given a specific district */
-    public MapResult getDistrictMap(DistrictType districtType, String code);
+    MapResult getDistrictMap(DistrictType districtType, String code);
 
     /** Provides a collection of all district maps for a given type */
-    public MapResult getDistrictMaps(DistrictType districtType);
+    MapResult getDistrictMaps(DistrictType districtType);
 }

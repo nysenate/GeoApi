@@ -9,39 +9,33 @@ import java.io.Serializable;
 /**
  * Represents an address with district information.
  */
-public class DistrictedAddress implements Serializable, Cloneable
-{
-    protected GeocodedAddress geocodedAddress;
-    protected DistrictInfo districtInfo;
-    protected DistrictMatchLevel districtMatchLevel = DistrictMatchLevel.NOMATCH;
+public class DistrictedAddress implements Serializable {
+    private GeocodedAddress geocodedAddress;
+    private DistrictInfo districtInfo;
+    private DistrictMatchLevel districtMatchLevel = DistrictMatchLevel.NOMATCH;
 
     public DistrictedAddress() {}
 
-    public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo)
-    {
+    public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo) {
         this(geocodedAddress, districtInfo, DistrictMatchLevel.NOMATCH);
     }
 
-    public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo, DistrictMatchLevel districtMatchLevel)
-    {
+    public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo, DistrictMatchLevel districtMatchLevel) {
         this.geocodedAddress = geocodedAddress;
         this.districtInfo = districtInfo;
         this.districtMatchLevel = districtMatchLevel;
     }
 
-    public GeocodedAddress getGeocodedAddress()
-    {
+    public GeocodedAddress getGeocodedAddress() {
         return this.geocodedAddress;
     }
 
-    public void setGeocodedAddress(GeocodedAddress geocodedAddress)
-    {
+    public void setGeocodedAddress(GeocodedAddress geocodedAddress) {
         this.geocodedAddress = geocodedAddress;
     }
 
     /** Convenience method to access the underlying Address object */
-    public Address getAddress()
-    {
+    public Address getAddress() {
         if (this.getGeocodedAddress() != null && this.getGeocodedAddress().getAddress() != null) {
             return this.getGeocodedAddress().getAddress();
         }
@@ -49,8 +43,7 @@ public class DistrictedAddress implements Serializable, Cloneable
     }
 
     /** Convenience method to set the underlying Address object */
-    public void setAddress(Address address)
-    {
+    public void setAddress(Address address) {
         if (this.getGeocodedAddress() != null){
             this.getGeocodedAddress().setAddress(address);
         }
@@ -60,8 +53,7 @@ public class DistrictedAddress implements Serializable, Cloneable
     }
 
     /** Convenience method to set the underlying Geocode object */
-    public void setGeocode(Geocode geocode)
-    {
+    public void setGeocode(Geocode geocode) {
         if (this.getGeocodedAddress() != null){
             this.getGeocodedAddress().setGeocode(geocode);
         }
@@ -71,18 +63,15 @@ public class DistrictedAddress implements Serializable, Cloneable
     }
 
     /** Convenience method to get the underlying Geocode object */
-    public Geocode getGeocode()
-    {
+    public Geocode getGeocode() {
         return (this.getGeocodedAddress() != null) ? this.getGeocodedAddress().getGeocode() : null;
     }
 
-    public DistrictInfo getDistrictInfo()
-    {
+    public DistrictInfo getDistrictInfo() {
         return districtInfo;
     }
 
-    public void setDistrictInfo(DistrictInfo districtInfo)
-    {
+    public void setDistrictInfo(DistrictInfo districtInfo) {
         this.districtInfo = districtInfo;
     }
 

@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.NonnullList;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
@@ -26,7 +27,7 @@ public interface StreetfileDao {
      * @param matchLevel the highest DistrictMatchLevel to attempt.
      * @return a districted address, with the highest possible match level.
      */
-    DistrictedAddress getDistrictedAddress(Address addr, DistrictMatchLevel matchLevel);
+    DistrictedAddress getDistrictedAddress(Address addr, @Nonnull DistrictMatchLevel matchLevel);
 
     /**
      * Returns a list of street ranges with district information for a given zip5.

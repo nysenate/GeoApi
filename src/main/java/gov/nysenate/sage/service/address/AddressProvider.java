@@ -7,16 +7,6 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public interface AddressProvider {
-
-    /**
-     * Validates an address using USPS or another provider if available.
-     * @param address  Address to validate
-     * @param provider Provide to use (if null, defaults will be used)
-     * @param usePunct If true, validated address will have periods after abbreviations.
-     * @return AddressResult
-     */
-    public AddressResult validate(Address address, String provider, Boolean usePunct);
-
     /**
      * Validates addresses using USPS or another provider if available.
      * @param addresses List of Addresses to validate
@@ -24,16 +14,18 @@ public interface AddressProvider {
      * @param usePunct Apply address punctuation to each result.
      * @return List<AddressResult>
      */
-    public List<AddressResult> validate(List<Address> addresses, String provider, Boolean usePunct);
+    List<AddressResult> validate(List<Address> addresses, String provider, boolean usePunct);
 
     /**
      * Use USPS for a city state lookup by default.
      */
     @Nonnull
-    public AddressResult lookupCityState(Address address, String providerName);
+    AddressResult lookupCityState(Address address, String providerName);
+
+    List<AddressResult> lookupCityState(List<Address> addresses, String providerName);
 
     /**
      * Zipcode lookup is the same as a validate request with less output.
      */
-    public AddressResult lookupZipcode(Address address, String provider);
+    AddressResult lookupZipcode(Address address, String provider);
 }

@@ -13,9 +13,7 @@ public class CityStateResponse extends BaseResponse {
     private Integer zip5 = null;
 
     public CityStateResponse(@Nonnull AddressResult addressResult) {
-        this.status = addressResult.getStatusCode();
-        this.messages = addressResult.getMessages();
-
+        super(addressResult);
         if (addressResult.getStatusCode().equals(ResultStatus.SUCCESS) && addressResult.getAddress() != null) {
             this.city = addressResult.getAddress().getPostalCity();
             this.state = addressResult.getAddress().getState();

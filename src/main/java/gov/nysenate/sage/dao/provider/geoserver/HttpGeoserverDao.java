@@ -3,7 +3,6 @@ package gov.nysenate.sage.dao.provider.geoserver;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.SqlCountyDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictInfo;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,13 +28,11 @@ import static gov.nysenate.sage.model.district.DistrictType.COUNTY;
 
 /**
  * Provides a data abstraction layer for performing Geoserver WFS requests.
- *
  * Geoserver WFS Documentation:
- * http://docs.geoserver.org/stable/en/user/services/wfs/reference.html
+ * <a href="http://docs.geoserver.org/stable/en/user/services/wfs/reference.html">...</a>
  */
 @Repository
-public class HttpGeoserverDao implements GeoserverDao
-{
+public class HttpGeoserverDao implements GeoserverDao {
     private static final String DEFAULT_BASE_URL = "http://geoserver.nysenate.gov:8080/wfs";
     private static final String DEFAULT_WORKSPACE = "nysenate";
     private static final String FEATURE_QUERY = "?service=WFS&version=1.1.0&request=GetFeature";
@@ -44,16 +42,14 @@ public class HttpGeoserverDao implements GeoserverDao
     private Map<Integer, County> fipsCountyMap; /** Mapping between fips codes and associated county */
     private ObjectMapper mapper;
 
-    private String baseUrl = "";    // Location of geoserver e.g http://localhost:8080/geoserver
-    private String workspace = "";  // Geoserver workspace for the shapefiles e.g nysenate
+    private String baseUrl;    // Location of geoserver e.g http://localhost:8080/geoserver
+    private String workspace;  // Geoserver workspace for the shapefiles e.g nysenate
 
     private SqlCountyDao sqlCountyDao;
-    private BaseDao baseDao;
     private Environment env;
 
     @Autowired
-    public HttpGeoserverDao(BaseDao baseDao, SqlCountyDao sqlCountyDao, Environment env) {
-        this.baseDao = baseDao;
+    public HttpGeoserverDao(SqlCountyDao sqlCountyDao, Environment env) {
         this.sqlCountyDao = sqlCountyDao;
         this.env = env;
         this.baseUrl = this.env.getGeoServerUrl();
@@ -90,10 +86,10 @@ public class HttpGeoserverDao implements GeoserverDao
             featureTypesList.add(getWorkspace() + ":" + districtType.toString().toLowerCase());
         }
         String featureTypes = "typename="+ StringUtils.join(featureTypesList, ",");
-        String filter = String.format(INTERSECT_FILTER, point.getLat(), point.getLon());
+        String filter = String.format(INTERSECT_FILTER, point.lat(), point.lon());
 
         try {
-            String sourceUrl = String.format(getBaseUrl() + FEATURE_QUERY + "&%s&CQL_FILTER=%s&outputformat=JSON", featureTypes, URLEncoder.encode(filter, "UTF-8"));
+            String sourceUrl = String.format(getBaseUrl() + FEATURE_QUERY + "&%s&CQL_FILTER=%s&outputformat=JSON", featureTypes, URLEncoder.encode(filter, StandardCharsets.UTF_8));
             String json = UrlRequest.getResponseFromUrl(sourceUrl);
             JsonNode response = mapper.readTree(json);
             return getDistrictInfoFromResponse(response);
@@ -133,7 +129,7 @@ public class HttpGeoserverDao implements GeoserverDao
                 }
             }
             else {
-                logger.warn("Unidentified feature id " + feature.get("id").asText() + " found in geoserver response");
+                logger.warn("Unidentified feature id {} found in geoserver response", feature.get("id").asText());
             }
         }
         return districtInfo;

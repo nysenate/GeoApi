@@ -65,13 +65,13 @@ public class DataGenController {
                     List.of(StreetfileType.COUNTY, StreetfileType.VOTER);
             Path streetfilePath = streetfileProcessor.regenerateStreetfile(
                     new ResolveConflictConfiguration(priorityList, threshold));
-            var apiResponse = new BaseResponse();
+            BaseResponse apiResponse;
             if (streetfilePath == null) {
-                apiResponse.setStatus(ResultStatus.NO_STREETFILES_TO_PROCESS);
+                apiResponse = new BaseResponse(ResultStatus.NO_STREETFILES_TO_PROCESS);
             }
             else {
                 streetfileDao.replaceStreetfile(streetfilePath);
-                apiResponse.setStatus(SUCCESS);
+                apiResponse = new BaseResponse(SUCCESS);
             }
             return apiResponse;
         });

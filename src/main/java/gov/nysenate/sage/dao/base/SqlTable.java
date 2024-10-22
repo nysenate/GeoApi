@@ -56,11 +56,8 @@ public enum SqlTable {
     //For now, the tables used by Tiger will be left out. There are ~50 tables used only by TIGER
 
     ;
-    /**
-     * Rest of the Class
-     */
 
-    String tableName;
+    private final String tableName;
 
     SqlTable(String tableName) {
         this.tableName = tableName;
@@ -72,10 +69,6 @@ public enum SqlTable {
 
     @Override
     public String toString() {
-        return tableName;
-    }
-
-    public String getTableName() {
         return tableName;
     }
 }

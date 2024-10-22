@@ -21,8 +21,8 @@ public class StreetRangeView
     public StreetRangeView(DistrictedStreetRange districtedStreetRange)
     {
         if (districtedStreetRange != null) {
-            StreetAddressRange sar = districtedStreetRange.getStreetAddressRange();
-            DistrictInfo dInfo = districtedStreetRange.getDistrictInfo();
+            StreetAddressRange sar = districtedStreetRange.streetAddressRange();
+            DistrictInfo dInfo = districtedStreetRange.districtInfo();
             if (sar != null) {
                 this.bldgLoNum = sar.bldgLow();
                 this.bldgHiNum = sar.bldgHigh();

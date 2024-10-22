@@ -1,29 +1,28 @@
 package gov.nysenate.sage.client.view.geo;
 
+import com.google.openlocationcode.OpenLocationCode;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 
 /**
  * GeocodeView represents the structure of a geocode on the response end of the API.
  */
-public class GeocodeView
-{
-    protected double lat = 0.0;
-    protected double lon = 0.0;
+public class GeocodeView {
+    protected Double lat = null;
+    protected Double lon = null;
     protected String quality = GeocodeQuality.NOMATCH.name();
     protected String method = "";
     protected boolean cached = false;
     protected String openLocCode = "";
 
-    public GeocodeView(Geocode geocode)
-    {
+    public GeocodeView(Geocode geocode) {
         if (geocode != null) {
-            this.lat = geocode.getLat();
-            this.lon = geocode.getLon();
-            this.quality = geocode.getQuality().name();
-            this.method = geocode.getMethod();
+            this.lat = geocode.lat();
+            this.lon = geocode.lon();
+            this.quality = geocode.quality().name();
+            this.method = geocode.originalGeocoder().name();
             this.cached = geocode.isCached();
-            this.openLocCode = geocode.getOpenLocCode();
+            this.openLocCode = OpenLocationCode.encode(lat, lon);
         }
     }
 
@@ -47,5 +46,7 @@ public class GeocodeView
         return cached;
     }
 
-    public String getOpenLocCode() { return openLocCode; }
+    public String getOpenLocCode() {
+        return openLocCode;
+    }
 }

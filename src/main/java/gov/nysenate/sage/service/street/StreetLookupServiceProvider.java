@@ -5,29 +5,24 @@ import gov.nysenate.sage.provider.district.Streetfile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Point of access for street lookup requests.
 */
 @Service
-public class StreetLookupServiceProvider implements SageStreetLookUpProvider { //Streetfile
-
-    protected StreetLookupService defaultProvider;
-    protected Map<String,StreetLookupService> providers = new HashMap<>();
+public class StreetLookupServiceProvider implements SageStreetLookUpProvider {
+    private final StreetLookupService defaultProvider;
+    private final Map<StreetData, StreetLookupService> providers;
 
     @Autowired
     public StreetLookupServiceProvider(Streetfile streetFile) {
         this.defaultProvider = streetFile;
-        providers.put("streetfile", this.defaultProvider);
+        // TODO: can add in street shapefile as source
+        this.providers = Map.of(StreetData.STREETFILE, defaultProvider);
     }
 
     public StreetLookupService getDefaultProvider() {
         return defaultProvider;
-    }
-
-    public Map<String, StreetLookupService> getProviders() {
-        return providers;
     }
 }

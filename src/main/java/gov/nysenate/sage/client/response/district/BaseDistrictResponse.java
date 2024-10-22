@@ -7,41 +7,39 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 
-public abstract class BaseDistrictResponse extends BaseResponse
-{
+public abstract class BaseDistrictResponse extends BaseResponse {
     protected AddressView address;
     protected GeocodeView geocode;
     protected boolean geocoded = false;
     protected boolean districtAssigned = false;
     protected boolean senateAssigned = false;
     protected boolean uspsValidated = false;
-    protected Boolean isMultiMatch = false;
+    protected boolean isMultiMatch = false;
     protected String matchLevel;
 
-    public BaseDistrictResponse(DistrictResult districtResult)
-    {
+    public BaseDistrictResponse(DistrictResult districtResult) {
         super(districtResult);
-        if (districtResult != null) {
+        if (districtResult == null) {
+            return;
+        }
+        this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
+        this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
+        this.matchLevel = districtResult.getDistrictMatchLevel().name();
+        this.isMultiMatch = districtResult.isMultiMatch();
 
-            this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
-            this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
-            this.matchLevel = districtResult.getDistrictMatchLevel().name();
-            this.isMultiMatch = districtResult.isMultiMatch();
-
-            GeocodedAddress geocodedAddress = districtResult.getGeocodedAddress();
-            if (geocodedAddress != null) {
-                if (geocodedAddress.getAddress() != null) {
-                    this.address = new AddressView(districtResult.getAddress());
-                }
-                if (geocodedAddress.getGeocode() != null) {
-                    this.geocode = new GeocodeView(districtResult.getGeocode());
-                    if (geocodedAddress.isValidGeocode()) {
-                        this.geocoded = true;
-                    }
+        GeocodedAddress geocodedAddress = districtResult.getGeocodedAddress();
+        if (geocodedAddress != null) {
+            if (geocodedAddress.getAddress() != null) {
+                this.address = new AddressView(districtResult.getAddress());
+            }
+            if (geocodedAddress.getGeocode() != null) {
+                this.geocode = new GeocodeView(districtResult.getGeocode());
+                if (geocodedAddress.isValidGeocode()) {
+                    this.geocoded = true;
                 }
             }
-            this.uspsValidated = districtResult.isUspsValidated();
         }
+        this.uspsValidated = districtResult.isUspsValidated();
     }
 
     public AddressView getAddress() {

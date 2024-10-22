@@ -16,10 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_USERNAME_ATTR;
 
@@ -98,8 +95,8 @@ public final class ApiControllerUtil {
      * @param json Json payload
      * @return ArrayList<Address>
      */
-    public static ArrayList<Address> getAddressesFromJsonBody(String json) {
-        ArrayList<Address> addresses = new ArrayList<>();
+    public static List<Address> getAddressesFromJsonBody(String json) {
+        List<Address> addresses = new ArrayList<>();
         try {
             logger.trace("Batch address json body: {}", json);
             ObjectMapper mapper = new ObjectMapper();

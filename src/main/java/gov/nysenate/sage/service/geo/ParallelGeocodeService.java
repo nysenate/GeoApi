@@ -5,42 +5,40 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.util.ExecutorUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 /**
  * Parallel geocoding for use when a GeocodeService implementation does not provide
  * native batch methods.
  */
 @Service
-public class ParallelGeocodeService implements SageParallelGeocodeService
-{
-    private static Logger logger = LoggerFactory.getLogger(ParallelGeocodeService.class);
-    private int THREAD_COUNT;
+public class ParallelGeocodeService implements SageParallelGeocodeService {
+    private static final Logger logger = LoggerFactory.getLogger(ParallelGeocodeService.class);
+    private final int THREAD_COUNT;
     private static ThreadPoolTaskExecutor executor;
-    private Environment env;
 
     @Autowired
     public ParallelGeocodeService(Environment env) {
-        this.env = env;
-        this.THREAD_COUNT = this.env.getValidateThreads();
+        this.THREAD_COUNT = env.getValidateThreads();
         this.executor = ExecutorUtil.createExecutor("geocode", THREAD_COUNT);
 //        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("geocode"));
     }
 
-    public ArrayList<GeocodeResult> geocode(GeocodeService geocodeService, List<Address> addresses)
-    {
-        ArrayList<GeocodeResult> geocodeResults = new ArrayList<>();
-        ArrayList<Future<GeocodeResult>> futureGeocodeResults = new ArrayList<>();
+    @Override
+    public List<GeocodeResult> geocode(GeocodeService geocodeService, List<Address> addresses) {
+        List<GeocodeResult> geocodeResults = new ArrayList<>();
+        List<Future<GeocodeResult>> futureGeocodeResults = new ArrayList<>();
 
-        logger.trace("Geocoding using " + THREAD_COUNT + " threads");
+        logger.trace("Geocoding using {} threads", THREAD_COUNT);
         for (Address address : addresses) {
             futureGeocodeResults.add(executor.submit(new ParallelGeocode(geocodeService, address)));
         }
@@ -50,32 +48,15 @@ public class ParallelGeocodeService implements SageParallelGeocodeService
                 geocodeResults.add(geocodeResult.get());
             }
             catch (Exception ex) {
-                logger.error(ex + "");
+                logger.error("{}", String.valueOf(ex));
             }
         }
         return geocodeResults;
     }
 
-    public void shutdownThread() {
-        executor.shutdown();
-    }
-
-    /**
-     * Callable for parallel geocoding requests
-     */
-    private static class ParallelGeocode implements Callable<GeocodeResult>
-    {
-        public final GeocodeService geocodeService;
-        public final Address address;
-        public ParallelGeocode(GeocodeService geocodeService, Address address)
-        {
-            this.geocodeService = geocodeService;
-            this.address = address;
-        }
-
+    private record ParallelGeocode(GeocodeService geocodeService, Address address) implements Callable<GeocodeResult> {
         @Override
-        public GeocodeResult call()
-        {
+        public GeocodeResult call() {
             return geocodeService.geocode(address);
         }
     }

@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import org.apache.commons.lang.WordUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -27,7 +27,7 @@ public class SqlRegeocacheDao implements RegeocacheDao {
         this.baseDao = baseDao;
     }
 
-    public List<Integer> determineMassGeocodeRecordCount(ArrayList<String> typeList) {
+    public List<Integer> determineMassGeocodeRecordCount(List<String> typeList) {
         String sql = RegeocacheQuery.MASS_GEOCACHE_COUNT.getSql(baseDao.getCacheSchema()) +
                 getMassGeocacheBodySql(typeList);
 
@@ -41,7 +41,7 @@ public class SqlRegeocacheDao implements RegeocacheDao {
 
     }
 
-    public List<StreetAddress> getMassGeocodeBatch(int offset, int limit, ArrayList<String> typeList) {
+    public List<StreetAddress> getMassGeocodeBatch(int offset, int limit, List<String> typeList) {
         String sql = RegeocacheQuery.MASS_GEOCACHE_SELECT.getSql(baseDao.getCacheSchema()) + getMassGeocacheBodySql(typeList)
                 + RegeocacheQuery.MASS_GEOCACHE_ORDER_BY.getSql() + RegeocacheQuery.MASS_GEOCACHE_LIMIT_OFFSET.getSql() ;
 
@@ -87,17 +87,17 @@ public class SqlRegeocacheDao implements RegeocacheDao {
         baseDao.tigerJbdcTemplate.update(RegeocacheQuery.INSERT_GEOCACHE.getSql(baseDao.getCacheSchema()),
                 nysStreetAddress.getBldgId(), nysStreetAddress.getStreet(),
                 nysStreetAddress.getPostalCity(), nysStreetAddress.getZip5(),
-                "POINT(" + nysGeocode.getLon() + " " + nysGeocode.getLat() + ")",
-                nysGeocode.getMethod(), nysGeocode.getQuality().name(), nysStreetAddress.getZip4());
+                "POINT(" + nysGeocode.lon() + " " + nysGeocode.lat() + ")",
+                nysGeocode.originalGeocoder(), nysGeocode.quality().name(), nysStreetAddress.getZip4());
     }
 
     public void updateGeocache(StreetAddress nysStreetAddress, Geocode nysGeocode) throws SQLException {
         baseDao.tigerJbdcTemplate.update(
                 RegeocacheQuery.UPDATE_GEOCACHE.getSql(
                 baseDao.getCacheSchema()),
-                "POINT(" + nysGeocode.getLon() + " " + nysGeocode.getLat() + ")",
-                nysGeocode.getMethod(),
-                nysGeocode.getQuality().name(),
+                "POINT(" + nysGeocode.lon() + " " + nysGeocode.lat() + ")",
+                nysGeocode.originalGeocoder(),
+                nysGeocode.quality().name(),
                 nysStreetAddress.getZip4(),
                 nysStreetAddress.getBldgId(),
                 nysStreetAddress.getStreet(),
@@ -112,7 +112,7 @@ public class SqlRegeocacheDao implements RegeocacheDao {
                 (rs, rowNum) -> rs.getString("zip_code"));
     }
 
-    private String getMassGeocacheBodySql(ArrayList<String> typeList) {
+    private String getMassGeocacheBodySql(List<String> typeList) {
         StringBuilder generatedSql = new StringBuilder();
         for (int i = 0; i < typeList.size(); i += 2) {
             switch (typeList.get(i)) {
@@ -199,9 +199,9 @@ public class SqlRegeocacheDao implements RegeocacheDao {
     public static class geocodedStreetAddressdRowMapper implements RowMapper<GeocodedStreetAddress> {
         @Override
         public GeocodedStreetAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
-            Geocode gc = new Geocode();
-            gc.setMethod(rs.getString("method"));
-            gc.setQuality(GeocodeQuality.valueOf(rs.getString("quality").toUpperCase()));
+            // TODO: why is Point not assigned?
+            GeocodeQuality quality = GeocodeQuality.fromString(rs.getString("quality"));
+            Geocode gc = new Geocode(new Point(0.0d, 0.0d), quality, rs.getString("method"));
             return new GeocodedStreetAddress(new StreetAddressdRowMapper().mapRow(rs, rowNum), gc);
         }
     }
@@ -225,5 +225,4 @@ public class SqlRegeocacheDao implements RegeocacheDao {
             return rs.getInt("count");
         }
     }
-
 }

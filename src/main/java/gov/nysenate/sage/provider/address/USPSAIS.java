@@ -1,6 +1,5 @@
 package gov.nysenate.sage.provider.address;
 
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -9,7 +8,7 @@ import org.apache.commons.text.WordUtils;
 import org.apache.http.client.fluent.Content;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -19,6 +18,7 @@ import org.xml.sax.SAXException;
 import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -26,7 +26,9 @@ import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,38 +65,29 @@ import java.util.regex.Pattern;
  * address. The addr2 field will always be empty. If the request failed
  * then the address object in the AddressResult will be null, isValidated
  * will be false, and the error messages will be stored in the messages array.
- *
  * It is important to note that this class is not thread-safe so the
  * calling method must ensure that multiple threads do not operate on
  * the same instance of this class.
- *
  * Refer to the online documentation (link subject to change)
- * https://www.usps.com/webtools/_pdf/Address-Information-v3-1b.pdf
+ * <a href="https://www.usps.com/webtools/_pdf/Address-Information-v3-1b.pdf">...</a>
  */
 @Service
-public class USPSAIS implements AddressService, Observer
-{
+public class USPSAIS implements AddressService {
     private static final int BATCH_SIZE = 5;
-    private static final String DEFAULT_BASE_URL = "http://production.shippingapis.com/ShippingAPI.dll";
-    private final Logger logger = LoggerFactory.getLogger(USPSAIS.class);
-    private Environment env;
-    private final DocumentBuilder xmlBuilder;
-    private final XPath xpath;
+    private static final Logger logger = LoggerFactory.getLogger(USPSAIS.class);
+    private static final XPath xpath = XPathFactory.newInstance().newXPath();
+
+    private final DocumentBuilder xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    @Value("${usps.ais.url:http://production.shippingapis.com/ShippingAPI.dll}")
     private String baseUrl;
+    @Value("${usps.ais.key:API key obtained from USPS}")
     private String apiKey;
 
-    @Autowired
-    public USPSAIS(Environment env) throws Exception
-    {
-        this.env = env;
-        xmlBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        xpath = XPathFactory.newInstance().newXPath();
-        configure();
-    }
+    public USPSAIS() throws ParserConfigurationException {}
 
-    public void update(Observable o, Object arg)
-    {
-        configure();
+    @Override
+    public AddressSource source() {
+        return AddressSource.AIS;
     }
 
     /**
@@ -102,26 +95,23 @@ public class USPSAIS implements AddressService, Observer
      */
     @Nonnull
     @Override
-    public AddressResult validate(Address address)
-    {
+    public AddressResult validate(Address address) {
         List<Address> addressList = new ArrayList<>(Arrays.asList(address));
         List<AddressResult> resultList = validate(addressList);
         if (resultList != null && !resultList.isEmpty()) {
             return resultList.get(0);
         }
-        return new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+        return new AddressResult(AddressSource.AIS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
     /**
      * Performs address correction and populates missing address fields.
-     * @param addresses
      * @return ArrayList of AddressResult objects
      */
     @Override
-    public List<AddressResult> validate(List<Address> addresses)
-    {
+    public List<AddressResult> validate(List<Address> addresses) {
         /** Short circuit invalid input */
-        if (addresses == null || addresses.size() == 0) return null;
+        if (addresses == null || addresses.isEmpty()) return null;
 
         String url = "";
         Content page = null;
@@ -136,7 +126,7 @@ public class USPSAIS implements AddressService, Observer
         for (int a = 1; a <= addresses.size(); a++){
             Address address = addresses.get(a - 1);
 
-            AddressResult addressResult = new AddressResult(this.getClass());
+            var addressResult = new AddressResult(AddressSource.AIS);
             addressResult.setAddress(address);
             batchResults.add(addressResult);
 
@@ -162,7 +152,6 @@ public class USPSAIS implements AddressService, Observer
                     messages.add(xpath.evaluate("Description", error).trim());
                     for (AddressResult result : batchResults) {
                         result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
-                        result.setValidated(false);
                         result.setMessages(messages);
                     }
                 }
@@ -178,7 +167,6 @@ public class USPSAIS implements AddressService, Observer
                             AddressResult result = batchResults.get(index % BATCH_SIZE);
                             result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
                             result.addMessage(xpath.evaluate("Description", error).trim());
-                            result.setValidated(false);
                             continue;
                         }
 
@@ -228,24 +216,23 @@ public class USPSAIS implements AddressService, Observer
 
                         /** Apply to result set */
                         batchResults.get(index % BATCH_SIZE).setAddress(validatedAddr);
-                        batchResults.get(index % BATCH_SIZE).setValidated(true);
                     }
                 }
             }
             catch (MalformedURLException e) {
-                logger.error("Malformed URL '"+url+"', check api key and address values.", e);
+                logger.error("Malformed URL '{}', check api key and address values.", url, e);
                 return null;
             }
             catch (IOException e) {
-                logger.error("Error opening API resource '"+url+"'", e);
+                logger.error("Error opening API resource '{}'", url, e);
                 return null;
             }
             catch (SAXException e) {
-                logger.error("Malformed XML response for '"+url+"'\n"+page.asString(), e);
+                logger.error("Malformed XML response for '{}'\n{}", url, page.asString(), e);
                 return null;
             }
             catch (XPathExpressionException e) {
-                logger.error("Unexpected XML Schema\n\n"+response.toString(), e);
+                logger.error("Unexpected XML Schema\n\n{}", response.toString(), e);
                 return null;
             }
             catch (IllegalArgumentException e) {
@@ -268,7 +255,7 @@ public class USPSAIS implements AddressService, Observer
         if (resultList != null && !resultList.isEmpty()) {
             return resultList.get(0);
         }
-        return new AddressResult(this.getClass(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+        return new AddressResult(AddressSource.AIS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
 
@@ -287,7 +274,7 @@ public class USPSAIS implements AddressService, Observer
         for (int a = 1; a <= addresses.size(); a++) {
             Address address = addresses.get(a-1);
 
-            AddressResult addressResult = new AddressResult(this.getClass());
+            var addressResult = new AddressResult(AddressSource.AIS);
             addressResult.setAddress(address);
             batchResults.add(addressResult);
 
@@ -326,7 +313,6 @@ public class USPSAIS implements AddressService, Observer
                             AddressResult result = batchResults.get(index % BATCH_SIZE);
                             result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
                             result.addMessage(xpath.evaluate("Description", error).trim());
-                            result.setValidated(false);
                             continue;
                         }
 
@@ -341,7 +327,6 @@ public class USPSAIS implements AddressService, Observer
                         resultAddress.setZip5(Integer.parseInt(zip5));
 
                         batchResults.get(index % BATCH_SIZE).setAddress(resultAddress);
-                        batchResults.get(index % BATCH_SIZE).setValidated(true);
                     }
                 }
             }
@@ -368,15 +353,6 @@ public class USPSAIS implements AddressService, Observer
         }
         return results;
     }
-
-    private void configure() {
-        baseUrl = env.getUspsAisUrl();
-        apiKey = env.getUspsAisKey();
-        if (baseUrl.isEmpty()) {
-            baseUrl = DEFAULT_BASE_URL;
-        }
-    }
-
 
     /** The USPS API expects Address2 to contain the street address. For the request Address1 is set to
      *  be empty and Address2 contains the concatenated values of addr1 and addr2.

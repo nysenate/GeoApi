@@ -10,6 +10,7 @@ import java.util.List;
  * AddressService is used to perform address lookup and validation.
  */
 public interface AddressService {
+    AddressSource source();
     @Nonnull
     AddressResult validate(Address address);
     List<AddressResult> validate(List<Address> addresses);

@@ -1,100 +1,29 @@
 package gov.nysenate.sage.model.api;
 
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.job.JobProcess;
-import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 
-public class GeocodeRequest implements Cloneable
-{
-    private int id;
-    private int addressId;
+public abstract class GeocodeRequest {
+    private final List<Geocoder> geocoders;
+    private final Timestamp requestTime = new Timestamp(new Date().getTime());
+    private final boolean doNotCache;
 
-    /** Source identifiers */
+    private boolean isReverse;
+    private boolean isUspsValidate;
     private ApiRequest apiRequest;
     private JobProcess jobProcess;
 
-    /** Inputs */
-    private Address address;
-    private Point point;
-    private boolean isReverse;
-    private boolean isUspsValidate;
-
-    private String provider;
-    private boolean useFallback;
-    private boolean useCache;
-    private Timestamp requestTime;
-    private boolean bypassCache;
-    private boolean doNotCache;
-
-    public GeocodeRequest() {}
-
-    public GeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache)
-    {
+    public GeocodeRequest(ApiRequest apiRequest, List<Geocoder> geocoders,
+                          boolean isReverse, boolean doNotCache, boolean isUspsValidate) {
+        this.isReverse = isReverse;
         this.apiRequest = apiRequest;
-        this.address = address;
-        setProvider(provider);
-        this.useFallback = useFallback;
-        this.useCache = useCache;
-        this.isReverse = false;
-        this.requestTime = new Timestamp(new Date().getTime());
-        this.bypassCache = false;
-        this.isUspsValidate = true;
-    }
-
-    public GeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache, boolean bypassCache, boolean doNotCache)
-    {
-        this.apiRequest = apiRequest;
-        this.address = address;
-        setProvider(provider);
-        this.useFallback = useFallback;
-        this.useCache = useCache;
-        this.isReverse = false;
-        this.requestTime = new Timestamp(new Date().getTime());
-        this.bypassCache = bypassCache;
         this.doNotCache = doNotCache;
-        this.isUspsValidate = true;
-    }
-
-    public GeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache, boolean bypassCache, boolean doNotCache, boolean isUspsValidate)
-    {
-        this.apiRequest = apiRequest;
-        this.address = address;
-        setProvider(provider);
-        this.useFallback = useFallback;
-        this.useCache = useCache;
-        this.isReverse = false;
-        this.requestTime = new Timestamp(new Date().getTime());
-        this.bypassCache = bypassCache;
-        this.doNotCache = doNotCache;
+        this.geocoders = geocoders;
         this.isUspsValidate = isUspsValidate;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(int addressId) {
-        this.addressId = addressId;
-    }
-
-    public Point getPoint() {
-        return point;
-    }
-
-    public void setPoint(Point point) {
-        this.point = point;
     }
 
     public ApiRequest getApiRequest() {
@@ -105,20 +34,16 @@ public class GeocodeRequest implements Cloneable
         this.apiRequest = apiRequest;
     }
 
+    public List<Geocoder> getGeocoders() {
+        return geocoders;
+    }
+
     public JobProcess getJobProcess() {
         return jobProcess;
     }
 
     public void setJobProcess(JobProcess jobProcess) {
         this.jobProcess = jobProcess;
-    }
-
-    public Address getAddress() {
-        return address;
-    }
-
-    public void setAddress(Address address) {
-        this.address = address;
     }
 
     public boolean isReverse() {
@@ -129,57 +54,12 @@ public class GeocodeRequest implements Cloneable
         isReverse = reverse;
     }
 
-    public boolean isUseFallback() {
-        return useFallback;
-    }
-
-    public void setUseFallback(boolean useFallback) {
-        this.useFallback = useFallback;
-    }
-
-    public boolean isUseCache() {
-        return useCache;
-    }
-
-    public void setUseCache(boolean useCache) {
-        this.useCache = useCache;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        if (FormatUtil.isStringEmptyorNull(provider)) {
-            this.provider = provider;
-        }
-        else {
-            this.provider = FormatUtil.cleanString( provider.toLowerCase());
-        }
-    }
-
     public Timestamp getRequestTime() {
         return requestTime;
     }
 
-    public void setRequestTime(Timestamp requestTime) {
-        this.requestTime = requestTime;
-    }
-
-    public boolean isBypassCache() {
-        return bypassCache;
-    }
-
-    public void setBypassCache(boolean bypassCache) {
-        this.bypassCache = bypassCache;
-    }
-
     public boolean isDoNotCache() {
         return doNotCache;
-    }
-
-    public void setDoNotCache(boolean doNotCache) {
-        this.doNotCache = doNotCache;
     }
 
     public boolean isUspsValidate() {
@@ -188,10 +68,5 @@ public class GeocodeRequest implements Cloneable
 
     public void setUspsValidate(boolean uspsValidate) {
         isUspsValidate = uspsValidate;
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
     }
 }

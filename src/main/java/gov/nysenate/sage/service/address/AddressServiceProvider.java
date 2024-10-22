@@ -6,106 +6,86 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.address.AddressService;
+import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.provider.address.USPSAIS;
 import gov.nysenate.sage.provider.address.USPSAMS;
 import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Service
-public class AddressServiceProvider implements AddressProvider
-{
-    private static Logger logger = LoggerFactory.getLogger(AddressServiceProvider.class);
-    private SqlAddressLogger sqlAddressLogger;
-    private Environment env;
-
-    protected AddressService defaultProvider;
-    protected Map<String,AddressService> providers = new HashMap<>();
-    protected LinkedList<String> defaultFallBack = new LinkedList<>();
-
-    private boolean API_LOGGING_ENABLED = false;
-    private boolean SINGLE_LOGGING_ENABLED = false;
-    private boolean BATCH_LOGGING_ENABLED = false;
+public class AddressServiceProvider implements AddressProvider {
+    private static final Logger logger = LoggerFactory.getLogger(AddressServiceProvider.class);
+    private final SqlAddressLogger sqlAddressLogger;
+    private final AddressService defaultProvider;
+    private final Map<AddressSource, AddressService> providers;
+    private final boolean singleLoggingEnabled;
+    private final boolean batchLoggingEnabled;
 
     @Autowired
     public AddressServiceProvider(SqlAddressLogger sqlAddressLogger, Environment env,
-                                  USPSAMS uspsams, USPSAIS uspsais) {
+                                  USPSAMS uspsams, USPSAIS uspsais,
+                                  @Value("${usps.default:usps}") String defaultUsps) {
         this.sqlAddressLogger = sqlAddressLogger;
-        this.env = env;
-        API_LOGGING_ENABLED = env.isApiLoggingEnabled();
-        SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isDetailedLoggingEnabled();
-        BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
-
-        providers.put("usps",uspsams);
-        providers.put("uspsais", uspsais);
-
-        String defaultUspsProvider = env.getUspsDefault();
-        if (defaultUspsProvider.equals("usps")) {
-            this.defaultProvider = uspsams;
-            defaultFallBack.add("uspsais");
-        }
-        else {
-            this.defaultProvider = uspsais;
-            defaultFallBack.add("usps");
-        }
+        this.singleLoggingEnabled = env.isApiLoggingEnabled() && env.isDetailedLoggingEnabled();
+        this.batchLoggingEnabled = env.isApiLoggingEnabled() && env.isBatchDetailedLoggingEnabled();
+        this.providers = Map.of(AddressSource.AMS, uspsams, AddressSource.AIS, uspsais);
+        this.defaultProvider = providers.get(AddressSource.fromString(defaultUsps));
     }
 
     /**
      * Validates an address using USPS or another provider if available.
      * @param address  Address to validate
-     * @param provider Provide to use (if null, defaults will be used)
+     * @param providerStr Provide to use (if null, defaults will be used)
      * @param usePunct If true, validated address will have periods after abbreviations.
      * @return AddressResult
      */
-    public AddressResult validate(Address address, String provider, Boolean usePunct)
-    {
-        AddressResult addressResult;
+    public AddressResult validate(Address address, String providerStr, boolean usePunct) {
         Timestamp startTime = TimeUtil.currentTimestamp();
-
-        /** Perform null check */
-        if (address == null) {
-            return new AddressResult(this.getClass(), ResultStatus.MISSING_ADDRESS);
-        }
-        /** Use provider if specified */
-        if (provider != null && !provider.isEmpty()) {
-            if (this.providers.containsKey(provider)) {
-                addressResult = this.providers.get(provider).validate(address);
-            }
-            else {
-                return new AddressResult(this.getClass(), ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED);
-            }
-        }
-        /** Use USPS if address is eligible */
-        else if (address.isEligibleForUSPS() && provider != null) {
-            addressResult = this.providers.get(provider).validate(address);
-        }
-        else if (address.isEligibleForUSPS() && provider == null) {
-            addressResult = this.defaultProvider.validate(address);
-        }
-
-        /** Otherwise address is insufficient */
-        else {
-            addressResult = new AddressResult(this.getClass(), ResultStatus.INSUFFICIENT_ADDRESS);
-        }
-
-        if (addressResult != null && addressResult.isValidated()) {
-            logger.info(String.format("USPS validate time: %d ms", TimeUtil.getElapsedMs(startTime)));
-            /** Apply punctuation to the address if requested */
+        AddressResult addressResult = internalValidate(address, providerStr);
+        if (addressResult.isValidated()) {
+            logger.info("USPS validate time: {} ms", TimeUtil.getElapsedMs(startTime));
+            // Apply punctuation to the address if requested
             if (usePunct) {
                 addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
             }
         }
         logAddressResult(addressResult);
         return addressResult;
+    }
+
+    private AddressResult internalValidate(Address address, String providerStr) {
+        if (address == null) {
+            return new AddressResult(null, ResultStatus.MISSING_ADDRESS);
+        }
+        if (!address.isEligibleForUSPS()) {
+            return new AddressResult(null, ResultStatus.INSUFFICIENT_ADDRESS);
+        }
+        // Use provider if specified
+        AddressService addressService;
+        if (providerStr == null || providerStr.isEmpty()) {
+            addressService = defaultProvider;
+        }
+        else {
+            addressService = providers.get(AddressSource.fromString(providerStr));
+        }
+        if (addressService == null) {
+            return new AddressResult(null, ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED);
+        }
+        else {
+            return addressService.validate(address);
+        }
     }
 
     /**
@@ -115,17 +95,18 @@ public class AddressServiceProvider implements AddressProvider
      * @param usePunct Apply address punctuation to each result.
      * @return List<AddressResult>
      */
-    public List<AddressResult> validate(List<Address> addresses, String provider, Boolean usePunct) {
+    @Override
+    public List<AddressResult> validate(List<Address> addresses, String provider, boolean usePunct) {
         if (CollectionUtils.isEmpty(addresses)) {
             return new ArrayList<>();
         }
 
-        logger.info(String.format("Performing USPS correction on %d addresses.", addresses.size()));
+        logger.info("Performing USPS correction on {} addresses.", addresses.size());
         Timestamp startTime = TimeUtil.currentTimestamp();
 
-        AddressService providerService = StringUtils.isEmpty(provider) ? this.defaultProvider : this.providers.get(provider);
+        AddressService providerService = providers.getOrDefault(AddressSource.fromString(provider), defaultProvider);
         List<AddressResult> addressResults = providerService.validate(addresses);
-        logger.info(String.format("USPS validate time: %d ms.", TimeUtil.getElapsedMs(startTime)));
+        logger.info("USPS validate time: {} ms.", TimeUtil.getElapsedMs(startTime));
 
         if (usePunct) {
             for (AddressResult addressResult : addressResults) {
@@ -134,19 +115,7 @@ public class AddressServiceProvider implements AddressProvider
                 }
             }
         }
-
-        //log batch results here
-        if (BATCH_LOGGING_ENABLED) {
-            for (AddressResult addressResult : addressResults) {
-                try {
-                    if (addressResult.getAddress() != null) {
-                        sqlAddressLogger.logAddress(addressResult.getAddress());
-                    }
-                } catch (Exception e) {
-                    logger.warn("Failed to insert address result in the DB " + e.getMessage());
-                }
-            }
-        }
+        logAddressResults(addressResults);
         return addressResults;
     }
 
@@ -154,31 +123,31 @@ public class AddressServiceProvider implements AddressProvider
      * Use USPS for a city state lookup by default.
      */
     @Nonnull
-    public AddressResult lookupCityState(Address address, String providerName)
-    {
-        AddressService provider;
-        if (providerName == null || providerName.isEmpty()) {
-            provider = this.defaultProvider;
-        }
-        else {
-            provider = this.providers.get(providerName);
-        }
+    @Override
+    public AddressResult lookupCityState(Address address, String providerName) {
+        AddressService provider = providers.getOrDefault(AddressSource.fromString(providerName), defaultProvider);
         AddressResult addressResult = provider.lookupCityState(address);
         logAddressResult(addressResult);
         return addressResult;
     }
 
+    @Override
+    public List<AddressResult> lookupCityState(List<Address> addresses, String providerName) {
+        AddressService provider = providers.getOrDefault(AddressSource.fromString(providerName), defaultProvider);
+        List<AddressResult> addressResults = provider.lookupCityState(addresses);
+        logAddressResults(addressResults);
+        return addressResults;
+    }
+
     /**
      * Zipcode lookup is the same as a validate request with less output.
      */
-    public AddressResult lookupZipcode(Address address, String provider)
-    {
+    public AddressResult lookupZipcode(Address address, String provider) {
         return validate(address, provider, false);
     }
 
-
     private void logAddressResult(AddressResult addressResult) {
-        if (SINGLE_LOGGING_ENABLED) {
+        if (singleLoggingEnabled) {
             try {
                 if (addressResult.getAddress() != null) {
                     sqlAddressLogger.logAddress(addressResult.getAddress());
@@ -190,15 +159,17 @@ public class AddressServiceProvider implements AddressProvider
         }
     }
 
-    public AddressService getDefaultProvider() {
-        return defaultProvider;
-    }
-
-    public Map<String, AddressService> getProviders() {
-        return providers;
-    }
-
-    public LinkedList<String> getDefaultFallBack() {
-        return defaultFallBack;
+    private void logAddressResults(List<AddressResult> addressResults) {
+        if (batchLoggingEnabled) {
+            for (AddressResult addressResult : addressResults) {
+                try {
+                    if (addressResult.getAddress() != null) {
+                        sqlAddressLogger.logAddress(addressResult.getAddress());
+                    }
+                } catch (Exception e) {
+                    logger.warn("Failed to insert address result in the DB " + e.getMessage());
+                }
+            }
+        }
     }
 }

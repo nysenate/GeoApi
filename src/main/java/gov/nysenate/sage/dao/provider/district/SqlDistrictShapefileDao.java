@@ -78,11 +78,11 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                 String proximityQuery = "100000 as proximity";
                 if (getProximity) {
                     proximityQuery = "ST_DistanceSphere(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity";
-                    proximityQuery = String.format(proximityQuery, point.getLon(), point.getLat(), districtType.sridColumn());
+                    proximityQuery = String.format(proximityQuery, point.lon(), point.lat(), districtType.sridColumn());
                 }
 
                 queryList.add(String.format(sqlTmpl, districtType, nameColumn, districtType.codeColumn(),
-                        mapQuery, proximityQuery, districtType, point.getLon(), point.getLat(), districtType.sridColumn())); // lon,lat is correct order
+                        mapQuery, proximityQuery, districtType, point.lon(), point.lat(), districtType.sridColumn())); // lon,lat is correct order
             }
         }
 
@@ -272,7 +272,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                 "ORDER BY ST_ClosestPoint(geom, %s) <-> %s \n" +
                 "LIMIT %d;";
 
-            String pointText = String.format("ST_PointFromText('POINT(%s %s)', %s)", point.getLon(), point.getLat(), districtType.sridColumn());
+            String pointText = String.format("ST_PointFromText('POINT(%s %s)', %s)", point.lon(), point.lat(), districtType.sridColumn());
             String sqlQuery = String.format(tmpl, districtType.name(), districtType.nameColumn(), districtType.codeColumn(),
                     districtType.name(),             // Table name
                     pointText,                       // ST_Contains -> Where clause

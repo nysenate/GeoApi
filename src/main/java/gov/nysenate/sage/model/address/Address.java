@@ -14,6 +14,7 @@ import java.util.List;
  * @author Graylin Kim, Ash Islam
  */
 public class Address implements Serializable, Cloneable {
+    // TODO: what if rev-geocode as non-NY address?
     private static final String poBoxPattern = "(?i)PO Box \\d+";
     // Note that these can never be null, since cleanString never returns null on non-null input.
     private String addr1 = "";
@@ -166,10 +167,6 @@ public class Address implements Serializable, Cloneable {
     /** Address is eligible for usps validation if addr1 and either zip or city/state are set. */
     public boolean isEligibleForUSPS() {
         return !addr1.isEmpty() && (zip5.zip() != null || !city.isEmpty());
-    }
-
-    public boolean isAddressBlank() {
-        return addr1.isEmpty() && addr2.isEmpty() && city.isEmpty() && zip5.isMissing() && zip4.isMissing();
     }
 
     public boolean isPOBox() {

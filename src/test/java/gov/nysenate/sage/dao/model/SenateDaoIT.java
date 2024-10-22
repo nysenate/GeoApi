@@ -17,17 +17,15 @@ import static org.junit.Assert.assertNotNull;
 
 @Category(IntegrationTest.class)
 public class SenateDaoIT extends BaseTests {
-
     @Autowired
-    SqlSenateDao sqlSenateDao;
-    private static int NUMBER_OF_SENATORS = 63;
+    private SqlSenateDao sqlSenateDao;
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void getSenatorsTest()
-    {
-        Collection<Senator> senators = this.sqlSenateDao.getSenators();
+    public void getSenatorsTest() {
+        Collection<Senator> senators = sqlSenateDao.getSenators();
         assertNotNull(senators);
+        int NUMBER_OF_SENATORS = 63;
         assertEquals(NUMBER_OF_SENATORS, senators.size());
 
         for (Senator senator : senators){
@@ -38,9 +36,8 @@ public class SenateDaoIT extends BaseTests {
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void getSenatorByDistrictNumberTest()
-    {
-        Senator senator = this.sqlSenateDao.getSenatorByDistrict(44);
+    public void getSenatorByDistrictNumberTest() {
+        Senator senator = sqlSenateDao.getSenatorByDistrict(44);
         assertNotNull(senator);
     }
 }

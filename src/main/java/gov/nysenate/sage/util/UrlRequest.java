@@ -6,8 +6,8 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -45,8 +45,8 @@ public abstract class UrlRequest
     {
         if (inputStream != null) {
             String response = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-            logger.trace("Retrieved string of length " + response.length());
-            logger.trace("Response: " + response);
+            logger.trace("Retrieved string of length {}", response.length());
+            logger.trace("Response: {}", response);
             return response;
         }
         else {
@@ -63,7 +63,7 @@ public abstract class UrlRequest
     public static InputStream getInputStreamFromUrl(String url) throws IOException
     {
         URL u = new URL(url);
-        logger.debug("Requesting connection to " + url.toString());
+        logger.debug("Requesting connection to " + url);
         HttpURLConnection uc = getHttpURLConnection(u);
         int responseCode = uc.getResponseCode();
         logger.debug("Connection replied with response code: " + responseCode);

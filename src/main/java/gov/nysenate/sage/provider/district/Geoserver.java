@@ -6,18 +6,13 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.model.result.ResultStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
-import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateDistrictInfo;
-import static gov.nysenate.sage.service.district.DistrictServiceValidator.validateInput;
 
 /**
  * This class is an implementation of DistrictService to perform district assignment given a
@@ -35,30 +30,21 @@ public class Geoserver extends DistrictService {
         this.httpGeoserverDao = httpGeoserverDao;
     }
 
+    @Override
+    public DistrictSource districtSource() {
+        return DistrictSource.GEOSERVER;
+    }
+
     /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
-        DistrictResult districtResult = new DistrictResult(this.getClass());
-
-        /** Validate input */
-        if (!validateInput(geocodedAddress, districtResult, true, false)) {
+        var districtResult = new DistrictResult(districtSource(), geocodedAddress, true, false);
+        if (!districtResult.isSuccess()) {
             return districtResult;
         }
-        try {
-            Geocode geocode = geocodedAddress.getGeocode();
-            DistrictInfo districtInfo = this.httpGeoserverDao.getDistrictInfo(geocode.getLatLon(), reqTypes);
-
-            /** Validate response */
-            if (!validateDistrictInfo(districtInfo, reqTypes, districtResult)) {
-                return districtResult;
-            }
-            /** Set the result. The quality here is always point since it's based of a geocode */
-            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
-        }
-        catch (Exception ex) {
-            districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
-            logger.error("" + ex);
-        }
+        DistrictInfo districtInfo = httpGeoserverDao.getDistrictInfo(geocodedAddress.getGeocode().point(), reqTypes);
+        // The quality here is always point since it's based off a geocode
+        districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
         return districtResult;
     }
 }

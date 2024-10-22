@@ -5,6 +5,7 @@ package gov.nysenate.sage.model.district;
  * numerical values are chosen somewhat arbitrarily to instill a ranking.
  */
 public enum DistrictMatchLevel {
+    // TODO: is NOMATCH really different from STATE?
     NOMATCH(0), STATE(10), CITY(50), ZIP5(70), STREET(80), HOUSE(100);
 
     private final int value;
@@ -18,6 +19,6 @@ public enum DistrictMatchLevel {
     }
 
     public DistrictMatchLevel getNextHighestLevel() {
-        return ordinal() == 0 ? null : values()[ordinal() - 1];
+        return values()[ordinal() - 1];
     }
 }

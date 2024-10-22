@@ -3,8 +3,8 @@ package gov.nysenate.sage.controller.api;
 import gov.nysenate.sage.client.response.street.StreetResponse;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.api.ApiRequest;
-import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.model.result.StreetResult;
+import gov.nysenate.sage.provider.district.StreetLookupService;
 import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.slf4j.Logger;
@@ -49,15 +49,13 @@ public class StreetController {
         logStreetRequest(apiRequest, zip5);
 
         logger.info("Getting street data for zip5 {}", zip5);
-        StreetResult streetResult = new StreetResult(this.getClass());
-        List<DistrictedStreetRange> streets = streetProvider.getDefaultProvider().streetLookup(zip5);
+        StreetLookupService service = streetProvider.getDefaultProvider();
+        List<DistrictedStreetRange> streets = service.streetLookup(zip5);
+        StreetResult streetResult = new StreetResult(service.source(), streets);
         if (streets != null) {
-            streetResult.setDistrictedStreetRanges(streets);
-            streetResult.setStatusCode(ResultStatus.SUCCESS);
             logger.info("Street file look up for zip 5: {} was successful", zip5);
         }
         else {
-            streetResult.setStatusCode(ResultStatus.NO_STREET_LOOKUP_RESULT);
             logger.warn("No street lookup result was found from the request zip 5:{}", zip5);
         }
         streetLookupResponse = new StreetResponse(streetResult);

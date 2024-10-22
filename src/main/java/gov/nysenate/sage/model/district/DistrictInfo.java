@@ -14,13 +14,9 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  * DistrictInfo is used as a container for all assigned district names, codes, and district maps.
  * It is designed to allow for quick look ups using maps as opposed to iterating over lists of districts.
  */
-public class DistrictInfo
-{
+public class DistrictInfo {
     /** A set of DistrictTypes that were actually district assigned. */
     protected Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
-
-    /** If true, then all districts that were requested were assigned */
-    protected boolean completelyAssigned;
 
     /** A set of the DistrictTypes that might be incorrectly assigned. */
     protected Set<DistrictType> nearBorderDistricts = new LinkedHashSet<>();
@@ -99,10 +95,6 @@ public class DistrictInfo
         else {
             assignedDistricts.remove(districtType);
         }
-    }
-
-    public void setCompletelyAssigned(boolean completelyAssigned) {
-        this.completelyAssigned = completelyAssigned;
     }
 
     public DistrictMap getDistMap(DistrictType districtType) {

@@ -1,12 +1,9 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.address.*;
-import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
-import gov.nysenate.sage.provider.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -20,11 +17,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
-import static gov.nysenate.sage.model.result.ResultStatus.INVALID_BATCH_ADDRESSES;
-import static gov.nysenate.sage.model.result.ResultStatus.PROVIDER_NOT_SUPPORTED;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 /**
@@ -35,10 +31,9 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
  */
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "address")
-public final class AddressController
-{
-    private Logger logger = LoggerFactory.getLogger(AddressController.class);
-    private static AddressServiceProvider addressProvider;
+public final class AddressController {
+    private final Logger logger = LoggerFactory.getLogger(AddressController.class);
+    private final AddressServiceProvider addressProvider;
 
     @Autowired
     public AddressController(AddressServiceProvider addressProvider) {
@@ -48,9 +43,7 @@ public final class AddressController
     /**
      * Address Validation Api
      * ---------------------------
-     *
      * Validates an address with USPS
-     *
      * Usage:
      * (GET)    /api/v2/address/validate
      *
@@ -77,33 +70,17 @@ public final class AddressController
                                 @RequestParam(required = false) String state,
                                 @RequestParam(required = false) String zip5,
                                 @RequestParam(required = false) String zip4) {
-        Object addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
-
-        /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
         logAddressInput(apiRequest, request, punct);
-
-        if (checkProvider(provider)) {
-            Address address = getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4);
-            if (FormatUtil.isStringEmptyorNull(provider)) {
-                addressResponse = new ValidateResponse(addressProvider.validate(address, provider, punct));
-            }
-            else {
-                provider = FormatUtil.cleanString(provider);
-                addressResponse = new ValidateResponse(addressProvider.validate(address, provider.toLowerCase(), punct));
-            }
-
-        }
-        setApiResponse(addressResponse, request);
+        Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
+        setApiResponse(new ValidateResponse(addressProvider.validate(address, provider, punct)), request);
 
     }
 
     /**
      * City State Validation Api
      * ---------------------------
-     *
      * Looks up a city state with USPS
-     *
      * Usage:
      * (GET)    /api/v2/address/citystate
      *
@@ -130,32 +107,17 @@ public final class AddressController
                                  @RequestParam(required = false) String state,
                                  @RequestParam String zip5,
                                  @RequestParam(required = false) String zip4) {
-        Object addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
-
-        /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
         logAddressInput(apiRequest, request, punct);
-
-        if (checkProvider(provider)) {
-            Address address = getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4);
-            if (FormatUtil.isStringEmptyorNull(provider)) {
-                addressResponse = new CityStateResponse(addressProvider.lookupCityState(address, provider));
-            }
-            else {
-                provider = FormatUtil.cleanString(provider);
-                addressResponse = new CityStateResponse(addressProvider.lookupCityState(address, provider.toLowerCase()));
-            }
-
-        }
+        Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
+        Object addressResponse = new CityStateResponse(addressProvider.lookupCityState(address, provider));
         setApiResponse(addressResponse, request);
     }
 
     /**
      * Zipcode validation Api
      * ---------------------------
-     *
      * Looks up a zipcode from an address input with USPS
-     *
      * Usage:
      * (GET)    /api/v2/address/zipcode
      *
@@ -182,32 +144,17 @@ public final class AddressController
                                @RequestParam(required = false) String state,
                                @RequestParam(required = false) String zip5,
                                @RequestParam(required = false) String zip4) {
-        Object addressResponse = new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
-
-        /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
         logAddressInput(apiRequest, request, punct);
-
-        if (checkProvider(provider)) {
-            Address address = getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4);
-            if (FormatUtil.isStringEmptyorNull(provider)) {
-                addressResponse = new ZipcodeResponse(addressProvider.lookupZipcode(address, provider));
-            }
-            else {
-                provider = FormatUtil.cleanString(provider);
-                addressResponse = new ZipcodeResponse(addressProvider.lookupZipcode(address, provider.toLowerCase()));
-            }
-
-        }
+        Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
+        Object addressResponse = new ZipcodeResponse(addressProvider.lookupZipcode(address, provider));
         setApiResponse(addressResponse, request);
     }
 
     /**
      * Batch Address Validation Api
      * ---------------------------
-     *
      * Batch address validation with USPS
-     *
      * Usage:
      * (GET)    /api/v2/address/validate/batch
      *
@@ -215,45 +162,23 @@ public final class AddressController
      * @param response HttpServletResponse
      * @param provider String
      * @param punct boolean
-     * @throws IOException
      */
     @RequestMapping(value = "/validate/batch", method = RequestMethod.POST)
     public void addressBatchValidate(HttpServletRequest request, HttpServletResponse response,
                                      @RequestParam(required = false) String provider,
                                      @RequestParam(required = false) boolean punct) throws IOException {
-        /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
         logAddressInput(apiRequest, request, punct);
-
-        Object addressResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
-
-        String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
-        ArrayList<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
-
-        if (checkProvider(provider)) {
-            if (addresses != null && !addresses.isEmpty()) {
-                AddressService addressService;
-                if (provider == null || provider.isEmpty()) {
-                    addressService = addressProvider.getDefaultProvider();
-                }
-                else {
-                    provider = FormatUtil.cleanString(provider);
-                    addressService = addressProvider.getProviders().get(provider.toLowerCase());
-                }
-
-                addressResponse = new BatchValidateResponse(addressService.validate(addresses));
-            }
-        }
-
+        String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
+        List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
+        Object addressResponse = new BatchValidateResponse(addressProvider.validate(addresses, provider, punct));
         setApiResponse(addressResponse, request);
     }
 
     /**
      * Batch City State Validation Api
      * ---------------------------
-     *
      * Batch city state validation with USPS
-     *
      * Usage:
      * (GET)    /api/v2/address/citystate/batch
      *
@@ -266,52 +191,22 @@ public final class AddressController
     public void addressBatchCityState(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(required = false) String provider,
                                       @RequestParam(required = false) boolean punct) throws IOException {
-        /** Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
         logAddressInput(apiRequest, request, punct);
-
-        Object addressResponse = new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
-
-        String batchJsonPayload = IOUtils.toString(request.getInputStream(), "UTF-8");
-        ArrayList<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
-
-        if (checkProvider(provider)) {
-            if (!addresses.isEmpty()) {
-                AddressService addressService;
-                if (provider == null || provider.isEmpty()) {
-                    addressService = addressProvider.getDefaultProvider();
-                }
-                else {
-                    provider = FormatUtil.cleanString(provider);
-                    addressService = addressProvider.getProviders().get(provider.toLowerCase());
-                }
-                addressResponse = new BatchCityStateResponse(addressService.lookupCityState(addresses));
-            }
-        }
-
+        String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
+        List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
+        Object addressResponse = new BatchCityStateResponse(addressProvider.lookupCityState(addresses, provider));
         setApiResponse(addressResponse, request);
-
-
     }
 
 
     private void logAddressInput(ApiRequest apiRequest, HttpServletRequest request,boolean usePunctuation ) {
         logger.info("--------------------------------------");
-        logger.info(String.format("|%sAddress Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId()));
-        logger.info(String.format("| Mode: %s | Punct: %s", apiRequest.getRequest(), usePunctuation));
+        logger.info("|{}Address Request {} ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId());
+        logger.info("| Mode: {} | Punct: {}", apiRequest.getRequest(), usePunctuation);
         if (!apiRequest.isBatch()) {
-            logger.info("| Input Address: " + getAddressFromParams(request).toLogString());
+            logger.info("| Input Address: {}", getAddressFromParams(request).toLogString());
         }
         logger.info("--------------------------------------");
-    }
-
-    private boolean checkProvider(String provider) {
-        boolean providerIsGood = true;
-        if (provider != null && !provider.isEmpty()) {
-            if (!addressProvider.getProviders().containsKey(provider.toLowerCase())) {
-                providerIsGood = false;
-            }
-        }
-        return providerIsGood;
     }
 }

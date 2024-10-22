@@ -6,7 +6,6 @@ import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public interface RegeocacheDao {
@@ -15,7 +14,7 @@ public interface RegeocacheDao {
      * @param typeList
      * @return
      */
-    List<Integer> determineMassGeocodeRecordCount(ArrayList<String> typeList);
+    List<Integer> determineMassGeocodeRecordCount(List<String> typeList);
 
     /**
      * Generates the sql used for selecting a mass geocache batch
@@ -24,7 +23,7 @@ public interface RegeocacheDao {
      * @param typeList
      * @return
      */
-    List<StreetAddress> getMassGeocodeBatch(int offset, int limit, ArrayList<String> typeList);
+    List<StreetAddress> getMassGeocodeBatch(int offset, int limit, List<String> typeList);
 
     /**
      * Retreives a total count of all rows contained from the NYS GEO DB

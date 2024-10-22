@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nonnull;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -86,9 +87,9 @@ public class SqlStreetfileDao implements StreetfileDao {
         locked = false;
     }
 
-    public DistrictedAddress getDistrictedAddress(Address addr, DistrictMatchLevel matchLevel) {
-        if (matchLevel == null || matchLevel.compareTo(DistrictMatchLevel.CITY) < 0) {
-            return null;
+    public DistrictedAddress getDistrictedAddress(Address addr, @Nonnull DistrictMatchLevel matchLevel) {
+        if (matchLevel == DistrictMatchLevel.NOMATCH || matchLevel == DistrictMatchLevel.STATE) {
+            return new DistrictedAddress(new GeocodedAddress(addr), new DistrictInfo(), matchLevel);
         }
         AddressWithoutNum awn = AddressWithoutNum.fromAddress(addr);
         var sqlBuilder = new StringBuilder("SELECT * FROM streetfile WHERE postal_city = '%s'\n".formatted(awn.postalCity()));

@@ -1,5 +1,7 @@
 package gov.nysenate.sage.model.result;
 
+import gov.nysenate.sage.provider.geocode.DataSource;
+
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +11,17 @@ import java.util.List;
  * typically returned by the service layer classes and are used to wrap a data model object with
  * some status information.
  */
-public abstract class BaseResult {
+public abstract class BaseResult<S extends DataSource> {
+    // A null source means the service was never actually hit for a result.
+    private final S source;
     protected int serialId; // Can be used for maintaining order in a list
     protected List<String> messages = new ArrayList<>();
     protected ResultStatus statusCode = ResultStatus.SUCCESS;
-    protected Class<?> source;
     protected Timestamp resultTime;
+
+    protected BaseResult(S source) {
+        this.source = source;
+    }
 
     public List<String> getMessages() {
         return messages;
@@ -36,14 +43,8 @@ public abstract class BaseResult {
         this.messages = messages;
     }
 
-    public Class getSource() {
+    public DataSource getSource() {
         return source;
-    }
-
-    public void setSource(Class<?> sourceClass) {
-        if (sourceClass != null) {
-            this.source = sourceClass;
-        }
     }
 
     public ResultStatus getStatusCode() {
@@ -55,7 +56,7 @@ public abstract class BaseResult {
     }
 
     public boolean isSuccess() {
-        return (this.statusCode != null && this.statusCode.equals(ResultStatus.SUCCESS));
+        return this.statusCode != null && this.statusCode.equals(ResultStatus.SUCCESS);
     }
 
     public Timestamp getResultTime() {

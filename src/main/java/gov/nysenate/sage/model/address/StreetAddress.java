@@ -59,10 +59,6 @@ public class StreetAddress {
                 Objects.equals(internal, that.internal);
     }
 
-    public boolean hasStreet() {
-        return !getStreet().isEmpty();
-    }
-
     @Override
     public String toString() {
         return toAddress().toString();

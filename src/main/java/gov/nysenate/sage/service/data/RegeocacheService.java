@@ -10,7 +10,8 @@ import gov.nysenate.sage.model.address.NYSGeoAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.provider.geocode.Geocoder;
+import gov.nysenate.sage.service.geo.SageGeocodeServiceProvider;
 import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +33,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
@@ -40,15 +40,14 @@ import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 
 @Service
 public class RegeocacheService implements SageRegeocacheService {
-
     private Logger logger = LoggerFactory.getLogger(RegeocacheService.class);
     private SqlRegeocacheDao sqlRegeocacheDao;
     private Environment env;
-    private GeocodeServiceProvider geocodeServiceProvider;
+    private SageGeocodeServiceProvider geocodeServiceProvider;
     final int nys_limit = 2000;
 
     @Autowired
-    public RegeocacheService(SqlRegeocacheDao sqlRegeocacheDao, GeocodeServiceProvider geocodeServiceProvider,
+    public RegeocacheService(SqlRegeocacheDao sqlRegeocacheDao, SageGeocodeServiceProvider geocodeServiceProvider,
                              Environment env) {
         this.geocodeServiceProvider = geocodeServiceProvider;
         this.sqlRegeocacheDao = sqlRegeocacheDao;
@@ -109,7 +108,7 @@ public class RegeocacheService implements SageRegeocacheService {
      * @param typeList
      * @return
      */
-    public Object massRegeoache(int user_offset, int user_limit, boolean useFallback ,ArrayList<String> typeList) {
+    public Object massRegeoache(int user_offset, int user_limit, boolean useFallback, List<String> typeList) {
         //How many records have actually been processed
         int recordsProcessed = 0;
         int offset = user_offset;
@@ -161,15 +160,10 @@ public class RegeocacheService implements SageRegeocacheService {
                     for (StreetAddress geocacheStreetAddress : massGeocacheAddresses) {
                         Address geocacheAddress = geocacheStreetAddress.toAddress();
 
-                        if (provider.isEmpty()) {
-                            provider = geocodeServiceProvider.getDefaultProvider();
-                        }
-
                         try {
                             //Geocode the address
-                            GeocodeResult geocodeResult = geocodeServiceProvider.geocode(geocacheAddress,
-                                    provider, geocodeServiceProvider.getDefaultFallback(),
-                                    useFallback, false, false);
+                            // TODO: check if this is best
+                            GeocodeResult geocodeResult = geocodeServiceProvider.geocode(geocacheAddress, List.of(Geocoder.GEOCACHE), true);
 
                             //This means geocoding failed, write to file
                             if (geocodeResult.getStatusCode() != SUCCESS) {
@@ -252,7 +246,7 @@ public class RegeocacheService implements SageRegeocacheService {
     /*
     If user specified a provider for the mass geocache, this method will return it or an empty string
      */
-    private String determineIfProviderSpecified(ArrayList<String> typeList) {
+    private String determineIfProviderSpecified(List<String> typeList) {
         int position = 0;
         for (String data: typeList) {
             if (data.equals("provider")) {
@@ -271,7 +265,7 @@ public class RegeocacheService implements SageRegeocacheService {
      */
     public Object updateGeocacheWithNYSGeoData(int nys_offset) {
         Object apiResponse;
-        HttpClient httpClient = HttpClientBuilder.create().build();
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         int updatedRecordsCount = 0;
         try {
             //Get total number of addresses that will be used to update our geocache
@@ -318,49 +312,49 @@ public class RegeocacheService implements SageRegeocacheService {
                     }
 
                     //Determine if address exits in our Geocache by getting
-                    // the method of its results (GoogleDao, YahooDao, etc)
+                    // the method of its results (GoogleDao, etc.)
                     GeocodedStreetAddress geocachedStreetAddress =
                             sqlRegeocacheDao.getProviderOfAddressInCacheIfExists(nysStreetAddress);
 
-                    String geocachedStreetAddressProvider = "";
+                    Geocoder geocachedStreetAddressProvider = null;
                     if (geocachedStreetAddress != null && geocachedStreetAddress.getStreetAddress().equals(nysStreetAddress)) {
-                        geocachedStreetAddressProvider = geocachedStreetAddress.getGeocode().getMethod();
-                        //update only if its not google. Address was matched so it should insert fine
-                        if (!geocachedStreetAddressProvider.equals("GoogleDao") && nysGeoAddress.getPointtype() == 1) {
+                        geocachedStreetAddressProvider = geocachedStreetAddress.getGeocode().originalGeocoder();
+                        //update only if it's not google. Address was matched so it should insert fine
+                        if (geocachedStreetAddressProvider != Geocoder.GOOGLE && nysGeoAddress.getPointtype() == 1) {
                             try {
                                 sqlRegeocacheDao.updateGeocache(nysStreetAddress, nysGeocode);
                                 updatedRecordsCount++;
                             } catch (SQLException e) {
-                                //should not happen beacause it was verified
-                                logger.warn("Update Failed for " + nysStreetAddress.toString());
+                                //should not happen because it was verified
+                                logger.warn("Update Failed for {}", nysStreetAddress);
                             }
                         }
                     }
                     //If the geocacheStreetAddressProvider is empty, we don't have the address cached, so insert the address
-                    else if (StringUtils.isEmpty(geocachedStreetAddressProvider)) {
+                    if (geocachedStreetAddressProvider == null) {
                         //insert
                         try {
                             sqlRegeocacheDao.insetIntoGeocache(nysStreetAddress, nysGeocode);
                             updatedRecordsCount++;
                         } catch (SQLException e) {
-                            logger.warn("Insert Failed for " + nysStreetAddress.toString());
+                            logger.warn("Insert Failed for {}", nysStreetAddress);
                         }
                     }
                 }
             }
 
-            logger.info("Updated " + updatedRecordsCount + " records");
+            logger.info("Updated {} records", updatedRecordsCount);
 
             try {
-                ((CloseableHttpClient) httpClient).close();
+                httpClient.close();
             } catch (IOException e) {
-                logger.error("Failed to close http connection \n" + e);
+                logger.error("Failed to close http connection \n{}", String.valueOf(e));
                 apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
                 return apiResponse;
             }
 
         } catch (Exception ex) {
-            logger.error("Error retrieving addresses from geocache \n" + ex);
+            logger.error("Error retrieving addresses from geocache \n{}", String.valueOf(ex));
             apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
             return apiResponse;
         }

@@ -23,22 +23,16 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 @Service
 public abstract class DistrictService {
     private static final Logger logger = LoggerFactory.getLogger(DistrictService.class);
+    private static final List<DistrictType> requiredTypes = List.of(ASSEMBLY, CONGRESSIONAL, SENATE, COUNTY);
     @Autowired
     private ParallelDistrictService parallelDistrictService;
 
-    protected List<DistrictType> requiredTypes() {
-        return List.of(ASSEMBLY, CONGRESSIONAL, SENATE, COUNTY);
-    }
-
-    /** District Assignment */
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress) {
-        return assignDistricts(geocodedAddress, requiredTypes());
-    }
+    public abstract DistrictSource districtSource();
 
     public abstract DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes);
 
-    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses) {
-        return assignDistricts(geocodedAddresses, requiredTypes());
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress) {
+        return assignDistricts(geocodedAddress, requiredTypes);
     }
 
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses, List<DistrictType> reqTypes) {
@@ -52,12 +46,11 @@ public abstract class DistrictService {
     }
 
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType) {
-        logger.warn(getClass() + " does not implement nearbyDistricts.");
-        return null;
+        return nearbyDistricts(geocodedAddress, districtType, 0);
     }
 
     public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count) {
-        logger.warn(getClass() + " does not implement nearbyDistricts.");
+        logger.warn("{} does not implement nearbyDistricts.", getClass());
         return null;
     }
 }
