@@ -5,8 +5,7 @@ import gov.nysenate.sage.client.view.map.DistrictMapView;
 import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.model.result.MapResult;
 
-public class MapResponse extends BaseResponse
-{
+public class MapResponse extends BaseResponse {
     protected DistrictMapView map;
 
     public MapResponse(MapResult mapResult) {
@@ -36,5 +35,7 @@ public class MapResponse extends BaseResponse
         return (map != null) ? map.getMember() : null;
     }
 
-    public String getLink() {return (map != null) ? map.getLink() : null;}
+    public String getLink() {
+        return (map != null) ? map.getLink() : null;
+    }
 }

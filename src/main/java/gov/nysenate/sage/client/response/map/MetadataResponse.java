@@ -4,8 +4,7 @@ import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.view.map.DistrictMapView;
 import gov.nysenate.sage.model.result.MapResult;
 
-public class MetadataResponse extends BaseResponse
-{
+public class MetadataResponse extends BaseResponse {
     protected DistrictMapView metadata;
 
     public MetadataResponse(MapResult mapResult) {

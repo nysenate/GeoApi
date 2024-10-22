@@ -15,47 +15,44 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MultiDistrictResponse extends DistrictResponse
-{
+public class MultiDistrictResponse extends DistrictResponse {
     protected Map<String, List<DistrictOverlapView>> overlaps = new HashMap<>();
     protected BigDecimal totalReferenceArea;
     protected String areaUnit;
     protected List<StreetRangeView> streets = new ArrayList<>();
 
-    public MultiDistrictResponse(DistrictResult districtResult)
-    {
+    public MultiDistrictResponse(DistrictResult districtResult) {
         super(districtResult);
         DistrictInfo districtInfo = districtResult.getDistrictInfo();
         DistrictMatchLevel districtMatchLevel = districtResult.getDistrictMatchLevel();
+        if (districtInfo == null) {
+            return;
+        }
+        if (!districtInfo.getDistrictOverlaps().isEmpty()) {
+            Map<DistrictType, DistrictOverlap> overlapsByDistrictType = districtInfo.getDistrictOverlaps();
+            for (DistrictType districtType : overlapsByDistrictType.keySet()) {
+                DistrictOverlap overlap = overlapsByDistrictType.get(districtType);
 
-        if (districtInfo != null) {
-            if (!districtInfo.getDistrictOverlaps().isEmpty()) {
+                // Get the total reference area since they should all be the same for each overlap
+                if (this.totalReferenceArea == null) {
+                    this.totalReferenceArea = overlap.getTotalArea();
+                    this.areaUnit = overlap.getAreaUnit().name();
+                }
 
-                Map<DistrictType, DistrictOverlap> overlapsByDistrictType = districtInfo.getDistrictOverlaps();
-                for (DistrictType districtType : overlapsByDistrictType.keySet()) {
-                    DistrictOverlap overlap = overlapsByDistrictType.get(districtType);
-
-                    /** Get the total reference area since they should all be the same for each overlap */
-                    if (this.totalReferenceArea == null) {
-                        this.totalReferenceArea = overlap.getTotalArea();
-                        this.areaUnit = overlap.getAreaUnit().name();
+                if (overlap != null) {
+                    List<DistrictOverlapView> overlapViews = new ArrayList<>();
+                    for (String district : overlap.getOverlapDistrictCodes()) {
+                        overlapViews.add(new DistrictOverlapView(overlap, district, districtMatchLevel));
                     }
-
-                    if (overlap != null) {
-                        List<DistrictOverlapView> overlapViews = new ArrayList<>();
-                        for (String district : overlap.getOverlapDistrictCodes()) {
-                            overlapViews.add(new DistrictOverlapView(overlap, district, districtMatchLevel));
-                        }
-                        overlaps.put(districtType.name().toLowerCase(), overlapViews);
-                    }
+                    overlaps.put(districtType.name().toLowerCase(), overlapViews);
                 }
             }
+        }
 
-            /** Handle street line matches */
-            if (districtInfo.getStreetRanges() != null && !districtInfo.getStreetRanges().isEmpty()) {
-                for (DistrictedStreetRange dsr : districtInfo.getStreetRanges()) {
-                    this.streets.add(new StreetRangeView(dsr));
-                }
+        // Handle street line matches
+        if (districtInfo.getStreetRanges() != null && !districtInfo.getStreetRanges().isEmpty()) {
+            for (DistrictedStreetRange dsr : districtInfo.getStreetRanges()) {
+                this.streets.add(new StreetRangeView(dsr));
             }
         }
     }

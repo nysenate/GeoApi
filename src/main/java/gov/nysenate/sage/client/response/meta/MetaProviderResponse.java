@@ -1,27 +1,19 @@
 package gov.nysenate.sage.client.response.meta;
 
-import gov.nysenate.sage.client.view.meta.ActiveGeocoderView;
-import gov.nysenate.sage.provider.geocode.GeocodeService;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 
-import java.util.ArrayList;
+import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
-public class MetaProviderResponse
-{
-    private List<ActiveGeocoderView> activeGeocoders;
+public class MetaProviderResponse {
+    private final List<String> geocoders;
 
-    public MetaProviderResponse(Map<String, Class<? extends GeocodeService>> activeGeocoderMap)
-    {
-        if (activeGeocoderMap != null) {
-            activeGeocoders = new ArrayList<>();
-            for (String shortName : activeGeocoderMap.keySet()) {
-                activeGeocoders.add(new ActiveGeocoderView(shortName, activeGeocoderMap.get(shortName)));
-            }
-        }
+    public MetaProviderResponse(@Nonnull Set<Geocoder> geocoders) {
+        this.geocoders = geocoders.stream().map(Enum::toString).toList();
     }
 
-    public List<ActiveGeocoderView> getActiveGeocoders() {
-        return activeGeocoders;
+    public List<String> getGeocoders() {
+        return geocoders;
     }
 }

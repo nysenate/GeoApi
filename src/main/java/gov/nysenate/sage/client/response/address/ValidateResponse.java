@@ -4,13 +4,11 @@ import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.view.address.AddressView;
 import gov.nysenate.sage.model.result.AddressResult;
 
-public class ValidateResponse extends BaseResponse
-{
+public class ValidateResponse extends BaseResponse {
     protected AddressView address;
     protected boolean validated = false;
 
-    public ValidateResponse(AddressResult addressResult)
-    {
+    public ValidateResponse(AddressResult addressResult) {
         super(addressResult);
         if (addressResult != null && addressResult.getStatusCode() != null) {
             this.validated = addressResult.isValidated();
@@ -18,13 +16,11 @@ public class ValidateResponse extends BaseResponse
         }
     }
 
-    public AddressView getAddress()
-    {
+    public AddressView getAddress() {
         return address;
     }
 
-    public boolean isValidated()
-    {
+    public boolean isValidated() {
         return validated;
     }
 }

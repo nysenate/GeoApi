@@ -26,10 +26,11 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
     protected String intersectType;
     protected List<StreetRangeView> streets = new ArrayList<>();
 
-    public MappedMultiDistrictResponse(DistrictResult districtResult) {
+    public MappedMultiDistrictResponse(DistrictResult districtResult, DistrictType intersectType) {
         super(districtResult);
         DistrictInfo districtInfo = districtResult.getDistrictInfo();
         DistrictMatchLevel districtMatchLevel = districtResult.getDistrictMatchLevel();
+        this.intersectType = (intersectType == null ? DistrictType.SENATE : intersectType).toString().toLowerCase();
 
         if (districtInfo != null) {
             if (!districtInfo.getDistrictOverlaps().isEmpty()) {
@@ -61,7 +62,6 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
                     this.streets.add(new StreetRangeView(dsr));
                 }
             }
-            this.intersectType = districtResult.getIntersectType().toString().toLowerCase();
         }
     }
 

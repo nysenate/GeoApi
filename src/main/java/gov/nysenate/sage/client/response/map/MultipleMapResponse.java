@@ -8,18 +8,14 @@ import gov.nysenate.sage.model.result.MapResult;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MultipleMapResponse extends BaseResponse
-{
+public class MultipleMapResponse extends BaseResponse {
     protected List<DistrictMapView> districts = new ArrayList<>();
 
-    public MultipleMapResponse(MapResult mapResult)
-    {
+    public MultipleMapResponse(MapResult mapResult) {
         super(mapResult);
-        if (mapResult != null) {
-            if (mapResult.isSuccess()) {
-                for (DistrictMap districtMap : mapResult.getDistrictMaps()) {
-                    districts.add(new DistrictMapView(districtMap));
-                }
+        if (mapResult != null && mapResult.isSuccess()) {
+            for (DistrictMap districtMap : mapResult.getDistrictMaps()) {
+                districts.add(new DistrictMapView(districtMap));
             }
         }
     }

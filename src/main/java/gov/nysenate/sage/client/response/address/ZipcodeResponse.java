@@ -9,8 +9,7 @@ public class ZipcodeResponse extends BaseResponse {
     protected Integer zip5;
     protected Integer zip4;
 
-    public ZipcodeResponse(AddressResult addressResult)
-    {
+    public ZipcodeResponse(AddressResult addressResult) {
         super(addressResult);
         if (addressResult != null && addressResult.getStatusCode() != null &&
             addressResult.getStatusCode().equals(SUCCESS)) {

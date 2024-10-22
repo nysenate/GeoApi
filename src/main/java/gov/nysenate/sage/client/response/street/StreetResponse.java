@@ -8,12 +8,10 @@ import gov.nysenate.sage.model.result.StreetResult;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StreetResponse extends BaseResponse
-{
+public class StreetResponse extends BaseResponse {
     protected List<StreetRangeView> streets = new ArrayList<>();
 
-    public StreetResponse(StreetResult streetResult)
-    {
+    public StreetResponse(StreetResult streetResult) {
         super(streetResult);
         if (streetResult != null && streetResult.isSuccess()) {
             for (DistrictedStreetRange dsr : streetResult.getDistrictedStreetRanges()) {
