@@ -43,7 +43,7 @@ public class MappedMultiDistrictResponse extends MappedDistrictResponse
                     /** Get the total reference area since they should all be the same for each overlap */
                     if (this.totalReferenceArea == null) {
                         this.totalReferenceArea = overlap.getTotalArea();
-                        this.areaUnit = overlap.getAreaUnit().name();
+                        this.areaUnit = overlap.getAreaUnit();
                     }
 
                     if (overlap != null) {

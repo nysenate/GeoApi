@@ -1,6 +1,5 @@
 package gov.nysenate.sage.controller.admin;
 
-import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.service.data.DataDelService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -8,8 +7,6 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,11 +23,9 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAdminRespon
 @Controller
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datadel")
 public class DataDelController {
-
-    private Logger logger = LoggerFactory.getLogger(DataGenController.class);
-    private AdminUserAuth adminUserAuth;
-    private ApiUserAuth apiUserAuth;
-    private DataDelService dataDelService;
+    private final AdminUserAuth adminUserAuth;
+    private final ApiUserAuth apiUserAuth;
+    private final DataDelService dataDelService;
 
     @Autowired
     public DataDelController(AdminUserAuth adminUserAuth,
@@ -44,9 +39,7 @@ public class DataDelController {
     /**
      * Remove Bad Zips Api
      * ---------------------
-     *
      * Removes non integer zip codes from the geocache
-     *
      * Usage:
      * (GET)    /admin/datadel/zips/{offset}
      *
@@ -82,9 +75,7 @@ public class DataDelController {
     /**
      * Remove Bad States Api
      * ---------------------
-     *
      * Removes invalid states from the geocache
-     *
      * Usage:
      * (GET)    /admin/datadel/states
      *

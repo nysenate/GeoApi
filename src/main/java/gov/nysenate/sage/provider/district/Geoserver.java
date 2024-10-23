@@ -7,8 +7,6 @@ import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +20,6 @@ import java.util.List;
  */
 @Service
 public class Geoserver extends DistrictService {
-    private static final Logger logger = LoggerFactory.getLogger(Geoserver.class);
     private final HttpGeoserverDao httpGeoserverDao;
 
     @Autowired

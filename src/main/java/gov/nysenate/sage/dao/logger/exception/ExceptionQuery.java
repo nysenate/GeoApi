@@ -4,14 +4,11 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum ExceptionQuery implements BasicSqlQuery {
-
     INSERT_EXCEPTION("INSERT INTO ${schema}." + SqlTable.EXCEPTION + "(apiRequestId, type, message, stackTrace, catchTime) \n" +
             "VALUES (:apiRequestId, :type, :message, :stackTrace, :catchTime) \n" +
-            "RETURNING id"),
+            "RETURNING id");
 
-    ;
-
-    private String sql;
+    private final String sql;
 
     ExceptionQuery(String sql) {
         this.sql = sql;

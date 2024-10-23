@@ -2,7 +2,6 @@ package gov.nysenate.sage.dao.stats.exception;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
-import gov.nysenate.sage.dao.stats.deployment.SqlDeploymentStatsDao;
 import gov.nysenate.sage.model.stats.ExceptionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +16,10 @@ import java.util.List;
 
 @Repository
 public class SqlExceptionInfoDao {
-    private static Logger logger = LoggerFactory.getLogger(SqlDeploymentStatsDao.class);
+    private static final Logger logger = LoggerFactory.getLogger(SqlExceptionInfoDao.class);
 
-    private SqlApiRequestLogger sqlApiRequestLogger;
-    private BaseDao baseDao;
+    private final SqlApiRequestLogger sqlApiRequestLogger;
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlExceptionInfoDao(SqlApiRequestLogger sqlApiRequestLogger, BaseDao baseDao) {
@@ -31,7 +30,6 @@ public class SqlExceptionInfoDao {
     /** {@inheritDoc} */
     public List<ExceptionInfo> getExceptionInfoList(Boolean excludeHidden) {
         try {
-
             if (excludeHidden) {
                 return baseDao.geoApiNamedJbdcTemplate.query(
                         ExceptionInfoQuery.SELECT_EXCEPTIONS_WITH_HIDDEN.getSql(baseDao.getLogSchema()),
@@ -61,15 +59,8 @@ public class SqlExceptionInfoDao {
         return 0;
     }
 
-    /**
-     * Handler implementation to create List<ExceptionInfo> from the result set.
-     */
-    private static class ExceptionInfoListHandler implements RowMapper<ExceptionInfo> {
-        private SqlApiRequestLogger sqlApiRequestLogger;
-
-        public ExceptionInfoListHandler(SqlApiRequestLogger sqlApiRequestLogger) {
-            this.sqlApiRequestLogger = sqlApiRequestLogger;
-        }
+    private record ExceptionInfoListHandler(SqlApiRequestLogger sqlApiRequestLogger)
+            implements RowMapper<ExceptionInfo> {
 
         public ExceptionInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
             ExceptionInfo ei = new ExceptionInfo();

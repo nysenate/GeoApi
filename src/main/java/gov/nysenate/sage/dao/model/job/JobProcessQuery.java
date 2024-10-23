@@ -7,10 +7,6 @@ public enum JobProcessQuery implements BasicSqlQuery {
     INSERT_JOB_PROCESS("INSERT INTO ${schema}." + SqlTable.PROCESS + " (userId, fileName, fileType, sourceFileName, requestTime, recordCount, validationReq, geocodeReq, districtReq) " +
             "VALUES (:userId,:fileName,:fileType,:sourceFileName,:requestTime,:recordCount,:validationReq,:geocodeReq,:districtReq) RETURNING id"),
 
-    GET_JOB_PROCESS_BY_ID("SELECT * FROM ${schema}." + SqlTable.PROCESS + " WHERE id = :id"),
-
-    GET_JOB_PROCESS_BY_USER("SELECT * FROM ${schema}." + SqlTable.PROCESS + " WHERE userId = :id"),
-
     UPDATE_JOB_PROCESS_STATUS("UPDATE ${schema}." + SqlTable.STATUS + " SET processId = :processId, condition = :condition, completedRecords = :completedRecords, startTime = :startTime, completeTime = :completeTime, completed = :completed, messages = :messages WHERE processId = :processId"),
 
     INSERT_JOB_PROCESS_STATUS("INSERT INTO ${schema}." + SqlTable.STATUS + " (processId, condition, completedRecords, startTime, completeTime, completed, messages) " +
@@ -28,11 +24,9 @@ public enum JobProcessQuery implements BasicSqlQuery {
     GET_RECENTLY_COMPLETED_JOB_PROCESSES("SELECT * FROM ${schema}." + SqlTable.PROCESS + " " +
             "LEFT JOIN ${schema}." + SqlTable.STATUS + " ON id = processId " +
             "WHERE status.completeTime >= :afterThis "  // completeTime filter
-    ),
+    );
 
-    ;
-
-    private String sql;
+    private final String sql;
 
     JobProcessQuery(String sql) {
         this.sql = sql;

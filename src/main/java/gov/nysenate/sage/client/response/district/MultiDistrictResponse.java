@@ -36,13 +36,13 @@ public class MultiDistrictResponse extends DistrictResponse {
                 // Get the total reference area since they should all be the same for each overlap
                 if (this.totalReferenceArea == null) {
                     this.totalReferenceArea = overlap.getTotalArea();
-                    this.areaUnit = overlap.getAreaUnit().name();
+                    this.areaUnit = overlap.getAreaUnit();
                 }
 
                 if (overlap != null) {
                     List<DistrictOverlapView> overlapViews = new ArrayList<>();
                     for (String district : overlap.getOverlapDistrictCodes()) {
-                        overlapViews.add(new DistrictOverlapView(overlap, district, districtMatchLevel));
+                        overlapViews.add(new DistrictOverlapView(overlap, district));
                     }
                     overlaps.put(districtType.name().toLowerCase(), overlapViews);
                 }

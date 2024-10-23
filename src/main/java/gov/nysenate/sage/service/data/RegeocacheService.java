@@ -16,7 +16,6 @@ import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -25,6 +24,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedWriter;
@@ -40,11 +40,13 @@ import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 
 @Service
 public class RegeocacheService implements SageRegeocacheService {
-    private Logger logger = LoggerFactory.getLogger(RegeocacheService.class);
-    private SqlRegeocacheDao sqlRegeocacheDao;
-    private Environment env;
-    private SageGeocodeServiceProvider geocodeServiceProvider;
-    final int nys_limit = 2000;
+    private static final Logger logger = LoggerFactory.getLogger(RegeocacheService.class);
+    private static final int nysLimit = 2000;
+    private final SqlRegeocacheDao sqlRegeocacheDao;
+    private final Environment env;
+    private final SageGeocodeServiceProvider geocodeServiceProvider;
+    @Value("${mass.geocache.error.log}")
+    private String massGeocacheErrorDir;
 
     @Autowired
     public RegeocacheService(SqlRegeocacheDao sqlRegeocacheDao, SageGeocodeServiceProvider geocodeServiceProvider,
@@ -67,14 +69,12 @@ public class RegeocacheService implements SageRegeocacheService {
             zipCodes = sqlRegeocacheDao.getAllZips();
         } catch (Exception ex) {
             logger.error("Error retrieving zip codes from geoapi db", ex);
-            apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-            return apiResponse;
+            return new ApiError(this.getClass(), INTERNAL_ERROR);
         }
 
         //Fail if we couldnt get zip codes properly
         if (zipCodes == null) {
-            apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
-            return apiResponse;
+            return new ApiError(this.getClass(), INTERNAL_ERROR);
         }
 
 
@@ -84,11 +84,11 @@ public class RegeocacheService implements SageRegeocacheService {
             /*
         Execute http request
          */
-            HttpClient httpClient = HttpClientBuilder.create().build();
+            CloseableHttpClient httpClient = HttpClientBuilder.create().build();
             try {
-                HttpPost httpRequest = new HttpPost(BASE_URL + zip + GEO_PROVIDER_URL);
+                var httpRequest = new HttpPost(BASE_URL + zip + GEO_PROVIDER_URL);
                 httpClient.execute(httpRequest);
-                ((CloseableHttpClient) httpClient).close();
+                httpClient.close();
             } catch (Exception e) {
                 logger.error("Failed to make Http request because of exception" + e.getMessage());
                 apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
@@ -102,11 +102,6 @@ public class RegeocacheService implements SageRegeocacheService {
     /**
      * Process for handling all sorts of mass regeocaching. It can handle methods, locations, zipcodes, qualities
      * and any combination of those. Primarily accessed through the CLI
-     * @param user_offset
-     * @param user_limit
-     * @param useFallback
-     * @param typeList
-     * @return
      */
     public Object massRegeoache(int user_offset, int user_limit, boolean useFallback, List<String> typeList) {
         //How many records have actually been processed
@@ -119,7 +114,7 @@ public class RegeocacheService implements SageRegeocacheService {
         String provider = determineIfProviderSpecified(typeList);
         //Create log file, if its empty at the end, then no errors
         String errorLogFileName = LocalDateTime.now() + ".txt";
-        createNewFile(env.getMassGeocacheErrorLog(), errorLogFileName);
+        createNewFile(massGeocacheErrorDir, errorLogFileName);
 
         try {
             //create query for total in the specified type(s)
@@ -168,13 +163,13 @@ public class RegeocacheService implements SageRegeocacheService {
                             //This means geocoding failed, write to file
                             if (geocodeResult.getStatusCode() != SUCCESS) {
                                 //write to file method
-                                writeDataToFile(env.getMassGeocacheErrorLog() + errorLogFileName, geocacheAddress);
+                                writeDataToFile(massGeocacheErrorDir + errorLogFileName, geocacheAddress);
                             }
                         }
                         catch (Exception e) {
                             logger.error("Geocoding failed for an address. The faulty address is in the file", e);
                             //Write to file method
-                            writeDataToFile(env.getMassGeocacheErrorLog() + errorLogFileName, geocacheAddress);
+                            writeDataToFile(massGeocacheErrorDir+ errorLogFileName, geocacheAddress);
                         }
                     }
                 }
@@ -193,8 +188,6 @@ public class RegeocacheService implements SageRegeocacheService {
 
     /**
      * This creates a error log file on each run of the Mass geocache process
-     * @param directory
-     * @param filename
      */
     private void createNewFile(String directory, String filename) {
         try {
@@ -212,8 +205,6 @@ public class RegeocacheService implements SageRegeocacheService {
 
     /**
      * Writes data to the error log file created by the mass geocache process
-     * @param filename
-     * @param failedAddress
      */
     private void writeDataToFile(String filename, Address failedAddress ) {
         try {
@@ -259,9 +250,7 @@ public class RegeocacheService implements SageRegeocacheService {
     }
 
     /**
-     * Cycles thru the NYS GEO database and updates our own geocache with that information
-     * @param nys_offset
-     * @return
+     * Cycles through the NYS GEO database and updates our own geocache with that information
      */
     public Object updateGeocacheWithNYSGeoData(int nys_offset) {
         Object apiResponse;
@@ -275,9 +264,9 @@ public class RegeocacheService implements SageRegeocacheService {
             //It is best to start from 0
             while (total > nys_offset) {
                 //Get batch of 2000
-                List<NYSGeoAddress> nysGeoAddresses = sqlRegeocacheDao.getBatchOfNYSGeoAddresses(nys_limit, nys_offset);
+                List<NYSGeoAddress> nysGeoAddresses = sqlRegeocacheDao.getBatchOfNYSGeoAddresses(nysLimit, nys_offset);
                 logger.info("At nys_offset: " + nys_offset);
-                nys_offset = nys_limit + nys_offset;
+                nys_offset = nysLimit + nys_offset;
 
                 //Handle batch
                 for (NYSGeoAddress nysGeoAddress : nysGeoAddresses) {
@@ -307,7 +296,7 @@ public class RegeocacheService implements SageRegeocacheService {
                         }
                     } catch (Exception e) {
                         logger.error("Failed to make Http request because of exception" + e.getMessage());
-                        logger.error("Failed address was: " + nysAddress.toString());
+                        logger.error("Failed address was: {}", nysAddress);
                         continue; //only put it in the database if USPS has data on it / corrected the address
                     }
 
@@ -317,8 +306,8 @@ public class RegeocacheService implements SageRegeocacheService {
                             sqlRegeocacheDao.getProviderOfAddressInCacheIfExists(nysStreetAddress);
 
                     Geocoder geocachedStreetAddressProvider = null;
-                    if (geocachedStreetAddress != null && geocachedStreetAddress.getStreetAddress().equals(nysStreetAddress)) {
-                        geocachedStreetAddressProvider = geocachedStreetAddress.getGeocode().originalGeocoder();
+                    if (geocachedStreetAddress != null && geocachedStreetAddress.streetAddress().equals(nysStreetAddress)) {
+                        geocachedStreetAddressProvider = geocachedStreetAddress.geocode().originalGeocoder();
                         //update only if it's not google. Address was matched so it should insert fine
                         if (geocachedStreetAddressProvider != Geocoder.GOOGLE && nysGeoAddress.getPointtype() == 1) {
                             try {

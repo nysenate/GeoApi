@@ -3,8 +3,6 @@ package gov.nysenate.sage.scripts.admin;
 import gov.nysenate.sage.scripts.BaseScript;
 import gov.nysenate.sage.service.data.DataGenService;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +11,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GenerateMetaDataCLI extends BaseScript {
-
     private static final Logger logger = LoggerFactory.getLogger(GenerateMetaDataCLI.class);
+    private final DataGenService dataGenService;
 
     @Autowired
-    DataGenService dataGenService;
+    public GenerateMetaDataCLI(DataGenService dataGenService) {
+        this.dataGenService = dataGenService;
+    }
 
     public static void main(String[] args) throws Exception {
         AnnotationConfigApplicationContext ctx = init();
@@ -29,18 +29,12 @@ public class GenerateMetaDataCLI extends BaseScript {
     }
 
     @Override
-    protected Options getOptions() {
-        Options options = super.getOptions();
-        return options;
-    }
-
-    @Override
     protected void execute(CommandLine opts) throws Exception {
 
         if (!opts.getArgList().isEmpty()) {
 
             for (String opt : opts.getArgs()) {
-                logger.info("Beginning Meta Data Generation for arg: " + opt);
+                logger.info("Beginning Meta Data Generation for arg: {}", opt);
                 dataGenService.generateMetaData(opt);
             }
 

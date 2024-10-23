@@ -12,8 +12,7 @@ import java.util.List;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 
 @Service
-public class DataDelService implements SageDataDelService {
-
+public class DataDelService {
     private static final Logger logger = LoggerFactory.getLogger(DataDelService.class);
     private final SqlDataDelDao sqlDataDelDao;
 
@@ -39,13 +38,7 @@ public class DataDelService implements SageDataDelService {
 
 
             for (String zip : zip_codes) {
-                //Validation for a proper zip code
-                //if its not valid then delete it
-
-                if (zip.matches("[0-9]+") && zip.length() == 5) {
-                    continue;
-                }
-                else {
+                if (!zip.matches("[0-9]{5}")) {
                     sqlDataDelDao.deleteZipInGeocache(zip);
                 }
             }
@@ -75,14 +68,7 @@ public class DataDelService implements SageDataDelService {
 
 
             for (String state : states) {
-                //Validation for a proper zip code
-                //if its not valid then delete it
-
-                if (state.isEmpty() || state.matches("([a-zA-Z]){2}") ) {
-                    continue;
-                }
-                else {
-//                    logger.info("Removing invalid state: " + state );
+                if (!state.isEmpty() && !state.matches("([a-zA-Z]){2}") ) {
                     sqlDataDelDao.deleteStateInGeocache(state);
                 }
             }

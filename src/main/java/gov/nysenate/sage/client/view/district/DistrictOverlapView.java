@@ -1,20 +1,18 @@
 package gov.nysenate.sage.client.view.district;
 
 import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictOverlap;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class DistrictOverlapView
-{
+public class DistrictOverlapView {
     protected String name;
     protected String district;
     protected BigDecimal intersectionArea;
     protected BigDecimal areaPercentage;
 
-    public DistrictOverlapView(DistrictOverlap districtOverlap, String district, DistrictMatchLevel matchLevel) {
+    public DistrictOverlapView(DistrictOverlap districtOverlap, String district) {
         if (districtOverlap != null && district != null) {
             DistrictMap districtMap = districtOverlap.getTargetDistrictMap(district);
             BigDecimal totalArea = districtOverlap.getTotalArea();

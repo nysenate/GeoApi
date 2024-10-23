@@ -20,15 +20,13 @@ public class AssemblyDaoIT extends BaseTests {
     @Autowired
     SqlAssemblyDao sqlAssemblyDao;
 
-    private static int TOTAL_ASSEMBLIES = 150;
-
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void getAssembliesTest()
     {
         List<Assembly> assemblyList = sqlAssemblyDao.getAssemblies();
         assertNotNull(assemblyList);
-        assertEquals(TOTAL_ASSEMBLIES, assemblyList.size());
+        assertEquals(150, assemblyList.size());
 
         Assembly a = assemblyList.get(0);
         assertNotNull(a.getMemberName());

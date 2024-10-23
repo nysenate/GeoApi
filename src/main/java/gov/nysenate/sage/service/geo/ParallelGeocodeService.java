@@ -24,13 +24,12 @@ import java.util.concurrent.Future;
 public class ParallelGeocodeService implements SageParallelGeocodeService {
     private static final Logger logger = LoggerFactory.getLogger(ParallelGeocodeService.class);
     private final int THREAD_COUNT;
-    private static ThreadPoolTaskExecutor executor;
+    private final ThreadPoolTaskExecutor executor;
 
     @Autowired
     public ParallelGeocodeService(Environment env) {
         this.THREAD_COUNT = env.getValidateThreads();
         this.executor = ExecutorUtil.createExecutor("geocode", THREAD_COUNT);
-//        this.executor = Executors.newFixedThreadPool(THREAD_COUNT, new SageThreadFactory("geocode"));
     }
 
     @Override

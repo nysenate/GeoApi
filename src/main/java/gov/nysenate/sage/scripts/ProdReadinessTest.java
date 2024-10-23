@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -103,7 +104,7 @@ public class ProdReadinessTest {
 
     private CloseableHttpResponse createHttpPostRequest(String ctxPath, String apiPath, String json) throws Exception {
         apiPath = apiPath.replaceAll(" ","%20");
-        logger.info(ctxPath + apiPath + "\n");
+        logger.info("{}{}\n", ctxPath, apiPath);
         CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
         HttpPost httpPost = new HttpPost(ctxPath + apiPath);
         StringEntity entity = new StringEntity(json);
@@ -120,10 +121,10 @@ public class ProdReadinessTest {
     }
 
     private JsonNode getResponseFromInputStream(InputStream is) throws IOException {
-        String sageReponse = IOUtils.toString(is, "UTF-8");
-        JsonNode jsonResonse = new ObjectMapper().readTree(sageReponse);
+        String sageResponse = IOUtils.toString(is, StandardCharsets.UTF_8);
+        JsonNode jsonResponse = new ObjectMapper().readTree(sageResponse);
         is.close();
-        return jsonResonse;
+        return jsonResponse;
     }
 
     private String turnAddressesIntoJson() {
@@ -180,10 +181,7 @@ public class ProdReadinessTest {
         try {
             prodReadinessTest.initializeProperties();
         }
-        catch (IOException e) {
-            logger.warn("Unable to initialize properties" + e);
-        }
-        catch (NullPointerException e) {
+        catch (IOException | NullPointerException e) {
             logger.warn("Unable to initialize properties" + e);
         }
         prodReadinessTest.initializeTestAddresses();

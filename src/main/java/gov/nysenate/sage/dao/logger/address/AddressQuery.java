@@ -4,7 +4,6 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum AddressQuery implements BasicSqlQuery {
-
     INSERT_ADDRESS("INSERT INTO ${schema}." + SqlTable.ADDRESS + "(addr1, addr2, city, state, zip5, zip4) \n" +
             "VALUES (:addr1, :addr2, :city, :state, :zip5, :zip4) \n" +
             "RETURNING id"),
@@ -14,7 +13,7 @@ public enum AddressQuery implements BasicSqlQuery {
             "LIMIT 1");
 
 
-    private String sql;
+    private final String sql;
 
     AddressQuery(String sql) {
         this.sql = sql;

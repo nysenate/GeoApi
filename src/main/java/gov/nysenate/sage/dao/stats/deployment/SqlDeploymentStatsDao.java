@@ -7,19 +7,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.List;
 
 @Repository
-public class SqlDeploymentStatsDao implements DeploymentStatsDao
-{
-    private static Logger logger = LoggerFactory.getLogger(SqlDeploymentStatsDao.class);
-    private BaseDao baseDao;
+public class SqlDeploymentStatsDao implements DeploymentStatsDao {
+    private static final Logger logger = LoggerFactory.getLogger(SqlDeploymentStatsDao.class);
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlDeploymentStatsDao(BaseDao baseDao) {
@@ -27,8 +23,7 @@ public class SqlDeploymentStatsDao implements DeploymentStatsDao
     }
 
     /** {@inheritDoc} */
-    public DeploymentStats getDeploymentStats()
-    {
+    public DeploymentStats getDeploymentStats() {
         try {
             List<Deployment> deployments = baseDao.geoApiNamedJbdcTemplate.query(
                     DeploymentStatsQuery.SELECT_DEPLOY_STATS.getSql(baseDao.getLogSchema()), new DeploymentStatsMapper());

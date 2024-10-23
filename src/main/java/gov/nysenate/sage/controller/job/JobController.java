@@ -47,11 +47,11 @@ import static gov.nysenate.sage.util.controller.JobControllerUtil.*;
 @Controller
 @RequestMapping(value = "/job")
 public class JobController {
-    private Logger logger = LoggerFactory.getLogger(JobController.class);
-    private Environment env;
-    private JobUserAuth jobUserAuth;
-    private SqlJobProcessDao sqlJobProcessDao;
-    private JobBatchProcessor jobBatchProcessor;
+    private static final Logger logger = LoggerFactory.getLogger(JobController.class);
+    private final Environment env;
+    private final JobUserAuth jobUserAuth;
+    private final SqlJobProcessDao sqlJobProcessDao;
+    private final JobBatchProcessor jobBatchProcessor;
 
 
     @Autowired

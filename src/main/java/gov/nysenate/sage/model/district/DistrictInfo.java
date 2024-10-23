@@ -12,41 +12,40 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
  * DistrictInfo is used as a container for all assigned district names, codes, and district maps.
- * It is designed to allow for quick look ups using maps as opposed to iterating over lists of districts.
+ * It is designed to allow for quick lookups using maps as opposed to iterating over lists of districts.
  */
 public class DistrictInfo {
     /** A set of DistrictTypes that were actually district assigned. */
-    protected Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
+    private final Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
 
     /** A set of the DistrictTypes that might be incorrectly assigned. */
-    protected Set<DistrictType> nearBorderDistricts = new LinkedHashSet<>();
+    private final Set<DistrictType> nearBorderDistricts = new LinkedHashSet<>();
 
     /** District names and codes */
-    protected Map<DistrictType, String> districtNames = new HashMap<>();
-    protected Map<DistrictType, String> districtCodes = new HashMap<>();
+    private final Map<DistrictType, String> districtNames = new HashMap<>();
+    private final Map<DistrictType, String> districtCodes = new HashMap<>();
+    private final Map<DistrictType, DistrictOverlap> districtOverlaps = new HashMap<>();
 
     /** Names of senate/assembly/congressional members */
-    protected Senator senator;
-    protected Map<DistrictType, DistrictMember> districtMembers = new HashMap<>();
+    private final Map<DistrictType, DistrictMember> districtMembers = new HashMap<>();
 
     /** District Maps and proximity values */
-    protected Map<DistrictType, DistrictMap> districtMaps = new HashMap<>();
-    protected Map<DistrictType, Double> districtProximities = new HashMap<>();
+    private final Map<DistrictType, DistrictMap> districtMaps = new HashMap<>();
+    private final Map<DistrictType, Double> districtProximities = new HashMap<>();
 
     /** Neighboring District Maps */
-    protected Map<DistrictType, List<DistrictMap>> neighborMaps = new HashMap<>();
+    private final Map<DistrictType, List<DistrictMap>> neighborMaps = new HashMap<>();
 
+    private Senator senator;
     /** Multi District Overlap/Map data */
-    protected DistrictMap referenceMap;
-    protected List<Line> streetLineReference;
-    protected Map<DistrictType, DistrictOverlap> districtOverlaps = new HashMap<>();
-    protected List<DistrictedStreetRange> streetRanges = new ArrayList<>();
+    private DistrictMap referenceMap;
+    private List<Line> streetLineReference;
+    private List<DistrictedStreetRange> streetRanges = new ArrayList<>();
 
     public DistrictInfo() {}
 
     public DistrictInfo(String congressionalCode, String countyCode, String senateCode,
-                        String assemblyCode, String townCode, String schoolCode)
-    {
+                        String assemblyCode, String townCode, String schoolCode) {
         this.setDistCode(CONGRESSIONAL, congressionalCode);
         this.setDistCode(COUNTY, countyCode);
         this.setDistCode(SENATE, senateCode);
@@ -77,16 +76,14 @@ public class DistrictInfo {
 
     /**
      * Sets a district code for a given type. A district is marked as assigned if the code is set through
-     * this method. Also if its a senate, congressional, or assembly district, a default name is set for it.
-     * @param districtType
-     * @param code
+     * this method. Also, if it's a senate, congressional, or assembly district, a default name is set for it.
      */
     public void setDistCode(DistrictType districtType, String code) {
         districtCodes.put(districtType, code);
         if (isValidDistCode(code)) {
             assignedDistricts.add(districtType);
 
-            /** Fill in the names for congressional and assembly districts */
+            // Fill in the names for congressional and assembly districts
             if (districtType == SENATE || districtType == ASSEMBLY || districtType == CONGRESSIONAL) {
                 String displayStr = WordUtils.capitalizeFully(districtType.name());
                 districtNames.put(districtType, "NY %s District %s".formatted(displayStr, code));
@@ -133,10 +130,6 @@ public class DistrictInfo {
         return assignedDistricts;
     }
 
-    public Map<DistrictType, String> getDistrictCodes() {
-        return districtCodes;
-    }
-
     /**
      * Get neighboring DistrictMaps if they exist or an empty List.
      * @param districtType  The district type to get neighbor maps for.
@@ -148,8 +141,6 @@ public class DistrictInfo {
 
     /**
      * Links a list of district maps (which represent the neighbor districts) to a district type.
-     * @param districtType
-     * @param neighborMaps
      */
     public void addNeighborMaps(DistrictType districtType, List<DistrictMap> neighborMaps) {
         this.neighborMaps.put(districtType, neighborMaps);
@@ -196,11 +187,10 @@ public class DistrictInfo {
 
     /**
      * Checks the district code map to see if a valid code exists for the given districtType.
-     * @param districtType
      * @return true if it has a valid code, false otherwise
      */
     public boolean hasDistrictCode(DistrictType districtType) {
-        return isValidDistCode(this.districtCodes.get(districtType));
+        return isValidDistCode(districtCodes.get(districtType));
     }
 
     @Override

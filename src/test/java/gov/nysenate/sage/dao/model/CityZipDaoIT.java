@@ -19,7 +19,7 @@ public class CityZipDaoIT extends BaseTests {
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void testGetZipsByCity() throws Exception {
+    public void testGetZipsByCity() {
         assertNotNull( sqlCityZipDBDao.getZipsByCity("troy"));
     }
 }

@@ -1,7 +1,6 @@
 package gov.nysenate.sage.dao.logger.exception;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
 import gov.nysenate.sage.util.FormatUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,34 +18,34 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 @Repository
-public class SqlExceptionLogger implements ExceptionLogger
-{
-    private static Logger logger = LoggerFactory.getLogger(SqlExceptionLogger.class);
-    private SqlApiRequestLogger sqlApiRequestLogger;
-    private BaseDao baseDao;
-    Marker fatal = MarkerFactory.getMarker("FATAL");
+public class SqlExceptionLogger {
+    private static final Logger logger = LoggerFactory.getLogger(SqlExceptionLogger.class);
+    private static final Marker fatal = MarkerFactory.getMarker("FATAL");
+    private final BaseDao baseDao;
 
     @Autowired
-    public SqlExceptionLogger(BaseDao baseDao, SqlApiRequestLogger sqlApiRequestLogger) {
-        this.sqlApiRequestLogger = sqlApiRequestLogger;
+    public SqlExceptionLogger(BaseDao baseDao) {
         this.baseDao = baseDao;
     }
 
-    /** {@inheritDoc} */
-    public void logException(Exception ex, Timestamp catchTime, Integer apiRequestId)
-    {
+    /**
+     * Logs an uncaught exception to the database.
+     * @param ex            The exception
+     * @param catchTime     The time the unhandled exception was eventually caught
+     * @param apiRequestId  Associated apiRequestId set at the time when exception arose
+     */
+    public void logException(Exception ex, Timestamp catchTime, Integer apiRequestId) {
         try {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
+            var sw = new StringWriter();
+            var pw = new PrintWriter(sw);
             ex.printStackTrace(pw);
 
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("apiRequestId",apiRequestId);
-            params.addValue("type",ex.getClass().getName());
-            params.addValue("message",ex.getMessage());
-            params.addValue("stackTrace",FormatUtil.toJsonString(sw.toString()));
-            params.addValue("catchTime",catchTime);
-
+            var params = new MapSqlParameterSource()
+                    .addValue("apiRequestId", apiRequestId)
+                    .addValue("type", ex.getClass().getName())
+                    .addValue("message", ex.getMessage())
+                    .addValue("stackTrace", FormatUtil.toJsonString(sw.toString()))
+                    .addValue("catchTime", catchTime);
             baseDao.geoApiNamedJbdcTemplate.query(ExceptionQuery.INSERT_EXCEPTION.getSql(baseDao.getLogSchema()),
                     params, new ExceptionIdHandler());
         }

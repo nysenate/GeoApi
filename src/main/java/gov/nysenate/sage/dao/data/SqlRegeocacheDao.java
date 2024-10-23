@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import org.apache.commons.lang.WordUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
@@ -21,6 +22,8 @@ import java.util.List;
 @Repository
 public class SqlRegeocacheDao implements RegeocacheDao {
     private final BaseDao baseDao;
+    @Value("${env.districts.schema:districts}")
+    private String districtsSchema;
 
     @Autowired
     public SqlRegeocacheDao(BaseDao baseDao) {
@@ -108,7 +111,7 @@ public class SqlRegeocacheDao implements RegeocacheDao {
 
     public List<String> getAllZips() {
         return baseDao.geoApiJbdcTemplate.query(
-                RegeocacheQuery.SELECT_ZIPS.getSql(baseDao.getDistrictSchema()),
+                RegeocacheQuery.SELECT_ZIPS.getSql(districtsSchema),
                 (rs, rowNum) -> rs.getString("zip_code"));
     }
 

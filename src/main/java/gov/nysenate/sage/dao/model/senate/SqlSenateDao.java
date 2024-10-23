@@ -142,8 +142,8 @@ public class SqlSenateDao implements SenateDao {
 
     private Map<Integer, Senator> compileSenateMap(List<Map<Integer, Senator>> uncompiledSenatorMap) {
         Map<Integer, Senator> compiledSenatorMap = new HashMap<>();
-        for(int i=0; i < uncompiledSenatorMap.size(); i++) {
-            compiledSenatorMap.putAll(uncompiledSenatorMap.get(i));
+        for (Map<Integer, Senator> integerSenatorMap : uncompiledSenatorMap) {
+            compiledSenatorMap.putAll(integerSenatorMap);
         }
         logger.info("Cached " + senatorMap.size() + " senators.");
         cacheUpdated = new Timestamp(new Date().getTime());

@@ -8,14 +8,12 @@ import gov.nysenate.sage.model.district.DistrictType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MappedDistrictView extends DistrictView
-{
+public class MappedDistrictView extends DistrictView {
     protected PolygonMapView map;
     protected boolean nearBorder;
     public List<DistrictNeighborView> neighbors = new ArrayList<>();
 
-    public MappedDistrictView(DistrictType districtType, DistrictInfo districtInfo)
-    {
+    public MappedDistrictView(DistrictType districtType, DistrictInfo districtInfo) {
         super(districtType, districtInfo);
         if (districtInfo != null) {
             this.map = new PolygonMapView(districtInfo.getDistMap(districtType));
@@ -27,7 +25,7 @@ public class MappedDistrictView extends DistrictView
     }
 
     public PolygonMapView getMap() {
-        return (map != null && map.getGeom() != null && map.getGeom().size() > 0) ? map : null;
+        return (map != null && map.getGeom() != null && map.getGeom().isEmpty()) ? null : map;
     }
 
     public boolean isNearBorder() {

@@ -1,7 +1,5 @@
 package gov.nysenate.sage.service.data;
 
-import org.apache.xmlrpc.XmlRpcException;
-
 import java.io.IOException;
 
 public interface SageDataGenService {
@@ -11,11 +9,7 @@ public interface SageDataGenService {
     void updateSenatorCache();
 
     /**
-     * Gnerates the District meta data for the Senate, Assembly, and Congressional Candidates
-     * @param option
-     * @return
-     * @throws IOException
-     * @throws XmlRpcException
+     * Generates the District metadata for the Senate, Assembly, and Congressional Candidates
      */
-    Object generateMetaData(String option) throws IOException, XmlRpcException;
+    Object generateMetaData(String option) throws IOException;
 }

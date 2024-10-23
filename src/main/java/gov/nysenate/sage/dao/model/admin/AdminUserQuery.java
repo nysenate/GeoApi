@@ -7,11 +7,9 @@ public enum AdminUserQuery implements BasicSqlQuery { //${schema}.
     GET_ADMIN("SELECT * FROM ${schema}." + SqlTable.ADMIN + "\n" +
             "WHERE username = :username"),
 
-    INSERT_ADMIN( "INSERT INTO ${schema}." + SqlTable.ADMIN + " (username, password) VALUES (:username,:password) RETURNING id;"),
+    INSERT_ADMIN( "INSERT INTO ${schema}." + SqlTable.ADMIN + " (username, password) VALUES (:username,:password) RETURNING id;");
 
-            ;
-
-    private String sql;
+    private final String sql;
 
     AdminUserQuery(String sql) {
         this.sql = sql;

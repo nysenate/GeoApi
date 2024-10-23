@@ -4,7 +4,6 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
-import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -44,28 +43,25 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
         shapeOnly       /** Perform shape lookup only */
     }
 
-    private final Logger logger = LoggerFactory.getLogger(DistrictServiceProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(DistrictServiceProvider.class);
+    /** Specifies the set of districts that are allowed to obtain nearby neighbor info. The reason every
+     * district that has shape files can't do this is because the query can be rather slow. */
+    private static final Set<DistrictType> allowNeighborAssignSet = Set.of(DistrictType.SENATE);
 
     private final DistrictStrategy singleDistrictStrategy;
     private final DistrictStrategy batchDistrictStrategy;
+
+    private final Map<String,DistrictService> providers = new HashMap<>();
+    private final PostOfficeService postOfficeService;
 
     /** Specifies the distance (meters) to a district boundary in which the accuracy of shapefiles is uncertain */
     @Value("${border.proximity:200}")
     private int PROXIMITY_THRESHOLD;
 
-    /** Specifies the set of districts that are allowed to obtain nearby neighbor info. The reason every
-     * district that has shape files can't do this is because the query can be rather slow. */
-    private static final Set<DistrictType> allowNeighborAssignSet = Set.of(DistrictType.SENATE);
-
-    protected DistrictService defaultProvider;
-    protected Map<String,DistrictService> providers = new HashMap<>();
-    protected PostOfficeService postOfficeService;
-
     @Autowired
     public DistrictServiceProvider(@Value("${district.strategy.single:neighborMatch}") String singleDistrictStrategy,
                                    @Value("${district.strategy.batch:streetFallback}") String batchDistrictStrategy,
                                    DistrictShapefile districtShapefile, Streetfile streetFile, PostOfficeService postOfficeService) {
-        this.defaultProvider = districtShapefile;
         this.postOfficeService = postOfficeService;
         providers.put("shapefile", districtShapefile);
         providers.put("streetfile", streetFile);
@@ -73,55 +69,13 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
         this.batchDistrictStrategy = DistrictStrategy.valueOf(batchDistrictStrategy);
     }
 
-    /** Single District Assign ---------------------------------------------------------------------------------------*/
-
-    /**
-     * Assign districts using supplied DistrictRequest.
-     * @param geocodedAddress
-     * @param districtRequest
-     * @return DistrictResult
-     */
-    public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final DistrictRequest districtRequest)
-    {
-        if (districtRequest != null) {
-            return assignDistricts(geocodedAddress, districtRequest.getProvider(), districtRequest.getDistrictTypes(), districtRequest.getDistrictStrategy());
-        }
-        return null;
-    }
-
-    /**
-     * Assign standard districts using default method.
-     * @param geocodedAddress
-     * @return DistrictResult
-     */
-    public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress)
-    {
-        return assignDistricts(geocodedAddress, null, DistrictType.getStandardTypes(), singleDistrictStrategy);
-    }
-
-    /**
-     * Assign standard districts using specified provider
-     * @param geocodedAddress
-     * @param distProvider
-     * @return DistrictResult
-     */
-    public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final String distProvider)
-    {
-        return assignDistricts(geocodedAddress, distProvider, DistrictType.getStandardTypes(), singleDistrictStrategy);
-    }
-
     /**
      * If a district provider is specified use that for district assignment.
-     * Otherwise the default strategy for district assignment is to run both street file and district shape file
+     * Otherwise, the default strategy for district assignment is to run both street file and district shape file
      * look-ups in parallel. Once results from both lookup methods are retrieved they are compared and consolidated.
-     *
-     * @param geocodedAddress
-     * @param distProvider
-     * @return
      */
     public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final String distProvider,
-                                          final List<DistrictType> districtTypes, DistrictStrategy districtStrategy)
-    {
+                                          final List<DistrictType> districtTypes, DistrictStrategy districtStrategy) {
         logger.debug("Assigning districts " + ((geocodedAddress != null) ? geocodedAddress.getAddress() : ""));
         Timestamp startTime = TimeUtil.currentTimestamp();
         DistrictResult districtResult = null, streetFileResult, shapeFileResult;
@@ -143,7 +97,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
                 switch (districtStrategy) {
                     case neighborMatch:
                         districtExecutor = ExecutorUtil.createExecutor("neighborMatch", 2);
-//                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("neighborMatch"));
 
                         Callable<DistrictResult> shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes);
                         Callable<DistrictResult> streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes);
@@ -161,7 +114,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
 
                     case streetFallback:
                         districtExecutor = ExecutorUtil.createExecutor("streetFallBack", 2);
-//                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("streetFallback"));
 
                         shapeFileCall = getDistrictsCallable(geocodedAddress, shapeFileService, districtTypes);
                         streetFileCall = getDistrictsCallable(geocodedAddress, streetFileService, districtTypes);
@@ -222,49 +174,22 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
         return districtResult;
     }
 
-    /** Batch District Assign ----------------------------------------------------------------------------------------*/
-
     /**
      * Assign standard districts with options set in BatchDistrictRequest.
-     * @param bdr
-     * @return
      */
     public List<DistrictResult> assignDistricts(final BatchDistrictRequest bdr) {
         return assignDistricts(bdr.getGeocodedAddresses(), bdr.getProvider(), DistrictType.getStandardTypes(), bdr.getDistrictStrategy());
     }
 
     /**
-     * Assign standard districts.
-     * @param geocodedAddresses
-     * @return
-     */
-    public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses) {
-        return assignDistricts(geocodedAddresses, DistrictType.getStandardTypes());
-    }
-
-    /**
-     * Assign specified district types using default method.
-     * @param geocodedAddresses
-     * @param districtTypes
-     * @return List<DistrictResult>
-     */
-    public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses,
-                                                final List<DistrictType> districtTypes) {
-        return assignDistricts(geocodedAddresses, null, districtTypes, null);
-    }
-
-    /**
      * Assign specified district types using an assortment of district strategies.
-     * @param geocodedAddresses
      * @param distProvider  If district provider is specified, (e.g streetfile), then only that provider will be used.
-     * @param districtTypes
      * @return List<DistrictResult>
      */
     public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final String distProvider,
-                                                final List<DistrictType> districtTypes, DistrictStrategy districtStrategy)
-    {
+                                                final List<DistrictType> districtTypes, DistrictStrategy districtStrategy) {
         if (geocodedAddresses != null) {
-            logger.info(String.format("Performing district assign for %d addresses.", geocodedAddresses.size()));
+            logger.info("Performing district assign for {} addresses.", geocodedAddresses.size());
         }
         else {
             logger.info("The geocoded address was null");
@@ -276,11 +201,11 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
         ThreadPoolTaskExecutor districtExecutor = null;
         List<DistrictResult> districtResults = new ArrayList<>(), streetFileResults, shapeFileResults;
 
-        DistrictService streetFileService = this.providers.get("streetfile");
-        DistrictService shapeFileService = this.providers.get("shapefile");
+        DistrictService streetFileService = providers.get("streetfile");
+        DistrictService shapeFileService = providers.get("shapefile");
 
-        if (this.providers.containsKey(distProvider)) {
-            DistrictService districtService = this.providers.get(distProvider);
+        if (providers.containsKey(distProvider)) {
+            DistrictService districtService = providers.get(distProvider);
             districtResults = districtService.assignDistricts(geocodedAddresses, districtTypes);
         }
         else {
@@ -293,7 +218,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
                 switch (districtStrategy) {
                     case neighborMatch:
                         districtExecutor = ExecutorUtil.createExecutor("neighborMatchBatch", 2);
-//                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("neighborMatchBatch"));
 
                         Callable<List<DistrictResult>> streetFileCall = getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes);
                         Callable<List<DistrictResult>> shapeFileCall = getDistrictsCallable(geocodedAddresses, shapeFileService, districtTypes);
@@ -321,7 +245,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
 
                     case streetFallback:
                         districtExecutor = ExecutorUtil.createExecutor("streetFallbackBatch", 2);
-//                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("streetFallbackBatch"));
 
                         streetFileCall = getDistrictsCallable(geocodedAddresses, streetFileService, districtTypes);
                         shapeFileCall = getDistrictsCallable(geocodedAddresses, shapeFileService, districtTypes);
@@ -375,10 +298,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
                         break;
                 }
             }
-            catch (InterruptedException ex) {
-                logger.error("Failed to get district results from future!", ex);
-            }
-            catch (ExecutionException ex) {
+            catch (InterruptedException | ExecutionException ex) {
                 logger.error("Failed to get district results from future!", ex);
             }
             finally {
@@ -389,7 +309,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
         }
         districtResults.forEach(this::fixPostOfficeBoxResult);
         districtElapsedMs = TimeUtil.getElapsedMs(startTime);
-        logger.info(String.format("District assign time: %d ms.", districtElapsedMs));
+        logger.info("District assign time: {} ms.", districtElapsedMs);
 
         return districtResults;
     }
@@ -407,25 +327,23 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
 
     /** Multi District Overlap ---------------------------------------------------------------------------------------*/
 
-    public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, boolean zipProvided)
-    {
+    public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, boolean zipProvided) {
         Timestamp startTime = TimeUtil.currentTimestamp();
         DistrictShapefile districtShapeFile = (DistrictShapefile) this.providers.get("shapefile");
         DistrictResult districtResult = districtShapeFile.getMultiMatchResult(geocodedAddress, zipProvided);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
-        logger.info(String.format("Multi-match district assign in %d ms.", TimeUtil.getElapsedMs(startTime)));
+        logger.info("Multi-match district assign in {} ms.", TimeUtil.getElapsedMs(startTime));
         return districtResult;
     }
 
     /** Intersection -------------------------------------------------------------------------------------------------*/
 
-    public DistrictResult assignIntersect(DistrictType districtType, String districtId, DistrictType intersectType)
-    {
+    public DistrictResult assignIntersect(DistrictType districtType, String districtId, DistrictType intersectType) {
         Timestamp startTime = TimeUtil.currentTimestamp();
         DistrictShapefile districtShapeFile = (DistrictShapefile) this.providers.get("shapefile");
         DistrictResult districtResult = districtShapeFile.getIntersectionResult(districtType, districtId, intersectType);
         districtResult.setResultTime(new Timestamp(new Date().getTime()));
-        logger.info(String.format("Intersection in %d ms.", TimeUtil.getElapsedMs(startTime)));
+        logger.info("Intersection in {} ms.", TimeUtil.getElapsedMs(startTime));
         return districtResult;
     }
 
@@ -435,26 +353,14 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
     private Callable<DistrictResult> getDistrictsCallable(final GeocodedAddress geocodedAddress,
                                                           final DistrictService districtService,
                                                           final List<DistrictType> districtTypes) {
-        return new Callable<DistrictResult>() {
-            @Override
-            public DistrictResult call() throws Exception {
-                return districtService.assignDistricts(geocodedAddress, districtTypes);
-            }
-        };
+        return () -> districtService.assignDistricts(geocodedAddress, districtTypes);
     }
 
     private Callable<List<DistrictResult>> getDistrictsCallable(final List<GeocodedAddress> geocodedAddresses,
                                                                 final DistrictService districtService,
                                                                 final List<DistrictType> districtTypes) {
-        return new Callable<List<DistrictResult>>() {
-            @Override
-            public List<DistrictResult> call() throws Exception {
-                return districtService.assignDistricts(geocodedAddresses, districtTypes);
-            }
-        };
+        return () -> districtService.assignDistricts(geocodedAddresses, districtTypes);
     }
-
-    /** Internal | District Result Consolidation ------------------------------------------------------------------*/
 
     /**
      * Perform result consolidation based on the specified strategy.
@@ -462,8 +368,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
      */
     private DistrictResult consolidateDistrictResults(GeocodedAddress geocodedAddress, DistrictService shapeService,
                                                       DistrictResult shapeResult, DistrictResult streetResult,
-                                                      DistrictStrategy strategy)
-    {
+                                                      DistrictStrategy strategy) {
         switch (strategy) {
             case neighborMatch:
                 if (shapeResult.isSuccess()) {
@@ -505,8 +410,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
                                             shapeInfo.setDistName(assignedType, neighborMap.getDistrictName());
 
                                             /** Replace the neighbor */
-                                            int index = shapeInfo.getNeighborMaps(assignedType).indexOf(neighborMap);
-                                            shapeInfo.getNeighborMaps(assignedType).remove(index);
+                                            shapeInfo.getNeighborMaps(assignedType).remove(neighborMap);
                                             if (shapeInfo.getNeighborMaps(assignedType).isEmpty()) {
                                                 shapeInfo.getNeighborMaps(assignedType).add(original);
                                             }
@@ -530,7 +434,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
                             }
                             /** Otherwise no comparison available. */
                             else {
-                                logger.trace(assignedType + " district could not be verified for " + address);
+                                logger.trace("{} district could not be verified for {}", assignedType, address);
                             }
                         }
 
@@ -541,7 +445,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
                         }
                     }
                     else {
-                        logger.debug("No street file result for " + address);
+                        logger.debug("No street file result for {}", address);
                     }
                 }
                 else {
@@ -602,8 +506,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
      * @param streetInfo The streetfile DistrictInfo
      * @return The shapefile DistrictInfo with modified district code and name. DistrictMap is not altered.
      */
-    private DistrictInfo replaceShapeWithStreet(DistrictType districtType, DistrictInfo shapeInfo, DistrictInfo streetInfo)
-    {
+    private DistrictInfo replaceShapeWithStreet(DistrictType districtType, DistrictInfo shapeInfo, DistrictInfo streetInfo) {
         shapeInfo.setDistCode(districtType, streetInfo.getDistCode(districtType));
         shapeInfo.setDistName(districtType, streetInfo.getDistName(districtType));
         return shapeInfo;
@@ -615,31 +518,31 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
      * @param shapeResult   The shape file DistrictResult
      * @return DistrictResult with neighbors set
      */
-    private DistrictResult assignNeighbors(DistrictService shapeService, DistrictResult shapeResult)
-    {
-        if (shapeResult != null && (shapeResult.isSuccess())) {
-            DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
-            GeocodedAddress geocodedAddress = shapeResult.getGeocodedAddress();
+    private DistrictResult assignNeighbors(DistrictService shapeService, DistrictResult shapeResult) {
+        if (shapeResult == null || !shapeResult.isSuccess()) {
+            return shapeResult;
+        }
+        DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
+        GeocodedAddress geocodedAddress = shapeResult.getGeocodedAddress();
 
-            /** Iterate over all assigned, near border districts */
-            for (DistrictType districtType : shapeResult.getAssignedDistricts()) {
-                if (shapeInfo.getDistProximity(districtType) < PROXIMITY_THRESHOLD) {
+        /** Iterate over all assigned, near border districts */
+        for (DistrictType districtType : shapeResult.getAssignedDistricts()) {
+            if (shapeInfo.getDistProximity(districtType) >= PROXIMITY_THRESHOLD) {
+                continue;
+            }
+            /** Designate that the district lines are close */
+            shapeInfo.addNearBorderDistrict(districtType);
 
-                    /** Designate that the district lines are close */
-                    shapeInfo.addNearBorderDistrict(districtType);
-
-                    /** Fetch the neighbors and add them to the district info if it is allowed. */
-                    if (allowNeighborAssignSet.contains(districtType)) {
-                        Map<String, DistrictMap> neighborDistricts = shapeService.nearbyDistricts(geocodedAddress, districtType);
-                        if (neighborDistricts != null && !neighborDistricts.isEmpty()) {
-                            List<DistrictMap> neighborList = new ArrayList<>();
-                            for (DistrictMap neighborMap : neighborDistricts.values()) {
-                                logger.trace("Adding " + districtType + " neighbor: " + neighborMap.getDistrictCode());
-                                neighborList.add(neighborMap);
-                            }
-                            shapeInfo.addNeighborMaps(districtType, neighborList);
-                        }
+            /** Fetch the neighbors and add them to the district info if it is allowed. */
+            if (allowNeighborAssignSet.contains(districtType)) {
+                Map<String, DistrictMap> neighborDistricts = shapeService.nearbyDistricts(geocodedAddress, districtType);
+                if (neighborDistricts != null && !neighborDistricts.isEmpty()) {
+                    List<DistrictMap> neighborList = new ArrayList<>();
+                    for (DistrictMap neighborMap : neighborDistricts.values()) {
+                        logger.trace("Adding {} neighbor: {}", districtType, neighborMap.getDistrictCode());
+                        neighborList.add(neighborMap);
                     }
+                    shapeInfo.addNeighborMaps(districtType, neighborList);
                 }
             }
         }
@@ -652,7 +555,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
      * @param code          District code to search for.
      * @return              DistrictMap of the matched neighbor.
      */
-    private DistrictMap getNeighborMapByCode(List<DistrictMap> neighborMaps, String code) {
+    private static DistrictMap getNeighborMapByCode(List<DistrictMap> neighborMaps, String code) {
         for (DistrictMap neighborMap : neighborMaps) {
             if (neighborMap.getDistrictCode().equalsIgnoreCase(code)) {
                 return neighborMap;

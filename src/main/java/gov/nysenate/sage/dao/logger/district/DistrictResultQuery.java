@@ -4,14 +4,12 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum DistrictResultQuery implements BasicSqlQuery {
-
     INSERT_RESULT("INSERT INTO ${schema}. "+ SqlTable.DISTRICT_RESULT + "(districtrequestid, assigned, status, senatecode, assemblycode," +
             "congressionalcode, countycode, town_code, school_code, matchLevel, resulttime) \n" +
             "VALUES (:districtrequestid, :assigned, :status, :senatecode, :assemblycode, ;congressionalcode, ;countycode, ;town_code, :school_code, :matchLevel, :resulttime) \n" +
-            "RETURNING id")
-    ;
+            "RETURNING id");
 
-    private String sql;
+    private final String sql;
 
     DistrictResultQuery(String sql) {
         this.sql = sql;

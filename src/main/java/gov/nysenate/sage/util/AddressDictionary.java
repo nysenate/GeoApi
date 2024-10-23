@@ -8,25 +8,7 @@ import java.util.List;
 
 // Data source can be found at: https://pe.usps.com/text/pub28/28apc_002.htm
 public final class AddressDictionary {
-    public static final ImmutableMap<String, String>
-            stateMap = getMap(
-                    "AL","Alabama", "AK","Alaska", "AS","American Samoa", "AZ","Arizona",
-                    "AR","Arkansas", "CA","California", "CO","Colorado", "CT","Connecticut",
-                    "DE","Delaware", "DC","District of Columbia", "FM","Federated States of Micronesia", "FL","Florida",
-                    "GA","Georgia", "GU","Guam", "HI","Hawaii", "ID","Idaho",
-                    "IL","Illinois", "IN","Indiana", "IA","Iowa", "KS","Kansas",
-                    "KY","Kentucky", "LA","Louisiana", "ME","Maine", "MH","Marshall Islands",
-                    "MD","Maryland", "MA","Massachusetts", "MI","Michigan", "MN","Minnesota",
-                    "MS","Mississippi", "MO","Missouri", "MT","Montana", "NE","Nebraska",
-                    "NV","Nevada", "NH","New Hampshire", "NJ","New Jersey", "NM","New Mexico",
-                    "NY","New York", "NC","North Carolina", "ND","North Dakota", "MP","Northern Mariana Islands",
-                    "OH","Ohio", "OK","Oklahoma", "OR","Oregon", "PW","Palau",
-                    "PA","Pennsylvania", "PR","Puerto Rico", "RI","Rhode Island", "SC","South Carolina",
-                    "SD","South Dakota", "TN","Tennessee", "TX","Texas", "UT","Utah",
-                    "VT","Vermont", "VI","Virgin Islands", "VA","Virginia", "WA","Washington",
-                    "WV","West Virginia", "WI","Wisconsin", "WY","Wyoming"
-            ),
-            streetTypeMap = getMap(
+    public static final ImmutableMap<String, String> streetTypeMap = getMap(
                     "Aly", List.of("ALLEE", "ALLEY", "ALLY", "ALY"), "Anx", List.of("ANEX", "ANNEX", "ANNX", "ANX"),
                     "Arc", List.of("ARC", "ARCADE"), "Ave", List.of("AV", "AVE", "AVEN", "AVENU", "AVENUE", "AVN", "AVNUE"),
                     "Bch", List.of("BCH", "BEACH"), "Bg", List.of("BG", "BURG"),
@@ -134,8 +116,8 @@ public final class AddressDictionary {
                     "Way", List.of("WAY", "WY"), "Ways", List.of("WAYS"),
                     "Wl", List.of("WELL", "WL"), "Wls", List.of("WELLS", "WLS"),
                     "Xing", List.of("CROSSING", "CRSSING", "CRSSNG", "XING"), "Xrd", List.of("CROSSROAD", "XRD")
-            ),
-            unitNoNumMap = getMap(
+            );
+    public static final ImmutableMap<String, String> unitNoNumMap = getMap(
                     "BSMT", List.of("BASEMENT", "BSMT"),
                     "FRNT", List.of("FRNT"),
                     "LEFT", List.of("LEFT"),
@@ -145,17 +127,17 @@ public final class AddressDictionary {
                     "REAR", List.of("REAR"),
                     "RIGHT", List.of("RIGHT"),
                     "UPPR", List.of("UPPER", "UPPR")
-            ),
-            unitNumMap = getMap(
+            );
+    public static final ImmutableMap<String, String> unitNumMap = getMap(
                     "APT", List.of("APARTMENT", "APT"), "BLDG", List.of("BLDG", "BUILDING"),
                     "DEPT", List.of("DEPARTMENT", "DEPT"), "FL", List.of("FL", "FLOOR"),
                     "HNGR", List.of("HANGAR", "HNGR"), "LOT", List.of("LOT"),
                     "OFC", List.of("OFC", "OFFICE"), "PIER", List.of("PIER"), "RM", List.of("RM", "ROOM"),
                     "SIDE", List.of("SIDE"), "SLIP", List.of("SLIP"), "SPC", List.of("SPACE", "SPC"),
                     "STE", List.of("STE", "SUITE"), "STOP", List.of("STOP"), "TRLR", List.of("TRAILER", "TRLR")
-            ),
-            unitMap = getUnitMap(),
-            highWayMap = getMap(
+            );
+    public static final ImmutableMap<String, String> unitMap = getUnitMap();
+    public static final ImmutableMap<String, String> highWayMap = getMap(
                     "Cam", List.of("CAM", "CAM.", "CAMINO"), "Co Hwy", List.of("CO HWY", "COUNTY HIGH WAY", "COUNTY HIGHWAY", "COUNTY HWY"),
                     "Co Rd", List.of("CO RD", "CORD", "COUNTY RD", "COUNTY ROAD"),
                     "Co Rte", List.of("CO RTE", "COUNTY ROUTE"), "Co St Aid Hwy", List.of("CO ST AID HWY"),
@@ -170,11 +152,8 @@ public final class AddressDictionary {
                     "Tpke", List.of("TPK", "TPKE", "TRNPK", "TRPK", "TURNPIKE", "TURNPK"),
                     "US Hwy", List.of("U.S.", "US HIGH WAY", "US HIGHWAY", "US HWY"),
                     "US Rte", List.of("US ROUTE", "US RT", "US RTE"), "USFS Hwy", List.of("USFS HIGH WAY", "USFS HIGHWAY", "USFS HWY")
-            ),
-            streetPrefixMap = getMap(
-                    "St", List.of("St"), "Ft", List.of("FORT", "FRT", "FT")
-            ),
-            directionMap = getDirectionMap();
+            );
+    public static final ImmutableMap<String, String> directionMap = getDirectionMap();
 
     private AddressDictionary() {}
 

@@ -5,12 +5,11 @@ import java.util.List;
 /**
  * Simple polygon representation
  */
-public class Polygon extends Line
-{
+public class Polygon extends Line {
     /**
-     * Construct a Polygon object with the provided list of points.*
+     * Construct a Polygon object with the provided list of points.
      * @param points list of points
-    */
+     */
     public Polygon(List<Point> points) {
         super(points);
     }
@@ -22,12 +21,11 @@ public class Polygon extends Line
      *
      * @return string representation of this polygon
      */
-    public String toString()
-    {
-        StringBuilder s = new StringBuilder();
+    @Override
+    public String toString() {
+        var s = new StringBuilder();
         for (Point p : points) {
-            s.append(p.toString());
-            s.append("\n");
+            s.append(p.toString()).append('\n');
         }
         return s.toString();
     }

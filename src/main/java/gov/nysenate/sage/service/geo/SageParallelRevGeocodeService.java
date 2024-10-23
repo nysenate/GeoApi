@@ -4,7 +4,6 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.RevGeocodeService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public interface SageParallelRevGeocodeService {

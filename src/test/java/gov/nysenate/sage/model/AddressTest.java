@@ -38,13 +38,12 @@ public class AddressTest {
         Address notEligibile3 = new Address("100 N Drive", "Troy", "", "");
         Address notEligibile4 = new Address("", "Troy", "NY", "12180");
 
-        assertEquals(true, eligibile1.isEligibleForUSPS());
-        assertEquals(true, eligibile2.isEligibleForUSPS());
-        assertEquals(true, eligibile3.isEligibleForUSPS());
-        assertEquals(false, notEligibile1.isEligibleForUSPS());
-        assertEquals(false, notEligibile2.isEligibleForUSPS());
-        assertEquals(false, notEligibile3.isEligibleForUSPS());
-        assertEquals(false, notEligibile4.isEligibleForUSPS());
-
+        assertTrue(eligibile1.isEligibleForUSPS());
+        assertTrue(eligibile2.isEligibleForUSPS());
+        assertTrue(eligibile3.isEligibleForUSPS());
+        assertFalse(notEligibile1.isEligibleForUSPS());
+        assertFalse(notEligibile2.isEligibleForUSPS());
+        assertFalse(notEligibile3.isEligibleForUSPS());
+        assertFalse(notEligibile4.isEligibleForUSPS());
     }
 }

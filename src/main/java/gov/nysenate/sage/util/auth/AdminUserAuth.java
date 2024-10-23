@@ -2,7 +2,6 @@ package gov.nysenate.sage.util.auth;
 
 import gov.nysenate.sage.dao.model.admin.SqlAdminUserDao;
 import gov.nysenate.sage.model.admin.AdminUser;
-import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.mindrot.jbcrypt.BCrypt;
@@ -17,10 +16,8 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAuthenticat
 
 @Component
 public class AdminUserAuth {
-
-    private Logger logger = LoggerFactory.getLogger(JobUserAuth.class);
-    private SqlAdminUserDao sqlAdminUserDao;
-
+    private static final Logger logger = LoggerFactory.getLogger(AdminUserAuth.class);
+    private final SqlAdminUserDao sqlAdminUserDao;
 
     @Autowired
     public AdminUserAuth(SqlAdminUserDao sqlAdminUserDao) {
@@ -35,33 +32,21 @@ public class AdminUserAuth {
         return sqlAdminUserDao.checkAdminUser(username, password);
     }
 
-    public boolean isUserNamePasswordValidInput(String username, String password) {
-        boolean validInput = true;
-        if (username.equals("defaultUser") || password.equals("defaultPass")) {
-            validInput = false;
-        }
-        return validInput;
-    }
-
     public AdminUser insertAdminUser(String username, String password) {
         sqlAdminUserDao.insertAdmin(username, BCrypt.hashpw(password, BCrypt.gensalt()));
         return sqlAdminUserDao.getAdminUser(username);
     }
 
-    public void setUpPermissions(HttpServletRequest request, Subject subject, String username, String ipAddr) {
-        logger.debug("Granted admin access to " + username);
-        AdminUser dbAdmin = sqlAdminUserDao.getAdminUser(username);
-        subject.login(new UsernamePasswordToken(username, dbAdmin.getPassword() , ipAddr));
-        setAuthenticated(request, true, username);
-    }
-
     public boolean authenticateAdmin(HttpServletRequest request, String username, String password,
                                      Subject subject, String ipAddr) {
-        boolean validInput = isUserNamePasswordValidInput(username, password)
+        boolean validInput = !username.equals("defaultUser") && !password.equals("defaultPass")
                 && sqlAdminUserDao.checkAdminUser(username, password);
 
         if (validInput) {
-            setUpPermissions(request, subject, username, ipAddr);
+            logger.debug("Granted admin access to {}", username);
+            AdminUser dbAdmin = sqlAdminUserDao.getAdminUser(username);
+            subject.login(new UsernamePasswordToken(username, dbAdmin.getPassword() , ipAddr));
+            setAuthenticated(request, true, username);
             return true;
         }
         return false;

@@ -11,10 +11,9 @@ public enum PointQuery implements BasicSqlQuery {
 
     GET_POINT_ID("SELECT id FROM ${schema}." + SqlTable.POINT + "\n" +
             "WHERE latlon = ST_GeomFromText(:latlon)\n" +
-            "LIMIT 1")
-    ;
+            "LIMIT 1");
 
-    private String sql;
+    private final String sql;
 
     PointQuery(String sql) {
         this.sql = sql;

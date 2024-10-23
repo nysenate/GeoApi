@@ -47,7 +47,7 @@ public class SqlAssemblyDao implements AssemblyDao
             List<Assembly> assemblyList = baseDao.geoApiNamedJbdcTemplate.query(
                     AssemblyQuery.GET_ASSMEBLY_MEMBER_BY_DISTRICT.getSql(baseDao.getPublicSchema()),
                     params, new AssemblyHandler());
-            if (assemblyList == null || assemblyList.size() <= 0) {
+            if (assemblyList.isEmpty()) {
                 return null;
             }
             return assemblyList.get(0);

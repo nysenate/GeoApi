@@ -12,32 +12,10 @@ import java.util.List;
 /**
  * Represents a subset of job records that belong to a job file.
  */
-public class JobBatch
-{
-    private List<JobRecord> jobRecords;
-    private int fromRecord;
-    private int toRecord;
-
-    public JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord) {
-        this.jobRecords = jobRecords;
-        this.fromRecord = fromRecord;
-        this.toRecord = toRecord;
-    }
-
-    public List<JobRecord> getJobRecords() {
-        return jobRecords;
-    }
-
-    public int getFromRecord() {
-        return fromRecord;
-    }
-
-    public int getToRecord() {
-        return toRecord;
-    }
-
+public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord) {
     /**
      * Retrieve list of input addresses for this batch.
+     *
      * @return List<Address>
      */
     public List<Address> getAddresses() {
@@ -51,6 +29,7 @@ public class JobBatch
     /**
      * Retrieve list of input addresses with option to instead return the usps corrected
      * versions if they exist.
+     *
      * @param swapWithValidatedAddress if true, perform swapping. otherwise delegate to getAddresses().
      * @return List<Address>
      */
@@ -62,8 +41,7 @@ public class JobBatch
         for (JobRecord jobRecord : jobRecords) {
             if (jobRecord.getCorrectedAddress() != null && jobRecord.getCorrectedAddress().isUspsValidated()) {
                 addresses.add(jobRecord.getCorrectedAddress());
-            }
-            else {
+            } else {
                 addresses.add(jobRecord.getAddress());
             }
         }
@@ -72,6 +50,7 @@ public class JobBatch
 
     /**
      * Retrieve list of geocoded addresses for this batch.
+     *
      * @return List<GeocodedAddress>
      */
     public List<GeocodedAddress> getGeocodedAddresses() {

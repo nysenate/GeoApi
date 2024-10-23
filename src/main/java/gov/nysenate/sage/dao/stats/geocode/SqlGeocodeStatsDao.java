@@ -18,27 +18,25 @@ import java.util.List;
  * Retrieves stats pertaining to geocoder usage.
  */
 @Repository
-public class SqlGeocodeStatsDao implements GeocodeStatsDao
-{
-    private static Logger logger = LoggerFactory.getLogger(SqlGeocodeStatsDao.class);
-    private BaseDao baseDao;
+public class SqlGeocodeStatsDao {
+    private static final Logger logger = LoggerFactory.getLogger(SqlGeocodeStatsDao.class);
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlGeocodeStatsDao(BaseDao baseDao) {
         this.baseDao = baseDao;
     }
 
-    /** {@inheritDoc} */
-    public GeocodeStats getGeocodeStats(Timestamp from, Timestamp to)
-    {
+    /**
+     * Retrieve geocode stats within a specified time frame.
+     * @return GeocodeStats
+     */
+    public GeocodeStats getGeocodeStats(Timestamp from, Timestamp to) {
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("from", from);
-            params.addValue("to", to);
-
+            var params = new MapSqlParameterSource("from", from).addValue("to", to);
             List<GeocodeStats> gsList = baseDao.geoApiNamedJbdcTemplate.query(
                     GeocodeStatsQuery.GET_TOTAL_COUNT.getSql(baseDao.getLogSchema()), params, new TotalCountsHandler());
-            if (gsList != null && gsList.get(0) != null) {
+            if (gsList.get(0) != null) {
                 GeocodeStats gs =  gsList.get(0);
                 List<GeocodeStats> geocodeStats =
                         baseDao.geoApiNamedJbdcTemplate.query(
@@ -54,7 +52,8 @@ public class SqlGeocodeStatsDao implements GeocodeStatsDao
     }
 
     /** Handler for result set of totalCountsSql */
-    class TotalCountsHandler implements RowMapper<GeocodeStats> {
+    private static class TotalCountsHandler implements RowMapper<GeocodeStats> {
+        @Override
         public GeocodeStats mapRow(ResultSet rs, int rowNum) throws SQLException {
             GeocodeStats gs = new GeocodeStats();
             if (rs.next()) {
@@ -68,12 +67,13 @@ public class SqlGeocodeStatsDao implements GeocodeStatsDao
     }
 
     /** Handler for result set of geocoderUsageSql */
-    class GeocoderUsageHandler implements RowMapper<GeocodeStats> {
+    private static class GeocoderUsageHandler implements RowMapper<GeocodeStats> {
         GeocodeStats gs;
         public GeocoderUsageHandler(GeocodeStats gs) {
             this.gs = gs;
         }
 
+        @Override
         public GeocodeStats mapRow(ResultSet rs, int rowNum) throws SQLException {
             while (rs.next()) {
                 gs.addGeocoderUsage(rs.getString("method"), rs.getInt("requests"));

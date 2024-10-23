@@ -15,15 +15,4 @@ public interface GeoserverDao {
      * @return DistrictInfo if successful, null otherwise
      */
     DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes);
-
-    /**
-     * Retrieve the workspace string for Geoserver
-     */
-    String getWorkspace();
-
-    /**
-     * Retreive the base url for accessing Geoserver
-     * @return
-     */
-    String getBaseUrl();
 }

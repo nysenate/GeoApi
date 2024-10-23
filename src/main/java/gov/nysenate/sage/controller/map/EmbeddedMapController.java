@@ -1,7 +1,7 @@
 package gov.nysenate.sage.controller.map;
 
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -106,7 +106,7 @@ public class EmbeddedMapController {
 
         request.setAttribute("districtType", districtType);
 
-        if (districtType.toLowerCase().equals("county") && doh) {
+        if (districtType.equalsIgnoreCase("county") && doh) {
             request.getRequestDispatcher(COUNTY_COVID_JSP).forward(request, response);
         }
         else {

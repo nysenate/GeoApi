@@ -1,8 +1,6 @@
 package gov.nysenate.sage.config;
 
 import gov.nysenate.sage.dao.logger.deployment.SqlDeploymentLogger;
-import gov.nysenate.sage.util.AsciiArt;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +17,13 @@ import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConvert
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import javax.annotation.PostConstruct;
-import javax.xml.transform.Source;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,18 +34,33 @@ import java.util.List;
 @EnableScheduling
 @ComponentScan("gov.nysenate.sage")
 @Import({DatabaseConfig.class, SecurityConfig.class, ApplicationConfig.class })
-public class WebApplicationConfig implements WebMvcConfigurer
-{
+public class WebApplicationConfig implements WebMvcConfigurer {
     private static final Logger logger = LogManager.getLogger(WebApplicationConfig.class);
+    // ASCII Art generated at http://patorjk.com/software/taag/
+    // SAGE FONT = USA FLAG
+    private static final String ASCII_ART = """
+                      :::===  :::====  :::=====  :::=====   \s
+                      :::     :::  === :::       :::        \s
+                       =====  ======== === ===== ======     \s
+                          === ===  === ===   === ===        \s
+                      ======  ===  ===  =======  ========   \s
+                    ======================================= \s
+                      DEPLOYED ON %s                    \s
+                    =======================================\
+            """;
+
+    private final SqlDeploymentLogger sqlDeploymentLogger;
 
     @Autowired
-    SqlDeploymentLogger sqlDeploymentLogger;
+    public WebApplicationConfig(SqlDeploymentLogger sqlDeploymentLogger) {
+        this.sqlDeploymentLogger = sqlDeploymentLogger;
+    }
 
     @PostConstruct
     public void init() {
         LocalDateTime deployTime = LocalDateTime.now();
         Timestamp timestamp = java.sql.Timestamp.valueOf(deployTime);
-        logger.info("{}", AsciiArt.SAGE.getText().replace("DATE", deployTime.toString()));
+        logger.info("{}", ASCII_ART.formatted( deployTime.toString()));
         sqlDeploymentLogger.logDeploymentStatus(true,-1,timestamp);
     }
 
@@ -79,10 +94,9 @@ public class WebApplicationConfig implements WebMvcConfigurer
         converters.add(new ByteArrayHttpMessageConverter());
         converters.add(stringConverter);
         converters.add(new ResourceHttpMessageConverter());
-        converters.add(new SourceHttpMessageConverter<Source>());
+        converters.add(new SourceHttpMessageConverter<>());
         converters.add(new AllEncompassingFormHttpMessageConverter());
         converters.add(new Jaxb2RootElementHttpMessageConverter());
-        //converters.add(jackson2Converter());
     }
 
     @Override

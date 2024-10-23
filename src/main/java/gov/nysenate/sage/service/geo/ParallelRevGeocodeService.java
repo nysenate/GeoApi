@@ -41,7 +41,7 @@ public class ParallelRevGeocodeService implements SageParallelRevGeocodeService 
         ArrayList<GeocodeResult> revGeocodeResults = new ArrayList<>();
         ArrayList<Future<GeocodeResult>> futureRevGeocodeResults = new ArrayList<>();
 
-        logger.trace("Reverse geocoding using " + THREAD_COUNT + " threads");
+        logger.trace("Reverse geocoding using {} threads", THREAD_COUNT);
         for (Point point: points) {
             futureRevGeocodeResults.add(executor.submit(new ParallelRevGeocode(revGeocodeService, point)));
         }
@@ -61,16 +61,8 @@ public class ParallelRevGeocodeService implements SageParallelRevGeocodeService 
         executor.shutdown();
     }
 
-    /**
-     * Callable for parallel reverse geocoding requests
-     */
-    private static class ParallelRevGeocode implements Callable<GeocodeResult> {
-        public final RevGeocodeService revGeocodeService;
-        public final Point point;
-        public ParallelRevGeocode(RevGeocodeService revGeocodeService, Point point) {
-            this.revGeocodeService = revGeocodeService;
-            this.point = point;
-        }
+    private record ParallelRevGeocode(RevGeocodeService revGeocodeService, Point point)
+            implements Callable<GeocodeResult> {
 
         @Override
         public GeocodeResult call() {

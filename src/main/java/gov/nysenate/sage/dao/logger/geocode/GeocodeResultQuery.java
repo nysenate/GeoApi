@@ -4,13 +4,11 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum GeocodeResultQuery implements BasicSqlQuery {
-
     INSERT_RESULT("INSERT INTO ${schema}." + SqlTable.GEOCODE_RESULT + "(geocodeRequestId, success, cacheHit, addressId, method, quality, latLonId, resultTime) \n" +
             "VALUES (:geocodeRequestId, :success, :cacheHit, :addressId, :method, :quality, :latLonId, :resultTime) \n" +
-            "RETURNING id"),
-            ;
+            "RETURNING id");
 
-    private String sql;
+    private final String sql;
 
     GeocodeResultQuery(String sql) {
         this.sql = sql;

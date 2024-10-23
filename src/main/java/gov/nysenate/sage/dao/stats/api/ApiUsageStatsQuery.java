@@ -9,10 +9,9 @@ public enum ApiUsageStatsQuery implements BasicSqlQuery {
             "FROM ${schema}."+ SqlTable.API_REQUEST + " AS ar \n" +
             "WHERE ar.requestTime >= :from AND ar.requestTime <= :to \n" +
             "GROUP BY date_trunc(:requestInterval, requestTime), ar.requestTime\n" +
-            "ORDER BY requestInterval")
-            ;
+            "ORDER BY requestInterval");
 
-    private String sql;
+    private final String sql;
 
     ApiUsageStatsQuery(String sql) {
         this.sql = sql;

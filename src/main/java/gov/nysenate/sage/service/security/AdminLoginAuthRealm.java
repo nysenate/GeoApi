@@ -18,20 +18,24 @@ import javax.annotation.PostConstruct;
 import java.util.Collection;
 
 @Component
-public class AdminLoginAuthRealm extends SageAuthorizingRealm
-{
+public class AdminLoginAuthRealm extends SageAuthorizingRealm {
     private static final Logger logger = LoggerFactory.getLogger(AdminLoginAuthRealm.class);
+    private static final BCryptCredentialsMatcher credentialsMatcher = new BCryptCredentialsMatcher();
+    private final AdminUserAuth adminUserAuth;
+    @Value("${default.admin.username}")
+    private String defaultAdminName;
+    @Value("${default.admin.password}")
+    private String defaultAdminPass;
 
     /** The IP whitelist is used here to restrict access to admin login to internal IPs only. */
     @Value("${user.ip.filter}") private String ipWhitelist;
 
     private static class BCryptCredentialsMatcher implements CredentialsMatcher {
-
         /**
          * Compare a hashed password from the Auth token to the stored hash.
          * @param token The authentication credentials submitted by the user during a login attempt
          * @param info The valid authenticaton info to compare the token to
-         * @return Whether or not the login credentials are valid
+         * @return Whether the login credentials are valid
          */
         @Override
         public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
@@ -42,18 +46,10 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm
         }
     }
 
-    private static BCryptCredentialsMatcher credentialsMatcher = new BCryptCredentialsMatcher();
-
-
-    private AdminUserAuth adminUserAuth;
-
     @Autowired
     public AdminLoginAuthRealm(AdminUserAuth adminUserAuth) {
         this.adminUserAuth = adminUserAuth;
     }
-
-    @Value("${default.admin.username}") private String defaultAdminName;
-    @Value("${default.admin.password}") private String defaultAdminPass;
 
     @PostConstruct
     public void setup() throws RuntimeException {
@@ -70,18 +66,16 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm
      *
      * @param token The given authentication information
      * @return Either valid AuthenticationInfo for the given token or null if the account is not valid
-     * @throws AuthenticationException
      */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        if (token != null && token instanceof UsernamePasswordToken) {
-            UsernamePasswordToken usernamePasswordToken = (UsernamePasswordToken) token;
-            logger.info("Attempting login with Admin Realm from IP {}", usernamePasswordToken.getHost());
-            if (usernamePasswordToken.getHost().matches(ipWhitelist)) {
+        if (token instanceof UsernamePasswordToken usernamePasswordToken) {
+            logger.info("Attempting login with Admin Realm from IP {}", usernamePasswordToken.host());
+            if (usernamePasswordToken.host().matches(ipWhitelist)) {
                 return queryForAuthenticationInfo(usernamePasswordToken);
             }
             else {
-                logger.warn("Blocking admin login from unauthorized IP {}", usernamePasswordToken.getHost());
+                logger.warn("Blocking admin login from unauthorized IP {}", usernamePasswordToken.host());
                 throw new AuthenticationException("Admin login from unauthorized IP address.");
             }
         }
@@ -130,7 +124,7 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm
     }
 
     @Override
-    public Class getAuthenticationTokenClass() {
+    public Class<UsernamePasswordToken> getAuthenticationTokenClass() {
         return UsernamePasswordToken.class;
     }
 }

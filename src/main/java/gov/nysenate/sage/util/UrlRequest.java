@@ -1,25 +1,18 @@
 package gov.nysenate.sage.util;
 
-import oauth.signpost.OAuthConsumer;
-import oauth.signpost.basic.DefaultOAuthConsumer;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-public abstract class UrlRequest
-{
-    public static Logger logger = LoggerFactory.getLogger(UrlRequest.class);
-    private static int CONNECTION_TIMEOUT = 10000;
-    private static int RESPONSE_TIMEOUT = 30000;
+public abstract class UrlRequest {
+    private static Logger logger = LoggerFactory.getLogger(UrlRequest.class);
+    private static final int CONNECTION_TIMEOUT = 10000;
+    private static final int RESPONSE_TIMEOUT = 30000;
 
     /**
     * Connects to a url and retrieves the body response in String representation.
@@ -32,17 +25,13 @@ public abstract class UrlRequest
     *
     * @param url   Url request string
     * @return      String containing response
-    * @throws MalformedURLException
-    * @throws IOException
     */
-    public static String getResponseFromUrl(String url) throws IOException
-    {
+    public static String getResponseFromUrl(String url) throws IOException {
         InputStream inputStream = getInputStreamFromUrl(url);
         return getResponseFromInputStream(inputStream);
     }
 
-    private static String getResponseFromInputStream(InputStream inputStream) throws IOException
-    {
+    private static String getResponseFromInputStream(InputStream inputStream) throws IOException {
         if (inputStream != null) {
             String response = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             logger.trace("Retrieved string of length {}", response.length());
@@ -56,12 +45,8 @@ public abstract class UrlRequest
 
     /**
     * Retrieves an input stream from a url resource
-    * @param url
-    * @return
-    * @throws IOException
     */
-    public static InputStream getInputStreamFromUrl(String url) throws IOException
-    {
+    public static InputStream getInputStreamFromUrl(String url) throws IOException {
         URL u = new URL(url);
         logger.debug("Requesting connection to " + url);
         HttpURLConnection uc = getHttpURLConnection(u);
@@ -78,16 +63,14 @@ public abstract class UrlRequest
         return inputStream;
     }
 
-    public static String getResponseFromUrlUsingPOST(String url, String postBody) throws IOException
-    {
+    public static String getResponseFromUrlUsingPOST(String url, String postBody) throws IOException {
         InputStream inputStream = getInputStreamFromUrlUsingPOST(url, postBody);
         return getResponseFromInputStream(inputStream);
     }
 
-    public static InputStream getInputStreamFromUrlUsingPOST(String url, String postBody) throws IOException
-    {
+    public static InputStream getInputStreamFromUrlUsingPOST(String url, String postBody) throws IOException {
         URL u = new URL(url);
-        logger.debug("Requesting connection to " + url.toString());
+        logger.debug("Requesting connection to " + url);
         HttpURLConnection uc = getHttpURLConnection(u);
         uc.setRequestMethod("POST");
         uc.setDoOutput(true);
@@ -112,62 +95,11 @@ public abstract class UrlRequest
     }
 
     /**
-    * Retrieves String response from an OAuth signed url request.
-    * @param url            Request Url
-    * @param consumerKey    Consumer Key for OAuth request
-    * @param consumerSecret Consumer Secret for OAuth request
-    * @return               InputStream on success, null otherwise
-    */
-    public static String getResponseFromUrlUsingOauth(String url, String consumerKey, String consumerSecret) throws IOException
-    {
-        InputStream inputStream = getInputStreamFromUrlUsingOauth(url, consumerKey, consumerSecret);
-        return getResponseFromInputStream(inputStream);
-    }
-
-    /**
-    * Retrieves input stream from an OAuth signed url request.
-    * @param url            Request Url
-    * @param consumerKey    Consumer Key for OAuth request
-    * @param consumerSecret Consumer Secret for OAuth request
-    * @return               InputStream on success, null otherwise
-    */
-    public static InputStream getInputStreamFromUrlUsingOauth(String url, String consumerKey, String consumerSecret) throws IOException
-    {
-        try {
-            logger.debug("Requesting connection to: " + url);
-            URL u = new URL(url);
-            HttpURLConnection uc = getHttpURLConnection(u);
-            OAuthConsumer consumer = new DefaultOAuthConsumer(consumerKey, consumerSecret);
-            consumer.sign(uc);
-
-            int responseCode = uc.getResponseCode();
-            if (responseCode >= 400) {
-                logger.error("Service responded with error code (" + responseCode + "): " + uc.getResponseMessage()
-                        + ". " + IOUtils.toString(uc.getErrorStream(), StandardCharsets.UTF_8));
-                return null;
-            }
-
-            return uc.getInputStream();
-        }
-        catch(MalformedURLException ex) {
-            logger.error("Malformed Url in Oauth Request: " + ex.getMessage(), ex);
-        }
-        catch (OAuthExpectationFailedException |
-               OAuthCommunicationException |
-               OAuthMessageSignerException ex) {
-            logger.error("" + ex);
-        }
-        return null;
-    }
-
-    /**
      * Returns a HttpURLConnection object using the URL supplied. Timeout options are set as well.
      * @param u URL
      * @return HttpURLConnection
-     * @throws IOException
      */
-    private static HttpURLConnection getHttpURLConnection(URL u) throws IOException
-    {
+    private static HttpURLConnection getHttpURLConnection(URL u) throws IOException {
         HttpURLConnection uc = (HttpURLConnection) u.openConnection();
         uc.setConnectTimeout(CONNECTION_TIMEOUT);
         uc.setReadTimeout(RESPONSE_TIMEOUT);
@@ -175,14 +107,13 @@ public abstract class UrlRequest
     }
 
     public static String convertStreamToString(InputStream is) {
-
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
 
-        String line = null;
+        String line;
         try {
             while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
+                sb.append(line).append("\n");
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());

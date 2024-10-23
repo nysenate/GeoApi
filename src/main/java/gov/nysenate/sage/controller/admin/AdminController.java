@@ -24,10 +24,9 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.*;
 
 @Controller
 @RequestMapping(value = ADMIN_REST_PATH)
-public class AdminController
-{
-    private Logger logger = LoggerFactory.getLogger(AdminController.class);
-    private SqlAdminUserDao sqlAdminUserDao;
+public class AdminController {
+    private static final  Logger logger = LoggerFactory.getLogger(AdminController.class);
+    private final SqlAdminUserDao sqlAdminUserDao;
 
     @Autowired
     public AdminController(SqlAdminUserDao sqlAdminUserDao) {
@@ -37,19 +36,14 @@ public class AdminController
     /**
      * Admin Login Api
      * ---------------------
-     *
      * Attempt to login to the sage admin panel with the supplied credentials
-     *
      * Usage:
      * (POST)    /admin/login
-     *
      * PathParams
      * @param request HttpServletRequest
      * @param response HttpServletResponse
      * @param username String
      * @param password String
-     * @throws IOException
-     * @throws ServletException
      *
      */
     @RequestMapping(value = "/login", method = RequestMethod.POST)
@@ -74,17 +68,12 @@ public class AdminController
     /**
      * Admin Logout Api
      * ---------------------
-     *
      * Logs the admin user out of the sage admin panel
-     *
      * Usage:
      * (GET)    /admin/logout
-     *
      * PathParams
      * @param request HttpServletRequest
      * @param response HttpServletResponse
-     * @throws ServletException
-     * @throws IOException
      *
      */
     @RequestMapping(value = "/logout", method = RequestMethod.GET)

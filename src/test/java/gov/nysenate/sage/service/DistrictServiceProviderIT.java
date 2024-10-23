@@ -4,6 +4,7 @@ import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
@@ -33,7 +34,8 @@ public class DistrictServiceProviderIT extends BaseTests {
                 geocodeServiceProvider.geocode(
                         new Address("3 Tyron St", "Albany", "NY", "12203"),
                         List.of(Geocoder.GOOGLE), true);
-        assertNotNull(districtServiceProvider.assignDistricts(geocodeResult.getGeocodedAddress()));
+        assertNotNull(districtServiceProvider.assignDistricts(geocodeResult.getGeocodedAddress(), null,
+                DistrictType.getStandardTypes(), DistrictServiceProvider.DistrictStrategy.neighborMatch));
     }
 
     @Test

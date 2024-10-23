@@ -12,14 +12,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -31,12 +28,10 @@ import static gov.nysenate.sage.util.controller.JobControllerUtil.setJobResponse
  */
 @Controller
 @RequestMapping(value = "/job/status")
-public class JobStatusController
-{
-    private static Logger logger = LoggerFactory.getLogger(JobStatusController.class);
-    private static SqlJobProcessDao sqlJobProcessDao;
-    private static String TEMP_DIR = "/tmp";
-    private static String LOCK_FILENAME = "batchJobProcess.lock";
+public class JobStatusController {
+    private static final String TEMP_DIR = "/tmp";
+    private static final String LOCK_FILENAME = "batchJobProcess.lock";
+    private final SqlJobProcessDao sqlJobProcessDao;
 
     @Autowired
     public JobStatusController(SqlJobProcessDao sqlJobProcessDao) {
@@ -46,9 +41,7 @@ public class JobStatusController
     /**
      * Get Job Process Api
      * ---------------------
-     *
      * Get process information for a given process
-     *
      * Usage:
      * (GET)    /job/status/process/{Process Id}
      *
@@ -63,9 +56,8 @@ public class JobStatusController
         Object statusResponse = new JobErrorResult("Failed to process request!");
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("JOB_USER")) {
-            JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
-            statusResponse = new JobStatusResponse(getJobProcessStatusById(processId, jobUser), running);
+            statusResponse = new JobStatusResponse(sqlJobProcessDao.getJobProcessStatus(processId), running);
         }
         setJobResponse(statusResponse, response);
     }
@@ -73,9 +65,7 @@ public class JobStatusController
     /**
      * Running Job Processes Api
      * ---------------------
-     *
      * Get all running jobs
-     *
      * Usage:
      * (GET)    /job/status/running
      *
@@ -89,8 +79,9 @@ public class JobStatusController
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
-            boolean running = isProcessorRunning();
-            statusResponse = new JobStatusResponse(getRunningJobProcesses(jobUser), running);
+            statusResponse = new JobStatusResponse(
+                    sqlJobProcessDao.getJobStatusesByCondition(JobProcessStatus.Condition.RUNNING, jobUser),
+                    isProcessorRunning());
         }
         setJobResponse(statusResponse, response);
     }
@@ -98,9 +89,7 @@ public class JobStatusController
     /**
      * Active Job Processes Api
      * ---------------------
-     *
      * Get all active jobs
-     *
      * Usage:
      * (GET)    /job/status/active
      *
@@ -115,7 +104,7 @@ public class JobStatusController
         if (subject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
-            statusResponse = new JobStatusResponse(getActiveJobProcesses(jobUser), running);
+            statusResponse = new JobStatusResponse(sqlJobProcessDao.getActiveJobStatuses(jobUser), running);
         }
         setJobResponse(statusResponse, response);
     }
@@ -123,9 +112,7 @@ public class JobStatusController
     /**
      * Inactive Job Processes Api
      * ---------------------
-     *
      * Get all inactive jobs
-     *
      * Usage:
      * (GET)    /job/status/inactive
      *
@@ -140,7 +127,7 @@ public class JobStatusController
         if (subject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
-            statusResponse = new JobStatusResponse(getInactiveJobProcesses(jobUser), running);
+            statusResponse = new JobStatusResponse(sqlJobProcessDao.getInactiveJobStatuses(jobUser), running);
         }
         setJobResponse(statusResponse, response);
     }
@@ -148,9 +135,7 @@ public class JobStatusController
     /**
      * Completed Job Processes Api
      * ---------------------
-     *
      * Get processes that completed successfully within the past day
-     *
      * Usage:
      * (GET)    /job/status/completed
      *
@@ -173,9 +158,7 @@ public class JobStatusController
     /**
      * Processor Api
      * ---------------------
-     *
      * Get the current status of the processor (Is it running or not)
-     *
      * Usage:
      * (GET)    /job/status/processor
      *
@@ -196,9 +179,7 @@ public class JobStatusController
     /**
      * All Job Processes Api
      * ---------------------
-     *
      * Get all processes (basically a job history)
-     *
      * Usage:
      * (GET)    /job/status/all
      *
@@ -213,39 +194,15 @@ public class JobStatusController
         if (subject.hasRole("JOB_USER")) {
             JobUser jobUser = getJobUser(request);
             boolean running = isProcessorRunning();
-            statusResponse = new JobStatusResponse(getAllJobProcesses(jobUser), running);
+            List<JobProcessStatus> statuses = sqlJobProcessDao.getJobStatusesByConditions(
+                    List.of(JobProcessStatus.Condition.values()),
+                    jobUser, null, null);
+            statusResponse = new JobStatusResponse(statuses, running);
         }
         setJobResponse(statusResponse, response);
     }
 
-    private JobProcessStatus getJobProcessStatusById(int processId, JobUser jobUser)
-    {
-        JobProcessStatus jobProcessStatus = sqlJobProcessDao.getJobProcessStatus(processId);
-        return jobProcessStatus;
-    }
-
-    private List<JobProcessStatus> getRunningJobProcesses(JobUser jobUser)
-    {
-        return sqlJobProcessDao.getJobStatusesByCondition(JobProcessStatus.Condition.RUNNING, jobUser);
-    }
-
-    private List<JobProcessStatus> getActiveJobProcesses(JobUser jobUser)
-    {
-        return sqlJobProcessDao.getActiveJobStatuses(jobUser);
-    }
-
-    private List<JobProcessStatus> getInactiveJobProcesses(JobUser jobUser)
-    {
-        return sqlJobProcessDao.getInactiveJobStatuses(jobUser);
-    }
-
-    private List<JobProcessStatus> getAllJobProcesses(JobUser jobUser)
-    {
-        return sqlJobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), jobUser, null, null);
-    }
-
-    private List<JobProcessStatus> getRecentlyCompletedJobProcesses(JobUser jobUser)
-    {
+    private List<JobProcessStatus> getRecentlyCompletedJobProcesses(JobUser jobUser) {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, -1);
         Timestamp yesterday = new Timestamp(calendar.getTimeInMillis());
@@ -253,10 +210,7 @@ public class JobStatusController
         return sqlJobProcessDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, jobUser, yesterday);
     }
 
-    private boolean isProcessorRunning()
-    {
-        String tempDir = System.getProperty("java.io.tmpdir", "/tmp");
-        File lockFile = new File(TEMP_DIR, LOCK_FILENAME);
-        return lockFile.exists();
+    private boolean isProcessorRunning() {
+        return new File(TEMP_DIR, LOCK_FILENAME).exists();
     }
 }

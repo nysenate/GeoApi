@@ -41,10 +41,8 @@ public class JobLoginAuthRealm extends SageAuthorizingRealm
         }
     }
 
-    private static BCryptCredentialsMatcher credentialsMatcher = new BCryptCredentialsMatcher();
-
-
-    private JobUserAuth jobUserAuth;
+    private static final BCryptCredentialsMatcher credentialsMatcher = new BCryptCredentialsMatcher();
+    private final JobUserAuth jobUserAuth;
 
     @Autowired
     public JobLoginAuthRealm(JobUserAuth jobUserAuth) {
@@ -58,12 +56,10 @@ public class JobLoginAuthRealm extends SageAuthorizingRealm
      *
      * @param token The given authentication information
      * @return Either valid AuthenticationInfo for the given token or null if the account is not valid
-     * @throws AuthenticationException
      */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        if (token != null && token instanceof UsernamePasswordToken) {
-            UsernamePasswordToken usernamePasswordToken = (UsernamePasswordToken) token;
+        if (token instanceof UsernamePasswordToken usernamePasswordToken) {
             logger.info("Attempting login with Job Realm from IP {}", usernamePasswordToken.getHost());
             if (usernamePasswordToken.getHost().matches(ipWhitelist)) {
                 return queryForAuthenticationInfo(usernamePasswordToken);
@@ -118,7 +114,7 @@ public class JobLoginAuthRealm extends SageAuthorizingRealm
     }
 
     @Override
-    public Class getAuthenticationTokenClass() {
+    public Class<UsernamePasswordToken> getAuthenticationTokenClass() {
         return UsernamePasswordToken.class;
     }
 }

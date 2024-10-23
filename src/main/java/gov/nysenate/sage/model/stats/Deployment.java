@@ -2,8 +2,7 @@ package gov.nysenate.sage.model.stats;
 
 import java.sql.Timestamp;
 
-public class Deployment
-{
+public class Deployment {
     private int id;
     private boolean deployed;
     private int deploymentRef;

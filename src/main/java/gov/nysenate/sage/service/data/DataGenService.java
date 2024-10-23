@@ -22,7 +22,6 @@ import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Office;
 import gov.nysenate.services.model.Senator;
 import org.apache.commons.io.IOUtils;
-import org.apache.xmlrpc.XmlRpcException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -30,9 +29,13 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -42,7 +45,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
@@ -54,6 +56,8 @@ public class DataGenService implements SageDataGenService {
     private final SqlCongressionalDao sqlCongressionalDao;
     private final SqlSenateDao sqlSenateDao;
     private final Environment env;
+    @Value("${nysenate.domain:http://www.nysenate.gov}")
+    private String nysenateDomain;
 
     @Autowired
     public DataGenService(SqlSenateDao sqlSenateDao, SqlAssemblyDao sqlAssemblyDao,
@@ -106,29 +110,25 @@ public class DataGenService implements SageDataGenService {
     }
 
 
-    public Object generateMetaData(String option) throws IOException, XmlRpcException {
+    public Object generateMetaData(String option) throws IOException {
         boolean updated = false;
         boolean processAssembly = false;
         boolean processCongress = false;
         boolean processSenate = false;
 
-        if (option.equals("all")) {
-            processAssembly = true;
-            processSenate = true;
-            processCongress = true;
-        }
-        else if (option.equals("assembly") || option.equals("a")) {
-            processAssembly = true;
-        }
-        else if (option.equals("congress") || option.equals("c")) {
-            processCongress = true;
-        }
-        else if (option.equals("senate") || option.equals("s")) {
-            processSenate = true;
-        }
-        else {
-            logger.error(option+": Invalid option");
-            return new ApiError(this.getClass(), API_REQUEST_INVALID);
+        switch (option) {
+            case "all" -> {
+                processAssembly = true;
+                processSenate = true;
+                processCongress = true;
+            }
+            case "assembly", "a" -> processAssembly = true;
+            case "congress", "c" -> processCongress = true;
+            case "senate", "s" -> processSenate = true;
+            default -> {
+                logger.error("{}: Invalid option", option);
+                return new ApiError(this.getClass(), API_REQUEST_INVALID);
+            }
         }
 
         if (processAssembly) {
@@ -215,8 +215,7 @@ public class DataGenService implements SageDataGenService {
 
         /** Obtain the senate client service */
 
-        String domain = env.getNysenateDomain();
-        senateClient = new NYSenateJSONClient(domain);
+        senateClient = new NYSenateJSONClient(nysenateDomain);
 
         /** Retrieve the list of senators from the client API */
         List<Senator> senators = senateClient.getSenators();
@@ -275,7 +274,7 @@ public class DataGenService implements SageDataGenService {
             if (!(c1.getDistrict() == c2.getDistrict() &&
                     c1.getMemberName().equals(c2.getMemberName()) &&
                     c1.getMemberUrl().equals(c2.getMemberUrl()))) {
-                logger.info("Congressional District " + c1.getDistrict() + " [" + c1.getMemberName() + "] updated");
+                logger.info("Congressional District {} [{}] updated", c1.getDistrict(), c1.getMemberName());
                 return true;
             }
         } else if (c1 == null && c2 != null) {
@@ -298,7 +297,7 @@ public class DataGenService implements SageDataGenService {
         return false;
     }
 
-    private void getUpdatedGeocode(Office senatorOffice) throws UnsupportedEncodingException {
+    private void getUpdatedGeocode(Office senatorOffice) {
         //Convert Senator Object info into an address
         Address officeAddress = new Address(senatorOffice.getStreet(),senatorOffice.getCity(),
                 "NY",senatorOffice.getPostalCode());
@@ -426,7 +425,7 @@ public class DataGenService implements SageDataGenService {
                 arrayZipCodesToGo.add(zip);
             }
             FileWriter writerZipsCodesToGo = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODESTOGO_FILE);
-            String collection = arrayZipCodesToGo.stream().collect(Collectors.joining("\n"));
+            String collection = String.join("\n", arrayZipCodesToGo);
             writerZipsCodesToGo.write(collection);
             writerZipsCodesToGo.close();
             return true;

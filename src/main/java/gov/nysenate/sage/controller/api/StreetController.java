@@ -5,7 +5,7 @@ import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.result.StreetResult;
 import gov.nysenate.sage.provider.district.StreetLookupService;
-import gov.nysenate.sage.service.street.StreetLookupServiceProvider;
+import gov.nysenate.sage.provider.district.Streetfile;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +25,11 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse
 @RequestMapping(value = ConstantUtil.REST_PATH + "street")
 public class StreetController {
     private static final Logger logger = LoggerFactory.getLogger(StreetController.class);
-    private final StreetLookupServiceProvider streetProvider;
+    private final StreetLookupService streetfile;
 
     @Autowired
-    public StreetController(StreetLookupServiceProvider streetProvider) {
-        this.streetProvider = streetProvider;
+    public StreetController(Streetfile streetfile) {
+        this.streetfile = streetfile;
     }
 
     /**
@@ -49,9 +49,8 @@ public class StreetController {
         logStreetRequest(apiRequest, zip5);
 
         logger.info("Getting street data for zip5 {}", zip5);
-        StreetLookupService service = streetProvider.getDefaultProvider();
-        List<DistrictedStreetRange> streets = service.streetLookup(zip5);
-        StreetResult streetResult = new StreetResult(service.source(), streets);
+        List<DistrictedStreetRange> streets = streetfile.streetLookup(zip5);
+        StreetResult streetResult = new StreetResult(streetfile.source(), streets);
         if (streets != null) {
             logger.info("Street file look up for zip 5: {} was successful", zip5);
         }

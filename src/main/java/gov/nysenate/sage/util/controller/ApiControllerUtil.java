@@ -23,7 +23,7 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_USERNAME_ATTR
 public final class ApiControllerUtil {
     private static final Logger logger = LogManager.getLogger(ApiControllerUtil.class);
 
-    private ApiControllerUtil() {};
+    private ApiControllerUtil() {}
 
     /**
      * Constructs a new Address object using the query parameters of the supplied HttpServletRequest.

@@ -99,7 +99,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
 
     private String resolveCode(DistrictType districtType, String id) {
         if (districtType.equals(DistrictType.COUNTY)) {
-            return String.valueOf(countyDao.getCountyById(Integer.parseInt(id)).fipsCode());
+            return String.valueOf(countyDao.getCountyBySenateCode(Integer.parseInt(id)).fipsCode());
         }
         return id;
     }
@@ -152,7 +152,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
         String sqlQuery = String.format(sqlTmpl, targetDistrictType.codeColumn(), targetDistrictType.name(), targetDistrictType.name(), refDistrictType.name(),
                                                  refWhereSql, targetWhereSql);
         try {
-            DistrictOverlap overlap = new DistrictOverlap(refDistrictType, targetDistrictType, refCodes, DistrictOverlap.AreaUnit.SQ_METERS);
+            var overlap = new DistrictOverlap();
             return baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictOverlapHandler(overlap));
         }
         catch (Exception ex) {
@@ -384,7 +384,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                 DistrictMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geom"));
                 this.districtOverlap.addIntersectionMap(code, intersectMap);
                 // Only add districts that actually intersect
-                if (area != null && area.compareTo(BigDecimal.ZERO) == 1) {
+                if (area != null && area.compareTo(BigDecimal.ZERO) > 0) {
                     this.districtOverlap.getTargetOverlap().put(code, area);
                 }
                 if (this.districtOverlap.getTotalArea() == null) {
@@ -435,7 +435,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
 
             // County codes need to be mapped from FIPS code
             if (type == DistrictType.COUNTY) {
-                code = Integer.toString(countyDao.getFipsCountyMap().get(rs.getInt("code")).senateCode());
+                code = Integer.toString(countyDao.getSenateCode(rs.getInt("senate_code")));
             }
             // Normal district code
             else {
@@ -457,36 +457,37 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
      *                  null if map string not present or error
      */
     private DistrictMap getDistrictMapFromJson(String jsonMap) {
-        if (jsonMap != null && !jsonMap.isEmpty() && !jsonMap.equals("null")) {
-            DistrictMap districtMap = new DistrictMap();
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                JsonNode mapNode = objectMapper.readTree(jsonMap);
-                String type = mapNode.get("type").asText();
-                GeometryTypes geoType;
-                try {
-                    geoType = GeometryTypes.valueOf(type.toUpperCase());
-                    districtMap.setGeometryType(geoType.type);
-                }
-                catch (Exception ex) {
-                    logger.debug("Geometry type " + type + " is not supported by this method!");
-                    return null;
-                }
-                JsonNode coordinates = mapNode.get("coordinates");
-                for (int i = 0; i < coordinates.size(); i++) {
-                    List<Point> points = new ArrayList<>();
-                    JsonNode polygon = (geoType.equals(GeometryTypes.MULTIPOLYGON)) ? coordinates.get(i).get(0) : coordinates.get(i);
-                    for (int j = 0; j < polygon.size(); j++){
-                        points.add(new Point(polygon.get(j).get(1).asDouble(), polygon.get(j).get(0).asDouble()));
-                    }
-                    districtMap.addPolygon(new Polygon(points));
-                }
-                return districtMap;
-            }
-            catch (IOException ex) {
-                logger.error("" + ex);
-            }
+        if (jsonMap == null || jsonMap.isEmpty() || jsonMap.equals("null")) {
+            return null;
         }
-        return null;
+        DistrictMap districtMap = new DistrictMap();
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode mapNode = objectMapper.readTree(jsonMap);
+            String type = mapNode.get("type").asText();
+            GeometryTypes geoType;
+            try {
+                geoType = GeometryTypes.valueOf(type.toUpperCase());
+                districtMap.setGeometryType(geoType.getType());
+            }
+            catch (Exception ex) {
+                logger.debug("Geometry type {} is not supported by this method!", type);
+                return null;
+            }
+            JsonNode coordinates = mapNode.get("coordinates");
+            for (int i = 0; i < coordinates.size(); i++) {
+                List<Point> points = new ArrayList<>();
+                JsonNode polygon = (geoType.equals(GeometryTypes.MULTIPOLYGON)) ? coordinates.get(i).get(0) : coordinates.get(i);
+                for (int j = 0; j < polygon.size(); j++){
+                    points.add(new Point(polygon.get(j).get(1).asDouble(), polygon.get(j).get(0).asDouble()));
+                }
+                districtMap.addPolygon(new Polygon(points));
+            }
+            return districtMap;
+        }
+        catch (IOException ex) {
+            logger.error("{}", String.valueOf(ex));
+            return null;
+        }
     }
 }

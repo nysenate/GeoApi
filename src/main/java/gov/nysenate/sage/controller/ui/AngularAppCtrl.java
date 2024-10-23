@@ -4,8 +4,6 @@ import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,8 +16,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Controller
 public class AngularAppCtrl {
-    private static final Logger logger = LoggerFactory.getLogger(AngularAppCtrl.class);
-    private String ipWhitelist;
+    private final String ipWhitelist;
 
     @Autowired
     public AngularAppCtrl(Environment env) {

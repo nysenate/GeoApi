@@ -26,8 +26,8 @@ import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -96,7 +96,7 @@ public class USPSAIS implements AddressService {
     @Nonnull
     @Override
     public AddressResult validate(Address address) {
-        List<Address> addressList = new ArrayList<>(Arrays.asList(address));
+        List<Address> addressList = new ArrayList<>(List.of(address));
         List<AddressResult> resultList = validate(addressList);
         if (resultList != null && !resultList.isEmpty()) {
             return resultList.get(0);
@@ -141,7 +141,7 @@ public class USPSAIS implements AddressService {
 
             try
             {
-                url = baseUrl +"?API=Verify&XML="+URLEncoder.encode(xmlRequest.toString(), "UTF-8");
+                url = baseUrl +"?API=Verify&XML="+URLEncoder.encode(xmlRequest.toString(), StandardCharsets.UTF_8);
                 response = xmlBuilder.parse(UrlRequest.getInputStreamFromUrl(url));
 
                 /** If the request failed, mark them all as such */
@@ -287,7 +287,7 @@ public class USPSAIS implements AddressService {
 
             try {
                 xmlRequest.append("</CityStateLookupRequest>");
-                url = baseUrl +"?API=CityStateLookup&XML="+URLEncoder.encode(xmlRequest.toString(), "UTF-8");
+                url = baseUrl +"?API=CityStateLookup&XML="+URLEncoder.encode(xmlRequest.toString(), StandardCharsets.UTF_8);
                 logger.info(url);
                 response = xmlBuilder.parse(UrlRequest.getInputStreamFromUrl(url));
 

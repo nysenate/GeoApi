@@ -4,7 +4,6 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum DataDelQuery implements BasicSqlQuery {
-
     ZIP_COUNT_SQL("select count(distinct zip5) from ${schema}." + SqlTable.GEOCACHE + ";"),
 
     ZIP_BATCH_SQL("select distinct zip5 from ${schema}." + SqlTable.GEOCACHE + " limit ? offset ?;"),
@@ -15,10 +14,9 @@ public enum DataDelQuery implements BasicSqlQuery {
 
     STATE_BATCH_SQL("select distinct state from ${schema}." + SqlTable.GEOCACHE + " limit ? offset ?;"),
 
-    DELETE_STATE_SQL("Delete from ${schema}." + SqlTable.GEOCACHE + " where state = ?;"),
-    ;
+    DELETE_STATE_SQL("Delete from ${schema}." + SqlTable.GEOCACHE + " where state = ?;");
 
-    private String sql;
+    private final String sql;
 
     DataDelQuery(String sql) {
         this.sql = sql;

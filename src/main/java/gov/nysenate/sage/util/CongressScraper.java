@@ -5,19 +5,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.io.IOUtils;
-
-import javax.el.ELManager;
 
 
 /**
@@ -30,7 +23,7 @@ public class CongressScraper
 
     public static List<Congressional> getCongressionals()
     {
-        List<Congressional> ret = new ArrayList<Congressional>();
+        List<Congressional> ret = new ArrayList<>();
 
         try {
             // Each state's representatives are in a separate HTML table.
@@ -46,7 +39,7 @@ public class CongressScraper
             for (Element member : memberRows) {
                 Elements memberInfo = member.children();
                 String districtNumber = memberInfo.get(0).text();
-                Integer distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
+                int distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
                         .replace("rd","").replace("th","") );
                 String memberName = "";
                 try {

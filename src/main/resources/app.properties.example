@@ -87,18 +87,6 @@ usps.default = usps
 ## Geocoder Settings
 ###############################
 
-# Comma separated string indicating the geocoders that should be enabled.
-# Available geocoders: nysgeo, google
-geocoder.active = nysgeo, google
-
-# Comma separated string indicating the order in which geocoders should be used.
-# Only the geocoders listed in this ranking will be used in the default fallback chain.
-# All other active geocoders have to be specifically requested by the user through the api.
-geocoder.rank = nysgeo, google
-
-# Comma separated string indicating which geocoders are cacheable.
-geocoder.cacheable = nysgeo, google
-
 # TigerGeocoder (in database) query time-out in ms
 tiger.geocoder.timeout = 30000
 

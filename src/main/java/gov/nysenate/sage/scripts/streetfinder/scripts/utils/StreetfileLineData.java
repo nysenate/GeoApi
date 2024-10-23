@@ -13,10 +13,6 @@ public record StreetfileLineData(BuildingRange range, AddressWithoutNum addressW
         }
     }
 
-    public StreetfileLineData with(AddressWithoutNum addressWithoutNum) {
-        return new StreetfileLineData(range, addressWithoutNum, cell, type);
-    }
-
     public StreetfileLineData(StreetfileLineType type) {
         this(null, null, null, type);
     }

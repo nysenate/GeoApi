@@ -3,7 +3,6 @@ package gov.nysenate.sage.scripts.admin;
 import gov.nysenate.sage.scripts.BaseScript;
 import gov.nysenate.sage.service.data.RegeocacheService;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +15,13 @@ import java.util.List;
 
 @Component
 public class MassRegeocacheCLI extends BaseScript {
-
     private static final Logger logger = LoggerFactory.getLogger(MassRegeocacheCLI.class);
+    private final RegeocacheService regeocacheService;
 
     @Autowired
-    RegeocacheService regeocacheService;
+    public MassRegeocacheCLI(RegeocacheService regeocacheService) {
+        this.regeocacheService = regeocacheService;
+    }
 
     public static void main(String[] args) throws Exception {
         AnnotationConfigApplicationContext ctx = init();
@@ -32,12 +33,6 @@ public class MassRegeocacheCLI extends BaseScript {
     }
 
     @Override
-    protected Options getOptions() {
-        Options options = super.getOptions();
-        return options;
-    }
-
-    @Override
     protected void execute(CommandLine opts) throws Exception {
 
         if (!opts.getArgList().isEmpty()) {
@@ -45,8 +40,8 @@ public class MassRegeocacheCLI extends BaseScript {
             List<String> typeList = new ArrayList<>();
             String[] options = opts.getArgs();
 
-            Integer offset = Integer.parseInt( options[0] );
-            Integer limit = Integer.parseInt( options[1] ); //Not applicable if type is all
+            int offset = Integer.parseInt(options[0]);
+            int limit = Integer.parseInt(options[1]); //Not applicable if type is all
             boolean useFallback = Boolean.parseBoolean( options[2] );
 
 
@@ -94,15 +89,12 @@ public class MassRegeocacheCLI extends BaseScript {
                 limit = 0;
                 subtype = fixNYSGeoDBMethod(subtype);
                 break;
-            case "method":
+            case "method", "provider":
                 subtype = fixNYSGeoDBMethod(subtype);
                 break;
             case "town":
                 subtype = subtype.replaceAll(",", " ").replaceAll("_", " ");
                 subtype = subtype.toUpperCase();
-                break;
-            case "provider":
-                subtype = fixNYSGeoDBMethod(subtype);
                 break;
             case "quality":
                 subtype = subtype.toUpperCase();

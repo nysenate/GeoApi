@@ -51,6 +51,7 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 
 @Service
 public class JobBatchProcessor implements JobProcessor {
+    // TODO: synchronize with JobStatusController
     private static final Logger logger = LoggerFactory.getLogger(JobBatchProcessor.class);
     private static final Marker fatal = MarkerFactory.getMarker("FATAL");
     private static final int LOGGING_THRESHOLD = 1000;
@@ -290,7 +291,7 @@ public class JobBatchProcessor implements JobProcessor {
                     try {
                         logger.info("Waiting on batch # {}", batchNum);
                         JobBatch batch = jobResultsQueue.poll().get();
-                        for (JobRecord record : batch.getJobRecords()) {
+                        for (JobRecord record : batch.jobRecords()) {
                             jobWriter.write(record.getRow(), processors);
                         }
                         jobWriter.flush(); // Ensure records have been written
@@ -303,7 +304,7 @@ public class JobBatchProcessor implements JobProcessor {
                             break;
                         }
 
-                        jobStatus.setCompletedRecords(jobStatus.getCompletedRecords() + batch.getJobRecords().size());
+                        jobStatus.setCompletedRecords(jobStatus.getCompletedRecords() + batch.jobRecords().size());
                         sqlJobProcessDao.setJobProcessStatus(jobStatus);
                         logger.info("Wrote results of batch # {}", batchNum);
                         batchNum++;
@@ -482,13 +483,13 @@ public class JobBatchProcessor implements JobProcessor {
             if (jobBatch == null && futureJobBatch != null) {
                 this.jobBatch = futureJobBatch.get();
             }
-            logger.info("Geocoding for records {}-{}", jobBatch.getFromRecord(), jobBatch.getToRecord());
+            logger.info("Geocoding for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
             var batchGeoRequest = new BatchGeocodeRequest(this.jobBatch.getAddresses(true));
             batchGeoRequest.setJobProcess(this.jobProcess);
 
             List<GeocodeResult> geocodeResults = geocodeServiceProvider.geocode(batchGeoRequest);
-            if (geocodeResults.size() == jobBatch.getJobRecords().size()) {
+            if (geocodeResults.size() == jobBatch.jobRecords().size()) {
                 for (int i = 0; i < geocodeResults.size(); i++) {
                     jobBatch.setGeocodeResult(i, geocodeResults.get(i));
                 }
@@ -530,7 +531,7 @@ public class JobBatchProcessor implements JobProcessor {
         @Override
         public JobBatch call() throws Exception {
             JobBatch jobBatch = futureJobBatch.get();
-            logger.info("District assignment for records {}-{}", jobBatch.getFromRecord(), jobBatch.getToRecord());
+            logger.info("District assignment for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
             BatchDistrictRequest batchDistRequest = new BatchDistrictRequest();
             batchDistRequest.setJobProcess(this.jobProcess);

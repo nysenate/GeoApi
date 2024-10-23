@@ -23,12 +23,11 @@ import java.util.Iterator;
 import java.util.List;
 
 @Repository
-public class SqlDistrictResultLogger implements DistrictResultLogger
-{
-    private static Logger logger = LoggerFactory.getLogger(SqlDistrictResultLogger.class);
-    private static SqlDistrictRequestLogger distRequestLogger;
-    private static Boolean SAVE_LOCK = false;
-    private BaseDao baseDao;
+public class SqlDistrictResultLogger implements DistrictResultLogger {
+    private static final Logger logger = LoggerFactory.getLogger(SqlDistrictResultLogger.class);
+    private final SqlDistrictRequestLogger distRequestLogger;
+    private static boolean SAVE_LOCK = false;
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlDistrictResultLogger(SqlDistrictRequestLogger distRequestLogger, BaseDao baseDao) {
@@ -37,21 +36,19 @@ public class SqlDistrictResultLogger implements DistrictResultLogger
     }
 
     /** Batch cache */
-    private static List<Pair<DistrictRequest, DistrictResult>> batchDistLogCache = new ArrayList<>();
+    private static final List<Pair<DistrictRequest, DistrictResult>> batchDistLogCache = new ArrayList<>();
 
     /** Temporary cache for when the data is being saved to the database */
-    private static List<Pair<DistrictRequest, DistrictResult>> tempCache = new ArrayList<>();
+    private static final List<Pair<DistrictRequest, DistrictResult>> tempCache = new ArrayList<>();
 
     /** {@inheritDoc} */
-    public int logDistrictRequestAndResult(DistrictRequest districtRequest, DistrictResult districtResult)
-    {
+    public int logDistrictRequestAndResult(DistrictRequest districtRequest, DistrictResult districtResult) {
         int distRequestId = distRequestLogger.logDistrictRequest(districtRequest);
         return logDistrictResult(distRequestId, districtResult);
     }
 
     /** {@inheritDoc} */
-    public int logDistrictResult(int districtRequestId, DistrictResult dr)
-    {
+    public int logDistrictResult(int districtRequestId, DistrictResult dr) {
         logger.trace("Starting to log district result");
         if (dr != null) {
             String sd = null, ad = null, cd = null, cc = null, town = null, school = null;
@@ -65,26 +62,25 @@ public class SqlDistrictResultLogger implements DistrictResultLogger
                 school = dinfo.getDistCode(DistrictType.SCHOOL);
             }
             try {
-
-                MapSqlParameterSource params = new MapSqlParameterSource();
-                params.addValue("districtrequestid",(districtRequestId > 0) ? districtRequestId : null);
-                params.addValue("assigned",dr.isSuccess());
-                params.addValue("status",dr.getStatusCode().name());
-                params.addValue("senatecode",sd);
-                params.addValue("assemblycode",ad);
-                params.addValue("congressionalcode",cd);
-                params.addValue("countycode",cc);
-                params.addValue("town_code",town);
-                params.addValue("school_code",school);
-                params.addValue("matchLevel",dr.getDistrictMatchLevel().name());
-                params.addValue("resulttime",dr.getResultTime());
+                var params = new MapSqlParameterSource()
+                        .addValue("districtrequestid",(districtRequestId > 0) ? districtRequestId : null)
+                        .addValue("assigned",dr.isSuccess())
+                        .addValue("status",dr.getStatusCode().name())
+                        .addValue("senatecode",sd)
+                        .addValue("assemblycode",ad)
+                        .addValue("congressionalcode",cd)
+                        .addValue("countycode",cc)
+                        .addValue("town_code",town)
+                        .addValue("school_code",school)
+                        .addValue("matchLevel",dr.getDistrictMatchLevel().name())
+                        .addValue("resulttime",dr.getResultTime());
 
                 List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(
                         DistrictResultQuery.INSERT_RESULT.getSql(baseDao.getLogSchema()),
                         params, new DistrictRequestIdHandler());
 
                 int id = idList.get(0);
-                logger.trace("Saved district result id: " + id);
+                logger.trace("Saved district result id: {}", id);
                 return id;
             }
             catch (Exception ex) {
@@ -99,41 +95,40 @@ public class SqlDistrictResultLogger implements DistrictResultLogger
 
     /** {@inheritDoc} */
     public void logBatchDistrictResults(BatchDistrictRequest batchDistRequest, List<DistrictResult> districtResults, boolean flush) {
-        if (batchDistRequest != null && districtResults != null) {
-            for (int i = 0; i < batchDistRequest.getGeocodedAddresses().size(); i++) {
-                try {
-                    GeocodedAddress geocodedAddress = batchDistRequest.getGeocodedAddresses().get(i);
-                    DistrictRequest districtRequest = (DistrictRequest) batchDistRequest.clone();
-                    districtRequest.setGeocodedAddress(geocodedAddress);
-                    if (!SAVE_LOCK) {
-                        batchDistLogCache.add(new ImmutablePair<>(districtRequest, districtResults.get(i)));
-                    }
-                    else {
-                        logger.debug("Logging district result to temporary list.");
-                        tempCache.add(new ImmutablePair<>(districtRequest, districtResults.get(i)));
-                    }
+        if (batchDistRequest == null || districtResults == null) {
+            return;
+        }
+        for (int i = 0; i < batchDistRequest.getGeocodedAddresses().size(); i++) {
+            try {
+                GeocodedAddress geocodedAddress = batchDistRequest.getGeocodedAddresses().get(i);
+                DistrictRequest districtRequest = (DistrictRequest) batchDistRequest.clone();
+                districtRequest.setGeocodedAddress(geocodedAddress);
+                if (!SAVE_LOCK) {
+                    batchDistLogCache.add(new ImmutablePair<>(districtRequest, districtResults.get(i)));
                 }
-                catch (Exception ex) {
-                    logger.error("Failed to log batch district results!", ex);
+                else {
+                    logger.debug("Logging district result to temporary list.");
+                    tempCache.add(new ImmutablePair<>(districtRequest, districtResults.get(i)));
                 }
             }
-            if (flush) {
-                flushBatchRequestsCache();
+            catch (Exception ex) {
+                logger.error("Failed to log batch district results!", ex);
             }
+        }
+        if (flush) {
+            flushBatchRequestsCache();
         }
     }
 
     /** {@inheritDoc} */
-    public int getLogCacheSize()
-    {
+    public int getLogCacheSize() {
         return batchDistLogCache.size();
     }
 
     /**
      * Logs district requests and results stored in the batch queue
      */
-    public synchronized void flushBatchRequestsCache()
-    {
+    public synchronized void flushBatchRequestsCache() {
         logger.debug("Flushing district batch log of size " + batchDistLogCache.size());
         SAVE_LOCK = true;
         try {
@@ -164,12 +159,11 @@ public class SqlDistrictResultLogger implements DistrictResultLogger
      * Once the batch list has been flushed this method is called to transfer all the pairs stored in the
      * temp list back to the main batch list.
      */
-    private synchronized void moveTempToMainCache()
-    {
+    private synchronized void moveTempToMainCache() {
         logger.debug("Transferring temp geocode pairs to main batch..");
         batchDistLogCache.addAll(new ArrayList<>(tempCache));
         tempCache.clear();
-        logger.debug("Main batch size: " + batchDistLogCache.size());
+        logger.debug("Main batch size: {}", batchDistLogCache.size());
     }
 
     private static class DistrictRequestIdHandler implements RowMapper<Integer> {

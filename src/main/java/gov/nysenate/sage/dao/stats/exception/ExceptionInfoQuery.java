@@ -4,7 +4,6 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum ExceptionInfoQuery implements BasicSqlQuery {
-
     SELECT_EXCEPTIONS_HIDDEN_FALSE("SELECT * FROM ${schema}."+ SqlTable.EXCEPTION + "\n" +
             "WHERE hidden = false \n" +
             "ORDER BY catchTime DESC"),
@@ -14,11 +13,9 @@ public enum ExceptionInfoQuery implements BasicSqlQuery {
 
     HIDE_EXCEPTION("UPDATE ${schema}." + SqlTable.EXCEPTION + "\n" +
             "SET hidden = true \n" +
-            "WHERE id = :id")
+            "WHERE id = :id");
 
-            ;
-
-    private String sql;
+    private final String sql;
 
     ExceptionInfoQuery(String sql) {
         this.sql = sql;

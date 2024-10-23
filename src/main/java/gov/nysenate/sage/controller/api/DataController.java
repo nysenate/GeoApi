@@ -16,18 +16,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
-import static gov.nysenate.sage.model.result.ResultStatus.API_REQUEST_INVALID;
-import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
-import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
+import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
 
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "data")
 public class DataController {
-
-    private Logger logger = LoggerFactory.getLogger(DataController.class);
-
-    private SqlDistrictShapefileDao sqlDistrictShapefileDao;
+    private static final Logger logger = LoggerFactory.getLogger(DataController.class);
+    private final SqlDistrictShapefileDao sqlDistrictShapefileDao;
 
     @Autowired
     public DataController(SqlDistrictShapefileDao sqlDistrictShapefileDao) {
@@ -37,9 +33,7 @@ public class DataController {
     /**
      * Cache Shape Files Api
      * -------------------------------
-     *
      * Batch city state validation with USPS
-     *
      * Usage:
      * (GET)    /api/v2/data/sencache
      *
@@ -54,7 +48,7 @@ public class DataController {
 
         logger.info("=======================================================");
         logger.info("Data Request");
-        logger.info(String.format("| Mode: %s | IP: %s", apiRequest.getRequest(), apiRequest.getIpAddress()));
+        logger.info("| Mode: {} | IP: {}", apiRequest.getRequest(), apiRequest.getIpAddress());
         logger.info("=======================================================");
 
         if (apiRequest.getRequest().equalsIgnoreCase("sencache")) {

@@ -5,8 +5,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class AssemblyScraper
                     String memberName = memberInfo.get(0).text();
                     String memberUrl = memberInfo.get(0).attr("href");
                     String districtNumber = memberInfo.get(1).text().replaceAll("District","").trim();
-                    Integer distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
+                    int distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
                             .replace("rd","").replace("th","") );
 //                String memberEmail = memberInfo.get(2).text().trim();
 

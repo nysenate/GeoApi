@@ -2,28 +2,17 @@ package gov.nysenate.sage.config;
 
 import org.apache.shiro.cache.MemoryConstrainedCacheManager;
 import org.apache.shiro.config.Ini;
-import org.apache.shiro.realm.Realm;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
-import java.util.List;
-
 @Configuration
-public class SecurityConfig
-{
-    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
-
-    @Autowired protected List<Realm> realms;
-
+public class SecurityConfig {
     /**
      * Shiro Filter factory that sets up the url authentication mechanism and applies the security
      * manager instance.

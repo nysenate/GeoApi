@@ -238,7 +238,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         return addressResults;
     }
 
-    private static AddressResult getAddressResultFromJsonCityState(JsonNode root) throws IOException {
+    private static AddressResult getAddressResultFromJsonCityState(JsonNode root) {
         if (root == null) {
             return null;
         }

@@ -8,8 +8,7 @@ import java.util.Map;
 /**
  * Model class for representing usage counts for a specific ApiUser.
  */
-public class ApiUserStats
-{
+public class ApiUserStats {
     private ApiUser apiUser;
     private int apiRequests;
     private int geoRequests;
@@ -57,11 +56,8 @@ public class ApiUserStats
         this.requestsByMethod = requestsByMethod;
     }
 
-    public void addMethodRequestCount(String service, String method, Integer requests)
-    {
-        if (this.requestsByMethod.get(service) == null) {
-            this.requestsByMethod.put(service, new HashMap<String, Integer>());
-        }
+    public void addMethodRequestCount(String service, String method, Integer requests) {
+        this.requestsByMethod.computeIfAbsent(service, k -> new HashMap<>());
         this.requestsByMethod.get(service).put(method, requests);
     }
 }

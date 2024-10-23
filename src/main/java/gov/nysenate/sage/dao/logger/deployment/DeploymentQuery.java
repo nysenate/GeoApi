@@ -4,13 +4,11 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum DeploymentQuery implements BasicSqlQuery {
-
     INSERT_DEPLOYMENT("INSERT INTO ${schema}." + SqlTable.DEPLOYMENT + "(deployed, refId, deployTime) \n" +
             "VALUES (:deployed, :refId, :deployTime) \n" +
-            "RETURNING id"),
-    ;
+            "RETURNING id");
 
-    private String sql;
+    private final String sql;
 
     DeploymentQuery(String sql) {
         this.sql = sql;

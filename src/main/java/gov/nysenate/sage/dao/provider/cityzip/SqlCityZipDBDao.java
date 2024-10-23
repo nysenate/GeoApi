@@ -10,29 +10,28 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Repository
-public class SqlCityZipDBDao implements CityZipDBDao {
-    private Logger logger = LoggerFactory.getLogger(SqlCityZipDBDao.class);
-    private BaseDao baseDao;
-
-    private static String SCHEMA = "public";
-    private static String TABLE = "cityzip";
-
+public class SqlCityZipDBDao {
+    private static final Logger logger = LoggerFactory.getLogger(SqlCityZipDBDao.class);
+    private static final String SCHEMA = "public";
+    private static final String TABLE = "cityzip";
     /** List of cities that should accept any location type */
-    private static Set<String> cityExceptions = new HashSet<>(
-            Arrays.asList("New York", "Manhattan", "Queens", "Brooklyn", "Bronx", "Staten Island"));
+    private static final Set<String> cityExceptions = Set.of("New York", "Manhattan", "Queens", "Brooklyn", "Bronx", "Staten Island");
+
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlCityZipDBDao(BaseDao baseDao) {
         this.baseDao = baseDao;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Returns a list of zip codes given a city name.
+     * @return List of matching zip5 strings.
+     */
     public List<Integer> getZipsByCity(String city) {
         if (city == null || city.isEmpty()) {
             return null;

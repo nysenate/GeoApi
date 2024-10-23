@@ -17,11 +17,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class SqlDistrictRequestLogger implements DistrictRequestLogger
-{
-    private static Logger logger = LoggerFactory.getLogger(SqlDistrictRequestLogger.class);
-    private static SqlAddressLogger sqlAddressLogger;
-    private BaseDao baseDao;
+public class SqlDistrictRequestLogger implements DistrictRequestLogger {
+    private static final Logger logger = LoggerFactory.getLogger(SqlDistrictRequestLogger.class);
+    private final SqlAddressLogger sqlAddressLogger;
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlDistrictRequestLogger(SqlAddressLogger sqlAddressLogger, BaseDao baseDao) {
@@ -30,8 +29,7 @@ public class SqlDistrictRequestLogger implements DistrictRequestLogger
     }
 
     /** {@inheritDoc} */
-    public int logDistrictRequest(DistrictRequest dr)
-    {
+    public int logDistrictRequest(DistrictRequest dr) {
         if (dr != null) {
             ApiRequest apiRequest = dr.getApiRequest();
             JobProcess jobProcess = dr.getJobProcess();

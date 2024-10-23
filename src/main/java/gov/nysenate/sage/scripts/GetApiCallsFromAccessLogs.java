@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -41,7 +42,7 @@ public class GetApiCallsFromAccessLogs {
             //If the file is an access log file
             if (accessLogMatcher.matches()) {
                 try(BufferedReader br = new BufferedReader(new FileReader(file))) {
-                    PrintWriter writer = new PrintWriter(pathsCSV, "UTF-8");
+                    PrintWriter writer = new PrintWriter(pathsCSV, StandardCharsets.UTF_8);
                     writer.println("\"path\"");
                     for(String line; (line = br.readLine()) != null; ) {
                         // process the line.

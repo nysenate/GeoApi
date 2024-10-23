@@ -1,13 +1,8 @@
 package gov.nysenate.sage.client.response.base;
 
-public class GenericResponse
-{
+public class GenericResponse {
     protected boolean success;
     protected String message;
-
-    public GenericResponse(boolean success) {
-        this.success = success;
-    }
 
     public GenericResponse(boolean success, String message) {
         this.success = success;

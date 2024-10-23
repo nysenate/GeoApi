@@ -6,10 +6,9 @@ import gov.nysenate.sage.dao.base.SqlTable;
 public enum DistrictRequestQuery implements BasicSqlQuery {
     INSERT_REQUEST("INSERT INTO ${schema}. " + SqlTable.DISTRICT_REQUEST + "(apiRequestId, jobProcessId, addressId, provider, geoProvider, showMembers, showMaps, uspsValidate, skipGeocode, districtStrategy, requestTime) \n" +
             "VALUES (:apiRequestId, :jobProcessId, :addressId, :provider, :geoProvider, :showMembers, :showMaps, :uspsValidate, :skipGeocode, :districtStrategy, :requestTime) \n" +
-            "RETURNING id")
-    ;
+            "RETURNING id");
 
-    private String sql;
+    private final String sql;
 
     DistrictRequestQuery(String sql) {
         this.sql = sql;

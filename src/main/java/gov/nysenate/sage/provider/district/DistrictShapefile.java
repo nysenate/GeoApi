@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider.district;
 
-import gov.nysenate.sage.dao.model.county.SqlCountyDao;
+import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
 import gov.nysenate.sage.dao.provider.streetfile.SqlStreetfileDao;
 import gov.nysenate.sage.dao.provider.tiger.TigerDao;
@@ -40,7 +40,7 @@ public class DistrictShapefile extends DistrictService implements MapService {
     private final SqlStreetfileDao sqlStreetFileDao;
     private final CityZipDB cityZipDBDao;
     private final TigerDao tigerDao;
-    private final SqlCountyDao sqlCountyDao;
+    private final CountyDao countyDao;
 
     /** Specifies the maximum distance a neighbor district can be from a specific point to still be considered
      * a nearby neighbor. */
@@ -48,7 +48,7 @@ public class DistrictShapefile extends DistrictService implements MapService {
     private int neighborProximity;
 
     /** Specifies the maximum number of nearby neighbors that will be returned by default. */
-    private static Integer MAX_NEIGHBORS = 2;
+    private static final Integer MAX_NEIGHBORS = 2;
 
     /** We should only attempt to assign districts to a geocode if it is accurate enough.
      * i.e. We can't accurately assign a district to a ZIP, CITY, or STATE quality geocode. */
@@ -57,12 +57,12 @@ public class DistrictShapefile extends DistrictService implements MapService {
 
     @Autowired
     public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, SqlStreetfileDao sqlStreetFileDao,
-                             CityZipDB cityZipDB, TigerDao tigerDao, SqlCountyDao sqlCountyDao) {
+                             CityZipDB cityZipDB, TigerDao tigerDao, CountyDao countyDao) {
         this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
         this.sqlStreetFileDao = sqlStreetFileDao;
         this.cityZipDBDao = cityZipDB;
         this.tigerDao = tigerDao;
-        this.sqlCountyDao = sqlCountyDao;
+        this.countyDao = countyDao;
         logger.debug("Instantiated DistrictShapefile.");
     }
 
@@ -140,7 +140,7 @@ public class DistrictShapefile extends DistrictService implements MapService {
                 DistrictMap map = strToDistMap.get(code);
                 if (map != null) {
                     if (districtType.equals(DistrictType.COUNTY)) { //This if block is for the COVID19 links
-                        map.setLink(sqlCountyDao.getCountyById(Integer.parseInt(code)).link());
+                        map.setLink(countyDao.getCountyBySenateCode(Integer.parseInt(code)).link());
                     }
                     mapResult.setDistrictMap(map);
                     mapResult.setStatusCode(ResultStatus.SUCCESS);
@@ -169,7 +169,7 @@ public class DistrictShapefile extends DistrictService implements MapService {
             mapResult.setStatusCode(ResultStatus.SUCCESS);
             if (districtType.equals(DistrictType.COUNTY)) {
                 for (DistrictMap map : mapCollection) {
-                    map.setLink(sqlCountyDao.getCountyById( Integer.parseInt( map.getDistrictCode() )).link());
+                    map.setLink(countyDao.getCountyBySenateCode(Integer.parseInt(map.getDistrictCode())).link());
                 }
             }
         }

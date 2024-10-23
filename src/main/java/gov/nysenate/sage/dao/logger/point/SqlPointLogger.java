@@ -1,7 +1,6 @@
 package gov.nysenate.sage.dao.logger.point;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
 import gov.nysenate.sage.model.geo.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +14,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class SqlPointLogger implements PointLogger
-{
-    private static Logger logger = LoggerFactory.getLogger(SqlAddressLogger.class);
-    private BaseDao baseDao;
+public class SqlPointLogger implements PointLogger {
+    private static final Logger logger = LoggerFactory.getLogger(SqlPointLogger.class);
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlPointLogger(BaseDao baseDao) {
@@ -26,8 +24,7 @@ public class SqlPointLogger implements PointLogger
     }
 
     /** {@inheritDoc} */
-    public int logPoint(Point point)
-    {
+    public int logPoint(Point point) {
         if (point != null) {
             int retrieveId = getPointId(point);
             if (retrieveId > 0) return retrieveId;
@@ -39,7 +36,7 @@ public class SqlPointLogger implements PointLogger
 
                 List<Integer> idList =  baseDao.geoApiNamedJbdcTemplate.query(PointQuery.INSERT_POINT.getSql(baseDao.getLogSchema()),
                         params, new PointIdHandler());
-                if (idList == null || idList.size() <= 0) {
+                if (idList.isEmpty()) {
                     return 0;
                 }
                 return idList.get(0);
@@ -62,7 +59,7 @@ public class SqlPointLogger implements PointLogger
                 List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(PointQuery.GET_POINT_ID.getSql(baseDao.getLogSchema()),
                         params, new PointIdHandler());
 
-                if (idList.size() == 0) {
+                if (idList.isEmpty()) {
                     return 0;
                 }
                 return idList.get(0);

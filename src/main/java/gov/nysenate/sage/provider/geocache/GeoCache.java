@@ -14,17 +14,12 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
-public class GeoCache extends GeocodeService implements GeocodeCacheService {
+public class GeoCache extends GeocodeService {
     private static final Logger logger = LoggerFactory.getLogger(GeoCache.class);
-    private static final Set<Geocoder> cacheableGeocoders = new HashSet<>();
     private final SqlGeoCacheDao sqlGeoCacheDao;
-    @Value("${geocoder.cacheable}")
-    private String cacheable;
 
     @Value("${geocache.enabled:true}")
     // TODO
@@ -37,8 +32,6 @@ public class GeoCache extends GeocodeService implements GeocodeCacheService {
         logger.debug("Instantiated GeoCache.");
     }
 
-    /** {@inheritDoc} */
-    @Override
     public void saveToCacheAndFlush(GeocodeResult geocodeResult) {
         if (geocodeResult != null && geocodeResult.isSuccess() && geocodeResult.getSource() != null) {
             if (geocodeResult.getSource() != Geocoder.GEOCACHE) {
@@ -48,8 +41,6 @@ public class GeoCache extends GeocodeService implements GeocodeCacheService {
         sqlGeoCacheDao.flushCacheBuffer();
     }
 
-    /** {@inheritDoc} */
-    @Override
     public void saveToCacheAndFlush(List<GeocodeResult> geocodeResults) {
         List<GeocodedAddress> geocodedAddresses = new ArrayList<>();
         for (GeocodeResult geocodeResult : geocodeResults) {

@@ -180,7 +180,7 @@ public class GeocodeController {
         Object geocodeResponse;
         Timestamp startTime = getCurrentTimeStamp();
         ApiRequest apiRequest = getApiRequest(request);
-        Boolean useCache = true;
+        boolean useCache = true;
 
 
 

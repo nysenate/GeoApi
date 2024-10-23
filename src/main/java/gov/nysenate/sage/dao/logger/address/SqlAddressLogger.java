@@ -14,11 +14,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class SqlAddressLogger implements AddressLogger
-{
-    private static Logger logger = LoggerFactory.getLogger(SqlAddressLogger.class);
-    private BaseDao baseDao;
-
+public class SqlAddressLogger implements AddressLogger {
+    private static final Logger logger = LoggerFactory.getLogger(SqlAddressLogger.class);
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlAddressLogger(BaseDao baseDao) {
@@ -26,56 +24,53 @@ public class SqlAddressLogger implements AddressLogger
     }
 
     /** {@inheritDoc} */
-    public int logAddress(Address address)
-    {
-        if (address != null) {
-            try {
-                int retrievedId = getAddressId(address);
-                if (retrievedId > 0) return retrievedId;
-
-                MapSqlParameterSource params = getAddrParams(address);
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(AddressQuery.INSERT_ADDRESS.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
-                if (idList == null || idList.size() <= 0) {
-                    return 0;
-                }
-                return idList.get(0);
-            }
-            catch (Exception ex) {
-                logger.error("Failed to log address!", ex);
-            }
+    public int logAddress(Address address) {
+        if (address == null) {
+            return 0;
         }
-        return 0;
+        try {
+            int retrievedId = getAddressId(address);
+            if (retrievedId > 0) return retrievedId;
+
+            MapSqlParameterSource params = getAddrParams(address);
+            List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(AddressQuery.INSERT_ADDRESS.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
+            if (idList.isEmpty()) {
+                return 0;
+            }
+            return idList.get(0);
+        } catch (Exception ex) {
+            logger.error("Failed to log address!", ex);
+            return 0;
+        }
     }
 
     /** {@inheritDoc} */
-    public int getAddressId(Address address)
-    {
-        if (address != null) {
-            try {
-
-                MapSqlParameterSource params = getAddrParams(address);
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(AddressQuery.GET_ADDRESS_ID.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
-                if (idList == null || idList.size() <= 0) {
-                    return 0;
-                }
-                return idList.get(0);
-            }
-            catch (Exception ex) {
-                logger.error("Failed to get address id!", ex);
-            }
+    public int getAddressId(Address address) {
+        if (address == null) {
+            return 0;
         }
-        return 0;
+        try {
+
+            MapSqlParameterSource params = getAddrParams(address);
+            List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(AddressQuery.GET_ADDRESS_ID.getSql(baseDao.getLogSchema()), params, new AddressIdHandler());
+            if (idList.isEmpty()) {
+                return 0;
+            }
+            return idList.get(0);
+        } catch (Exception ex) {
+            logger.error("Failed to get address id!", ex);
+            return 0;
+        }
     }
 
-    private MapSqlParameterSource getAddrParams(Address address) {
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("addr1",address.getAddr1());
-        params.addValue("addr2", address.getAddr2());
-        params.addValue("city", address.getPostalCity());
-        params.addValue("state",address.getState());
-        params.addValue("zip5", address.getZip5());
-        params.addValue("zip4",address.getZip4());
-        return params;
+    private static MapSqlParameterSource getAddrParams(Address address) {
+        return new MapSqlParameterSource()
+                .addValue("addr1",address.getAddr1())
+                .addValue("addr2", address.getAddr2())
+                .addValue("city", address.getPostalCity())
+                .addValue("state",address.getState())
+                .addValue("zip5", address.getZip5())
+                .addValue("zip4",address.getZip4());
     }
 
     private static class AddressIdHandler implements RowMapper<Integer> {

@@ -8,16 +8,11 @@ import java.util.List;
 /**
  * Extends DistrictMetadata with district map geometry information.
  */
-public class DistrictMap extends DistrictMetadata
-{
+public class DistrictMap extends DistrictMetadata {
     private List<Polygon> polygons = new ArrayList<>();
     private String geometryType = "";
 
     public DistrictMap() {}
-
-    public DistrictMap(List<Polygon> polygons) {
-        this.polygons = polygons;
-    }
 
     public void setDistrictMetadata(DistrictMetadata dm) {
         this.setDistrictCode(dm.districtCode);
@@ -45,15 +40,14 @@ public class DistrictMap extends DistrictMetadata
         this.geometryType = geometryType;
     }
 
-    public String toString()
-    {
-        String o = "";
+    public String toString() {
+        var o = new StringBuilder();
         if (polygons != null) {
             for (Polygon polygon : polygons) {
-                o += polygon.toString();
+                o.append(polygon.toString());
             }
         }
-        return o;
+        return o.toString();
     }
 
     public void setLink(String link) {

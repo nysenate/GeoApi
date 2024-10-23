@@ -3,7 +3,10 @@ package gov.nysenate.sage.service.security;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.authc.*;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationInfo;
+import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.credential.CredentialsMatcher;
 import org.apache.shiro.authc.pam.UnsupportedTokenException;
 import org.apache.shiro.authz.AuthorizationInfo;
@@ -18,8 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 
 @Component
-public class ApiUserAuthRealm extends SageAuthorizingRealm
-{
+public class ApiUserAuthRealm extends SageAuthorizingRealm {
     private static final Logger logger = LoggerFactory.getLogger(ApiUserAuthRealm.class);
 
     /** The IP whitelist is used here to restrict access to Api User login to internal IPs only. */
@@ -45,8 +47,7 @@ public class ApiUserAuthRealm extends SageAuthorizingRealm
 
     private static final CredentialsMatcher apiCredentialsMatcher = new ApiCredentialsMatcher();
 
-
-    private ApiUserAuth apiUserAuth;
+    private final ApiUserAuth apiUserAuth;
 
     @Autowired
     public ApiUserAuthRealm(ApiUserAuth apiUserAuth) {
@@ -60,18 +61,16 @@ public class ApiUserAuthRealm extends SageAuthorizingRealm
      *
      * @param token The given authentication information
      * @return Either valid AuthenticationInfo for the given token or null if the account is not valid
-     * @throws AuthenticationException
      */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        if (token != null && token instanceof ApiKeyLoginToken) {
-            ApiKeyLoginToken apiKeyLoginToken = (ApiKeyLoginToken) token;
-            logger.info("Attempting login with Api User Realm from IP {}", apiKeyLoginToken.getHost());
-            if (apiKeyLoginToken.getHost().matches(ipWhitelist)) {
+        if (token instanceof ApiKeyLoginToken apiKeyLoginToken) {
+            logger.info("Attempting login with Api User Realm from IP {}", apiKeyLoginToken.host());
+            if (apiKeyLoginToken.host().matches(ipWhitelist)) {
                 return queryForAuthenticationInfo(apiKeyLoginToken);
             }
             else {
-                logger.warn("Blocking api user login from unauthorized IP {}", apiKeyLoginToken.getHost());
+                logger.warn("Blocking api user login from unauthorized IP {}", apiKeyLoginToken.host());
                 throw new AuthenticationException("Api user login from unauthorized IP address.");
             }
         }
@@ -85,7 +84,7 @@ public class ApiUserAuthRealm extends SageAuthorizingRealm
      * @return A new SimpleAuthenticationInfo object if the user is a valid api user, or AuthenticationException
      */
     protected AuthenticationInfo queryForAuthenticationInfo(ApiKeyLoginToken info) {
-        String apiKey = info.getApiKey();
+        String apiKey = info.apiKey();
         ApiUser apiUser = apiUserAuth.getApiUser(apiKey);
         return new SimpleAuthenticationInfo(apiUser.getApiKey(), apiUser.getId(), getName());
     }
@@ -124,7 +123,7 @@ public class ApiUserAuthRealm extends SageAuthorizingRealm
     }
 
     @Override
-    public Class getAuthenticationTokenClass() {
+    public Class<ApiKeyLoginToken> getAuthenticationTokenClass() {
         return ApiKeyLoginToken.class;
     }
 }

@@ -5,12 +5,6 @@ public enum SqlTable {
      * Geoapi Database table names
      */
     //Districts Schema
-    DISTRICT_ASSEMBLY ("assembly"),
-    DISTRICT_CONGRESSIONAL ("congressional"),
-    DISTRICT_COUNTY ("county"),
-    DISTRICT_ELECTION ("election"),
-    DISTRICT_SCHOOL ("school"),
-    DISTRICT_SENATE("senate"),
     DISTRICT_TOWN ("town"),
     DISTRICT_ZIP ("zip"),
 
@@ -36,13 +30,12 @@ public enum SqlTable {
     ADMIN ("admin"),
     API_USER ("apiuser"),
     PUBLIC_ASSEMBLY("assembly"),
-    CITY_ZIP ("cityzip"),
     POST_OFFICE("post_office"),
     PUBLIC_CONGRESSIONAL ("congressional"),
     PUBLIC_COUNTY ("county"),
     PUBLIC_SENATE("senate"),
     SENATOR ("senator"),
-    SPATIAL_REF_SYS ("spatial_ref_sys"),
+    // TODO: use
     STREETFILE ("streetfile"),
 
     /**
@@ -52,19 +45,13 @@ public enum SqlTable {
     //Cache Schema
     GEOCACHE ("geocache"),
     //Public Schema
-    ADDRESS_POINTS_SAM ("addresspoints_sam")
-    //For now, the tables used by Tiger will be left out. There are ~50 tables used only by TIGER
-
-    ;
+    ADDRESS_POINTS_SAM ("addresspoints_sam");
+    // TODO: cleanup tiget tables
 
     private final String tableName;
 
     SqlTable(String tableName) {
         this.tableName = tableName;
-    }
-
-    public String table(String schema) {
-        return schema + "." + tableName;
     }
 
     @Override

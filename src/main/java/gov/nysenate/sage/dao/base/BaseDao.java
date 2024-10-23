@@ -3,13 +3,13 @@ package gov.nysenate.sage.dao.base;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.config.DatabaseConfig;
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.geo.GeometryTypes;
 import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,19 +21,27 @@ import java.util.List;
 @Repository
 public class BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(BaseDao.class);
+    @Value("${env.log.schema:log}")
+    private String logSchema;
+    @Value("${env.public.schema:public}")
+    private String publicSchema;
+    @Value("${env.cache.schema:cache}")
+    private String cacheSchema;
+    @Value("${env.job.schema:job}")
+    private String jobSchema;
+
+    // TODO: should be protected and other DAOs should inherit
     public final JdbcTemplate geoApiJbdcTemplate;
     public final NamedParameterJdbcTemplate geoApiNamedJbdcTemplate;
     public final JdbcTemplate tigerJbdcTemplate;
     public final NamedParameterJdbcTemplate tigerNamedJdbcTemplate;
-    private final Environment env;
 
     @Autowired
-    public BaseDao(DatabaseConfig databaseConfig, Environment env) {
+    public BaseDao(DatabaseConfig databaseConfig) {
         this.geoApiJbdcTemplate = databaseConfig.geoApiJdbcTemplate();
         this.geoApiNamedJbdcTemplate = databaseConfig.geoApiNamedJdbcTemplate();
         this.tigerJbdcTemplate = databaseConfig.tigerJdbcTemplate();
         this.tigerNamedJdbcTemplate = databaseConfig.tigerNamedJdbcTemplate();
-        this.env = env;
     }
 
     /**
@@ -79,23 +87,20 @@ public class BaseDao {
         return null;
     }
 
-    public String getDistrictSchema() {
-        return env.getDistrictsSchema();
-    }
-
+    // TODO: should be protected fields
     public String getJobSchema() {
-        return env.getJobSchema();
+        return jobSchema;
     }
 
     public String getPublicSchema() {
-        return env.getPublicSchema();
+        return publicSchema;
     }
 
     public String getLogSchema() {
-        return env.getLogSchema();
+        return logSchema;
     }
 
     public String getCacheSchema() {
-        return env.getCacheSchema();
+        return cacheSchema;
     }
 }

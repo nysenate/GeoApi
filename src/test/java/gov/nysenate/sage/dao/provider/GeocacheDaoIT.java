@@ -22,16 +22,13 @@ import java.util.ArrayList;
 
 @Category(IntegrationTest.class)
 public class GeocacheDaoIT extends BaseTests {
-
+    private static final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
-    SqlGeoCacheDao sqlGeoCacheDao;
-
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private SqlGeoCacheDao sqlGeoCacheDao;
 
     @Test
     @Transactional(value = DatabaseConfig.geocoderTxManager)
-    public void testCacheSave()
-    {
+    public void testCacheSave() {
         ArrayList<GeocodedAddress> gcs = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             Address a = new Address(i+"BOO" + " ST", "Test", "NY", "00001");
@@ -42,6 +39,6 @@ public class GeocacheDaoIT extends BaseTests {
         Timestamp start = TimeUtil.currentTimestamp();
         sqlGeoCacheDao.cacheGeocodedAddresses(gcs);
         sqlGeoCacheDao.flushCacheBuffer();
-        logger.info("Elapsed time: " + TimeUtil.getElapsedMs(start) + " ms.");
+        logger.info("Elapsed time: {} ms.", TimeUtil.getElapsedMs(start));
     }
 }

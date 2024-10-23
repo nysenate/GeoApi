@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nonnull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -29,22 +30,16 @@ import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
  */
 @Repository
 public class SqlJobProcessDao implements JobProcessDao {
-    private Logger logger = LoggerFactory.getLogger(SqlJobUserDao.class);
-    private RowMapper<JobProcess> processHandler;
-    private RowMapper<JobProcessStatus> statusHandler;
-    private RowMapper<JobProcess> processListHandler;
-    private RowMapper<JobProcessStatus> statusListHandler;
-    private BaseDao baseDao;
-    private SqlJobUserDao sqlJobUserDao;
+    private static final Logger logger = LoggerFactory.getLogger(SqlJobProcessDao.class);
+    private final RowMapper<JobProcessStatus> statusHandler;
+    private final RowMapper<JobProcessStatus> statusListHandler;
+    private final BaseDao baseDao;
 
     @Autowired
     public SqlJobProcessDao(BaseDao baseDao, SqlJobUserDao sqlJobUserDao) {
         this.baseDao = baseDao;
-        this.sqlJobUserDao = sqlJobUserDao;
-        this.processHandler = new JobProcessHandler(this.sqlJobUserDao);
-        this.statusHandler = new JobStatusHandler(this.sqlJobUserDao);
-        this.processListHandler = new JobProcessListHandler(this.sqlJobUserDao);
-        this.statusListHandler = new JobProcessStatusListHandler(this.sqlJobUserDao);
+        this.statusHandler = new JobStatusHandler(sqlJobUserDao);
+        this.statusListHandler = new JobProcessStatusListHandler(sqlJobUserDao);
     }
 
     /** {@inheritDoc} */
@@ -75,8 +70,8 @@ public class SqlJobProcessDao implements JobProcessDao {
 
     /** {@inheritDoc} */
     public int setJobProcessStatus(JobProcessStatus jps) {
-        /** In order to allow this method to both insert and update a status record, an update query is run first.
-         *  If it fails then we can insert a new record. */
+        // In order to allow this method to both insert and update a status record, an update query is run first.
+        // If it fails then we can insert a new record.
         if (jps != null) {
             int processId = jps.getProcessId();
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -100,7 +95,7 @@ public class SqlJobProcessDao implements JobProcessDao {
                             JobProcessQuery.UPDATE_JOB_PROCESS_STATUS.getSql(baseDao.getJobSchema()), params);
                 }
                 catch (Exception ex2) {
-                    logger.error("Failed to set job process status for process " + jps.getProcessId(), ex);
+                    logger.error("Failed to set job process status for process {}", jps.getProcessId(), ex);
                 }
             }
         } else {
@@ -146,7 +141,7 @@ public class SqlJobProcessDao implements JobProcessDao {
         String conditionFilter = (!where.isEmpty()) ? StringUtils.join(where, " OR ") : "";
         String jobUserFilter = (jobUser != null && !jobUser.isAdmin()) ? " AND userId = " + jobUser.getId() : "";
 
-        /** If start and end timestamps are null, set to earliest and current time respectively */
+        // If start and end timestamps are null, set to earliest and current time respectively
         start = (start == null) ? new Timestamp(0) : start;
         end = (end == null) ? new Timestamp(new Date().getTime()) : end;
         String requestTimeFilter = " AND requestTime >= '" + start + "' AND requestTime <= '" + end + "'";
@@ -170,9 +165,7 @@ public class SqlJobProcessDao implements JobProcessDao {
         String restOfQuery = conditionFilter + jobUserFilter + " ORDER BY status.completeTime DESC";
 
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("afterThis", afterThis);
-
+            var params = new MapSqlParameterSource("afterThis", afterThis);
             return baseDao.geoApiNamedJbdcTemplate.query(JobProcessQuery.GET_RECENTLY_COMPLETED_JOB_PROCESSES.getSql(baseDao.getJobSchema()) + restOfQuery, params, statusListHandler);
         } catch (Exception ex) {
             logger.error("Failed to retrieve recent job statuses!", ex);
@@ -190,20 +183,7 @@ public class SqlJobProcessDao implements JobProcessDao {
         return getJobStatusesByConditions(Condition.getInactiveConditions(), jobUser, null, null);
     }
 
-    protected static class JobProcessHandler implements RowMapper<JobProcess> {
-        private SqlJobUserDao sqlJobUserDao;
-
-        protected JobProcessHandler(SqlJobUserDao sqlJobUserDao) {
-            this.sqlJobUserDao = sqlJobUserDao;
-        }
-
-        @Override
-        public JobProcess mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return getJobProcessFromResultSet(rs, sqlJobUserDao);
-        }
-    }
-
-    protected static class JobStatusHandler implements RowMapper<JobProcessStatus> {
+    private static class JobStatusHandler implements RowMapper<JobProcessStatus> {
         protected static Logger logger = LoggerFactory.getLogger(JobStatusHandler.class);
         protected SqlJobUserDao sqlJobUserDao;
 
@@ -212,26 +192,13 @@ public class SqlJobProcessDao implements JobProcessDao {
         }
 
         @Override
-        public JobProcessStatus mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public JobProcessStatus mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
             return getJobProcessStatusFromResultSet(rs, sqlJobUserDao, logger);
         }
     }
 
-    protected static class JobProcessListHandler implements RowMapper<JobProcess> {
-        private SqlJobUserDao sqlJobUserDao;
-
-        protected JobProcessListHandler(SqlJobUserDao sqlJobUserDao) {
-            this.sqlJobUserDao = sqlJobUserDao;
-        }
-
-        @Override
-        public JobProcess mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return getJobProcessFromResultSet(rs, sqlJobUserDao);
-        }
-    }
-
-    protected static class JobProcessStatusListHandler implements RowMapper<JobProcessStatus> {
-        protected static Logger logger = LoggerFactory.getLogger(JobStatusHandler.class);
+    private static class JobProcessStatusListHandler implements RowMapper<JobProcessStatus> {
+        protected static Logger logger = LoggerFactory.getLogger(JobProcessStatusListHandler.class);
         protected SqlJobUserDao sqlJobUserDao;
 
         protected JobProcessStatusListHandler(SqlJobUserDao sqlJobUserDao) {
@@ -239,13 +206,13 @@ public class SqlJobProcessDao implements JobProcessDao {
         }
 
         @Override
-        public JobProcessStatus mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public JobProcessStatus mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
             return getJobProcessStatusFromResultSet(rs, sqlJobUserDao, logger);
         }
     }
 
     protected static JobProcess getJobProcessFromResultSet(ResultSet rs, SqlJobUserDao juDao) throws SQLException {
-        JobProcess jobProcess = new JobProcess();
+        var jobProcess = new JobProcess();
         jobProcess.setId(rs.getInt("id"));
         jobProcess.setRequestor(juDao.getJobUserById(rs.getInt("userId")));
         jobProcess.setFileName(rs.getString("fileName"));
@@ -260,9 +227,8 @@ public class SqlJobProcessDao implements JobProcessDao {
     }
 
     protected static JobProcessStatus getJobProcessStatusFromResultSet(ResultSet rs, SqlJobUserDao jud, Logger logger) throws SQLException {
-        ObjectMapper jsonMapper = new ObjectMapper();
-        JobProcessStatus jps;
-        jps = new JobProcessStatus();
+        var jsonMapper = new ObjectMapper();
+        JobProcessStatus jps = new JobProcessStatus();
         jps.setProcessId(rs.getInt("processId"));
         jps.setJobProcess(getJobProcessFromResultSet(rs, jud));
         jps.setStartTime(rs.getTimestamp("startTime"));

@@ -30,7 +30,7 @@ public class ApiRequest
     /** Timing information */
     protected Timestamp apiRequestTime;
 
-    public ApiRequest(){};
+    public ApiRequest(){}
 
     public ApiRequest(int version, String service, String request, boolean batch, InetAddress ipAddress) {
         setVersion(version);

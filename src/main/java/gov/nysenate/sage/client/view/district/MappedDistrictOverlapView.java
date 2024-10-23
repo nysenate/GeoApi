@@ -5,15 +5,13 @@ import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictOverlap;
 
-public class MappedDistrictOverlapView extends DistrictOverlapView
-{
+public class MappedDistrictOverlapView extends DistrictOverlapView {
     protected PolygonMapView map;
     protected PolygonMapView fullMap;
     protected Object member;
 
-    public MappedDistrictOverlapView(DistrictOverlap districtOverlap, String district, DistrictMatchLevel matchLevel)
-    {
-        super(districtOverlap, district, matchLevel);
+    public MappedDistrictOverlapView(DistrictOverlap districtOverlap, String district, DistrictMatchLevel matchLevel) {
+        super(districtOverlap, district);
         if (districtOverlap != null && district != null) {
             DistrictMap intersectionMap = districtOverlap.getIntersectionMap(district);
             DistrictMap districtMap = districtOverlap.getTargetDistrictMap(district);

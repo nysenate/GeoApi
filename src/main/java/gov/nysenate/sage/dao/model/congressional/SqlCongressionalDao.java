@@ -49,7 +49,7 @@ public class SqlCongressionalDao implements CongressionalDao
                     CongressionalQuery.GET_CONGRESSIONAL_MEMBER_BY_DISTRICT.getSql(baseDao.getPublicSchema()),
                     params, new CongressionalHandler());
 
-            if (congressionalList == null || congressionalList.size() == 0) {
+            if (congressionalList.isEmpty()) {
                 return null;
             }
             return congressionalList.get(0);

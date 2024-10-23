@@ -13,7 +13,7 @@ import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
-import gov.nysenate.sage.model.stats.*;
+import gov.nysenate.sage.model.stats.ApiUsageStats;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.auth.JobUserAuth;
@@ -21,41 +21,38 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 @Controller
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/api")
-public class AdminApiController
-{
-    private Logger logger = LoggerFactory.getLogger(AdminApiController.class);
+public class AdminApiController {
+    private static final Logger logger = LoggerFactory.getLogger(AdminApiController.class);
 
-    private SqlApiUserStatsDao sqlApiUserStatsDao;
-    private SqlApiUsageStatsDao sqlApiUsageStatsDao;
-    private SqlDeploymentStatsDao sqlDeploymentStatsDao;
-    private SqlExceptionInfoDao sqlExceptionInfoDao;
-    private SqlApiUserDao sqlApiUserDao;
-    private SqlJobUserDao sqlJobUserDao;
-    private SqlGeocodeStatsDao sqlGeocodeStatsDao;
-    private SqlJobProcessDao sqlJobProcessDao;
-    private ApiUserAuth apiUserAuth;
-    private JobUserAuth jobUserAuth;
-    private AdminUserAuth adminUserAuth;
+    private final SqlApiUserStatsDao sqlApiUserStatsDao;
+    private final SqlApiUsageStatsDao sqlApiUsageStatsDao;
+    private final SqlDeploymentStatsDao sqlDeploymentStatsDao;
+    private final SqlExceptionInfoDao sqlExceptionInfoDao;
+    private final SqlApiUserDao sqlApiUserDao;
+    private final SqlJobUserDao sqlJobUserDao;
+    private final SqlGeocodeStatsDao sqlGeocodeStatsDao;
+    private final SqlJobProcessDao sqlJobProcessDao;
+    private final ApiUserAuth apiUserAuth;
+    private final JobUserAuth jobUserAuth;
+    private final AdminUserAuth adminUserAuth;
 
     @Autowired
     public AdminApiController(SqlApiUserStatsDao sqlApiUserStatsDao,
@@ -75,15 +72,12 @@ public class AdminApiController
         this.apiUserAuth = apiUserAuth;
         this.jobUserAuth = jobUserAuth;
         this.adminUserAuth = adminUserAuth;
-
     }
 
     /**
      * Current Api Users Api
      * ---------------------
-     *
      * Returns the current api users
-     *
      * Usage:
      * (GET)    /admin/api/currentApiUsers
      *
@@ -99,10 +93,10 @@ public class AdminApiController
         Object adminResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
-        if ( subject.hasRole("ADMIN") ||
+        if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = getCurrentApiUsers(request);
+            adminResponse = sqlApiUserDao.getApiUsers();
         }
         else {
             adminResponse = invalidAuthResponse();
@@ -114,9 +108,7 @@ public class AdminApiController
     /**
      * Current Job Users Api
      * ---------------------
-     *
      * Returns the current job users
-     *
      * Usage:
      * (GET)    /admin/api/currentJobUsers
      *
@@ -135,7 +127,7 @@ public class AdminApiController
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-            adminResponse =  getCurrentJobUsers(request);
+            adminResponse = sqlJobUserDao.getJobUsers();
         }
         else {
             adminResponse = invalidAuthResponse();
@@ -147,9 +139,7 @@ public class AdminApiController
     /**
      * Api User Usage Api
      * ---------------------
-     *
      * Returns api user request stats
-     *
      * Usage:
      * (GET)    /admin/api/apiUserUsage
      *
@@ -168,7 +158,7 @@ public class AdminApiController
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = getApiUserStats(request);
+            adminResponse = sqlApiUserStatsDao.getRequestCounts(getBeginTimestamp(request), getEndTimestamp(request));
         }
         else {
             adminResponse = invalidAuthResponse();
@@ -180,9 +170,7 @@ public class AdminApiController
     /**
      * Api Usage Api
      * ---------------------
-     *
      * Returns api user usage request stats
-     *
      * Usage:
      * (GET)    /admin/api/usage
      *
@@ -213,9 +201,7 @@ public class AdminApiController
     /**
      * Geocode Usage Api
      * ---------------------
-     *
      * Returns geocode usage stats
-     *
      * Usage:
      * (GET)    /admin/api/geocodeUsage
      *
@@ -234,7 +220,7 @@ public class AdminApiController
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-            adminResponse = getGeocodeUsageStats(request);
+            adminResponse = sqlGeocodeStatsDao.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
         }
         else {
             adminResponse = invalidAuthResponse();
@@ -246,9 +232,7 @@ public class AdminApiController
     /**
      * Job Statuses Api
      * ---------------------
-     *
      * Returns current job statuses
-     *
      * Usage:
      * (GET)    /admin/api/jobStatuses
      *
@@ -279,9 +263,7 @@ public class AdminApiController
     /**
      * Deployment Stats Api
      * ---------------------
-     *
      * Returns deployment stats
-     *
      * Usage:
      * (GET)    /admin/api/deployment
      *
@@ -300,7 +282,7 @@ public class AdminApiController
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = getDeploymentStats(request);
+            adminResponse = sqlDeploymentStatsDao.getDeploymentStats();
         }
         else {
             adminResponse = invalidAuthResponse();
@@ -312,9 +294,7 @@ public class AdminApiController
     /**
      * Exception Stats Api
      * ---------------------
-     *
      * Returns exception stats
-     *
      * Usage:
      * (GET)    /admin/api/exception
      *
@@ -333,7 +313,7 @@ public class AdminApiController
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = getExceptionStats(request);
+            adminResponse = sqlExceptionInfoDao.getExceptionInfoList(true);
         }
         else {
             adminResponse = invalidAuthResponse();
@@ -346,9 +326,7 @@ public class AdminApiController
     /**
      * Create Api Users Api
      * ---------------------
-     *
      * Creates an api user
-     *
      * Usage:
      * (POST)    /admin/api/createApiUser
      *
@@ -380,9 +358,7 @@ public class AdminApiController
     /**
      * Delete Api Users Api
      * ---------------------
-     *
      * Deletes an api user
-     *
      * Usage:
      * (POST)    /admin/api/deleteApiUser
      *
@@ -413,9 +389,7 @@ public class AdminApiController
     /**
      * Create Job Users Api
      * ---------------------
-     *
      * Creates a job user
-     *
      * Usage:
      * (POST)    /admin/api/createJobUser
      *
@@ -446,9 +420,7 @@ public class AdminApiController
     /**
      * Delete Job Users Api
      * ---------------------
-     *
      * Deletes a job user
-     *
      * Usage:
      * (POST)    /admin/api/deleteJobUser
      *
@@ -479,9 +451,7 @@ public class AdminApiController
     /**
      * Hide exception Api
      * ---------------------
-     *
      * Hides an exception from the admin user interface
-     *
      * Usage:
      * (POST)    /admin/api/hideException
      *
@@ -510,37 +480,15 @@ public class AdminApiController
     }
 
     /**
-     * Retrieves all registered Api Users. This method should not be exposed through a non-admin API as it contains
-     * the hashed api user passwords.
-     * @param request HttpServletRequest
-     * @return List<ApiUser>
-     */
-    private List getCurrentApiUsers(HttpServletRequest request)
-    {
-        return sqlApiUserDao.getApiUsers();
-    }
-
-    /**
-     * Retrieves all registered Job Users.
-     * @param request
-     * @return
-     */
-    private List getCurrentJobUsers(HttpServletRequest request)
-    {
-        return sqlJobUserDao.getJobUsers();
-    }
-
-    /**
      * Creates a new Api User.
      * @param request Required param(s): name
      * @return GenericResponse indicating success/failure.
      */
-    private GenericResponse createApiUser(HttpServletRequest request)
-    {
+    private GenericResponse createApiUser(HttpServletRequest request) {
         GenericResponse response;
         String name = request.getParameter("name");
         String desc = request.getParameter("desc");
-        boolean admin = Boolean.parseBoolean( request.getParameter("admin") );
+        boolean admin = Boolean.parseBoolean(request.getParameter("admin"));
 
         if (name != null && !name.isEmpty()) {
             ApiUser apiUser = apiUserAuth.addApiUser(name, desc, admin);
@@ -562,8 +510,7 @@ public class AdminApiController
      * @param request Required Param(s): id
      * @return GenericResponse indicating success/failure.
      */
-    private GenericResponse deleteApiUser(HttpServletRequest request)
-    {
+    private GenericResponse deleteApiUser(HttpServletRequest request) {
         GenericResponse response;
         try {
             int id = Integer.parseInt(request.getParameter("id"));
@@ -587,14 +534,13 @@ public class AdminApiController
      * @param request Required Params: email, password, firstname, lastname
      * @return GenericResponse indicating success/failure.
      */
-    private GenericResponse createJobUser(HttpServletRequest request)
-    {
+    private GenericResponse createJobUser(HttpServletRequest request) {
         GenericResponse response;
         String email = request.getParameter("email");
         String firstName = request.getParameter("firstname");
         String lastName = request.getParameter("lastname");
         String password = request.getParameter("password");
-        Boolean isAdmin = Boolean.parseBoolean(request.getParameter("admin"));
+        boolean isAdmin = Boolean.parseBoolean(request.getParameter("admin"));
 
         if (email != null && !email.isEmpty() && password != null && !password.isEmpty()) {
             JobUser jobUser = jobUserAuth.addActiveJobUser(email, password, firstName, lastName, isAdmin);
@@ -616,8 +562,7 @@ public class AdminApiController
      * @param request Required Params: id
      * @return GenericResponse indicating success/failure.
      */
-    private GenericResponse deleteJobUser(HttpServletRequest request)
-    {
+    private GenericResponse deleteJobUser(HttpServletRequest request) {
         GenericResponse response;
         try {
             int id = Integer.parseInt(request.getParameter("id"));
@@ -642,18 +587,6 @@ public class AdminApiController
     }
 
     /**
-     * Returns an object that contains a list of the times of all application deployments and shutdowns.
-     * @see DeploymentStats
-     * @param request HttpServletRequest
-     * @return DeploymentStats
-     */
-    private DeploymentStats getDeploymentStats(HttpServletRequest request)
-    {
-        DeploymentStats deploymentStats = sqlDeploymentStatsDao.getDeploymentStats();
-        return deploymentStats;
-    }
-
-    /**
      * Retrieves interval-based api usage stats within a specified time frame or per hour by default.
      * @see ApiUsageStats
      * @see SqlApiUsageStatsDao.RequestInterval
@@ -661,8 +594,7 @@ public class AdminApiController
      *                string representation of a RequestInterval value (e.g 'HOUR').
      * @return ApiUsageStats
      */
-    private ApiUsageStats getApiUsageStats(HttpServletRequest request)
-    {
+    private ApiUsageStats getApiUsageStats(HttpServletRequest request) {
         SqlApiUsageStatsDao.RequestInterval requestInterval;
         try {
             requestInterval = SqlApiUsageStatsDao.RequestInterval.valueOf(request.getParameter("interval"));
@@ -676,47 +608,22 @@ public class AdminApiController
     }
 
     /**
-     * Returns GeocodeUsageStats from `sinceDays` ago to now.
-     * @param request: HttpServletRequest, Optional query parameter: sinceDays (int)
-     * @return GeocodeStats
-     */
-    private GeocodeStats getGeocodeUsageStats(HttpServletRequest request)
-    {
-        Integer sinceDays = null;
-        try {
-            sinceDays = Integer.parseInt(request.getParameter("sinceDays"));
-        }
-        catch (NumberFormatException ex) {}
-        return sqlGeocodeStatsDao.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
-    }
-
-    /**
      * Returns a List of JobProcessStatus objects within the given 'from' and 'to' request time range.
      * @param request HttpServletRequest, Optional Params: 'from' (Start timestamp value for job requestTime)
      *                                                     'to' (End timestamp value for job requestTime)
      * @return List<JobProcessStatus>
      */
-    private List<JobProcessStatusView> getJobProcessStatusList(HttpServletRequest request)
-    {
-        List<JobProcessStatus> statuses = new ArrayList<>();
+    private List<JobProcessStatusView> getJobProcessStatusList(HttpServletRequest request) {
         List<JobProcessStatusView> statusViews = new ArrayList<>();
         Timestamp from = getBeginTimestamp(request);
         Timestamp to = getEndTimestamp(request);
-        statuses = sqlJobProcessDao.getJobStatusesByConditions(Arrays.asList(JobProcessStatus.Condition.values()), null, from, to);
+        List<JobProcessStatus> statuses = sqlJobProcessDao.getJobStatusesByConditions(
+                List.of(JobProcessStatus.Condition.values()), null, from, to
+        );
         for (JobProcessStatus jobProcessStatus : statuses) {
             statusViews.add(new JobProcessStatusView(jobProcessStatus));
         }
         return statusViews;
-    }
-
-    private Map<Integer, ApiUserStats> getApiUserStats(HttpServletRequest request)
-    {
-        return sqlApiUserStatsDao.getRequestCounts(getBeginTimestamp(request), getEndTimestamp(request));
-    }
-
-    private List<ExceptionInfo> getExceptionStats(HttpServletRequest request)
-    {
-        return sqlExceptionInfoDao.getExceptionInfoList(true);
     }
 
     /**
@@ -724,8 +631,7 @@ public class AdminApiController
      * @param request Required Params: id (of the exceptionInfo).
      * @return GenericResponse indicating success/failure.
      */
-    private GenericResponse hideException(HttpServletRequest request)
-    {
+    private GenericResponse hideException(HttpServletRequest request) {
         int id;
         try {
             id = Integer.parseInt(request.getParameter("id"));

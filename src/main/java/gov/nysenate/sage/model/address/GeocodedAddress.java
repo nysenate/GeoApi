@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * GeocodedAddress represents an address that contains geo coordinate information.
  */
-public class GeocodedAddress implements Serializable, Cloneable {
+public class GeocodedAddress implements Serializable {
     protected Address address;
     protected Geocode geocode;
 

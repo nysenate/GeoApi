@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertNull;
 
 @Category(IntegrationTest.class)
 public class CongressionalDaoIT extends BaseTests {

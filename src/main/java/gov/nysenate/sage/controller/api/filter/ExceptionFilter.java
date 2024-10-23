@@ -1,23 +1,22 @@
 package gov.nysenate.sage.controller.api.filter;
 
 import gov.nysenate.sage.dao.logger.exception.SqlExceptionLogger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import java.sql.Timestamp;
 import java.util.Date;
 
 @Component
-public class ExceptionFilter implements Filter
-{
-    private static Logger logger = LoggerFactory.getLogger(ExceptionFilter.class);
-    Marker fatal = MarkerFactory.getMarker("FATAL");
-    private SqlExceptionLogger sqlExceptionLogger;
+public class ExceptionFilter implements Filter {
+    private static final Logger logger = LoggerFactory.getLogger(ExceptionFilter.class);
+    private static final Marker fatal = MarkerFactory.getMarker("FATAL");
+    private final SqlExceptionLogger sqlExceptionLogger;
 
     @Autowired
     public ExceptionFilter(SqlExceptionLogger sqlExceptionLogger) {
@@ -28,8 +27,7 @@ public class ExceptionFilter implements Filter
     public void init(FilterConfig filterConfig) throws ServletException {}
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-    {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) {
         try {
             chain.doFilter(request, response);
         }
@@ -39,7 +37,4 @@ public class ExceptionFilter implements Filter
             sqlExceptionLogger.logException(ex, new Timestamp(new Date().getTime()), apiRequestId);
         }
     }
-
-    @Override
-    public void destroy() {}
 }

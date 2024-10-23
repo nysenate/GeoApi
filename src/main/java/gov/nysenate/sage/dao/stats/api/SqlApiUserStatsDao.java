@@ -57,8 +57,8 @@ public class SqlApiUserStatsDao implements ApiUserStatsDao {
 
     private Map<Integer, ApiUserStats> collapseListIntoMap(List<Map<Integer, ApiUserStats>> apiUserStatsMapList) {
         Map<Integer, ApiUserStats> apiUserStatsMap = new HashMap<>();
-        for(int i=0; i < apiUserStatsMapList.size(); i++) {
-            apiUserStatsMap.putAll(apiUserStatsMapList.get(i));
+        for (Map<Integer, ApiUserStats> integerApiUserStatsMap : apiUserStatsMapList) {
+            apiUserStatsMap.putAll(integerApiUserStatsMap);
         }
         return apiUserStatsMap;
     }
