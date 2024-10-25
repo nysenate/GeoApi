@@ -111,9 +111,6 @@ public class JobRecord
             this.dataMap.put(Column.election, districtInfo.getDistCode(DistrictType.ELECTION));
             this.dataMap.put(Column.ward, districtInfo.getDistCode(DistrictType.WARD));
         }
-        else {
-            System.out.println("TESTING: status code was " + districtResult.getStatusCode());
-        }
     }
 
     /** Explicit getters/setters */
