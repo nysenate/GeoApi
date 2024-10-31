@@ -161,21 +161,6 @@ public class DistrictInfo {
         return districtOverlaps.get(districtType);
     }
 
-    public DistrictMap getReferenceMap() {
-        return referenceMap;
-    }
-
-    public void setReferenceMap(DistrictMap referenceMap) {
-        this.referenceMap = referenceMap;
-    }
-
-    public List<Line> getStreetLineReference() {
-        return streetLineReference;
-    }
-
-    public void setStreetLineReference(List<Line> streetLineReference) {
-        this.streetLineReference = streetLineReference;
-    }
 
     public List<DistrictedStreetRange> getStreetRanges() {
         return streetRanges;

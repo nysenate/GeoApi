@@ -9,20 +9,15 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.util.TimeUtil;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 
 @Category(IntegrationTest.class)
 public class GeocacheDaoIT extends BaseTests {
-    private static final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private SqlGeoCacheDao sqlGeoCacheDao;
 
@@ -35,10 +30,7 @@ public class GeocacheDaoIT extends BaseTests {
             Geocode gc = new Geocode(new Point(12, 12), GeocodeQuality.HOUSE, "Test");
             gcs.add(new GeocodedAddress(a, gc));
         }
-
-        Timestamp start = TimeUtil.currentTimestamp();
         sqlGeoCacheDao.cacheGeocodedAddresses(gcs);
         sqlGeoCacheDao.flushCacheBuffer();
-        logger.info("Elapsed time: {} ms.", TimeUtil.getElapsedMs(start));
     }
 }

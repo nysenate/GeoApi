@@ -21,8 +21,7 @@ public class BatchDistrictRequest extends DistrictRequest
 
     public BatchDistrictRequest(DistrictRequest dr)
     {
-        super(dr.getApiRequest(), dr.getAddress(), dr.getProvider(), dr.getGeoProvider(), dr.isShowMembers(), dr.isShowMaps(),
-              dr.isUspsValidate(), dr.isSkipGeocode(), dr.getDistrictStrategy());
+        super(dr.getApiRequest(), dr.getAddress(), dr.getProvider(), dr.getGeoProvider(), dr.isUspsValidate(), dr.isSkipGeocode(), dr.getDistrictStrategy());
     }
 
     @Nonnull

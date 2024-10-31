@@ -11,6 +11,7 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.DistrictShapefile;
+import gov.nysenate.sage.provider.district.DistrictSource;
 import gov.nysenate.sage.provider.district.Streetfile;
 import gov.nysenate.sage.service.PostOfficeService;
 import gov.nysenate.sage.util.ExecutorUtil;
@@ -28,6 +29,9 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import static gov.nysenate.sage.provider.district.DistrictSource.SHAPEFILE;
+import static gov.nysenate.sage.provider.district.DistrictSource.STREETFILE;
 
 /**
  * Point of access for all district assignment requests. This class maintains a collection of available
@@ -51,11 +55,11 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
     private final DistrictStrategy singleDistrictStrategy;
     private final DistrictStrategy batchDistrictStrategy;
 
-    private final Map<String,DistrictService> providers = new HashMap<>();
+    private final Map<DistrictSource, DistrictService> providers = new HashMap<>();
     private final PostOfficeService postOfficeService;
 
     /** Specifies the distance (meters) to a district boundary in which the accuracy of shapefiles is uncertain */
-    @Value("${border.proximity:200}")
+    @Value("${border.proximity:2}")
     private int PROXIMITY_THRESHOLD;
 
     @Autowired
@@ -63,8 +67,8 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
                                    @Value("${district.strategy.batch:streetFallback}") String batchDistrictStrategy,
                                    DistrictShapefile districtShapefile, Streetfile streetFile, PostOfficeService postOfficeService) {
         this.postOfficeService = postOfficeService;
-        providers.put("shapefile", districtShapefile);
-        providers.put("streetfile", streetFile);
+        providers.put(SHAPEFILE, districtShapefile);
+        providers.put(STREETFILE, streetFile);
         this.singleDistrictStrategy = DistrictStrategy.valueOf(singleDistrictStrategy);
         this.batchDistrictStrategy = DistrictStrategy.valueOf(batchDistrictStrategy);
     }
@@ -76,7 +80,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
      */
     public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final String distProvider,
                                           final List<DistrictType> districtTypes, DistrictStrategy districtStrategy) {
-        logger.debug("Assigning districts " + ((geocodedAddress != null) ? geocodedAddress.getAddress() : ""));
         Timestamp startTime = TimeUtil.currentTimestamp();
         DistrictResult districtResult = null, streetFileResult, shapeFileResult;
         ThreadPoolTaskExecutor districtExecutor = null;
@@ -87,12 +90,11 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
         }
         else {
             try {
-                DistrictService shapeFileService = this.providers.get("shapefile");
-                DistrictService streetFileService = this.providers.get("streetfile");
+                DistrictService shapeFileService = providers.get(SHAPEFILE);
+                DistrictService streetFileService = providers.get(STREETFILE);
                 if (districtStrategy == null) {
                     districtStrategy = singleDistrictStrategy;
                 }
-                logger.debug("Using district assign strategy: " + districtStrategy);
 
                 switch (districtStrategy) {
                     case neighborMatch:
@@ -157,7 +159,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
             }
         }
         fixPostOfficeBoxResult(districtResult);
-        districtResult.setResultTime(new Timestamp(new Date().getTime()));
+        districtResult.setResultTime();
 
         if (districtResult.isSuccess()) {
             logger.info(String.format("District assigned in %d ms.", TimeUtil.getElapsedMs(startTime)));
@@ -328,22 +330,9 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
     /** Multi District Overlap ---------------------------------------------------------------------------------------*/
 
     public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, boolean zipProvided) {
-        Timestamp startTime = TimeUtil.currentTimestamp();
-        DistrictShapefile districtShapeFile = (DistrictShapefile) this.providers.get("shapefile");
+        var districtShapeFile = (DistrictShapefile) providers.get(SHAPEFILE);
         DistrictResult districtResult = districtShapeFile.getMultiMatchResult(geocodedAddress, zipProvided);
-        districtResult.setResultTime(new Timestamp(new Date().getTime()));
-        logger.info("Multi-match district assign in {} ms.", TimeUtil.getElapsedMs(startTime));
-        return districtResult;
-    }
-
-    /** Intersection -------------------------------------------------------------------------------------------------*/
-
-    public DistrictResult assignIntersect(DistrictType districtType, String districtId, DistrictType intersectType) {
-        Timestamp startTime = TimeUtil.currentTimestamp();
-        DistrictShapefile districtShapeFile = (DistrictShapefile) this.providers.get("shapefile");
-        DistrictResult districtResult = districtShapeFile.getIntersectionResult(districtType, districtId, intersectType);
-        districtResult.setResultTime(new Timestamp(new Date().getTime()));
-        logger.info("Intersection in {} ms.", TimeUtil.getElapsedMs(startTime));
+        districtResult.setResultTime();
         return districtResult;
     }
 
@@ -562,9 +551,5 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
             }
         }
         return null;
-    }
-
-    public Map<String, DistrictService> getProviders() {
-        return providers;
     }
 }

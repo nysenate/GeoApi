@@ -17,19 +17,15 @@ public final class DistrictUtil {
     private DistrictUtil() {}
 
     public static DistrictRequest createBatchAssignDistrictRequest(ApiRequest apiRequest, String provider, String geoProvider,
-                                                                   boolean uspsValidate, boolean showMembers, boolean usePunct,
-                                                                   boolean skipGeocode, boolean showMaps,
-                                                                   String districtStrategy) {
+                                                                   boolean uspsValidate, boolean usePunct,
+                                                                   boolean skipGeocode, String districtStrategy) {
         var districtRequest = new DistrictRequest();
         districtRequest.setApiRequest(apiRequest);
         districtRequest.setProvider(provider);
         districtRequest.setGeoProvider(geoProvider);
         districtRequest.setUsePunct(usePunct);
         districtRequest.setUspsValidate(uspsValidate);
-        districtRequest.setShowMembers(showMembers);
         districtRequest.setSkipGeocode(skipGeocode);
-        districtRequest.setShowMaps(showMaps);
-        districtRequest.setShowMembers(showMembers);
         districtRequest.setDistrictStrategy(districtStrategy);
         return districtRequest;
     }
@@ -44,8 +40,6 @@ public final class DistrictUtil {
         districtRequest.setPoint(point);
         districtRequest.setUsePunct(usePunct);
         districtRequest.setAddress(address);
-        districtRequest.setShowMaps(false);
-        districtRequest.setShowMembers(false);
         districtRequest.setUspsValidate(true);
         districtRequest.setSkipGeocode(false);
         return districtRequest;
@@ -58,8 +52,6 @@ public final class DistrictUtil {
         districtRequest.setProvider(provider);
         districtRequest.setGeoProvider(geoProvider);
         districtRequest.setUsePunct(usePunct);
-        districtRequest.setShowMaps(false);
-        districtRequest.setShowMembers(false);
         districtRequest.setUspsValidate(true);
         districtRequest.setSkipGeocode(false);
         return districtRequest;
@@ -67,8 +59,8 @@ public final class DistrictUtil {
 
     public static DistrictRequest createFullDistrictRequest(ApiRequest apiRequest, Address address, Point point,
                                                             String provider, String geoProvider, boolean uspsValidate,
-                                                            boolean showMembers, boolean usePunct, boolean skipGeocode,
-                                                            boolean showMaps, String districtStrategy) {
+                                                            boolean usePunct, boolean skipGeocode,
+                                                            String districtStrategy) {
 
         var districtRequest = new DistrictRequest();
         districtRequest.setApiRequest(apiRequest);
@@ -76,26 +68,11 @@ public final class DistrictUtil {
         districtRequest.setPoint(point);
         districtRequest.setProvider(provider);
         districtRequest.setGeoProvider(geoProvider);
-        districtRequest.setShowMembers(showMembers);
-        districtRequest.setShowMaps(showMaps);
         districtRequest.setUspsValidate(uspsValidate);
         districtRequest.setUsePunct(usePunct);
         districtRequest.setSkipGeocode(skipGeocode);
         districtRequest.setDistrictStrategy(districtStrategy);
 
-        return districtRequest;
-    }
-
-    public static DistrictRequest createFullIntersectRequest(ApiRequest apiRequest, DistrictType sourceType, String sourceId,
-                                                             DistrictType intersectType) {
-
-        var districtRequest = new DistrictRequest();
-        districtRequest.setApiRequest(apiRequest);
-        districtRequest.setDistrictType(sourceType);
-        districtRequest.setDistrictId(sourceId);
-        districtRequest.setIntersectType(intersectType);
-        districtRequest.setShowMembers(true);
-        districtRequest.setShowMaps(true);
         return districtRequest;
     }
 

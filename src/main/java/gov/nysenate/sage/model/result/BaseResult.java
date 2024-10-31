@@ -4,6 +4,7 @@ import gov.nysenate.sage.provider.geocode.DataSource;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -63,7 +64,7 @@ public abstract class BaseResult<S extends DataSource> {
         return resultTime;
     }
 
-    public void setResultTime(Timestamp resultTime) {
-        this.resultTime = resultTime;
+    public void setResultTime() {
+        this.resultTime = new Timestamp(new Date().getTime());
     }
 }

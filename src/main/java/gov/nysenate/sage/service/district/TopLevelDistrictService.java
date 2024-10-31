@@ -1,6 +1,5 @@
 package gov.nysenate.sage.service.district;
 
-import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.district.SqlDistrictRequestLogger;
 import gov.nysenate.sage.dao.logger.district.SqlDistrictResultLogger;
@@ -17,28 +16,21 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.SageGeocodeServiceProvider;
-import gov.nysenate.sage.service.map.MapServiceProvider;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
-import gov.nysenate.sage.util.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
-import static gov.nysenate.sage.util.controller.ApiControllerUtil.setApiResponse;
 
 @Service
 public class TopLevelDistrictService {
@@ -48,8 +40,7 @@ public class TopLevelDistrictService {
     private final DistrictServiceProvider districtProvider;
     private final SageGeocodeServiceProvider geocodeProvider;
     private final RevGeocodeServiceProvider revGeocodeProvider;
-    private final MapServiceProvider mapProvider;
-    private final DistrictMemberProvider districtMemberProvider;
+
 
     private final boolean SINGLE_LOGGING_ENABLED;
     private final boolean BATCH_LOGGING_ENABLED;
@@ -60,82 +51,35 @@ public class TopLevelDistrictService {
 
     public TopLevelDistrictService(Environment env, AddressServiceProvider addressProvider, DistrictServiceProvider districtProvider,
                                    SageGeocodeServiceProvider geocodeProvider, RevGeocodeServiceProvider revGeocodeProvider,
-                                   MapServiceProvider mapProvider, DistrictMemberProvider districtMemberProvider,
                                    SqlGeocodeRequestLogger sqlGeocodeRequestLogger, SqlGeocodeResultLogger sqlGeocodeResultLogger,
                                    SqlDistrictRequestLogger sqlDistrictRequestLogger, SqlDistrictResultLogger sqlDistrictResultLogger) {
         this.addressProvider = addressProvider;
         this.districtProvider = districtProvider;
         this.geocodeProvider = geocodeProvider;
         this.revGeocodeProvider = revGeocodeProvider;
-        this.mapProvider = mapProvider;
-        this.districtMemberProvider = districtMemberProvider;
         this.sqlGeocodeRequestLogger = sqlGeocodeRequestLogger;
         this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         this.sqlDistrictRequestLogger = sqlDistrictRequestLogger;
         this.sqlDistrictResultLogger = sqlDistrictResultLogger;
 
         boolean API_LOGGING_ENABLED = env.isApiLoggingEnabled();
+        // TODO: enable this at logger level
         SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isDetailedLoggingEnabled();
         BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
     }
 
-    /**
-     * If providers are specified then make sure they match the available providers. Send an
-     * api error and return if the provider is not supported.
-     */
-    public boolean providersUnsupported(String provider, String geoProvider, HttpServletRequest request) {
-        ResultStatus errorStatus = null;
-        if (provider != null && !provider.isEmpty() &&
-                !districtProvider.getProviders().containsKey(provider.toLowerCase())) {
-            errorStatus = DISTRICT_PROVIDER_NOT_SUPPORTED;
-        }
-        Geocoder geocoder;
-        try {
-            geocoder = Geocoder.valueOf(geoProvider.toLowerCase().trim());
-
-        } catch (IllegalArgumentException ex) {
-            geocoder = null;
-        }
-        if (geocoder == null || !geocodeProvider.geocoders().contains(geocoder)) {
-            errorStatus = GEOCODE_PROVIDER_NOT_SUPPORTED;
-        }
-        if (errorStatus != null) {
-            setApiResponse(new ApiError(this.getClass(), errorStatus), request);
-        }
-        return errorStatus != null;
-    }
-
     public void logDistrictRequest(ApiRequest apiRequest, DistrictRequest districtRequest) {
         logger.info("=======================================================");
-        logger.info(String.format("|%sDistrict '%s' Request %d ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getRequest(), apiRequest.getId()));
-        logger.info(String.format("| IP: %s | Maps: %s | Members: %s", apiRequest.getIpAddress(), districtRequest.isShowMaps(), districtRequest.isShowMembers()));
+        logger.info("|{}District '{}' Request {} ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getRequest(), apiRequest.getId());
+        logger.info("| IP: {}", apiRequest.getIpAddress());
         if (!apiRequest.isBatch()) {
-            logger.info("| Input Address: " + districtRequest.getAdressLogString());
+            logger.info("| Input Address: {}", districtRequest.getAdressLogString());
         }
         logger.info("=======================================================");
 
         if (SINGLE_LOGGING_ENABLED) {
             sqlDistrictRequestLogger.logDistrictRequest(districtRequest);
         }
-    }
-
-    public void logIntersectRequest(ApiRequest apiRequest, DistrictRequest districtRequest) {
-        logger.info("=======================================================");
-        logger.info(String.format("| '%s' Request %d |", apiRequest.getRequest(), apiRequest.getId()));
-        logger.info(String.format("| IP: %s | Source %s %s | Intersect %s",
-                apiRequest.getIpAddress(), districtRequest.getDistrictType(), districtRequest.getDistrictId(),
-                districtRequest.getIntersectType()));
-        logger.info("=======================================================");
-
-        if (SINGLE_LOGGING_ENABLED) {
-            sqlDistrictRequestLogger.logDistrictRequest(districtRequest);
-        }
-    }
-
-    public void logElapsedTime(Timestamp startTime, ApiRequest apiRequest) {
-        long elapsedTimeMs = TimeUtil.getElapsedMs(startTime);
-        logger.info(String.format("%sDistrict Response %d sent in %d ms.",
-                (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId(), elapsedTimeMs));
     }
 
     /**
@@ -170,25 +114,9 @@ public class TopLevelDistrictService {
 
         DistrictResult districtResult = performDistrictAssign(geocodedAddress, districtRequest.getProvider(),
                 districtRequest.getDistrictTypes(), districtRequest.getDistrictStrategy(), isZipProvided(streetAddress));
-        if (logger.isDebugEnabled()) {
-            logger.debug("Obtained district result with assigned districts: " + FormatUtil.toJsonString(districtResult.getAssignedDistricts()));
+        if (SINGLE_LOGGING_ENABLED && requestId != -1) {
+            sqlDistrictResultLogger.logDistrictResult(requestId, districtResult);
         }
-
-        setDistrictResultInfo(districtResult, districtRequest.isShowMaps(), districtRequest.isShowMembers(), requestId);
-        return districtResult;
-    }
-
-    /**
-     * Handle intersect requests and executes functions based on settings in the supplied DistrictRequest.
-     *
-     * @param districtRequest Contains the various parameters for the District Assign/Bluebird API
-     * @return DistrictResult
-     */
-    public DistrictResult handleIntersectRequest(DistrictRequest districtRequest, int requestId) {
-        /* Get the map, boundary data and intersect statistics */
-        DistrictResult districtResult = districtProvider.assignIntersect(districtRequest.getDistrictType(),
-                districtRequest.getDistrictId(), districtRequest.getIntersectType());
-        setDistrictResultInfo(districtResult, districtRequest.isShowMaps(), districtRequest.isShowMembers(), requestId);
         return districtResult;
     }
 
@@ -285,23 +213,6 @@ public class TopLevelDistrictService {
             }
         }
         return address;
-    }
-
-    private void setDistrictResultInfo(DistrictResult districtResult, boolean showMaps, boolean showMembers, int requestId) {
-        if (districtResult.isSuccess()) {
-            if (showMaps) {
-                /* Add map and boundary information to the district result */
-                mapProvider.assignMapsToDistrictInfo(districtResult.getDistrictInfo(), districtResult.getDistrictMatchLevel(), false);
-            }
-            if (showMembers) {
-                /* Ensure all members are presented */
-                districtMemberProvider.assignDistrictMembers(districtResult);
-            }
-        }
-
-        if (SINGLE_LOGGING_ENABLED && requestId != -1) {
-            sqlDistrictResultLogger.logDistrictResult(requestId, districtResult);
-        }
     }
 
     /**

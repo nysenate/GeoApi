@@ -10,7 +10,6 @@ import gov.nysenate.sage.provider.geocache.GeoCache;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
-import gov.nysenate.sage.util.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +82,7 @@ public class SageGeocodeServiceProvider implements GeocodeServiceProvider {
             }
         }
 
-        geocodeResult.setResultTime(TimeUtil.currentTimestamp());
+        geocodeResult.setResultTime();
         if (!uspsValidated) {
             geocodeResult.setGeocodedAddress(new GeocodedAddress(address, geocodeResult.getGeocode()));
         }
@@ -149,6 +148,7 @@ public class SageGeocodeServiceProvider implements GeocodeServiceProvider {
         return finalResults;
     }
 
+    // TODO: remove
     public Set<Geocoder> geocoders() {
         return geocoderMap.keySet();
     }

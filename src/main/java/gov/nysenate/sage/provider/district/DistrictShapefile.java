@@ -12,6 +12,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.cityzip.CityZipDB;
@@ -24,12 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INSUFFICIENT_GEOCODE;
-import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 
 @Service
 public class DistrictShapefile extends DistrictService implements MapService {
@@ -63,7 +62,6 @@ public class DistrictShapefile extends DistrictService implements MapService {
         this.cityZipDBDao = cityZipDB;
         this.tigerDao = tigerDao;
         this.countyDao = countyDao;
-        logger.debug("Instantiated DistrictShapefile.");
     }
 
     /** {@inheritDoc} */
@@ -80,7 +78,7 @@ public class DistrictShapefile extends DistrictService implements MapService {
             Geocode geocode = geocodedAddress.getGeocode();
             DistrictInfo districtInfo = sqlDistrictShapefileDao.getDistrictInfo(geocode.point(), reqTypes, getSpecialMaps, getProximity);
             districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
-            districtResult.setResultTime(new Timestamp(new Date().getTime()));
+            districtResult.setResultTime();
             if (districtResult.getGeocodedAddress() != null) {
                 logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
             }
@@ -219,22 +217,18 @@ public class DistrictShapefile extends DistrictService implements MapService {
         }
         districtedAddress.setDistrictMatchLevel(matchLevel);
 
-        if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) { //40 quality or more
-            if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 && address.getZip5() != null) { //64 or more
-                if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) { //72 or more
-                    logger.debug("Determining street level district overlap");
+        if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) {
+            if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 && address.getZip5() != null) {
+                if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) {
                     streetList.add(address.getAddr1());
                     zip5List = (zipProvided) ? List.of(address.getZip5()) : cityZipDBDao.getZipsByCity(address.getPostalCity());
-                    districtInfo.setStreetLineReference(tigerDao.getStreetLineGeometry(address.getAddr1(), zip5List));
                     districtInfo.setStreetRanges(sqlStreetFileDao.getDistrictStreetRanges(address.getAddr1(), zip5List));
                 }
                 else {
-                    logger.debug("Determining zip level district overlap");
                     zip5List = List.of(address.getZip5());
                 }
             }
             else if (!address.getPostalCity().isEmpty()) {
-                logger.debug("Determining city level district overlap");
                 zip5List = cityZipDBDao.getZipsByCity(address.getPostalCity());
             }
 
@@ -242,12 +236,6 @@ public class DistrictShapefile extends DistrictService implements MapService {
                 matches = sqlStreetFileDao.getAllStandardDistrictMatches(streetList, NonnullList.of(zip5List));
                 if (matches != null && !matches.isEmpty()) {
                     Set<String> zip5Set = zip5List.stream().map(Object::toString).collect(Collectors.toSet());
-                    /** Retrieve source map for city and zip match levels */
-                    if (matchLevel.compareTo(DistrictMatchLevel.STREET) < 0) { //less than 64
-                        DistrictMap sourceMap = sqlDistrictShapefileDao.getOverlapReferenceBoundary(DistrictType.ZIP, zip5Set);
-                        districtInfo.setReferenceMap(sourceMap);
-                    }
-
                     for (DistrictType matchType : matches.keySet()) {
                         if (matches.get(matchType) != null && !matches.get(matchType).isEmpty() && !matchType.equals(DistrictType.ZIP)) {
                             Set<String> distCodeSet = matches.get(matchType);
@@ -279,7 +267,7 @@ public class DistrictShapefile extends DistrictService implements MapService {
         }
         districtResult.setStatusCode(resultStatus);
         districtResult.setDistrictedAddress(districtedAddress);
-        districtResult.setResultTime(new Timestamp(new Date().getTime()));
+        districtResult.setResultTime();
         if (districtResult.getGeocodedAddress() != null) {
             logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
         }
@@ -296,25 +284,13 @@ public class DistrictShapefile extends DistrictService implements MapService {
      * @param intersectType DistrictType the type of district we are searching for intersections with districtId
      * @return DistrictResult with overlaps set.
      */
-    public DistrictResult getIntersectionResult(DistrictType districtType, String districtId, DistrictType intersectType) {
+    public IntersectResult getIntersectionResult(DistrictType districtType, String districtId, DistrictType intersectType) {
         // The match can always be set to the state level
-        DistrictedAddress districtedAddress = new DistrictedAddress(null, null, DistrictMatchLevel.STATE);
-        DistrictInfo districtInfo = new DistrictInfo();
-
         Map<DistrictType, Set<String>> matches = sqlStreetFileDao.getAllIntersections(districtType, districtId);
-
         DistrictMap sourceMap = sqlDistrictShapefileDao.getOverlapReferenceBoundary(districtType, Set.of(districtId));
-        districtInfo.setReferenceMap(sourceMap);
-
         // We only need the overlap for the specified intersect type
         DistrictOverlap overlap = sqlDistrictShapefileDao.getDistrictOverlap(intersectType, matches.get(intersectType),
                 districtType, Set.of(districtId));
-        districtInfo.addDistrictOverlap(intersectType, overlap);
-
-        districtedAddress.setDistrictInfo(districtInfo);
-        var districtResult = new DistrictResult(districtSource(), null, SUCCESS);
-        districtResult.setDistrictedAddress(districtedAddress);
-
-        return districtResult;
+        return new IntersectResult(MapSource.SHAPEFILE, sourceMap, overlap);
     }
 }

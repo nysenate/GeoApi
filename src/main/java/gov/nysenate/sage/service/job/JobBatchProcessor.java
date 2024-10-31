@@ -533,11 +533,10 @@ public class JobBatchProcessor implements JobProcessor {
             JobBatch jobBatch = futureJobBatch.get();
             logger.info("District assignment for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
-            BatchDistrictRequest batchDistRequest = new BatchDistrictRequest();
+            var batchDistRequest = new BatchDistrictRequest();
             batchDistRequest.setJobProcess(this.jobProcess);
             batchDistRequest.setDistrictTypes(this.districtTypes);
             batchDistRequest.setGeocodedAddresses(jobBatch.getGeocodedAddresses());
-            batchDistRequest.setRequestTime(TimeUtil.currentTimestamp());
             batchDistRequest.setDistrictStrategy(this.districtStrategy);
 
             List<DistrictResult> districtResults = districtServiceProvider.assignDistricts(batchDistRequest);

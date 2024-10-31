@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -45,7 +43,7 @@ public class Streetfile extends DistrictService implements StreetLookupService {
         districtResult.setDistrictedAddress(
                 streetfileDao.getDistrictedAddress(geocodedAddress.getAddress(), DistrictMatchLevel.HOUSE)
         );
-        districtResult.setResultTime(new Timestamp(new Date().getTime()));
+        districtResult.setResultTime();
         return districtResult;
     }
 

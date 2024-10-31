@@ -12,7 +12,6 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.util.StreetAddressParser;
-import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,7 +174,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         else {
             addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
         }
-        addressResult.setResultTime(TimeUtil.currentTimestamp());
+        addressResult.setResultTime();
         return addressResult;
     }
 
@@ -252,7 +251,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         else {
             addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
         }
-        addressResult.setResultTime(TimeUtil.currentTimestamp());
+        addressResult.setResultTime();
         return addressResult;
     }
 

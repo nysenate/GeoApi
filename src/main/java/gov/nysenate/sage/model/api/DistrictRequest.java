@@ -6,9 +6,9 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.TimeUtil;
 
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 
 import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
@@ -17,11 +17,9 @@ import static gov.nysenate.sage.service.district.DistrictServiceProvider.Distric
  * A DistrictRequest represents a district assignment API request.
  * It is intended to encapsulate the various options and input types.
  */
-public class DistrictRequest implements Cloneable
-{
+public class DistrictRequest implements Cloneable {
     /** The ids are assigned once the request has been logged */
     private int id;
-    private int addressId;
 
     /** Source identifiers */
     private ApiRequest apiRequest;
@@ -40,17 +38,11 @@ public class DistrictRequest implements Cloneable
     /** District assign api options */
     private String provider = null;
     private String geoProvider = null;
-    private boolean showMembers = false;
-    private boolean showMaps = false;
     private boolean uspsValidate = false;
     private boolean usePunct = false;
     private boolean skipGeocode = false;
     private DistrictStrategy districtStrategy = DistrictStrategy.neighborMatch;
-    private Timestamp requestTime;
-    // District Map Identifiers
-    private DistrictType districtType;
-    private String districtId;
-    private DistrictType intersectType;
+    private Timestamp requestTime = TimeUtil.currentTimestamp();
 
     public DistrictRequest() {}
 
@@ -62,16 +54,13 @@ public class DistrictRequest implements Cloneable
      * @param bluebirdStrategy The district assignment strategy for bluebird requests
      * @return DistrictRequest with preset bluebird assign options.
      */
-    public static DistrictRequest buildBluebirdRequest(ApiRequest apiRequest, Address address, Point point, String bluebirdStrategy)
-    {
-        DistrictRequest dr = new DistrictRequest();
+    public static DistrictRequest buildBluebirdRequest(ApiRequest apiRequest, Address address, Point point, String bluebirdStrategy) {
+        var dr = new DistrictRequest();
         dr.setApiRequest(apiRequest);
         dr.setAddress(address);
         dr.setPoint(point);
         dr.setProvider(null);
         dr.setGeoProvider(null);
-        dr.setShowMaps(false);
-        dr.setShowMembers(false);
         dr.setUspsValidate(true);
         dr.setSkipGeocode(false);
         dr.setDistrictStrategy(bluebirdStrategy);
@@ -88,19 +77,15 @@ public class DistrictRequest implements Cloneable
         return buildBluebirdRequest(districtRequest.getApiRequest(), districtRequest.getAddress(), districtRequest.getPoint(), bluebirdStrategy);
     }
 
-    public DistrictRequest(ApiRequest apiRequest, Address address, String provider, String geoProvider, boolean showMembers,
-                           boolean showMaps, boolean uspsValidate, boolean skipGeocode, DistrictStrategy districtStrategy)
-    {
+    public DistrictRequest(ApiRequest apiRequest, Address address, String provider, String geoProvider,
+                           boolean uspsValidate, boolean skipGeocode, DistrictStrategy districtStrategy) {
         this.apiRequest = apiRequest;
         this.address = address;
         setProvider(provider);
         setGeoProvider(geoProvider);
-        this.showMembers = showMembers;
-        this.showMaps = showMaps;
         this.uspsValidate = uspsValidate;
         this.skipGeocode = skipGeocode;
         setDistrictStrategy(districtStrategy);
-        this.requestTime = new Timestamp(new Date().getTime());
     }
 
     public int getId() {
@@ -109,14 +94,6 @@ public class DistrictRequest implements Cloneable
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public int getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(int addressId) {
-        this.addressId = addressId;
     }
 
     public ApiRequest getApiRequest() {
@@ -194,22 +171,6 @@ public class DistrictRequest implements Cloneable
         }
     }
 
-    public boolean isShowMembers() {
-        return showMembers;
-    }
-
-    public void setShowMembers(boolean showMembers) {
-        this.showMembers = showMembers;
-    }
-
-    public boolean isShowMaps() {
-        return showMaps;
-    }
-
-    public void setShowMaps(boolean showMaps) {
-        this.showMaps = showMaps;
-    }
-
     public boolean isUspsValidate() {
         return uspsValidate;
     }
@@ -259,38 +220,8 @@ public class DistrictRequest implements Cloneable
         return requestTime;
     }
 
-    public void setRequestTime(Timestamp requestTime) {
-        this.requestTime = requestTime;
-    }
-
-    public boolean hasValidAddress()
-    {
-        return this.address != null && !this.address.isEmpty();
-    }
-
     @Override
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
-
-    public void setDistrictType(DistrictType distType) {
-        this.districtType = distType;
-    }
-    public void setDistrictId(String distId) {
-        this.districtId = distId;
-    }
-    public void setIntersectType(DistrictType intersectType) {
-        this.intersectType = intersectType;
-    }
-
-    public DistrictType getDistrictType() {
-        return districtType;
-    }
-    public String getDistrictId() {
-        return districtId;
-    }
-    public DistrictType getIntersectType() {
-        return intersectType;
-    }
-
 }

@@ -2,19 +2,29 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
-import gov.nysenate.sage.client.response.district.*;
+import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
+import gov.nysenate.sage.client.response.district.DistrictResponse;
+import gov.nysenate.sage.client.response.district.MappedMultiDistrictResponse;
+import gov.nysenate.sage.client.response.district.MultiDistrictResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
+import gov.nysenate.sage.model.api.IntersectRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.district.DistrictSource;
+import gov.nysenate.sage.provider.geocode.Geocoder;
+import gov.nysenate.sage.service.district.IntersectService;
 import gov.nysenate.sage.service.district.TopLevelDistrictService;
 import gov.nysenate.sage.util.TimeUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -32,7 +42,7 @@ import java.util.List;
 
 import static gov.nysenate.sage.controller.api.DistrictUtil.*;
 import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
-import static gov.nysenate.sage.model.result.ResultStatus.INVALID_BATCH_ADDRESSES;
+import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 /**
@@ -41,14 +51,17 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
 public class DistrictController {
+    private static final Logger logger = LoggerFactory.getLogger(DistrictController.class);
     private final String bluebirdDistrictStrategy;
     private final TopLevelDistrictService districtService;
+    private final IntersectService intersectService;
 
     @Autowired
     public DistrictController(@Value("${district.strategy.bluebird:streetFallback}") String bluebirdDistrictStrategy,
-                              TopLevelDistrictService districtService) {
+                              TopLevelDistrictService districtService, IntersectService intersectService) {
         this.bluebirdDistrictStrategy = bluebirdDistrictStrategy;
         this.districtService = districtService;
+        this.intersectService = intersectService;
     }
 
     /**
@@ -74,8 +87,6 @@ public class DistrictController {
      * @param districtStrategy String
      * @param geoProvider String
      * @param uspsValidate boolean
-     * @param showMaps boolean
-     * @param showMembers boolean
      * @param showMultiMatch boolean
      * @param skipGeocode boolean
      */
@@ -83,8 +94,6 @@ public class DistrictController {
     public void districtAssign(HttpServletRequest request, HttpServletResponse response,
                                @RequestParam(required = false) String provider,
                                @RequestParam(required = false) String geoProvider,
-                               @RequestParam(required = false) boolean showMembers,
-                               @RequestParam(required = false) boolean showMaps,
                                @RequestParam(required = false, defaultValue = "true") boolean uspsValidate,
                                @RequestParam(required = false, defaultValue = "false") boolean skipGeocode,
                                @RequestParam(required = false) boolean showMultiMatch,
@@ -107,28 +116,25 @@ public class DistrictController {
         ApiRequest apiRequest = getApiRequest(request);
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
         DistrictRequest districtRequest = createFullDistrictRequest(apiRequest, address,
-                getPointFromParams(lat, lon), provider, geoProvider, uspsValidate, showMembers, usePunct, skipGeocode,
-                showMaps, districtStrategy);
+                getPointFromParams(lat, lon), provider, geoProvider, uspsValidate, usePunct, skipGeocode, districtStrategy);
 
         districtRequest.setAddress(districtRequest.getAddress());
 
         districtService.logDistrictRequest(apiRequest, districtRequest);
 
-        if (districtService.providersUnsupported(provider, geoProvider, request)) {
+        if (providersUnsupported(provider, geoProvider, request)) {
             return;
         }
 
         DistrictResult districtResult = districtService.handleDistrictRequest(districtRequest, requestId);
         if (districtResult.isMultiMatch() && showMultiMatch) {
-            districtResponse = (showMaps) ? new MappedMultiDistrictResponse(districtResult, districtRequest.getIntersectType()) :
-                    new MultiDistrictResponse(districtResult);
+            districtResponse = new MultiDistrictResponse(districtResult);
         } else {
-            districtResponse = (showMaps) ? new MappedDistrictResponse(districtResult) : new DistrictResponse(districtResult);
+            districtResponse = new DistrictResponse(districtResult);
         }
 
         setApiResponse(districtResponse, request);
-
-        districtService.logElapsedTime(startTime, apiRequest);
+        logElapsedTime(startTime, apiRequest);
     }
 
     /**
@@ -145,8 +151,6 @@ public class DistrictController {
      * @param districtStrategy String
      * @param geoProvider String
      * @param uspsValidate boolean
-     * @param showMaps boolean
-     * @param showMembers boolean
      * @param skipGeocode boolean
      *
      */
@@ -154,8 +158,6 @@ public class DistrictController {
     public void districtBatchAssign(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam(required = false) String provider,
                                     @RequestParam(required = false) String geoProvider,
-                                    @RequestParam(required = false) boolean showMembers,
-                                    @RequestParam(required = false) boolean showMaps,
                                     @RequestParam(required = false, defaultValue = "true") boolean uspsValidate,
                                     @RequestParam(required = false, defaultValue = "false") boolean skipGeocode,
                                     @RequestParam(required = false) String districtStrategy,
@@ -168,11 +170,11 @@ public class DistrictController {
 
 
         DistrictRequest districtRequest = createBatchAssignDistrictRequest(apiRequest, provider, geoProvider,
-                uspsValidate, showMembers, usePunct, skipGeocode, showMaps, districtStrategy);
+                uspsValidate, usePunct, skipGeocode, districtStrategy);
 
         districtService.logDistrictRequest(apiRequest, districtRequest);
 
-        if (districtService.providersUnsupported(provider, geoProvider, request)) {
+        if (providersUnsupported(provider, geoProvider, request)) {
             return;
         }
 
@@ -195,8 +197,7 @@ public class DistrictController {
         }
 
         setApiResponse(districtResponse, request);
-
-        districtService.logElapsedTime(startTime, apiRequest);
+        logElapsedTime(startTime, apiRequest);
     }
 
     /**
@@ -216,7 +217,6 @@ public class DistrictController {
     public void districtIntersect(HttpServletRequest request, HttpServletResponse response,
                                   @RequestParam String sourceType, @RequestParam String sourceId,
                                   @RequestParam String intersectType) {
-        int requestId = -1;
         Timestamp startTime = TimeUtil.currentTimestamp();
         ApiRequest apiRequest = getApiRequest(request);
 
@@ -225,15 +225,13 @@ public class DistrictController {
             setApiResponse(districtResponse, request);
         }
         else {
-            DistrictRequest districtRequest = createFullIntersectRequest(apiRequest, DistrictType.resolveType(sourceType),
+            var intersectRequest = new IntersectRequest(apiRequest, DistrictType.resolveType(sourceType),
                     sourceId, DistrictType.resolveType(intersectType));
-            districtService.logIntersectRequest(apiRequest, districtRequest);
-
-            DistrictResult districtResult = districtService.handleIntersectRequest(districtRequest, requestId);
-            MappedMultiDistrictResponse districtResponse = new MappedMultiDistrictResponse(districtResult, districtRequest.getIntersectType());
+            IntersectResult intersectResult = intersectService.handleIntersectRequest(intersectRequest);
+            MappedMultiDistrictResponse districtResponse = new MappedMultiDistrictResponse(intersectResult, intersectRequest.intersectWith());
             setApiResponse(districtResponse, request);
         }
-        districtService.logElapsedTime(startTime, apiRequest);
+        logElapsedTime(startTime, apiRequest);
     }
 
     /**
@@ -285,7 +283,7 @@ public class DistrictController {
 
         districtService.logDistrictRequest(apiRequest, districtRequest);
 
-        if (districtService.providersUnsupported(provider, geoProvider, request)) {
+        if (providersUnsupported(provider, geoProvider, request)) {
             return;
         }
 
@@ -294,8 +292,7 @@ public class DistrictController {
         districtResponse = new DistrictResponse(districtResult);
 
         setApiResponse(districtResponse, request);
-
-        districtService.logElapsedTime(startTime, apiRequest);
+        logElapsedTime(startTime, apiRequest);
     }
 
     /**
@@ -318,7 +315,6 @@ public class DistrictController {
                                     @RequestParam(required = false) boolean usePunct) throws IOException {
         Object districtResponse;
         Timestamp startTime = TimeUtil.currentTimestamp();
-        int requestId = -1;
 
         /* Get the ApiRequest */
         ApiRequest apiRequest = getApiRequest(request);
@@ -327,7 +323,7 @@ public class DistrictController {
 
         districtService.logDistrictRequest(apiRequest, districtRequest);
 
-        if (districtService.providersUnsupported(provider, geoProvider, request)) {
+        if (providersUnsupported(provider, geoProvider, request)) {
             return;
         }
 
@@ -350,7 +346,35 @@ public class DistrictController {
         }
 
         setApiResponse(districtResponse, request);
+        logElapsedTime(startTime, apiRequest);
+    }
 
-        districtService.logElapsedTime(startTime, apiRequest);
+    private static void logElapsedTime(Timestamp startTime, ApiRequest apiRequest) {
+        long elapsedTimeMs = TimeUtil.getElapsedMs(startTime);
+        logger.info("{}District Response {} sent in {} ms.", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getId(), elapsedTimeMs);
+    }
+
+    /**
+     * If providers are specified then make sure they match the available providers. Send an
+     * api error and return if the provider is not supported.
+     */
+    public static boolean providersUnsupported(String provider, String geoProvider, HttpServletRequest request) {
+        ResultStatus errorStatus = null;
+        if (provider != null && !provider.isEmpty()) {
+            try {
+                DistrictSource.valueOf(provider.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                errorStatus = DISTRICT_PROVIDER_NOT_SUPPORTED;
+            }
+        }
+        try {
+            Geocoder.valueOf(geoProvider.toLowerCase().trim());
+        } catch (IllegalArgumentException ex) {
+            errorStatus = GEOCODE_PROVIDER_NOT_SUPPORTED;
+        }
+        if (errorStatus != null) {
+            setApiResponse(new ApiError(DistrictController.class, errorStatus), request);
+        }
+        return errorStatus != null;
     }
 }
