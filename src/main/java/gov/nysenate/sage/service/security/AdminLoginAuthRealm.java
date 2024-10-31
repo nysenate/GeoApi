@@ -70,12 +70,12 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm {
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         if (token instanceof UsernamePasswordToken usernamePasswordToken) {
-            logger.info("Attempting login with Admin Realm from IP {}", usernamePasswordToken.host());
-            if (usernamePasswordToken.host().matches(ipWhitelist)) {
+            logger.info("Attempting login with Admin Realm from IP {}", usernamePasswordToken.getHost());
+            if (usernamePasswordToken.getHost().matches(ipWhitelist)) {
                 return queryForAuthenticationInfo(usernamePasswordToken);
             }
             else {
-                logger.warn("Blocking admin login from unauthorized IP {}", usernamePasswordToken.host());
+                logger.warn("Blocking admin login from unauthorized IP {}", usernamePasswordToken.getHost());
                 throw new AuthenticationException("Admin login from unauthorized IP address.");
             }
         }

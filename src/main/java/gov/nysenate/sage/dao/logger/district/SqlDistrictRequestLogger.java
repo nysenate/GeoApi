@@ -38,18 +38,19 @@ public class SqlDistrictRequestLogger implements DistrictRequestLogger {
                 int addressId = (dr.getGeocodedAddress() != null) ? sqlAddressLogger.logAddress(dr.getGeocodedAddress().getAddress()) : 0;
                 String strategy = (dr.getDistrictStrategy() != null) ? dr.getDistrictStrategy().name() : null;
 
-                MapSqlParameterSource params = new MapSqlParameterSource();
-                params.addValue("apiRequestId",(apiRequest != null) ? apiRequest.getId() : null);
-                params.addValue("jobProcessId",(jobProcess != null) ? jobProcess.getId() : null);
-                params.addValue("addressId",(addressId > 0) ? addressId : null);
-                params.addValue("provider", dr.getProvider());
-                params.addValue("geoProvider",dr.getGeoProvider());
-                params.addValue("showMembers",dr.isShowMembers());
-                params.addValue("showMaps",dr.isShowMaps());
-                params.addValue("uspsValidate",dr.isUspsValidate());
-                params.addValue("skipGeocode",dr.isSkipGeocode());
-                params.addValue("districtStrategy",strategy);
-                params.addValue("requestTime",dr.getRequestTime());
+                // TODO: cleanup now that showMaps and showMembers are gone
+                var params = new MapSqlParameterSource()
+                        .addValue("apiRequestId", (apiRequest != null) ? apiRequest.getId() : null)
+                        .addValue("jobProcessId", (jobProcess != null) ? jobProcess.getId() : null)
+                        .addValue("addressId", (addressId > 0) ? addressId : null)
+                        .addValue("provider", dr.getProvider())
+                        .addValue("geoProvider", dr.getGeoProvider())
+                        .addValue("showMembers", false)
+                        .addValue("showMaps", false)
+                        .addValue("uspsValidate", dr.isUspsValidate())
+                        .addValue("skipGeocode", dr.isSkipGeocode())
+                        .addValue("districtStrategy", strategy)
+                        .addValue("requestTime", dr.getRequestTime());
 
                 List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(
                         DistrictRequestQuery.INSERT_REQUEST.getSql(baseDao.getLogSchema()),

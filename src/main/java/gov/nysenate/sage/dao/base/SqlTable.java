@@ -46,7 +46,7 @@ public enum SqlTable {
     GEOCACHE ("geocache"),
     //Public Schema
     ADDRESS_POINTS_SAM ("addresspoints_sam");
-    // TODO: cleanup tiget tables
+    // TODO: cleanup tiger tables
 
     private final String tableName;
 

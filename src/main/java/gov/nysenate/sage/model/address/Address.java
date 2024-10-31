@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @author Graylin Kim, Ash Islam
  */
-public class Address implements Serializable, Cloneable {
+public class Address implements Serializable {
     // TODO: what if rev-geocode as non-NY address?
     private static final String poBoxPattern = "(?i)PO Box \\d+";
     // Note that these can never be null, since cleanString never returns null on non-null input.
@@ -172,16 +172,6 @@ public class Address implements Serializable, Cloneable {
     public boolean isPOBox() {
         return addr1.replaceAll("[.,:]", "")
                 .replaceAll("\\s+", " ").matches(poBoxPattern);
-    }
-
-    @Override
-    public Address clone() {
-        try {
-            return (Address)super.clone();
-        }
-        catch (CloneNotSupportedException e) {
-            return null;
-        }
     }
 
     public static boolean validState(String state) {

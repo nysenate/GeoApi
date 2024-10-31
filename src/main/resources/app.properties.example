@@ -168,7 +168,7 @@ job.threads.distassign = 2
 
 # Specify the maximum distance (in meters) between a geocode and a district boundary
 # that can result in a `near border` condition.
-border.proximity = 200
+border.proximity = 2
 
 # Specify the maximum distance (in meters) between a geocode and a neighbor district in order
 # for that neighbor district to be considered `nearby`.
