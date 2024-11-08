@@ -18,7 +18,10 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -87,7 +90,7 @@ public class DataGenController {
      * (GET)    /admin/datagen/genmetadata/{option}
      * @param option   String value that can be either all, assembly, congress, senate, a, c, s
      */
-    @RequestMapping(value = "/genmetadata/{option}", method = RequestMethod.GET)
+    @GetMapping(value = "/genmetadata/{option}")
     public void generateMetaData(HttpServletRequest request, HttpServletResponse response,
                                  @PathVariable String option,
                                  @RequestParam(required = false, defaultValue = "defaultUser") String username,
@@ -105,7 +108,7 @@ public class DataGenController {
      * Usage:
      * (GET)    /admin/datagen/vacantize
      */
-    @RequestMapping(value = "/vacantize", method = RequestMethod.GET)
+    @GetMapping(value = "/vacantize")
     public void vacantizeSenatorData(HttpServletRequest request, HttpServletResponse response,
                                  @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                  @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -119,7 +122,7 @@ public class DataGenController {
      * Updates the Senator Cache from GenMetaData Manually
      *  /admin/datagen/rebuild/sencache
      */
-    @RequestMapping(value = "/rebuild/sencache", method = RequestMethod.GET)
+    @GetMapping(value = "/rebuild/sencache")
     public void updateSenatorCache(HttpServletRequest request, HttpServletResponse response,
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                    @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -140,7 +143,7 @@ public class DataGenController {
      * (GET)    /admin/datagen/zipcodes
      */
 
-    @RequestMapping(value = "/zipcodes", method = RequestMethod.GET)
+    @GetMapping(value = "/zipcodes")
     public void generateZipCodeFiles(HttpServletRequest request, HttpServletResponse response,
                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                      @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -148,7 +151,7 @@ public class DataGenController {
         authenticateAndRun(request, response, username, password, key, dataGenService::generateZipCsv);
     }
 
-    @RequestMapping(value = "/process/post-offices")
+    @GetMapping(value = "/process/post-offices")
     public void processPostOffices(HttpServletRequest request, HttpServletResponse response,
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                    @RequestParam(required = false, defaultValue = "defaultPass") String password,

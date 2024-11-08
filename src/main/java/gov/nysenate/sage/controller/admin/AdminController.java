@@ -5,12 +5,11 @@ import gov.nysenate.sage.model.admin.AdminUser;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.ServletException;
@@ -25,7 +24,6 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.*;
 @Controller
 @RequestMapping(value = ADMIN_REST_PATH)
 public class AdminController {
-    private static final  Logger logger = LoggerFactory.getLogger(AdminController.class);
     private final SqlAdminUserDao sqlAdminUserDao;
 
     @Autowired
@@ -36,24 +34,18 @@ public class AdminController {
     /**
      * Admin Login Api
      * ---------------------
-     * Attempt to login to the sage admin panel with the supplied credentials
+     * Attempt to log in to the sage admin panel with the supplied credentials
      * Usage:
      * (POST)    /admin/login
-     * PathParams
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param username String
-     * @param password String
      *
      */
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @PostMapping(value = "/login")
     public void adminLogin(HttpServletRequest request, HttpServletResponse response,
                            @RequestParam String username, @RequestParam String password)
             throws ServletException, IOException {
 
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         if (sqlAdminUserDao.checkAdminUser(username, password)) {
-            logger.debug("Granted admin access to " + username);
             AdminUser dbAdmin = sqlAdminUserDao.getAdminUser(username);
             SecurityUtils.getSubject().login(new UsernamePasswordToken(username, dbAdmin.getPassword() , ipAddr));
             setAuthenticated(request, true, username);
@@ -71,12 +63,9 @@ public class AdminController {
      * Logs the admin user out of the sage admin panel
      * Usage:
      * (GET)    /admin/logout
-     * PathParams
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
      *
      */
-    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    @GetMapping(value = "/logout")
     public void adminLogout(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();

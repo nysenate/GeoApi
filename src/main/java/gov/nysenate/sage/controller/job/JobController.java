@@ -25,8 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
@@ -66,65 +67,54 @@ public class JobController {
     /**
      * Job Logout Api
      * ---------------------
-     *
      * Logs a job user out of the batch job section of Sage
-     *
      * Usage:
      * (GET)    /job/logout
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @throws IOException
-     * @throws ServletException
-     *
      */
-    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    @GetMapping(value = "/logout")
     public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doLogout(request, response);
+        SecurityUtils.getSubject().logout();
+        request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
     }
 
 
     /**
      * Job Login Api
      * ---------------------
-     *
      * Logs a job user into the batch job section of Sage
-     *
      * Usage:
      * (POST)    /job/login
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param email String
-     * @param password String
-     * @throws IOException
-     * @throws ServletException
-     *
      */
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @PostMapping(value = "/login")
     public void jobLogin(HttpServletRequest request, HttpServletResponse response,
                          @RequestParam String email, @RequestParam String password)
             throws ServletException, IOException {
-        doLogin(request, response, email, password);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
+
+        JobUser jobUser = jobUserAuth.getJobUser(email, password);
+        if (jobUser != null) {
+            SecurityUtils.getSubject().login(new UsernamePasswordToken(email, jobUser.getPassword(), ipAddr));
+            setJobUser(request, jobUser);
+            getJobRequest(request).clear();
+            request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
+            response.sendRedirect(request.getContextPath() + "/job/home");
+        } else {
+            request.setAttribute("errorMessage", "Invalid credentials");
+            request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
+        }
     }
 
     /**
      * Job Upload Api
      * ---------------------
-     *
      * Upload a batch job file to Sage
-     *
      * Usage:
      * (POST)    /job/upload
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param qqfile String
-     * @throws IOException
-     * @throws ServletException
-     *
      */
-    @RequestMapping(value = "/upload", method = RequestMethod.POST)
+    @PostMapping(value = "/upload")
     public void jobUpload(HttpServletRequest request, HttpServletResponse response,
                           @RequestParam String qqfile) throws Exception {
         doUpload(request, response, qqfile);
@@ -133,40 +123,45 @@ public class JobController {
     /**
      * Job Submit Api
      * ---------------------
-     *
      * Submit a batch job file to Sage. This begins the processing of the job batch file
-     *
      * Usage:
      * (POST)    /job/submit
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @throws IOException
-     * @throws ServletException
-     *
      */
-    @RequestMapping(value = "/submit", method = RequestMethod.POST)
+    @PostMapping(value = "/submit")
     public void jobSubmit(HttpServletRequest request, HttpServletResponse response) {
-        doSubmit(request, response);
+        logger.info("Processing Job Request Submission.");
+        JobRequest jobRequest = getJobRequest(request);
+
+        if (jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
+            for (JobProcess jobProcess : jobRequest.getProcesses()) {
+                /* Store the job process and status */
+                int processId = sqlJobProcessDao.addJobProcess(jobProcess);
+                if (processId > -1) {
+                    JobProcessStatus status = new JobProcessStatus(processId);
+                    sqlJobProcessDao.setJobProcessStatus(status);
+                    logger.info("Added job process and status for file " + jobProcess.getFileName());
+                } else {
+                    logger.error("Failed to add job process for file " + jobProcess.getFileName());
+                }
+            }
+            setJobResponse(new JobActionResponse(true, null), response);
+        } else {
+            setJobResponse(new JobActionResponse(false, "You must upload a file before submitting."), response);
+        }
+        /* The request should be cleared out */
+        getJobRequest(request).clear();
     }
 
     /**
      * Remove Job Api
      * ---------------------
-     *
      * Remove a job from the job processor queue
-     *
      * Usage:
      * (POST)    /job/remove
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param fileName String
-     * @throws IOException
-     * @throws ServletException
-     *
      */
-    @RequestMapping(value = "/remove", method = RequestMethod.POST)
+    @PostMapping(value = "/remove")
     public void jobRemove(HttpServletRequest request, HttpServletResponse response, @RequestParam String fileName) {
         doRemove(request, response, fileName);
     }
@@ -174,41 +169,40 @@ public class JobController {
     /**
      * Cancel Job Api
      * ---------------------
-     *
      * Sets the condition of a job process status to cancelled
-     *
      * Usage:
      * (POST)    /job/cancel
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param id int
-     * @throws IOException
-     * @throws ServletException
-     *
      */
-    @RequestMapping(value = "/cancel", method = RequestMethod.POST)
-    public void jobCancel(HttpServletRequest request, HttpServletResponse response, @RequestParam int id) {
-        doCancel(request, response, id);
+    @PostMapping(value = "/cancel")
+    public void jobCancel(HttpServletResponse response, @RequestParam int id) {
+        logger.info("Cancelling job process");
+        try {
+            JobProcessStatus jps = sqlJobProcessDao.getJobProcessStatus(id);
+            jps.setCondition(JobProcessStatus.Condition.CANCELLED);
+            jps.setCompleted(false);
+            jps.setMessages(Arrays.asList("Cancelled by user", ""));
+            int update = sqlJobProcessDao.setJobProcessStatus(jps);
+            if (update > 0) {
+                setJobResponse(new JobActionResponse(true, "Job " + id + " has been cancelled."), response);
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            logger.warn("Failed to parse job process id for cancellation!");
+        }
+        setJobResponse(new JobActionResponse(false, "Failed to cancel job process!"), response);
     }
 
     /**
      * Cancel Running Job Api
      * ---------------------
-     *
      * Cancel a running job in the job processor
-     *
      * Usage:
      * (POST)    /job/cancel/running
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @throws IOException
-     * @throws ServletException
-     *
      */
-    @RequestMapping(value = "/cancel/running", method = RequestMethod.POST)
-    public void jobCancelRunning(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    @PostMapping(value = "/cancel/running")
+    public void jobCancelRunning(HttpServletRequest request) throws Exception {
         JobRequest jobRequest = getJobRequest(request);
         String[] args = new String[1];
         args[0] = "clean";
@@ -218,49 +212,17 @@ public class JobController {
     /**
      * Job Run Api
      * ---------------------
-     *
      * Run a job in the queue for the job processor
-     *
      * Usage:
      * (POST)    /job/run
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @throws IOException
-     * @throws ServletException
-     *
      */
-    @RequestMapping(value = "/run", method = RequestMethod.POST)
-    public void jobRun(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    @PostMapping(value = "/run")
+    public void jobRun(HttpServletRequest request) throws Exception {
         JobRequest jobRequest = getJobRequest(request);
         String[] args = new String[1];
         args[0] = "process";
         jobBatchProcessor.run(args);
-    }
-
-    /**
-     * @param request  http request from client
-     * @param response http response from sage
-     * @throws ServletException An exception containing a message about the root cause
-     * @throws IOException      An exception containing a message about the root cause
-     */
-    public void doLogin(HttpServletRequest request, HttpServletResponse response, String email, String password) throws ServletException, IOException {
-
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
-
-        JobUser jobUser = jobUserAuth.getJobUser(email, password);
-        if (jobUser != null) {
-            SecurityUtils.getSubject().login(new UsernamePasswordToken(email, jobUser.getPassword(), ipAddr));
-            logger.debug("Granted job service access to " + email);
-            setJobUser(request, jobUser);
-            getJobRequest(request).clear();
-            request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
-            response.sendRedirect(request.getContextPath() + "/job/home");
-        } else {
-            logger.debug("Denied job service access to " + email);
-            request.setAttribute("errorMessage", "Invalid credentials");
-            request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
-        }
     }
 
     /**
@@ -395,68 +357,5 @@ public class JobController {
             }
         }
         setJobResponse(new JobActionResponse(false, "The removal request was unsuccessful."), response);
-    }
-
-    /**
-     * @param request  http request from client
-     * @param response http response from sage
-     * @throws IOException An exception containing a message about the root cause
-     */
-    public void doSubmit(HttpServletRequest request, HttpServletResponse response) {
-        logger.info("Processing Job Request Submission.");
-        JobRequest jobRequest = getJobRequest(request);
-
-        if (jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
-            for (JobProcess jobProcess : jobRequest.getProcesses()) {
-                /* Store the job process and status */
-                int processId = sqlJobProcessDao.addJobProcess(jobProcess);
-                if (processId > -1) {
-                    JobProcessStatus status = new JobProcessStatus(processId);
-                    sqlJobProcessDao.setJobProcessStatus(status);
-                    logger.info("Added job process and status for file " + jobProcess.getFileName());
-                } else {
-                    logger.error("Failed to add job process for file " + jobProcess.getFileName());
-                }
-            }
-            setJobResponse(new JobActionResponse(true, null), response);
-        } else {
-            setJobResponse(new JobActionResponse(false, "You must upload a file before submitting."), response);
-        }
-        /* The request should be cleared out */
-        getJobRequest(request).clear();
-    }
-
-    /**
-     * Sets the condition of a job process status to cancelled.
-     *
-     * @param request  http request from client
-     * @param response http response from sage
-     */
-    public void doCancel(HttpServletRequest request, HttpServletResponse response, int id) {
-        logger.info("Cancelling job process");
-        try {
-            JobProcessStatus jps = sqlJobProcessDao.getJobProcessStatus(id);
-            jps.setCondition(JobProcessStatus.Condition.CANCELLED);
-            jps.setCompleted(false);
-            jps.setMessages(Arrays.asList("Cancelled by user", ""));
-            int update = sqlJobProcessDao.setJobProcessStatus(jps);
-            if (update > 0) {
-                setJobResponse(new JobActionResponse(true, "Job " + id + " has been cancelled."), response);
-                return;
-            }
-        } catch (NumberFormatException ex) {
-            logger.warn("Failed to parse job process id for cancellation!");
-        }
-        setJobResponse(new JobActionResponse(false, "Failed to cancel job process!"), response);
-    }
-
-    /**
-     * @param request  http request from client
-     * @param response http response from sage
-     * @throws IOException An exception containing a message about the root cause
-     */
-    public void doLogout(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        SecurityUtils.getSubject().logout();
-        request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
     }
 }

@@ -1,11 +1,8 @@
 package gov.nysenate.sage.controller.map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.ServletException;
@@ -18,34 +15,18 @@ import java.io.IOException;
  */
 @Controller
 public class EmbeddedMapController {
-    private static Logger logger = LoggerFactory.getLogger(EmbeddedMapController.class);
-    private static String MAPS_JSP = "/WEB-INF/views/maps.jsp";
-    private static String COUNTY_COVID_JSP = "/WEB-INF/views/countydoh.jsp";
+    private static final String MAPS_JSP = "/WEB-INF/views/maps.jsp";
+    private static final String COUNTY_COVID_JSP = "/WEB-INF/views/countydoh.jsp";
 
     /**
      * Embedded Map Api
      * ---------------------
-     *
      * Returns an embedded google map with the specified request params
-     *
      * Usage:
      * (GET)    /map
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param width int
-     * @param height int
-     * @param customMapStyle boolean
-     * @param saturation int
-     * @param customPolyStyle boolean
-     * @param hue String
-     * @param lightness int
-     * @param polyHue String
-     * @throws ServletException
-     * @throws IOException
-     *
      */
-    @RequestMapping(value = "/map", method = RequestMethod.GET)
+    @GetMapping(value = "/map")
     public void map(HttpServletRequest request, HttpServletResponse response,
                     @RequestParam(required = false, defaultValue = "0") int width,
                     @RequestParam(required = false, defaultValue = "0") int height,
@@ -67,27 +48,11 @@ public class EmbeddedMapController {
     /**
      * Embedded District Type Map Api
      * ------------------------------
-     *
-     * Returns an embedded google map with the specified district type and request params
-     *
+     * Returns an embedded Google map with the specified district type and request params
      * Usage:
      * (GET)    /map/{districtType}
-     *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param width int
-     * @param height int
-     * @param customMapStyle boolean
-     * @param saturation int
-     * @param customPolyStyle boolean
-     * @param hue String
-     * @param lightness int
-     * @param polyHue String
-     * @throws ServletException
-     * @throws IOException
-     *
      */
-    @RequestMapping(value = "/map/{districtType}", method = RequestMethod.GET)
+    @GetMapping(value = "/map/{districtType}")
     public void mapDistrictType(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false, defaultValue = "false") boolean doh,
                                 @RequestParam(required = false, defaultValue = "0") int width,
@@ -118,27 +83,12 @@ public class EmbeddedMapController {
     /**
      * Embedded District Type, Code Map Api
      * ------------------------------
-     *
-     * Returns an embedded google map with the specified district type, district code and request params
-     *
+     * Returns an embedded Google map with the specified district type, district code and request params
      * Usage:
      * (GET)    /map/{districtType}/{districtCode}
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param width int
-     * @param height int
-     * @param customMapStyle boolean
-     * @param saturation int
-     * @param customPolyStyle boolean
-     * @param hue String
-     * @param lightness int
-     * @param polyHue String
-     * @throws ServletException
-     * @throws IOException
-     *
      */
-    @RequestMapping(value = "/map/{districtType}/{districtCode}", method = RequestMethod.GET)
+    @GetMapping(value = "/map/{districtType}/{districtCode}")
     public void mapDistrictCode(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false, defaultValue = "0") int width,
                                 @RequestParam(required = false, defaultValue = "0") int height,
@@ -161,8 +111,16 @@ public class EmbeddedMapController {
         request.getRequestDispatcher(MAPS_JSP).forward(request, response);
     }
 
-    private void setCustomMapStyles(HttpServletRequest request, boolean customMapStyle, int saturation, int lightness, String hue) {
-        // Set custom map styles if requested
+    private void setCommonRequestAttributes(HttpServletRequest request, int width, int height, boolean customMapStyle,
+                                            int saturation, String hue, int lightness, boolean customPolyStyle,
+                                            String polyHue) {
+        if (width <= 0 || height <= 0) {
+            width = 0;
+            height = 0;
+        }
+        request.setAttribute("width", width);
+        request.setAttribute("height", height);
+
         if (customMapStyle) {
             request.setAttribute("customMapStyle", true);
             request.setAttribute("hue", "#" + hue);
@@ -171,30 +129,12 @@ public class EmbeddedMapController {
         } else {
             request.setAttribute("customStyle", false);
         }
-    }
 
-    private void setCustomPolygonStyles(HttpServletRequest request, boolean customPolyStyle, String polyHue) {
-        // Set custom polygon styles
         if (customPolyStyle) {
             request.setAttribute("customPolyStyle", true);
             request.setAttribute("polyHue", "#" + polyHue);
         } else {
             request.setAttribute("customPolyStyle", false);
         }
-    }
-
-    private void setCommonRequestAttributes(HttpServletRequest request, int width, int height, boolean customMapStyle, int saturation, String hue,
-                                            int lightness, boolean customPolyStyle, String polyHue) {
-        if ((width <= 0) || (height <= 0)) {
-            logger.debug("No width and height parameters supplied.");
-            width = 0;
-            height = 0;
-        }
-        request.setAttribute("width", width);
-        request.setAttribute("height", height);
-
-        setCustomMapStyles(request, customMapStyle, saturation, lightness, hue);
-
-        setCustomPolygonStyles(request, customPolyStyle, polyHue);
     }
 }

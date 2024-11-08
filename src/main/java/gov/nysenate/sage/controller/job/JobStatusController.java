@@ -9,9 +9,9 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,14 +45,9 @@ public class JobStatusController {
      * Usage:
      * (GET)    /job/status/process/{Process Id}
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param processId int
-     *
      */
-    @RequestMapping(value = "/process/{processId}", method = RequestMethod.GET)
-    public void jobProcess(HttpServletRequest request, HttpServletResponse response,
-                                     @PathVariable int processId) {
+    @GetMapping(value = "/process/{processId}")
+    public void jobProcess(HttpServletResponse response, @PathVariable int processId) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("JOB_USER")) {
@@ -69,11 +64,8 @@ public class JobStatusController {
      * Usage:
      * (GET)    /job/status/running
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/running", method = RequestMethod.GET)
+    @GetMapping(value = "/running")
     public void jobRunning(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
         Subject subject = SecurityUtils.getSubject();
@@ -93,11 +85,8 @@ public class JobStatusController {
      * Usage:
      * (GET)    /job/status/active
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/active", method = RequestMethod.GET)
+    @GetMapping(value = "/active")
     public void jobActive(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
         Subject subject = SecurityUtils.getSubject();
@@ -116,11 +105,8 @@ public class JobStatusController {
      * Usage:
      * (GET)    /job/status/inactive
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/inactive", method = RequestMethod.GET)
+    @GetMapping(value = "/inactive")
     public void jobInactive(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
         Subject subject = SecurityUtils.getSubject();
@@ -139,11 +125,8 @@ public class JobStatusController {
      * Usage:
      * (GET)    /job/status/completed
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/completed", method = RequestMethod.GET)
+    @GetMapping(value = "/completed")
     public void jobCompleted(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
         Subject subject = SecurityUtils.getSubject();
@@ -162,12 +145,9 @@ public class JobStatusController {
      * Usage:
      * (GET)    /job/status/processor
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/processor", method = RequestMethod.GET)
-    public void jobProcessor(HttpServletRequest request, HttpServletResponse response) {
+    @GetMapping(value = "/processor")
+    public void jobProcessor(HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("JOB_USER")) {
@@ -187,7 +167,7 @@ public class JobStatusController {
      * @param response HttpServletResponse
      *
      */
-    @RequestMapping(value = "/all", method = RequestMethod.GET)
+    @GetMapping(value = "/all")
     public void jobAll(HttpServletRequest request, HttpServletResponse response) {
         Object statusResponse = new JobErrorResult("Failed to process request!");
         Subject subject = SecurityUtils.getSubject();

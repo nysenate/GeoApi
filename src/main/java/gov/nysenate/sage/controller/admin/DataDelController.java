@@ -9,9 +9,9 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,21 +43,15 @@ public class DataDelController {
      * Usage:
      * (GET)    /admin/datadel/zips/{offset}
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param username String
-     * @param password String
-     * @param offset Integer
-     *
      */
-    @RequestMapping(value = "/zips/{offset}", method = RequestMethod.GET)
+    @GetMapping(value = "/zips/{offset}")
     public void cleanUpBadZipsInGeocache(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                       @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                          @RequestParam(required = false, defaultValue = "") String key,
                                         @PathVariable Integer offset) {
         Object apiResponse;
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") ||
@@ -79,19 +73,14 @@ public class DataDelController {
      * Usage:
      * (GET)    /admin/datadel/states
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @param username String
-     * @param password String
-     *
      */
-    @RequestMapping(value = "/states", method = RequestMethod.GET)
+    @GetMapping(value = "/states")
     public void cleanUpBadStatesInGeocache(HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                       @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                            @RequestParam(required = false, defaultValue = "") String key) {
         Object apiResponse;
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
 
         if (subject.hasRole("ADMIN") ||

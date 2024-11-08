@@ -10,13 +10,12 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 
 import static gov.nysenate.sage.model.result.ResultStatus.API_REQUEST_INVALID;
@@ -45,14 +44,9 @@ public class RegeocacheController {
      * <p>
      * Usage:
      * (GET)    /admin/regeocache/zip
-     *
-     * @param request  HttpServletRequest
-     * @param response HttpServletResponse
-     * @param username String
-     * @param password String
      */
-    @RequestMapping(value = "/zip", method = RequestMethod.GET)
-    public void geocacheZips(HttpServletRequest request, HttpServletResponse response,
+    @GetMapping(value = "/zip")
+    public void geocacheZips(HttpServletRequest request,
                              @RequestParam(required = false, defaultValue = "defaultUser") String username,
                              @RequestParam(required = false, defaultValue = "defaultPass") String password,
                              @RequestParam(required = false, defaultValue = "") String key) {
@@ -76,14 +70,9 @@ public class RegeocacheController {
      * <p>
      * Usage:
      * (GET)    /admin/regeocache/nysrefresh/{offset}
-     *
-     * @param request  HttpServletRequest
-     * @param response HttpServletResponse
-     * @param username String
-     * @param password String
      */
-    @RequestMapping(value = "/nysrefresh/{offset}", method = RequestMethod.GET)
-    public void nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
+    @GetMapping(value = "/nysrefresh/{offset}")
+    public void nysRefreshGeocache(HttpServletRequest request,
                                    @PathVariable int offset,
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                    @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -105,14 +94,12 @@ public class RegeocacheController {
     /**
      * Mass Regeocache Testing
      * ---------------------------
-     *
      * Test Mass Geocache CLI script, Not intended for everyday use. For debugging only
-     *
      * Usage:
      * (GET)    /admin/regeocache/mass
      */
-    @RequestMapping(value = "/mass", method = RequestMethod.GET)
-    public void nysRefreshGeocache(HttpServletRequest request, HttpServletResponse response,
+    @GetMapping(value = "/mass")
+    public void nysRefreshGeocache(HttpServletRequest request,
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                    @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                    @RequestParam(required = false, defaultValue = "") String key) {
@@ -130,7 +117,6 @@ public class RegeocacheController {
             params.add("nysgeo");
             apiResponse = regeocacheService.massRegeoache(1, 10, false, params);
         }
-
         setApiResponse(apiResponse, request);
     }
 }

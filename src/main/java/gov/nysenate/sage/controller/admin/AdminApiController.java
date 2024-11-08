@@ -25,8 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
@@ -81,17 +82,14 @@ public class AdminApiController {
      * Usage:
      * (GET)    /admin/api/currentApiUsers
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/currentApiUsers", method = RequestMethod.GET)
+    @GetMapping(value = "/currentApiUsers")
     public void currentApiUsers(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                 @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                 @RequestParam(required = false, defaultValue = "") String key) {
         Object adminResponse;
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
@@ -112,11 +110,8 @@ public class AdminApiController {
      * Usage:
      * (GET)    /admin/api/currentJobUsers
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/currentJobUsers", method = RequestMethod.GET)
+    @GetMapping(value = "/currentJobUsers")
     public void currentJobUsers(HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                 @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -143,11 +138,8 @@ public class AdminApiController {
      * Usage:
      * (GET)    /admin/api/apiUserUsage
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/apiUserUsage", method = RequestMethod.GET)
+    @GetMapping(value = "/apiUserUsage")
     public void apiUserUsage(HttpServletRequest request, HttpServletResponse response,
                              @RequestParam(required = false, defaultValue = "defaultUser") String username,
                              @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -156,7 +148,7 @@ public class AdminApiController {
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
+                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             adminResponse = sqlApiUserStatsDao.getRequestCounts(getBeginTimestamp(request), getEndTimestamp(request));
         }
@@ -174,21 +166,18 @@ public class AdminApiController {
      * Usage:
      * (GET)    /admin/api/usage
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/usage", method = RequestMethod.GET)
+    @GetMapping(value = "/usage")
     public void usage(HttpServletRequest request, HttpServletResponse response,
                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
                       @RequestParam(required = false, defaultValue = "defaultPass") String password,
                       @RequestParam(required = false, defaultValue = "") String key) {
         Object adminResponse;
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
+                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
+                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             adminResponse = getApiUsageStats(request);
         }
         else {
@@ -205,11 +194,8 @@ public class AdminApiController {
      * Usage:
      * (GET)    /admin/api/geocodeUsage
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/geocodeUsage", method = RequestMethod.GET)
+    @GetMapping(value = "/geocodeUsage")
     public void geocodeUsage(HttpServletRequest request, HttpServletResponse response,
                              @RequestParam(required = false, defaultValue = "defaultUser") String username,
                              @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -236,11 +222,8 @@ public class AdminApiController {
      * Usage:
      * (GET)    /admin/api/jobStatuses
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/jobStatuses", method = RequestMethod.GET)
+    @GetMapping(value = "/jobStatuses")
     public void jobStatuses(HttpServletRequest request, HttpServletResponse response,
                             @RequestParam(required = false, defaultValue = "defaultUser") String username,
                             @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -267,11 +250,8 @@ public class AdminApiController {
      * Usage:
      * (GET)    /admin/api/deployment
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/deployment", method = RequestMethod.GET)
+    @GetMapping(value = "/deployment")
     public void deployment(HttpServletRequest request, HttpServletResponse response,
                            @RequestParam(required = false, defaultValue = "defaultUser") String username,
                            @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -298,11 +278,8 @@ public class AdminApiController {
      * Usage:
      * (GET)    /admin/api/exception
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/exception", method = RequestMethod.GET)
+    @GetMapping(value = "/exception")
     public void exception(HttpServletRequest request, HttpServletResponse response,
                           @RequestParam(required = false, defaultValue = "defaultUser") String username,
                           @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -330,11 +307,8 @@ public class AdminApiController {
      * Usage:
      * (POST)    /admin/api/createApiUser
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/createApiUser", method = RequestMethod.POST)
+    @PostMapping(value = "/createApiUser")
     public void createApiUser(HttpServletRequest request, HttpServletResponse response,
                               @RequestParam(required = false, defaultValue = "defaultUser") String username,
                               @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -362,11 +336,8 @@ public class AdminApiController {
      * Usage:
      * (POST)    /admin/api/deleteApiUser
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/deleteApiUser", method = RequestMethod.POST)
+    @PostMapping(value = "/deleteApiUser")
     public void deleteApiUser(HttpServletRequest request, HttpServletResponse response,
                               @RequestParam(required = false, defaultValue = "defaultUser") String username,
                               @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -393,11 +364,8 @@ public class AdminApiController {
      * Usage:
      * (POST)    /admin/api/createJobUser
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/createJobUser", method = RequestMethod.POST)
+    @PostMapping(value = "/createJobUser")
     public void createJobUser(HttpServletRequest request, HttpServletResponse response,
                               @RequestParam(required = false, defaultValue = "defaultUser") String username,
                               @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -424,17 +392,14 @@ public class AdminApiController {
      * Usage:
      * (POST)    /admin/api/deleteJobUser
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/deleteJobUser", method = RequestMethod.POST)
+    @PostMapping(value = "/deleteJobUser")
     public void deleteJobUser(HttpServletRequest request, HttpServletResponse response,
                               @RequestParam(required = false, defaultValue = "defaultUser") String username,
                               @RequestParam(required = false, defaultValue = "defaultPass") String password,
                               @RequestParam(required = false, defaultValue = "") String key) {
         Object adminResponse;
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
@@ -455,11 +420,8 @@ public class AdminApiController {
      * Usage:
      * (POST)    /admin/api/hideException
      *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     *
      */
-    @RequestMapping(value = "/hideException", method = RequestMethod.POST)
+    @PostMapping(value = "/hideException")
     public void hideException(HttpServletRequest request, HttpServletResponse response,
                               @RequestParam(required = false, defaultValue = "defaultUser") String username,
                               @RequestParam(required = false, defaultValue = "defaultPass") String password,
@@ -563,27 +525,20 @@ public class AdminApiController {
      * @return GenericResponse indicating success/failure.
      */
     private GenericResponse deleteJobUser(HttpServletRequest request) {
-        GenericResponse response;
+        int id;
         try {
-            int id = Integer.parseInt(request.getParameter("id"));
-            JobUser jobUserToDelete = sqlJobUserDao.getJobUserById(id);
-            if (jobUserToDelete != null) {
-                int status = sqlJobUserDao.removeJobUser(jobUserToDelete);
-                if (status == 1) {
-                    response = new GenericResponse(true, "Deleted Job User");
-                }
-                else {
-                    response = new GenericResponse(false, "Failed to delete Job User");
-                }
-            }
-            else {
-                response = new GenericResponse(false, "Job User with id " + id + " does not exist!");
-            }
+            id = Integer.parseInt(request.getParameter("id"));
+        } catch (NumberFormatException ex) {
+            return new GenericResponse(false, "Invalid id supplied");
         }
-        catch (NumberFormatException ex) {
-            response = new GenericResponse(false, "Invalid id supplied");
+        JobUser jobUserToDelete = sqlJobUserDao.getJobUserById(id);
+        if (jobUserToDelete == null) {
+            return new GenericResponse(false, "Job User with id " + id + " does not exist!");
         }
-        return response;
+        if (sqlJobUserDao.removeJobUser(jobUserToDelete) == 1) {
+            return new GenericResponse(true, "Deleted Job User");
+        }
+        return new GenericResponse(false, "Failed to delete Job User");
     }
 
     /**
