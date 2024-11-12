@@ -46,6 +46,8 @@ public enum ResultStatus {
 
     NO_STREETFILES_TO_PROCESS(90, "There were no streetfiles to process. No action was taken."),
 
+    GENERAL_FAILURE(100, "API call did not succeed."),
+
     /** Unexpected errors */
     INTERNAL_ERROR(500, "Internal Server Error."),
     RESPONSE_ERROR(502, "Application failed to provide a response."),

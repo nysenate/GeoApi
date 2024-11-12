@@ -78,7 +78,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
      * Otherwise, the default strategy for district assignment is to run both street file and district shape file
      * look-ups in parallel. Once results from both lookup methods are retrieved they are compared and consolidated.
      */
-    public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final String distProvider,
+    public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final DistrictSource distProvider,
                                           final List<DistrictType> districtTypes, DistrictStrategy districtStrategy) {
         Timestamp startTime = TimeUtil.currentTimestamp();
         DistrictResult districtResult = null, streetFileResult, shapeFileResult;
@@ -188,7 +188,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
      * @param distProvider  If district provider is specified, (e.g streetfile), then only that provider will be used.
      * @return List<DistrictResult>
      */
-    public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final String distProvider,
+    public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final DistrictSource distProvider,
                                                 final List<DistrictType> districtTypes, DistrictStrategy districtStrategy) {
         if (geocodedAddresses != null) {
             logger.info("Performing district assign for {} addresses.", geocodedAddresses.size());

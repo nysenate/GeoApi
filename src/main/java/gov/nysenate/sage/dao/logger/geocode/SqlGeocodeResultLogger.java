@@ -62,6 +62,9 @@ public class SqlGeocodeResultLogger implements GeocodeResultLogger {
      * Log a GeocodeResult to the database. Requires the id handle of the subsequent GeocodeRequest.
      * @return int id of the logged geocode result.
      */
+    // TODO: log result when generated, not at Controller level
+    // this.SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isDetailedLoggingEnabled();
+    // this.BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
     public int logGeocodeResult(int geocodeRequestId, GeocodeResult geocodeResult) {
         if (geocodeResult == null || geocodeRequestId <= -1) {
             return 0;

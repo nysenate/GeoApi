@@ -3,7 +3,6 @@ package gov.nysenate.sage.dao.logger.geocode;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
 import gov.nysenate.sage.dao.logger.point.SqlPointLogger;
-import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.SingleGeocodeRequest;
 import gov.nysenate.sage.model.job.JobProcess;
 import org.slf4j.Logger;
@@ -32,17 +31,18 @@ public class SqlGeocodeRequestLogger {
     }
 
     /** {@inheritDoc} */
+    // TODO: log request when passed into geocoder
     public int logGeocodeRequest(SingleGeocodeRequest geoRequest) {
         if (geoRequest != null) {
             try {
-                ApiRequest apiRequest = geoRequest.getApiRequest();
                 JobProcess jobProcess = geoRequest.getJobProcess();
 
                 int addressId = (!geoRequest.isReverse()) ? sqlAddressLogger.logAddress(geoRequest.getAddress()) : 0;
                 int pointId = (geoRequest.isReverse()) ? sqlPointLogger.logPoint(geoRequest.getPoint()) : 0;
 
+                // TODO: simplify
                 var params = new MapSqlParameterSource()
-                        .addValue("apiRequestId", (apiRequest != null) ? apiRequest.getId() : null)
+                        .addValue("apiRequestId", null)
                         .addValue("jobProcessId", (jobProcess != null) ? jobProcess.getId() : null)
                         .addValue("addressId", (addressId > 0) ? addressId : null)
                         .addValue("pointId", (pointId > 0) ? pointId : null)

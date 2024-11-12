@@ -6,18 +6,15 @@ import java.util.List;
 public enum Geocoder implements DataSource {
     GEOCACHE, GOOGLE, NYSGEO;
 
-    public static List<Geocoder> getGeocoders(String providerStr, boolean useCache, boolean useFallback) {
+    public static List<Geocoder> getGeocoders(Geocoder baseProvider, boolean useCache, boolean useFallback) {
         var geocoders = new LinkedHashSet<Geocoder>();
-        Geocoder provider;
-        try {
-            provider = valueOf(providerStr.trim().toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException ignored) {
-            provider = GEOCACHE;
+        if (baseProvider == null) {
+            throw new IllegalArgumentException("baseProvider cannot be null");
         }
-        if (provider == GEOCACHE && !useCache) {
+        if (baseProvider == GEOCACHE && !useCache) {
             throw new IllegalArgumentException("If a provider is not specified, the cache must be allowed.");
         }
-        geocoders.add(provider);
+        geocoders.add(baseProvider);
         if (useFallback) {
             geocoders.addAll(List.of(values()));
         }
@@ -25,5 +22,16 @@ public enum Geocoder implements DataSource {
             geocoders.remove(GEOCACHE);
         }
         return List.copyOf(geocoders);
+    }
+
+    public static Geocoder getGeocoder(String providerStr) {
+        if (providerStr == null || providerStr.isBlank()) {
+            return GEOCACHE;
+        }
+        try {
+            return valueOf(providerStr.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }

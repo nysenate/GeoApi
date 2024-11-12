@@ -1,10 +1,10 @@
 package gov.nysenate.sage.model.api;
 
-import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.job.JobProcess;
+import gov.nysenate.sage.provider.district.DistrictSource;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 
@@ -17,17 +17,10 @@ import static gov.nysenate.sage.service.district.DistrictServiceProvider.Distric
  * A DistrictRequest represents a district assignment API request.
  * It is intended to encapsulate the various options and input types.
  */
-public class DistrictRequest implements Cloneable {
+public abstract class DistrictRequest {
     /** The ids are assigned once the request has been logged */
     private int id;
-
-    /** Source identifiers */
-    private ApiRequest apiRequest;
     private JobProcess jobProcess;
-
-    /** User Input */
-    private Address address;
-    private Point point;
 
     /** Geocoded Input */
     private GeocodedAddress geocodedAddress;
@@ -36,57 +29,15 @@ public class DistrictRequest implements Cloneable {
     private List<DistrictType> districtTypes = DistrictType.getStandardTypes();
 
     /** District assign api options */
-    private String provider = null;
-    private String geoProvider = null;
-    private boolean uspsValidate = false;
-    private boolean usePunct = false;
-    private boolean skipGeocode = false;
-    private DistrictStrategy districtStrategy = DistrictStrategy.neighborMatch;
-    private Timestamp requestTime = TimeUtil.currentTimestamp();
+    protected DistrictSource provider = null;
+    protected Geocoder geoProvider = null;
+    protected boolean uspsValidate = false;
+    protected boolean usePunct = false;
+    protected boolean skipGeocode = false;
+    protected DistrictStrategy districtStrategy = DistrictStrategy.neighborMatch;
+    private final Timestamp requestTime = TimeUtil.currentTimestamp();
 
     public DistrictRequest() {}
-
-    /**
-     * Construct a DistrictRequest to conform to certain rules for Bluebird district assign.
-     * @param apiRequest The api request object
-     * @param address The input address
-     * @param point The input point
-     * @param bluebirdStrategy The district assignment strategy for bluebird requests
-     * @return DistrictRequest with preset bluebird assign options.
-     */
-    public static DistrictRequest buildBluebirdRequest(ApiRequest apiRequest, Address address, Point point, String bluebirdStrategy) {
-        var dr = new DistrictRequest();
-        dr.setApiRequest(apiRequest);
-        dr.setAddress(address);
-        dr.setPoint(point);
-        dr.setProvider(null);
-        dr.setGeoProvider(null);
-        dr.setUspsValidate(true);
-        dr.setSkipGeocode(false);
-        dr.setDistrictStrategy(bluebirdStrategy);
-        return dr;
-    }
-
-    /**
-     * Modify existing DistrictRequest with bluebird options.
-     * @param districtRequest DistrictRequest with options set.
-     * @param bluebirdStrategy The district assignment strategy for bluebird requests.
-     * @return A new DistrictRequest instance with bluebird options set.
-     */
-    public static DistrictRequest buildBluebirdRequest(DistrictRequest districtRequest, String bluebirdStrategy) {
-        return buildBluebirdRequest(districtRequest.getApiRequest(), districtRequest.getAddress(), districtRequest.getPoint(), bluebirdStrategy);
-    }
-
-    public DistrictRequest(ApiRequest apiRequest, Address address, String provider, String geoProvider,
-                           boolean uspsValidate, boolean skipGeocode, DistrictStrategy districtStrategy) {
-        this.apiRequest = apiRequest;
-        this.address = address;
-        setProvider(provider);
-        setGeoProvider(geoProvider);
-        this.uspsValidate = uspsValidate;
-        this.skipGeocode = skipGeocode;
-        setDistrictStrategy(districtStrategy);
-    }
 
     public int getId() {
         return id;
@@ -96,40 +47,12 @@ public class DistrictRequest implements Cloneable {
         this.id = id;
     }
 
-    public ApiRequest getApiRequest() {
-        return apiRequest;
-    }
-
-    public void setApiRequest(ApiRequest apiRequest) {
-        this.apiRequest = apiRequest;
-    }
-
     public JobProcess getJobProcess() {
         return jobProcess;
     }
 
     public void setJobProcess(JobProcess jobProcess) {
         this.jobProcess = jobProcess;
-    }
-
-    public Address getAddress() {
-        return address;
-    }
-
-    public String getAdressLogString() {
-        return address.toLogString();
-    }
-
-    public void setAddress(Address address) {
-        this.address = address;
-    }
-
-    public Point getPoint() {
-        return point;
-    }
-
-    public void setPoint(Point point) {
-        this.point = point;
     }
 
     public GeocodedAddress getGeocodedAddress() {
@@ -144,30 +67,23 @@ public class DistrictRequest implements Cloneable {
         return districtTypes;
     }
 
-    public String getProvider() {
+    public DistrictSource getProvider() {
         return provider;
     }
 
     public void setProvider(String provider) {
-        if (FormatUtil.isStringEmptyorNull(provider)) {
-            this.provider = provider;
-        }
-        else {
-            this.provider = FormatUtil.cleanString(provider.toLowerCase());
+        if (provider != null) {
+            this.provider = DistrictSource.valueOf(FormatUtil.cleanString(provider.toUpperCase()));
         }
     }
 
-    // TODO: should be Geocoder
-    public String getGeoProvider() {
+    public Geocoder getGeoProvider() {
         return geoProvider;
     }
 
     public void setGeoProvider(String geoProvider) {
-        if (FormatUtil.isStringEmptyorNull(geoProvider)) {
-            this.geoProvider = geoProvider;
-        }
-        else {
-            this.geoProvider = FormatUtil.cleanString(geoProvider.toLowerCase());
+        if (geoProvider != null) {
+            this.geoProvider = Geocoder.valueOf(FormatUtil.cleanString(geoProvider));
         }
     }
 
@@ -218,10 +134,5 @@ public class DistrictRequest implements Cloneable {
 
     public Timestamp getRequestTime() {
         return requestTime;
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
     }
 }

@@ -6,32 +6,31 @@ import gov.nysenate.sage.provider.geocode.Geocoder;
 
 public class SingleGeocodeRequest extends GeocodeRequest {
     private int id;
-    private int addressId;
 
     /** Inputs */
     private Address address;
     private Point point;
 
-    public SingleGeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache) {
-        super(apiRequest, Geocoder.getGeocoders(provider, useFallback, useCache), false, false, true);
+    public SingleGeocodeRequest(Address address, Geocoder baseProvider, boolean useFallback, boolean useCache) {
+        super(Geocoder.getGeocoders(baseProvider, useFallback, useCache), false, false, true);
         this.address = address;
     }
 
-    public SingleGeocodeRequest(ApiRequest apiRequest, Address address, String provider, boolean useFallback, boolean useCache,
+    public SingleGeocodeRequest(Address address, Geocoder baseProvider, boolean useFallback, boolean useCache,
                                 boolean doNotCache, boolean isUspsValidate) {
-        super(apiRequest, Geocoder.getGeocoders(provider, useFallback, useCache), false, doNotCache, isUspsValidate);
+        super(Geocoder.getGeocoders(baseProvider, useFallback, useCache), false, doNotCache, isUspsValidate);
         this.address = address;
 
     }
 
     public SingleGeocodeRequest(BatchGeocodeRequest batchRequest, Address address) {
-        super(batchRequest.getApiRequest(), batchRequest.getGeocoders(), batchRequest.isReverse(),
+        super(batchRequest.getGeocoders(), batchRequest.isReverse(),
                 batchRequest.isDoNotCache(), batchRequest.isUspsValidate());
         this.address = address;
     }
 
     public SingleGeocodeRequest(BatchGeocodeRequest batchRequest, Point point) {
-        super(batchRequest.getApiRequest(), batchRequest.getGeocoders(), batchRequest.isReverse(),
+        super(batchRequest.getGeocoders(), batchRequest.isReverse(),
                 batchRequest.isDoNotCache(), batchRequest.isUspsValidate());
         this.point = point;
     }
@@ -42,14 +41,6 @@ public class SingleGeocodeRequest extends GeocodeRequest {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public int getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(int addressId) {
-        this.addressId = addressId;
     }
 
     public Point getPoint() {

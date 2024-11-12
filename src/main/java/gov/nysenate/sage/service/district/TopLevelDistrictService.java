@@ -16,6 +16,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.provider.district.DistrictSource;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.SageGeocodeServiceProvider;
@@ -68,15 +69,7 @@ public class TopLevelDistrictService {
         BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
     }
 
-    public void logDistrictRequest(ApiRequest apiRequest, DistrictRequest districtRequest) {
-        logger.info("=======================================================");
-        logger.info("|{}District '{}' Request {} ", (apiRequest.isBatch() ? " Batch " : " "), apiRequest.getRequest(), apiRequest.getId());
-        logger.info("| IP: {}", apiRequest.getIpAddress());
-        if (!apiRequest.isBatch()) {
-            logger.info("| Input Address: {}", districtRequest.getAdressLogString());
-        }
-        logger.info("=======================================================");
-
+    public void logDistrictRequest(DistrictRequest districtRequest) {
         if (SINGLE_LOGGING_ENABLED) {
             sqlDistrictRequestLogger.logDistrictRequest(districtRequest);
         }
@@ -88,7 +81,7 @@ public class TopLevelDistrictService {
      * @param districtRequest Contains the various parameters for the District Assign/Bluebird API
      * @return DistrictResult
      */
-    public DistrictResult handleDistrictRequest(DistrictRequest districtRequest, int requestId) {
+    public DistrictResult handleDistrictRequest(SingleDistrictRequest districtRequest, int requestId) {
         Address address = Optional.ofNullable(districtRequest.getAddress()).orElse(new Address());
         GeocodedAddress geocodedAddress = null;
 
@@ -246,8 +239,7 @@ public class TopLevelDistrictService {
         if (districtRequest.isSkipGeocode()) {
             return new GeocodedAddress(address);
         }
-        var geocodeRequest = new SingleGeocodeRequest(districtRequest.getApiRequest(),
-                address, districtRequest.getGeoProvider(), true, true);
+        var geocodeRequest = new SingleGeocodeRequest(address, districtRequest.getGeoProvider(), true, true);
         GeocodedAddress geocodedAddress = performGeocode(geocodeRequest);
         if (address.isUspsValidated() && geocodedAddress != null && geocodedAddress.isValidGeocode() &&
                 (geocodedAddress.getGeocode().quality().compareTo(GeocodeQuality.HOUSE) >= 0)) {
@@ -264,7 +256,7 @@ public class TopLevelDistrictService {
      * @param zipProvided     Set true if user input address included a zip5
      * @return DistrictResult
      */
-    private DistrictResult performDistrictAssign(@Nonnull GeocodedAddress geocodedAddress, String provider, List<DistrictType> types,
+    private DistrictResult performDistrictAssign(@Nonnull GeocodedAddress geocodedAddress, DistrictSource provider, List<DistrictType> types,
                                                  DistrictServiceProvider.DistrictStrategy strategy, boolean zipProvided) {
         if (geocodedAddress.isValidAddress()) {
             if (!geocodedAddress.isValidGeocode()) {

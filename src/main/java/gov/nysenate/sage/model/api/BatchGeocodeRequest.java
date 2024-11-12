@@ -11,17 +11,19 @@ public class BatchGeocodeRequest extends GeocodeRequest {
     protected List<Address> addresses = new ArrayList<>();
     protected List<Point> points = new ArrayList<>();
 
+    public BatchGeocodeRequest(Geocoder baseGeocoder, boolean useFallback, boolean isReverse,
+                               boolean doNotCache, boolean isUspsValidate) {
+        super(baseGeocoder, useFallback, isReverse, doNotCache, isUspsValidate);
+    }
+
+    // TODO: are these settings right?
     public BatchGeocodeRequest(List<Address> addresses) {
-        super(null, null, false, false, true);
+        super(Geocoder.GOOGLE, false, false, false, true);
         this.addresses = addresses;
     }
 
-    public BatchGeocodeRequest(SingleGeocodeRequest gr) {
-        super(gr.getApiRequest(), gr.getGeocoders(), gr.isReverse(), gr.isDoNotCache(), gr.isUspsValidate());
-    }
-
     public BatchGeocodeRequest(BatchDistrictRequest bdr) {
-        super(bdr.getApiRequest(), Geocoder.getGeocoders(bdr.getGeoProvider(), true, true),
+        super(Geocoder.getGeocoders(bdr.getGeoProvider(), true, true),
                 false, false, bdr.isUspsValidate());
         this.addresses = bdr.getAddresses();
     }

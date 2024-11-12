@@ -117,9 +117,9 @@ public final class ApiControllerUtil {
      *     [{"lat":43.123 , "lon":-73.123 }, ..]
      * </code>
      * @param json Json payload
-     * @return
+     * @return a List of Points
      */
-    public static ArrayList<Point> getPointsFromJsonBody(String json) {
+    public static List<Point> getPointsFromJsonBody(String json) {
         var points = new ArrayList<Point>();
         try {
             logger.trace("Batch points json body {}", json);

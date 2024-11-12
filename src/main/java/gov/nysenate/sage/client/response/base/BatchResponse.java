@@ -1,16 +1,18 @@
 package gov.nysenate.sage.client.response.base;
 
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.NonnullList;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.function.Function;
 
-public class BatchResponse<T> {
+public class BatchResponse<T extends BaseResponse> extends BaseResponse {
     @Nonnull
     private final List<T> results;
 
     public <I> BatchResponse(List<I> inputList, Function<I, T> mapper) {
+        super(ResultStatus.SUCCESS);
         this.results = NonnullList.of(inputList).stream().map(mapper).toList();
     }
 

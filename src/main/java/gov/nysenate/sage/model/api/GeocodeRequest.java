@@ -14,24 +14,22 @@ public abstract class GeocodeRequest {
 
     private boolean isReverse;
     private boolean isUspsValidate;
-    private ApiRequest apiRequest;
     private JobProcess jobProcess;
 
-    public GeocodeRequest(ApiRequest apiRequest, List<Geocoder> geocoders,
-                          boolean isReverse, boolean doNotCache, boolean isUspsValidate) {
-        this.isReverse = isReverse;
-        this.apiRequest = apiRequest;
+    public GeocodeRequest(Geocoder baseProvider, boolean useFallback, boolean useCache,
+                          boolean doNotCache, boolean isUspsValidate) {
+        this.geocoders = Geocoder.getGeocoders(baseProvider, useFallback, useCache);
         this.doNotCache = doNotCache;
-        this.geocoders = geocoders;
+        this.isReverse = false;
         this.isUspsValidate = isUspsValidate;
     }
 
-    public ApiRequest getApiRequest() {
-        return apiRequest;
-    }
-
-    public void setApiRequest(ApiRequest apiRequest) {
-        this.apiRequest = apiRequest;
+    public GeocodeRequest(List<Geocoder> geocoders, boolean isReverse,
+                          boolean doNotCache, boolean isUspsValidate) {
+        this.isReverse = isReverse;
+        this.doNotCache = doNotCache;
+        this.geocoders = geocoders;
+        this.isUspsValidate = isUspsValidate;
     }
 
     public List<Geocoder> getGeocoders() {

@@ -2,7 +2,6 @@ package gov.nysenate.sage.dao.logger.district;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
-import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.DistrictRequest;
 import gov.nysenate.sage.model.job.JobProcess;
 import org.slf4j.Logger;
@@ -31,16 +30,15 @@ public class SqlDistrictRequestLogger implements DistrictRequestLogger {
     /** {@inheritDoc} */
     public int logDistrictRequest(DistrictRequest dr) {
         if (dr != null) {
-            ApiRequest apiRequest = dr.getApiRequest();
             JobProcess jobProcess = dr.getJobProcess();
 
             try {
                 int addressId = (dr.getGeocodedAddress() != null) ? sqlAddressLogger.logAddress(dr.getGeocodedAddress().getAddress()) : 0;
                 String strategy = (dr.getDistrictStrategy() != null) ? dr.getDistrictStrategy().name() : null;
 
-                // TODO: cleanup now that showMaps and showMembers are gone
+                // TODO: cleanup now that showMaps, showMembers, apiRequest are gone
                 var params = new MapSqlParameterSource()
-                        .addValue("apiRequestId", (apiRequest != null) ? apiRequest.getId() : null)
+                        .addValue("apiRequestId", null)
                         .addValue("jobProcessId", (jobProcess != null) ? jobProcess.getId() : null)
                         .addValue("addressId", (addressId > 0) ? addressId : null)
                         .addValue("provider", dr.getProvider())

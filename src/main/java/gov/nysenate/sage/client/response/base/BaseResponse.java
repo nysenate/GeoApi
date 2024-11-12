@@ -9,8 +9,8 @@ import java.util.List;
 
 public class BaseResponse {
     private final ResultStatus status;
-    private final List<String> messages = new ArrayList<>();
     private DataSource source = null;
+    protected final List<String> messages = new ArrayList<>();
 
     public BaseResponse(BaseResult<?> baseResult) {
         if (baseResult != null) {

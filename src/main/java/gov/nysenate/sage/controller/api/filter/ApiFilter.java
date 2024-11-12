@@ -124,7 +124,7 @@ public class ApiFilter implements Filter {
      * @return          true if authenticated, false otherwise
      */
     private boolean authenticateUser(String key, String remoteIp, String uri, ServletRequest request) {
-        ApiRequest apiRequest = getApiRequest(request);
+        ApiRequest apiRequest = (ApiRequest) request.getAttribute(API_REQUEST_KEY);;
         String service = apiRequest.getService();
 
         if (key == null) {
@@ -228,11 +228,6 @@ public class ApiFilter implements Filter {
             setApiResponse(new ApiError(API_REQUEST_INVALID), request);
             return false;
         }
-    }
-
-    /** Accessor to ApiRequest object stored in ServletRequest */
-    public static ApiRequest getApiRequest(ServletRequest request) {
-        return (ApiRequest) request.getAttribute(API_REQUEST_KEY);
     }
 
     /**

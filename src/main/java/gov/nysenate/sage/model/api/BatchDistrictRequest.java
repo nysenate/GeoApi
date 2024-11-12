@@ -8,8 +8,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BatchDistrictRequest extends DistrictRequest
-{
+public class BatchDistrictRequest extends DistrictRequest {
     /** Original user input */
     private List<Address> addresses = new ArrayList<>();
     private List<Point> points = new ArrayList<>();
@@ -19,9 +18,13 @@ public class BatchDistrictRequest extends DistrictRequest
 
     public BatchDistrictRequest() {}
 
-    public BatchDistrictRequest(DistrictRequest dr)
-    {
-        super(dr.getApiRequest(), dr.getAddress(), dr.getProvider(), dr.getGeoProvider(), dr.isUspsValidate(), dr.isSkipGeocode(), dr.getDistrictStrategy());
+
+    public BatchDistrictRequest(DistrictRequest dr) {
+        this.provider = dr.getProvider();
+        this.geoProvider = dr.getGeoProvider();
+        this.uspsValidate = dr.isUspsValidate();
+        this.skipGeocode = dr.isSkipGeocode();
+        setDistrictStrategy(dr.getDistrictStrategy());
     }
 
     @Nonnull

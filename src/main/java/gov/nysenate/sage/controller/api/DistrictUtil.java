@@ -3,8 +3,8 @@ package gov.nysenate.sage.controller.api;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.api.ApiRequest;
-import gov.nysenate.sage.model.api.DistrictRequest;
+import gov.nysenate.sage.model.api.BatchDistrictRequest;
+import gov.nysenate.sage.model.api.SingleDistrictRequest;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -16,11 +16,9 @@ import java.util.List;
 public final class DistrictUtil {
     private DistrictUtil() {}
 
-    public static DistrictRequest createBatchAssignDistrictRequest(ApiRequest apiRequest, String provider, String geoProvider,
-                                                                   boolean uspsValidate, boolean usePunct,
-                                                                   boolean skipGeocode, String districtStrategy) {
-        var districtRequest = new DistrictRequest();
-        districtRequest.setApiRequest(apiRequest);
+    public static BatchDistrictRequest createBatchAssignDistrictRequest(String provider, String geoProvider, boolean uspsValidate,
+                                                                   boolean usePunct, boolean skipGeocode, String districtStrategy) {
+        var districtRequest = new BatchDistrictRequest();
         districtRequest.setProvider(provider);
         districtRequest.setGeoProvider(geoProvider);
         districtRequest.setUsePunct(usePunct);
@@ -30,40 +28,12 @@ public final class DistrictUtil {
         return districtRequest;
     }
 
-    public static DistrictRequest createBlueBirdDistrictRequest(ApiRequest apiRequest, String provider,
-                                                                String geoProvider, boolean usePunct,
-                                                                Address address, Point point) {
-        var districtRequest = new DistrictRequest();
-        districtRequest.setApiRequest(apiRequest);
-        districtRequest.setProvider(provider);
-        districtRequest.setGeoProvider(geoProvider);
-        districtRequest.setPoint(point);
-        districtRequest.setUsePunct(usePunct);
-        districtRequest.setAddress(address);
-        districtRequest.setUspsValidate(true);
-        districtRequest.setSkipGeocode(false);
-        return districtRequest;
-    }
-
-    public static DistrictRequest createBatchBlueBirdDistrictRequest(ApiRequest apiRequest, String provider,
-                                                                     String geoProvider, boolean usePunct) {
-        var districtRequest = new DistrictRequest();
-        districtRequest.setApiRequest(apiRequest);
-        districtRequest.setProvider(provider);
-        districtRequest.setGeoProvider(geoProvider);
-        districtRequest.setUsePunct(usePunct);
-        districtRequest.setUspsValidate(true);
-        districtRequest.setSkipGeocode(false);
-        return districtRequest;
-    }
-
-    public static DistrictRequest createFullDistrictRequest(ApiRequest apiRequest, Address address, Point point,
+    public static SingleDistrictRequest createFullDistrictRequest(Address address, Point point,
                                                             String provider, String geoProvider, boolean uspsValidate,
                                                             boolean usePunct, boolean skipGeocode,
                                                             String districtStrategy) {
 
-        var districtRequest = new DistrictRequest();
-        districtRequest.setApiRequest(apiRequest);
+        var districtRequest = new SingleDistrictRequest();
         districtRequest.setAddress(address);
         districtRequest.setPoint(point);
         districtRequest.setProvider(provider);

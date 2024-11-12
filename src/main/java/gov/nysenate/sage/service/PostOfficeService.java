@@ -4,7 +4,7 @@ import gov.nysenate.sage.dao.data.PostOfficeDao;
 import gov.nysenate.sage.model.PostOfficeDistrictData;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.PostOfficeAddress;
-import gov.nysenate.sage.model.api.DistrictRequest;
+import gov.nysenate.sage.model.api.SingleDistrictRequest;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.district.TopLevelDistrictService;
@@ -72,7 +72,7 @@ public class PostOfficeService {
     }
 
     private DistrictedAddress getDistrictedAddress(PostOfficeAddress poAddress) {
-        var request = new DistrictRequest();
+        var request = new SingleDistrictRequest();
         request.setDistrictStrategy(DistrictServiceProvider.DistrictStrategy.shapeFallback);
         request.setAddress(poAddress.address());
         request.setUspsValidate(true);

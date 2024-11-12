@@ -100,15 +100,15 @@ public class SqlDistrictResultLogger implements DistrictResultLogger {
         }
         for (int i = 0; i < batchDistRequest.getGeocodedAddresses().size(); i++) {
             try {
+                // TODO: save individuals in batch
                 GeocodedAddress geocodedAddress = batchDistRequest.getGeocodedAddresses().get(i);
-                DistrictRequest districtRequest = (DistrictRequest) batchDistRequest.clone();
-                districtRequest.setGeocodedAddress(geocodedAddress);
+                batchDistRequest.setGeocodedAddress(geocodedAddress);
                 if (!SAVE_LOCK) {
-                    batchDistLogCache.add(new ImmutablePair<>(districtRequest, districtResults.get(i)));
+                    batchDistLogCache.add(new ImmutablePair<>(batchDistRequest, districtResults.get(i)));
                 }
                 else {
                     logger.debug("Logging district result to temporary list.");
-                    tempCache.add(new ImmutablePair<>(districtRequest, districtResults.get(i)));
+                    tempCache.add(new ImmutablePair<>(batchDistRequest, districtResults.get(i)));
                 }
             }
             catch (Exception ex) {
