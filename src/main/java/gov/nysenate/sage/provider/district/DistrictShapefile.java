@@ -3,7 +3,6 @@ package gov.nysenate.sage.provider.district;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
 import gov.nysenate.sage.dao.provider.streetfile.SqlStreetfileDao;
-import gov.nysenate.sage.dao.provider.tiger.TigerDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -38,7 +37,6 @@ public class DistrictShapefile extends DistrictService implements MapService {
     /** The street file and cityzip daos are needed to determine overlap */
     private final SqlStreetfileDao sqlStreetFileDao;
     private final CityZipDB cityZipDBDao;
-    private final TigerDao tigerDao;
     private final CountyDao countyDao;
 
     /** Specifies the maximum distance a neighbor district can be from a specific point to still be considered
@@ -56,11 +54,10 @@ public class DistrictShapefile extends DistrictService implements MapService {
 
     @Autowired
     public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, SqlStreetfileDao sqlStreetFileDao,
-                             CityZipDB cityZipDB, TigerDao tigerDao, CountyDao countyDao) {
+                             CityZipDB cityZipDB, CountyDao countyDao) {
         this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
         this.sqlStreetFileDao = sqlStreetFileDao;
         this.cityZipDBDao = cityZipDB;
-        this.tigerDao = tigerDao;
         this.countyDao = countyDao;
     }
 
