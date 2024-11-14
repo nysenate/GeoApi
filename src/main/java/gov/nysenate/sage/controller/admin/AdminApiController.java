@@ -8,7 +8,6 @@ import gov.nysenate.sage.dao.model.job.SqlJobUserDao;
 import gov.nysenate.sage.dao.stats.api.SqlApiUsageStatsDao;
 import gov.nysenate.sage.dao.stats.api.SqlApiUserStatsDao;
 import gov.nysenate.sage.dao.stats.deployment.SqlDeploymentStatsDao;
-import gov.nysenate.sage.dao.stats.exception.SqlExceptionInfoDao;
 import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.job.JobProcessStatus;
@@ -46,7 +45,6 @@ public class AdminApiController {
     private final SqlApiUserStatsDao sqlApiUserStatsDao;
     private final SqlApiUsageStatsDao sqlApiUsageStatsDao;
     private final SqlDeploymentStatsDao sqlDeploymentStatsDao;
-    private final SqlExceptionInfoDao sqlExceptionInfoDao;
     private final SqlApiUserDao sqlApiUserDao;
     private final SqlJobUserDao sqlJobUserDao;
     private final SqlGeocodeStatsDao sqlGeocodeStatsDao;
@@ -58,14 +56,12 @@ public class AdminApiController {
     @Autowired
     public AdminApiController(SqlApiUserStatsDao sqlApiUserStatsDao,
                               SqlApiUsageStatsDao sqlApiUsageStatsDao, SqlDeploymentStatsDao sqlDeploymentStatsDao,
-                              SqlExceptionInfoDao sqlExceptionInfoDao, SqlApiUserDao sqlApiUserDao,
-                              SqlJobUserDao sqlJobUserDao, SqlGeocodeStatsDao sqlGeocodeStatsDao,
-                              SqlJobProcessDao sqlJobProcessDao, ApiUserAuth apiUserAuth, JobUserAuth jobUserAuth,
-                              AdminUserAuth adminUserAuth) {
+                              SqlApiUserDao sqlApiUserDao, SqlJobUserDao sqlJobUserDao,
+                              SqlGeocodeStatsDao sqlGeocodeStatsDao, SqlJobProcessDao sqlJobProcessDao,
+                              ApiUserAuth apiUserAuth, JobUserAuth jobUserAuth, AdminUserAuth adminUserAuth) {
         this.sqlApiUserStatsDao = sqlApiUserStatsDao;
         this.sqlApiUsageStatsDao = sqlApiUsageStatsDao;
         this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;
-        this.sqlExceptionInfoDao = sqlExceptionInfoDao;
         this.sqlApiUserDao = sqlApiUserDao;
         this.sqlJobUserDao = sqlJobUserDao;
         this.sqlGeocodeStatsDao = sqlGeocodeStatsDao;
@@ -272,35 +268,6 @@ public class AdminApiController {
     }
 
     /**
-     * Exception Stats Api
-     * ---------------------
-     * Returns exception stats
-     * Usage:
-     * (GET)    /admin/api/exception
-     *
-     */
-    @GetMapping(value = "/exception")
-    public void exception(HttpServletRequest request, HttpServletResponse response,
-                          @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                          @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                          @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = sqlExceptionInfoDao.getExceptionInfoList(true);
-        }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
-
-    }
-
-
-    /**
      * Create Api Users Api
      * ---------------------
      * Creates an api user
@@ -405,34 +372,6 @@ public class AdminApiController {
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
             adminResponse = deleteJobUser(request);
-        }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
-
-    }
-
-    /**
-     * Hide exception Api
-     * ---------------------
-     * Hides an exception from the admin user interface
-     * Usage:
-     * (POST)    /admin/api/hideException
-     *
-     */
-    @PostMapping(value = "/hideException")
-    public void hideException(HttpServletRequest request, HttpServletResponse response,
-                              @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                              @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                              @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-            adminResponse = hideException(request);
         }
         else {
             adminResponse = invalidAuthResponse();
@@ -581,21 +520,4 @@ public class AdminApiController {
         return statusViews;
     }
 
-    /**
-     * Marks an exception as hidden so that it can be filtered out in the interface.
-     * @param request Required Params: id (of the exceptionInfo).
-     * @return GenericResponse indicating success/failure.
-     */
-    private GenericResponse hideException(HttpServletRequest request) {
-        int id;
-        try {
-            id = Integer.parseInt(request.getParameter("id"));
-        }
-        catch (NumberFormatException ex) {
-            return new GenericResponse(false, "Must supply a valid exception id to hide!");
-        }
-        int update = sqlExceptionInfoDao.hideExceptionInfo(id);
-        return (update > 0) ? new GenericResponse(true, "Exception hidden")
-                            : new GenericResponse(false, "Failed to hide exception!");
-    }
 }
