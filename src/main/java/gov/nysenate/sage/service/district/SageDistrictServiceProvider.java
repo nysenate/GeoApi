@@ -29,7 +29,7 @@ public interface SageDistrictServiceProvider {
      * @param distProvider  If district provider is specified, (e.g streetfile), then only that provider will be used.
      * @return List<DistrictResult>
      */
-    List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final DistrictSource distProvider,
+    List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, DistrictSource distProvider,
                                                 final List<DistrictType> districtTypes,
                                                 DistrictServiceProvider.DistrictStrategy districtStrategy);
 

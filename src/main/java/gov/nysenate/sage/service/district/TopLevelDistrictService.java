@@ -42,7 +42,6 @@ public class TopLevelDistrictService {
     private final SageGeocodeServiceProvider geocodeProvider;
     private final RevGeocodeServiceProvider revGeocodeProvider;
 
-
     private final boolean SINGLE_LOGGING_ENABLED;
     private final boolean BATCH_LOGGING_ENABLED;
     private final SqlGeocodeRequestLogger sqlGeocodeRequestLogger;

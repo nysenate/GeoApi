@@ -35,12 +35,12 @@ public class DistrictServiceProviderIT extends BaseTests {
                         new Address("3 Tyron St", "Albany", "NY", "12203"),
                         List.of(Geocoder.GOOGLE), true);
         assertNotNull(districtServiceProvider.assignDistricts(geocodeResult.getGeocodedAddress(), null,
-                DistrictType.getStandardTypes(), DistrictServiceProvider.DistrictStrategy.neighborMatch));
+                DistrictType.getStandardTypes(), DistrictServiceProvider.DistrictStrategy.streetFallback));
     }
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void assignNeighborsTest() {
+    public void assignTest() {
         GeocodeResult geocodeResult =
                 geocodeServiceProvider.geocode(
                         new Address("350 5th Ave", "New York", "NY", "10118"),

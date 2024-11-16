@@ -3,16 +3,7 @@ package gov.nysenate.sage.dao.model.senate;
 import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Senator;
 
-import java.util.Collection;
-
 public interface SenateDao {
-
-    /**
-     * Retrieve a collection of all Senators.
-     * @return Collection of Senator
-     */
-    Collection<Senator> getSenators();
-
     /**
      * Retrieve a senator by the senate district number.
      * @param senateCode Senate district number

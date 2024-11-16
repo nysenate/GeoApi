@@ -1,8 +1,6 @@
 package gov.nysenate.sage.model.district;
 
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
-import gov.nysenate.sage.model.geo.Line;
-import gov.nysenate.services.model.Senator;
 import org.apache.commons.lang.WordUtils;
 
 import java.util.*;
@@ -18,28 +16,11 @@ public class DistrictInfo {
     /** A set of DistrictTypes that were actually district assigned. */
     private final Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
 
-    /** A set of the DistrictTypes that might be incorrectly assigned. */
-    private final Set<DistrictType> nearBorderDistricts = new LinkedHashSet<>();
-
     /** District names and codes */
     private final Map<DistrictType, String> districtNames = new HashMap<>();
     private final Map<DistrictType, String> districtCodes = new HashMap<>();
     private final Map<DistrictType, DistrictOverlap> districtOverlaps = new HashMap<>();
 
-    /** Names of senate/assembly/congressional members */
-    private final Map<DistrictType, DistrictMember> districtMembers = new HashMap<>();
-
-    /** District Maps and proximity values */
-    private final Map<DistrictType, DistrictMap> districtMaps = new HashMap<>();
-    private final Map<DistrictType, Double> districtProximities = new HashMap<>();
-
-    /** Neighboring District Maps */
-    private final Map<DistrictType, List<DistrictMap>> neighborMaps = new HashMap<>();
-
-    private Senator senator;
-    /** Multi District Overlap/Map data */
-    private DistrictMap referenceMap;
-    private List<Line> streetLineReference;
     private List<DistrictedStreetRange> streetRanges = new ArrayList<>();
 
     public DistrictInfo() {}
@@ -52,14 +33,6 @@ public class DistrictInfo {
         this.setDistCode(ASSEMBLY, assemblyCode);
         this.setDistCode(TOWN_CITY, townCode);
         this.setDistCode(SCHOOL, schoolCode);
-    }
-
-    public Senator getSenator() {
-        return senator;
-    }
-
-    public void setSenator(Senator senator) {
-        this.senator = senator;
     }
 
     public String getDistName(DistrictType districtType){
@@ -94,56 +67,8 @@ public class DistrictInfo {
         }
     }
 
-    public DistrictMap getDistMap(DistrictType districtType) {
-        return districtMaps.get(districtType);
-    }
-
-    public void setDistMap(DistrictType districtType, DistrictMap districtMap) {
-        districtMaps.put(districtType, districtMap);
-    }
-
-    public DistrictMember getDistrictMember(DistrictType districtType) {
-        return districtMembers.get(districtType);
-    }
-
-    public void setDistrictMember(DistrictType districtType, DistrictMember districtMember) {
-        districtMembers.put(districtType, districtMember);
-    }
-
-    public Double getDistProximity(DistrictType districtType) {
-        return districtProximities.get(districtType);
-    }
-
-    public void setDistProximity(DistrictType districtType, Double districtProximity) {
-        districtProximities.put(districtType, districtProximity);
-    }
-
-    public Set<DistrictType> getNearBorderDistricts() {
-        return nearBorderDistricts;
-    }
-
-    public void addNearBorderDistrict(DistrictType districtType) {
-        nearBorderDistricts.add(districtType);
-    }
-
     public Set<DistrictType> getAssignedDistricts() {
         return assignedDistricts;
-    }
-
-    /**
-     * Get neighboring DistrictMaps if they exist or an empty List.
-     * @param districtType  The district type to get neighbor maps for.
-     * @return List<DistrictMap>
-     */
-    public List<DistrictMap> getNeighborMaps(DistrictType districtType) {
-        return (neighborMaps.get(districtType) != null) ? neighborMaps.get(districtType) : new ArrayList<>();
-    }
-
-    /**
-     * Links a list of district maps (which represent the neighbor districts) to a district type.
-     */
-    public void addNeighborMaps(DistrictType districtType, List<DistrictMap> neighborMaps) {
-        this.neighborMaps.put(districtType, neighborMaps);
     }
 
     /**
@@ -157,10 +82,6 @@ public class DistrictInfo {
         districtOverlaps.put(districtType, districtOverlap);
     }
 
-    public DistrictOverlap getDistrictOverlap(DistrictType districtType) {
-        return districtOverlaps.get(districtType);
-    }
-
 
     public List<DistrictedStreetRange> getStreetRanges() {
         return streetRanges;
@@ -170,19 +91,11 @@ public class DistrictInfo {
         this.streetRanges = streetRanges;
     }
 
-    /**
-     * Checks the district code map to see if a valid code exists for the given districtType.
-     * @return true if it has a valid code, false otherwise
-     */
-    public boolean hasDistrictCode(DistrictType districtType) {
-        return isValidDistCode(districtCodes.get(districtType));
-    }
-
     @Override
     public String toString() {
-        StringBuilder out = new StringBuilder();
+        var out = new StringBuilder();
         for (DistrictType t : assignedDistricts){
-            out.append(t).append(": name = ").append(getDistName(t)).append(" code = ").append(getDistCode(t)).append(" map = ").append(getDistMap(t)).append("\n");
+            out.append(t).append(": name = ").append(getDistName(t)).append(" code = ").append(getDistCode(t)).append("\n");
         }
         return out.toString();
     }

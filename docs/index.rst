@@ -486,8 +486,6 @@ The following district strategies can be utilized:
 +------------------+-------------------------------------------------------------------------------------+
 | Strategy         | Description                                                                         |
 +==================+=====================================================================================+
-| neighborMatch    | Perform shape and street lookup, consolidating only when proximity condition met.   |
-+------------------+-------------------------------------------------------------------------------------+
 | streetFallback   | Perform shape and street lookup, using street file in case of mismatch.             |
 +------------------+-------------------------------------------------------------------------------------+
 | shapeFallback    | Perform street lookup and only fall back to shape files when street lookup failed.  |

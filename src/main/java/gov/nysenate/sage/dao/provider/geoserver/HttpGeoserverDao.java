@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -87,7 +85,6 @@ public class HttpGeoserverDao implements GeoserverDao {
                 // Set the name, code, and map data for the district layer
                 districtInfo.setDistName(districtType, properties.get(districtType.nameColumn()).asText());
                 districtInfo.setDistCode(districtType, properties.get(districtType.codeColumn()).asText());
-                districtInfo.setDistMap(districtType, getDistrictMapFromFeature(feature));
 
                 // Handle county fips -> senate code conversion
                 if (districtType == COUNTY) {
@@ -100,24 +97,6 @@ public class HttpGeoserverDao implements GeoserverDao {
             }
         }
         return districtInfo;
-    }
-
-    /**
-     * Parses JSON response and creates a DistrictMap object containing the district geometry.
-     * @param feature   Feature level JsonNode
-     * @return          DistrictMap containing the geometry.
-     */
-    private static DistrictMap getDistrictMapFromFeature(JsonNode feature) {
-        DistrictMap districtMap = new DistrictMap();
-        List<Point> points = new ArrayList<>();
-
-        // The geometry response comes in as a quadruply nested array
-        JsonNode coordinates = feature.get("geometry").get("coordinates").get(0).get(0);
-        for (int i = 0; i < coordinates.size(); i++){
-            points.add(new Point(coordinates.get(i).get(0).asDouble(), coordinates.get(i).get(1).asDouble()));
-        }
-        districtMap.addPolygon(new Polygon(points));
-        return districtMap;
     }
 }
 

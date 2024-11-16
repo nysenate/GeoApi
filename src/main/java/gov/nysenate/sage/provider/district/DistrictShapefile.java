@@ -9,7 +9,6 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
-import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.model.result.MapResult;
@@ -21,7 +20,6 @@ import gov.nysenate.sage.util.StreetAddressParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -39,14 +37,6 @@ public class DistrictShapefile extends DistrictService implements MapService {
     private final CityZipDB cityZipDBDao;
     private final CountyDao countyDao;
 
-    /** Specifies the maximum distance a neighbor district can be from a specific point to still be considered
-     * a nearby neighbor. */
-    @Value("${neighbor.proximity:500}")
-    private int neighborProximity;
-
-    /** Specifies the maximum number of nearby neighbors that will be returned by default. */
-    private static final Integer MAX_NEIGHBORS = 2;
-
     /** We should only attempt to assign districts to a geocode if it is accurate enough.
      * i.e. We can't accurately assign a district to a ZIP, CITY, or STATE quality geocode. */
     private static final List<GeocodeQuality> DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES =
@@ -62,7 +52,7 @@ public class DistrictShapefile extends DistrictService implements MapService {
     }
 
     /** {@inheritDoc} */
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes, boolean getSpecialMaps, boolean getProximity) {
+    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes, boolean getSpecialMaps) {
         var districtResult = new DistrictResult(districtSource(), geocodedAddress, true, false);
         if (!districtResult.isSuccess()) {
             return districtResult;
@@ -73,7 +63,7 @@ public class DistrictShapefile extends DistrictService implements MapService {
         }
         try {
             Geocode geocode = geocodedAddress.getGeocode();
-            DistrictInfo districtInfo = sqlDistrictShapefileDao.getDistrictInfo(geocode.point(), reqTypes, getSpecialMaps, getProximity);
+            DistrictInfo districtInfo = sqlDistrictShapefileDao.getDistrictInfo(geocode.point(), reqTypes, getSpecialMaps);
             districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
             districtResult.setResultTime();
             if (districtResult.getGeocodedAddress() != null) {
@@ -99,29 +89,13 @@ public class DistrictShapefile extends DistrictService implements MapService {
     /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
-        return assignDistricts(geocodedAddress, reqTypes, true, true);
+        return assignDistricts(geocodedAddress, reqTypes, true);
     }
 
     /** {@inheritDoc} */
     @Override
     public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
-        return assignDistricts(geocodedAddress, reqTypes, false, false);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType) {
-        return nearbyDistricts(geocodedAddress, districtType, MAX_NEIGHBORS);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Map<String, DistrictMap> nearbyDistricts(GeocodedAddress geocodedAddress, DistrictType districtType, int count) {
-        if (geocodedAddress != null && geocodedAddress.isValidGeocode()) {
-            Point point = geocodedAddress.getGeocode().point();
-            return this.sqlDistrictShapefileDao.getNearbyDistricts(districtType, point, true, neighborProximity, count);
-        }
-        return null;
+        return assignDistricts(geocodedAddress, reqTypes, false);
     }
 
     /** {@inheritDoc} */

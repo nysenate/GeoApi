@@ -34,7 +34,7 @@ public abstract class DistrictRequest {
     protected boolean uspsValidate = false;
     protected boolean usePunct = false;
     protected boolean skipGeocode = false;
-    protected DistrictStrategy districtStrategy = DistrictStrategy.neighborMatch;
+    protected DistrictStrategy districtStrategy = DistrictStrategy.streetFallback;
     private final Timestamp requestTime = TimeUtil.currentTimestamp();
 
     public DistrictRequest() {}

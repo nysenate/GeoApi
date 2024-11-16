@@ -7,7 +7,6 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +20,7 @@ public interface DistrictShapeFileDao {
      *                       since they do not have a unique district code identifier.
      * @return  DistrictInfo if query was successful, null otherwise
      */
-    DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps, boolean getProximity);
+    DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps);
 
     /**
      * Creates and returns a DistrictOverlap object which contains lists of all districts that contained
@@ -68,15 +67,6 @@ public interface DistrictShapeFileDao {
     boolean cacheDistrictMaps();
 
     Map<MunicipalityType, Map<String, Integer>> getTypeAndNameToIdMap();
-
-    /**
-     * Obtain a list of districts that are closest to the given point. This list does not include the
-     * district that the point actually resides within.
-     * @param districtType
-     * @param point
-     * @return
-     */
-    LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int proximity, int count);
 
 
 }

@@ -165,25 +165,15 @@ job.threads.distassign = 2
 #####################################
 ## District Assignment Configuration
 #####################################
-
-# Specify the maximum distance (in meters) between a geocode and a district boundary
-# that can result in a `near border` condition.
-border.proximity = 2
-
-# Specify the maximum distance (in meters) between a geocode and a neighbor district in order
-# for that neighbor district to be considered `nearby`.
-neighbor.proximity = 500
-
 # District strategy sets up the default logic for district assignment.
 # Note: The strategy may be overwritten by application logic depending on input.
 # The names of the available options are:
-# neighborMatch   : Perform shape and street lookup, obtains neighbor districts if applicable.
 # streetFallback  : Perform shape and street lookup, using street file in case of mismatch.
 # shapeFallback   : Perform street lookup and only fall back to shape files when street lookup failed.
 # streetOnly      : Perform street lookup only.
 # shapeOnly       : Perform shape lookup only.
 
-district.strategy.single = neighborMatch
+district.strategy.single = streetFallback
 district.strategy.bluebird = streetFallback
 district.strategy.batch = shapeFallback
 

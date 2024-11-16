@@ -10,9 +10,6 @@ import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @Category(IntegrationTest.class)
@@ -23,14 +20,8 @@ public class SenateDaoIT extends BaseTests {
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void getSenatorsTest() {
-        Collection<Senator> senators = sqlSenateDao.getSenators();
-        assertNotNull(senators);
-        int NUMBER_OF_SENATORS = 63;
-        assertEquals(NUMBER_OF_SENATORS, senators.size());
-
-        for (Senator senator : senators){
-            assertNotNull(senator.getDistrict());
-            assertNotNull(senator.getName());
+        for (int i = 1; i <= 63; i++) {
+            assertNotNull(sqlSenateDao.getSenatorByDistrict(i));
         }
     }
 

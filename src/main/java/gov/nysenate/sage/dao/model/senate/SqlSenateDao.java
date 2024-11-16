@@ -16,7 +16,10 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 public class SqlSenateDao implements SenateDao {
@@ -40,11 +43,6 @@ public class SqlSenateDao implements SenateDao {
         this.baseDao = baseDao;
         this.senatorMap = getSenatorMap();
         this.refreshIntervalHours = refreshIntervalHours;
-    }
-
-    /** {@inheritDoc} */
-    public Collection<Senator> getSenators() {
-        return getSenatorMap().values();
     }
 
     /** {@inheritDoc} */

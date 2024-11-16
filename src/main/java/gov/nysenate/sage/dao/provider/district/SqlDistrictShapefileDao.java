@@ -59,12 +59,11 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
     }
 
     /** {@inheritDoc} */
-    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps, boolean getProximity) {
+    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps) {
         // Template SQL for looking up district given a point
         String sqlTmpl =
                 "SELECT '%s' AS type, %s AS name, %s as code " +
-                        "%s, " + // <- mapQuery
-                        "%s \n" + // <- proximityQuery
+                        "%s \n" + // <- mapQuery
                 "FROM " + SCHEMA + ".%s " +
                 "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)' , " + "%s" + "))";
 
@@ -73,16 +72,10 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
         for (DistrictType districtType : districtTypes) {
             String nameColumn = districtType.nameColumn();
             if (nameColumn != null) {
-                String mapQuery = ((getSpecialMaps && retrieveMapSet.contains(districtType)) ? ", ST_AsGeoJson(geom) AS map"
-                                                                                             : ", null as map");
-                String proximityQuery = "100000 as proximity";
-                if (getProximity) {
-                    proximityQuery = "ST_DistanceSphere(ST_Boundary(geom), ST_PointFromText('POINT(%f %f)' , " + "%s" + ")) As proximity";
-                    proximityQuery = String.format(proximityQuery, point.lon(), point.lat(), districtType.sridColumn());
-                }
-
+                String mapQuery = ((getSpecialMaps && retrieveMapSet.contains(districtType)) ?
+                        ", ST_AsGeoJson(geom) AS map" : ", null as map");
                 queryList.add(String.format(sqlTmpl, districtType, nameColumn, districtType.codeColumn(),
-                        mapQuery, proximityQuery, districtType, point.lon(), point.lat(), districtType.sridColumn())); // lon,lat is correct order
+                        mapQuery, districtType, point.lon(), point.lat(), districtType.sridColumn())); // lon,lat is correct order
             }
         }
 
@@ -261,33 +254,6 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
         return rch.results;
     }
 
-    /** {@inheritDoc} */
-    public LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int proximity, int count) {
-        if (districtType.nameColumn() != null) {
-            String tmpl =
-                "SELECT '%s' AS type, %s as name, %s AS code, " + ((getMaps) ? "ST_AsGeoJson(geom) AS map " : "null as map \n") +
-                "FROM " + SCHEMA +".%s \n" +
-                "WHERE ST_Contains(geom, %s) = false \n" +
-                "AND ST_DistanceSphere(%s, ST_ClosestPoint(geom, %s)) < %s \n" +
-                "ORDER BY ST_ClosestPoint(geom, %s) <-> %s \n" +
-                "LIMIT %d;";
-
-            String pointText = String.format("ST_PointFromText('POINT(%s %s)', %s)", point.lon(), point.lat(), districtType.sridColumn());
-            String sqlQuery = String.format(tmpl, districtType.name(), districtType.nameColumn(), districtType.codeColumn(),
-                    districtType.name(),             // Table name
-                    pointText,                       // ST_Contains -> Where clause
-                    pointText, pointText, proximity, // ST_DistanceSphere -> Where clause
-                    pointText, pointText, count);    // ST_ClosestPoint -> Order By
-
-            try {
-                return baseDao.geoApiJbdcTemplate.query(sqlQuery, new NearbyDistrictMapsHandler());
-            } catch (Exception ex) {
-                logger.error("" + ex);
-            }
-        }
-        return null;
-    }
-
     /**
      * Projects the result set into a DistrictInfo object.
      */
@@ -300,8 +266,6 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                 if (type != null) {
                     districtInfo.setDistName(type, rs.getString("name"));
                     districtInfo.setDistCode(type, getDistrictCode(rs));
-                    districtInfo.setDistMap(type, getDistrictMapFromJson(rs.getString("map")));
-                    districtInfo.setDistProximity(type, rs.getDouble("proximity"));
                 }
                 else {
                     logger.error("Unsupported district type in results - " + rs.getString("type"));

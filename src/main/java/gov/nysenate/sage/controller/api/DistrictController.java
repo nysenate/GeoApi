@@ -22,8 +22,6 @@ import gov.nysenate.sage.service.district.IntersectService;
 import gov.nysenate.sage.service.district.TopLevelDistrictService;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -48,7 +46,6 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
 public class DistrictController {
-    private static final Logger logger = LoggerFactory.getLogger(DistrictController.class);
     private final String bluebirdDistrictStrategy;
     private final TopLevelDistrictService districtService;
     private final IntersectService intersectService;

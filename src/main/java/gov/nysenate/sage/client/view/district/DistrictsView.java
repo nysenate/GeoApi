@@ -25,9 +25,10 @@ public class DistrictsView {
         if (dInfo == null) {
             return;
         }
-        this.senate = new SenateDistrictView(dInfo, dInfo.getSenator());
-        this.congressional = new MemberDistrictView(CONGRESSIONAL, dInfo, dInfo.getDistrictMember(CONGRESSIONAL));
-        this.assembly = new MemberDistrictView(ASSEMBLY, dInfo, dInfo.getDistrictMember(ASSEMBLY));
+        // TODO: add member data elsewhere
+        this.senate = new SenateDistrictView(dInfo, null);
+        this.congressional = new MemberDistrictView(CONGRESSIONAL, dInfo, null);
+        this.assembly = new MemberDistrictView(ASSEMBLY, dInfo, null);
         this.county = new DistrictView(COUNTY, dInfo);
         this.election = new DistrictView(ELECTION, dInfo);
         this.school = new DistrictView(SCHOOL, dInfo);
