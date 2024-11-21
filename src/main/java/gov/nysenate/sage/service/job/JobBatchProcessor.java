@@ -2,8 +2,6 @@ package gov.nysenate.sage.service.job;
 
 import gov.nysenate.sage.config.ApplicationConfig;
 import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.logger.district.SqlDistrictResultLogger;
-import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeResultLogger;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.api.BatchGeocodeRequest;
@@ -46,7 +44,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedTransferQueue;
 
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
-import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
 import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 
 @Service
@@ -54,21 +51,17 @@ public class JobBatchProcessor implements JobProcessor {
     // TODO: synchronize with JobStatusController
     private static final Logger logger = LoggerFactory.getLogger(JobBatchProcessor.class);
     private static final Marker fatal = MarkerFactory.getMarker("FATAL");
-    private static final int LOGGING_THRESHOLD = 1000;
 
     private final String uploadDir;
     private final String downloadDir;
     private final String downloadUrl;
-    private final boolean loggingEnabled;
 
+    // TODO: just log ApiRequests
     private final Mailer mailer;
     private final AddressServiceProvider addressProvider;
     private final SageGeocodeServiceProvider geocodeProvider;
     private final DistrictServiceProvider districtProvider;
     private final SqlJobProcessDao sqlJobProcessDao;
-
-    private final SqlGeocodeResultLogger sqlGeocodeResultLogger;
-    private final SqlDistrictResultLogger sqlDistrictResultLogger;
 
     private final ThreadPoolTaskExecutor addressExecutor;
     private final ThreadPoolTaskExecutor geocodeExecutor;
@@ -83,21 +76,16 @@ public class JobBatchProcessor implements JobProcessor {
     public JobBatchProcessor(Environment env, Mailer mailer, AddressServiceProvider addressServiceProvider,
                              SageGeocodeServiceProvider geocodeServiceProvider,
                              DistrictServiceProvider districtServiceProvider,
-                             SqlJobProcessDao sqlJobProcessDao, SqlGeocodeResultLogger sqlGeocodeResultLogger,
-                             SqlDistrictResultLogger sqlDistrictResultLogger, ApplicationConfig applicationConfig) {
+                             SqlJobProcessDao sqlJobProcessDao, ApplicationConfig applicationConfig) {
         this.uploadDir = env.getJobUploadDir();
         this.downloadDir = env.getJobDownloadDir();
         this.downloadUrl = env.getBaseUrl() + DOWNLOAD_BASE_URL;
-        this.loggingEnabled = env.isBatchDetailedLoggingEnabled();
 
         this.mailer = mailer;
         this.addressProvider = addressServiceProvider;
         this.geocodeProvider = geocodeServiceProvider;
         this.districtProvider = districtServiceProvider;
         this.sqlJobProcessDao = sqlJobProcessDao;
-
-        this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
-        this.sqlDistrictResultLogger = sqlDistrictResultLogger;
 
         this.addressExecutor = applicationConfig.getJobAddressValidationExecutor();
         this.geocodeExecutor = applicationConfig.getJobGeocodeExecutor();
@@ -235,12 +223,10 @@ public class JobBatchProcessor implements JobProcessor {
                 }
 
                 // Read records into a JobFile
-                logMemoryUsage();
                 List<Object> row;
                 while( (row = jobReader.read(processors)) != null ) {
                     jobFile.addRecord(new JobRecord(jobFile, row));
                 }
-                logMemoryUsage();
                 logger.info("{} records", jobFile.getRecords().size());
                 logger.info("--------------------------------------------------------------------");
 
@@ -266,14 +252,14 @@ public class JobBatchProcessor implements JobProcessor {
                         Future<JobBatch> futureGeocodedBatch;
                         // TODO: Future<X> vs. X, can be combined
                         if (jobFile.requiresAddressValidation() && futureValidatedBatch != null) {
-                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(futureValidatedBatch, jobProcess,geocodeProvider, sqlGeocodeResultLogger));
+                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(futureValidatedBatch, jobProcess,geocodeProvider));
                         }
                         else {
-                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(jobBatch, jobProcess, geocodeProvider, sqlGeocodeResultLogger));
+                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(jobBatch, jobProcess, geocodeProvider));
                         }
 
                         if (jobFile.requiresDistrictAssign()) {
-                            Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new JobBatchProcessor.DistrictJobBatch(futureGeocodedBatch, districtTypes, jobProcess, districtProvider, sqlDistrictResultLogger));
+                            Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new JobBatchProcessor.DistrictJobBatch(futureGeocodedBatch, districtTypes, districtProvider));
                             jobResultsQueue.add(futureDistrictedBatch);
                         }
                         else {
@@ -334,19 +320,6 @@ public class JobBatchProcessor implements JobProcessor {
                     logger.info("--------------------------------------------------------------------");
                     logger.info("Completed batch processing for job file!                           |");
                     logger.info("--------------------------------------------------------------------");
-                }
-
-                if (loggingEnabled) {
-                    try {
-                        logger.info("Flushing log cache...");
-                        logMemoryUsage();
-                        sqlGeocodeResultLogger.flushBatchRequestsCache();
-                        sqlDistrictResultLogger.flushBatchRequestsCache();
-                        logMemoryUsage();
-                    }
-                    catch (Exception ex) {
-                        logger.error("Failed to flush log buffer! Logged data will be discarded.", ex);
-                    }
                 }
             }
         }
@@ -456,26 +429,21 @@ public class JobBatchProcessor implements JobProcessor {
     public class GeocodeJobBatch implements Callable<JobBatch> {
         private final JobProcess jobProcess;
         private final SageGeocodeServiceProvider geocodeServiceProvider;
-        private final SqlGeocodeResultLogger sqlGeocodeResultLogger;
         private JobBatch jobBatch;
         private Future<JobBatch> futureJobBatch;
 
         public GeocodeJobBatch(JobBatch jobBatch, JobProcess jobProcess,
-                               SageGeocodeServiceProvider geocodeServiceProvider,
-                               SqlGeocodeResultLogger sqlGeocodeResultLogger) {
+                               SageGeocodeServiceProvider geocodeServiceProvider) {
             this.jobBatch = jobBatch;
             this.jobProcess = jobProcess;
             this.geocodeServiceProvider = geocodeServiceProvider;
-            this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         }
 
         public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, JobProcess jobProcess,
-                               SageGeocodeServiceProvider geocodeServiceProvider,
-                               SqlGeocodeResultLogger sqlGeocodeResultLogger) {
+                               SageGeocodeServiceProvider geocodeServiceProvider) {
             this.futureJobBatch = futureValidatedJobBatch;
             this.jobProcess = jobProcess;
             this.geocodeServiceProvider = geocodeServiceProvider;
-            this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
         }
 
         @Override
@@ -486,7 +454,6 @@ public class JobBatchProcessor implements JobProcessor {
             logger.info("Geocoding for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
             var batchGeoRequest = new BatchGeocodeRequest(this.jobBatch.getAddresses(true));
-            batchGeoRequest.setJobProcess(this.jobProcess);
 
             List<GeocodeResult> geocodeResults = geocodeServiceProvider.geocode(batchGeoRequest);
             if (geocodeResults.size() == jobBatch.jobRecords().size()) {
@@ -495,13 +462,6 @@ public class JobBatchProcessor implements JobProcessor {
                 }
             }
 
-            if (loggingEnabled) {
-                sqlGeocodeResultLogger.logBatchGeocodeResults(batchGeoRequest, geocodeResults, false);
-                if (sqlGeocodeResultLogger.getLogCacheSize() > LOGGING_THRESHOLD) {
-                    sqlGeocodeResultLogger.flushBatchRequestsCache();
-                    logMemoryUsage();
-                }
-            }
             return this.jobBatch;
         }
     }
@@ -510,22 +470,17 @@ public class JobBatchProcessor implements JobProcessor {
      * A callable for the executor to perform district assignment for a JobBatch.
      */
     public class DistrictJobBatch implements Callable<JobBatch> {
-        private final JobProcess jobProcess;
         private final Future<JobBatch> futureJobBatch;
         private final List<DistrictType> districtTypes;
-        private final DistrictStrategy districtStrategy = DistrictStrategy.shapeFallback;
 
         private final DistrictServiceProvider districtServiceProvider;
-        private final SqlDistrictResultLogger sqlDistrictResultLogger;
 
-        public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types, JobProcess jobProcess,
-                                DistrictServiceProvider districtServiceProvider, SqlDistrictResultLogger sqlDistrictResultLogger)
+        public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types,
+                                DistrictServiceProvider districtServiceProvider)
                 throws InterruptedException, ExecutionException {
-            this.jobProcess = jobProcess;
             this.futureJobBatch = futureJobBatch;
             this.districtTypes = types;
             this.districtServiceProvider = districtServiceProvider;
-            this.sqlDistrictResultLogger = sqlDistrictResultLogger;
         }
 
         @Override
@@ -534,23 +489,14 @@ public class JobBatchProcessor implements JobProcessor {
             logger.info("District assignment for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
             var batchDistRequest = new BatchDistrictRequest();
-            batchDistRequest.setJobProcess(this.jobProcess);
             batchDistRequest.setDistrictTypes(this.districtTypes);
             batchDistRequest.setGeocodedAddresses(jobBatch.getGeocodedAddresses());
-            batchDistRequest.setDistrictStrategy(this.districtStrategy);
 
             List<DistrictResult> districtResults = districtServiceProvider.assignDistricts(batchDistRequest);
             for (int i = 0; i < districtResults.size(); i++) {
                 jobBatch.setDistrictResult(i, districtResults.get(i));
             }
 
-            if (loggingEnabled) {
-                sqlDistrictResultLogger.logBatchDistrictResults(batchDistRequest, districtResults, false);
-                if (sqlDistrictResultLogger.getLogCacheSize() > LOGGING_THRESHOLD) {
-                    sqlDistrictResultLogger.flushBatchRequestsCache();
-                    logMemoryUsage();
-                }
-            }
             return jobBatch;
         }
     }
@@ -617,13 +563,5 @@ public class JobBatchProcessor implements JobProcessor {
             jobStatus.setCompleteTime(TimeUtil.currentTimestamp());
             sqlJobProcessDao.setJobProcessStatus(jobStatus);
         }
-    }
-
-    /**
-     * Prints out memory stats.
-     */
-    private static void logMemoryUsage() {
-        logger.info("[RUNTIME STATS]: Free Memory - {} bytes.", Runtime.getRuntime().freeMemory());
-        logger.info("[RUNTIME STATS]: Total Memory - {} bytes.", Runtime.getRuntime().totalMemory());
     }
 }

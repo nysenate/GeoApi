@@ -35,7 +35,7 @@ public class DistrictServiceProviderIT extends BaseTests {
                         new Address("3 Tyron St", "Albany", "NY", "12203"),
                         List.of(Geocoder.GOOGLE), true);
         assertNotNull(districtServiceProvider.assignDistricts(geocodeResult.getGeocodedAddress(), null,
-                DistrictType.getStandardTypes(), DistrictServiceProvider.DistrictStrategy.streetFallback));
+                DistrictType.getStandardTypes()));
     }
 
     @Test

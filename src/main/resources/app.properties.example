@@ -41,12 +41,6 @@ default.admin.password = Can be found in the database
 # Log the ip, request type, and time for each api call
 api.logging.enabled = true
 
-# Log full details of the request and result for single api requests
-detailed.logging.enabled = true
-
-# Log full details of each entry processed during batch api and job requests
-batch.detailed.logging.enabled = false
-
 ###############################
 ## API Services Configuration
 ###############################
@@ -168,8 +162,8 @@ job.threads.distassign = 2
 # District strategy sets up the default logic for district assignment.
 # Note: The strategy may be overwritten by application logic depending on input.
 # The names of the available options are:
-# streetFallback  : Perform shape and street lookup, using street file in case of mismatch.
-# shapeFallback   : Perform street lookup and only fall back to shape files when street lookup failed.
+# streetFallback  : Perform shape and street lookup, preferring street data on mismatches.
+# shapeFallback   : Perform shape and street lookup, preferring shape data on mismatches.
 # streetOnly      : Perform street lookup only.
 # shapeOnly       : Perform shape lookup only.
 

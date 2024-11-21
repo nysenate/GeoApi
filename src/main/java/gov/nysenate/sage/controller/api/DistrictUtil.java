@@ -9,6 +9,8 @@ import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.provider.district.DistrictSource;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,33 +18,29 @@ import java.util.List;
 public final class DistrictUtil {
     private DistrictUtil() {}
 
-    public static BatchDistrictRequest createBatchAssignDistrictRequest(String provider, String geoProvider, boolean uspsValidate,
-                                                                   boolean usePunct, boolean skipGeocode, String districtStrategy) {
+    public static BatchDistrictRequest createBatchAssignDistrictRequest(Geocoder geocoder, boolean uspsValidate,
+                                                                        boolean usePunct, boolean skipGeocode, List<DistrictSource> providers) {
         var districtRequest = new BatchDistrictRequest();
-        districtRequest.setProvider(provider);
-        districtRequest.setGeoProvider(geoProvider);
+        districtRequest.setProviders(providers);
+        districtRequest.setGeocoder(geocoder);
         districtRequest.setUsePunct(usePunct);
         districtRequest.setUspsValidate(uspsValidate);
+        // TODO: does this make sense, given the providers?
         districtRequest.setSkipGeocode(skipGeocode);
-        districtRequest.setDistrictStrategy(districtStrategy);
         return districtRequest;
     }
 
     public static SingleDistrictRequest createFullDistrictRequest(Address address, Point point,
-                                                            String provider, String geoProvider, boolean uspsValidate,
-                                                            boolean usePunct, boolean skipGeocode,
-                                                            String districtStrategy) {
-
+                                                                  Geocoder geocoder, boolean uspsValidate,
+                                                                  boolean usePunct, boolean skipGeocode, List<DistrictSource> providers) {
         var districtRequest = new SingleDistrictRequest();
         districtRequest.setAddress(address);
         districtRequest.setPoint(point);
-        districtRequest.setProvider(provider);
-        districtRequest.setGeoProvider(geoProvider);
+        districtRequest.setProviders(providers);
+        districtRequest.setGeocoder(geocoder);
         districtRequest.setUspsValidate(uspsValidate);
         districtRequest.setUsePunct(usePunct);
         districtRequest.setSkipGeocode(skipGeocode);
-        districtRequest.setDistrictStrategy(districtStrategy);
-
         return districtRequest;
     }
 

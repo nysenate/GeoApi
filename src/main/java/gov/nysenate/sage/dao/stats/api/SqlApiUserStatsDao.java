@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO: redo with new API request logging
 @Repository
 public class SqlApiUserStatsDao implements ApiUserStatsDao {
     private static Logger logger = LoggerFactory.getLogger(SqlApiUserStatsDao.class);
@@ -38,7 +39,7 @@ public class SqlApiUserStatsDao implements ApiUserStatsDao {
 
 
             List<Map<Integer, ApiUserStats>> apiUserStatsMapList = baseDao.geoApiNamedJbdcTemplate.query(
-                    ApiUserStatsQuery.GET_REQUEST_COUNTS.getSql(baseDao.getLogSchema()), params ,new RequestCountHandler(sqlApiUserDao));
+                    ApiUserStatsQuery.GET_REQUEST_COUNTS.getSql(baseDao.getLogSchema()), params, new RequestCountHandler(sqlApiUserDao));
 
             Map<Integer, ApiUserStats> apiUserStatsMap = collapseListIntoMap(apiUserStatsMapList);
 
@@ -82,7 +83,7 @@ public class SqlApiUserStatsDao implements ApiUserStatsDao {
     }
 
     public static class RequestCountHandler implements RowMapper<Map<Integer, ApiUserStats>> {
-        private SqlApiUserDao sqlApiUserDao;
+        private final SqlApiUserDao sqlApiUserDao;
 
         public RequestCountHandler(SqlApiUserDao sqlApiUserDao) {
             this.sqlApiUserDao = sqlApiUserDao;

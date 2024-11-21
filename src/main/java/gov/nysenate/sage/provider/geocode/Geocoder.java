@@ -4,7 +4,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 public enum Geocoder implements DataSource {
-    GEOCACHE, GOOGLE, NYSGEO;
+    GEOCACHE, NYSGEO, GOOGLE;
 
     public static List<Geocoder> getGeocoders(Geocoder baseProvider, boolean useCache, boolean useFallback) {
         var geocoders = new LinkedHashSet<Geocoder>();

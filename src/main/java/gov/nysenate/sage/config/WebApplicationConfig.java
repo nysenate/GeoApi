@@ -24,7 +24,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import javax.annotation.PostConstruct;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -58,10 +57,8 @@ public class WebApplicationConfig implements WebMvcConfigurer {
 
     @PostConstruct
     public void init() {
-        LocalDateTime deployTime = LocalDateTime.now();
-        Timestamp timestamp = java.sql.Timestamp.valueOf(deployTime);
-        logger.info("{}", ASCII_ART.formatted( deployTime.toString()));
-        sqlDeploymentLogger.logDeploymentStatus(true,-1,timestamp);
+        logger.info("{}", ASCII_ART.formatted(LocalDateTime.now().toString()));
+        sqlDeploymentLogger.logDeploymentStatus();
     }
 
     /** Sets paths that should not be intercepted by a controller (e.g css/ js/). */

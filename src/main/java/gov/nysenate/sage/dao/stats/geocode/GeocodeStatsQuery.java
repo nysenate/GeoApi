@@ -1,21 +1,12 @@
 package gov.nysenate.sage.dao.stats.geocode;
 
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
-import gov.nysenate.sage.dao.base.SqlTable;
 
+// TODO: proper implementation
 public enum GeocodeStatsQuery implements BasicSqlQuery {
-    GET_TOTAL_COUNT("SELECT COUNT(*) AS totalGeocodes,\n" +
-            "COUNT( DISTINCT resultTime ) AS totalRequests,\n" +
-            "COUNT(NULLIF(cacheHit, false)) AS cacheHits\n" +
-            "FROM ${schema}." + SqlTable.GEOCODE_RESULT + "\n" +
-            "WHERE resultTime >= :from AND resultTime <= :to"),
+    GET_TOTAL_COUNT(""),
 
-    GET_GEOCODER_USAGE("SELECT replace(method, 'Dao', '') AS method, COUNT(DISTINCT resultTime) AS requests\n" +
-            "FROM ${schema}." + SqlTable.GEOCODE_RESULT + "\n" +
-            "WHERE cacheHit = false\n" +
-            "AND resultTime >= :from AND resultTime <= :to\n" +
-            "GROUP BY method\n" +
-            "ORDER BY requests DESC");
+    GET_GEOCODER_USAGE("");
 
     private final String sql;
 

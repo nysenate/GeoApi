@@ -1,6 +1,5 @@
 package gov.nysenate.sage.model.api;
 
-import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 
 import java.sql.Timestamp;
@@ -14,7 +13,6 @@ public abstract class GeocodeRequest {
 
     private boolean isReverse;
     private boolean isUspsValidate;
-    private JobProcess jobProcess;
 
     public GeocodeRequest(Geocoder baseProvider, boolean useFallback, boolean useCache,
                           boolean doNotCache, boolean isUspsValidate) {
@@ -34,14 +32,6 @@ public abstract class GeocodeRequest {
 
     public List<Geocoder> getGeocoders() {
         return geocoders;
-    }
-
-    public JobProcess getJobProcess() {
-        return jobProcess;
-    }
-
-    public void setJobProcess(JobProcess jobProcess) {
-        this.jobProcess = jobProcess;
     }
 
     public boolean isReverse() {

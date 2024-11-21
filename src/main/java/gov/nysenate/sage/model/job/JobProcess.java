@@ -77,14 +77,6 @@ public class JobProcess
         this.recordCount = recordCount;
     }
 
-    public String getSystemFilename() {
-        return systemFilename;
-    }
-
-    public void setSystemFilename(String systemFilename) {
-        this.systemFilename = systemFilename;
-    }
-
     public boolean isValidationRequired() {
         return validationRequired;
     }

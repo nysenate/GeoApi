@@ -1,7 +1,5 @@
 package gov.nysenate.sage.service.address;
 
-import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.logger.address.SqlAddressLogger;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -27,21 +25,14 @@ import java.util.Map;
 @Service
 public class AddressServiceProvider implements AddressProvider {
     private static final Logger logger = LoggerFactory.getLogger(AddressServiceProvider.class);
-    private final SqlAddressLogger sqlAddressLogger;
     private final AddressService defaultProvider;
     private final Map<AddressSource, AddressService> providers;
-    private final boolean singleLoggingEnabled;
-    private final boolean batchLoggingEnabled;
 
     @Autowired
-    public AddressServiceProvider(SqlAddressLogger sqlAddressLogger, Environment env,
-                                  USPSAMS uspsams, USPSAIS uspsais,
-                                  @Value("${usps.default:usps}") String defaultUsps) {
-        this.sqlAddressLogger = sqlAddressLogger;
-        this.singleLoggingEnabled = env.isApiLoggingEnabled() && env.isDetailedLoggingEnabled();
-        this.batchLoggingEnabled = env.isApiLoggingEnabled() && env.isBatchDetailedLoggingEnabled();
+    public AddressServiceProvider(USPSAMS uspsams, USPSAIS uspsais,
+                                  @Value("${usps.default:usps}") String defaultProvider) {
         this.providers = Map.of(AddressSource.AMS, uspsams, AddressSource.AIS, uspsais);
-        this.defaultProvider = providers.get(AddressSource.fromString(defaultUsps));
+        this.defaultProvider = providers.get(AddressSource.fromString(defaultProvider));
     }
 
     /**
@@ -61,7 +52,6 @@ public class AddressServiceProvider implements AddressProvider {
                 addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
             }
         }
-        logAddressResult(addressResult);
         return addressResult;
     }
 
@@ -115,7 +105,6 @@ public class AddressServiceProvider implements AddressProvider {
                 }
             }
         }
-        logAddressResults(addressResults);
         return addressResults;
     }
 
@@ -126,17 +115,13 @@ public class AddressServiceProvider implements AddressProvider {
     @Override
     public AddressResult lookupCityState(Address address, String providerName) {
         AddressService provider = providers.getOrDefault(AddressSource.fromString(providerName), defaultProvider);
-        AddressResult addressResult = provider.lookupCityState(address);
-        logAddressResult(addressResult);
-        return addressResult;
+        return provider.lookupCityState(address);
     }
 
     @Override
     public List<AddressResult> lookupCityState(List<Address> addresses, String providerName) {
         AddressService provider = providers.getOrDefault(AddressSource.fromString(providerName), defaultProvider);
-        List<AddressResult> addressResults = provider.lookupCityState(addresses);
-        logAddressResults(addressResults);
-        return addressResults;
+        return provider.lookupCityState(addresses);
     }
 
     /**
@@ -144,32 +129,5 @@ public class AddressServiceProvider implements AddressProvider {
      */
     public AddressResult lookupZipcode(Address address, String provider) {
         return validate(address, provider, false);
-    }
-
-    private void logAddressResult(AddressResult addressResult) {
-        if (singleLoggingEnabled) {
-            try {
-                if (addressResult.getAddress() != null) {
-                    sqlAddressLogger.logAddress(addressResult.getAddress());
-                }
-            }
-            catch (Exception e) {
-                logger.warn("Failed to insert address result in the DB " + e.getMessage());
-            }
-        }
-    }
-
-    private void logAddressResults(List<AddressResult> addressResults) {
-        if (batchLoggingEnabled) {
-            for (AddressResult addressResult : addressResults) {
-                try {
-                    if (addressResult.getAddress() != null) {
-                        sqlAddressLogger.logAddress(addressResult.getAddress());
-                    }
-                } catch (Exception e) {
-                    logger.warn("Failed to insert address result in the DB " + e.getMessage());
-                }
-            }
-        }
     }
 }

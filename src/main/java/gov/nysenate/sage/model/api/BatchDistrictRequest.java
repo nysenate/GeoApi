@@ -18,15 +18,6 @@ public class BatchDistrictRequest extends DistrictRequest {
 
     public BatchDistrictRequest() {}
 
-
-    public BatchDistrictRequest(DistrictRequest dr) {
-        this.provider = dr.getProvider();
-        this.geoProvider = dr.getGeoProvider();
-        this.uspsValidate = dr.isUspsValidate();
-        this.skipGeocode = dr.isSkipGeocode();
-        setDistrictStrategy(dr.getDistrictStrategy());
-    }
-
     @Nonnull
     public List<Point> getPoints() {
         return points;

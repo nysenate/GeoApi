@@ -2,16 +2,12 @@ package gov.nysenate.sage.model.api;
 
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.provider.district.DistrictSource;
 import gov.nysenate.sage.provider.geocode.Geocoder;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.TimeUtil;
 
 import java.sql.Timestamp;
 import java.util.List;
-
-import static gov.nysenate.sage.service.district.DistrictServiceProvider.DistrictStrategy;
 
 /**
  * A DistrictRequest represents a district assignment API request.
@@ -20,7 +16,6 @@ import static gov.nysenate.sage.service.district.DistrictServiceProvider.Distric
 public abstract class DistrictRequest {
     /** The ids are assigned once the request has been logged */
     private int id;
-    private JobProcess jobProcess;
 
     /** Geocoded Input */
     private GeocodedAddress geocodedAddress;
@@ -29,12 +24,11 @@ public abstract class DistrictRequest {
     private List<DistrictType> districtTypes = DistrictType.getStandardTypes();
 
     /** District assign api options */
-    protected DistrictSource provider = null;
-    protected Geocoder geoProvider = null;
+    protected List<DistrictSource> providers = List.of(DistrictSource.STREETFILE, DistrictSource.SHAPEFILE);
+    protected Geocoder geocoder = null;
     protected boolean uspsValidate = false;
     protected boolean usePunct = false;
     protected boolean skipGeocode = false;
-    protected DistrictStrategy districtStrategy = DistrictStrategy.streetFallback;
     private final Timestamp requestTime = TimeUtil.currentTimestamp();
 
     public DistrictRequest() {}
@@ -45,14 +39,6 @@ public abstract class DistrictRequest {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public JobProcess getJobProcess() {
-        return jobProcess;
-    }
-
-    public void setJobProcess(JobProcess jobProcess) {
-        this.jobProcess = jobProcess;
     }
 
     public GeocodedAddress getGeocodedAddress() {
@@ -67,24 +53,20 @@ public abstract class DistrictRequest {
         return districtTypes;
     }
 
-    public DistrictSource getProvider() {
-        return provider;
+    public List<DistrictSource> getProviders() {
+        return providers;
     }
 
-    public void setProvider(String provider) {
-        if (provider != null) {
-            this.provider = DistrictSource.valueOf(FormatUtil.cleanString(provider.toUpperCase()));
-        }
+    public void setProviders(List<DistrictSource> providers) {
+        this.providers = providers;
     }
 
     public Geocoder getGeoProvider() {
-        return geoProvider;
+        return geocoder;
     }
 
-    public void setGeoProvider(String geoProvider) {
-        if (geoProvider != null) {
-            this.geoProvider = Geocoder.valueOf(FormatUtil.cleanString(geoProvider));
-        }
+    public void setGeocoder(Geocoder geocoder) {
+        this.geocoder = geocoder;
     }
 
     public boolean isUspsValidate() {
@@ -109,23 +91,6 @@ public abstract class DistrictRequest {
 
     public void setSkipGeocode(boolean skipGeocode) {
         this.skipGeocode = skipGeocode;
-    }
-
-    public DistrictStrategy getDistrictStrategy() {
-        return districtStrategy;
-    }
-
-    public void setDistrictStrategy(DistrictStrategy districtStrategy) {
-        this.districtStrategy = districtStrategy;
-    }
-
-    public void setDistrictStrategy(String districtStrategy) {
-        try {
-            this.districtStrategy = DistrictStrategy.valueOf(FormatUtil.cleanString(districtStrategy));
-        }
-        catch (Exception ex) {
-            this.districtStrategy = null;
-        }
     }
 
     public void setDistrictTypes(List<DistrictType> districtTypes) {

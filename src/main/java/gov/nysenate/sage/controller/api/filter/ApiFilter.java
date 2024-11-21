@@ -64,13 +64,14 @@ public class ApiFilter implements Filter {
     private final ApiUserAuth apiUserAuth;
     private final String ipFilter;
     private final String defaultKey;
-    private final boolean API_LOGGING_ENABLED;
 
     /** Api services that are designated as public */
     @Value("${public.api.filter:(map)}")
     private String publicApiFilter;
     @Value("${user.public.key}")
     private String publicKey;
+    @Value("${api.logging.enabled:true}")
+    private boolean apiLoggingEnabled;
 
     /** Available format types */
     public enum FormatType { JSON, XML, JSONP }
@@ -81,7 +82,6 @@ public class ApiFilter implements Filter {
         this.apiUserAuth = apiUserAuth;
         ipFilter = env.getUserIpFilter();
         defaultKey = env.getUserDefaultKey();
-        API_LOGGING_ENABLED = env.isApiLoggingEnabled();
         jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
         xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
         logger.info("Configured default access on {} via key {}", ipFilter, defaultKey);
@@ -124,7 +124,7 @@ public class ApiFilter implements Filter {
      * @return          true if authenticated, false otherwise
      */
     private boolean authenticateUser(String key, String remoteIp, String uri, ServletRequest request) {
-        ApiRequest apiRequest = (ApiRequest) request.getAttribute(API_REQUEST_KEY);;
+        ApiRequest apiRequest = (ApiRequest) request.getAttribute(API_REQUEST_KEY);
         String service = apiRequest.getService();
 
         if (key == null) {
@@ -147,7 +147,7 @@ public class ApiFilter implements Filter {
 
                 // Log Api Request into the database
                 int id = -1;
-                if (API_LOGGING_ENABLED && service.matches(loggedServices)) {
+                if (apiLoggingEnabled && service.matches(loggedServices)) {
                     id = sqlApiRequestLogger.logApiRequest(apiRequest);
                     apiRequest.setId(id);
                 }

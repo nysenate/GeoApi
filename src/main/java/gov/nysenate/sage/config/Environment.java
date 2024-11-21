@@ -11,12 +11,6 @@ public class Environment {
 
     @Value("${user.default.key}") private String userDefaultKey;
 
-    @Value("${api.logging.enabled:true}") private boolean apiLoggingEnabled;
-
-    @Value("${detailed.logging.enabled:true}") private boolean detailedLoggingEnabled;
-
-    @Value("${batch.detailed.logging.enabled:false}") private boolean batchDetailedLoggingEnabled;
-
     @Value("${usps.ams.api.url:http://localhost:8081/USPS-AMS/api/}") private String uspsAmsApiUrl;
 
     @Value("${usps.ams.ui.url:http://localhost:8081/USPS-AMS/}") private String uspsAmsUiUrl;
@@ -41,18 +35,6 @@ public class Environment {
 
     public String getUserDefaultKey() {
         return userDefaultKey.trim();
-    }
-
-    public boolean isApiLoggingEnabled() {
-        return apiLoggingEnabled;
-    }
-
-    public boolean isDetailedLoggingEnabled() {
-        return detailedLoggingEnabled;
-    }
-
-    public boolean isBatchDetailedLoggingEnabled() {
-        return batchDetailedLoggingEnabled;
     }
 
     public String getUspsAmsApiUrl() {

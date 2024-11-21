@@ -1,10 +1,5 @@
 package gov.nysenate.sage.service.district;
 
-import gov.nysenate.sage.config.Environment;
-import gov.nysenate.sage.dao.logger.district.SqlDistrictRequestLogger;
-import gov.nysenate.sage.dao.logger.district.SqlDistrictResultLogger;
-import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeRequestLogger;
-import gov.nysenate.sage.dao.logger.geocode.SqlGeocodeResultLogger;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
@@ -24,6 +19,7 @@ import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
@@ -42,36 +38,13 @@ public class TopLevelDistrictService {
     private final SageGeocodeServiceProvider geocodeProvider;
     private final RevGeocodeServiceProvider revGeocodeProvider;
 
-    private final boolean SINGLE_LOGGING_ENABLED;
-    private final boolean BATCH_LOGGING_ENABLED;
-    private final SqlGeocodeRequestLogger sqlGeocodeRequestLogger;
-    private final SqlGeocodeResultLogger sqlGeocodeResultLogger;
-    private final SqlDistrictRequestLogger sqlDistrictRequestLogger;
-    private final SqlDistrictResultLogger sqlDistrictResultLogger;
-
-    public TopLevelDistrictService(Environment env, AddressServiceProvider addressProvider, DistrictServiceProvider districtProvider,
-                                   SageGeocodeServiceProvider geocodeProvider, RevGeocodeServiceProvider revGeocodeProvider,
-                                   SqlGeocodeRequestLogger sqlGeocodeRequestLogger, SqlGeocodeResultLogger sqlGeocodeResultLogger,
-                                   SqlDistrictRequestLogger sqlDistrictRequestLogger, SqlDistrictResultLogger sqlDistrictResultLogger) {
+    @Autowired
+    public TopLevelDistrictService(AddressServiceProvider addressProvider, DistrictServiceProvider districtProvider,
+                                   SageGeocodeServiceProvider geocodeProvider, RevGeocodeServiceProvider revGeocodeProvider) {
         this.addressProvider = addressProvider;
         this.districtProvider = districtProvider;
         this.geocodeProvider = geocodeProvider;
         this.revGeocodeProvider = revGeocodeProvider;
-        this.sqlGeocodeRequestLogger = sqlGeocodeRequestLogger;
-        this.sqlGeocodeResultLogger = sqlGeocodeResultLogger;
-        this.sqlDistrictRequestLogger = sqlDistrictRequestLogger;
-        this.sqlDistrictResultLogger = sqlDistrictResultLogger;
-
-        boolean API_LOGGING_ENABLED = env.isApiLoggingEnabled();
-        // TODO: enable this at logger level
-        SINGLE_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isDetailedLoggingEnabled();
-        BATCH_LOGGING_ENABLED = API_LOGGING_ENABLED && env.isBatchDetailedLoggingEnabled();
-    }
-
-    public void logDistrictRequest(DistrictRequest districtRequest) {
-        if (SINGLE_LOGGING_ENABLED) {
-            sqlDistrictRequestLogger.logDistrictRequest(districtRequest);
-        }
     }
 
     /**
@@ -80,7 +53,7 @@ public class TopLevelDistrictService {
      * @param districtRequest Contains the various parameters for the District Assign/Bluebird API
      * @return DistrictResult
      */
-    public DistrictResult handleDistrictRequest(SingleDistrictRequest districtRequest, int requestId) {
+    public DistrictResult handleDistrictRequest(SingleDistrictRequest districtRequest) {
         Address address = Optional.ofNullable(districtRequest.getAddress()).orElse(new Address());
         GeocodedAddress geocodedAddress = null;
 
@@ -104,12 +77,8 @@ public class TopLevelDistrictService {
             return new DistrictResult(null, geocodedAddress, MISSING_INPUT_PARAMS);
         }
 
-        DistrictResult districtResult = performDistrictAssign(geocodedAddress, districtRequest.getProvider(),
-                districtRequest.getDistrictTypes(), districtRequest.getDistrictStrategy(), isZipProvided(streetAddress));
-        if (SINGLE_LOGGING_ENABLED && requestId != -1) {
-            sqlDistrictResultLogger.logDistrictResult(requestId, districtResult);
-        }
-        return districtResult;
+        return performDistrictAssign(geocodedAddress, districtRequest.getProviders(),
+                districtRequest.getDistrictTypes(), isZipProvided(streetAddress));
     }
 
     /**
@@ -128,7 +97,7 @@ public class TopLevelDistrictService {
         else if (!points.isEmpty()) {
             geocodedAddresses = points.stream().map(point -> new Geocode(point, GeocodeQuality.POINT, "User Supplied"))
                     .map(GeocodedAddress::new).toList();
-            batchRequest.setDistrictStrategy(DistrictServiceProvider.DistrictStrategy.shapeOnly);
+            batchRequest.setProviders(List.of(DistrictSource.SHAPEFILE));
         }
         else {
             // No addresses and no points, nothing to do.
@@ -137,11 +106,7 @@ public class TopLevelDistrictService {
         }
 
         batchRequest.setGeocodedAddresses(geocodedAddresses);
-        List<DistrictResult> districtResults = districtProvider.assignDistricts(batchRequest);
-        if (BATCH_LOGGING_ENABLED) {
-            sqlDistrictResultLogger.logBatchDistrictResults(batchRequest, districtResults, true);
-        }
-        return districtResults;
+        return districtProvider.assignDistricts(batchRequest);
     }
 
     private List<GeocodedAddress> getGeocodedAddresses(BatchDistrictRequest batchRequest) {
@@ -166,9 +131,6 @@ public class TopLevelDistrictService {
             if (!currAddress.isEmpty() && currAddress.isUspsValidated()) {
                 geocodeResult.setAddress(currAddress);
             }
-        }
-        if (BATCH_LOGGING_ENABLED) {
-            sqlGeocodeResultLogger.logBatchGeocodeResults(batchGeocodeRequest, geocodeResults, true);
         }
 
         return geocodeResults.stream().map(GeocodeResult::getGeocodedAddress).toList();
@@ -225,12 +187,6 @@ public class TopLevelDistrictService {
             geocodeResult = revGeocodeProvider.reverseGeocode(geoRequest);
         }
 
-        /* Log geocode request/result to database */
-        if (SINGLE_LOGGING_ENABLED) {
-            int requestId = sqlGeocodeRequestLogger.logGeocodeRequest(geoRequest);
-            sqlGeocodeResultLogger.logGeocodeResult(requestId, geocodeResult);
-        }
-
         return geocodeResult != null ? geocodeResult.getGeocodedAddress() : null;
     }
 
@@ -255,8 +211,8 @@ public class TopLevelDistrictService {
      * @param zipProvided     Set true if user input address included a zip5
      * @return DistrictResult
      */
-    private DistrictResult performDistrictAssign(@Nonnull GeocodedAddress geocodedAddress, DistrictSource provider, List<DistrictType> types,
-                                                 DistrictServiceProvider.DistrictStrategy strategy, boolean zipProvided) {
+    private DistrictResult performDistrictAssign(@Nonnull GeocodedAddress geocodedAddress, List<DistrictSource> providers,
+                                                 List<DistrictType> types, boolean zipProvided) {
         if (geocodedAddress.isValidAddress()) {
             if (!geocodedAddress.isValidGeocode()) {
                 return new DistrictResult(null, geocodedAddress, INVALID_GEOCODE);
@@ -267,13 +223,12 @@ public class TopLevelDistrictService {
             }
             /* House level matches and above can utilize default district assignment behaviour */
             if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
-                return districtProvider.assignDistricts(geocodedAddress, provider, types, strategy);
+                return districtProvider.assignDistricts(geocodedAddress, providers, types);
             }
             /* All other level matches are routed to the overlap assignment method */
             return districtProvider.assignMultiMatchDistricts(geocodedAddress, zipProvided);
         } else if (geocodedAddress.isValidGeocode()) {
-            return districtProvider.assignDistricts(geocodedAddress, provider,
-                    types, DistrictServiceProvider.DistrictStrategy.shapeOnly);
+            return districtProvider.assignDistricts(geocodedAddress, List.of(DistrictSource.SHAPEFILE), types);
         }
         return new DistrictResult(null, geocodedAddress, INSUFFICIENT_ADDRESS);
     }

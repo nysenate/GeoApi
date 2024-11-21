@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.result.BaseResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.district.DistrictService;
@@ -13,16 +14,13 @@ import gov.nysenate.sage.provider.district.DistrictShapefile;
 import gov.nysenate.sage.provider.district.DistrictSource;
 import gov.nysenate.sage.provider.district.Streetfile;
 import gov.nysenate.sage.service.PostOfficeService;
-import gov.nysenate.sage.util.FormatUtil;
-import gov.nysenate.sage.util.TimeUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static gov.nysenate.sage.provider.district.DistrictSource.SHAPEFILE;
 import static gov.nysenate.sage.provider.district.DistrictSource.STREETFILE;
@@ -45,23 +43,14 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
         shapeOnly
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(DistrictServiceProvider.class);
-
-    private final DistrictStrategy singleDistrictStrategy;
-    private final DistrictStrategy batchDistrictStrategy;
-
     private final Map<DistrictSource, DistrictService> providers = new HashMap<>();
     private final PostOfficeService postOfficeService;
 
     @Autowired
-    public DistrictServiceProvider(@Value("${district.strategy.single:streetFallback}") String singleDistrictStrategy,
-                                   @Value("${district.strategy.batch:streetFallback}") String batchDistrictStrategy,
-                                   DistrictShapefile districtShapefile, Streetfile streetFile, PostOfficeService postOfficeService) {
+    public DistrictServiceProvider(DistrictShapefile districtShapefile, Streetfile streetFile, PostOfficeService postOfficeService) {
         this.postOfficeService = postOfficeService;
         providers.put(SHAPEFILE, districtShapefile);
         providers.put(STREETFILE, streetFile);
-        this.singleDistrictStrategy = DistrictStrategy.valueOf(singleDistrictStrategy);
-        this.batchDistrictStrategy = DistrictStrategy.valueOf(batchDistrictStrategy);
     }
 
     /**
@@ -69,39 +58,13 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
      * Otherwise, the default strategy for district assignment is to run both street file and district shape file
      * look-ups in parallel. Once results from both lookup methods are retrieved they are compared and consolidated.
      */
-    // TODO: should simplify DistrictStrategy vs. District Provider (fallback idea?)
-    public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final DistrictSource distProvider,
-                                          final List<DistrictType> districtTypes, DistrictStrategy districtStrategy) {
-        Timestamp startTime = TimeUtil.currentTimestamp();
-        DistrictResult streetFileResult = providers.get(STREETFILE).assignDistricts(geocodedAddress, districtTypes);
-        DistrictResult shapeFileResult = providers.get(SHAPEFILE).assignDistricts(geocodedAddress, districtTypes);
-        DistrictResult districtResult;
-
-        if (providers.containsKey(distProvider)) {
-            DistrictService districtService = this.providers.get(distProvider);
-            districtResult = districtService.assignDistricts(geocodedAddress, districtTypes);
-        }
-        else {
-            if (districtStrategy == null) {
-                districtStrategy = singleDistrictStrategy;
-            }
-            districtResult = consolidateDistrictResults(shapeFileResult, streetFileResult, districtStrategy);
-        }
+    public DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final List<DistrictSource> distProviders,
+                                          final List<DistrictType> districtTypes) {
+        DistrictResult districtResult = consolidateDistrictResults(distProviders.stream()
+                .map(provider -> providers.get(provider).assignDistricts(geocodedAddress, districtTypes))
+                .toList());
         fixPostOfficeBoxResult(districtResult);
         districtResult.setResultTime();
-
-        if (districtResult.isSuccess()) {
-            logger.info("District assigned in {} ms.", TimeUtil.getElapsedMs(startTime));
-        }
-        else {
-            logger.warn("Failed to district assign!");
-        }
-        if (districtResult.getGeocodedAddress() != null) {
-            logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
-        }
-        else {
-            logger.info("The geocoded address was null");
-        }
         return districtResult;
     }
 
@@ -109,47 +72,29 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
      * Assign standard districts with options set in BatchDistrictRequest.
      */
     public List<DistrictResult> assignDistricts(final BatchDistrictRequest bdr) {
-        return assignDistricts(bdr.getGeocodedAddresses(), bdr.getProvider(), DistrictType.getStandardTypes(), bdr.getDistrictStrategy());
+        return assignDistricts(bdr.getGeocodedAddresses(), bdr.getProviders(), DistrictType.getStandardTypes());
     }
 
-    /**
-     * Assign specified district types using an assortment of district strategies.
-     * @param distProvider  If district provider is specified, (e.g streetfile), then only that provider will be used.
-     * @return List<DistrictResult>
-     */
-    public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, DistrictSource distProvider,
-                                                final List<DistrictType> districtTypes, DistrictStrategy districtStrategy) {
-        if (districtStrategy == null) {
-            districtStrategy = batchDistrictStrategy;
+    /** {@inheritDoc} */
+    public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final List<DistrictSource> distProviders,
+                                                final List<DistrictType> districtTypes) {
+        List<List<DistrictResult>> batches = new ArrayList<>();
+        for (DistrictSource provider : distProviders) {
+            batches.add(providers.get(provider).assignDistricts(geocodedAddresses, districtTypes));
         }
-        Timestamp startTime = TimeUtil.currentTimestamp();
-        List<DistrictResult> districtResults = new ArrayList<>();
-
-        if (districtStrategy == DistrictStrategy.streetOnly) {
-            distProvider = STREETFILE;
+        // Ensures the batch results are all the same size.
+        if (batches.stream().map(List::size).distinct().count() != 1) {
+            throw new IllegalStateException("District result sizes must match.");
         }
-        else if (districtStrategy == DistrictStrategy.shapeOnly) {
-            distProvider = SHAPEFILE;
+        var consolidatedResults = new ArrayList<DistrictResult>();
+        for (int i = 0; i < batches.get(0).size(); i++) {
+            int finalI = i;
+            List<DistrictResult> resultsToConsolidate = batches.stream().map(batch -> batch.get(finalI)).toList();
+            consolidatedResults.add(consolidateDistrictResults(resultsToConsolidate));
         }
-        if (providers.containsKey(distProvider)) {
-            DistrictService districtService = providers.get(distProvider);
-            districtResults = districtService.assignDistricts(geocodedAddresses, districtTypes);
-        }
-        else {
-            List<DistrictResult> streetFileResults = providers.get(STREETFILE).assignDistricts(geocodedAddresses, districtTypes);
-            List<DistrictResult> shapeFileResults = providers.get(SHAPEFILE).assignDistricts(geocodedAddresses, districtTypes);
-
-            if (streetFileResults.size() != shapeFileResults.size()) {
-                throw new IllegalStateException("District result sizes must match.");
-            }
-            for (int i = 0; i < streetFileResults.size(); i++) {
-                districtResults.add(consolidateDistrictResults(shapeFileResults.get(i), streetFileResults.get(i), districtStrategy));
-            }
-        }
-        districtResults.forEach(this::fixPostOfficeBoxResult);
-        logger.info("District assign time: {} ms.", TimeUtil.getElapsedMs(startTime));
-
-        return districtResults;
+        consolidatedResults.forEach(this::fixPostOfficeBoxResult);
+        consolidatedResults.forEach(BaseResult::setResultTime);
+        return consolidatedResults;
     }
 
     private void fixPostOfficeBoxResult(DistrictResult result) {
@@ -173,41 +118,25 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
     }
 
     /**
-     * Perform result consolidation based on the specified strategy.
-     * @return  Consolidated district result
+     * Perform result consolidation.
+     * @return Consolidated district result
      */
-    private DistrictResult consolidateDistrictResults(DistrictResult shapeResult, DistrictResult streetResult, DistrictStrategy strategy) {
-        switch (strategy) {
-            case shapeOnly -> {
-                return shapeResult;
-            }
-            case shapeFallback -> {
-                return streetResult.isSuccess() ? streetResult : shapeResult;
-            }
-            case streetFallback -> {
-                if (!shapeResult.isSuccess()) {
-                    return streetResult;
+    private static DistrictResult consolidateDistrictResults(List<DistrictResult> results) {
+        List<DistrictResult> validResults = results.stream().filter(BaseResult::isSuccess).toList();
+        if (validResults.isEmpty()) {
+            return results.get(0);
+        }
+        var finalInfo = validResults.get(0).getDistrictInfo();
+        for (int i = 1; i < validResults.size(); i++) {
+            for (DistrictType districtType : validResults.get(i).getAssignedDistricts()) {
+                if (finalInfo.getDistCode(districtType) == null) {
+                    DistrictInfo currInfo = validResults.get(i).getDistrictInfo();
+                    finalInfo.setDistCode(districtType, currInfo.getDistCode(districtType));
+                    finalInfo.setDistName(districtType, currInfo.getDistName(districtType));
                 }
-                DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
-                Set<DistrictType> streetAssignedSet = new HashSet<>(streetResult.getAssignedDistricts());
-                DistrictInfo streetInfo = streetResult.getDistrictInfo();
-
-                // Check all streetfile assigned districts
-                for (DistrictType assignedType : streetAssignedSet) {
-                    String streetCode = streetInfo.getDistCode(assignedType);
-
-                    // Apply streetfile data on conflicts.
-                    if (!shapeInfo.getAssignedDistricts().contains(assignedType) ||
-                            !shapeInfo.getDistCode(assignedType).equalsIgnoreCase(streetCode)) {
-                        shapeInfo.setDistCode(assignedType, streetInfo.getDistCode(assignedType));
-                        shapeInfo.setDistName(assignedType, streetInfo.getDistName(assignedType));
-                    }
-                }
-                return shapeResult;
-            }
-            default -> {
-                return streetResult;
             }
         }
+        validResults.get(0).getDistrictedAddress().setDistrictInfo(finalInfo);
+        return validResults.get(0);
     }
 }

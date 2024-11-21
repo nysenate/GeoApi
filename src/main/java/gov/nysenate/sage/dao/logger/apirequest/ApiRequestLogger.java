@@ -9,10 +9,4 @@ public interface ApiRequestLogger {
      * @return int id of ApiRequest
      */
     int logApiRequest(ApiRequest apiRequest);
-
-    /**
-     * Retrieve a logged ApiRequest by id
-     * @return ApiRequest
-     */
-    ApiRequest getApiRequest(int apiRequestId);
 }

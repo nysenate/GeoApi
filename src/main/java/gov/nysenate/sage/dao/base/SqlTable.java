@@ -14,15 +14,8 @@ public enum SqlTable {
     USER ("user"),
 
     //Log Schema
-    ADDRESS ("address"),
     API_REQUEST ("apirequest"),
     DEPLOYMENT ("deployment"),
-    DISTRICT_REQUEST ("districtrequest"),
-    DISTRICT_RESULT ("districtresult"),
-    EXCEPTION ("exception"),
-    GEOCODE_REQUEST("geocoderequest"),
-    GEOCODE_RESULT("geocoderesult"),
-    POINT ("point"),
     REQUESTTYPES ("requesttypes"),
     SERVICES ("services"),
 

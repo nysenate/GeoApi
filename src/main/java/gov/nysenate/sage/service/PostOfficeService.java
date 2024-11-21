@@ -6,7 +6,6 @@ import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.PostOfficeAddress;
 import gov.nysenate.sage.model.api.SingleDistrictRequest;
 import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.service.district.DistrictServiceProvider;
 import gov.nysenate.sage.service.district.TopLevelDistrictService;
 import gov.nysenate.sage.util.PostOfficeParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,10 +72,9 @@ public class PostOfficeService {
 
     private DistrictedAddress getDistrictedAddress(PostOfficeAddress poAddress) {
         var request = new SingleDistrictRequest();
-        request.setDistrictStrategy(DistrictServiceProvider.DistrictStrategy.shapeFallback);
         request.setAddress(poAddress.address());
         request.setUspsValidate(true);
-        DistrictResult results = districtService.handleDistrictRequest(request, -1);
+        DistrictResult results = districtService.handleDistrictRequest(request);
         return results.getDistrictedAddress();
     }
 }

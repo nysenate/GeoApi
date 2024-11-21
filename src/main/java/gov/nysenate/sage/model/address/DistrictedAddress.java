@@ -10,6 +10,7 @@ import java.io.Serializable;
  * Represents an address with district information.
  */
 public class DistrictedAddress implements Serializable {
+    // TODO: Should this really contain a geocoded address?
     private GeocodedAddress geocodedAddress;
     private DistrictInfo districtInfo;
     private DistrictMatchLevel districtMatchLevel = DistrictMatchLevel.NOMATCH;

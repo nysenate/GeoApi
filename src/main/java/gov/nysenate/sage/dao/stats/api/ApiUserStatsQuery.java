@@ -9,8 +9,6 @@ public enum ApiUserStatsQuery implements BasicSqlQuery {
             "                          COUNT(DISTINCT gr.id) AS geoRequests,\n" +
             "                          COUNT(DISTINCT dr.id) AS distRequests\n" +
             "FROM ${schema}." + SqlTable.API_REQUEST + " ar\n" +
-            "LEFT JOIN ${schema}." + SqlTable.GEOCODE_REQUEST + " gr ON gr.apiRequestId = ar.id\n" +
-            "LEFT JOIN ${schema}." + SqlTable.DISTRICT_REQUEST + " dr ON dr.apiRequestId = ar.id\n" +
             "WHERE ar.requestTime >= :from AND ar.requestTime <= :to\n" +
             "GROUP BY ar.apiUserId"),
 

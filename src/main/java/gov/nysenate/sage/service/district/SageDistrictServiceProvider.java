@@ -14,9 +14,8 @@ public interface SageDistrictServiceProvider {
      * Otherwise, the default strategy for district assignment is to run both street file and district shape file
      * look-ups in parallel. Once results from both lookup methods are retrieved they are compared and consolidated.
      */
-    DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final DistrictSource distProvider,
-                                          final List<DistrictType> districtTypes,
-                                          DistrictServiceProvider.DistrictStrategy districtStrategy);
+    DistrictResult assignDistricts(final GeocodedAddress geocodedAddress, final List<DistrictSource> distProviders,
+                                          final List<DistrictType> districtTypes);
 
     /**
      * Assign standard districts with options set in BatchDistrictRequest.
@@ -26,12 +25,11 @@ public interface SageDistrictServiceProvider {
     // TODO: unused
     /**
      * Assign specified district types using an assortment of district strategies.
-     * @param distProvider  If district provider is specified, (e.g streetfile), then only that provider will be used.
+     * @param distProviders  Ranking of district providers to use.
      * @return List<DistrictResult>
      */
-    List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, DistrictSource distProvider,
-                                                final List<DistrictType> districtTypes,
-                                                DistrictServiceProvider.DistrictStrategy districtStrategy);
+    List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, List<DistrictSource> distProviders,
+                                                final List<DistrictType> districtTypes);
 
     /**
      * Assigns a Geocoded address to multiple districts
