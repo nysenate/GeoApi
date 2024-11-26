@@ -6,8 +6,6 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,7 +16,6 @@ import java.util.List;
 
 @Service
 public class GeoCache extends GeocodeService {
-    private static final Logger logger = LoggerFactory.getLogger(GeoCache.class);
     private final SqlGeoCacheDao sqlGeoCacheDao;
 
     @Value("${geocache.enabled:true}")
@@ -29,7 +26,6 @@ public class GeoCache extends GeocodeService {
     public GeoCache(SqlGeoCacheDao sqlGeoCacheDao, ParallelGeocodeService parallelGeocodeService) {
         super(sqlGeoCacheDao,  parallelGeocodeService);
         this.sqlGeoCacheDao = sqlGeoCacheDao;
-        logger.debug("Instantiated GeoCache.");
     }
 
     public void saveToCacheAndFlush(GeocodeResult geocodeResult) {

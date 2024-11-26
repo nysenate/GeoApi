@@ -25,4 +25,9 @@ public record Geocode(Point point, GeocodeQuality quality, Geocoder originalGeoc
     public double lon() {
         return point.lon();
     }
+
+    /** A valid geocode should have a quality code level of CITY or greater */
+    public boolean isValidGeocode() {
+        return quality() != null && quality().compareTo(GeocodeQuality.CITY) >= 0;
+    }
 }

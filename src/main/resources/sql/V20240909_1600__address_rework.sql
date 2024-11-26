@@ -1,10 +1,8 @@
---TODO: add constraint for number
 ALTER TABLE geocoder.cache.geocache
-ADD COLUMN bldgId text,
-ADD COLUMN street text;
+ADD COLUMN bldg_id text;
 
 UPDATE geocoder.cache.geocache
-SET bldgId = bldgnum::text;
+SET bldg_id = bldgnum::text;
 
 CREATE FUNCTION orderParts(street text, streettype text)
     RETURNS TEXT AS $$
@@ -28,23 +26,24 @@ DROP FUNCTION orderParts(street text, streettype text);
 
 ALTER TABLE geocoder.cache.geocache
 DROP COLUMN bldgNum,
-DROP COLUMN state,
+DROP COLUMN IF EXISTS state,
 DROP COLUMN predir,
-DROP COLUMN street,
 DROP COLUMN streettype,
 DROP COLUMN postdir;
 
+DELETE FROM geocoder.cache.geocache
+WHERE method = 'YahooDao' OR street = '' OR
+    zip5 = '' OR zip5 = '00000' OR zip5 NOT SIMILAR TO '[0-9]{5}' OR
+    zip4 = '0000' OR zip4 NOT SIMILAR TO '[0-9]{4}';
+
+UPDATE geocoder.cache.geocache
+SET zip4 = NULL WHERE zip4 = '';
+
 ALTER TABLE geocoder.cache.geocache
-ALTER COLUMN zip5 TYPE integer
-    USING (NULLIF(zip5, '')::integer),
-ALTER COLUMN zip4 TYPE smallint
-    USING (NULLIF(zip4, '')::smallint);
+    ADD CONSTRAINT validBldgId CHECK (bldg_id IS NOT NULL AND bldg_id SIMILAR TO '[0-9]+%'),
+    ADD CONSTRAINT validZips CHECK (
+        (zip5 IS NOT NULL AND geocache.zip5 != '00000' AND zip5 SIMILAR TO '[0-9]{5}') AND
+        (zip4 IS NULL OR (geocache.zip4 != '0000' AND zip4 SIMILAR TO '[0-9]{4}'))
+    ), ALTER COLUMN street SET NOT NULL;
 
---TODO: zip5 should not be null
-ALTER TABLE geocoder.cache.geocache
-ADD CONSTRAINT validZips CHECK (
-    (zip5 IS NULL OR (zip5 > 0 AND zip5 < 100000)) AND
-    (zip4 IS NULL OR (zip4 > 0 AND zip4 < 10000))
-);
-
-
+ALTER TABLE geocoder.cache.geocache RENAME COLUMN location TO postal_city;

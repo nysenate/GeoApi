@@ -116,9 +116,9 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
         @Override
         public GeocodedAddress extractData(ResultSet rs) throws SQLException {
             var awn = new AddressWithoutNum(WordUtils.capitalizeFully(rs.getString("street")),
-                    WordUtils.capitalizeFully(rs.getString("location")), rs.getInt("zip5"));
+                    WordUtils.capitalizeFully(rs.getString("postal_city")), rs.getInt("zip5"));
             var sa = new StreetAddress(awn);
-            sa.setBldgId(rs.getString("bldgnum"));
+            sa.setBldgId(rs.getString("bldg_id"));
             sa.setZip4(rs.getInt("zip4"));
             return new GeocodedStreetAddress(sa, getGeocodeFromResultSet(rs)).toGeocodedAddress();
         }
