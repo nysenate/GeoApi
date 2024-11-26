@@ -21,18 +21,4 @@ public interface SageDistrictServiceProvider {
      * Assign standard districts with options set in BatchDistrictRequest.
      */
     List<DistrictResult> assignDistricts(final BatchDistrictRequest bdr);
-
-    // TODO: unused
-    /**
-     * Assign specified district types using an assortment of district strategies.
-     * @param distProviders  Ranking of district providers to use.
-     * @return List<DistrictResult>
-     */
-    List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, List<DistrictSource> distProviders,
-                                                final List<DistrictType> districtTypes);
-
-    /**
-     * Assigns a Geocoded address to multiple districts
-     */
-    DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, boolean zipProvided);
 }

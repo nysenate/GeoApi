@@ -47,7 +47,6 @@ public interface GeocodeServiceProvider {
 
     /**
      * Return a map containing a Geocoder and its service.
-     * @return
      */
     Set<Geocoder> geocoders();
 }

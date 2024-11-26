@@ -45,10 +45,6 @@ public class DistrictResult extends BaseResult<DistrictSource> {
         return districtedAddress.getAddress();
     }
 
-    public GeocodedAddress getGeocodedAddress() {
-        return districtedAddress.getGeocodedAddress();
-    }
-
     @Nonnull
     public DistrictedAddress getDistrictedAddress() {
         return districtedAddress;
@@ -81,9 +77,5 @@ public class DistrictResult extends BaseResult<DistrictSource> {
      */
     public boolean isMultiMatch() {
         return isSuccess() && getDistrictMatchLevel().compareTo(DistrictMatchLevel.HOUSE) < 0;
-    }
-
-    public boolean isUspsValidated() {
-        return getAddress() != null && getAddress().isUspsValidated();
     }
 }

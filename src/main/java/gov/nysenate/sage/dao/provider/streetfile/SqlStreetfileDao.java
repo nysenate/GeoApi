@@ -9,9 +9,7 @@ import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
-import gov.nysenate.sage.util.NonnullList;
 import gov.nysenate.sage.util.StreetAddressParser;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
@@ -169,99 +167,6 @@ public class SqlStreetfileDao implements StreetfileDao {
         catch (Exception ex) {
             logger.error("Failed to get district street range lookup!", ex);
         }
-        return null;
-    }
-
-    private Map<DistrictType, Set<String>> extractMapResults(String sqlQuery) {
-        checkLock();
-        return baseDao.geoApiJbdcTemplate.query(sqlQuery, rs -> {
-            Map<DistrictType, Set<String>> resultMap = new HashMap<>();
-            while (rs.next()) {
-                DistrictType type = DistrictType.resolveType(rs.getString("type"));
-                String code = rs.getString("code");
-                if (!resultMap.containsKey(type)) {
-                    resultMap.put(type, new HashSet<>());
-                }
-                resultMap.get(type).add(code);
-            }
-            return resultMap;
-        });
-    }
-
-    /** {@inheritDoc} */
-    public Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, NonnullList<Integer> zip5List) {
-        // Short circuit on missing input
-        if ((zip5List == null || zip5List.isEmpty()) && (streetList == null || streetList.isEmpty())) {
-            return null;
-        }
-
-        String sqlTmpl = """
-                SELECT DISTINCT %s::character varying AS code, '%s' AS type
-                FROM streetfile
-                WHERE (%s) AND (%s)""";
-        // Create where clause for zip5 codes
-        String zip5WhereSql = "TRUE";
-        if (zip5List != null && !zip5List.isEmpty()) {
-            zip5WhereSql = String.format("zip5 IN (%s)", StringUtils.join(zip5List, ","));
-        }
-
-        // Create where clause for street names
-        String streetWhereSql = "TRUE";
-        if (streetList != null && !streetList.isEmpty()) {
-            List<String> streetWhereList = new ArrayList<>();
-            for (String stRaw : streetList) {
-                String street = StreetAddressParser.normalizeStreet(stRaw);
-                if (!street.isEmpty()) {
-                    streetWhereList.add(String.format("'%s'", StringEscapeUtils.escapeSql(street)));
-                }
-            }
-            if (!streetWhereList.isEmpty()) {
-                streetWhereSql = String.format("street IN (%s)", StringUtils.join(streetWhereList, ","));
-            }
-        }
-
-        List<String> queryList = new ArrayList<>();
-        for (DistrictType dType : DistrictType.getStandardTypes()) {
-            String column = distColMap.get(dType);
-            String type = dType.name();
-            queryList.add(String.format(sqlTmpl, column, type, zip5WhereSql, streetWhereSql));
-        }
-        String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
-        try {
-            return extractMapResults(sqlQuery);
-        }
-        catch (Exception ex) {
-            logger.error("Failed to get all possible state districts!", ex);
-        }
-        logger.info(sqlQuery);
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    public Map<DistrictType, Set<String>> getAllIntersections(DistrictType distType, String sourceId) {
-        if (distType == null || sourceId == null) {
-            return null;
-        }
-
-        String sqlTmpl = """
-                SELECT DISTINCT %s::character varying AS code, '%s' AS type
-                FROM streetfile
-                WHERE (%s)""";
-
-        String districtSpec = distColMap.get(distType) + " = " + String.format("'%s'", sourceId);
-        List<String> queryList = new ArrayList<>();
-        for (DistrictType dType : DistrictType.getStandardTypes()) {
-            String column = distColMap.get(dType);
-            queryList.add(String.format(sqlTmpl, column, dType.name(), districtSpec));
-        }
-        String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
-        try {
-            return extractMapResults(sqlQuery);
-        }
-        catch (Exception ex) {
-            logger.error("Failed to get all possible state districts!", ex);
-        }
-        logger.info(sqlQuery);
         return null;
     }
 

@@ -144,14 +144,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
         String targetWhereSql = targetWhereList.isEmpty() ? intersectSql + " > 0" : String.join(" OR ", targetWhereList);
         String sqlQuery = String.format(sqlTmpl, targetDistrictType.codeColumn(), targetDistrictType.name(), targetDistrictType.name(), refDistrictType.name(),
                                                  refWhereSql, targetWhereSql);
-        try {
-            var overlap = new DistrictOverlap();
-            return baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictOverlapHandler(overlap));
-        }
-        catch (Exception ex) {
-            logger.error("Failed to determine district overlap!", ex);
-        }
-        return null;
+        return baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictOverlapHandler());
     }
 
     /** {@inheritDoc} */
@@ -334,11 +327,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
     }
 
     private class DistrictOverlapHandler implements ResultSetExtractor<DistrictOverlap> {
-        private final DistrictOverlap districtOverlap;
-
-        public DistrictOverlapHandler(DistrictOverlap districtOverlap) {
-            this.districtOverlap = districtOverlap;
-        }
+        private final DistrictOverlap districtOverlap = new DistrictOverlap();
 
         @Override
         public DistrictOverlap extractData(ResultSet rs) throws SQLException {

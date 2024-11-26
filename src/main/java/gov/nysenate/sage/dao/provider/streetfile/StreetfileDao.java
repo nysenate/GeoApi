@@ -5,15 +5,12 @@ import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.util.NonnullList;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public interface StreetfileDao {
     String nullString();
@@ -40,20 +37,4 @@ public interface StreetfileDao {
      * @return List of DistrictedStreetRange
      */
     List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<Integer> zip5List);
-
-    /**
-     * Finds state district codes that overlap a given street/zip range.
-     * @param streetList Optional street name
-     * @param zip5List   Zip5 to match against
-     * @return       A map of district types to a set of matched district codes.
-     */
-    Map<DistrictType, Set<String>> getAllStandardDistrictMatches(List<String> streetList, NonnullList<Integer> zip5List);
-
-    /**
-     * Finds state district codes that overlap a given street/zip range.
-     * @param distType The district type to find intersections with
-     * @param sourceId The id of that district
-     * @return       A map of district types to a set of matched district codes.
-     */
-    Map<DistrictType, Set<String>> getAllIntersections(DistrictType distType, String sourceId);
 }

@@ -4,9 +4,9 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum DeploymentStatsQuery  implements BasicSqlQuery {
-    SELECT_DEPLOY_STATS("SELECT id, deployed, refId AS deploymentRef, deployTime, apiRequestsSince \n" +
+    SELECT_DEPLOY_STATS("SELECT id, deployTime, apiRequestsSince \n" +
             "FROM ${schema}." + SqlTable.DEPLOYMENT + " \n" +
-            "ORDER BY deploytime ASC");
+            "ORDER BY deployTime ASC");
 
     private final String sql;
 

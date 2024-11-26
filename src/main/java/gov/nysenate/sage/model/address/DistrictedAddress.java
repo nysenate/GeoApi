@@ -10,8 +10,8 @@ import java.io.Serializable;
  * Represents an address with district information.
  */
 public class DistrictedAddress implements Serializable {
-    // TODO: Should this really contain a geocoded address?
-    private GeocodedAddress geocodedAddress;
+    private Address address;
+    private Geocode geocode;
     private DistrictInfo districtInfo;
     private DistrictMatchLevel districtMatchLevel = DistrictMatchLevel.NOMATCH;
 
@@ -22,50 +22,34 @@ public class DistrictedAddress implements Serializable {
     }
 
     public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo, DistrictMatchLevel districtMatchLevel) {
-        this.geocodedAddress = geocodedAddress;
+        this(geocodedAddress.getAddress(), geocodedAddress.getGeocode(), districtInfo, districtMatchLevel);
+    }
+
+    public DistrictedAddress(Address address, Geocode geocode, DistrictInfo districtInfo, DistrictMatchLevel districtMatchLevel) {
+        this.address = address;
+        this.geocode = geocode;
         this.districtInfo = districtInfo;
         this.districtMatchLevel = districtMatchLevel;
     }
 
-    public GeocodedAddress getGeocodedAddress() {
-        return this.geocodedAddress;
-    }
-
-    public void setGeocodedAddress(GeocodedAddress geocodedAddress) {
-        this.geocodedAddress = geocodedAddress;
-    }
-
     /** Convenience method to access the underlying Address object */
     public Address getAddress() {
-        if (this.getGeocodedAddress() != null && this.getGeocodedAddress().getAddress() != null) {
-            return this.getGeocodedAddress().getAddress();
-        }
-        return null;
+        return address;
     }
 
     /** Convenience method to set the underlying Address object */
     public void setAddress(Address address) {
-        if (this.getGeocodedAddress() != null){
-            this.getGeocodedAddress().setAddress(address);
-        }
-        else {
-            this.geocodedAddress = new GeocodedAddress(address);
-        }
+        this.address = address;
     }
 
     /** Convenience method to set the underlying Geocode object */
     public void setGeocode(Geocode geocode) {
-        if (this.getGeocodedAddress() != null){
-            this.getGeocodedAddress().setGeocode(geocode);
-        }
-        else {
-            this.setGeocodedAddress(new GeocodedAddress(geocode));
-        }
+        this.geocode = geocode;
     }
 
     /** Convenience method to get the underlying Geocode object */
     public Geocode getGeocode() {
-        return (this.getGeocodedAddress() != null) ? this.getGeocodedAddress().getGeocode() : null;
+        return geocode;
     }
 
     public DistrictInfo getDistrictInfo() {

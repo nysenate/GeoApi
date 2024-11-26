@@ -3,8 +3,9 @@ package gov.nysenate.sage.client.response.district;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.view.address.AddressView;
 import gov.nysenate.sage.client.view.geo.GeocodeView;
-import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
 
 public abstract class BaseDistrictResponse extends BaseResponse {
@@ -26,20 +27,16 @@ public abstract class BaseDistrictResponse extends BaseResponse {
         this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
         this.matchLevel = districtResult.getDistrictMatchLevel().name();
         this.isMultiMatch = districtResult.isMultiMatch();
-
-        GeocodedAddress geocodedAddress = districtResult.getGeocodedAddress();
-        if (geocodedAddress != null) {
-            if (geocodedAddress.getAddress() != null) {
-                this.address = new AddressView(districtResult.getAddress());
-            }
-            if (geocodedAddress.getGeocode() != null) {
-                this.geocode = new GeocodeView(districtResult.getGeocode());
-                if (geocodedAddress.isValidGeocode()) {
-                    this.geocoded = true;
-                }
-            }
+        Address realAddress = districtResult.getAddress();
+        if (realAddress != null) {
+            this.address = new AddressView(realAddress);
+            this.uspsValidated = realAddress.isUspsValidated();
         }
-        this.uspsValidated = districtResult.isUspsValidated();
+        Geocode realGeocode = districtResult.getGeocode();
+        if (realGeocode != null) {
+            this.geocode = new GeocodeView(realGeocode);
+            this.geocoded = realGeocode.isValidGeocode();
+        }
     }
 
     public AddressView getAddress() {

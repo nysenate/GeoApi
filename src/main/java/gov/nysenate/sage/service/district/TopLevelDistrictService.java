@@ -13,9 +13,9 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.district.DistrictSource;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.SageGeocodeServiceProvider;
-import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.StreetAddressParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class TopLevelDistrictService {
 
     private final AddressServiceProvider addressProvider;
     private final DistrictServiceProvider districtProvider;
-    private final SageGeocodeServiceProvider geocodeProvider;
+    private final GeocodeServiceProvider geocodeProvider;
     private final RevGeocodeServiceProvider revGeocodeProvider;
 
     @Autowired
@@ -61,7 +61,7 @@ public class TopLevelDistrictService {
         StreetAddress streetAddress = StreetAddressParser.parseAddress(address);
 
         if (!address.isEmpty()) {
-            /* Perform usps address correction if requested */
+            /* Perform USPS address correction if requested */
             if (districtRequest.isUspsValidate()) {
                 if (address.isEligibleForUSPS()) {
                     address = streetAddress.toAddress();
@@ -78,12 +78,11 @@ public class TopLevelDistrictService {
         }
 
         return performDistrictAssign(geocodedAddress, districtRequest.getProviders(),
-                districtRequest.getDistrictTypes(), isZipProvided(streetAddress));
+                districtRequest.getDistrictTypes());
     }
 
     /**
-     * Utilizes the service providers to perform batch address validation, geo-coding, and district assignment for an address.
-     *
+     * Utilizes the service providers to perform batch address validation, geocoding, and district assignment for an address.
      * @return List<DistrictResult>
      */
     public List<DistrictResult> handleBatchDistrictRequest(BatchDistrictRequest batchRequest) {
@@ -208,25 +207,15 @@ public class TopLevelDistrictService {
      * Performs either single or multi-district assignment based on the quality of the geocode and the input address.
      * If either an address or geocode is missing, the method will set the appropriate error statuses to the DistrictResult.
      *
-     * @param zipProvided     Set true if user input address included a zip5
      * @return DistrictResult
      */
     private DistrictResult performDistrictAssign(@Nonnull GeocodedAddress geocodedAddress, List<DistrictSource> providers,
-                                                 List<DistrictType> types, boolean zipProvided) {
+                                                 List<DistrictType> types) {
         if (geocodedAddress.isValidAddress()) {
             if (!geocodedAddress.isValidGeocode()) {
                 return new DistrictResult(null, geocodedAddress, INVALID_GEOCODE);
             }
-            GeocodeQuality level = geocodedAddress.getGeocode().quality();
-            if (logger.isTraceEnabled()) {
-                logger.trace(FormatUtil.toJsonString(geocodedAddress));
-            }
-            /* House level matches and above can utilize default district assignment behaviour */
-            if (level.compareTo(GeocodeQuality.HOUSE) >= 0) {
-                return districtProvider.assignDistricts(geocodedAddress, providers, types);
-            }
-            /* All other level matches are routed to the overlap assignment method */
-            return districtProvider.assignMultiMatchDistricts(geocodedAddress, zipProvided);
+            return districtProvider.assignDistricts(geocodedAddress, providers, types);
         } else if (geocodedAddress.isValidGeocode()) {
             return districtProvider.assignDistricts(geocodedAddress, List.of(DistrictSource.SHAPEFILE), types);
         }

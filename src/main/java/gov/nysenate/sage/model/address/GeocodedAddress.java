@@ -1,7 +1,6 @@
 package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 
 import java.io.Serializable;
 
@@ -9,8 +8,8 @@ import java.io.Serializable;
  * GeocodedAddress represents an address that contains geo coordinate information.
  */
 public class GeocodedAddress implements Serializable {
-    protected Address address;
-    protected Geocode geocode;
+    private Address address;
+    private Geocode geocode;
 
     public GeocodedAddress() {}
 
@@ -55,10 +54,8 @@ public class GeocodedAddress implements Serializable {
         return isReverseGeocoded();
     }
 
-    /** A valid geocode should have a quality code level of CITY or greater */
     public boolean isValidGeocode() {
-        return geocode != null && geocode.quality() != null
-                && geocode.quality().compareTo(GeocodeQuality.CITY) >= 0;
+        return geocode != null && geocode.isValidGeocode();
     }
 
     public boolean isReverseGeocoded() {

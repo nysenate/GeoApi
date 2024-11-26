@@ -2,8 +2,6 @@ package gov.nysenate.sage.provider.district;
 
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
-import gov.nysenate.sage.dao.provider.streetfile.SqlStreetfileDao;
-import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.*;
@@ -13,28 +11,20 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.provider.cityzip.CityZipDB;
 import gov.nysenate.sage.util.FormatUtil;
-import gov.nysenate.sage.util.NonnullList;
-import gov.nysenate.sage.util.StreetAddressParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INSUFFICIENT_GEOCODE;
 
 @Service
 public class DistrictShapefile extends DistrictService implements MapService {
-    private static final Logger logger = LoggerFactory.getLogger(DistrictShapefile.class);
     private final SqlDistrictShapefileDao sqlDistrictShapefileDao;
 
-    /** The street file and cityzip daos are needed to determine overlap */
-    private final SqlStreetfileDao sqlStreetFileDao;
-    private final CityZipDB cityZipDBDao;
     private final CountyDao countyDao;
 
     /** We should only attempt to assign districts to a geocode if it is accurate enough.
@@ -43,11 +33,8 @@ public class DistrictShapefile extends DistrictService implements MapService {
             Arrays.asList(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
 
     @Autowired
-    public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, SqlStreetfileDao sqlStreetFileDao,
-                             CityZipDB cityZipDB, CountyDao countyDao) {
+    public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, CountyDao countyDao) {
         this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
-        this.sqlStreetFileDao = sqlStreetFileDao;
-        this.cityZipDBDao = cityZipDB;
         this.countyDao = countyDao;
     }
 
@@ -57,26 +44,15 @@ public class DistrictShapefile extends DistrictService implements MapService {
         if (!districtResult.isSuccess()) {
             return districtResult;
         }
+        // TODO: need street number, street name, and ZIP at least
         if (!DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES.contains(geocodedAddress.getGeocode().quality())) {
             districtResult.setStatusCode(INSUFFICIENT_GEOCODE);
             return districtResult;
         }
-        try {
-            Geocode geocode = geocodedAddress.getGeocode();
-            DistrictInfo districtInfo = sqlDistrictShapefileDao.getDistrictInfo(geocode.point(), reqTypes, getSpecialMaps);
-            districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
-            districtResult.setResultTime();
-            if (districtResult.getGeocodedAddress() != null) {
-                logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
-            }
-            else {
-                logger.info("The geocoded address was null");
-            }
-        }
-        catch (Exception ex) {
-            districtResult.setStatusCode(ResultStatus.RESPONSE_PARSE_ERROR);
-            logger.error("{}", String.valueOf(ex));
-        }
+        Geocode geocode = geocodedAddress.getGeocode();
+        DistrictInfo districtInfo = sqlDistrictShapefileDao.getDistrictInfo(geocode.point(), reqTypes, getSpecialMaps);
+        districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
+        districtResult.setResultTime();
 
         return districtResult;
     }
@@ -101,7 +77,7 @@ public class DistrictShapefile extends DistrictService implements MapService {
     /** {@inheritDoc} */
     @Override
     public MapResult getDistrictMap(DistrictType districtType, String code) {
-        MapResult mapResult = new MapResult(MapSource.SHAPEFILE);
+        var mapResult = new MapResult(MapSource.SHAPEFILE);
         if (code != null && !code.isEmpty()) {
             code = FormatUtil.trimLeadingZeroes(code);
             var strToDistMap = sqlDistrictShapefileDao.getCodeToDistrictMapMap(districtType);
@@ -149,106 +125,6 @@ public class DistrictShapefile extends DistrictService implements MapService {
     }
 
     /**
-     * Attempts to obtain overlapping district information when the geocoded address is ambiguous,
-     * e.g represents the center of the city or zip area.
-     * @param geocodedAddress GeocodedAddress
-     * @return DistrictResult with overlaps and street ranges set.
-     */
-    public DistrictResult getMultiMatchResult(GeocodedAddress geocodedAddress, boolean zipProvided) {
-        var districtResult = new DistrictResult(districtSource(), geocodedAddress, true, true);
-        if (!districtResult.isSuccess()) {
-            return districtResult;
-        }
-        var districtedAddress = new DistrictedAddress(geocodedAddress, null, DistrictMatchLevel.NOMATCH);
-        var districtInfo = new DistrictInfo();
-        var resultStatus = ResultStatus.INSUFFICIENT_ADDRESS;
-
-        Address address = geocodedAddress.getAddress();
-        GeocodeQuality geocodeQuality = geocodedAddress.getGeocode().quality();
-        Map<DistrictType, Set<String>> matches;
-        List<Integer> zip5List = new ArrayList<>();
-        List<String> streetList = new ArrayList<>();
-
-        logger.debug("Zip Provided: {}", zipProvided);
-
-        DistrictMatchLevel matchLevel = switch (geocodeQuality) {
-            case STATE, COUNTY -> DistrictMatchLevel.STATE;
-            case CITY -> DistrictMatchLevel.CITY;
-            case ZIP, ZIP_EXT -> DistrictMatchLevel.ZIP5;
-            case STREET -> DistrictMatchLevel.STREET;
-            case HOUSE, POINT -> DistrictMatchLevel.HOUSE;
-            default -> DistrictMatchLevel.NOMATCH;
-        };
-        if (zipProvided && matchLevel == DistrictMatchLevel.NOMATCH) {
-            matchLevel = DistrictMatchLevel.ZIP5;
-            geocodeQuality = GeocodeQuality.ZIP;
-
-            Address reorderdAddress = StreetAddressParser.parseAddress(geocodedAddress.getAddress()).toAddress();
-            geocodedAddress.setAddress(reorderdAddress);
-        }
-        districtedAddress.setDistrictMatchLevel(matchLevel);
-
-        if (geocodeQuality.compareTo(GeocodeQuality.CITY) >= 0) {
-            if (geocodeQuality.compareTo(GeocodeQuality.ZIP) >= 0 && address.getZip5() != null) {
-                if (geocodeQuality.compareTo(GeocodeQuality.STREET) >= 0) {
-                    streetList.add(address.getAddr1());
-                    zip5List = (zipProvided) ? List.of(address.getZip5()) : cityZipDBDao.getZipsByCity(address.getPostalCity());
-                    districtInfo.setStreetRanges(sqlStreetFileDao.getDistrictStreetRanges(address.getAddr1(), zip5List));
-                }
-                else {
-                    zip5List = List.of(address.getZip5());
-                }
-            }
-            else if (!address.getPostalCity().isEmpty()) {
-                zip5List = cityZipDBDao.getZipsByCity(address.getPostalCity());
-            }
-
-            if (!zip5List.isEmpty()) {
-                matches = sqlStreetFileDao.getAllStandardDistrictMatches(streetList, NonnullList.of(zip5List));
-                if (matches != null && !matches.isEmpty()) {
-                    Set<String> zip5Set = zip5List.stream().map(Object::toString).collect(Collectors.toSet());
-                    for (DistrictType matchType : matches.keySet()) {
-                        if (matches.get(matchType) != null && !matches.get(matchType).isEmpty() && !matchType.equals(DistrictType.ZIP)) {
-                            Set<String> distCodeSet = matches.get(matchType);
-                            DistrictOverlap overlap = null;
-                            logger.trace("Matches for {} {}", matchType, distCodeSet);
-
-                            /** Senate districts should always get overlap assigned */
-                            if (matchType.equals(DistrictType.SENATE)) {
-                                overlap = sqlDistrictShapefileDao.getDistrictOverlap(matchType, matches.get(matchType),
-                                        DistrictType.ZIP, zip5Set);
-                                districtInfo.addDistrictOverlap(matchType, overlap);
-                            }
-                            /** If the district set from the street files is size 1, set it as the district */
-                            if (distCodeSet.size() == 1) {
-                                districtInfo.setDistCode(matchType, distCodeSet.iterator().next());
-                            }
-                            /** Otherwise if the overlap count is size 1 for senate, set it as the district */
-                            else if (matchType.equals(DistrictType.SENATE) && overlap != null && overlap.getTargetOverlap().size() == 1) {
-                                districtInfo.setDistCode(matchType, overlap.getOverlapDistrictCodes().get(0));
-                            }
-                        }
-                    }
-                    resultStatus = ResultStatus.SUCCESS;
-                    districtedAddress.setDistrictInfo(districtInfo);
-                    districtedAddress.setDistrictMatchLevel(matchLevel);
-                    logger.info("District match level: {}", matchLevel);
-                }
-            }
-        }
-        districtResult.setStatusCode(resultStatus);
-        districtResult.setDistrictedAddress(districtedAddress);
-        districtResult.setResultTime();
-        if (districtResult.getGeocodedAddress() != null) {
-            logger.info(FormatUtil.toJsonString(districtResult.getGeocodedAddress()));
-        }
-        else {
-            logger.info("The geocoded address was null");
-        }
-        return districtResult;
-    }
-
-    /**
      * Attempts to obtain overlapping district information for a specific district of arbitrary type.
      * @param districtType DistrictType the DistrictType of the district to get intersections with
      * @param districtId String the id of the district to get intersections with
@@ -256,11 +132,9 @@ public class DistrictShapefile extends DistrictService implements MapService {
      * @return DistrictResult with overlaps set.
      */
     public IntersectResult getIntersectionResult(DistrictType districtType, String districtId, DistrictType intersectType) {
-        // The match can always be set to the state level
-        Map<DistrictType, Set<String>> matches = sqlStreetFileDao.getAllIntersections(districtType, districtId);
         DistrictMap sourceMap = sqlDistrictShapefileDao.getOverlapReferenceBoundary(districtType, Set.of(districtId));
         // We only need the overlap for the specified intersect type
-        DistrictOverlap overlap = sqlDistrictShapefileDao.getDistrictOverlap(intersectType, matches.get(intersectType),
+        DistrictOverlap overlap = sqlDistrictShapefileDao.getDistrictOverlap(intersectType, null,
                 districtType, Set.of(districtId));
         return new IntersectResult(MapSource.SHAPEFILE, sourceMap, overlap);
     }

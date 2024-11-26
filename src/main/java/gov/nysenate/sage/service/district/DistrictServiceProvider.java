@@ -31,23 +31,12 @@ import static gov.nysenate.sage.provider.district.DistrictSource.STREETFILE;
  */
 @Service
 public class DistrictServiceProvider implements SageDistrictServiceProvider {
-    public enum DistrictStrategy {
-        // TODO: rename, because this uses streetfile values even if shape lookup succeeds
-        // Perform shape lookup and consolidate street file results.
-        streetFallback,
-        // Perform street lookup and only fall back to shape files when street lookup failed.
-        shapeFallback,
-        // Perform street lookup only
-        streetOnly,
-        // Perform shape lookup only
-        shapeOnly
-    }
-
     private final Map<DistrictSource, DistrictService> providers = new HashMap<>();
     private final PostOfficeService postOfficeService;
 
     @Autowired
-    public DistrictServiceProvider(DistrictShapefile districtShapefile, Streetfile streetFile, PostOfficeService postOfficeService) {
+    public DistrictServiceProvider(DistrictShapefile districtShapefile, Streetfile streetFile,
+                                   PostOfficeService postOfficeService) {
         this.postOfficeService = postOfficeService;
         providers.put(SHAPEFILE, districtShapefile);
         providers.put(STREETFILE, streetFile);
@@ -72,15 +61,9 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
      * Assign standard districts with options set in BatchDistrictRequest.
      */
     public List<DistrictResult> assignDistricts(final BatchDistrictRequest bdr) {
-        return assignDistricts(bdr.getGeocodedAddresses(), bdr.getProviders(), DistrictType.getStandardTypes());
-    }
-
-    /** {@inheritDoc} */
-    public List<DistrictResult> assignDistricts(final List<GeocodedAddress> geocodedAddresses, final List<DistrictSource> distProviders,
-                                                final List<DistrictType> districtTypes) {
         List<List<DistrictResult>> batches = new ArrayList<>();
-        for (DistrictSource provider : distProviders) {
-            batches.add(providers.get(provider).assignDistricts(geocodedAddresses, districtTypes));
+        for (DistrictSource provider : bdr.getProviders()) {
+            batches.add(providers.get(provider).assignDistricts(bdr.getGeocodedAddresses(), DistrictType.getStandardTypes()));
         }
         // Ensures the batch results are all the same size.
         if (batches.stream().map(List::size).distinct().count() != 1) {
@@ -106,15 +89,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider {
                 result.setDistrictedAddress(poResult);
             }
         }
-    }
-
-    /** Multi District Overlap ---------------------------------------------------------------------------------------*/
-
-    public DistrictResult assignMultiMatchDistricts(GeocodedAddress geocodedAddress, boolean zipProvided) {
-        var districtShapeFile = (DistrictShapefile) providers.get(SHAPEFILE);
-        DistrictResult districtResult = districtShapeFile.getMultiMatchResult(geocodedAddress, zipProvided);
-        districtResult.setResultTime();
-        return districtResult;
     }
 
     /**

@@ -24,20 +24,17 @@ import java.util.concurrent.Future;
 @Service
 public class ParallelDistrictService implements SageParallelDistrictService {
     private static final Logger logger = LoggerFactory.getLogger(ParallelDistrictService.class);
-    private final int thread_count;
     private final ThreadPoolTaskExecutor executor;
 
     @Autowired
     public ParallelDistrictService(Environment env) {
-        this.thread_count = env.getValidateThreads();
-        this.executor = ExecutorUtil.createExecutor("district", thread_count);
+        this.executor = ExecutorUtil.createExecutor("district", env.getValidateThreads());
     }
 
     public List<DistrictResult> assignDistricts(DistrictService districtService, List<GeocodedAddress> geocodedAddresses, List<DistrictType> types) {
         var districtResults = new ArrayList<DistrictResult>();
         var futureDistrictResults = new ArrayList<Future<DistrictResult>>();
 
-        logger.trace("District Assigning using " + thread_count + " threads.");
         for (GeocodedAddress geocodedAddress : geocodedAddresses) {
             futureDistrictResults.add(executor.submit(new ParallelDistAssign(districtService, geocodedAddress, types)));
         }

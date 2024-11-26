@@ -2,7 +2,6 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedAddress;
-import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
 import gov.nysenate.sage.model.api.SingleDistrictRequest;
 import gov.nysenate.sage.model.district.DistrictInfo;
@@ -48,11 +47,13 @@ public final class DistrictUtil {
         if (results.isEmpty()) {
             return new DistrictedAddress();
         }
-        GeocodedAddress geoAddr = results.size() == 1 ? results.iterator().next().getGeocodedAddress() : null;
+        if (results.size() == 1) {
+            return results.iterator().next();
+        }
         DistrictInfo districtInfo = consolidateDistrictInfo(results.stream().map(DistrictedAddress::getDistrictInfo).toList());
         DistrictMatchLevel matchLevel = results.stream().map(DistrictedAddress::getDistrictMatchLevel)
                 .min(DistrictMatchLevel::compareTo).orElse(DistrictMatchLevel.NOMATCH);
-        return new DistrictedAddress(geoAddr, districtInfo, matchLevel);
+        return new DistrictedAddress(null, null, districtInfo, matchLevel);
     }
 
     /**

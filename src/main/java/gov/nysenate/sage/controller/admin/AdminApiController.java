@@ -13,6 +13,7 @@ import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.stats.ApiUsageStats;
+import gov.nysenate.sage.model.stats.DeploymentStats;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.auth.JobUserAuth;
@@ -258,7 +259,7 @@ public class AdminApiController {
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = sqlDeploymentStatsDao.getDeploymentStats();
+            adminResponse = new DeploymentStats(sqlDeploymentStatsDao.getDeploymentStats());
         }
         else {
             adminResponse = invalidAuthResponse();
