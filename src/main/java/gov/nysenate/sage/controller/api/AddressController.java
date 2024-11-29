@@ -98,6 +98,7 @@ public final class AddressController {
             @RequestParam(required = false) String zip5,
             @RequestParam(required = false) String zip4) {
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
+        // TODO: unused and not needed
         return new ZipcodeResponse(addressProvider.lookupZipcode(address, provider));
     }
 

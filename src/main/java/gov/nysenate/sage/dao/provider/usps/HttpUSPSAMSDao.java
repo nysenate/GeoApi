@@ -54,8 +54,8 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
 
         StringBuilder urlParams = new StringBuilder();
         try {
-            urlParams.append("?addr1=").append(encode(address.getAddr1()))
-                    .append("&addr2=").append(encode(address.getAddr2()))
+            urlParams.append("?addr1=").append(encode(address.getStreetWithNum()))
+                    .append("&addr2=").append(encode(address.getInternal()))
                     .append("&city=").append(encode(address.getPostalCity()))
                     .append("&state=").append(encode(address.getState()))
                     .append("&zip5=").append(address.getZip5())
@@ -103,8 +103,8 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         ArrayNode requestRoot = jsonNodeFactory.arrayNode();
         for (Address address : addresses) {
             ObjectNode addressNode = jsonNodeFactory.objectNode()
-                    .put("addr1", address.getAddr1())
-                    .put("addr2", address.getAddr2())
+                    .put("addr1", address.getStreetWithNum())
+                    .put("addr2", address.getInternal())
                     .put("city", address.getPostalCity())
                     .put("state", address.getState())
                     .put("zip5", address.getZip5())
@@ -206,7 +206,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         return null;
     }
 
-    public List<AddressResult> getCityStateResults (List<Address> addresses) {
+    public List<AddressResult> getCityStateResults(List<Address> addresses) {
         List<AddressResult> addressResults = new ArrayList<>();
         if (addresses == null) {
             return addressResults;

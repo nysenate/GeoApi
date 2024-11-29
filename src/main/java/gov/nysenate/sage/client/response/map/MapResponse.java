@@ -8,10 +8,10 @@ import gov.nysenate.sage.model.result.MapResult;
 public class MapResponse extends BaseResponse {
     protected DistrictMapView map;
 
-    public MapResponse(MapResult mapResult) {
+    public MapResponse(MapResult mapResult, boolean showMaps) {
         super(mapResult);
         if (mapResult != null && mapResult.isSuccess()) {
-            map = new DistrictMapView(mapResult.getDistrictMap());
+            map = new DistrictMapView(mapResult.getDistrictMap(), showMaps);
         }
     }
 

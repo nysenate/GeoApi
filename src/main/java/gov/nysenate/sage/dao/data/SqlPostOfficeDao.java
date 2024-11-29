@@ -37,7 +37,7 @@ public class SqlPostOfficeDao implements PostOfficeDao {
         for (PostOfficeAddress postalAddress : postalAddresses) {
             Address address = postalAddress.address();
             var params = new MapSqlParameterSource("deliveryZip", postalAddress.deliveryZip())
-                    .addValue("streetWithNum", address.getAddr1())
+                    .addValue("streetWithNum", address.getStreetWithNum())
                     .addValue("city", address.getPostalCity())
                     .addValue("zip5", address.getZip5())
                     .addValue("zip4", address.getZip4());
@@ -49,9 +49,8 @@ public class SqlPostOfficeDao implements PostOfficeDao {
     private static class PostOfficeHandler implements RowMapper<PostOfficeAddress> {
         @Override
         public PostOfficeAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
-            var address = new Address(rs.getString("street_with_num"));
-            address.setPostalCity(rs.getString("city"));
-            address.setZip9(rs.getString("zip5") + "-" + rs.getString("zip4"));
+            var address = new Address(rs.getString("street_with_num"), rs.getString("city"), rs.getString("zip5"));
+            address.setZip4(rs.getString("zip4"));
             return new PostOfficeAddress(rs.getInt("delivery_zip"), address);
         }
     }

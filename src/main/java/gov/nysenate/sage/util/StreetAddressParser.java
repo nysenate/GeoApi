@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
  * Utility class for parsing free-form or semi-parsed addresses into StreetAddress objects.
  * The algorithm does not rely on a specific formatting but supplying commas to delimit the
  * apartment and city from the street can make things easier.
- *
  * Parsing addresses is a core requirement for performing street file look-ups as well as
  * performing geocode caching as they both operate on StreetAddress objects.
  */
@@ -63,14 +62,12 @@ public final class StreetAddressParser {
     /**
      * This method takes in a street address and ensures that it is in mixed case
      * For example, W TYPICAL ST NW APT 1S -> W Typical St NW Apt 1S
-     *
      * @param address address
-     * @return
      */
     public static Address performInitCapsOnAddress(Address address) {
-        address.setAddr1(initCapStreetLine(address.getAddr1()));
-        address.setAddr2(initCapStreetLine(address.getAddr2()));
-        address.setPostalCity( WordUtils.capitalizeFully(address.getPostalCity().toLowerCase()) );
+        address.setStreetWithNum(initCapStreetLine(address.getStreetWithNum()));
+        address.setInternal(initCapStreetLine(address.getInternal()));
+        address.setPostalCity(WordUtils.capitalizeFully(address.getPostalCity().toLowerCase()));
         return address;
     }
 
@@ -81,23 +78,22 @@ public final class StreetAddressParser {
      * @param line String
      * @return String
      */
-    private static String initCapStreetLine(String line) {
-        /** Perform init caps on the street address */
+    public static String initCapStreetLine(String line) {
+        // Perform init caps on the street address
         line = WordUtils.capitalizeFully(line.toLowerCase());
-        /** Ensure unit portion is fully uppercase e.g 2N */
+        // Ensure unit portion is fully uppercase e.g. 2N
         Pattern p = Pattern.compile("([0-9]+-?[a-z]+[0-9]*)$");
         Matcher m = p.matcher(line);
         if (m.find()) {
             line = m.replaceFirst(m.group().toUpperCase());
         }
-        /** Ensure (SW|SE|NW|NE) are not init capped */
+        // Ensure (SW|SE|NW|NE) are not init capped
         p = Pattern.compile("(?i)\\b(SW|SE|NW|NE)\\b");
         m = p.matcher(line);
         if (m.find()) {
             line = m.replaceAll(m.group().toUpperCase());
         }
-        /** Change Po Box to PO Box */
-        line = line.replaceAll("Po Box", "PO Box");
+        line = line.replaceAll("(?i)Po Box", "PO Box");
         return line;
     }
 }

@@ -6,7 +6,6 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.StreetAddressParser;
 
 public class NYSGeoAddress {
-
     private String addresslabel = "";
     private String citytownname = "";
     private String state = "";
@@ -16,16 +15,6 @@ public class NYSGeoAddress {
     private int pointtype = 0;
 
     public NYSGeoAddress() {}
-
-    public NYSGeoAddress(String addresslabel, String citytownname, String state, String zipcode, double latitude, double longitude, int pointtype) {
-        this.addresslabel = addresslabel;
-        this.citytownname = citytownname;
-        this.state = state;
-        this.zipcode = zipcode;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.pointtype = pointtype;
-    }
 
     public Address toAddress() {
         return new Address(addresslabel, citytownname, state, zipcode);
@@ -39,16 +28,8 @@ public class NYSGeoAddress {
         return new Geocode(new Point(getLatitude(),getLongitude()),GeocodeQuality.HOUSE, "NYS Geo DB");
     }
 
-    public String getAddresslabel() {
-        return addresslabel;
-    }
-
     public void setAddresslabel(String addresslabel) {
         this.addresslabel = addresslabel;
-    }
-
-    public String getCitytownname() {
-        return citytownname;
     }
 
     public void setCitytownname(String citytownname) {

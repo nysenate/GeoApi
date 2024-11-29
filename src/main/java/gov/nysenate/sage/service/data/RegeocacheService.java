@@ -224,7 +224,7 @@ public class RegeocacheService implements SageRegeocacheService {
 
     //Formats a url for use with some form of geocaching
     private String formatMassGeocacheUrl(String url, Address geocacheAddress) {
-        url = String.format(url, geocacheAddress.getAddr1(), geocacheAddress.getAddr2(),
+        url = String.format(url, geocacheAddress.getStreetWithNum(), geocacheAddress.getInternal(),
                 geocacheAddress.getPostalCity(), geocacheAddress.getState(), geocacheAddress.getZip5());
         url = url.replaceAll(" ", "%20");
         url = StringUtils.deleteWhitespace(url);

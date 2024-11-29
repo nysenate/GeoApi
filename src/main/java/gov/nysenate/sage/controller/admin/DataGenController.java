@@ -133,24 +133,6 @@ public class DataGenController {
         });
     }
 
-    /**
-     * Generate Zip Code CSV File Api [test case: scope public]
-     * ---------------------------
-     * <p>
-     * Creates a zip code csv file for use with the Street File parsing
-     * <p>
-     * Usage:
-     * (GET)    /admin/datagen/zipcodes
-     */
-
-    @GetMapping(value = "/zipcodes")
-    public void generateZipCodeFiles(HttpServletRequest request, HttpServletResponse response,
-                                     @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                     @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                                     @RequestParam(required = false, defaultValue = "") String key) {
-        authenticateAndRun(request, response, username, password, key, dataGenService::generateZipCsv);
-    }
-
     @GetMapping(value = "/process/post-offices")
     public void processPostOffices(HttpServletRequest request, HttpServletResponse response,
                                    @RequestParam(required = false, defaultValue = "defaultUser") String username,

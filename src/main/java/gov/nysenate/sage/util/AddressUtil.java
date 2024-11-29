@@ -13,42 +13,38 @@ public final class AddressUtil {
 
     /**
      * Adds a period to the end of every directional, street type abbreviation, and unit type.
-     * @param address
      * @return Punctuated address
      */
     public static Address addPunctuation(Address address) {
-        if (address != null && !address.isEmpty()) {
-            Set<String> streetTypes = new HashSet<>();
-            streetTypes.addAll(AddressDictionary.streetTypeMap.values());
-            streetTypes.addAll(AddressDictionary.highWayMap.values());
-
-            String unitAlt = StringUtils.join(AddressDictionary.unitMap.values(), "|");
-            String stTypeAlt = StringUtils.join(streetTypes, "|");
-            String directionalAlt = StringUtils.join(AddressDictionary.directionMap.values(), "|");
-
-            String addr1 = address.getAddr1();
-            String res = addr1;
-
-            if (addr1 != null && !addr1.isEmpty()) {
-                Matcher m = Pattern.compile("(?i)(" + unitAlt + ")( *#? *\\d*-?\\w*)$").matcher(addr1);
-                if (m.find()) {
-                    String internal = m.group();
-                    addr1 = m.replaceFirst("$1.$2");
-                }
-                Matcher dirM = Pattern.compile("(?i)\\b(" + directionalAlt + ")\\b").matcher(addr1);
-                if (dirM.find()) {
-                    String postDir = dirM.group();
-                    addr1 = dirM.replaceAll("$1.");
-                }
-                String addr1Rev = StringUtils.reverseDelimited(addr1, ' ');
-                Matcher stypeM = Pattern.compile("(?i)\\b(" + stTypeAlt + ")\\b").matcher(addr1Rev);
-                if (stypeM.find()) {
-                    String streetType = addr1Rev.substring(stypeM.start(), stypeM.end());
-                    addr1 = addr1.replaceFirst("\\b" + streetType + "\\b", streetType + ".");
-                }
-            }
-            address.setAddr1(addr1);
+        if (address == null || !address.isValid()) {
+            return address;
         }
+        Set<String> streetTypes = new HashSet<>();
+        streetTypes.addAll(AddressDictionary.streetTypeMap.values());
+        streetTypes.addAll(AddressDictionary.highWayMap.values());
+
+        String unitAlt = String.join("|", AddressDictionary.unitMap.values());
+        String stTypeAlt = String.join("|", streetTypes);
+        String directionalAlt = String.join("|", AddressDictionary.directionMap.values());
+
+        String streetWithNum = address.getStreetWithNum();
+
+        if (streetWithNum != null && !streetWithNum.isEmpty()) {
+            Matcher m = Pattern.compile("(?i)(" + unitAlt + ")( *#? *\\d*-?\\w*)$").matcher(streetWithNum);
+            if (m.find()) {
+                streetWithNum = m.replaceFirst("$1.$2");
+            }
+            Matcher dirM = Pattern.compile("(?i)\\b(" + directionalAlt + ")\\b").matcher(streetWithNum);
+            if (dirM.find()) {
+                streetWithNum = dirM.replaceAll("$1.");
+            }
+            String addr1Rev = StringUtils.reverseDelimited(streetWithNum, ' ');
+            Matcher stypeM = Pattern.compile("(?i)\\b(" + stTypeAlt + ")\\b").matcher(addr1Rev);
+            if (stypeM.find()) {
+                streetWithNum = StringUtils.reverseDelimited(stypeM.replaceAll("$1."), ' ');
+            }
+        }
+        address.setStreetWithNum(streetWithNum);
         return address;
     }
 

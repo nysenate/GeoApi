@@ -3,6 +3,7 @@ package gov.nysenate.sage.provider.address;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.text.WordUtils;
 import org.apache.http.client.fluent.Content;
@@ -29,8 +30,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * USPS adapter used for performing address validations.
@@ -183,24 +182,7 @@ public class USPSAIS implements AddressService {
 
                         if (addr2 != null) {
                             /** Perform init caps on the street address */
-                            addr2 = WordUtils.capitalizeFully(addr2.toLowerCase());
-
-                            /** Ensure unit portion is fully uppercase e.g 2N */
-                            Pattern p = Pattern.compile("([0-9]+-?[a-z]+[0-9]*)$");
-                            Matcher m = p.matcher(addr2);
-                            if (m.find()) {
-                                addr2 = m.replaceFirst(m.group().toUpperCase());
-                            }
-
-                            /** Ensure (SW|SE|NW|NE) are not init capped */
-                            p = Pattern.compile("(?i)\\b(SW|SE|NW|NE)\\b");
-                            m = p.matcher(addr2);
-                            if (m.find()) {
-                                addr2 = m.replaceAll(m.group().toUpperCase());
-                            }
-
-                            /** Change Po Box to PO Box */
-                            addr2 = addr2.replaceAll("Po Box", "PO Box");
+                            addr2 = StreetAddressParser.initCapStreetLine(addr2);
                         }
 
                         /** USPS usually sets the addr2 which is not intuitive. Here we can
@@ -319,12 +301,12 @@ public class USPSAIS implements AddressService {
                         if (!Address.validState(xpath.evaluate("State", addressResponse))) {
                            return null;
                         }
-                        Address resultAddress = new Address();
+                        var resultAddress = new Address();
                         String city = xpath.evaluate("City", addressResponse);
                         city = (city != null) ? WordUtils.capitalizeFully(city) : city;
-                        resultAddress.setPostalCity(city);
                         String zip5 = xpath.evaluate("Zip5", addressResponse);
-                        resultAddress.setZip5(Integer.parseInt(zip5));
+                        resultAddress.setPostalCity(city);
+                        resultAddress.setZip5(zip5);
 
                         batchResults.get(index % BATCH_SIZE).setAddress(resultAddress);
                     }
@@ -369,7 +351,7 @@ public class USPSAIS implements AddressService {
                            + "<Zip5>%s</Zip5>"
                            + "<Zip4>%s</Zip4>"
                            + "</Address>",
-                           id, "", (addr.getAddr1() + " " + addr.getAddr2()).trim(), addr.getPostalCity(),
+                           id, "", (addr.getStreetWithNum() + " " + addr.getInternal()).trim(), addr.getPostalCity(),
                            addr.getState(), addr.getZip5(), addr.getZip4());
     }
 }

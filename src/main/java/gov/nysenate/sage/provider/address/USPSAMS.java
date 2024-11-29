@@ -32,7 +32,7 @@ public class USPSAMS implements AddressService {
     @Nonnull
     @Override
     public AddressResult validate(Address address) {
-        if (address != null && !address.isEmpty()) {
+        if (address != null && address.isValid()) {
             AddressResult result = httpUSPSAMSDao.getValidatedAddressResult(address);
             if (result != null) {
                 return result;
@@ -72,7 +72,7 @@ public class USPSAMS implements AddressService {
     @Nonnull
     @Override
     public AddressResult lookupCityState(Address address) {
-        if (address != null && !address.isEmpty() && address.getZip5() != null) {
+        if (address != null && address.isValid() && address.getZip5() != null) {
             AddressResult result = httpUSPSAMSDao.getCityStateResult(address);
             if (result != null) {
                 return result;

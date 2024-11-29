@@ -60,10 +60,10 @@ public class TopLevelDistrictService {
         /* Parse the input address */
         StreetAddress streetAddress = StreetAddressParser.parseAddress(address);
 
-        if (!address.isEmpty()) {
+        if (!address.isValid()) {
             /* Perform USPS address correction if requested */
             if (districtRequest.isUspsValidate()) {
-                if (address.isEligibleForUSPS()) {
+                if (address.isValid()) {
                     address = streetAddress.toAddress();
                 }
                 address = performAddressCorrection(address, districtRequest);
@@ -127,22 +127,12 @@ public class TopLevelDistrictService {
             GeocodeResult geocodeResult = geocodeResults.get(i);
             Address currAddress = addresses.get(i);
             // Use Address if good, otherwise just keep geocoded address
-            if (!currAddress.isEmpty() && currAddress.isUspsValidated()) {
+            if (currAddress.isValid() && currAddress.isUspsValidated()) {
                 geocodeResult.setAddress(currAddress);
             }
         }
 
         return geocodeResults.stream().map(GeocodeResult::getGeocodedAddress).toList();
-    }
-
-    /**
-     * Determines if a zip5 was specified in the input address.
-     *
-     * @param streetAddress Parsed input Address
-     * @return True if zip5 was provided, false otherwise
-     */
-    private static boolean isZipProvided(StreetAddress streetAddress) {
-        return streetAddress != null && streetAddress.getZip5() != null;
     }
 
     /**
@@ -156,11 +146,8 @@ public class TopLevelDistrictService {
         boolean usePunct = districtRequest != null && districtRequest.isUsePunct();
         AddressResult addressResult = addressProvider.validate(address, null, usePunct);
         if (addressResult != null && addressResult.isValidated()) {
-            if (logger.isTraceEnabled()) {
-                logger.trace("USPS Validated Address: " + addressResult.getAddress().toLogString());
-            }
             var validatedAddress = addressResult.getAddress();
-            if (validatedAddress != null && !validatedAddress.isEmpty()) {
+            if (validatedAddress != null && validatedAddress.isValid()) {
                 validatedAddress.setUspsValidated(true);
                 return validatedAddress;
             }

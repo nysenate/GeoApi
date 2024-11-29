@@ -2,9 +2,7 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.map.MapResponse;
-import gov.nysenate.sage.client.response.map.MetadataResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapResponse;
-import gov.nysenate.sage.client.response.map.MultipleMetadataResponse;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.provider.district.DistrictShapefile;
@@ -42,8 +40,9 @@ public class MapController {
      * Usage:
      * (GET)    /api/v2/map/{distType}
      */
+    // TODO: weird that this does not necessarily return maps
     @GetMapping(value = "/{distType}")
-    public BaseResponse mapSchool(@PathVariable String distType,
+    public BaseResponse map(@PathVariable String distType,
                                   @RequestParam(required = false) String district,
                                   @RequestParam(required = false) boolean showMembers,
                                   @RequestParam(required = false) boolean meta) {
@@ -56,14 +55,15 @@ public class MapController {
             if (showMembers || meta) {
                 districtMemberProvider.assignDistrictMembers(mapResult);
             }
-            return (meta) ? new MetadataResponse(mapResult) : new MapResponse(mapResult);
+            return new MapResponse(mapResult, !meta);
         } else {
             logger.info("Retrieving all {} district maps.", districtType.name());
             mapResult = districtShapefile.getDistrictMaps(districtType);
             if (showMembers || meta) {
                 districtMemberProvider.assignDistrictMembers(mapResult);
             }
-            return (meta) ? new MultipleMetadataResponse(mapResult) : new MultipleMapResponse(mapResult);
+            return new MultipleMapResponse(mapResult, !meta);
         }
+
     }
 }

@@ -40,7 +40,7 @@ public final class StreetfileAddressCorrectionService {
             List<AddressWithoutNum> awns = toCorrectMap.keySet().stream().limit(VALIDATION_BATCH_SIZE).toList();
             List<Integer> numsToValidate = awns.stream().map(awn -> toCorrectMap.get(awn).poll()).toList();
             List<Address> toValidate = IntStream.range(0, awns.size())
-                    .mapToObj(index -> getAddress(numsToValidate.get(index), awns.get(index))).toList();
+                    .mapToObj(index -> awns.get(index).toAddress(numsToValidate.get(index))).toList();
             List<AddressResult> validationResults = amsDao.getValidatedAddressResults(toValidate);
 
             for (int addrIndex = 0; addrIndex < validationResults.size(); addrIndex++) {
@@ -90,12 +90,5 @@ public final class StreetfileAddressCorrectionService {
             }
         }
         return rank;
-    }
-
-    private static Address getAddress(int num, AddressWithoutNum awn) {
-        var addr = new Address(num + " " + awn.street());
-        addr.setPostalCity(awn.postalCity());
-        addr.setZip5(awn.zip5());
-        return addr;
     }
 }

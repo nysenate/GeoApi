@@ -11,25 +11,20 @@ import static org.junit.Assert.*;
 public class AddressTest {
 
     @Test
-    public void toStringTest()
-    {
+    public void toStringTest() {
         Address address = new Address("1234 Testing Ln", "Test Valley", "T", "12345");
         assertEquals("1234 Testing Ln, Test Valley, T 12345", address.toString());
     }
 
     @Test
-    public void isEmptyTest()
-    {
-        Address a = new Address();
-        assertTrue(a.isEmpty());
-
-        a.setAddr1("Test");
-        assertFalse(a.isEmpty());
+    public void isEmptyTest() {
+        var a = new Address();
+        assertFalse(a.isValid());
+        assertFalse(a.isValid());
     }
 
     @Test
-    public void isEligibleForValidationTest()
-    {
+    public void isEligibleForValidationTest() {
         Address eligibile1 = new Address("100 N Drive", "Troy", "NY", "12180");
         Address eligibile2 = new Address("100 N Drive", "", "", "12180");
         Address eligibile3 = new Address("100 N Drive", "Troy", "NY", "");
@@ -38,12 +33,12 @@ public class AddressTest {
         Address notEligibile3 = new Address("100 N Drive", "Troy", "", "");
         Address notEligibile4 = new Address("", "Troy", "NY", "12180");
 
-        assertTrue(eligibile1.isEligibleForUSPS());
-        assertTrue(eligibile2.isEligibleForUSPS());
-        assertTrue(eligibile3.isEligibleForUSPS());
-        assertFalse(notEligibile1.isEligibleForUSPS());
-        assertFalse(notEligibile2.isEligibleForUSPS());
-        assertFalse(notEligibile3.isEligibleForUSPS());
-        assertFalse(notEligibile4.isEligibleForUSPS());
+        assertTrue(eligibile1.isValid());
+        assertTrue(eligibile2.isValid());
+        assertTrue(eligibile3.isValid());
+        assertFalse(notEligibile1.isValid());
+        assertFalse(notEligibile2.isValid());
+        assertFalse(notEligibile3.isValid());
+        assertFalse(notEligibile4.isValid());
     }
 }

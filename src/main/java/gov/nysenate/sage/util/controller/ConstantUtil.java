@@ -11,10 +11,4 @@ public class ConstantUtil {
     public static final String REST_PATH = "/api/v2/";
     public static final String JOB_LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
     public static final String DOWNLOAD_BASE_URL = "/job/download/";
-
-    public static final String ZIPS_DIRECTORY = "/data/geoapi_data/zips/";
-    public static final String ZIPCODESTOGO_FILE = "zipcodestogo.csv";
-    public static final String ZIPCODES_FILE = "zipcodes.csv";
-    public static final String LAST_ZIPCODE_FILE = "final_list_zipcodes.csv";
-
 }

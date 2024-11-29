@@ -100,7 +100,7 @@ public class SqlStreetfileDao implements StreetfileDao {
         if (matchLevel.compareTo(DistrictMatchLevel.HOUSE) >= 0) {
             int bldgNum;
             try {
-                bldgNum = Integer.parseInt(addr.getAddr1().replaceFirst(" .*$", ""));
+                bldgNum = Integer.parseInt(addr.getStreetWithNum().replaceFirst(" .*$", ""));
             } catch (NumberFormatException ex) {
                 logger.warn("Did not parse building number.");
                 return getDistrictedAddress(addr, matchLevel.getNextHighestLevel());

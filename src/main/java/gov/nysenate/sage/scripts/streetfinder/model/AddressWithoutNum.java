@@ -17,6 +17,10 @@ public record AddressWithoutNum(String street, String postalCity, int zip5) {
         return new AddressWithoutNum(sa.getStreet(), sa.getPostalCity(), sa.getZip5());
     }
 
+    public Address toAddress(int num) {
+        return new Address(num + " " + street, postalCity, String.valueOf(zip5));
+    }
+
     public AddressWithoutNum intern() {
         return interned.get(this);
     }

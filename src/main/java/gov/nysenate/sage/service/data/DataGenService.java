@@ -1,10 +1,7 @@
 package gov.nysenate.sage.service.data;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
 import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
@@ -12,40 +9,26 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.provider.geocode.Geocoder;
+import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.sage.util.StreetAddressParser;
-import gov.nysenate.sage.util.controller.ConstantUtil;
 import gov.nysenate.services.NYSenateClientService;
 import gov.nysenate.services.NYSenateJSONClient;
 import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Office;
 import gov.nysenate.services.model.Senator;
-import org.apache.commons.io.IOUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
@@ -55,17 +38,17 @@ public class DataGenService implements SageDataGenService {
     private final SqlAssemblyDao sqlAssemblyDao;
     private final SqlCongressionalDao sqlCongressionalDao;
     private final SqlSenateDao sqlSenateDao;
-    private final Environment env;
-    @Value("${nysenate.domain:http://www.nysenate.gov}")
+    private final GeocodeServiceProvider geocodeProvider;
+    @Value("${nysenate.domain:https://www.nysenate.gov}")
     private String nysenateDomain;
 
     @Autowired
     public DataGenService(SqlSenateDao sqlSenateDao, SqlAssemblyDao sqlAssemblyDao,
-                          SqlCongressionalDao sqlCongressionalDao, Environment env) {
+                          SqlCongressionalDao sqlCongressionalDao, GeocodeServiceProvider geocodeProvider) {
         this.sqlSenateDao = sqlSenateDao;
         this.sqlAssemblyDao = sqlAssemblyDao;
         this.sqlCongressionalDao = sqlCongressionalDao;
-        this.env = env;
+        this.geocodeProvider = geocodeProvider;
     }
 
     public Object vacantizeSenateData() {
@@ -97,7 +80,7 @@ public class DataGenService implements SageDataGenService {
             updated = true;
         }
         catch (Exception e) {
-            logger.error("Failed to vacantize the Senator table " + e);
+            logger.error("Failed to vacantize the Senator table {}", String.valueOf(e));
             apiResponse = new ApiError(this.getClass(), INTERNAL_ERROR);
         }
 
@@ -162,7 +145,6 @@ public class DataGenService implements SageDataGenService {
     private boolean generateCongressionalData() {
         logger.info("Indexing NY Congress by scraping its website...");
 
-        /** Retrieve the congressional members and insert into the database */
         List<Congressional> congressionals = CongressScraper.getCongressionals();
         for (Congressional congressional : congressionals) {
             int district = congressional.getDistrict();
@@ -185,7 +167,6 @@ public class DataGenService implements SageDataGenService {
     private boolean generateAssemblyData() {
         logger.info("Indexing NY Assembly by scraping its website...");
 
-        /** Retrieve the assemblies and insert into the database */
         List<Assembly> assemblies = AssemblyScraper.getAssemblies();
         for (Assembly assembly : assemblies) {
             int district = assembly.getDistrict();
@@ -208,32 +189,19 @@ public class DataGenService implements SageDataGenService {
      */
     private boolean generateSenateData() throws IOException {
         boolean updated = false;
-
         NYSenateClientService senateClient;
-
         logger.info("Generating senate data from NY Senate client services");
-
-        /** Obtain the senate client service */
-
         senateClient = new NYSenateJSONClient(nysenateDomain);
-
-        /** Retrieve the list of senators from the client API */
         List<Senator> senators = senateClient.getSenators();
-
-//        boolean[] emptySenators = new boolean[62];
-//        for (int i=0; i < 62; i++) {
-//            emptySenators[i] = true;
-//        }
 
         for (Senator senator : senators) {
             int district = senator.getDistrict().getNumber();
             if (district > 0) {
-//                emptySenators[district] = false;
-                Senator existingSenator = sqlSenateDao.getSenatorByDistrict(district);
                 for (Office office : senator.getOffices()) {
-                    getUpdatedGeocode(office);
+                    setUpdatedGeocode(office);
                 }
                 if (verifyOfficeGeocode(senator)) {
+                    Senator existingSenator = sqlSenateDao.getSenatorByDistrict(district);
                     if (existingSenator == null) {
                         sqlSenateDao.insertSenate(senator.getDistrict());
                         sqlSenateDao.insertSenator(senator);
@@ -244,24 +212,11 @@ public class DataGenService implements SageDataGenService {
                     }
                 }
                 else {
-                    logger.info("Could not update Senator " + senator.getName() + " District: " + district);
+                    logger.info("Could not update Senator {} District: {}", senator.getName(), district);
                 }
                 updated = true;
             }
         }
-        //handle the empty ones
-//        for (int i=0; i < 62; i++) {
-//            if (emptySenators[i] = true) {
-//                Senator vacantSenator = new Senator();
-//                vacantSenator.setDistrict(new District(i,"https://www.nysenate.gov/district/" + i));
-//                vacantSenator.setShortName("Vacant");
-//                vacantSenator.setName("Vacant");
-//                vacantSenator.setFirstName("Empty");
-//                vacantSenator.setLastName("District");
-//                vacantSenator.setImageUrl("https://www.nysenate.gov/sites/all/themes/nysenate/images/nys_logo224x224.png");
-//                updated = true;
-//            }
-//        }
 
         if (updated) {
             updateSenatorCache();
@@ -277,9 +232,7 @@ public class DataGenService implements SageDataGenService {
                 logger.info("Congressional District {} [{}] updated", c1.getDistrict(), c1.getMemberName());
                 return true;
             }
-        } else if (c1 == null && c2 != null) {
-            return true;
-        }
+        } else return c1 == null && c2 != null;
         return false;
     }
 
@@ -288,57 +241,29 @@ public class DataGenService implements SageDataGenService {
             if (!(a1.getDistrict() == a2.getDistrict() &&
                     a1.getMemberName().equals(a2.getMemberName()) &&
                     a1.getMemberUrl().trim().equals(a2.getMemberUrl().trim()))) {
-                logger.info("Assembly District " + a1.getDistrict() + " [" + a1.getMemberName() + "] updated");
+                logger.info("Assembly District {} [{}] updated", a1.getDistrict(), a1.getMemberName());
                 return true;
             }
-        } else if (a1 == null && a2 != null) {
-            return true;
-        }
+        } else return a1 == null && a2 != null;
         return false;
     }
 
-    private void getUpdatedGeocode(Office senatorOffice) {
+    private void setUpdatedGeocode(Office senatorOffice) {
         //Convert Senator Object info into an address
-        Address officeAddress = new Address(senatorOffice.getStreet(),senatorOffice.getCity(),
-                "NY",senatorOffice.getPostalCode());
-        officeAddress.setAddr1( senatorOffice.getStreet().toLowerCase()
-                .replaceAll("avesuite", "ave suite").replaceAll("avenuesuite", "avenue suite"));
-        //Reorder the address
-        officeAddress = StreetAddressParser.parseAddress(officeAddress).toAddress();
-        //URL Encode all of the address parts
-        officeAddress.setAddr1( URLEncoder.encode(officeAddress.getAddr1(), StandardCharsets.UTF_8)  );
-        officeAddress.setAddr2( URLEncoder.encode(officeAddress.getAddr2(), StandardCharsets.UTF_8) );
-        officeAddress.setPostalCity( URLEncoder.encode(officeAddress.getPostalCity(), StandardCharsets.UTF_8) );
-        officeAddress.setZip5(officeAddress.getZip5());
+        String street = senatorOffice.getStreet().replaceAll("(?i)Avesuite", "Ave Suite")
+                .replaceAll("(?i)avenuesuite", "Avenue Suite");
+        Address officeAddress = new Address(street, senatorOffice.getCity(), senatorOffice.getPostalCode());
         //Ensure Mixed Case
         StreetAddressParser.performInitCapsOnAddress(officeAddress);
-        //Construct Url String
-        String urlString = env.getBaseUrl() + "/api/v2/geo/geocode?addr1=" +
-                officeAddress.getAddr1() + "&addr2=" + officeAddress.getAddr2() + "&city=" + officeAddress.getPostalCity() +
-                "&state=NY&zip5=" + officeAddress.getZip5();
-        urlString = urlString.replaceAll(" ", "%20");
-        try {
-            URL url = new URL(urlString);
-            InputStream is = url.openStream();
-            String sageResponse = IOUtils.toString(is, StandardCharsets.UTF_8);
-            JsonNode jsonResponse = new ObjectMapper().readTree(sageResponse);
-            is.close();
+        GeocodeResult result = geocodeProvider.geocode(officeAddress, List.of(Geocoder.NYSGEO, Geocoder.GOOGLE), false);
 
-            if (jsonResponse.get("status").toString().equals("\"SUCCESS\"")) {
-                Geocode geocodedOffice = new ObjectMapper().readValue(jsonResponse.get("geocode").toString(), Geocode.class);
-                if (geocodedOffice != null) {
-                    senatorOffice.setLatitude( geocodedOffice.lat() );
-                    senatorOffice.setLongitude( geocodedOffice.lon() );
-                }
-            }
-            else {
-                logger.error("SAGE was unable to geocode the address in the url: " + urlString);
-            }
-
+        if (result.isSuccess()) {
+            Geocode geocodedOffice = result.getGeocode();
+            senatorOffice.setLatitude(geocodedOffice.lat());
+            senatorOffice.setLongitude(geocodedOffice.lon());
         }
-        catch (IOException e) {
-            logger.error("Unable to complete geocoding request to Senate Office " + senatorOffice.getStreet() +
-                    ", " + senatorOffice.getCity() + ", NY " + senatorOffice.getPostalCode() + " " +e.getMessage());
+        else {
+            logger.error("SAGE was unable to geocode this office address: {}", officeAddress);
         }
     }
 
@@ -355,125 +280,4 @@ public class DataGenService implements SageDataGenService {
         }
         return true;
     }
-
-
-    /**
-     * Connects to the following two services: createZipCodesToGoFile and createZipCodesFile,
-     * creates and compares the two files that was created.
-     * A file that results from the comparison called final_list_zipcodes.csv will be created.
-     */
-    public Object generateZipCsv() {
-        if (!siteZipCodesToGoCsv() || !siteZipCodesCsv()) {
-            return new ApiError(this.getClass(), INTERNAL_ERROR);
-        }
-        Map<String,String> mapZips = new HashMap<>();
-        try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
-                + ConstantUtil.ZIPCODES_FILE))) {
-            stream.forEach(line -> {
-                String[] zipcodeType = line.split(",");
-                String zip = zipcodeType[0];
-                String type = zipcodeType[1].trim();
-                mapZips.put(zip,type);
-            });
-        }
-        catch (IOException e) {
-            logger.error("Unable to read " + ConstantUtil.ZIPCODES_FILE);
-        }
-        try (Stream<String> stream = Files.lines(Paths.get(ConstantUtil.ZIPS_DIRECTORY
-                + ConstantUtil.ZIPCODESTOGO_FILE))) {
-            stream.forEach(line -> {
-                if(!mapZips.containsKey(line)){
-                    mapZips.put(line,"");
-                }
-            });
-        }
-        catch (IOException e) {
-            logger.error("Unable to read " + ConstantUtil.ZIPCODESTOGO_FILE);
-        }
-        List<String> finalList = new ArrayList<>();
-        try {
-            mapZips.forEach((key, value) -> finalList.add(key + "," + value));
-            FileWriter finalCSV = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.LAST_ZIPCODE_FILE);
-            String collection = String.join("\n", finalList);
-            finalCSV.write(collection);
-            finalCSV.close();
-        }
-        catch(IOException e) {
-            logger.error("Unable to write " + ConstantUtil.LAST_ZIPCODE_FILE);
-        }
-        return new GenericResponse(true, SUCCESS.getCode() + ": " + SUCCESS.getDesc());
-
-    }
-
-
-    /**
-     * Connects to zipcodestogo.com and retrieves all the zip codes
-     * present in the first table and writes to a csv file
-     */
-    private boolean siteZipCodesToGoCsv() {
-        try {
-            File zipCodesToGoFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODESTOGO_FILE);
-            if (zipCodesToGoFile.exists()) {
-                logger.info("zipcodestogo.csv file already exists");
-                return true;
-            }
-            Document pageZipCodesToGo;
-            pageZipCodesToGo = Jsoup.connect("https://www.zipcodestogo.com/New%20York/").get();
-            ArrayList<String> arrayZipCodesToGo = new ArrayList<>();
-            for(Element row : pageZipCodesToGo.select("td[align=center]")) {
-                String zip = row.select("a").first().text();
-                arrayZipCodesToGo.add(zip);
-            }
-            FileWriter writerZipsCodesToGo = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODESTOGO_FILE);
-            String collection = String.join("\n", arrayZipCodesToGo);
-            writerZipsCodesToGo.write(collection);
-            writerZipsCodesToGo.close();
-            return true;
-        }
-        catch (IOException excep) {
-            logger.error("Error creating zipcodestogo.csv file", excep);
-            return false;
-        }
-    }
-
-    /**
-     * Connects to zip-codes.com and retrieves all the zip codes
-     * present in the first table and writes to a csv file
-     */
-    private boolean siteZipCodesCsv() {
-        try {
-            File zipCodesFile = new File(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODES_FILE);
-            if (zipCodesFile.exists()) {
-                logger.info("zipcodes.csv file already exists");
-                return true;
-            }
-            Document pageZipCodes = Jsoup.connect("https://www.zip-codes.com/state/ny.asp").get();
-            Elements trs = pageZipCodes.select("table.statTable tr");
-            trs.remove(0);
-            List<String> arrayZipCodes = new ArrayList<>();
-            for(Element row : trs) {
-                Elements tds = row.getElementsByTag("td");
-                Element td = tds.first();
-                Element tdType = tds.last();
-                if(td.text().contains("ZIP Code")) {
-                    String trimedzipCode = td.text();
-                    String type = tdType.text();
-                    trimedzipCode = trimedzipCode.substring(9);
-                    String zipandType = trimedzipCode.concat(", ").concat(type);
-                    arrayZipCodes.add(zipandType);
-                }
-            }
-            var writerZipsCodes = new FileWriter(ConstantUtil.ZIPS_DIRECTORY + ConstantUtil.ZIPCODES_FILE);
-            String collection = String.join("\n", arrayZipCodes);
-            writerZipsCodes.write(collection);
-            writerZipsCodes.close();
-            return true;
-        }
-        catch (IOException excep) {
-            logger.error("Error creating zipcodes.csv file", excep);
-            return false;
-        }
-    }
-
-
 }

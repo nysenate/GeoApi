@@ -87,7 +87,7 @@ public class GeocodeController {
             geocodeRequest.setAddress(uspsAddress);
         }
 
-        if (geocodeRequest.getAddress() == null || geocodeRequest.getAddress().isEmpty()) {
+        if (geocodeRequest.getAddress() == null || !geocodeRequest.getAddress().isValid()) {
             return new ApiError(this.getClass(), MISSING_ADDRESS);
 
         }

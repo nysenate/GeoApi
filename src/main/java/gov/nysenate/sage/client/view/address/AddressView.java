@@ -17,13 +17,14 @@ public class AddressView {
     protected Integer id;
 
     public AddressView(Address address) {
-        this.addr1 = address.getAddr1();
-        this.addr2 = address.getAddr2();
+        this.addr1 = address.getStreetWithNum();
+        this.addr2 = address.getInternal();
         this.city = address.getPostalCity();
         this.state = address.getState();
         this.zip5 = address.getZip5();
         this.zip4 = address.getZip4();
-        this.id = address.getId();
+        // TODO: add back?
+        this.id = -1;
     }
 
     public String getAddr1() {

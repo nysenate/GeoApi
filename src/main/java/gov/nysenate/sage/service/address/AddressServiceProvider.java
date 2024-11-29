@@ -59,7 +59,7 @@ public class AddressServiceProvider implements AddressProvider {
         if (address == null) {
             return new AddressResult(null, ResultStatus.MISSING_ADDRESS);
         }
-        if (!address.isEligibleForUSPS()) {
+        if (!address.isValid()) {
             return new AddressResult(null, ResultStatus.INSUFFICIENT_ADDRESS);
         }
         // Use provider if specified

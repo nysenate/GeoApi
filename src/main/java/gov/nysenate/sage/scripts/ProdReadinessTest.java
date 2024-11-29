@@ -49,17 +49,17 @@ public class ProdReadinessTest {
     }
 
     private void initializeTestAddresses() {
+        // TODO: removed ids
+        badTestAddresses.add(new Address("","Albany","NY","12205"));
+        badTestAddresses.add(new Address("25 Smithtown Circle","Smithtown", "NY","11787"));
+        badTestAddresses.add(new Address("25 Smithtown","Smithtown", "NY","11787"));
 
-        badTestAddresses.add(new Address("","Albany","NY","12205",6));
-        badTestAddresses.add(new Address("25 Smithtown Circle","Smithtown", "NY","11787",13));
-        badTestAddresses.add(new Address("25 Smithtown","Smithtown", "NY","11787",14));
-
-        testAddresses.add(new Address("100 Nyroy Dr", "Troy", "NY", "12180", 1));
-        testAddresses.add(new Address("44 Fairlawn Ave","Albany","NY","12203",2));
-        testAddresses.add(new Address("903 London Square Drive","Clifton Park","NY","12065",3));
-        testAddresses.add(new Address("535 Highland Ave","Rochester","NY","14620", 4));
-        testAddresses.add(new Address("46-08 74th Street","Flushing","NY","11373", 5));
-        testAddresses.add(new Address("200 State Street","Albany","NY","12210", 6));
+        testAddresses.add(new Address("100 Nyroy Dr", "Troy", "NY", "12180"));
+        testAddresses.add(new Address("44 Fairlawn Ave","Albany","NY","12203"));
+        testAddresses.add(new Address("903 London Square Drive","Clifton Park","NY","12065"));
+        testAddresses.add(new Address("535 Highland Ave","Rochester","NY","14620"));
+        testAddresses.add(new Address("46-08 74th Street","Flushing","NY","11373"));
+        testAddresses.add(new Address("200 State Street","Albany","NY","12210"));
     }
 
 

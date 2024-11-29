@@ -11,11 +11,11 @@ import java.util.List;
 public class MultipleMapResponse extends BaseResponse {
     protected List<DistrictMapView> districts = new ArrayList<>();
 
-    public MultipleMapResponse(MapResult mapResult) {
+    public MultipleMapResponse(MapResult mapResult, boolean showMaps) {
         super(mapResult);
         if (mapResult != null && mapResult.isSuccess()) {
             for (DistrictMap districtMap : mapResult.getDistrictMaps()) {
-                districts.add(new DistrictMapView(districtMap));
+                districts.add(new DistrictMapView(districtMap, showMaps));
             }
         }
     }

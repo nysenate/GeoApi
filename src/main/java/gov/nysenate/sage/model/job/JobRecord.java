@@ -2,7 +2,6 @@ package gov.nysenate.sage.model.job;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -16,20 +15,17 @@ import java.util.Map;
 
 import static gov.nysenate.sage.model.job.JobFile.Column;
 
-public class JobRecord
-{
-    protected List<Object> row;
-    protected Map<Column, Integer> indexMap;
-    protected Map<Column, Object> dataMap = new HashMap<>();
+public class JobRecord {
+    private final List<Object> row;
+    private final Map<Column, Integer> indexMap;
+    private final Map<Column, Object> dataMap = new HashMap<>();
 
-    protected Address address;
-    protected Address correctedAddress;
-    protected StreetAddress streetAddress;
-    protected Geocode geocode;
-    protected DistrictInfo districtInfo;
+    private Address address;
+    private Address correctedAddress;
+    private Geocode geocode;
+    private DistrictInfo districtInfo;
 
-    public JobRecord(JobFile parentJobFile, List<Object> row)
-    {
+    public JobRecord(JobFile parentJobFile, List<Object> row) {
         this.row = row;
         this.indexMap = parentJobFile.getColumnIndexMap();
         for (Column column : this.indexMap.keySet()) {
@@ -46,25 +42,18 @@ public class JobRecord
         this.address = new Address(street, "", city, state, zip5, zip4);
     }
 
-    public List<Object> getRow()
-    {
+    public List<Object> getRow() {
         for (Column column : this.indexMap.keySet()) {
             this.row.set(this.indexMap.get(column), this.dataMap.get(column));
         }
         return this.row;
     }
 
-    public Map<Column, Object> getDataMap()
-    {
-        return dataMap;
-    }
-
-    public void applyAddressResult(AddressResult addressResult)
-    {
+    public void applyAddressResult(AddressResult addressResult) {
         if (addressResult != null && addressResult.isValidated() && addressResult.getAddress() != null) {
             this.correctedAddress = addressResult.getAddress();
 
-            this.dataMap.put(Column.uspsStreet, this.correctedAddress.getAddr1());
+            this.dataMap.put(Column.uspsStreet, this.correctedAddress.getStreetWithNum());
             this.dataMap.put(Column.uspsCity, this.correctedAddress.getPostalCity());
             this.dataMap.put(Column.uspsState, this.correctedAddress.getState());
             this.dataMap.put(Column.uspsZip5, this.correctedAddress.getZip5());
@@ -72,8 +61,7 @@ public class JobRecord
         }
     }
 
-    public void applyGeocodeResult(GeocodeResult geocodeResult)
-    {
+    public void applyGeocodeResult(GeocodeResult geocodeResult) {
         if (geocodeResult != null && geocodeResult.isSuccess() && geocodeResult.getGeocodedAddress() != null) {
             GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
             this.geocode = geocodedAddress.getGeocode();
@@ -85,8 +73,7 @@ public class JobRecord
         }
     }
 
-    public void applyDistrictResult(DistrictResult districtResult)
-    {
+    public void applyDistrictResult(DistrictResult districtResult) {
         if (districtResult != null && districtResult.isSuccess()) {
             this.districtInfo = districtResult.getDistrictInfo();
             this.dataMap.put(Column.senate, districtInfo.getDistCode(DistrictType.SENATE));
@@ -105,8 +92,7 @@ public class JobRecord
     }
 
     /** Explicit getters/setters */
-    public Address getAddress()
-    {
+    public Address getAddress() {
         return address;
     }
 
@@ -118,37 +104,9 @@ public class JobRecord
         return correctedAddress;
     }
 
-    public void setCorrectedAddress(Address correctedAddress) {
-        this.correctedAddress = correctedAddress;
-    }
-
-    public StreetAddress getStreetAddress() {
-        return streetAddress;
-    }
-
-    public void setStreetAddress(StreetAddress streetAddress) {
-        this.streetAddress = streetAddress;
-    }
-
-    public Geocode getGeocode() {
-        return geocode;
-    }
-
-    public void setGeocode(Geocode geocode) {
-        this.geocode = geocode;
-    }
-
-    public DistrictInfo getDistrictInfo() {
-        return districtInfo;
-    }
-
-    public void setDistrictInfo(DistrictInfo districtInfo) {
-        this.districtInfo = districtInfo;
-    }
-
     /** Implicit getters */
     public GeocodedAddress getGeocodedAddress() {
-        boolean hasCorrectedAddress = this.correctedAddress != null && !this.correctedAddress.isEmpty();
+        boolean hasCorrectedAddress = correctedAddress != null && correctedAddress.isValid();
         return (geocode != null) ?  new GeocodedAddress((hasCorrectedAddress ? correctedAddress : address), geocode) : new GeocodedAddress();
     }
 }

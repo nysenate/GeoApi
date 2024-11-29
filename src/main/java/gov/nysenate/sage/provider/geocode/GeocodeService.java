@@ -34,7 +34,7 @@ public abstract class GeocodeService implements RevGeocodeService {
 
     public GeocodeResult geocode(@Nonnull Address address) {
         logger.trace("Performing geocoding using {}", geocoderDao.getClass().getSimpleName());
-        if (address.isEmpty()) {
+        if (!address.isValid()) {
             return new GeocodeResult(null, INSUFFICIENT_ADDRESS);
         }
         GeocodedAddress geocodedAddress = geocoderDao.getGeocodedAddress(address);

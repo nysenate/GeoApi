@@ -112,7 +112,7 @@ public class SageGeocodeServiceProvider implements GeocodeServiceProvider {
 
         Set<Integer> invalidIndices = new HashSet<>();
         for (int i = 0; i < addressCount; i++) {
-            if (addresses.get(i) == null || addresses.get(i).isEmpty()) {
+            if (addresses.get(i) == null || !addresses.get(i).isValid()) {
                 finalResults.set(i, new GeocodeResult(null, ResultStatus.MISSING_ADDRESS));
                 invalidIndices.add(i);
             }

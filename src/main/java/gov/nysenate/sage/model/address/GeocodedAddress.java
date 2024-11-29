@@ -59,6 +59,6 @@ public class GeocodedAddress implements Serializable {
     }
 
     public boolean isReverseGeocoded() {
-        return address != null && !address.isEmpty();
+        return address != null && address.isValid();
     }
 }

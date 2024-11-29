@@ -54,10 +54,10 @@ public class CongressScraper
                     memberUrl = memberInfo.get(1).child(0).attr("href");
                 }
                 catch (IndexOutOfBoundsException e) {
-                    logger.warn("member " + memberName + " does not appear to have a URL");
+                    logger.warn("member {} does not appear to have a URL", memberName);
                 }
 
-                logger.info("Retrieved member [" + memberName + "], CD=" + distNum);
+                logger.info("Retrieved member [{}], CD={}", memberName, distNum);
                 Congressional c = new Congressional(distNum, memberName, memberUrl);
                 ret.add(c);
             }
@@ -65,7 +65,7 @@ public class CongressScraper
             return ret;
         }
         catch (IOException ioe) {
-            logger.error("" + ioe);
+            logger.error("{}", String.valueOf(ioe));
         }
         return ret;
     }

@@ -17,11 +17,10 @@ public class StreetAddressTest {
         var awn = new AddressWithoutNum("E 79th St", "New York", 10075);
         var sa = new StreetAddress(awn);
         sa.setBldgId("185");
-        sa.setInternal("Suite 20");
 
         Address a = sa.toAddress();
-        assertEquals("185 E 79th", a.getAddr1());
-        assertEquals("Suite 20", a.getAddr2());
+        assertEquals("185 E 79th", a.getStreetWithNum());
+        assertEquals("Suite 20", a.getInternal());
         assertEquals("New York", a.getPostalCity());
         assertEquals("NY", a.getState());
         assertEquals(10075, a.getZip5().intValue());

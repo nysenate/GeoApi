@@ -8,6 +8,7 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.util.UrlRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,6 @@ public class HttpGoogleDao implements GeocoderDao {
     private static final Logger logger = LoggerFactory.getLogger(HttpGoogleDao.class);
     private static final String GEOCODE_QUERY = "?address=%s&key=%s";
     private static final String REV_GEOCODE_QUERY = "?latlng=%s&key=%s";
-    private static final String ZIP_CODE_QUERY = "?components=postal_code:%s|country:US&key=%s";
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final String baseUrl;
@@ -45,21 +45,10 @@ public class HttpGoogleDao implements GeocoderDao {
      * @return          GeocodedAddress containing best matched Geocode.
      */
     public GeocodedAddress getGeocodedAddress(Address address) {
-        try {
-            String formattedQuery;
-            if (address.getAddr1().isEmpty() && address.getZip5() != null) {
-                logger.info("Input address is a zip code");
-                formattedQuery = String.format(ZIP_CODE_QUERY, address.getZip5(), apiKey);
-            }
-            else {
-                formattedQuery = String.format(GEOCODE_QUERY, URLEncoder.encode(address.toString(), StandardCharsets.UTF_8), apiKey);
-            }
-            String url = baseUrl + formattedQuery;
-            return getGeocodedAddress(url);
-        } catch (NullPointerException ex) {
-            logger.error("Null pointer while performing google geocode!", ex);
-        }
-        return null;
+        String url = baseUrl + String.format(GEOCODE_QUERY,
+                URLEncoder.encode(address.toString(), StandardCharsets.UTF_8),
+                apiKey);
+        return getGeocodedAddress(url);
     }
 
     /**
@@ -137,8 +126,8 @@ public class HttpGoogleDao implements GeocoderDao {
                 double lon = location.get("lng").asDouble(0.0);
                 String geocodeType = result.get("types").get(0).asText();
                 // TODO: add name()
-                Geocode geocode = new Geocode(
-                        new Point(lat, lon), resolveGeocodeQuality(geocodeType), HttpGoogleDao.class.getSimpleName());
+                var geocode = new Geocode(
+                        new Point(lat, lon), resolveGeocodeQuality(geocodeType), Geocoder.GOOGLE, false);
                 return new GeocodedAddress(address, geocode);
             }
             else if (node.has("status") && node.get("status").asText().equals("OVER_QUERY_LIMIT")) {

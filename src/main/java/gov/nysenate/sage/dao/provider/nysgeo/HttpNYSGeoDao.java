@@ -31,7 +31,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
     /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Address address) {
         try {
-            String formattedQuery = String.format("?SingleLine=%s",address.getAddr1() + " " + address.getAddr2() + " "
+            String formattedQuery = String.format("?SingleLine=%s",address.getStreetWithNum() + " " + address.getInternal() + " "
                     + address.getPostalCity() + "," + address.getZip5());
             String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
             return getGeocodedAddress(url, false);
