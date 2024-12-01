@@ -85,7 +85,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
         try {
             return baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictInfoHandler());
         } catch (Exception ex) {
-            logger.error("" + ex);
+            logger.error("{}", String.valueOf(ex));
         }
         return null;
     }
@@ -284,7 +284,6 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                 DistrictType type = DistrictType.resolveType(rs.getString("type"));
                 if (type != null) {
                     if (!districtMapCache.containsKey(type)) {
-                        logger.debug("Caching " + type.name());
                         districtMapCache.put(type, new ArrayList<>());
                         districtMapLookup.put(type, new HashMap<>());
                     }
@@ -303,26 +302,6 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                 }
             }
             return districtMapLookup;
-        }
-    }
-
-    private class NearbyDistrictMapsHandler implements ResultSetExtractor<LinkedHashMap<String, DistrictMap>> {
-        @Override
-        public LinkedHashMap<String, DistrictMap> extractData(ResultSet rs) throws SQLException {
-            LinkedHashMap<String, DistrictMap> nearbyDistrictMaps = new LinkedHashMap<>();
-            while (rs.next()) {
-                DistrictType type = DistrictType.resolveType(rs.getString("type"));
-                String code = getDistrictCode(rs);
-                DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
-                if (map == null) {
-                    map = new DistrictMap();
-                }
-                map.setDistrictName(rs.getString("name"));
-                map.setDistrictType(type);
-                map.setDistrictCode(code);
-                nearbyDistrictMaps.put(code, map);
-            }
-            return nearbyDistrictMaps;
         }
     }
 
@@ -388,7 +367,8 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
 
             // County codes need to be mapped from FIPS code
             if (type == DistrictType.COUNTY) {
-                code = Integer.toString(countyDao.getSenateCode(rs.getInt("senate_code")));
+                // TODO: new county data
+                code = Integer.toString(countyDao.getSenateCode(rs.getInt("code")));
             }
             // Normal district code
             else {

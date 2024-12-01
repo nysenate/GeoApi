@@ -12,13 +12,9 @@ import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "map")
 public class MapController {
     private static final Logger logger = LoggerFactory.getLogger(MapController.class);
@@ -43,9 +39,9 @@ public class MapController {
     // TODO: weird that this does not necessarily return maps
     @GetMapping(value = "/{distType}")
     public BaseResponse map(@PathVariable String distType,
-                                  @RequestParam(required = false) String district,
-                                  @RequestParam(required = false) boolean showMembers,
-                                  @RequestParam(required = false) boolean meta) {
+                            @RequestParam(required = false) String district,
+                            @RequestParam(required = false) boolean showMembers,
+                            @RequestParam(required = false) boolean meta) {
         MapResult mapResult;
         DistrictType districtType = DistrictType.resolveType(distType);
         if (district != null) {
@@ -64,6 +60,5 @@ public class MapController {
             }
             return new MultipleMapResponse(mapResult, !meta);
         }
-
     }
 }

@@ -4,14 +4,14 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum ApiRequestQuery implements BasicSqlQuery {
-    INSERT_API_REQUEST("INSERT INTO ${schema}." + SqlTable.API_REQUEST + "(ipAddress, apiUserId, version, requestTypeId, requestTime, isBatch) \n" +
-            "SELECT :ipAddress::inet, :apiUserId, :version, rt.id, :requestTime, :isBatch \n" +
+    INSERT_API_REQUEST("INSERT INTO ${schema}." + SqlTable.API_REQUEST + "(ipAddress, apiUserId, requestTypeId, requestTime, isBatch) \n" +
+            "SELECT :ipAddress::inet, :apiUserId, rt.id, :requestTime, :isBatch \n" +
             "FROM log.requestTypes AS rt \n" +
             "LEFT JOIN log.services ser ON rt.serviceId = ser.id \n" +
             "WHERE rt.name = :requestTypeName AND ser.name = :serviceName\n" +
             "RETURNING id"),
 
-    GET_API_REQUEST("SELECT ${schema}."+ SqlTable.API_REQUEST + ".id AS requestId, ipAddress, version, serv.name AS service, rt.name AS request, isBatch, requestTime, \n" +
+    GET_API_REQUEST("SELECT ${schema}."+ SqlTable.API_REQUEST + ".id AS requestId, ipAddress, serv.name AS service, rt.name AS request, isBatch, requestTime, \n" +
             "au.id AS apiUserId, au.name AS apiUserName, au.apiKey AS apiKey, au.description AS apiUserDesc, au.admin " +
             "FROM ${schema}." + SqlTable.API_REQUEST + "\n" +
             "LEFT JOIN " + "public.apiUser au ON apiUserId = au.id \n" +

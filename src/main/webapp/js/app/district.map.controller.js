@@ -13,7 +13,6 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
     $scope.geoProvider = "default";
     $scope.provider = "default";
     $scope.showMemberOption = false;
-    $scope.showMemberList = false;
     $scope.showOptions = false;
     $scope.sortedMemberList = [];
     $scope.districtList = [];
@@ -25,7 +24,6 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
         if ($scope.visible) {
             mapService.toggleMap(true);
             $scope.minimized = false;
-            $scope.showMemberList = false;
         }
     });
 
@@ -49,7 +47,6 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
                         });
                     }
                 }
-                $scope.showMemberList = false;
                 /** Sort school, town, and county districts by name */
                 if ($scope.type == "school" || $scope.type == "town" || $scope.type == "county") {
                     $scope.districtList = data.districts.sort(function(a,b) {

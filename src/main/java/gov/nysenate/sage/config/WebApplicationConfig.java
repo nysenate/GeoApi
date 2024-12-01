@@ -1,5 +1,6 @@
 package gov.nysenate.sage.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.logger.deployment.SqlDeploymentLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,12 +13,12 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -94,10 +95,11 @@ public class WebApplicationConfig implements WebMvcConfigurer {
         converters.add(new SourceHttpMessageConverter<>());
         converters.add(new AllEncompassingFormHttpMessageConverter());
         converters.add(new Jaxb2RootElementHttpMessageConverter());
+        converters.add(jackson2Converter());
     }
 
-    @Override
-    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-        configurer.favorPathExtension(false);
+    @Bean
+    public MappingJackson2HttpMessageConverter jackson2Converter() {
+        return new MappingJackson2HttpMessageConverter(new ObjectMapper());
     }
 }

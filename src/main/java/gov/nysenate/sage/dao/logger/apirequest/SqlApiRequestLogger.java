@@ -32,9 +32,8 @@ public class SqlApiRequestLogger implements ApiRequestLogger {
                 var params = new MapSqlParameterSource()
                         .addValue("ipAddress", apiRequest.getIpAddress().getHostAddress())
                         .addValue("apiUserId", apiUser.getId())
-                        .addValue("version",2)
                         .addValue("requestTime", apiRequest.getApiRequestTime())
-                        .addValue("isBatch",apiRequest.isBatch())
+                        .addValue("isBatch", apiRequest.isBatch())
                         .addValue("requestTypeName",apiRequest.getRequest())
                         .addValue("serviceName", apiRequest.getService());
 

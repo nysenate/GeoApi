@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -53,7 +52,7 @@ public class ApiFilter implements Filter {
     private static final String FORMATTED_RESPONSE_KEY = "formattedResponse";
     private static final String API_REQUEST_KEY = "apiRequest";
     /** The valid format of an api request */
-    private static final String validFormat = "((?<context>.*)/)?api/v(?<version>\\d+)/(?<service>(address|district|geo|map|street|meta|data))/" +
+    private static final String validFormat = "((?<context>.*)/)?api/v\\d+/(?<service>(address|district|geo|map|street|meta|data))/" +
             "(?<request>\\w+)(/(?<batch>batch))?";
 
     /** Serializers */
@@ -88,9 +87,9 @@ public class ApiFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest servletRequest, ServletResponse response,
+                         FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        HttpServletResponse response = (HttpServletResponse) servletResponse;
 
         String key = servletRequest.getParameter("key");
         String forwardedForIp = request.getHeader("x-forwarded-for");
@@ -99,17 +98,13 @@ public class ApiFilter implements Filter {
         String uri = request.getRequestURI();
 
         // Check that the url is formatted correctly
-        if (validateRequest(uri, remoteIp, request)){
+        if (validateRequest(uri, remoteIp, request)) {
             // The filter will proceed to the next chain only if the user has a valid key or is the default user.
             // Otherwise, an error message will be sent. */
             if (authenticateUser(key, remoteIp, uri, request)) {
-                chain.doFilter(request, response);
+                filterChain.doFilter(request, response);
             }
         }
-
-        // Response from chain percolates to here
-        formatResponse(request, response);
-        sendResponse(request, response);
     }
 
     /**
@@ -202,7 +197,6 @@ public class ApiFilter implements Filter {
         // If the url pattern matches, then obtain the parameters and propagate an ApiResult object as an
         // attribute with the key 'apiRequest'.
         if (matcher.find()) {
-            int version = Integer.parseInt(matcher.group("version"));
             String service = matcher.group("service");
             String req = matcher.group("request");
             boolean batch = (matcher.group("batch") != null);
@@ -213,12 +207,11 @@ public class ApiFilter implements Filter {
                 remoteInetAddress = InetAddress.getByName(remoteIp);
                 logger.debug("Request from {}", remoteInetAddress.getCanonicalHostName());
             }
-            catch (UnknownHostException ex)
-            {
+            catch (UnknownHostException ex) {
                 logger.warn("Unknown remote ip host!", ex);
             }
 
-            ApiRequest apiRequest = new ApiRequest(version, service, req, batch, remoteInetAddress);
+            ApiRequest apiRequest = new ApiRequest(service, req, batch, remoteInetAddress);
             apiRequest.setProvider(request.getParameter("provider"));
 
             request.setAttribute(API_REQUEST_KEY, apiRequest);

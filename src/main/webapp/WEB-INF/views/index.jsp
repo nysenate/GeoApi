@@ -13,7 +13,7 @@
     Environment env = (Environment) ac.getBean("environment");
     SageGeocodeServiceProvider geocodeServiceProvider = (SageGeocodeServiceProvider) ac.getBean("sageGeocodeServiceProvider");
     request.setAttribute("amsUrl", env.getUspsAmsUiUrl());
-    request.setAttribute("geocoders", geocodeServiceProvider.getGeocoderMap());
+    request.setAttribute("geocoders", geocodeServiceProvider.geocoders());
     String googleMapsUrl = env.getGoogleMapsUrl();
     String googleMapsKey = env.getGoogleMapsKey();
     if (googleMapsKey != null && !googleMapsKey.isEmpty()) {

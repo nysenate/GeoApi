@@ -21,7 +21,7 @@ public class EmbeddedMapController {
     /**
      * Embedded Map Api
      * ---------------------
-     * Returns an embedded google map with the specified request params
+     * Returns an embedded Google map with the specified request params
      * Usage:
      * (GET)    /map
      *
@@ -42,7 +42,6 @@ public class EmbeddedMapController {
                 customPolyStyle, polyHue);
 
         request.getRequestDispatcher(MAPS_JSP).forward(request, response);
-
     }
 
     /**
