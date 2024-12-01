@@ -2,6 +2,7 @@ package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.address.Address;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.text.WordUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -46,6 +47,44 @@ public final class AddressUtil {
         }
         address.setStreetWithNum(streetWithNum);
         return address;
+    }
+
+    /**
+     * This method takes in a street address and ensures that it is in mixed case
+     * For example, W TYPICAL ST NW APT 1S -> W Typical St NW Apt 1S
+     * @param address address
+     */
+    public static Address performInitCapsOnAddress(Address address) {
+        address.setStreetWithNum(initCapStreetLine(address.getStreetWithNum()));
+        address.setInternal(initCapStreetLine(address.getInternal()));
+        address.setPostalCity(WordUtils.capitalizeFully(address.getPostalCity().toLowerCase()));
+        return address;
+    }
+
+    /**
+     * Makes the address line init capped as in:
+     *  W TYPICAL ST NW APT 1S -> W Typical St NW Apt 1S
+     * Some exceptions include unit characters and directionals.
+     * @param line String
+     * @return String
+     */
+    public static String initCapStreetLine(String line) {
+        // Perform init caps on the street address
+        line = WordUtils.capitalizeFully(line.toLowerCase());
+        // Ensure unit portion is fully uppercase e.g. 2N
+        Pattern p = Pattern.compile("([0-9]+-?[a-z]+[0-9]*)$");
+        Matcher m = p.matcher(line);
+        if (m.find()) {
+            line = m.replaceFirst(m.group().toUpperCase());
+        }
+        // Ensure (SW|SE|NW|NE) are not init capped
+        p = Pattern.compile("(?i)\\b(SW|SE|NW|NE)\\b");
+        m = p.matcher(line);
+        if (m.find()) {
+            line = m.replaceAll(m.group().toUpperCase());
+        }
+        line = line.replaceAll("(?i)Po Box", "PO Box");
+        return line;
     }
 
     /**

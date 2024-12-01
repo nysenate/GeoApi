@@ -1,21 +1,19 @@
 package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.Pair;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
- * A generic address structure for representing the basic address components.
- * Can be utilized for address validation or to serve as a base for more detailed
- * address component classes. The fields in this class should never be null but
- * rather an empty string if unassigned.
  *
- * @author Graylin Kim, Ash Islam
  */
-public class Address implements Serializable {
+public class Address {
+    private static final String bldgNumPattern = "^[0-9]+-?[0-9]*[a-zA-Z]?";
     private static final String poBoxPattern = "(?i)PO Box \\d+";
-    private String streetWithNum;
+    private String bldgId;
+    private String street;
     private String postalCity;
     private String state;
     private Zip5 zip5;
@@ -36,26 +34,35 @@ public class Address implements Serializable {
     }
 
     public Address(String addr1, String postalCity, String state, String postal) {
-        this.streetWithNum = addr1;
+        setStreetWithNum(addr1);
         setPostalCity(postalCity);
         this.state = state;
         setZip9(postal);
     }
 
     public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
-        this.streetWithNum = addr1;
+        this(addr1, postalCity, state, zip5 + "-" + zip4);
         this.internal = addr2;
-        setPostalCity(postalCity);
-        this.state = state;
-        setZip9(zip5 + "-" + zip4);
+    }
+
+    public String getBldgId() {
+        return bldgId;
+    }
+
+    public String getStreet() {
+        return street;
     }
 
     public String getStreetWithNum() {
-        return streetWithNum;
+        return bldgId + " " + street;
     }
 
     public void setStreetWithNum(String streetWithNum) {
-        this.streetWithNum = streetWithNum;
+        Pair<String> parts = splitBldgId(streetWithNum);
+        this.bldgId = parts.first();
+        // The following line would remove all numerical suffixes and special characters.
+        // This causes problems when matching the street file table. This may adversely affect the geocache table
+        this.street = parts.second().replaceAll("[#:;.,']", "").replaceAll("[ -]+", " ").toUpperCase();
     }
 
     public String getPostalCity() {
@@ -80,19 +87,9 @@ public class Address implements Serializable {
 
     @Override
     public String toString() {
-        return ((!streetWithNum.isEmpty() ? streetWithNum : "") + (!internal.isEmpty() ? " " + internal : "")
-                + (!streetWithNum.isEmpty() || !internal.isEmpty() ? "," : "")
+        return bldgId + " " + street + (!internal.isEmpty() ? " " + internal : "")
                 + (!postalCity.isEmpty() ? " " + postalCity + "," : "")
-                + (!zip5.isMissing() ? " " + zip5 : "") + (!zip4.isMissing() ? "-" + zip4 : "")).trim();
-    }
-
-    /**
-     * Normalization applied:
-     * - Remove the dash within the building number
-     * @return String
-     */
-    public String toNormalizedString() {
-        return toString().replaceFirst("^(\\d+)(-)(\\d+)","$1$3");
+                + (!zip5.isMissing() ? " " + zip5 : "") + (!zip4.isMissing() ? "-" + zip4 : "");
     }
 
     public String getInternal() {
@@ -142,15 +139,27 @@ public class Address implements Serializable {
     }
 
     public boolean isValid() {
-        return !streetWithNum.isEmpty() && (!postalCity.isEmpty() || !zip5.isMissing());
+        return !StringUtils.isBlank(bldgId) && !street.isEmpty() &&
+                (!postalCity.isEmpty() || !zip5.isMissing());
     }
 
     public boolean isPOBox() {
-        return streetWithNum.replaceAll("[.,:]", "")
-                .replaceAll("\\s+", " ").matches(poBoxPattern);
+        // TODO: another subclass
+//        return streetWithNum.replaceAll("[.,:]", "")
+//                .replaceAll("\\s+", " ").matches(poBoxPattern);
+        return false;
     }
 
     public static boolean validState(String state) {
         return state.replaceAll("[.]", "").toUpperCase().trim().matches("^$|NY|NEW YORK");
+    }
+
+    private static Pair<String> splitBldgId(String toSplit) {
+        // TODO: may need to remove "#"
+        String[] parts = toSplit.trim().split(" ", 2);
+        if (parts.length != 2 || !parts[0].matches(bldgNumPattern)) {
+            throw new IllegalArgumentException("Cannot parse bldg ID from: " + toSplit);
+        }
+        return new Pair<>(parts[0], parts[1]);
     }
 }

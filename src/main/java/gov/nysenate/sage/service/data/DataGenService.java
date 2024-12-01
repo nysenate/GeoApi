@@ -12,9 +12,9 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
+import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
-import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.services.NYSenateClientService;
 import gov.nysenate.services.NYSenateJSONClient;
 import gov.nysenate.services.model.District;
@@ -254,7 +254,7 @@ public class DataGenService implements SageDataGenService {
                 .replaceAll("(?i)avenuesuite", "Avenue Suite");
         Address officeAddress = new Address(street, senatorOffice.getCity(), senatorOffice.getPostalCode());
         //Ensure Mixed Case
-        StreetAddressParser.performInitCapsOnAddress(officeAddress);
+        AddressUtil.performInitCapsOnAddress(officeAddress);
         GeocodeResult result = geocodeProvider.geocode(officeAddress, List.of(Geocoder.NYSGEO, Geocoder.GOOGLE), false);
 
         if (result.isSuccess()) {

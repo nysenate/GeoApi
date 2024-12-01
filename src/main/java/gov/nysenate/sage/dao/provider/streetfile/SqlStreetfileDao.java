@@ -9,7 +9,6 @@ import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
-import gov.nysenate.sage.util.StreetAddressParser;
 import org.apache.commons.lang3.StringUtils;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
@@ -126,9 +125,6 @@ public class SqlStreetfileDao implements StreetfileDao {
 
     /** {@inheritDoc} */
     public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<Integer> zip5List) {
-        // Format the street name to aid in street file match
-        street = (street != null) ? StreetAddressParser.normalizeStreet(street) : "";
-
         // Short circuit the request under conditions where lots of data would be retrieved.
         if (zip5List == null || zip5List.isEmpty()) {
             return null;

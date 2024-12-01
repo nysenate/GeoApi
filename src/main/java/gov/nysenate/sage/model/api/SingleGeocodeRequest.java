@@ -23,18 +23,6 @@ public class SingleGeocodeRequest extends GeocodeRequest {
 
     }
 
-    public SingleGeocodeRequest(BatchGeocodeRequest batchRequest, Address address) {
-        super(batchRequest.getGeocoders(), batchRequest.isReverse(),
-                batchRequest.isDoNotCache(), batchRequest.isUspsValidate());
-        this.address = address;
-    }
-
-    public SingleGeocodeRequest(BatchGeocodeRequest batchRequest, Point point) {
-        super(batchRequest.getGeocoders(), batchRequest.isReverse(),
-                batchRequest.isDoNotCache(), batchRequest.isUspsValidate());
-        this.point = point;
-    }
-
     public int getId() {
         return id;
     }

@@ -1,9 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.model;
 
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.Intern;
-import gov.nysenate.sage.util.StreetAddressParser;
 
 public record AddressWithoutNum(String street, String postalCity, int zip5) {
     private static final Intern<AddressWithoutNum> interned = new Intern<>();
@@ -13,8 +11,7 @@ public record AddressWithoutNum(String street, String postalCity, int zip5) {
     }
 
     public static AddressWithoutNum fromAddress(Address addr) {
-        StreetAddress sa = StreetAddressParser.parseAddress(addr);
-        return new AddressWithoutNum(sa.getStreet(), sa.getPostalCity(), sa.getZip5());
+        return new AddressWithoutNum(addr.getStreet(), addr.getPostalCity(), addr.getZip5());
     }
 
     public Address toAddress(int num) {

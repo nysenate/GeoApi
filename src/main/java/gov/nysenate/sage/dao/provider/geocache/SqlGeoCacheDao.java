@@ -4,13 +4,9 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.GeocodedStreetAddress;
-import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
-import gov.nysenate.sage.util.StreetAddressParser;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
@@ -72,10 +68,9 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
             }
             Address address = geocodedAddress.getAddress();
             Geocode gc = geocodedAddress.getGeocode();
-            StreetAddress sa = StreetAddressParser.parseAddress(address);
-            if (isCacheableStreetAddress(sa)) {
-                var params = getIdParams(sa)
-                        .addValue("zip4", sa.getZip4())
+            if (isCacheable(address)) {
+                var params = getIdParams(address)
+                        .addValue("zip4", address.getZip4())
                         .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
                         .addValue("method", gc.originalGeocoder())
                         .addValue("quality", gc.quality().name());
@@ -92,17 +87,10 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
 
     @Override
     public GeocodedAddress getGeocodedAddress(Address address) {
-        StreetAddress sa = StreetAddressParser.parseAddress(address);
-        if (logger.isTraceEnabled()) {
-            logger.trace("Looking up {} in cache...", address);
-        }
-        if (isCacheableStreetAddress(sa)) {
+        if (isCacheable(address)) {
             // TODO: handle PO boxes elsewhere
             return baseDao.tigerNamedJdbcTemplate.query(SELECT_CACHE_ENTRY.getSql(),
-                    getIdParams(sa), new GeocodedStreetAddressHandler());
-        }
-        if (logger.isTraceEnabled()) {
-            logger.trace("Address {} is not retrievable", address);
+                    getIdParams(address), new GeocodedStreetAddressHandler());
         }
         return null;
     }
@@ -115,12 +103,9 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
     private static class GeocodedStreetAddressHandler implements ResultSetExtractor<GeocodedAddress> {
         @Override
         public GeocodedAddress extractData(ResultSet rs) throws SQLException {
-            var awn = new AddressWithoutNum(WordUtils.capitalizeFully(rs.getString("street")),
-                    WordUtils.capitalizeFully(rs.getString("postal_city")), rs.getInt("zip5"));
-            var sa = new StreetAddress(awn);
-            sa.setBldgId(rs.getString("bldg_id"));
-            sa.setZip4(rs.getInt("zip4"));
-            return new GeocodedStreetAddress(sa, getGeocodeFromResultSet(rs)).toGeocodedAddress();
+            var addr = new Address(rs.getString("bldg_id"), WordUtils.capitalizeFully(rs.getString("street")), "",
+                    WordUtils.capitalizeFully(rs.getString("postal_city")), rs.getString("zip5"), rs.getString("zip4"));
+            return new GeocodedAddress(addr, getGeocodeFromResultSet(rs));
         }
     }
 
@@ -134,18 +119,14 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
         return new Geocode(point, quality, rs.getString("method"), true);
     }
 
-    private static MapSqlParameterSource getIdParams(StreetAddress streetAddress) {
-        return new MapSqlParameterSource("bldgId", streetAddress.getBldgId())
-                .addValue("street", streetAddress.getStreet())
-                .addValue("postalCity", streetAddress.getPostalCity())
-                .addValue("zip5", streetAddress.getZip5());
+    private static MapSqlParameterSource getIdParams(Address address) {
+        return new MapSqlParameterSource("bldgId", address.getBldgId())
+                .addValue("street", address.getStreet())
+                .addValue("postalCity", address.getPostalCity())
+                .addValue("zip5", address.getZip5());
     }
 
-    /**
-     * Determines if street address is cache-able. The goal is to cache unique street level addresses.
-     * @return true if street address is cacheable.
-     */
-    private static boolean isCacheableStreetAddress(StreetAddress sa) {
-        return sa.getBldgId() != null && !sa.getStreet().isEmpty() && sa.getZip5() != null;
+    private static boolean isCacheable(Address addr) {
+        return !addr.getStreetWithNum().isEmpty() && !addr.getPostalCity().isEmpty() && addr.getZip5() != null;
     }
 }

@@ -117,7 +117,7 @@ public class GeocodeController {
             return new ApiError(this.getClass(), MISSING_POINT);
         }
         var geocodeRequest = new SingleGeocodeRequest(
-                new Address(), geocoder, useFallback, true, doNotCache, uspsValidate);
+                null, geocoder, useFallback, true, doNotCache, uspsValidate);
         geocodeRequest.setReverse(true);
         geocodeRequest.setPoint(point);
         GeocodeResult revGeocodeResult = revGeocodeServiceProvider.reverseGeocode(geocodeRequest);

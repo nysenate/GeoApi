@@ -2,7 +2,6 @@ package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.api.*;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -16,7 +15,6 @@ import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
 import gov.nysenate.sage.service.geo.SageGeocodeServiceProvider;
-import gov.nysenate.sage.util.StreetAddressParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +23,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
@@ -54,18 +51,12 @@ public class TopLevelDistrictService {
      * @return DistrictResult
      */
     public DistrictResult handleDistrictRequest(SingleDistrictRequest districtRequest) {
-        Address address = Optional.ofNullable(districtRequest.getAddress()).orElse(new Address());
+        Address address = districtRequest.getAddress();
         GeocodedAddress geocodedAddress = null;
 
-        /* Parse the input address */
-        StreetAddress streetAddress = StreetAddressParser.parseAddress(address);
-
-        if (!address.isValid()) {
+        if (address != null && address.isValid()) {
             /* Perform USPS address correction if requested */
             if (districtRequest.isUspsValidate()) {
-                if (address.isValid()) {
-                    address = streetAddress.toAddress();
-                }
                 address = performAddressCorrection(address, districtRequest);
             }
             geocodedAddress = getGeocodedAddress(districtRequest, address);
