@@ -1,7 +1,9 @@
 package gov.nysenate.sage.service.address;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.model.result.CityStateResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.address.AddressService;
 import gov.nysenate.sage.provider.address.AddressSource;
@@ -113,15 +115,15 @@ public class AddressServiceProvider implements AddressProvider {
      */
     @Nonnull
     @Override
-    public AddressResult lookupCityState(Address address, String providerName) {
+    public CityStateResult lookupCityState(Zip5 zip5, String providerName) {
         AddressService provider = providers.getOrDefault(AddressSource.fromString(providerName), defaultProvider);
-        return provider.lookupCityState(address);
+        return provider.lookupCityState(zip5);
     }
 
     @Override
-    public List<AddressResult> lookupCityState(List<Address> addresses, String providerName) {
+    public List<CityStateResult> lookupCityState(List<Zip5> zips, String providerName) {
         AddressService provider = providers.getOrDefault(AddressSource.fromString(providerName), defaultProvider);
-        return provider.lookupCityState(addresses);
+        return provider.lookupCityState(zips);
     }
 
     /**

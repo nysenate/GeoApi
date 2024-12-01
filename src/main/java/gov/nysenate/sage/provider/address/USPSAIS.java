@@ -1,9 +1,11 @@
 package gov.nysenate.sage.provider.address;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.model.result.CityStateResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.util.StreetAddressParser;
+import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.apache.commons.text.WordUtils;
 import org.apache.http.client.fluent.Content;
@@ -182,7 +184,7 @@ public class USPSAIS implements AddressService {
 
                         if (addr2 != null) {
                             /** Perform init caps on the street address */
-                            addr2 = StreetAddressParser.initCapStreetLine(addr2);
+                            addr2 = AddressUtil.initCapStreetLine(addr2);
                         }
 
                         /** USPS usually sets the addr2 which is not intuitive. Here we can
@@ -232,107 +234,84 @@ public class USPSAIS implements AddressService {
 
     @Nonnull
     @Override
-    public AddressResult lookupCityState(Address address) {
-        List<AddressResult> resultList = lookupCityState(List.of(address));
+    public CityStateResult lookupCityState(Zip5 zip5) {
+        List<CityStateResult> resultList = lookupCityState(List.of(zip5));
         if (resultList != null && !resultList.isEmpty()) {
             return resultList.get(0);
         }
-        return new AddressResult(AddressSource.AIS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+        return new CityStateResult(AddressSource.AIS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
 
     @Override
-    public List<AddressResult> lookupCityState(List<Address> addresses) {
+    public List<CityStateResult> lookupCityState(List<Zip5> zips) {
         String url = "";
-        Content page = null;
         Document response = null;
 
-        ArrayList<AddressResult> results = new ArrayList<>();
-        ArrayList<AddressResult> batchResults = new ArrayList<>();
+        var results = new ArrayList<CityStateResult>();
         String xmlStartTag = "<CityStateLookupRequest USERID=\""+ apiKey +"\">";
         StringBuilder xmlRequest = new StringBuilder(xmlStartTag);
 
-        /** Start with a=1 to make the batch boundary condition work nicely */
-        for (int a = 1; a <= addresses.size(); a++) {
-            Address address = addresses.get(a-1);
-
-            var addressResult = new AddressResult(AddressSource.AIS);
-            addressResult.setAddress(address);
-            batchResults.add(addressResult);
-
-            xmlRequest.append(String.format("<ZipCode ID=\"%s\"><Zip5>%s</Zip5></ZipCode>", a-1, address.getZip5()));
-
-            /** Stop here until we've filled this batch request */
-            if (a % BATCH_SIZE != 0 && a != addresses.size()) {
-                continue;
-            }
-
-            try {
-                xmlRequest.append("</CityStateLookupRequest>");
-                url = baseUrl +"?API=CityStateLookup&XML="+URLEncoder.encode(xmlRequest.toString(), StandardCharsets.UTF_8);
-                logger.info(url);
-                response = xmlBuilder.parse(UrlRequest.getInputStreamFromUrl(url));
-
-                /** If the request failed, mark them all as such */
-                Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
-                if (error != null) {
-                    List<String> messages = new ArrayList<>();
-                    messages.add(xpath.evaluate("Description", error).trim());
-
-                    for (AddressResult result : batchResults) {
-                        result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
-                        result.setMessages(messages);
-                    }
-                }
-                else {
-                    NodeList responses = (NodeList)xpath.evaluate("CityStateLookupResponse/ZipCode", response, XPathConstants.NODESET);
-                    for (int i = 0; i<responses.getLength(); i++) {
-                        Node addressResponse = responses.item(i);
-                        int index = Integer.parseInt(xpath.evaluate("@ID", addressResponse));
-
-                        error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
-                        if (error != null) {
-                            AddressResult result = batchResults.get(index % BATCH_SIZE);
-                            result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
-                            result.addMessage(xpath.evaluate("Description", error).trim());
-                            continue;
-                        }
-
-                        if (!Address.validState(xpath.evaluate("State", addressResponse))) {
-                           return null;
-                        }
-                        var resultAddress = new Address();
-                        String city = xpath.evaluate("City", addressResponse);
-                        city = (city != null) ? WordUtils.capitalizeFully(city) : city;
-                        String zip5 = xpath.evaluate("Zip5", addressResponse);
-                        resultAddress.setPostalCity(city);
-                        resultAddress.setZip5(zip5);
-
-                        batchResults.get(index % BATCH_SIZE).setAddress(resultAddress);
-                    }
-                }
-            }
-            catch (MalformedURLException e) {
-                logger.error("Malformed URL '{}', check api key and address values.", url, e);
-                return null;
-            }
-            catch (IOException e) {
-                logger.error("Error opening API resource '{}'", url, e);
-                return null;
-            }
-            catch (SAXException e) {
-                logger.error("Malformed XML response for '{}'\n{}", url, page.asString(), e);
-                return null;
-            }
-            catch (XPathExpressionException e) {
-                logger.error("Unexpected XML Schema\n\n"+response.toString(), e);
-                return null;
-            }
-
-            xmlRequest = new StringBuilder(xmlStartTag);
-            results.addAll(batchResults);
-            batchResults.clear();
+        for (int i = 0; i < zips.size(); i++) {
+            xmlRequest.append(String.format("<ZipCode ID=\"%s\"><Zip5>%s</Zip5></ZipCode>", i, zips.get(i).zip()));
         }
+
+        try {
+            xmlRequest.append("</CityStateLookupRequest>");
+            url = baseUrl +"?API=CityStateLookup&XML=" + URLEncoder.encode(xmlRequest.toString(), StandardCharsets.UTF_8);
+            response = xmlBuilder.parse(UrlRequest.getInputStreamFromUrl(url));
+
+            /** If the request failed, mark them all as such */
+            Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
+            if (error != null) {
+                List<String> messages = new ArrayList<>();
+                messages.add(xpath.evaluate("Description", error).trim());
+                var result = new CityStateResult(AddressSource.AIS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+                result.setMessages(messages);
+                for (int i = 0; i < zips.size(); i++) {
+                    results.add(result);
+                }
+                return results;
+            }
+            NodeList responses = (NodeList)xpath.evaluate("CityStateLookupResponse/ZipCode", response, XPathConstants.NODESET);
+            for (int i = 0; i < responses.getLength(); i++) {
+                Node addressResponse = responses.item(i);
+
+                error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
+                if (error != null) {
+                    var result = new CityStateResult(AddressSource.AIS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+                    result.addMessage(xpath.evaluate("Description", error).trim());
+                    results.add(result);
+                    continue;
+                }
+
+                String state = xpath.evaluate("State", addressResponse);
+                if (!Address.validState(state)) {
+                    return null;
+                }
+                String city = xpath.evaluate("City", addressResponse);
+                city = (city != null) ? WordUtils.capitalizeFully(city) : city;
+                String zip5 = xpath.evaluate("Zip5", addressResponse);
+                results.add(new CityStateResult(AddressSource.AIS, city, state, Integer.parseInt(zip5)));
+            }
+        }
+        catch (MalformedURLException e) {
+            logger.error("Malformed URL '{}', check api key and address values.", url, e);
+            return null;
+        }
+        catch (IOException e) {
+            logger.error("Error opening API resource '{}'", url, e);
+            return null;
+        }
+        catch (SAXException e) {
+            logger.error("Malformed XML response for '{}'", url, e);
+            return null;
+        }
+        catch (XPathExpressionException e) {
+            logger.error("Unexpected XML Schema\n\n{}", response.toString(), e);
+            return null;
+        }
+
         return results;
     }
 

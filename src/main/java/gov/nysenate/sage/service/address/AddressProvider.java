@@ -1,7 +1,9 @@
 package gov.nysenate.sage.service.address;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.model.result.CityStateResult;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -20,9 +22,9 @@ public interface AddressProvider {
      * Use USPS for a city state lookup by default.
      */
     @Nonnull
-    AddressResult lookupCityState(Address address, String providerName);
+    CityStateResult lookupCityState(Zip5 zip5, String providerName);
 
-    List<AddressResult> lookupCityState(List<Address> addresses, String providerName);
+    List<CityStateResult> lookupCityState(List<Zip5> zips, String providerName);
 
     /**
      * Zipcode lookup is the same as a validate request with less output.

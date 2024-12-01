@@ -2,7 +2,9 @@ package gov.nysenate.sage.provider.address;
 
 import gov.nysenate.sage.dao.provider.usps.HttpUSPSAMSDao;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.model.result.CityStateResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,27 +73,27 @@ public class USPSAMS implements AddressService {
     /** {@inheritDoc} */
     @Nonnull
     @Override
-    public AddressResult lookupCityState(Address address) {
-        if (address != null && address.isValid() && address.getZip5() != null) {
-            AddressResult result = httpUSPSAMSDao.getCityStateResult(address);
+    public CityStateResult lookupCityState(Zip5 zip5) {
+        if (zip5 != null && !zip5.isMissing()) {
+            CityStateResult result = httpUSPSAMSDao.getCityStateResult(zip5);
             if (result != null) {
                 return result;
             }
         }
-        return new AddressResult(AddressSource.AMS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+        return new CityStateResult(AddressSource.AMS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
     /** {@inheritDoc} */
     @Override
-    public List<AddressResult> lookupCityState(List<Address> addresses) {
-        if (addresses != null && !addresses.isEmpty()) {
-            List<AddressResult> results = httpUSPSAMSDao.getCityStateResults(addresses);
-            if (results != null && results.size() == addresses.size()) {
+    public List<CityStateResult> lookupCityState(List<Zip5> zips) {
+        if (zips != null && !zips.isEmpty()) {
+            List<CityStateResult> results = httpUSPSAMSDao.getCityStateResults(zips);
+            if (results != null && results.size() == zips.size()) {
                 return results;
             }
-            return List.of(new AddressResult(AddressSource.AMS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
+            return List.of(new CityStateResult(AddressSource.AMS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
         }
-        return List.of(new AddressResult(AddressSource.AMS, ResultStatus.MISSING_ADDRESS));
+        return List.of(new CityStateResult(AddressSource.AMS, ResultStatus.MISSING_ADDRESS));
     }
 
 }

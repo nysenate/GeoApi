@@ -1,7 +1,7 @@
 package gov.nysenate.sage.client.response.address;
 
 import gov.nysenate.sage.client.response.base.BaseResponse;
-import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.model.result.CityStateResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 
 import javax.annotation.Nonnull;
@@ -12,12 +12,12 @@ public class CityStateResponse extends BaseResponse {
     private String state = "";
     private Integer zip5 = null;
 
-    public CityStateResponse(@Nonnull AddressResult addressResult) {
-        super(addressResult);
-        if (addressResult.getStatusCode().equals(ResultStatus.SUCCESS) && addressResult.getAddress() != null) {
-            this.city = addressResult.getAddress().getPostalCity();
-            this.state = addressResult.getAddress().getState();
-            this.zip5 = addressResult.getAddress().getZip5();
+    public CityStateResponse(@Nonnull CityStateResult cityStateResult) {
+        super(cityStateResult);
+        if (cityStateResult.getStatusCode().equals(ResultStatus.SUCCESS)) {
+            this.city = cityStateResult.getPostalCity();
+            this.state = cityStateResult.getState();
+            this.zip5 = cityStateResult.getZip5();
         }
     }
 

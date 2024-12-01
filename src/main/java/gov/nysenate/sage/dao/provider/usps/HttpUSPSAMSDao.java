@@ -9,9 +9,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.AddressResult;
+import gov.nysenate.sage.model.result.CityStateResult;
 import gov.nysenate.sage.provider.address.AddressSource;
-import gov.nysenate.sage.util.StreetAddressParser;
+import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +26,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.model.result.ResultStatus.NO_ADDRESS_VALIDATE_RESULT;
@@ -70,11 +71,8 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
                 AddressResult addressResult = getAddressResultFromJsonValidate(root);
                 if (addressResult.getAddress() != null) {
                     addressResult.setAddress(
-                            StreetAddressParser.performInitCapsOnAddress(
-                                    StreetAddressParser.parseAddress(addressResult.getAddress()).toAddress()));
-                }
-                else { //This is what would happen if it was null but this prevents a null pointer exception
-                    addressResult.setAddress(new Address());
+                            AddressUtil.performInitCapsOnAddress(addressResult.getAddress())
+                    );
                 }
                 return addressResult;
             }
@@ -178,14 +176,14 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         return addressResult;
     }
 
-    public AddressResult getCityStateResult(Address address) {
-        if (address == null || address.getZip5() == null) {
+    public CityStateResult getCityStateResult(Zip5 zip5) {
+        if (zip5 == null || zip5.isMissing()) {
             return null;
         }
 
         StringBuilder urlParams = new StringBuilder("?initCaps=true");
         try {
-            urlParams.append("&zip5=").append(address.getZip5());
+            urlParams.append("&zip5=").append(zip5.zip());
             String url = base_url + CITYSTATE_METHOD + urlParams;
             String response = UrlRequest.getResponseFromUrl(url);
             if (response != null && !response.isEmpty()) {
@@ -206,13 +204,12 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         return null;
     }
 
-    public List<AddressResult> getCityStateResults(List<Address> addresses) {
-        List<AddressResult> addressResults = new ArrayList<>();
-        if (addresses == null) {
+    public List<CityStateResult> getCityStateResults(List<Zip5> zips) {
+        List<CityStateResult> addressResults = new ArrayList<>();
+        if (zips == null) {
             return addressResults;
         }
-        var zip5List = addresses.stream().filter(Objects::nonNull)
-                .map(Address::getZip5).collect(Collectors.toList());
+        var zip5List = zips.stream().map(Zip5::toString).collect(Collectors.toList());
         Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
 
         String jsonPayload = prettyGson.toJson(zip5List);
@@ -237,22 +234,19 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         return addressResults;
     }
 
-    private static AddressResult getAddressResultFromJsonCityState(JsonNode root) {
+    private static CityStateResult getAddressResultFromJsonCityState(JsonNode root) {
         if (root == null) {
             return null;
         }
-        var addressResult = new AddressResult(AddressSource.AMS);
+        CityStateResult cityStateResult;
         if (root.get("success").asBoolean(false)) {
-            Address cityState = new Address(null, null, root.get("cityName").asText(),
-                    root.get("stateAbbr").asText(),  root.get("zipCode").asText(), null);
-            cityState.setUspsValidated(true);
-            addressResult.setAddress(cityState);
+            cityStateResult = new CityStateResult(AddressSource.AMS, root.get("cityName").asText(), root.get("stateAbbr").asText(), root.get("zipCode").asInt());
         }
         else {
-            addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
+            cityStateResult = new CityStateResult(AddressSource.AMS, NO_ADDRESS_VALIDATE_RESULT);
         }
-        addressResult.setResultTime();
-        return addressResult;
+        cityStateResult.setResultTime();
+        return cityStateResult;
     }
 
     private static String encode(String input) {

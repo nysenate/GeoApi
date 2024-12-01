@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.api;
 import gov.nysenate.sage.client.response.address.*;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
@@ -67,17 +68,9 @@ public final class AddressController {
      * (GET)    /api/v2/address/citystate
      */
     @GetMapping(value = "/citystate")
-    public BaseResponse addressCityState(
-            @RequestParam(required = false) String provider,
-            @RequestParam(required = false) String addr,
-            @RequestParam(required = false) String addr1,
-            @RequestParam(required = false) String addr2,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String state,
-            @RequestParam String zip5,
-            @RequestParam(required = false) String zip4) {
-        Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
-        return new CityStateResponse(addressProvider.lookupCityState(address, provider));
+    public BaseResponse addressCityState(@RequestParam String zip5, @RequestParam(required = false) String provider) {
+        var validZip5 = new Zip5(Integer.parseInt(zip5));
+        return new CityStateResponse(addressProvider.lookupCityState(validZip5, provider));
     }
 
     /**
@@ -129,7 +122,8 @@ public final class AddressController {
     public BaseResponse addressBatchCityState(HttpServletRequest request,
                                               @RequestParam(required = false) String provider) throws IOException {
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
-        return new BatchCityStateResponse(addressProvider.lookupCityState(addresses, provider));
+        // TODO: parse if needed
+        List<Zip5> zips = List.of();
+        return new BatchCityStateResponse(addressProvider.lookupCityState(zips, provider));
     }
 }
