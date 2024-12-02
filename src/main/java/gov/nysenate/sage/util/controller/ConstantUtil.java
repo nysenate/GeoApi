@@ -8,6 +8,7 @@ public class ConstantUtil {
 
     public static final String JOB_USER_ATTR = "jobuser";
     public static final String JOB_REQUEST_ATTR = "jobrequest";
+    // TODO: this is really v3
     public static final String REST_PATH = "/api/v2/";
     public static final String JOB_LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
     public static final String DOWNLOAD_BASE_URL = "/job/download/";

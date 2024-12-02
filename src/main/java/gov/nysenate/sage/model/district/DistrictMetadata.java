@@ -7,8 +7,7 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 /**
  * Hold basic identifying information for a district such as its type, code, and member.
  */
-public class DistrictMetadata
-{
+public class DistrictMetadata {
     protected DistrictType districtType;
     protected String districtCode;
     protected String districtName;
@@ -18,8 +17,7 @@ public class DistrictMetadata
 
     public DistrictMetadata() {}
 
-    public DistrictMetadata(DistrictType type, String name, String code)
-    {
+    public DistrictMetadata(DistrictType type, String name, String code) {
         if (type != null) {
             this.districtType = type;
             this.districtName = name;

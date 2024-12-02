@@ -91,7 +91,7 @@ public class DistrictController {
         if (districtStrategy == null) {
             districtStrategy = defaultSingleStrategy;
         }
-        List<DistrictSource> providers = getProviders(provider);
+        List<DistrictSource> providers = getProviders(districtStrategy);
         if (providers == null) {
             return new ApiError(DistrictController.class, DISTRICT_PROVIDER_NOT_SUPPORTED);
         }
@@ -137,7 +137,7 @@ public class DistrictController {
             districtStrategy = defaultBatchStrategy;
         }
 
-        List<DistrictSource> providers = getProviders(provider);
+        List<DistrictSource> providers = getProviders(districtStrategy);
         if (providers == null) {
             return new ApiError(DistrictController.class, DISTRICT_PROVIDER_NOT_SUPPORTED);
         }

@@ -4,7 +4,6 @@ import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictOverlap;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
 
 import java.util.List;
@@ -36,12 +35,9 @@ public interface DistrictShapeFileDao {
     DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType, Set<String> targetCodes,
                                        DistrictType refDistrictType, Set<String> refCodes);
 
-    Map<String, List<Line>> getIntersectingStreetLine(DistrictType districtType, Set<String> codes, String jsonGeom);
-
     /**
      * Generates a DistrictMap containing geometry that represents the area contained within the
-     * supplied reference district codes of type refDistrictType. Useful for obtaining the polygon that
-     * represents a collection of zip codes for example.
+     * supplied reference district codes of type refDistrictType.
      * @param refDistrictType The reference district type.
      * @param refCodes        The reference district codes.
      * @return DistrictMap

@@ -6,8 +6,9 @@ import java.util.Map;
 
 public enum DistrictType {
     // Available as shape files
-    ASSEMBLY("DISTRICT"), CONGRESSIONAL("DISTRICT"), SENATE("DISTRICT"), SCHOOL("TFCODE"), TOWN_CITY("ABBREV"),
-    COUNTY("namelsad", "COUNTYFP"), ZIP("zip_code", "zip_code"),
+    ASSEMBLY("district", "district"), CONGRESSIONAL("district", "district"), SENATE("district", "district"),
+    SCHOOL("TFCODE"), TOWN_CITY("ABBREV"),
+    COUNTY("fips_code"), ZIP("zip_code", "zip_code"),
     // Available only in street files
     ELECTION, WARD, COUNTY_LEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
 
