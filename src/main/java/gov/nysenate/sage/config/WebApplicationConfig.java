@@ -58,7 +58,7 @@ public class WebApplicationConfig implements WebMvcConfigurer {
 
     @PostConstruct
     public void init() {
-        logger.info("{}", ASCII_ART.formatted(LocalDateTime.now().toString()));
+        logger.info("\n{}", ASCII_ART.formatted(LocalDateTime.now().toString()));
         sqlDeploymentLogger.logDeploymentStatus();
     }
 

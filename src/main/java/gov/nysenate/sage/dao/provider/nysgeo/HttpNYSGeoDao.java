@@ -7,6 +7,7 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.util.UrlRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,8 +106,8 @@ public class HttpNYSGeoDao implements GeocoderDao {
                 }
 
                 if (resultParsed) {
-                    Geocode geocode = new Geocode( new Point(lat, lon),
-                            resolveGeocodeQuality(score, isRevGeocode), HttpNYSGeoDao.class.getSimpleName());
+                    var geocode = new Geocode(new Point(lat, lon),
+                            resolveGeocodeQuality(score, isRevGeocode), Geocoder.GOOGLE.name());
                     geocodedAddress = new GeocodedAddress(address, geocode);
                 }
             }

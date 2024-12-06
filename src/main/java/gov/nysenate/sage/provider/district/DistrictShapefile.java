@@ -15,7 +15,6 @@ import gov.nysenate.sage.util.FormatUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +29,7 @@ public class DistrictShapefile extends DistrictService implements MapService {
     /** We should only attempt to assign districts to a geocode if it is accurate enough.
      * i.e. We can't accurately assign a district to a ZIP, CITY, or STATE quality geocode. */
     private static final List<GeocodeQuality> DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES =
-            Arrays.asList(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
+            List.of(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
 
     @Autowired
     public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, CountyDao countyDao) {
@@ -44,7 +43,6 @@ public class DistrictShapefile extends DistrictService implements MapService {
         if (!districtResult.isSuccess()) {
             return districtResult;
         }
-        // TODO: need street number, street name, and ZIP at least
         if (!DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES.contains(geocodedAddress.getGeocode().quality())) {
             districtResult.setStatusCode(INSUFFICIENT_GEOCODE);
             return districtResult;

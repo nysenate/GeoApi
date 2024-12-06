@@ -105,8 +105,6 @@ public class SageGeocodeServiceProvider implements GeocodeServiceProvider {
             finalResults.add(new GeocodeResult(null, ResultStatus.NO_GEOCODE_RESULT,
                     new GeocodedAddress(address)));
         }
-
-        // Clone the list of fall back providers
         logger.info("Performing {} geocodes.", addressCount);
 
 

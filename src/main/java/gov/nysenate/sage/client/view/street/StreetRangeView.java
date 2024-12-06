@@ -26,7 +26,7 @@ public class StreetRangeView
             if (sar != null) {
                 this.bldgLoNum = sar.bldgLow();
                 this.bldgHiNum = sar.bldgHigh();
-                this.parity = sar.parity();
+                this.parity = sar.parity().name();
                 this.street = sar.awn().street();
                 this.location = sar.awn().postalCity();
                 this.zip5 = String.valueOf(sar.awn().zip5());

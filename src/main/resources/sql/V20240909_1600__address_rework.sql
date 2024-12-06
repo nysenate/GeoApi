@@ -47,3 +47,11 @@ ALTER TABLE geocoder.cache.geocache
     ), ALTER COLUMN street SET NOT NULL;
 
 ALTER TABLE geocoder.cache.geocache RENAME COLUMN location TO postal_city;
+
+UPDATE geocoder.cache.geocache
+SET method = 'NYSGEO'
+WHERE method = 'HttpNYSGeoDao' OR method = 'NYS Geo DB';
+
+UPDATE geocoder.cache.geocache
+SET method = 'GOOGLE'
+WHERE method = 'HttpGoogleDao';

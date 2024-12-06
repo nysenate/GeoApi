@@ -25,8 +25,6 @@ public class BaseDao {
     private String logSchema;
     @Value("${env.public.schema:public}")
     private String publicSchema;
-    @Value("${env.cache.schema:cache}")
-    private String cacheSchema;
     @Value("${env.job.schema:job}")
     private String jobSchema;
 
@@ -98,9 +96,5 @@ public class BaseDao {
 
     public String getLogSchema() {
         return logSchema;
-    }
-
-    public String getCacheSchema() {
-        return cacheSchema;
     }
 }

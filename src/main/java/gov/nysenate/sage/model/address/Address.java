@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.address;
 
+import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.Pair;
 import org.apache.commons.lang3.StringUtils;
@@ -15,9 +16,9 @@ public class Address {
     private String bldgId;
     private String street;
     private String postalCity;
-    private String state;
+    private String state = "NY";
     private Zip5 zip5;
-    private Zip4 zip4;
+    private Zip4 zip4 = new Zip4(null);
     private String internal;
 
     /** Verification info */
@@ -27,6 +28,13 @@ public class Address {
 
     public Address(String fullAddr) {
         // TODO: complete. Perhaps get a full list of street, town, zip5, zip4?
+    }
+
+    public Address(int bldgNum, AddressWithoutNum awn) {
+        this.bldgId = String.valueOf(bldgNum);
+        this.street = awn.street();
+        this.postalCity = awn.postalCity();
+        this.zip5 = new Zip5(awn.zip5());
     }
 
     public Address(String streetWithNum, String postalCity, String zip5) {
@@ -43,6 +51,16 @@ public class Address {
     public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
         this(addr1, postalCity, state, zip5 + "-" + zip4);
         this.internal = addr2;
+    }
+
+    public static Address getAddress(String bldgId, String street, String postalCity, String zip5, String zip4) {
+        var addr = new Address();
+        addr.bldgId = bldgId;
+        addr.street = street;
+        addr.postalCity = postalCity;
+        addr.setZip5(zip5);
+        addr.setZip4(zip4);
+        return addr;
     }
 
     public String getBldgId() {
@@ -82,7 +100,7 @@ public class Address {
     }
 
     public void setZip4(String zip4) {
-        this.zip4 = new Zip4(Integer.parseInt(zip4.trim()));
+        this.zip4 = new Zip4(zip4 == null ? null : Integer.parseInt(zip4.trim()));
     }
 
     @Override
