@@ -53,14 +53,16 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
             return null;
         }
 
-        StringBuilder urlParams = new StringBuilder();
+        var urlParams = new StringBuilder();
         try {
             urlParams.append("?addr1=").append(encode(address.getStreetWithNum()))
-                    .append("&addr2=").append(encode(address.getInternal()))
                     .append("&city=").append(encode(address.getPostalCity()))
                     .append("&state=").append(encode(address.getState()))
                     .append("&zip5=").append(address.getZip5())
                     .append("&initCaps=true");
+            if (address.getInternal() != null) {
+                urlParams.append("&addr2=").append(encode(address.getInternal()));
+            }
 
             String url = base_url + VALIDATE_METHOD + urlParams;
             logger.info("Making a connection to: \n{}", url);

@@ -6,11 +6,11 @@ import java.util.Map;
 
 public enum DistrictType {
     // Available as shape files
-    ASSEMBLY("district", "district"), CONGRESSIONAL("district", "district"), SENATE("district", "district"),
+    ASSEMBLY("district"), CONGRESSIONAL("district"), SENATE("district"),
     SCHOOL("TFCODE"), TOWN_CITY("ABBREV"),
     COUNTY("fips_code"), ZIP("zip_code", "zip_code"),
     // Available only in street files
-    ELECTION, WARD, COUNTY_LEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
+    ELECTION("district", "election_district"), WARD, COUNTY_LEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
 
     /** A Map container is used to associate type names with the enum type */
     private static final Map<String, DistrictType> resolveMap = new HashMap<>();
@@ -21,26 +21,19 @@ public enum DistrictType {
     }
     // Column names in the database
     private final String name, code;
-    // Specifies the format of shapefile data.
-    private final Integer srid;
 
     // For types that don't currently have shapefiles.
     DistrictType() {
-        this(null, null, null);
+        this(null, null);
     }
 
     DistrictType(String code) {
-        this("NAME", code);
+        this(code.equalsIgnoreCase("district") ? code : "NAME", code);
     }
 
     DistrictType(String name, String code) {
-        this(name, code, 4326);
-    }
-
-    DistrictType(String name, String code, Integer srid) {
         this.name = name;
         this.code = code;
-        this.srid = srid;
     }
 
     /** Returns the DistrictType that matches the String representation */
@@ -58,9 +51,5 @@ public enum DistrictType {
 
     public String codeColumn() {
         return code;
-    }
-
-    public String sridColumn() {
-        return srid == null ? null : Integer.toString(srid);
     }
 }

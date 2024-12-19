@@ -4,7 +4,6 @@ import gov.nysenate.sage.client.view.district.DistrictOverlapView;
 import gov.nysenate.sage.client.view.street.StreetRangeView;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictOverlap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
@@ -24,7 +23,6 @@ public class MultiDistrictResponse extends DistrictResponse {
     public MultiDistrictResponse(DistrictResult districtResult) {
         super(districtResult);
         DistrictInfo districtInfo = districtResult.getDistrictInfo();
-        DistrictMatchLevel districtMatchLevel = districtResult.getDistrictMatchLevel();
         if (districtInfo == null) {
             return;
         }
@@ -41,9 +39,10 @@ public class MultiDistrictResponse extends DistrictResponse {
 
                 if (overlap != null) {
                     List<DistrictOverlapView> overlapViews = new ArrayList<>();
-                    for (String district : overlap.getOverlapDistrictCodes()) {
-                        overlapViews.add(new DistrictOverlapView(overlap, district));
-                    }
+                    // TODO
+//                    for (String district : overlap.getOverlapDistrictCodes()) {
+//                        overlapViews.add(new DistrictOverlapView(overlap, district));
+//                    }
                     overlaps.put(districtType.name().toLowerCase(), overlapViews);
                 }
             }

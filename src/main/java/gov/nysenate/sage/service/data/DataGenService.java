@@ -259,8 +259,9 @@ public class DataGenService implements SageDataGenService {
 
         if (result.isSuccess()) {
             Geocode geocodedOffice = result.getGeocode();
-            senatorOffice.setLatitude(geocodedOffice.lat());
-            senatorOffice.setLongitude(geocodedOffice.lon());
+            // TODO: change Office
+            senatorOffice.setLatitude(geocodedOffice.lat().doubleValue());
+            senatorOffice.setLongitude(geocodedOffice.lon().doubleValue());
         }
         else {
             logger.error("SAGE was unable to geocode this office address: {}", officeAddress);

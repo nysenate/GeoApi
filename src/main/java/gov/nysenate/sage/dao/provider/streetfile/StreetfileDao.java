@@ -31,10 +31,4 @@ public interface StreetfileDao {
      * @return List of DistrictedStreetRange
      */
     List<DistrictedStreetRange> getDistrictStreetRangesByZip(Integer zip5);
-
-    /**
-     * Returns a list of street ranges with district information for a given street and zip5 list.
-     * @return List of DistrictedStreetRange
-     */
-    List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<Integer> zip5List);
 }

@@ -42,7 +42,8 @@ public class SqlApiRequestLogger implements ApiRequestLogger {
                 return idList.get(0);
             }
             catch (Exception ex) {
-                logger.error("Failed to log Api Request into the database", ex);
+                // TODO
+                logger.error("Failed to log Api Request into the database");
             }
         }
         return 0;

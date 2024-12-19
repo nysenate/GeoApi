@@ -35,7 +35,7 @@ public class StreetfileTest extends BaseTests {
     public void shouldNotDistrictAssignCityGeocodeQuality() {
         Address addr = new Address("", "Delmar", "NY", "");
         addr.setUspsValidated(false);
-        Geocode geo = new Geocode(new Point(42.6220235, -73.8326232), GeocodeQuality.CITY, Geocoder.GOOGLE.toString());
+        Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE.toString());
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
         DistrictResult districtResult = streetFile.assignDistricts(geoAddr, types);
         System.out.println(districtResult);

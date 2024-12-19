@@ -31,15 +31,11 @@ public class BaseDao {
     // TODO: should be protected and other DAOs should inherit
     public final JdbcTemplate geoApiJbdcTemplate;
     public final NamedParameterJdbcTemplate geoApiNamedJbdcTemplate;
-    public final JdbcTemplate tigerJbdcTemplate;
-    public final NamedParameterJdbcTemplate tigerNamedJdbcTemplate;
 
     @Autowired
     public BaseDao(DatabaseConfig databaseConfig) {
         this.geoApiJbdcTemplate = databaseConfig.geoApiJdbcTemplate();
         this.geoApiNamedJbdcTemplate = databaseConfig.geoApiNamedJdbcTemplate();
-        this.tigerJbdcTemplate = databaseConfig.tigerJdbcTemplate();
-        this.tigerNamedJdbcTemplate = databaseConfig.tigerNamedJdbcTemplate();
     }
 
     /**
@@ -60,7 +56,7 @@ public class BaseDao {
             if (geoType.equals(GeometryTypes.LINESTRING)) {
                 List<Point> points = new ArrayList<>();
                 for (int i = 0; i < coordinates.size(); i++) {
-                    points.add(new Point(coordinates.get(i).get(1).asDouble(), coordinates.get(i).get(0).asDouble()));
+                    points.add(new Point(coordinates.get(i).get(1).asText(), coordinates.get(i).get(0).asText()));
                 }
                 lines.add(new Line(points));
             }
@@ -69,7 +65,7 @@ public class BaseDao {
                     List<Point> points = new ArrayList<>();
                     JsonNode jsonLine = coordinates.get(i);
                     for (int j = 0; j < jsonLine.size(); j++) {
-                        points.add(new Point(jsonLine.get(j).get(1).asDouble(), jsonLine.get(j).get(0).asDouble()));
+                        points.add(new Point(jsonLine.get(j).get(1).asText(), jsonLine.get(j).get(0).asText()));
                     }
                     lines.add(new Line(points));
                 }

@@ -119,7 +119,7 @@ public class SqlSenateDao implements SenateDao {
         Map<Integer, Senator> senatorMap = new HashMap<>();
         try {
             List<Map<Integer, Senator>> uncompiledSenatorMap =
-                    baseDao.geoApiJbdcTemplate.query(
+                    baseDao.geoApiNamedJbdcTemplate.query(
                             SenateQuery.GET_ALL_SENATORS.getSql(baseDao.getPublicSchema()), new SenatorMapHandler());
 
             senatorMap = compileSenateMap(uncompiledSenatorMap);

@@ -4,7 +4,7 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.district.DistrictResponse;
-import gov.nysenate.sage.client.response.district.MappedMultiDistrictResponse;
+import gov.nysenate.sage.client.response.district.IntersectResponse;
 import gov.nysenate.sage.client.response.district.MultiDistrictResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.BatchDistrictRequest;
@@ -223,7 +223,7 @@ public class DistrictController {
         var intersectRequest = new IntersectRequest(DistrictType.resolveType(sourceType),
                 sourceId, DistrictType.resolveType(intersectType));
         IntersectResult intersectResult = intersectService.handleIntersectRequest(intersectRequest);
-        return new MappedMultiDistrictResponse(intersectResult, intersectRequest.intersectWith());
+        return new IntersectResponse(intersectResult, intersectRequest.intersectWith());
     }
 
     private static List<DistrictSource> getProviders(String strategy) {

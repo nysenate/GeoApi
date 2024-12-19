@@ -1,6 +1,6 @@
 package gov.nysenate.sage.dao.provider.geocache;
 
-import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -13,13 +13,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -30,13 +32,13 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlGeoCacheDao.class);
     private static final BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
 
-    private final BaseDao baseDao;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
     @Value("${geocache.buffer.size:100}")
     private int BUFFER_SIZE;
 
     @Autowired
-    public SqlGeoCacheDao(BaseDao baseDao) {
-        this.baseDao = baseDao;
+    public SqlGeoCacheDao(DatabaseConfig config) {
+        this.jdbcTemplate = config.tigerNamedJdbcTemplate();
     }
 
     /** {@inheritDoc} */
@@ -70,13 +72,13 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
             Geocode gc = geocodedAddress.getGeocode();
             if (isCacheable(address)) {
                 var params = getIdParams(address)
-                        .addValue("zip4", address.getZip4())
+                        .addValue("zip4", address.getZip4() == null ? null : address.getZip4().toString())
                         .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
                         .addValue("method", gc.originalGeocoder())
                         .addValue("quality", gc.quality().name());
 
-                if (baseDao.tigerNamedJdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
-                    baseDao.tigerNamedJdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
+                if (jdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
+                    jdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
                 }
             }
         }
@@ -89,8 +91,11 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
     public GeocodedAddress getGeocodedAddress(Address address) {
         if (isCacheable(address)) {
             // TODO: handle PO boxes elsewhere
-            return baseDao.tigerNamedJdbcTemplate.query(SELECT_CACHE_ENTRY.getSql(),
-                    getIdParams(address), new GeocodedStreetAddressHandler());
+            List<GeocodedAddress> geoAddrs = jdbcTemplate.query(SELECT_CACHE_ENTRY.getSql(),
+                    getIdParams(address), new GeocodedStreetAddressMapper());
+            if (!geoAddrs.isEmpty()) {
+                return geoAddrs.get(0);
+            }
         }
         return null;
     }
@@ -100,10 +105,10 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
         return null;
     }
 
-    private static class GeocodedStreetAddressHandler implements ResultSetExtractor<GeocodedAddress> {
+    private static class GeocodedStreetAddressMapper implements RowMapper<GeocodedAddress> {
         @Override
-        public GeocodedAddress extractData(ResultSet rs) throws SQLException {
-            var addr = new Address(rs.getString("bldg_id"), WordUtils.capitalizeFully(rs.getString("street")), "",
+        public GeocodedAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
+            var addr = Address.getAddress(rs.getString("bldg_id"), WordUtils.capitalizeFully(rs.getString("street")),
                     WordUtils.capitalizeFully(rs.getString("postal_city")), rs.getString("zip5"), rs.getString("zip4"));
             return new GeocodedAddress(addr, getGeocodeFromResultSet(rs));
         }
@@ -114,7 +119,7 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
      * @param rs    Result set that has rs.next() already called
      */
     private static Geocode getGeocodeFromResultSet(ResultSet rs) throws SQLException {
-        var point = new Point(rs.getDouble("lat"), rs.getDouble("lon"));
+        var point = new Point(rs.getString("lat"), rs.getString("lon"));
         GeocodeQuality quality = GeocodeQuality.fromString(rs.getString("quality"));
         return new Geocode(point, quality, rs.getString("method"), true);
     }
@@ -123,7 +128,7 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
         return new MapSqlParameterSource("bldgId", address.getBldgId())
                 .addValue("street", address.getStreet())
                 .addValue("postalCity", address.getPostalCity())
-                .addValue("zip5", address.getZip5());
+                .addValue("zip5", address.getZip5().toString());
     }
 
     private static boolean isCacheable(Address addr) {

@@ -8,7 +8,6 @@ import gov.nysenate.sage.model.geo.Point;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public interface DistrictShapeFileDao {
     /**
@@ -27,28 +26,12 @@ public interface DistrictShapeFileDao {
      * for a zip/city level match where given a collection of zip codes, gather the other types of districts
      * that overlap the zip area.
      * @param targetDistrictType The DistrictType of get overlap info for.
-     * @param targetCodes        The list of codes that overlap the area (obtained through street files for performance)
      * @param refDistrictType    The DistrictType to base the intersections of off.
-     * @param refCodes           The list of codes that represent the base area.
+     * @param refCode           The code that represents the base area.
      * @return DistrictOverlap
      */
-    DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType, Set<String> targetCodes,
-                                       DistrictType refDistrictType, Set<String> refCodes);
-
-    /**
-     * Generates a DistrictMap containing geometry that represents the area contained within the
-     * supplied reference district codes of type refDistrictType.
-     * @param refDistrictType The reference district type.
-     * @param refCodes        The reference district codes.
-     * @return DistrictMap
-     */
-    DistrictMap getOverlapReferenceBoundary(DistrictType refDistrictType, Set<String> refCodes);
-
-    /**
-     * Retrieves a mapped collection of district code to DistrictMap that's grouped by DistrictType.
-     * @return Map<DistrictType, Map<String, DistrictMap>>
-     */
-    Map<String, DistrictMap> getCodeToDistrictMapMap(DistrictType type);
+    DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType,
+                                       DistrictType refDistrictType, String refCode);
 
     /**
      * Retrieves a mapped collection of DistrictMaps.
@@ -63,6 +46,4 @@ public interface DistrictShapeFileDao {
     boolean cacheDistrictMaps();
 
     Map<MunicipalityType, Map<String, Integer>> getTypeAndNameToIdMap();
-
-
 }

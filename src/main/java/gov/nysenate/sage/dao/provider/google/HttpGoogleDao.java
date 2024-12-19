@@ -122,8 +122,8 @@ public class HttpGoogleDao implements GeocoderDao {
                 String addr1 = streetNumber + " " + street;
                 Address address = new Address(addr1, "", city, state, zip5, zip4);
                 JsonNode location = result.get("geometry").get("location");
-                double lat = location.get("lat").asDouble(0.0);
-                double lon = location.get("lng").asDouble(0.0);
+                String lat = location.get("lat").asText("0");
+                String lon = location.get("lng").asText("0");
                 String geocodeType = result.get("types").get(0).asText();
                 // TODO: add name()
                 var geocode = new Geocode(

@@ -50,11 +50,6 @@ public class DatabaseConfig
     }
 
     @Bean
-    public JdbcTemplate tigerJdbcTemplate() {
-        return new JdbcTemplate(tigerPostgresDataSource());
-    }
-
-    @Bean
     public NamedParameterJdbcTemplate tigerNamedJdbcTemplate() {
         return new NamedParameterJdbcTemplate(tigerPostgresDataSource());
     }
@@ -101,7 +96,7 @@ public class DatabaseConfig
             pool.setDriverClass(driver);
         }
         catch (PropertyVetoException ex) {
-            logger.error("Error when setting the database driver " + driver + "{}", ex.getMessage());
+            logger.error("Error when setting the database driver {}{}", driver, ex.getMessage());
         }
         final String jdbcUrl = String.format(jdbcUrlTemplate, type, host, name);
 

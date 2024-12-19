@@ -22,13 +22,13 @@ public class GeocodedAddressTest {
         GeocodedAddress geocodedAddress = new GeocodedAddress();
         geocodedAddress.setAddress(new Address("Some addresss", "Some town", "NY", "12313"));
 
-        geocodedAddress.setGeocode(new Geocode(new Point(1,1), GeocodeQuality.POINT, Geocoder.NYSGEO, false));
+        geocodedAddress.setGeocode(new Geocode(new Point("1", "1"), GeocodeQuality.POINT, Geocoder.NYSGEO, false));
         assertTrue(geocodedAddress.isValidGeocode());
 
-        geocodedAddress.setGeocode(new Geocode(new Point(1,1), GeocodeQuality.HOUSE, Geocoder.NYSGEO, false));
+        geocodedAddress.setGeocode(new Geocode(new Point("1", "1"), GeocodeQuality.HOUSE, Geocoder.NYSGEO, false));
         assertTrue(geocodedAddress.isValidGeocode());
 
-        geocodedAddress.setGeocode(new Geocode(new Point(0,0), GeocodeQuality.NOMATCH, Geocoder.NYSGEO, false));
+        geocodedAddress.setGeocode(new Geocode(new Point("0", "0"), GeocodeQuality.NOMATCH, Geocoder.NYSGEO, false));
         assertFalse(geocodedAddress.isValidGeocode());
 
         geocodedAddress.setGeocode(null);

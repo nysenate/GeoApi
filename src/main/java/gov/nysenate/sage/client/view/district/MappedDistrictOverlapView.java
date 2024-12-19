@@ -2,41 +2,21 @@ package gov.nysenate.sage.client.view.district;
 
 import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictOverlap;
+
+import javax.annotation.Nonnull;
 
 public class MappedDistrictOverlapView extends DistrictOverlapView {
     protected PolygonMapView map;
     protected PolygonMapView fullMap;
-    protected Object member;
 
-    public MappedDistrictOverlapView(DistrictOverlap districtOverlap, String district) {
-        super(districtOverlap, district);
-        if (districtOverlap != null && district != null) {
-            DistrictMap intersectionMap = districtOverlap.getIntersectionMap(district);
-            DistrictMap districtMap = districtOverlap.getTargetDistrictMap(district);
-
-            if (intersectionMap != null) {
-                this.map = new PolygonMapView(intersectionMap);
-                if (districtMap != null) {
-                    this.fullMap = new PolygonMapView(districtMap);
-                }
-            }
-            else if (districtMap != null) {
-                this.map = new PolygonMapView(districtMap);
-            }
-
-            if (!districtOverlap.getTargetSenators().isEmpty()) {
-                this.member = districtOverlap.getTargetSenators().get(district);
-            }
-        }
+    public MappedDistrictOverlapView(@Nonnull DistrictMap baseMap, @Nonnull DistrictMap intersectionMap) {
+        super(baseMap, intersectionMap);
+        this.map = new PolygonMapView(intersectionMap);
+        this.fullMap = new PolygonMapView(baseMap);
     }
 
     public PolygonMapView getMap() {
         return map;
-    }
-
-    public Object getMember() {
-        return member;
     }
 
     public PolygonMapView getFullMap() {

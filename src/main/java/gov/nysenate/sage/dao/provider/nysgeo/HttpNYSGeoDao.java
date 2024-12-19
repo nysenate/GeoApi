@@ -62,55 +62,46 @@ public class HttpNYSGeoDao implements GeocoderDao {
 
     /** {@inheritDoc} */
     private GeocodedAddress getGeocodedAddress(String urlString, boolean isRevGeocode) {
-        GeocodedAddress geocodedAddress = null;
-        boolean resultParsed = false;
-
         try {
             String response = UrlRequest.getResponseFromUrl(urlString.replaceAll(" ", "%20"));
-            if (response != null) {
-                JsonNode node = objectMapper.readTree(response);
-                double lat = 0.0;
-                double lon = 0.0;
-                int score = -1;
-                Address address = null;
+            if (response == null) {
+                return null;
+            }
+            JsonNode node = objectMapper.readTree(response);
+            int score = -1;
+            Address address;
 
-                if (isRevGeocode && node.has("address") && node.get("address") != null) {
-                    JsonNode addressNode = node.get("address");
-                    address = new Address(addressNode.get("Street").toString().trim().replaceAll("\"", ""),
-                            addressNode.get("City").toString().trim().replaceAll("\"", ""),
-                            addressNode.get("State").toString().trim().replaceAll("\"", ""),
-                            addressNode.get("ZIP").toString().trim().replaceAll("\"", ""));
-                    JsonNode location = node.get("location");
-                    lon = location.get("x").asDouble();
-                    lat = location.get("y").asDouble();
-                    resultParsed = true;
-                }
-                else if (node.has("candidates") && node.get("candidates").get(0) != null) {
-                    JsonNode candidate = node.get("candidates").get(0);
-                    logger.trace(candidate.get("address").toString());
+            if (isRevGeocode && node.has("address") && node.get("address") != null) {
+                JsonNode addressNode = node.get("address");
+                address = new Address(addressNode.get("Street").toString().trim().replaceAll("\"", ""),
+                        addressNode.get("City").toString().trim().replaceAll("\"", ""),
+                        addressNode.get("State").toString().trim().replaceAll("\"", ""),
+                        addressNode.get("ZIP").toString().trim().replaceAll("\"", ""));
+            }
+            else if (node.has("candidates") && node.get("candidates").get(0) != null) {
+                node = node.get("candidates").get(0);
 
-                    String[] candidateAddress = candidate.get("address").toString().split(",");
-                    for (int i = 0; i < candidateAddress.length; i++) {
-                        candidateAddress[i] = candidateAddress[i].trim().replaceAll("\"", "");
-                    }
-
-                    address = new Address(candidateAddress[0], candidateAddress[1], candidateAddress[2], candidateAddress[3]);
-
-                    if (candidate.has("score") && candidate.get("score") != null) {
-                        score = candidate.get("score").asInt();
-                    }
-                    JsonNode location = candidate.get("location");
-                    lon = location.get("x").asDouble();
-                    lat = location.get("y").asDouble();
-                    resultParsed = true;
+                String[] candidateAddress = node.get("address").toString().split(",");
+                for (int i = 0; i < candidateAddress.length; i++) {
+                    candidateAddress[i] = candidateAddress[i].trim().replaceAll("\"", "");
                 }
 
-                if (resultParsed) {
-                    var geocode = new Geocode(new Point(lat, lon),
-                            resolveGeocodeQuality(score, isRevGeocode), Geocoder.GOOGLE.name());
-                    geocodedAddress = new GeocodedAddress(address, geocode);
+                address = new Address(candidateAddress[0], candidateAddress[1], candidateAddress[2], candidateAddress[3]);
+
+                if (node.has("score") && node.get("score") != null) {
+                    score = node.get("score").asInt();
                 }
             }
+            else {
+                return null;
+            }
+
+            JsonNode location = node.get("location");
+            String lon = location.get("x").asText();
+            String lat = location.get("y").asText();
+            var geocode = new Geocode(new Point(lat, lon),
+                    resolveGeocodeQuality(score, isRevGeocode), Geocoder.GOOGLE.name());
+            return new GeocodedAddress(address, geocode);
         }
         catch (IOException ex) {
             logger.error("Failed to retrieve data from NYS Geo api!", ex);
@@ -118,7 +109,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
         catch (NullPointerException ex) {
             logger.error("NullPointerException while parsing NYS Geocoder response!", ex);
         }
-        return geocodedAddress;
+        return null;
     }
 
     /**

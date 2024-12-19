@@ -72,8 +72,7 @@ public final class ApiControllerUtil {
     public static Point getPointFromParams(String lat, String lon) {
         if (lat != null && lon != null) {
             try {
-                return new Point(Double.parseDouble(FormatUtil.cleanString(lat)),
-                        Double.parseDouble(FormatUtil.cleanString(lon)));
+                return new Point(FormatUtil.cleanString(lat), FormatUtil.cleanString(lon));
             }
             catch (Exception ignored) {}
         }
@@ -127,7 +126,7 @@ public final class ApiControllerUtil {
             JsonNode node = mapper.readTree(json);
             for (int i = 0; i < node.size(); i++) {
                 JsonNode point = node.get(i);
-                points.add(new Point(point.get("lat").asDouble(), point.get("lon").asDouble()));
+                points.add(new Point(point.get("lat").asText(), point.get("lon").asText()));
             }
         }
         catch(Exception ex) {

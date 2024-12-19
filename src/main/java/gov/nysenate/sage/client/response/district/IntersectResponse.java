@@ -7,10 +7,12 @@ import gov.nysenate.sage.model.result.IntersectResult;
 
 import java.math.BigDecimal;
 
-public record MappedMultiDistrictResponse(MappedDistrictOverlapView overlap, String intersectType,
-                                          PolygonMapView referenceMap, BigDecimal totalReferenceArea, String areaUnit) {
-    public MappedMultiDistrictResponse(IntersectResult intersectResult, DistrictType intersectType) {
-        this(new MappedDistrictOverlapView(intersectResult.getOverlap(), intersectResult.getMainMap().getDistrictCode()),
+public record IntersectResponse(MappedDistrictOverlapView overlap, String intersectType,
+                                PolygonMapView referenceMap, BigDecimal totalReferenceArea, String areaUnit) {
+    public IntersectResponse(IntersectResult intersectResult, DistrictType intersectType) {
+        this(null,
+                // TODO
+                //new MappedDistrictOverlapView(intersectResult.getOverlap(), intersectResult.getMainMap().getDistrictCode()),
                 intersectType.name().toLowerCase(), new PolygonMapView(intersectResult.getMainMap()),
                 intersectResult.getOverlap().getTotalArea(), intersectResult.getOverlap().getAreaUnit());
     }

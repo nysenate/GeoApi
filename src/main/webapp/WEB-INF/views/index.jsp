@@ -263,6 +263,7 @@
                                     <option value="town">Town</option>
                                     <option value="school">School</option>
                                     <option value="zip">Zip</option>
+                                    <option value="election">Election</option>
                                 </select>
                             </div>
                             <div>

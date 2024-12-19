@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INSUFFICIENT_GEOCODE;
 
@@ -78,22 +77,16 @@ public class DistrictShapefile extends DistrictService implements MapService {
         var mapResult = new MapResult(MapSource.SHAPEFILE);
         if (code != null && !code.isEmpty()) {
             code = FormatUtil.trimLeadingZeroes(code);
-            var strToDistMap = sqlDistrictShapefileDao.getCodeToDistrictMapMap(districtType);
-            if (strToDistMap != null) {
-                DistrictMap map = strToDistMap.get(code);
-                if (map != null) {
-                    if (districtType.equals(DistrictType.COUNTY)) { //This if block is for the COVID19 links
-                        map.setLink(countyDao.getCountyBySenateCode(Integer.parseInt(code)).link());
-                    }
-                    mapResult.setDistrictMap(map);
-                    mapResult.setStatusCode(ResultStatus.SUCCESS);
+            DistrictMap map = sqlDistrictShapefileDao.getDistrictMap(districtType, code);
+            if (map != null) {
+                if (districtType.equals(DistrictType.COUNTY)) { //This if block is for the COVID19 links
+                    map.setLink(countyDao.getCountyBySenateCode(Integer.parseInt(code)).link());
                 }
-                else {
-                    mapResult.setStatusCode(ResultStatus.NO_MAP_RESULT);
-                }
+                mapResult.setDistrictMap(map);
+                mapResult.setStatusCode(ResultStatus.SUCCESS);
             }
             else {
-                mapResult.setStatusCode(ResultStatus.UNSUPPORTED_DISTRICT_MAP);
+                mapResult.setStatusCode(ResultStatus.NO_MAP_RESULT);
             }
         }
         else {
@@ -130,10 +123,9 @@ public class DistrictShapefile extends DistrictService implements MapService {
      * @return DistrictResult with overlaps set.
      */
     public IntersectResult getIntersectionResult(DistrictType districtType, String districtId, DistrictType intersectType) {
-        DistrictMap sourceMap = sqlDistrictShapefileDao.getOverlapReferenceBoundary(districtType, Set.of(districtId));
+        DistrictMap sourceMap = sqlDistrictShapefileDao.getDistrictMap(districtType, districtId);
         // We only need the overlap for the specified intersect type
-        DistrictOverlap overlap = sqlDistrictShapefileDao.getDistrictOverlap(intersectType, null,
-                districtType, Set.of(districtId));
+        DistrictOverlap overlap = sqlDistrictShapefileDao.getDistrictOverlap(intersectType, districtType, districtId);
         return new IntersectResult(MapSource.SHAPEFILE, sourceMap, overlap);
     }
 }

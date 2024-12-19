@@ -7,15 +7,18 @@ import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.ElectionOverlap;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
-import org.apache.commons.lang3.StringUtils;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
@@ -25,7 +28,10 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateDistrictInfo;
 import static gov.nysenate.sage.model.district.DistrictType.*;
@@ -110,60 +116,25 @@ public class SqlStreetfileDao implements StreetfileDao {
         }
 
         checkLock();
-        var ranges = baseDao.geoApiJbdcTemplate.query(sqlBuilder.toString(), new DistrictStreetRangeMapHandler());
-        if (ranges == null || ranges.isEmpty()) {
+        List<DistrictedStreetRange> ranges = baseDao.geoApiNamedJbdcTemplate.query(sqlBuilder.toString(),
+                new DistrictStreetRangeMapper());
+        if (ranges.isEmpty()) {
             return getDistrictedAddress(addr, matchLevel.getNextHighestLevel());
         }
-        DistrictInfo consolidatedInfo = consolidateDistrictInfo(ranges.values());
+        DistrictInfo consolidatedInfo = consolidateDistrictInfo(ranges.stream()
+                .map(DistrictedStreetRange::districtInfo).toList());
         return new DistrictedAddress(new GeocodedAddress(addr), consolidatedInfo, DistrictMatchLevel.ZIP5);
     }
 
     /** {@inheritDoc} */
     public List<DistrictedStreetRange> getDistrictStreetRangesByZip(Integer zip5) {
-        return getDistrictStreetRanges("", List.of(zip5));
-    }
-
-    /** {@inheritDoc} */
-    public List<DistrictedStreetRange> getDistrictStreetRanges(String street, List<Integer> zip5List) {
-        // Short circuit the request under conditions where lots of data would be retrieved.
-        if (zip5List == null || zip5List.isEmpty()) {
-            return null;
-        }
-        else if (zip5List.size() > 1 && street.isEmpty()) {
+        if (zip5 == null) {
             return null;
         }
 
-        String sql =
-            "SELECT * " +
-            "FROM streetfile " +
-            "WHERE CASE WHEN ? != '' THEN street = ? ELSE TRUE END " +
-            "AND (%s) " +
-            "ORDER BY street, bldg_low";
-
-        List<String> zip5WhereList = new ArrayList<>();
-        for (Integer zip5 : zip5List) {
-            if (zip5 != null) {
-                zip5WhereList.add(String.format("zip5 = '%d'", zip5));
-            }
-        }
-        String zip5WhereSql = StringUtils.join(zip5WhereList, " OR ");
-        sql = String.format(sql, zip5WhereSql);
-        try {
-            checkLock();
-            Map<StreetAddressRange, DistrictInfo> resultMap =
-                    baseDao.geoApiJbdcTemplate.query(sql, new DistrictStreetRangeMapHandler(), street, street);
-            if (resultMap != null && !resultMap.isEmpty()) {
-                List<DistrictedStreetRange> districtedStreetRanges = new ArrayList<>();
-                for (StreetAddressRange sar : resultMap.keySet()) {
-                    districtedStreetRanges.add(new DistrictedStreetRange(sar, resultMap.get(sar)));
-                }
-                return districtedStreetRanges;
-            }
-        }
-        catch (Exception ex) {
-            logger.error("Failed to get district street range lookup!", ex);
-        }
-        return null;
+        checkLock();
+        return baseDao.geoApiNamedJbdcTemplate.query(StreetfileQuery.SELECT_BY_ZIP.getSql(),
+                        new MapSqlParameterSource("zip5", zip5), new DistrictStreetRangeMapper());
     }
 
     private void checkLock() {
@@ -172,23 +143,50 @@ public class SqlStreetfileDao implements StreetfileDao {
         }
     }
 
-    private static class DistrictStreetRangeMapHandler implements ResultSetExtractor<Map<StreetAddressRange,DistrictInfo>> {
+    private static class DistrictStreetRangeMapper implements RowMapper<DistrictedStreetRange> {
         @Override
-        public Map<StreetAddressRange, DistrictInfo> extractData(ResultSet rs) throws SQLException {
-            Map<StreetAddressRange, DistrictInfo> streetRangeMap = new LinkedHashMap<>();
+        public DistrictedStreetRange mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
+            var awn = new AddressWithoutNum(rs.getString("street"),
+                    rs.getString("postal_city"), rs.getInt("zip5"));
+            var sar = new StreetAddressRange(rs.getInt("bldg_low"), rs.getInt("bldg_high"),
+                    rs.getString("parity"), awn);
+            var dInfo = new DistrictInfo();
+            for (var type : distColMap.keySet()) {
+                dInfo.setDistCode(type, rs.getString(distColMap.get(type)));
+            }
+            return new DistrictedStreetRange(sar, dInfo);
+        }
+    }
+
+    public List<Address> getAddresses(int electionDistrict, ElectionOverlap overlap) {
+        String sql = """
+                SELECT * FROM public.streetfile
+                WHERE election_district = :electionDistrict AND town_city_gid = :townCityId
+                AND assembly_district = :assemblyId AND senate_district = :senateId
+                AND county_fips_code = :countyFips AND congressional_district = :congressionalId""";
+
+        var params = new MapSqlParameterSource("electionDistrict", electionDistrict)
+                .addValue("townCityId", overlap.townCityId())
+                .addValue("assemblyId", overlap.assemblyId())
+                .addValue("senateId", overlap.senateId())
+                .addValue("countyFips", overlap.countyFips())
+                .addValue("congressionalId", overlap.congressionalId());
+        return baseDao.geoApiNamedJbdcTemplate.query(sql, params, new AddressRowMapper());
+    }
+
+    private static class AddressRowMapper implements ResultSetExtractor<List<Address>> {
+
+        @Override
+        public List<Address> extractData(@Nonnull ResultSet rs) throws SQLException, DataAccessException {
+            var addresses = new ArrayList<Address>();
             while (rs.next()) {
                 var awn = new AddressWithoutNum(rs.getString("street"),
                         rs.getString("postal_city"), rs.getInt("zip5"));
                 var sar = new StreetAddressRange(rs.getInt("bldg_low"), rs.getInt("bldg_high"),
                         rs.getString("parity"), awn);
-
-                var dInfo = new DistrictInfo();
-                for (var type : distColMap.keySet()) {
-                    dInfo.setDistCode(type, rs.getString(distColMap.get(type)));
-                }
-                streetRangeMap.put(sar, dInfo);
+                addresses.addAll(sar.addresses());
             }
-            return streetRangeMap;
+            return addresses;
         }
     }
 }

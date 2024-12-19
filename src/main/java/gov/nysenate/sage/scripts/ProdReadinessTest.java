@@ -65,13 +65,13 @@ public class ProdReadinessTest {
 
 
     private void initializeTestPoints() { //These correspond directly to the addresses in the testAddresses array
-        testPoints.add(new Point(42.7410467,-73.6691371));
-        testPoints.add(new Point(42.6711474,-73.79940049999999));
-        testPoints.add(new Point(42.8666825,-73.8010151));
-        testPoints.add(new Point(40.8677979,-73.83986170000001));
-        testPoints.add(new Point(43.13010999999999,-77.5993111));
-        testPoints.add(new Point(40.7397789,-73.88993359999999));
-        testPoints.add(new Point(42.6533668, -73.7599828));
+        testPoints.add(new Point("42.7410467", "-73.6691371"));
+        testPoints.add(new Point("42.6711474", "-73.79940049999999"));
+        testPoints.add(new Point("42.8666825", "-73.8010151"));
+        testPoints.add(new Point("40.8677979", "-73.83986170000001"));
+        testPoints.add(new Point("43.13010999999999", "-77.5993111"));
+        testPoints.add(new Point("40.7397789", "-73.88993359999999"));
+        testPoints.add(new Point("42.6533668", "-73.7599828"));
     }
 
     private void initializeTestZips() {

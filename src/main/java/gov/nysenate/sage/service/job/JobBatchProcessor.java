@@ -245,7 +245,7 @@ public class JobBatchProcessor implements JobProcessor {
 
                     Future<JobBatch> futureValidatedBatch = null;
                     if (jobFile.requiresAddressValidation()) {
-                        futureValidatedBatch = addressExecutor.submit(new JobBatchProcessor.ValidateJobBatch(jobBatch,  addressProvider));
+                        futureValidatedBatch = addressExecutor.submit(new JobBatchProcessor.ValidateJobBatch(jobBatch, addressProvider));
                     }
 
                     if (jobFile.requiresGeocode() || jobFile.requiresDistrictAssign()) {

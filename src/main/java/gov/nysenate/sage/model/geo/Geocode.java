@@ -3,6 +3,8 @@ package gov.nysenate.sage.model.geo;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import org.jsoup.internal.FieldsAreNonnullByDefault;
 
+import java.math.BigDecimal;
+
 /**
  * The Geocode class represents the data obtained by an address geocoding
  * service. This includes the lat/log pair represented by a Point and various
@@ -18,11 +20,11 @@ public record Geocode(Point point, GeocodeQuality quality, Geocoder originalGeoc
         this(point, quality, Geocoder.valueOf(originalGeocoder.toUpperCase().trim()), isCached);
     }
 
-    public double lat() {
+    public BigDecimal lat() {
         return point.lat();
     }
 
-    public double lon() {
+    public BigDecimal lon() {
         return point.lon();
     }
 

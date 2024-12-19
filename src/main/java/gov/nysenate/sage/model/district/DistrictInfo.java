@@ -78,10 +78,6 @@ public class DistrictInfo {
         return districtOverlaps;
     }
 
-    public void addDistrictOverlap(DistrictType districtType, DistrictOverlap districtOverlap) {
-        districtOverlaps.put(districtType, districtOverlap);
-    }
-
 
     public List<DistrictedStreetRange> getStreetRanges() {
         return streetRanges;
@@ -94,7 +90,7 @@ public class DistrictInfo {
     @Override
     public String toString() {
         var out = new StringBuilder();
-        for (DistrictType t : assignedDistricts){
+        for (DistrictType t : assignedDistricts) {
             out.append(t).append(": name = ").append(getDistName(t)).append(" code = ").append(getDistCode(t)).append("\n");
         }
         return out.toString();

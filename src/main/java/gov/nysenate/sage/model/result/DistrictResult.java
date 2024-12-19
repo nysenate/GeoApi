@@ -62,7 +62,7 @@ public class DistrictResult extends BaseResult<DistrictSource> {
     }
 
     public DistrictMatchLevel getDistrictMatchLevel() {
-        return this.districtedAddress.getDistrictMatchLevel();
+        return districtedAddress.getDistrictMatchLevel();
     }
 
     /** Accessor method to the set of assigned districts stored in DistrictInfo */

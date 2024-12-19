@@ -2,6 +2,7 @@ package gov.nysenate.sage.model.district;
 
 import gov.nysenate.sage.model.geo.Polygon;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import java.util.List;
 public class DistrictMap extends DistrictMetadata {
     private List<Polygon> polygons = new ArrayList<>();
     private String geometryType = "";
+    private BigDecimal area;
 
     public DistrictMap() {}
 
@@ -38,6 +40,14 @@ public class DistrictMap extends DistrictMetadata {
 
     public void setGeometryType(String geometryType) {
         this.geometryType = geometryType;
+    }
+
+    public BigDecimal getArea() {
+        return area;
+    }
+
+    public void setArea(BigDecimal area) {
+        this.area = area;
     }
 
     public String toString() {

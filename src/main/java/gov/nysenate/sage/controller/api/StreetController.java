@@ -39,7 +39,7 @@ public class StreetController {
     public BaseResponse addressBatchCityState(@RequestParam int zip5) {
         logger.info("Getting street data for zip5 {}", zip5);
         List<DistrictedStreetRange> streets = streetfile.streetLookup(zip5);
-        StreetResult streetResult = new StreetResult(streetfile.source(), streets);
+        var streetResult = new StreetResult(streetfile.source(), streets);
         if (streets != null) {
             logger.info("Street file look up for zip 5: {} was successful", zip5);
         }
