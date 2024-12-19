@@ -145,6 +145,9 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
         String refWhereSql = gatherRefWhereSql(refDistrictType, refCodes);
         List<String> targetWhereList = new ArrayList<>();
         for (String targetCode : targetCodes) {
+            if (targetCode == null) {
+                continue;
+            }
             targetCode = resolveCode(targetDistrictType, targetCode);
             targetWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", targetDistrictType.codeColumn(), StringEscapeUtils.escapeSql(targetCode)));
         }

@@ -182,6 +182,7 @@ env.geocoder.public.schema = public
 smtp.active = true
 smtp.host = senmail.senate.state.ny.us
 smtp.port = 25
+smtp.auth = false
 smtp.user = 
 smtp.pass = 
 smtp.debug = false
