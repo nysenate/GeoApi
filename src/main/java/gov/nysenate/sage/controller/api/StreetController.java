@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 import static gov.nysenate.sage.controller.api.filter.ApiFilter.getApiRequest;
@@ -45,7 +46,7 @@ public class StreetController {
      * @param zip5 String
      */
     @GetMapping(value = "/lookup")
-    public void addressBatchCityState(HttpServletRequest request, @RequestParam String zip5) {
+    public void addressBatchCityState(HttpServletRequest request, HttpServletResponse response, @RequestParam String zip5) {
         Object streetLookupResponse;
         zip5 = FormatUtil.cleanString(zip5);
         ApiRequest apiRequest = getApiRequest(request);
@@ -57,6 +58,7 @@ public class StreetController {
             List<DistrictedStreetRange> streets = streetProvider.getDefaultProvider().streetLookup(zip5);
             if (streets != null) {
                 streetResult.setDistrictedStreetRanges(streets);
+                logger.info("Num results: {}", streets.size());
                 streetResult.setStatusCode(ResultStatus.SUCCESS);
                 logger.info("Street file look up for zip 5: "+ zip5 + " was successful");
             }

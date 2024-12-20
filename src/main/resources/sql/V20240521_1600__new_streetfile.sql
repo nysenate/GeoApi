@@ -1,6 +1,4 @@
-UPDATE districts.town_city
-SET name = 'Prattsburgh'
-WHERE name = 'Prattsburg';
+DROP TABLE public.streetfile;
 
 CREATE TABLE public.streetfile (
     id          SERIAL PRIMARY KEY,
@@ -11,10 +9,10 @@ CREATE TABLE public.streetfile (
     postal_city VARCHAR(255) NOT NULL,
     zip5        INT NOT NULL,
 
-    congressional_district      SMALLINT REFERENCES congressional (district),
-    senate_district             SMALLINT REFERENCES senate (district),
-    assembly_district           SMALLINT REFERENCES assembly (district),
-    county_fips_code            SMALLINT REFERENCES county (fips_code),
+    congressional_district      SMALLINT,
+    senate_district             SMALLINT,
+    assembly_district           SMALLINT,
+    county_fips_code            SMALLINT,
     county_leg_code             SMALLINT,
     ward_code                   SMALLINT,
     election_district           SMALLINT,
@@ -28,3 +26,6 @@ ON public.streetfile(street, postal_city, zip5);
 
 CREATE INDEX num_range_idx
     ON public.streetfile(bldg_low, bldg_high);
+
+CREATE INDEX zip_idx
+    ON public.streetfile(zip5);
