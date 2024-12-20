@@ -12,13 +12,13 @@ CREATE TABLE public.streetfile (
     congressional_district      SMALLINT,
     senate_district             SMALLINT,
     assembly_district           SMALLINT,
-    county_code                 SMALLINT,
     county_leg_code             SMALLINT,
     ward_code                   SMALLINT,
     election_district           SMALLINT,
     city_council_district       SMALLINT,
     municipal_court_district    SMALLINT,
-    town_city_abbrev            TEXT
+    town_city_abbrev            TEXT,
+    county_code                 SMALLINT
 );
 
 CREATE INDEX address_no_num_idx
