@@ -18,7 +18,7 @@ CREATE TABLE public.streetfile (
     election_district           SMALLINT,
     city_council_district       SMALLINT,
     municipal_court_district    SMALLINT,
-    town_city_gid               SMALLINT REFERENCES districts.town_city (gid)
+    town_city_abbrev            TEXT
 );
 
 CREATE INDEX address_no_num_idx

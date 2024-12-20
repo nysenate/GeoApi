@@ -7,6 +7,7 @@ import gov.nysenate.sage.dao.provider.district.DistrictShapeFileDao;
 import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.district.County;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.ResolveConflictConfiguration;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.parsers.*;
@@ -27,6 +28,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,6 +40,7 @@ public class StreetfileProcessor {
     private final Path streetfilePath, conflictPath, improperPath, invalidPath;
     private final List<County> counties;
     private final Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap;
+    private final Map<Integer, String> gidToNameMap = new HashMap<>();
     private final StreetfileAddressCorrectionService correctionService;
     private final StreetfileDao streetfileDao;
 
@@ -53,6 +56,13 @@ public class StreetfileProcessor {
         this.invalidPath = Path.of(resultsDir.getPath(), "invalid.txt");
         this.counties = countyDao.getCounties();
         this.typeAndNameToIdMap = shapeFileDao.getTypeAndNameToIdMap();
+        // TODO: should return abbreviations, not names
+        for (Map<String, Integer> map : typeAndNameToIdMap.values()) {
+            for (var entry : map.entrySet()) {
+                gidToNameMap.merge(entry.getValue(), entry.getKey(),
+                        (oldValue, newValue) -> oldValue.contains(" ") ? oldValue : newValue);
+            }
+        }
         this.correctionService = correctionService;
         this.streetfileDao = streetfileDao;
     }
@@ -115,13 +125,23 @@ public class StreetfileProcessor {
     }
 
     private String toCsvLine(Map.Entry<StreetfileAddressRange, CompactDistrictMap> entry) {
-        List<String> districts = streetfileDao.order().stream().map(entry.getValue()::get)
-                .map(dist -> dist == 0 ? streetfileDao.nullString(): String.valueOf(dist)).toList();
+        List<String> districts = streetfileDao.order().stream()
+                .map(type -> getString(type, entry.getValue().get(type))).toList();
         List<String> fullParts = entry.getKey().parts();
         fullParts.addAll(districts);
         // Null strings do not have quotes.
         return ('"' + String.join("\",\"", fullParts) + '"')
                 .replaceAll("\"%s\"".formatted(streetfileDao.nullString()), streetfileDao.nullString());
+    }
+
+    private String getString(DistrictType type, short num) {
+        if (num == 0) {
+            return streetfileDao.nullString();
+        }
+        if (type == DistrictType.TOWN_CITY) {
+            return gidToNameMap.get((int) num);
+        }
+        return String.valueOf(num);
     }
 
     private BaseParser getParser(File file) {

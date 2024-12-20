@@ -77,6 +77,4 @@ public interface DistrictShapeFileDao {
      * @return
      */
     LinkedHashMap<String, DistrictMap> getNearbyDistricts(DistrictType districtType, Point point, boolean getMaps, int proximity, int count);
-
-
 }

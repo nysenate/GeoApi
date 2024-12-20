@@ -50,7 +50,7 @@ public class SqlStreetfileDao implements StreetfileDao {
         }
         tempMap.put(COUNTY, "county_fips_code");
         tempMap.put(COUNTY_LEG, "county_leg_code");
-        tempMap.put(TOWN_CITY, "town_city_gid");
+        tempMap.put(TOWN_CITY, "town_city_abbrev");
         tempMap.put(WARD, "ward_code");
         tempMap.put(ZIP, "zip5");
         distColMap = ImmutableMap.copyOf(tempMap);
