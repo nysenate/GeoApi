@@ -58,7 +58,6 @@ public class StreetController {
             List<DistrictedStreetRange> streets = streetProvider.getDefaultProvider().streetLookup(zip5);
             if (streets != null) {
                 streetResult.setDistrictedStreetRanges(streets);
-                logger.info("Num results: {}", streets.size());
                 streetResult.setStatusCode(ResultStatus.SUCCESS);
                 logger.info("Street file look up for zip 5: "+ zip5 + " was successful");
             }
