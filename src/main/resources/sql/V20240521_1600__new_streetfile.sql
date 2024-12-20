@@ -12,7 +12,7 @@ CREATE TABLE public.streetfile (
     congressional_district      SMALLINT,
     senate_district             SMALLINT,
     assembly_district           SMALLINT,
-    county_fips_code            SMALLINT,
+    county_code                 SMALLINT,
     county_leg_code             SMALLINT,
     ward_code                   SMALLINT,
     election_district           SMALLINT,

@@ -48,7 +48,7 @@ public class SqlStreetfileDao implements StreetfileDao {
         for (DistrictType type : List.of(CONGRESSIONAL, SENATE, ASSEMBLY, ELECTION, CITY_COUNCIL, MUNICIPAL_COURT)) {
             tempMap.put(type, type.name().toLowerCase() + "_district");
         }
-        tempMap.put(COUNTY, "county_fips_code");
+        tempMap.put(COUNTY, "county_code");
         tempMap.put(COUNTY_LEG, "county_leg_code");
         tempMap.put(TOWN_CITY, "town_city_abbrev");
         tempMap.put(WARD, "ward_code");
