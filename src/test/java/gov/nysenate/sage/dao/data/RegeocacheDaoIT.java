@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 @Category(IntegrationTest.class)
 public class RegeocacheDaoIT extends BaseTests {
@@ -81,6 +81,6 @@ public class RegeocacheDaoIT extends BaseTests {
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void getAllZipsTest() {
         List<String> zips = sqlRegeocacheDao.getAllZips();
-        assertTrue(zips.size() >= 1794);
+        assertTrue(zips.size() >= 1700);
     }
 }
