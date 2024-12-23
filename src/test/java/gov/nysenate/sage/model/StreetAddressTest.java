@@ -15,7 +15,7 @@ public class StreetAddressTest {
     public void toAddressTest() {
         StreetAddress sa = new StreetAddress();
         sa.setBldgNum(185);
-        sa.setStreet("79th");
+        sa.setStreetName("79th");
         sa.setStreetType("St");
         sa.setPreDir("E");
         sa.setInternal("Suite 20");
@@ -24,7 +24,7 @@ public class StreetAddressTest {
         sa.setZip5("10075");
 
         Address a = sa.toAddress();
-        assertEquals("185 E 79th", a.getAddr1());
+        assertEquals("185 E 79th St", a.getAddr1());
         assertEquals("Suite 20", a.getAddr2());
         assertEquals("New York", a.getPostalCity());
         assertEquals("NY", a.getState());
