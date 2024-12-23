@@ -274,10 +274,7 @@ public class SqlStreetfileDao implements StreetfileDao {
         var streetAddr = new StreetAddress();
         StreetAddressParser.extractStreet(street, streetAddr);
         StreetAddressParser.normalizeStreetAddress(streetAddr);
-        street = (streetAddr.getPreDir() != null && !streetAddr.getPreDir().isEmpty()) ? streetAddr.getPreDir() + " " : "";
-        street += streetAddr.getStreet();
-        street += (streetAddr.getPostDir() != null && !streetAddr.getPostDir().isEmpty()) ? " " + streetAddr.getPostDir() : "";
-        return street.toUpperCase();
+        return streetAddr.getStreet().toUpperCase();
     }
 
     private void checkLock() {

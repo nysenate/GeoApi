@@ -53,6 +53,9 @@ public class HttpGoogleDao implements GoogleDao
      */
     public GeocodedAddress getGeocodedAddress(Address address)
     {
+        if (address.getZip5() == null || !address.getZip5().trim().matches("\\d{5}")) {
+            return null;
+        }
         GeocodedAddress geocodedAddress = null;
 
         if (address.getState().isEmpty()) {

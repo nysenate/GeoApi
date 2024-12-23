@@ -48,9 +48,7 @@ public class StreetAddress {
     public Address toAddress() {
         String addr1 = "";
         if (bldgNum != null) addr1 += getBldgNum() + " ";
-        if (!getPreDir().isEmpty()) addr1 += getPreDir() + " ";
         if (!getStreet().isEmpty()) addr1 += getStreet() + " ";
-        if (!getPostDir().isEmpty()) addr1 += getPostDir() + " ";
         if (isPoBoxAddress()) addr1 += "PO Box: " + getPoBox();
 
         String addr2 = getInternal().isEmpty() ? getBldgChar() : getInternal();
