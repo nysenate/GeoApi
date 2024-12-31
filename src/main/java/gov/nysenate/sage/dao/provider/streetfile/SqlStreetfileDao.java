@@ -3,6 +3,7 @@ package gov.nysenate.sage.dao.provider.streetfile;
 import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
@@ -41,6 +42,7 @@ public class SqlStreetfileDao implements StreetfileDao {
     private final BaseDao baseDao;
     private final String columnOrder;
     private final Connection connection;
+    private final CountyDao countyDao;
     private boolean locked = false;
 
     static {
@@ -57,12 +59,13 @@ public class SqlStreetfileDao implements StreetfileDao {
     }
 
     @Autowired
-    public SqlStreetfileDao(BaseDao baseDao, ComboPooledDataSource geoApiPostgresDataSource) throws SQLException {
+    public SqlStreetfileDao(BaseDao baseDao, ComboPooledDataSource geoApiPostgresDataSource, CountyDao countyDao) throws SQLException {
         this.baseDao = baseDao;
         List<String> colList = new ArrayList<>(List.of("bldg_low", "bldg_high", "parity", "street", "postal_city", "zip5"));
         colList.addAll(order().stream().map(distColMap::get).toList());
         this.columnOrder = String.join(", ", colList);
         this.connection = geoApiPostgresDataSource.getConnection().unwrap(BaseConnection.class);
+        this.countyDao = countyDao;
     }
 
     @Override
@@ -283,7 +286,7 @@ public class SqlStreetfileDao implements StreetfileDao {
         }
     }
 
-    private static class DistrictStreetRangeMapHandler implements ResultSetExtractor<Map<StreetAddressRange,DistrictInfo>> {
+    private class DistrictStreetRangeMapHandler implements ResultSetExtractor<Map<StreetAddressRange,DistrictInfo>> {
         @Override
         public Map<StreetAddressRange, DistrictInfo> extractData(ResultSet rs) throws SQLException {
             Map<StreetAddressRange, DistrictInfo> streetRangeMap = new LinkedHashMap<>();
@@ -300,7 +303,11 @@ public class SqlStreetfileDao implements StreetfileDao {
 
                 var dInfo = new DistrictInfo();
                 for (var type : distColMap.keySet()) {
-                    dInfo.setDistCode(type, rs.getString(distColMap.get(type)));
+                    String code = rs.getString(distColMap.get(type));
+                    dInfo.setDistCode(type, code);
+                    if (type == COUNTY && code != null && code.matches("\\d+")) {
+                        dInfo.setDistName(COUNTY, countyDao.getCountyById(Integer.parseInt(code)).name());
+                    }
                 }
                 streetRangeMap.put(sar, dInfo);
             }
