@@ -233,6 +233,7 @@ neighbor.proximity = 500
 district.strategy.single = neighborMatch
 district.strategy.bluebird = streetFallback
 district.strategy.batch = shapeFallback
+district.strategy.job = shapeFallback
 
 #####################################
 ## Geocode Cache Configuration

@@ -575,12 +575,8 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
 
                         /** Check all street assigned districts */
                         for (DistrictType assignedType : streetAssignedSet) {
-                            String streetCode = streetInfo.getDistCode(assignedType);
-
-                            /** If the district is missing from shape or conflicts with street */
-                            if (!shapeInfo.getAssignedDistricts().contains(assignedType) ||
-                                !shapeInfo.getDistCode(assignedType).equalsIgnoreCase(streetCode)) {
-
+                            /** If the district is missing from shape */
+                            if (!shapeInfo.getAssignedDistricts().contains(assignedType)) {
                                 /** Apply the street file data */
                                 replaceShapeWithStreet(assignedType, shapeInfo, streetInfo);
                                 shapeInfo.setDistMap(assignedType, null);

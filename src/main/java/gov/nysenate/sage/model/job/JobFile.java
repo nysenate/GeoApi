@@ -3,8 +3,8 @@ package gov.nysenate.sage.model.job;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.FormatUtil;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.supercsv.cellprocessor.Optional;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
@@ -45,7 +45,7 @@ public class JobFile extends BaseJobFile<JobRecord>
         geoMethod(Arrays.asList("geoMethod", "geoSource"), Group.geocode),
         geoQuality(Arrays.asList("geoQuality", "accuracy"), Group.geocode),
 
-        town(Arrays.asList("town52", "townCode", "town"), Group.district),
+        town_city(Arrays.asList("town52", "townCode", "town"), Group.district),
         ward(Arrays.asList("ward53", "wardCode", "ward"), Group.district),
         election(Arrays.asList("electionDistrict49", "electionDistrict", "ed", "election"), Group.district),
         congressional(Arrays.asList("congressionalDistrict46", "cd", "congressionalDistrict", "congressional"), Group.district),
@@ -122,10 +122,7 @@ public class JobFile extends BaseJobFile<JobRecord>
         for (Column column : columns) {
             if (column.group.equals(Group.district)) {
                 try {
-                    DistrictType districtType = DistrictType.valueOf(column.name().toUpperCase());
-                    if (districtType != null) {
-                        reqTypes.add(districtType);
-                    }
+                    reqTypes.add(DistrictType.valueOf(column.name().toUpperCase()));
                 }
                 catch (IllegalArgumentException ex) {/*ignore*/}
             }

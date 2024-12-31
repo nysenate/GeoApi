@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -80,6 +81,8 @@ public class JobBatchProcessor implements JobProcessor {
     private ThreadPoolTaskExecutor addressExecutor;
     private ThreadPoolTaskExecutor geocodeExecutor;
     private ThreadPoolTaskExecutor districtExecutor;
+    @Value("${district.strategy.job:shapeFallback}")
+    private DistrictStrategy districtStrategy;
 
     @Autowired
     public JobBatchProcessor(Environment env, Mailer mailer, AddressServiceProvider addressServiceProvider,
@@ -595,12 +598,12 @@ public class JobBatchProcessor implements JobProcessor {
     /**
      * A callable for the executor to perform district assignment for a JobBatch.
      */
-    public static class DistrictJobBatch implements Callable<JobBatch>
+    public class DistrictJobBatch implements Callable<JobBatch>
     {
         private JobProcess jobProcess;
         private Future<JobBatch> futureJobBatch;
         private List<DistrictType> districtTypes;
-        private DistrictStrategy districtStrategy = DistrictStrategy.shapeFallback;
+        private DistrictStrategy districtStrategy = JobBatchProcessor.this.districtStrategy;
 
         private DistrictServiceProvider districtServiceProvider;
         private SqlDistrictResultLogger sqlDistrictResultLogger;
