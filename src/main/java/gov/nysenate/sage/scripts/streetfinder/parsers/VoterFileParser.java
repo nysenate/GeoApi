@@ -1,6 +1,5 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 
@@ -18,21 +17,18 @@ public class VoterFileParser extends BaseParser {
             "Woodside", "(East *)?Elmhurst", "ForestHills", "Queens *Village", "Far *Rockaway", "Jackson *Heights", "Corona",
             "Fresh *Meadows", "(South *)?Ozone *Park", "Bayside", "Long *Island *City", "Rego *Park", "Whitestone",
             "Springfield *Gardens", "Richmond *Hill", "Rosedale"),
-            nycBoroughs = List.of("Bronx", "Brooklyn", "Manhattan", "Queens", "Staten *Island", "Kings", "N *Y *C");
+            nycBoroughs = List.of("Bronx", "Brooklyn", "Manhattan", "Queens", "Staten *Island", "Kings", "Richmond", "N *Y *C");
     private static final String nycPattern;
     static {
         var totalList = new ArrayList<>(queensNeighborhoods);
         totalList.addAll(nycBoroughs);
         nycPattern = "(?i)(%s)".formatted(String.join("|", totalList));
     }
-    private final Map<Integer, Integer> countyFipsCodeMap;
-    private final String richmondId;
+    private final Map<Integer, Integer> countyCodeMap;
 
-    public VoterFileParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap,
-                           Map<Integer, Integer> countyFipsCodeMap) {
-        super(file, typeAndNameToIdMap);
-        this.countyFipsCodeMap = countyFipsCodeMap;
-        this.richmondId = dataExtractor.getTownCityId("Richmond");
+    public VoterFileParser(File file, Map<Integer, Integer> countyCodeMap) {
+        super(file);
+        this.countyCodeMap = countyCodeMap;
     }
 
     @Nonnull
@@ -52,7 +48,7 @@ public class VoterFileParser extends BaseParser {
                 .addBuildingIndices(4).addStreetIndices(6, 7, 8).addPostalCityIndex(12).addType(ZIP, 13)
                 .addType(COUNTY, 23).addTypesInOrder(ELECTION, COUNTY_LEG, TOWN_CITY, WARD)
                 .addTypesInOrder(CONGRESSIONAL, SENATE, ASSEMBLY)
-                .addCountyFunction(lineParts -> countyFipsCodeMap.get(Integer.parseInt(lineParts.get(23))))
+                .addCountyFunction(lineParts -> countyCodeMap.get(Integer.parseInt(lineParts.get(23))))
                 .addIdFunction((lineParts, lineNum) -> Long.parseLong(lineParts.get(45).replaceFirst("^NY", "")));
     }
 
@@ -61,20 +57,39 @@ public class VoterFileParser extends BaseParser {
         List<String> tempLine = super.parseLine(line);
         String townCity = tempLine.get(26);
         townCity = townCity.replaceAll("[()]| NY", "").replaceAll("\\.", " ")
-                .replaceAll("\\s+", "").replaceFirst("^T ", "TOWN OF ")
-                .replaceFirst("^C ", "CITY OF");
-        // Richmond is both a NYC neighborhood and a town upstate.
-        if (!richmondId.equals("0") &&
-                richmondId.equals(dataExtractor.getTownCityId(townCity))) {
-            try {
-                if (Integer.parseInt(tempLine.get(28)) <= 16) {
-                    townCity = "New York";
-                }
-            } catch (NumberFormatException ignored) {}
-        }
-        else if (townCity.matches(nycPattern)) {
+                .replaceAll("\\s+", " ").replaceFirst("^T ", "TOWN OF ")
+                .replaceFirst("^C ", "CITY OF").trim();
+        // Richmond is both the county of Staten Island, and a town upstate.
+        if (townCity.matches(nycPattern) &&
+                (!townCity.equalsIgnoreCase("Richmond") || Integer.parseInt(tempLine.get(28)) <= 16)) {
             townCity = "New York";
         }
+        townCity = switch (townCity) {
+            case "NH" -> "North Hempstead";
+            case "CKTW" -> "Cheektowaga";
+            case "TTON" -> "Town of Tonawanda";
+            case "CTON" -> "City of Tonawanda";
+            case "HEM" -> "Hempstead";
+            case "BFLO" -> "Buffalo";
+            case "YONK" -> "Yonkers";
+            case "OB" -> "Oyster Bay";
+            case "AMHS" -> "Amherst";
+            case "SARATOGA SPGS" -> "Saratoga Springs";
+            case "LANC" -> "Lancaster";
+            case "CORT" -> "Cortlandt";
+            case "MTVE" -> "Mount Vernon";
+            case "GRIS" -> "Grand Island";
+            case "NEWR" -> "New Rochelle";
+            case "HAMB" -> "Hamburg";
+            case "WSEN" -> "West Seneca";
+            case "CLAR" -> "Clarence";
+            case "YTWN" -> "Yorktown";
+            case "ORPK" -> "Orchard Park";
+            case "RYET" -> "Town of Rye";
+            case "/KNG" -> "Kingston";
+            case "EVNS" -> "Evans";
+            default -> townCity;
+        };
         tempLine.set(26, townCity);
         return tempLine;
     }

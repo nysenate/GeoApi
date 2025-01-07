@@ -1,13 +1,11 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
@@ -15,8 +13,8 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  * Parses Schoharie County.txt file. Note that this file has no zipcodes.
  */
 public class SchoharieParser extends CountyParser {
-    public SchoharieParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap, County county) {
-        super(file, typeAndNameToIdMap, county);
+    public SchoharieParser(File file, County county) {
+        super(file, county);
     }
 
     @Override
