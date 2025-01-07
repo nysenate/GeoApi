@@ -6,7 +6,9 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.GeocodedStreetAddress;
 import gov.nysenate.sage.model.address.StreetAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
+import gov.nysenate.sage.service.PostOfficeService;
 import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import gov.nysenate.sage.util.StreetAddressParser;
@@ -29,12 +31,15 @@ public class GeoCache implements GeocodeCacheService
     private SqlGeoCacheDao sqlGeoCacheDao;
     private ParallelGeocodeService parallelGeocodeService;
     private GeocodeServiceValidator geocodeServiceValidator;
+    private PostOfficeService postOfficeService;
 
     @Autowired
-    public GeoCache(SqlGeoCacheDao sqlGeoCacheDao, ParallelGeocodeService parallelGeocodeService, GeocodeServiceValidator geocodeServiceValidator) {
+    public GeoCache(SqlGeoCacheDao sqlGeoCacheDao, ParallelGeocodeService parallelGeocodeService,
+                    GeocodeServiceValidator geocodeServiceValidator, PostOfficeService postOfficeService) {
         this.sqlGeoCacheDao = sqlGeoCacheDao;
         this.parallelGeocodeService = parallelGeocodeService;
         this.geocodeServiceValidator = geocodeServiceValidator;
+        this.postOfficeService = postOfficeService;
         logger.debug("Instantiated GeoCache.");
     }
 
@@ -75,6 +80,11 @@ public class GeoCache implements GeocodeCacheService
         }
         /* Retrieve geocoded address from cache */
         StreetAddress sa = StreetAddressParser.parseAddress(address);
+        if (sa.isPoBoxAddress()) {
+            GeocodedAddress poGeoAddr = postOfficeService.getDistrictedAddress(sa.getZip5(), sa.getLocation())
+                    .getGeocodedAddress();
+            return new GeocodeResult(PostOfficeService.class, ResultStatus.SUCCESS, poGeoAddr);
+        }
         GeocodedStreetAddress geocodedStreetAddress = sqlGeoCacheDao.getCacheHit(sa);
         if ( geocodedStreetAddress == null )  {
             geocodedStreetAddress = new GeocodedStreetAddress(sa);

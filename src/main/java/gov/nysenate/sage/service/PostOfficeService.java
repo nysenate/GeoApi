@@ -21,12 +21,14 @@ import java.util.concurrent.ConcurrentMap;
 
 @Service
 public class PostOfficeService {
-    public final ConcurrentMap<Integer, PostOfficeDistrictData> cache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, PostOfficeDistrictData> cache = new ConcurrentHashMap<>();
     private final File dataDir;
     private final PostOfficeDao dao;
     // Autowired to prevent circular dependency
     @Autowired
     private TopLevelDistrictService districtService;
+    @Value("${district.strategy.job:shapeFallback}")
+    private DistrictServiceProvider.DistrictStrategy jobDistrictStrategy;
 
     @Autowired
     public PostOfficeService(@Value("${post.office.data.dir}") String postOfficeDataDir,
@@ -76,7 +78,7 @@ public class PostOfficeService {
 
     private DistrictedAddress getDistrictedAddress(PostOfficeAddress poAddress) {
         var request = new DistrictRequest();
-        request.setDistrictStrategy(DistrictServiceProvider.DistrictStrategy.shapeFallback);
+        request.setDistrictStrategy(jobDistrictStrategy);
         request.setAddress(poAddress.address());
         request.setUspsValidate(true);
         DistrictResult results = districtService.handleDistrictRequest(request, -1);
