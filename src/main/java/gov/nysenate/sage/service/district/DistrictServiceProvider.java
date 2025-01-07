@@ -564,7 +564,10 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                 }
                 return shapeResult;
 
-            case streetFallback:
+            case streetFallback, shapeFallback:
+                if (shapeResult == null) {
+                    shapeResult = shapeService.assignDistricts(geocodedAddress);
+                }
                 if (shapeResult.isSuccess()) {
                     DistrictInfo shapeInfo = shapeResult.getDistrictInfo();
 
@@ -584,14 +587,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                         }
                     }
                     return shapeResult;
-                }
-                else {
-                    return streetResult;
-                }
-
-            case shapeFallback:
-                if (!streetResult.isSuccess()) {
-                    return shapeService.assignDistricts(geocodedAddress);
                 }
                 else {
                     return streetResult;
