@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.CountyDao;
+import gov.nysenate.sage.dao.model.townCity.TownCityDao;
 import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
@@ -43,6 +44,7 @@ public class SqlStreetfileDao implements StreetfileDao {
     private final String columnOrder;
     private final Connection connection;
     private final CountyDao countyDao;
+    private final Map<String, String> abbrevToNameMap;
     private boolean locked = false;
 
     static {
@@ -59,13 +61,15 @@ public class SqlStreetfileDao implements StreetfileDao {
     }
 
     @Autowired
-    public SqlStreetfileDao(BaseDao baseDao, ComboPooledDataSource geoApiPostgresDataSource, CountyDao countyDao) throws SQLException {
+    public SqlStreetfileDao(BaseDao baseDao, ComboPooledDataSource geoApiPostgresDataSource,
+                            CountyDao countyDao, TownCityDao townCityDao) throws SQLException {
         this.baseDao = baseDao;
         List<String> colList = new ArrayList<>(List.of("bldg_low", "bldg_high", "parity", "street", "postal_city", "zip5"));
         colList.addAll(order().stream().map(distColMap::get).toList());
         this.columnOrder = String.join(", ", colList);
         this.connection = geoApiPostgresDataSource.getConnection().unwrap(BaseConnection.class);
         this.countyDao = countyDao;
+        this.abbrevToNameMap = townCityDao.getAbbrevToNameMap();
     }
 
     @Override
@@ -90,15 +94,15 @@ public class SqlStreetfileDao implements StreetfileDao {
 
     public DistrictedAddress getDistrictedAddress(Address addr, DistrictMatchLevel matchLevel) {
         if (matchLevel == null || matchLevel.compareTo(DistrictMatchLevel.CITY) < 0) {
-            return null;
+            return new DistrictedAddress(new GeocodedAddress(addr), new DistrictInfo(), matchLevel);
         }
         AddressWithoutNum awn = AddressWithoutNum.fromAddress(addr);
-        var sqlBuilder = new StringBuilder("SELECT * FROM streetfile WHERE postal_city = '%s'\n".formatted(awn.postalCity()));
+        var sqlBuilder = new StringBuilder("SELECT * FROM streetfile WHERE postal_city = '%s'\n".formatted(awn.postalCity().toUpperCase()));
         if (matchLevel.compareTo(DistrictMatchLevel.ZIP5) >= 0) {
             sqlBuilder.append("AND zip5 = %d\n".formatted(awn.zip5()));
         }
         if (matchLevel.compareTo(DistrictMatchLevel.STREET) >= 0) {
-            sqlBuilder.append("AND street = '%s'".formatted(awn.street()));
+            sqlBuilder.append("AND street = '%s'".formatted(awn.street().toUpperCase()));
         }
         if (matchLevel.compareTo(DistrictMatchLevel.HOUSE) >= 0) {
             int bldgNum;
@@ -119,7 +123,7 @@ public class SqlStreetfileDao implements StreetfileDao {
             return getDistrictedAddress(addr, matchLevel.getNextHighestLevel());
         }
         DistrictInfo consolidatedInfo = consolidateDistrictInfo(ranges.values());
-        return new DistrictedAddress(new GeocodedAddress(addr), consolidatedInfo, DistrictMatchLevel.ZIP5);
+        return new DistrictedAddress(new GeocodedAddress(addr), consolidatedInfo, matchLevel);
     }
 
     /** {@inheritDoc} */
@@ -307,6 +311,9 @@ public class SqlStreetfileDao implements StreetfileDao {
                     dInfo.setDistCode(type, code);
                     if (type == COUNTY && code != null && code.matches("\\d+")) {
                         dInfo.setDistName(COUNTY, countyDao.getCountyById(Integer.parseInt(code)).name());
+                    }
+                    if (type == TOWN_CITY) {
+                        dInfo.setDistName(TOWN_CITY, abbrevToNameMap.get(code));
                     }
                 }
                 streetRangeMap.put(sar, dInfo);

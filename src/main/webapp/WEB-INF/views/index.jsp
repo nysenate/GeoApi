@@ -260,7 +260,7 @@
                                     <option value="congressional">Congressional</option>
                                     <option value="assembly">Assembly</option>
                                     <option value="county">County</option>
-                                    <option value="town">Town</option>
+                                    <option value="town_city">Town/City</option>
                                     <option value="school">School</option>
                                     <option value="zip">Zip</option>
                                 </select>
@@ -289,7 +289,7 @@
                                 <option value="congressional">Congressional</option>
                                 <option value="assembly">Assembly</option>
                                 <option value="county">County</option>
-                                <option value="town">Town</option>
+                                <option value="town_city">Town/City</option>
                                 <option value="school">School</option>
                                 <option value="zip">Zip</option>
                             </select>

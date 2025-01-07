@@ -73,9 +73,6 @@ public class CompactDistrictMap {
             if (wardCorrectionMap.containsKey(districtString)) {
                 return wardCorrectionMap.get(districtString).shortValue();
             }
-            if (!districtString.isBlank()) {
-                System.err.println("District " + districtString + " is not a short!");
-            }
             return 0;
         }
     }
