@@ -6,6 +6,7 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.model.townCity.TownCityDao;
 import gov.nysenate.sage.model.address.*;
+import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -29,6 +30,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateDistrictInfo;
 import static gov.nysenate.sage.model.district.DistrictType.*;
@@ -43,7 +45,7 @@ public class SqlStreetfileDao implements StreetfileDao {
     private final BaseDao baseDao;
     private final String columnOrder;
     private final Connection connection;
-    private final CountyDao countyDao;
+    private final Map<Integer, String> countySenateCodeToNameMap;
     private final Map<String, String> abbrevToNameMap;
     private boolean locked = false;
 
@@ -68,7 +70,8 @@ public class SqlStreetfileDao implements StreetfileDao {
         colList.addAll(order().stream().map(distColMap::get).toList());
         this.columnOrder = String.join(", ", colList);
         this.connection = geoApiPostgresDataSource.getConnection().unwrap(BaseConnection.class);
-        this.countyDao = countyDao;
+        this.countySenateCodeToNameMap = countyDao.getCounties().stream()
+                .collect(Collectors.toMap(County::senateCode, County::name));
         this.abbrevToNameMap = townCityDao.getAbbrevToNameMap();
     }
 
@@ -107,9 +110,9 @@ public class SqlStreetfileDao implements StreetfileDao {
         if (matchLevel.compareTo(DistrictMatchLevel.HOUSE) >= 0) {
             int bldgNum;
             try {
-                bldgNum = Integer.parseInt(addr.getAddr1().replaceFirst(" .*$", ""));
+                bldgNum = Integer.parseInt(addr.getAddr1().replaceFirst("(?i)[a-z]? .*$", ""));
             } catch (NumberFormatException ex) {
-                logger.warn("Did not parse building number.");
+                logger.warn("Could not parse building number from {}", addr.getAddr1());
                 return getDistrictedAddress(addr, matchLevel.getNextHighestLevel());
             }
             StreetParity parity = bldgNum%2 == 0 ? EVENS : ODDS;
@@ -294,6 +297,7 @@ public class SqlStreetfileDao implements StreetfileDao {
         @Override
         public Map<StreetAddressRange, DistrictInfo> extractData(ResultSet rs) throws SQLException {
             Map<StreetAddressRange, DistrictInfo> streetRangeMap = new LinkedHashMap<>();
+
             while (rs.next()) {
                 var sar = new StreetAddressRange();
 
@@ -310,7 +314,7 @@ public class SqlStreetfileDao implements StreetfileDao {
                     String code = rs.getString(distColMap.get(type));
                     dInfo.setDistCode(type, code);
                     if (type == COUNTY && code != null && code.matches("\\d+")) {
-                        dInfo.setDistName(COUNTY, countyDao.getCountyById(Integer.parseInt(code)).name());
+                        dInfo.setDistName(COUNTY, countySenateCodeToNameMap.get(Integer.parseInt(code)));
                     }
                     if (type == TOWN_CITY) {
                         dInfo.setDistName(TOWN_CITY, abbrevToNameMap.get(code));
