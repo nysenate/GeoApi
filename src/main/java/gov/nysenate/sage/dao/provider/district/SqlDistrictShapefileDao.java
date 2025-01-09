@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.dao.model.election.ElectionDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.GeometryTypes;
 import gov.nysenate.sage.model.geo.Point;
@@ -18,15 +17,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
-
-import static gov.nysenate.sage.model.district.DistrictType.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * DistrictShapefileDao utilizes a PostGIS database loaded with Census shapefiles to
@@ -46,10 +48,9 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
     private ImmutableMultimap<DistrictType, DistrictMap> districtMapCache = ImmutableMultimap.of();
 
     @Autowired
-    public SqlDistrictShapefileDao(BaseDao baseDao, CountyDao countyDao, ElectionDao electionDao) {
+    public SqlDistrictShapefileDao(BaseDao baseDao, CountyDao countyDao) {
         this.baseDao = baseDao;
         this.countyDao = countyDao;
-//        electionDao.rebuildMaps();
         if (!cacheDistrictMaps()) {
             throw new RuntimeException("Failed to initialize district map cache");
         }
@@ -179,32 +180,6 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                 districtOverlap.addIntersectionMap(code, intersectMap);
             }
             return districtOverlap;
-        }
-    }
-
-    private class StreetLineIntersectHandler implements ResultSetExtractor<Map<String, List<Line>>> {
-        @Override
-        public Map<String, List<Line>> extractData(ResultSet rs) throws SQLException {
-            Map<String, List<Line>> intersectMap = new HashMap<>();
-            while (rs.next()) {
-                List<Line> lines = BaseDao.getLinesFromJson(rs.getString("street_intersect"));
-                intersectMap.put(getDistrictCode(rs), lines);
-            }
-            return intersectMap;
-        }
-    }
-
-    private static class TownCityHandler implements RowCallbackHandler {
-        private final Map<MunicipalityType, Map<String, Integer>> results =
-                Map.of(TOWN, new CaseInsensitiveKeyMap<>(), CITY, new CaseInsensitiveKeyMap<>());
-
-        @Override
-        public void processRow(@Nonnull ResultSet rs) throws SQLException {
-            String name = rs.getString("name");
-            int id = rs.getInt("gid");
-            Map<String, Integer> currMap = results.get(rs.getInt("ct_type") == 2 ? TOWN : CITY);
-            currMap.put(name, id);
-            currMap.put(name.replaceAll(" ", ""), id);
         }
     }
 

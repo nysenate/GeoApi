@@ -10,7 +10,6 @@ import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.district.ElectionOverlap;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 import org.postgresql.copy.CopyManager;
@@ -18,8 +17,6 @@ import org.postgresql.core.BaseConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
@@ -31,7 +28,11 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateDistrictInfo;
 import static gov.nysenate.sage.model.district.DistrictType.*;
@@ -113,7 +114,7 @@ public class SqlStreetfileDao implements StreetfileDao {
             try {
                 bldgNum = Integer.parseInt(addr.getStreetWithNum().replaceFirst("(?i)[a-z]? .*$", ""));
             } catch (NumberFormatException ex) {
-                logger.warn("Could not parse building number from {}", addr.getAddr1());
+                logger.warn("Could not parse building number from {}", addr.getStreetWithNum());
                 return getDistrictedAddress(addr, matchLevel.getNextHighestLevel());
             }
             StreetParity parity = bldgNum%2 == 0 ? EVENS : ODDS;
@@ -149,7 +150,7 @@ public class SqlStreetfileDao implements StreetfileDao {
         }
     }
 
-    private static class DistrictStreetRangeMapper implements RowMapper<DistrictedStreetRange> {
+    private class DistrictStreetRangeMapper implements RowMapper<DistrictedStreetRange> {
         @Override
         public DistrictedStreetRange mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
             var awn = new AddressWithoutNum(rs.getString("street"),
@@ -158,48 +159,16 @@ public class SqlStreetfileDao implements StreetfileDao {
                     rs.getString("parity"), awn);
             var dInfo = new DistrictInfo();
             for (var type : distColMap.keySet()) {
-                dInfo.setDistCode(type, rs.getString(distColMap.get(type)));
+                String code = rs.getString(distColMap.get(type));
+                dInfo.setDistCode(type, code);
+                if (type == COUNTY && code != null && code.matches("\\d+")) {
+                    dInfo.setDistName(COUNTY, countySenateCodeToNameMap.get(Integer.parseInt(code)));
+                }
+                if (type == TOWN_CITY) {
+                    dInfo.setDistName(TOWN_CITY, abbrevToNameMap.get(code));
+                }
             }
             return new DistrictedStreetRange(sar, dInfo);
-        }
-    }
-
-    public List<Address> getAddresses(int electionDistrict, ElectionOverlap overlap) {
-        String sql = """
-                SELECT * FROM public.streetfile
-                WHERE election_district = :electionDistrict AND town_city_gid = :townCityId
-                AND assembly_district = :assemblyId AND senate_district = :senateId
-                AND county_fips_code = :countyFips AND congressional_district = :congressionalId""";
-
-        var params = new MapSqlParameterSource("electionDistrict", electionDistrict)
-                .addValue("townCityId", overlap.townCityId())
-                .addValue("assemblyId", overlap.assemblyId())
-                .addValue("senateId", overlap.senateId())
-                // TODO: to CountyCode?
-                .addValue("countyFips", overlap.countyFips())
-                .addValue("congressionalId", overlap.congressionalId());
-        if (type == COUNTY && code != null && code.matches("\\d+")) {
-            dInfo.setDistName(COUNTY, countySenateCodeToNameMap.get(Integer.parseInt(code)));
-        }
-        if (type == TOWN_CITY) {
-            dInfo.setDistName(TOWN_CITY, abbrevToNameMap.get(code));
-        }
-        return baseDao.geoApiNamedJbdcTemplate.query(sql, params, new AddressRowMapper());
-    }
-
-    private static class AddressRowMapper implements ResultSetExtractor<List<Address>> {
-
-        @Override
-        public List<Address> extractData(@Nonnull ResultSet rs) throws SQLException, DataAccessException {
-            var addresses = new ArrayList<Address>();
-            while (rs.next()) {
-                var awn = new AddressWithoutNum(rs.getString("street"),
-                        rs.getString("postal_city"), rs.getInt("zip5"));
-                var sar = new StreetAddressRange(rs.getInt("bldg_low"), rs.getInt("bldg_high"),
-                        rs.getString("parity"), awn);
-                addresses.addAll(sar.addresses());
-            }
-            return addresses;
         }
     }
 }

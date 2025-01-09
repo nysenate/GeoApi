@@ -12,7 +12,7 @@ import java.io.Serializable;
 public class DistrictedAddress implements Serializable {
     private Address address;
     private Geocode geocode;
-    private DistrictInfo districtInfo;
+    private DistrictInfo districtInfo = new DistrictInfo();
     private DistrictMatchLevel districtMatchLevel = DistrictMatchLevel.NOMATCH;
 
     public DistrictedAddress() {}
