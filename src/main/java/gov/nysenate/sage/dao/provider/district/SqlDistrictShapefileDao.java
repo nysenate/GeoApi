@@ -24,6 +24,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+import static gov.nysenate.sage.model.district.DistrictType.*;
+
 /**
  * DistrictShapefileDao utilizes a PostGIS database loaded with Census shapefiles to
  * provide fast district resolution given a coordinate pair. It also allows for determining
@@ -332,6 +334,12 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                         districtMapCache.get(type).add(map);
                         districtMapLookup.get(type).put(code, map);
                     }
+                }
+            }
+            for (DistrictType type : List.of(CONGRESSIONAL, SENATE, ASSEMBLY)) {
+                List<DistrictMap> mapList = districtMapCache.get(type);
+                if (mapList != null) {
+                    mapList.sort(Comparator.comparingInt(o -> Integer.parseInt(o.getDistrictCode())));
                 }
             }
             return districtMapLookup;
