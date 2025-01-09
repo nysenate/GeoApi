@@ -166,7 +166,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                                 streetFileResult, DistrictStrategy.neighborMatch);
                         break;
 
-                    case streetFallback:
+                    case streetFallback, shapeFallback:
                         districtExecutor = ExecutorUtil.createExecutor("streetFallBack", 2);
 //                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("streetFallback"));
 
@@ -181,12 +181,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
 
                         districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, shapeFileResult,
                                 streetFileResult, DistrictStrategy.streetFallback);
-                        break;
-
-                    case shapeFallback:
-                        streetFileResult = streetFileService.assignDistricts(geocodedAddress, districtTypes);
-                        districtResult = consolidateDistrictResults(geocodedAddress, shapeFileService, null, streetFileResult,
-                                DistrictStrategy.shapeFallback);
                         break;
 
                     case streetOnly:
@@ -332,7 +326,7 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                         }
                         break;
 
-                    case streetFallback:
+                    case streetFallback, shapeFallback:
                         districtExecutor = ExecutorUtil.createExecutor("streetFallbackBatch", 2);
 //                        districtExecutor = Executors.newFixedThreadPool(2, new SageThreadFactory("streetFallbackBatch"));
 
@@ -349,23 +343,6 @@ public class DistrictServiceProvider implements SageDistrictServiceProvider //sh
                             DistrictResult consolidated =
                                     consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, shapeFileResults.get(i),
                                             streetFileResults.get(i), DistrictStrategy.streetFallback);
-                            consolidated.setGeocodedAddress(geocodedAddresses.get(i));
-                            if (consolidated.getGeocodedAddress() != null) {
-                                logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
-                            }
-                            else {
-                                logger.info("The geocoded address was null");
-                            }
-                            districtResults.add(consolidated);
-                        }
-                        break;
-
-                    case shapeFallback:
-                        streetFileResults = streetFileService.assignDistricts(geocodedAddresses, districtTypes);
-                        for (int i = 0; i < streetFileResults.size(); i++) {
-                            DistrictResult consolidated =
-                                    consolidateDistrictResults(geocodedAddresses.get(i), shapeFileService, null, streetFileResults.get(i),
-                                            DistrictStrategy.shapeFallback);
                             consolidated.setGeocodedAddress(geocodedAddresses.get(i));
                             if (consolidated.getGeocodedAddress() != null) {
                                 logger.info(FormatUtil.toJsonString(consolidated.getGeocodedAddress()));
