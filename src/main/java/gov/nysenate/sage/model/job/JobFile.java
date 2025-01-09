@@ -42,7 +42,7 @@ public class JobFile extends BaseJobFile<JobRecord> {
         geoMethod(List.of("geoMethod", "geoSource"), Group.geocode),
         geoQuality(List.of("geoQuality", "accuracy"), Group.geocode),
 
-        town(List.of("town52", "townCode", "town"), Group.district),
+        town_city(List.of("town52", "townCode", "town"), Group.district),
         ward(List.of("ward53", "wardCode", "ward"), Group.district),
         election(List.of("electionDistrict49", "electionDistrict", "ed", "election"), Group.district),
         congressional(List.of("congressionalDistrict46", "cd", "congressionalDistrict", "congressional"), Group.district),

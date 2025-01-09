@@ -1,6 +1,5 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
@@ -15,9 +14,8 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 public class AddressPointsParser extends BaseParser {
     private final Map<String, Integer> fipsCodeMap;
 
-    public AddressPointsParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap,
-                               Map<String, Integer> fipsCodeMap) {
-        super(file, typeAndNameToIdMap);
+    public AddressPointsParser(File file, Map<String, Integer> fipsCodeMap) {
+        super(file);
         this.fipsCodeMap = fipsCodeMap;
     }
 

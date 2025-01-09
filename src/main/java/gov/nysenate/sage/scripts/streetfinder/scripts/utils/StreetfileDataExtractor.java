@@ -1,10 +1,11 @@
 package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
-import gov.nysenate.sage.util.AddressUtil;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -23,7 +24,7 @@ public class StreetfileDataExtractor {
     private final String sourceName;
     private final Function<String, List<String>> lineParser;
     private final Map<DistrictType, Integer> typeToDistrictIndexMap = new HashMap<>();
-    private Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap;
+    public static BiMap<Tuple<MunicipalityType, String>, Integer> typeAndNameToIdBiMap = HashBiMap.create();
     private int[] buildingIndices = emptyIntArray, streetIndices = emptyIntArray;
     private int postalCityIndex = -1, precinctIndex = -1;
     // Maps a line to a county FIPS code
@@ -37,11 +38,6 @@ public class StreetfileDataExtractor {
     public StreetfileDataExtractor(String sourceName, Function<String, List<String>> lineParser) {
         this.sourceName = sourceName;
         this.lineParser = lineParser;
-    }
-
-    public StreetfileDataExtractor setTable(Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap) {
-        this.typeAndNameToIdMap = typeAndNameToIdMap;
-        return this;
     }
 
     public StreetfileDataExtractor addBuildingIndices(int... indices) {
@@ -131,7 +127,7 @@ public class StreetfileDataExtractor {
         );
 
         Integer townCityIndex = typeToDistrictIndexMap.get(DistrictType.TOWN_CITY);
-        if (townCityIndex != null && typeAndNameToIdMap != null) {
+        if (townCityIndex != null) {
             lineFields.set(townCityIndex, getTownCityId(lineFields.get(townCityIndex)));
         }
         CompactDistrictMap districts = CompactDistrictMap.getMap(type -> getValue(lineFields, type));
@@ -141,40 +137,33 @@ public class StreetfileDataExtractor {
         return new StreetfileLineData(buildingRange, addressWithoutNum, cell, StreetfileLineType.PROPER);
     }
 
-    public String getTownCityId(String input) {
+    private String getTownCityId(String input) {
         String[] split = input.toUpperCase().split(" ", 2);
-        switch (split[0]) {
-            case "N" -> split[0] = "NORTH";
-            case "ST." -> split[0] = "ST";
-            case "FT." -> split[0] = "FORT";
-        }
+        split[0] = switch (split[0]) {
+            case "N" -> "NORTH";
+            case "ST." -> "ST";
+            case "FT." -> "FORT";
+            default -> split[0];
+        };
         input = String.join(" ", split);
         var matcher = townCityPattern.matcher(input.toUpperCase());
         if (!matcher.matches()) {
-            throw new RuntimeException();
+            throw new RuntimeException("Couldn't match TownCity!");
         }
 
-        Integer townCityId = null;
+        MunicipalityType type = null;
         String prefix = nullToEmpty(matcher.group(1));
         String townCity = matcher.group(3);
         String suffix = nullToEmpty(matcher.group(4));
         if (prefix.contains("TOWN") || suffix.contains("TOWN")) {
-            townCityId = typeAndNameToIdMap.get(MunicipalityType.TOWN).get(townCity);
+            type = MunicipalityType.TOWN;
         }
         else if (prefix.contains("CITY") || suffix.contains("CITY")) {
-            townCityId = typeAndNameToIdMap.get(MunicipalityType.CITY).get(townCity);
+            type = MunicipalityType.CITY;
         }
-        else {
-            for (Map<String, Integer> idMap : typeAndNameToIdMap.values()) {
-                Integer tempId = idMap.get(townCity);
-                if (tempId != null) {
-                    townCityId = tempId;
-                }
-            }
-        }
-        if (townCityId == null) {
-            return "0";
-        }
+        Integer townCityId = typeAndNameToIdBiMap.computeIfAbsent(
+                new Tuple<>(type, townCity), k -> typeAndNameToIdBiMap.size()
+        );
         return String.valueOf(townCityId).intern();
     }
 

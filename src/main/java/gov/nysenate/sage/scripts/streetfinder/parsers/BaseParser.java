@@ -2,7 +2,6 @@ package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
@@ -19,7 +18,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType.*;
 
@@ -34,9 +32,9 @@ public abstract class BaseParser {
     protected final StreetfileDataExtractor dataExtractor;
     private final String lineRegex = " *%s *".formatted(delim());
 
-    public BaseParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap) {
+    public BaseParser(File file) {
         this.file = file;
-        this.dataExtractor = getDataExtractor().setTable(typeAndNameToIdMap);
+        this.dataExtractor = getDataExtractor();
     }
 
     public void parseFile(DistrictingData data) throws IOException {

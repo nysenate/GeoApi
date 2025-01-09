@@ -132,6 +132,7 @@ env.geocoder.public.schema = public
 smtp.active = true
 smtp.host = senmail.senate.state.ny.us
 smtp.port = 25
+smtp.auth =
 smtp.user = 
 smtp.pass = 
 smtp.debug = false
@@ -170,6 +171,7 @@ job.threads.distassign = 2
 district.strategy.single = streetFallback
 district.strategy.bluebird = streetFallback
 district.strategy.batch = shapeFallback
+district.strategy.job = shapeFallback
 
 #####################################
 ## Geocode Cache Configuration

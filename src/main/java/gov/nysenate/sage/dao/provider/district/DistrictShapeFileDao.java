@@ -44,6 +44,4 @@ public interface DistrictShapeFileDao {
      * a lookup cache for fast retrieval.
      */
     boolean cacheDistrictMaps();
-
-    Map<MunicipalityType, Map<String, Integer>> getTypeAndNameToIdMap();
 }

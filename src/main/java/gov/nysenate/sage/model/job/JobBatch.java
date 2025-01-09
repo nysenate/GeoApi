@@ -2,6 +2,7 @@ package gov.nysenate.sage.model.job;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
@@ -76,6 +77,9 @@ public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord)
 
     public void setDistrictResult(int index, DistrictResult districtResult) {
         if (this.jobRecords.get(index) != null) {
+            if (districtResult.getDistrictInfo() == null) {
+                districtResult.setDistrictInfo(new DistrictInfo());
+            }
             this.jobRecords.get(index).applyDistrictResult(districtResult);
         }
     }

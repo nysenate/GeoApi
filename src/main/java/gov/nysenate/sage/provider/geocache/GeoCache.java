@@ -3,8 +3,9 @@ package gov.nysenate.sage.provider.geocache;
 import gov.nysenate.sage.dao.provider.geocache.SqlGeoCacheDao;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
-import gov.nysenate.sage.provider.geocode.Geocoder;
+import gov.nysenate.sage.service.geo.GeocodeServiceValidator;
 import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,7 @@ public class GeoCache extends GeocodeService {
 
     @Autowired
     public GeoCache(SqlGeoCacheDao sqlGeoCacheDao, ParallelGeocodeService parallelGeocodeService) {
+        // TODO: add PO Box specific code?
         super(sqlGeoCacheDao,  parallelGeocodeService);
         this.sqlGeoCacheDao = sqlGeoCacheDao;
     }

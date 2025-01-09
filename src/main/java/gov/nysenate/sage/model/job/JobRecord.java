@@ -81,11 +81,7 @@ public class JobRecord {
             this.dataMap.put(Column.congressional, districtInfo.getDistCode(DistrictType.CONGRESSIONAL));
             this.dataMap.put(Column.county, districtInfo.getDistCode(DistrictType.COUNTY));
             this.dataMap.put(Column.school, districtInfo.getDistCode(DistrictType.SCHOOL));
-            // Ensures the town isn't overwritten
-            String townCode = districtInfo.getDistCode(DistrictType.TOWN_CITY);
-            if (townCode != null) {
-                this.dataMap.put(Column.town, townCode);
-            }
+            this.dataMap.put(Column.town_city, districtInfo.getDistCode(DistrictType.TOWN_CITY));
             this.dataMap.put(Column.election, districtInfo.getDistCode(DistrictType.ELECTION));
             this.dataMap.put(Column.ward, districtInfo.getDistCode(DistrictType.WARD));
         }

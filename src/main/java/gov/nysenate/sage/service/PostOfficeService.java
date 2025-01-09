@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentMap;
 
 @Service
 public class PostOfficeService {
-    public final ConcurrentMap<Integer, PostOfficeDistrictData> cache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, PostOfficeDistrictData> cache = new ConcurrentHashMap<>();
     private final File dataDir;
     private final PostOfficeDao dao;
     // Autowired to prevent circular dependency

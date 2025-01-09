@@ -14,24 +14,19 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.collections.CaseInsensitiveKeyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-import static gov.nysenate.sage.dao.provider.district.MunicipalityType.CITY;
-import static gov.nysenate.sage.dao.provider.district.MunicipalityType.TOWN;
+import static gov.nysenate.sage.model.district.DistrictType.*;
 
 /**
  * DistrictShapefileDao utilizes a PostGIS database loaded with Census shapefiles to
@@ -133,14 +128,6 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
         return true;
     }
 
-    @Override
-    public Map<MunicipalityType, Map<String, Integer>> getTypeAndNameToIdMap() {
-        final String sql = "SELECT * FROM districts." + DistrictType.TOWN_CITY.name().toLowerCase();
-        var rch = new TownCityHandler();
-        baseDao.geoApiJbdcTemplate.query(sql, rch);
-        return rch.results;
-    }
-
     /**
      * Projects the result set into a DistrictInfo object.
      */
@@ -192,6 +179,18 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                 districtOverlap.addIntersectionMap(code, intersectMap);
             }
             return districtOverlap;
+        }
+    }
+
+    private class StreetLineIntersectHandler implements ResultSetExtractor<Map<String, List<Line>>> {
+        @Override
+        public Map<String, List<Line>> extractData(ResultSet rs) throws SQLException {
+            Map<String, List<Line>> intersectMap = new HashMap<>();
+            while (rs.next()) {
+                List<Line> lines = BaseDao.getLinesFromJson(rs.getString("street_intersect"));
+                intersectMap.put(getDistrictCode(rs), lines);
+            }
+            return intersectMap;
         }
     }
 

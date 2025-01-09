@@ -1,6 +1,5 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
@@ -9,7 +8,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
@@ -23,8 +21,8 @@ public class NYCParser extends CountyParser {
     private final String mailCity;
     private String currStreet;
 
-    public NYCParser(File file, Map<MunicipalityType, Map<String, Integer>> typeAndNameToIdMap, County county) {
-        super(file, typeAndNameToIdMap, county);
+    public NYCParser(File file, County county) {
+        super(file, county);
         this.mailCity = switch (county.name()) {
             case "Queens" -> "";
             case "Kings", "Richmond" -> county.streetfileName();
